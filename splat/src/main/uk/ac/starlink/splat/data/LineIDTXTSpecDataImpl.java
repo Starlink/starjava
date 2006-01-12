@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     11-APR-2003 (Peter W. Draper):
@@ -35,11 +36,11 @@ import uk.ac.starlink.splat.util.Utilities;
  * that have a coordinate, value and an associated String, typically a
  * spectral line identification.
  * <p>
- * Text files are assumed to be plain and contain either two, three
- * or more whitespace separated columns. If two columns are present
- * then these are the wavelength and label, if three or more
- * then the second column should be position of the label and the
- * third the label.
+ * Text files are assumed to be plain and contain either one, two, three
+ * or more whitespace separated columns. If one column is present then that is
+ * assumed to be the wavelength, and empty labels are used, if two columns are
+ * present then these are the wavelength and label, if three or more then the
+ * second column should be position of the label and the third the label.
  * <P.
  * An optional feature is support for a header section that defines
  * useful elements, such as the AST attributes of the coordinates, any known
@@ -245,8 +246,7 @@ public class LineIDTXTSpecDataImpl
                     continue;
                 } else {
 
-                    // Read at least 2 words from line
-                    // and no more than 3.
+                    // Read at least 1 word from line and no more than 3.
                     st = new StringTokenizer( raw );
                     count = Math.min( st.countTokens(), 3 );
                     nwords = Math.max( count, nwords );
@@ -266,6 +266,7 @@ public class LineIDTXTSpecDataImpl
             r = new BufferedReader( new InputStreamReader( f ) );
 
             haveDataPositions = ( nwords == 3 );
+            boolean needLabels = ( nwords == 1 );
 
             // Skip any header section. Not really needed as comments.
             if ( nhead > 0 ) {
@@ -279,12 +280,15 @@ public class LineIDTXTSpecDataImpl
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
                      raw.charAt(0) == '#' || raw.charAt(0) == '*' ) {
                     continue;
-                } 
+                }
                 else {
                     // Should be nwords per line.
                     st = new StringTokenizer( raw );
                     coords[nlines] = Float.parseFloat( st.nextToken() );
-                    if ( haveDataPositions ) {
+                    if ( needLabels ) {
+                        labels[nlines] = "Unknown-line";
+                    }
+                    else if ( haveDataPositions ) {
                         data[nlines] = Float.parseFloat( st.nextToken() );
                         labels[nlines] = st.nextToken();
                     }
@@ -300,13 +304,13 @@ public class LineIDTXTSpecDataImpl
             if ( haveDataPositions ) {
                 throw new SplatException( "Error reading line identifiers"+
                                           " from file: " + file + ", failed" +
-                                          " to read a valid number : " + 
-                                          ne.getMessage() + 
+                                          " to read a valid number : " +
+                                          ne.getMessage() +
                                           " (expected three columns)", ne );
             }
             throw new SplatException( "Error reading line identifiers"+
                                       " from file: " + file + ", failed" +
-                                      " to read a valid number : \n" + 
+                                      " to read a valid number : \n" +
                                       ne.getMessage(), ne );
         }
         catch (Exception e) {
