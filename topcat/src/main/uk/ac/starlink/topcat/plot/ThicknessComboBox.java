@@ -58,7 +58,7 @@ public class ThicknessComboBox extends JComboBox implements ListCellRenderer {
      * @param   thick  selected thickness
      */
     public void setSelectedThickness( int thick ) {
-        setSelectedIndex( Math.max( thick - 1, 1 ) );
+        setSelectedIndex( Math.max( thick - 1, 0 ) );
     }
 
     public Component getListCellRendererComponent( JList list, Object value,
