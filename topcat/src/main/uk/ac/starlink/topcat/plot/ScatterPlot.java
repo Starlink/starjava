@@ -176,7 +176,8 @@ public class ScatterPlot extends SurfacePlot {
             Graphics2D lineGraphics = null;
             if ( joindots ) {
                 lineGraphics = (Graphics2D) g.create();
-                style.configureForLine( lineGraphics );
+                style.configureForLine( lineGraphics, BasicStroke.CAP_BUTT,
+                                        BasicStroke.JOIN_MITER );
             }
             boolean notFirst = false;
 
@@ -231,7 +232,9 @@ public class ScatterPlot extends SurfacePlot {
                                                        false );
                     if ( p1 != null && p2 != null ) {
                         Graphics g1 = g.create();
-                        ((MarkStyle) styles[ is ]).configureForLine( g1 );
+                        ((MarkStyle) styles[ is ])
+                                    .configureForLine( g1, BasicStroke.CAP_BUTT,
+                                                       BasicStroke.JOIN_MITER );
                         g1.drawLine( p1.x, p1.y, p2.x, p2.y );
                     }
                 }

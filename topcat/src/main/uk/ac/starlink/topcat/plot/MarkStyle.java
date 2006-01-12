@@ -17,8 +17,9 @@ import javax.swing.Icon;
  * <pre>
  *    style1 = style0.getShapeId()
  *                   .getStyle( style0.getColor(), style0.getSize() );
- *    style1.setStroke( style0.getStroke() );
  *    style1.setLine( style0.getLine() );
+ *    style1.setLineWidth( style0.getLineWidth() );
+ *    style1.setDash( style0.getDash() );
  *    styel1.setHidePoints( style0.getHidePoints() );
  * </pre>
  * style0 and style1 should then match according to the <code>equals()</code>
@@ -190,17 +191,18 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
-     * Configures the given graphics context ready to do line drawing
-     * in accordance with the current state of this style.
-     * Only call this if {@link #getLine} returns true.
+     * Configures the given graphics context ready to do line drawing with
+     * a given stroke cap and join policy.
      *
-     * @param  g  graphics context - will be altered
+     * @param   g  graphics context - will be altered
+     * @param   cap  one of {@link java.awt.BasicStroke}'s CAP_* constants
+     * @param   join one of {@link java.awt.BasicStroke}'s JOIN_* constants
      */
-    public void configureForLine( Graphics g ) {
+    public void configureForLine( Graphics g, int cap, int join ) {
         g.setColor( getColor() );
         if ( g instanceof Graphics2D ) {
             Graphics2D g2 = (Graphics2D) g;
-            g2.setStroke( getStroke() );
+            g2.setStroke( getStroke( cap, join ) );
         }
     }
 
@@ -217,7 +219,8 @@ public abstract class MarkStyle extends DefaultStyle {
         boolean hide;
         if ( getLine() != null ) {
             Graphics g1 = g.create();
-            configureForLine( g1 );
+            configureForLine( g1, BasicStroke.CAP_BUTT,
+                                  BasicStroke.JOIN_MITER );
             g1.drawLine( x - 8, y, x + 8, y );
             hide = getHidePoints();
         }

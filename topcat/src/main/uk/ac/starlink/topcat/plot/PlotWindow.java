@@ -113,10 +113,11 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                 super.paint( g );
                 int height = getHeight();
                 int width = getWidth();
-                if ( replotted_ || height != lastHeight_
-                                || width != lastWidth_ ) {
-                    recordVisiblePoints( getState(), getPoints(),
-                                         getSurface() );
+                PlotState state = getState();
+                if ( state.getValid() &&
+                     ( replotted_ || height != lastHeight_
+                                  || width != lastWidth_ ) ) {
+                    recordVisiblePoints( state, getPoints(), getSurface() );
                     recordCorrelations( getPointSelection().getSetIds(),
                                         getCorrelations() );
                     lastHeight_ = height;

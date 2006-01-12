@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
+import java.util.Arrays;
 
 /**
  * Convenience partial implementation of Style which has a defined colour
@@ -18,7 +20,8 @@ import java.awt.Stroke;
 public abstract class DefaultStyle implements Style {
 
     private Color color_;
-    private Stroke stroke_;
+    private int lineWidth_ = 1;
+    private float[] dash_;
     private final Object otherAtts_;
     private static final Object DUMMY_ATTS = new Object();
 
@@ -27,20 +30,11 @@ public abstract class DefaultStyle implements Style {
      * object.
      *
      * @param  color  initial colour
-     * @param  stroke  initial stroke
      * @param  otherAtts  object distinguishing this instance
      */
-    protected DefaultStyle( Color color, Stroke stroke, Object otherAtts ) {
+    protected DefaultStyle( Color color, Object otherAtts ) {
         otherAtts_ = otherAtts == null ? DUMMY_ATTS : otherAtts;
         setColor( color );
-        setStroke( stroke );
-    }
-
-    /**
-     * Constructs a style given a colour and an <code>otherAtts</code> object.
-     */
-    protected DefaultStyle( Color color, Object otherAtts ) {
-        this( color, Styles.PLAIN_STROKE, otherAtts );
     }
 
     /**
@@ -62,21 +56,63 @@ public abstract class DefaultStyle implements Style {
     }
 
     /**
-     * Sets the stroke of this style.
+     * Sets the line width associated with this style.
      *
-     * @param  stroke  new stroke
+     * @param  width  line width (>=1)
      */
-    public void setStroke( Stroke stroke ) {
-        stroke_ = stroke;
+    public void setLineWidth( int width ) {
+        lineWidth_ = width;
     }
 
     /**
-     * Returns the stroke of this style.
+     * Returns the line width associated with this style.
      *
+     * @return  line width
+     */
+    public int getLineWidth() {
+        return lineWidth_;
+    }
+
+    /**
+     * Sets the dash pattern associated with this style. 
+     * This is like the dash array in {@link java.awt.BasicStroke},
+     * except that it is multiplied by the line width before use.
+     * May be null for a solid line.
+     *
+     * @param  dash   dash array
+     */
+    public void setDash( float[] dash ) {
+        dash_ = dash;
+    }
+
+    /**
+     * Returns the dash pattern associated with this style.
+     * May be null for a solid line.
+     *
+     * @return  dash array
+     */
+    public float[] getDash() {
+        return dash_;
+    }
+
+    /**
+     * Returns a stroke suitable for drawing lines in this style.
+     * The line join and cap policy must be provided.
+     *
+     * @param  cap     one of {@link java.awt.BasicStroke}'s CAP_* constants
+     * @param  join    one of {@link java.awt.BasicStroke}'s JOIN_* constants
      * @return  stroke
      */
-    public Stroke getStroke() {
-        return stroke_;
+    public Stroke getStroke( int cap, int join ) {
+        int thick = getLineWidth();
+        float[] dash = getDash();
+        if ( dash != null && thick != 1 ) {
+            dash = (float[]) dash.clone();
+            for ( int i = 0; i < dash.length; i++ ) {
+                dash[ i ] *= thick;
+            }
+        }
+        return new BasicStroke( thick, cap, join, 10f, dash, 0f );
     }
 
     /**
@@ -104,7 +140,8 @@ public abstract class DefaultStyle implements Style {
             DefaultStyle other = (DefaultStyle) o;
             return getClass().equals( other.getClass() )
                 && getColor().equals( other.getColor() )
-                && getStroke().equals( other.getStroke() )
+                && getLineWidth() == other.getLineWidth()
+                && Arrays.equals( getDash(), other.getDash() )
                 && getOtherAtts().equals( other.getOtherAtts() );
         }
         else {
@@ -116,7 +153,7 @@ public abstract class DefaultStyle implements Style {
         int code = 5555;
         code = code * 23 + getClass().hashCode();
         code = code * 23 + getColor().hashCode();
-        code = code * 23 + getStroke().hashCode();
+        code = code * 23 + getStroke( 0, 0 ).hashCode();
         code = code * 23 + getOtherAtts().hashCode();
         return code;
     }
@@ -126,8 +163,29 @@ public abstract class DefaultStyle implements Style {
         return new StringBuffer()
             .append( getClass().getName() )
             .append( getColor() )
-            .append( getStroke() )
             .append( getOtherAtts() )
             .toString();
+    }
+
+    /**
+     * Returns a stroke which resembles a given template but has specified
+     * end cap and line join policies.
+     *
+     * @param  stroke  template stroke
+     * @param  cap     one of {@link java.awt.BasicStroke}'s CAP_* constants
+     * @param  join    one of {@link java.awt.BasicStroke}'s JOIN_* constants
+     * @return  fixed stroke, may be the same as the input one
+     */
+    public static Stroke getStroke( Stroke stroke, int cap, int join ) {
+        if ( stroke instanceof BasicStroke ) {
+            BasicStroke bstroke = (BasicStroke) stroke;
+            if ( bstroke.getEndCap() != cap || bstroke.getLineJoin() != join ) {
+                return new BasicStroke( bstroke.getLineWidth(), cap, join,
+                                        bstroke.getMiterLimit(),
+                                        bstroke.getDashArray(),
+                                        bstroke.getDashPhase() );
+            }
+        }
+        return stroke;
     }
 }

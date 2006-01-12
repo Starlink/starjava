@@ -21,7 +21,19 @@ public class BarStyle extends DefaultStyle {
     /** Bar form using open rectangles. */
     public static final Form FORM_OPEN = new Form( "open" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
-            g.drawRect( x, y, Math.max( width - 1 - 1, 1 ), height );
+            Graphics2D g2 = (Graphics2D) g;
+            int thickness = ( g2.getStroke() instanceof BasicStroke )
+                          ? (int) ((BasicStroke) g2.getStroke()).getLineWidth()
+                          : 1;
+            int x0 = x + thickness / 2;
+            int y0 = y + height;
+            int x1 = x + width - 1 - ( ( thickness + 1 ) / 2 );
+            int y1 = y;
+            int[] xp = new int[] { x0, x0, x1, x1, };
+            int[] yp = new int[] { y0, y1, y1, y0, };
+
+            // This doesn't seem to be honouring the JOIN policy.  Why????
+            g2.drawPolyline( xp, yp, 4 );
         }
     };
 
@@ -52,29 +64,11 @@ public class BarStyle extends DefaultStyle {
     /** Bar form using 1-d spikes. */
     public static final Form FORM_SPIKE = new Form( "spike" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
-
-            /* Careful.  If we have a stroke with CAP_SQUARE capping, it will
-             * look like it goes half a line width higher than it does. 
-             * Change it to CAP_BUTT in this case. */
-            if ( g instanceof Graphics2D ) {
-                Stroke stroke = ((Graphics2D) g).getStroke();
-                if ( stroke instanceof BasicStroke ) {
-                    BasicStroke s = (BasicStroke) stroke;
-                    if ( s.getEndCap() == BasicStroke.CAP_SQUARE ) {
-                        Stroke s1 = new BasicStroke( s.getLineWidth(),
-                                                     BasicStroke.CAP_BUTT,
-                                                     s.getLineJoin(),
-                                                     s.getMiterLimit(),
-                                                     s.getDashArray(),
-                                                     s.getDashPhase() );
-                        g = g.create();
-                        ((Graphics2D) g).setStroke( s1 );
-                    }
-                }
-            } 
-
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setStroke( getStroke( g2.getStroke(), BasicStroke.CAP_ROUND,
+                                     BasicStroke.JOIN_MITER ) );
             int xpos = x + width / 2;
-            g.drawLine( xpos, y, xpos, y + height );
+            g2.drawLine( xpos, y, xpos, y + height );
         }
     };
 
@@ -99,14 +93,11 @@ public class BarStyle extends DefaultStyle {
      * Constructor.
      *
      * @param   color  initial colour
-     * @param   stroke  initial stroke style
      * @param   form    bar form
      * @param   placement  bar placement
      */
-    public BarStyle( Color color, Stroke stroke, Form form,
-                     Placement placement ) {
-        super( color, stroke,
-               Arrays.asList( new Object[] { form, placement } ) );
+    public BarStyle( Color color, Form form, Placement placement ) {
+        super( color, Arrays.asList( new Object[] { form, placement } ) );
         form_ = form;
         placement_ = placement;
     }
@@ -128,7 +119,8 @@ public class BarStyle extends DefaultStyle {
         Color col = g.getColor();
         Stroke str = g2.getStroke();
         g.setColor( getColor() );
-        g2.setStroke( getStroke() );
+        g2.setStroke( getStroke( BasicStroke.CAP_SQUARE,
+                                 BasicStroke.JOIN_MITER) );
         int[] xRange = placement_.getXRange( xlo, xhi, iseq, nseq );
         int x = xRange[ 0 ];
         int width = xRange[ 1 ] - xRange[ 0 ];
@@ -159,7 +151,8 @@ public class BarStyle extends DefaultStyle {
         Color col = g.getColor();
         Stroke str = g2.getStroke();
         g.setColor( getColor() );
-        g2.setStroke( getStroke() );
+        g2.setStroke( getStroke( BasicStroke.CAP_SQUARE,
+                                 BasicStroke.JOIN_MITER ) );
         form_.drawEdge( g, x, y1, y2 );
         g.setColor( col );
         g2.setStroke( str );

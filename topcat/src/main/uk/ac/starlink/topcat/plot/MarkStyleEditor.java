@@ -1,11 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Stroke;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Box;
@@ -35,15 +33,15 @@ public class MarkStyleEditor extends StyleEditor {
     private final JCheckBox markFlagger_;
     private final JComboBox shapeSelector_;
     private final JComboBox sizeSelector_;
-    private final JComboBox colorSelector_;
-    private final JComboBox thickSelector_;
+    private final ColorComboBox colorSelector_;
+    private final ThicknessComboBox thickSelector_;
+    private final DashComboBox dashSelector_;
     private final ValueButtonGroup lineSelector_;
     private final JLabel corrLabel_;
     private final Map statMap_;
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
-    private static final Color[] COLORS = Styles.COLORS;
     private static final MarkShape[] SHAPES = new MarkShape[] {
         MarkShape.FILLED_CIRCLE,
         MarkShape.OPEN_CIRCLE,
@@ -97,18 +95,7 @@ public class MarkStyleEditor extends StyleEditor {
         sizeSelector_.addActionListener( this );
 
         /* Colour selector. */
-        colorSelector_ = new JComboBox( COLORS );
-        colorSelector_.setRenderer( new MarkRenderer() {
-            public Color getMarkColor( int index ) {
-                return (Color) colorSelector_.getItemAt( index );
-            }
-            public int getMarkSize() {
-                return 5;
-            }
-            public MarkShape getMarkShape() {
-                return MarkShape.FILLED_SQUARE;
-            }
-        } );
+        colorSelector_ = new ColorComboBox();
         colorSelector_.addActionListener( this );
 
         /* Marker hiding selector. */
@@ -117,13 +104,12 @@ public class MarkStyleEditor extends StyleEditor {
         markFlagger_.addActionListener( this );
 
         /* Line thickness selector. */
-        thickSelector_ = new JComboBox( createNumberedModel( MAX_THICK ) );
-        thickSelector_.setRenderer( new LineRenderer() {
-            public int getLineThickness( int index ) {
-                return index + 1;
-            }
-        } );
+        thickSelector_ = new ThicknessComboBox( MAX_THICK );
         thickSelector_.addActionListener( this );
+
+        /* Line dash selector. */
+        dashSelector_ = new DashComboBox();
+        dashSelector_.addActionListener( this );
 
         /* Line type selector. */
         JRadioButton noneButton = new JRadioButton( "None", true );
@@ -164,6 +150,11 @@ public class MarkStyleEditor extends StyleEditor {
             lineStyleBox.add( Box.createHorizontalStrut( 5 ) );
             lineStyleBox.add( new ComboBoxBumper( thickSelector_ ) );
             lineStyleBox.add( Box.createHorizontalStrut( 10 ) );
+            lineStyleBox.add( new JLabel( "Dash: " ) );
+            lineStyleBox.add( new ShrinkWrapper( dashSelector_ ) );
+            lineStyleBox.add( Box.createHorizontalStrut( 5 ) );
+            lineStyleBox.add( new ComboBoxBumper( dashSelector_ ) );
+            lineStyleBox.add( Box.createHorizontalStrut( 10 ) );
             lineStyleBox.add( markFlagger_ );
             lineStyleBox.add( Box.createHorizontalGlue() );
 
@@ -193,11 +184,8 @@ public class MarkStyleEditor extends StyleEditor {
         shapeSelector_.setSelectedItem( mstyle.getShapeId() );
         sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
-        Stroke stroke = mstyle.getStroke();
-        int thick = stroke instanceof BasicStroke 
-                  ? (int) ((BasicStroke) stroke).getLineWidth()
-                  : 1;
-        thickSelector_.setSelectedIndex( thick - 1 );
+        thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
+        dashSelector_.setSelectedDash( mstyle.getDash() );
         lineSelector_.setValue( mstyle.getLine() );
         markFlagger_.setSelected( mstyle.getHidePoints() );
     }
@@ -205,10 +193,11 @@ public class MarkStyleEditor extends StyleEditor {
     public Style getStyle() {
         return getStyle( (MarkShape) shapeSelector_.getSelectedItem(),
                          sizeSelector_.getSelectedIndex(),
-                         (Color) colorSelector_.getSelectedItem(),
-                         ! markFlagger_.isSelected(),
+                         colorSelector_.getSelectedColor(),
+                         markFlagger_.isEnabled() && markFlagger_.isSelected(),
                          (MarkStyle.Line) lineSelector_.getValue(),
-                         thickSelector_.getSelectedIndex() + 1 );
+                         thickSelector_.getSelectedThickness(),
+                         dashSelector_.getSelectedDash() );
     }
 
     /**
@@ -224,14 +213,13 @@ public class MarkStyleEditor extends StyleEditor {
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
                                        boolean hidePoints, MarkStyle.Line line,
-                                       int thick ) {
+                                       int thick, float[] dash ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
                                     : shape.getStyle( color, size );
         style.setLine( line );
-        style.setHidePoints( ! hidePoints );
-        style.setStroke( new BasicStroke( (float) thick, BasicStroke.CAP_ROUND,
-                                          BasicStroke.JOIN_ROUND, 10f, null,
-                                          0f ) );
+        style.setHidePoints( hidePoints );
+        style.setLineWidth( thick );
+        style.setDash( dash );
         return style;
     }
 
@@ -309,7 +297,7 @@ public class MarkStyleEditor extends StyleEditor {
             return getMarkColor();
         }
         Color getMarkColor() {
-            return (Color) colorSelector_.getSelectedItem();
+            return colorSelector_.getSelectedColor();
         }
         public Component getListCellRendererComponent( JList list, Object value,
                                                        int index,
@@ -326,77 +314,12 @@ public class MarkStyleEditor extends StyleEditor {
                 MarkStyle style = index >= 0 ? getStyle( getMarkShape( index ),
                                                          getMarkSize( index ),
                                                          getMarkColor( index ),
-                                                         false, null, 1 )
+                                                         false, null, 1, null )
                                              : getStyle( getMarkShape(),
                                                          getMarkSize(),
                                                          getMarkColor(),
-                                                         false, null, 1 );
+                                                         false, null, 1, null );
                 label.setIcon( Styles.getLegendIcon( style, 15, 15 ) );
-            }
-            return c;
-        }
-    }
-
-    /**
-     * ComboBoxRenderer class suitable for rendering lines.
-     */
-    private class LineRenderer extends BasicComboBoxRenderer {
-        final int LINE_ICON_WIDTH = 48;
-        final int LINE_ICON_HEIGHT = MAX_THICK / 2 * 2 + 1;
-
-        Color getLineColor( int index ) {
-            return getLineColor();
-        }
-        Color getLineColor() {
-            return Color.BLACK;
-        }
-        int getLineThickness( int index ) {
-            return getLineThickness();
-        }
-        int getLineThickness() {
-            return thickSelector_.getSelectedIndex() + 1;
-        }
-        float[] getLineDash( int index ) {
-            return getLineDash();
-        }
-        float[] getLineDash() {
-            return null;
-        }
-
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index,
-                                                       boolean isSelected,
-                                                       boolean hasFocus ) {
-            Component c =
-                super.getListCellRendererComponent( list, value, index,
-                                                    isSelected, hasFocus );
-            if ( c instanceof JLabel ) {
-                setText( null );
-                final Color color = index < 0 ? getLineColor()
-                                              : getLineColor( index );
-                int thick = index < 0 ? getLineThickness()
-                                      : getLineThickness( index );
-                float[] dash = index < 0 ? getLineDash()
-                                         : getLineDash( index );
-                final Stroke stroke =
-                    new BasicStroke( (float) thick, BasicStroke.CAP_SQUARE,
-                                     BasicStroke.JOIN_MITER, 10f, dash, 0f );
-                setIcon( new Icon() {
-                    public int getIconHeight() {
-                        return LINE_ICON_HEIGHT;
-                    }
-                    public int getIconWidth() {
-                        return LINE_ICON_WIDTH + 5;
-                    }
-                    public void paintIcon( Component comp, Graphics g,
-                                           int x, int y ) {
-                        int yoff = y + LINE_ICON_HEIGHT / 2;
-                        Graphics2D g2 = (Graphics2D) g.create();
-                        g2.setColor( color );
-                        g2.setStroke( stroke );
-                        g2.drawLine( 5, yoff, LINE_ICON_WIDTH, yoff );
-                    }
-                } );
             }
             return c;
         }

@@ -1,8 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Stroke;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -18,14 +16,13 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class BarStyleEditor extends StyleEditor {
 
-    private final JComboBox colorSelector_;
+    private final ColorComboBox colorSelector_;
     private final JComboBox formSelector_;
     private final JComboBox placeSelector_;
-    private final JComboBox thickSelector_;
+    private final ThicknessComboBox thickSelector_;
+    private final DashComboBox dashSelector_;
 
     private static final int MAX_THICK = 8;
-    private static final Color[] COLORS = Styles.COLORS;
-    private static final float[][] DASHES = Styles.DASHES;
     private static final BarStyle.Form[] FORMS = new BarStyle.Form[] {
         BarStyle.FORM_OPEN,
         BarStyle.FORM_FILLED,
@@ -45,14 +42,16 @@ public class BarStyleEditor extends StyleEditor {
     public BarStyleEditor() {
         super();
 
-        colorSelector_ = new JComboBox( COLORS );
+        colorSelector_ = new ColorComboBox();
         colorSelector_.addActionListener( this );
         formSelector_ = new JComboBox( FORMS );
         formSelector_.addActionListener( this );
         placeSelector_ = new JComboBox( PLACEMENTS );
         placeSelector_.addActionListener( this );
-        thickSelector_ = new JComboBox( createNumberedModel( MAX_THICK ) );
+        thickSelector_ = new ThicknessComboBox( MAX_THICK );
         thickSelector_.addActionListener( this );
+        dashSelector_ = new DashComboBox();
+        dashSelector_.addActionListener( this );
 
         JComponent colorBox = Box.createHorizontalBox();
         colorBox.add( new JLabel( "Color: " ) );
@@ -80,43 +79,49 @@ public class BarStyleEditor extends StyleEditor {
         thickBox.add( new ComboBoxBumper( thickSelector_ ) );
         thickBox.add( Box.createHorizontalGlue() );
 
+        JComponent dashBox = Box.createHorizontalBox();
+        dashBox.add( new JLabel( "Line Dash: " ) );
+        dashBox.add( new ShrinkWrapper( dashSelector_ ) );
+        dashBox.add( Box.createHorizontalStrut( 5 ) );
+        dashBox.add( new ComboBoxBumper( dashSelector_ ) );
+        dashBox.add( Box.createHorizontalGlue() );
+
         JComponent barBox = Box.createVerticalBox();
         barBox.add( colorBox );
         barBox.add( formBox );
         barBox.add( placeBox );
         barBox.add( thickBox );
+        barBox.add( dashBox );
         barBox.setBorder( AuxWindow.makeTitledBorder( "Bars" ) );
         add( barBox );
     }
 
     public void setStyle( Style st ) {
         BarStyle style = (BarStyle) st;
-        colorSelector_.setSelectedItem( style.getColor() );
+        colorSelector_.setSelectedColor( style.getColor() );
         formSelector_.setSelectedItem( style.getForm() );
         placeSelector_.setSelectedItem( style.getPlacement() );
-        Stroke stroke = style.getStroke();
-        int thick = stroke instanceof BasicStroke
-                  ? (int) ((BasicStroke) stroke).getLineWidth()
-                  : 1;
-        thickSelector_.setSelectedIndex( thick - 1 );
+        thickSelector_.setSelectedThickness( style.getLineWidth() );
+        dashSelector_.setSelectedDash( style.getDash() );
     }
 
     public Style getStyle() {
-        return getStyle( (Color) colorSelector_.getSelectedItem(),
+        return getStyle( colorSelector_.getSelectedColor(),
                          (BarStyle.Form) formSelector_.getSelectedItem(),
                          (BarStyle.Placement) placeSelector_.getSelectedItem(),
-                         thickSelector_.getSelectedIndex() + 1, null );
+                         thickSelector_.getSelectedThickness(),
+                         dashSelector_.getSelectedDash() );
     }
 
     private static Style getStyle( Color color, BarStyle.Form form,
                                    BarStyle.Placement placement, int thick,
                                    float[] dash ) {
-        Stroke stroke = new BasicStroke( (float) thick, BasicStroke.CAP_SQUARE,
-                                         BasicStroke.JOIN_MITER, 10f, dash,
-                                         0f );
         if ( form == BarStyle.FORM_TOP ) {
             placement = BarStyle.PLACE_OVER;
         }
-        return new BarStyle( color, stroke, form, placement );
+        BarStyle style = new BarStyle( color, form, placement );
+        style.setLineWidth( thick );
+        style.setDash( dash );
+        return style;
     }
 }

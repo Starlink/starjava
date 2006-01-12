@@ -22,7 +22,7 @@ public class BarStyles {
     private static class AutoBarStyleSet implements StyleSet {
         private final String name_;
         private final boolean rotateColor_;
-        private final boolean rotateStroke_;
+        private final boolean rotateDash_;
         private final BarStyle.Form form_;
         private final BarStyle.Placement placement_;
 
@@ -32,15 +32,15 @@ public class BarStyles {
          * @param  name  style set name
          * @param  rotateColor  true iff {@link java.awt.Color}s 
          *         are to be rotated between members of this set
-         * @param  rotateStroke  true iff {@link java.awt.Stroke}s
+         * @param  rotateDash  true iff dash patterns
          *         are to be rotated between members of this set
          */
         protected AutoBarStyleSet( String name, boolean rotateColor,
-                                   boolean rotateStroke, BarStyle.Form form,
+                                   boolean rotateDash, BarStyle.Form form,
                                    BarStyle.Placement placement ) {
             name_ = name;
             rotateColor_ = rotateColor;
-            rotateStroke_ = rotateStroke;
+            rotateDash_ = rotateDash;
             form_ = form;
             placement_ = placement;
         }
@@ -50,11 +50,12 @@ public class BarStyles {
         }
 
         public Style getStyle( int index ) {
-            return new BarStyle( rotateColor_ ? Styles.getColor( index )
-                                              : Styles.PLAIN_COLOR,
-                                 rotateStroke_ ? Styles.getStroke( index )
-                                               : Styles.PLAIN_STROKE, 
-                                 form_, placement_ );
+            Color color = rotateColor_ ? Styles.getColor( index )
+                                       : Styles.PLAIN_COLOR;
+            BarStyle style = new BarStyle( color, form_, placement_ );
+            style.setDash( rotateDash_ ? Styles.getDash( index )
+                                       : Styles.getDash( 0 ) );
+            return style;
         }
     }
 
@@ -88,13 +89,13 @@ public class BarStyles {
      * @param  name  style set name
      * @param  rotateColor  whether to have different colours for 
      *                      different bars
-     * @param  rotateStroke  whether to have different stroke styles
+     * @param  rotateDash  whether to have different stroke styles
      *                       for different bars
      * @return   style set
      */
     public static StyleSet open( String name, boolean rotateColor,
-                                 boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                 boolean rotateDash ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateDash,
                                     BarStyle.FORM_OPEN,
                                     BarStyle.PLACE_OVER );
     }
@@ -105,13 +106,13 @@ public class BarStyles {
      * @param  name  style set name
      * @param  rotateColor  whether to have different colours for 
      *                      different bars
-     * @param  rotateStroke  whether to have different stroke styles
+     * @param  rotateDash  whether to have different stroke styles
      *                       for different bars
      * @return   style set
      */
     public static StyleSet tops( String name, boolean rotateColor,
-                                 boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                 boolean rotateDash ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateDash,
                                     BarStyle.FORM_TOP,
                                     BarStyle.PLACE_OVER );
     }
@@ -122,13 +123,13 @@ public class BarStyles {
      * @param  name  style set name
      * @param  rotateColor  whether to have different colours for 
      *                      different bars
-     * @param  rotateStroke  whether to have different stroke styles
+     * @param  rotateDash  whether to have different stroke styles
      *                       for different bars
      * @return   style set
      */
     public static StyleSet spikes( String name, boolean rotateColor,
-                                   boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                   boolean rotateDash ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateDash,
                                     BarStyle.FORM_SPIKE,
                                     BarStyle.PLACE_ADJACENT );
     }
@@ -166,13 +167,13 @@ public class BarStyles {
      * @param  name  style set name
      * @param  rotateColor  whether to have different colours for 
      *                      different bars
-     * @param  rotateStroke  whether to have different stroke styles
+     * @param  rotateDash  whether to have different stroke styles
      *                       for different bars
      * @return   style set
      */
     public static StyleSet sideOpen( String name, boolean rotateColor,
-                                     boolean rotateStroke ) {
-        return new AutoBarStyleSet( name, rotateColor, rotateStroke,
+                                     boolean rotateDash ) {
+        return new AutoBarStyleSet( name, rotateColor, rotateDash,
                                     BarStyle.FORM_OPEN,
                                     BarStyle.PLACE_ADJACENT );
     }
