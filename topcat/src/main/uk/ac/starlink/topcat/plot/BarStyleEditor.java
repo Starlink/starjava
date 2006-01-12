@@ -8,6 +8,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
 
@@ -55,7 +56,7 @@ public class BarStyleEditor extends StyleEditor {
         placeSelector_.addChangeListener( this );
 
         formSelector_ = new RenderingComboBox( FORMS ) {
-            protected Icon getIcon( Object form ) {
+            protected Icon getRendererIcon( Object form ) {
                 return BarStyles.getIcon( (BarStyle.Form) form );
             }
         };
