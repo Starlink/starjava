@@ -28,8 +28,8 @@ public class Styles {
         Color.black,
     };
 
-    private static final float[][] DASHES = new float[][] {
-        { 1f },
+    public static final float[][] DASHES = new float[][] {
+        null,
         { 3f, 3f },
         { 9f, 5f },
         { 12f, 3f, 3f, 3f },
