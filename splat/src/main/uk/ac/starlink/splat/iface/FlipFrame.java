@@ -69,6 +69,8 @@ import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.PhysicalConstants;
 import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Provides a toolbox for optionally flipping and translating a modifiable
@@ -79,9 +81,9 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  */
 public class FlipFrame
     extends JFrame
-    implements ActionListener, ChangeListener, PlotListener, ItemListener
+    implements ActionListener, ChangeListener, PlotListener, ItemListener,
+               LineProvider
 {
-
     /** UI preferences. */
     protected static Preferences prefs =
         Preferences.userNodeForPackage( FlipFrame.class );
@@ -95,17 +97,17 @@ public class FlipFrame
     /** Flip state. */
     protected JCheckBox flipBox = null;
 
-    /** Is translation to be interpreted as a redshift? */
+    /** Is offset to be interpreted as a redshift? */
     protected JCheckBox redshiftBox = null;
 
-    /** User translation control. */
-    protected ScientificSpinner spinnerTran = null;
+    /** User offset control. */
+    protected ScientificSpinner offsetSpinner = null;
 
     /** And the model. */
-    protected SpinnerNumberModel spinnerModel = null;
+    protected SpinnerNumberModel offsetModel = null;
 
     /** Spinner increment. */
-    protected DecimalField spinnerIncr = null;
+    protected DecimalField incrementSpinner = null;
 
     /** Flip coordinate. */
     protected DecimalField flipCentre = null;
@@ -119,13 +121,22 @@ public class FlipFrame
     /** The PlotControl that is displaying the current spectrum. */
     protected PlotControl plot = null;
 
+    /** The copy or flipped spectrum. */
+    protected EditableSpecData comparisonSpectrum = null;
+
     /** Menu item retaining state of SPEFO changes */
     protected JCheckBoxMenuItem spefoBox = null;
 
     /** Simple text area for SPEFO values. */
     protected JTextArea spefoArea = null;
     protected JTextArea spefoNotes = null;
-    
+
+    /** LineVisitor for stepping between lines */
+    LineVisitor visitor = null;
+
+    /** File chooser used for line visitor files */
+    protected BasicFileChooser fileChooser = null;
+
     /**
      * Create an instance.
      */
@@ -201,13 +212,13 @@ public class FlipFrame
 
         ScientificFormat scientificFormat = new ScientificFormat();
         flipCentre = new DecimalField( 0.0, 5, scientificFormat );
-        flipCentre.setToolTipText( "Coordinate of flip centre, " + 
+        flipCentre.setToolTipText( "Coordinate of flip centre, " +
                                    "zero for visible centre of plot, " +
                                    "units of current spectrum" );
         gbl1.add( flipCentre, true );
 
         //  Grab button. This creates the copy, which may be flipped.
-        LocalAction copyAction = new LocalAction( LocalAction.COPY, 
+        LocalAction copyAction = new LocalAction( LocalAction.COPY,
                                                   "Create copy" );
         JButton copyButton = new JButton( copyAction );
         copyButton.setToolTipText( "Press to create a copy of the current " +
@@ -232,7 +243,7 @@ public class FlipFrame
         //  Translation controls.
         JPanel transPanel = new JPanel();
         transPanel.setBorder(BorderFactory.createTitledBorder("Translation:"));
-        GridBagLayouter gbl2 = new GridBagLayouter( transPanel, 
+        GridBagLayouter gbl2 = new GridBagLayouter( transPanel,
                                                     GridBagLayouter.SCHEME3 );
 
         //  Offset, increment and redshift.
@@ -245,21 +256,23 @@ public class FlipFrame
         gbl2.add( incrLabel, false );
 
         scientificFormat = new ScientificFormat();
-        spinnerIncr = new DecimalField( 10.0, 5, scientificFormat );
-        spinnerIncr.addActionListener( this );
-        spinnerIncr.setToolTipText( "Increment used for spinner controls" );
-        gbl2.add( spinnerIncr, true );
+        incrementSpinner = new DecimalField( 10.0, 5, scientificFormat );
+        incrementSpinner.addActionListener( this );
+        incrementSpinner.setToolTipText
+            ( "Increment used for spinner controls" );
+        gbl2.add( incrementSpinner, true );
 
         JLabel spinnerLabel = new JLabel( "Offset:" );
         gbl2.add( spinnerLabel, false );
 
-        spinnerModel = new SpinnerNumberModel( 0.0, -Double.MAX_VALUE,
-                                               Double.MAX_VALUE, 10.0 );
-        spinnerTran = new ScientificSpinner( spinnerModel );
+        offsetModel = new SpinnerNumberModel( 0.0, -Double.MAX_VALUE,
+                                              Double.MAX_VALUE, 10.0 );
+        offsetSpinner = new ScientificSpinner( offsetModel );
 
-        spinnerTran.addChangeListener( this );
-        spinnerTran.setToolTipText("Offset of spectrum from initial position");
-        gbl2.add( spinnerTran, true );
+        offsetSpinner.addChangeListener( this );
+        offsetSpinner.setToolTipText
+            ( "Offset of spectrum from initial position" );
+        gbl2.add( offsetSpinner, true );
 
         gbl0.add( spectrumPanel, true );
         gbl0.eatLine();
@@ -279,11 +292,16 @@ public class FlipFrame
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
 
+        //  Read in list for LineVisitor control.
+        LocalAction readVisitorAction =
+            new LocalAction( LocalAction.READVISITOR, "Read line list" );
+        fileMenu.add( readVisitorAction );
+
         //  Action bar for buttons.
         JPanel actionBar = new JPanel();
 
         //  Add an action to reset the spectrum to the default transform.
-        LocalAction resetAction = new LocalAction( LocalAction.RESET, 
+        LocalAction resetAction = new LocalAction( LocalAction.RESET,
                                                    "Reset",
                                                    resetImage );
         fileMenu.add( resetAction );
@@ -293,7 +311,7 @@ public class FlipFrame
         resetButton.setToolTipText( "Reset spectrum to default offset" );
 
         //  Add an action to close the window.
-        LocalAction closeAction = new LocalAction( LocalAction.CLOSE, 
+        LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
                                                    "Close",
                                                    closeImage );
         fileMenu.add( closeAction );
@@ -348,7 +366,6 @@ public class FlipFrame
     {
         boolean flipped = flipBox.isSelected();
 
-        //  Create the copy.
         SpecData spec = plot.getCurrentSpectrum();
         String name = null;
         if ( flipped ) {
@@ -357,7 +374,6 @@ public class FlipFrame
         else {
             name = "Copy of: " + spec.getShortName();
         }
-        EditableSpecData comparisonSpectrum = null;
         try {
             comparisonSpectrum =
                 SpecDataFactory.getInstance().createEditable( name, spec,
@@ -504,7 +520,7 @@ public class FlipFrame
      * units, a non-trivial task. Assume a fix for line identifiers, which we
      * know are at "source.
      */
-    protected boolean redshiftSpecFrameSet( FrameSet frameSet, 
+    protected boolean redshiftSpecFrameSet( FrameSet frameSet,
                                             boolean islineid,
                                             double redshift )
     {
@@ -532,7 +548,7 @@ public class FlipFrame
         //  causing a remap to the FrameSet.
         double initialVelocity = current.getD( "SourceVel" );
         current.setC( "StdOfRest", "Source" );
-        double redshiftVelocity = 
+        double redshiftVelocity =
             0.001 * MathUtils.redshiftToVelocity( redshift ); // Km/s
         current.setD( "SourceVel", redshiftVelocity );
 
@@ -542,7 +558,7 @@ public class FlipFrame
 
         //  Restore any original source velocity, without causing a remap.
         current.setD( "SourceVel", initialVelocity );
-        
+
         //  If line identifier, we were always at "Source".
         if ( stdOfRestFudged ) {
             frameSet.setC( "StdOfRest", "Source" );
@@ -619,7 +635,7 @@ public class FlipFrame
      */
     protected void applyOffset()
     {
-        double offset = ((Double)spinnerTran.getValue()).doubleValue();
+        double offset = ((Double)offsetSpinner.getValue()).doubleValue();
         flipTransform( 1.0, offset, null, redshiftBox.isSelected() );
 
         if ( spefoBox.isSelected() ) {
@@ -641,7 +657,7 @@ public class FlipFrame
 
     /**
      * Add a spectrum to the changed list. Replaces an existing spectrum, if
-     * replace if true.
+     * replace is true.
      */
     protected void addSpectrum( EditableSpecData spectrum, boolean replace )
     {
@@ -662,8 +678,56 @@ public class FlipFrame
      */
     protected void resetSelectedSpectrum()
     {
-        spinnerTran.setValue( new Double( 0.0 ) );
+        offsetSpinner.setValue( new Double( 0.0 ) );
     }
+
+    /**
+     * Read a line list of positions and initialise the LineVisitor with
+     * them.
+     */
+    protected void readVisitorLineList()
+    {
+        if ( visitor != null ) {
+            initFileChooser();
+            int result = fileChooser.showOpenDialog( this );
+            if ( result == fileChooser.APPROVE_OPTION ) {
+                File file = fileChooser.getSelectedFile();
+                try {
+                    visitor.readLines( file );
+                    visitor.setEnabled( true );
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Initialise the file chooser to have the necessary filters.
+     */
+    protected void initFileChooser()
+    {
+        if ( fileChooser == null ) {
+            fileChooser = new BasicFileChooser( false );
+            fileChooser.setMultiSelectionEnabled( false );
+
+            //  Add a filter for text files and line identifiers.
+            BasicFileFilter textFileFilter =
+                new BasicFileFilter( "txt", "TEXT files" );
+            fileChooser.addChoosableFileFilter( textFileFilter );
+            BasicFileFilter idsFileFilter =
+                new BasicFileFilter( "ids", "Line identification files" );
+            fileChooser.addChoosableFileFilter( idsFileFilter );
+
+            //  But allow all files as well.
+            fileChooser.addChoosableFileFilter
+                ( fileChooser.getAcceptAllFileFilter() );
+        }
+    }
+
+
+
 
     /**
      * Make SPEFO-like changes to interface ala Petr Skoda.
@@ -675,7 +739,7 @@ public class FlipFrame
         if ( display && spefoArea == null ) {
             JPanel spefoPanel = new JPanel();
             spefoPanel.setBorder(BorderFactory.createTitledBorder("SPEFO:"));
-            GridBagLayouter gbl = 
+            GridBagLayouter gbl =
                 new GridBagLayouter( spefoPanel, GridBagLayouter.SCHEME4 );
 
             //  Need display that shows additional values.
@@ -693,13 +757,19 @@ public class FlipFrame
             gbl.add( scrollPane, true );
 
             //  Button for saving to the log file.
-            LocalAction spefoSaveAction = 
-                new LocalAction( LocalAction.SPEFOSAVE, 
+            LocalAction spefoSaveAction =
+                new LocalAction( LocalAction.SPEFOSAVE,
                                  "Save to SPEFO.log file" );
             JButton spefoSave = new JButton( spefoSaveAction );
             gbl.add( spefoSave, false );
             gbl.eatLine();
-            
+
+            //  LineVisitor for stepping through a list.
+            visitor = new LineVisitor( this );
+            visitor.setEnabled( false );
+            gbl.add( visitor, false );
+            gbl.eatLine();
+
             contentPane.add( spefoPanel, BorderLayout.CENTER );
         }
     }
@@ -790,7 +860,8 @@ public class FlipFrame
         StoredProperties storedProperties = getStoredProperties( spectrum );
 
         // Need to restore the offset last used for this spectrum.
-        spinnerTran.setValue( new Double( storedProperties.getOffset() ) );
+        offsetSpinner.setValue
+            ( new Double( storedProperties.getOffset() ) );
     }
 
     //
@@ -798,7 +869,82 @@ public class FlipFrame
     //
     public void actionPerformed( ActionEvent e )
     {
-        spinnerModel.setStepSize( new Double( spinnerIncr.getDoubleValue() ) );
+        offsetModel.setStepSize
+            ( new Double( incrementSpinner.getDoubleValue() ) );
+    }
+
+    //
+    // LineProvider interface. Used to configure for a visit to a place where
+    // a line is expected.
+    //
+    public void viewLine( double coord, Object state )
+    {
+        //  Move to line and view it (create flipped spectrum and zoom),
+        //  restore it's "state" from state? What is "state" in our context?
+        //  Should we move to coord first time and then just restore the old
+        //  system later?
+        System.out.println( "move to: " + coord );
+        if ( comparisonSpectrum != null ) {
+            globalList.removeSpectrum( plot, comparisonSpectrum );
+        }
+
+        //  Flip centre shows the coordinate, always (note disabled when not
+        //  flipping so need extra effort).
+        flipCentre.setEnabled( true );
+        flipCentre.setDoubleValue( coord );
+        flipCentre.setEnabled( flipBox.isSelected() );
+
+        if ( state != null ) {
+            // Restoring old state.
+            StateStore stateStore = (StateStore) state;
+            try {
+                //  Comparison spectrum.
+                comparisonSpectrum = stateStore.getComparisonSpectrum();
+                if ( comparisonSpectrum != null ) {
+                   globalList.addSpectrum( plot, comparisonSpectrum );
+                }
+
+                //  Flip selector.
+                flipBox.setSelected( stateStore.isCopyFlip() );
+
+                //  Translation spectrum.
+                if ( comparisonSpectrum != null ) {
+                   availableSpectra.setSelectedItem( comparisonSpectrum );
+                }
+
+                //  Redshift selector.
+                redshiftBox.setSelected( stateStore.isShiftRedShift() );
+
+                //  Increment.
+                incrementSpinner.setDoubleValue( stateStore.getIncrement() );
+
+                //  Offset.
+                offsetSpinner.setValue( stateStore.getOffset() );
+
+                //  SPEFO values:
+                spefoArea.setText( stateStore.getSPEFOValueText() );
+
+                //  SPEFO Notes:
+                spefoNotes.setText( stateStore.getSPEFONoteText() );
+            }
+            catch (SplatException e) {
+                //  Nothing to do? Could make a dialog report.
+                e.printStackTrace();
+            }
+        }
+        else {
+            //  Create a new spectrum.
+            copyFlipCurrentSpectrum();
+        }
+
+        //  Make sure we can view the line.
+        plot.centreOnXCoordinate( Double.toString( coord ) );
+    }
+
+    public Object getLineState()
+    {
+        //  Return the current state, for the current line.
+        return new StateStore();
     }
 
     //
@@ -836,6 +982,100 @@ public class FlipFrame
         }
     }
 
+    //
+    // Internal class for storing current state of interface.
+    //
+    protected class StateStore
+    {
+        private EditableSpecData spectrum = null;
+        private boolean copyFlip = false;
+        private boolean shiftRedShift = false;
+        private double increment = 0.0;
+        private Double offset = null;
+        private String spefoValueText = null;
+        private String spefoNoteText = null;
+
+        public StateStore()
+        {
+            setComparisonSpectrum( comparisonSpectrum );
+            setCopyFlip( flipBox.isSelected() );
+            setShiftRedShift( redshiftBox.isSelected() );
+            setIncrement( incrementSpinner.getDoubleValue() );
+            setOffset( (Double) offsetSpinner.getValue() );
+            setSPEFOValueText( spefoArea.getText() );
+            setSPEFONoteText( spefoNotes.getText() );
+        }
+
+        public void setComparisonSpectrum( EditableSpecData spectrum )
+        {
+            this.spectrum = spectrum;
+        }
+
+        public EditableSpecData getComparisonSpectrum()
+        {
+            return spectrum;
+        }
+
+        public void setCopyFlip( boolean state )
+        {
+            copyFlip = state;
+        }
+
+        public boolean isCopyFlip()
+        {
+            return copyFlip;
+        }
+
+        public void setShiftRedShift( boolean state )
+        {
+            shiftRedShift = state;
+        }
+
+        public boolean isShiftRedShift()
+        {
+            return shiftRedShift;
+        }
+
+        public void setIncrement( double value )
+        {
+            increment = value;
+        }
+
+        public double getIncrement()
+        {
+            return increment;
+        }
+
+        public void setOffset( Double value )
+        {
+            offset = value;
+        }
+
+        public Double getOffset()
+        {
+            return offset;
+        }
+
+        public void setSPEFOValueText( String text )
+        {
+            spefoValueText = text;
+        }
+
+        public String getSPEFOValueText()
+        {
+            return spefoValueText;
+        }
+
+        public void setSPEFONoteText( String text )
+        {
+            spefoNoteText = text;
+        }
+
+        public String getSPEFONoteText()
+        {
+            return spefoNoteText;
+        }
+    }
 
     /**
      * Inner class defining all local Actions.
@@ -843,13 +1083,14 @@ public class FlipFrame
     protected class LocalAction
         extends AbstractAction
     {
-        
+
         //  Types of action.
         public static final int CLOSE = 0;
         public static final int RESET = 1;
         public static final int COPY = 2;
         public static final int SPEFO = 3;
         public static final int SPEFOSAVE = 4;
+        public static final int READVISITOR = 5;
 
         //  The type of this instance.
         private int actionType = CLOSE;
@@ -866,7 +1107,7 @@ public class FlipFrame
             this.actionType = actionType;
         }
 
-        public LocalAction( int actionType, String name, Icon icon, 
+        public LocalAction( int actionType, String name, Icon icon,
                             String help )
         {
             this( actionType, name, icon );
@@ -895,6 +1136,10 @@ public class FlipFrame
                }
                case SPEFOSAVE: {
                    spefoSave();
+                   break;
+               }
+               case READVISITOR: {
+                   readVisitorLineList();
                    break;
                }
             }
