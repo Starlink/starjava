@@ -9,23 +9,17 @@ import java.awt.Stroke;
 import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
+import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
- * Combo box for selecting dash patterns.  Comes with its own renderer.
+ * Combo box for selecting dash patterns.
  *
  * @author   Mark Taylor
  * @since    12 Jan 2006
  * @see   java.awt.BasicStroke
- * @see   uk.ac.starlink.topcat.DefaultStyle
+ * @see   uk.ac.starlink.topcat.plot.DefaultStyle
  */
-public class DashComboBox extends JComboBox implements ListCellRenderer {
-
-    private final ListCellRenderer renderer_;
+public class DashComboBox extends RenderingComboBox {
 
     private static final int LINE_LENGTH = 48;
     private static final int LINE_THICKNESS = 2;
@@ -51,8 +45,6 @@ public class DashComboBox extends JComboBox implements ListCellRenderer {
             }
         }
         setModel( new DefaultComboBoxModel( dashes ) );
-        renderer_ = new BasicComboBoxRenderer();
-        setRenderer( this );
     }
 
     /**
@@ -85,40 +77,33 @@ public class DashComboBox extends JComboBox implements ListCellRenderer {
         super.setSelectedItem( dash );
     }
 
-    public Component getListCellRendererComponent( JList list, Object value,
-                                                   int index,
-                                                   boolean isSelected,
-                                                   boolean hasFocus ) {
-        Component c =
-            renderer_.getListCellRendererComponent( list, value, index,
-                                                    isSelected, hasFocus );
-        final float[] dash =
-            (float[]) getItemAt( index >= 0 ? index : getSelectedIndex() );
-        if ( c instanceof JLabel ) {
-            ((JLabel) c).setText( null );
-            ((JLabel) c).setIcon( new Icon() {
-                public int getIconHeight() {
-                    return LINE_THICKNESS;
-                }
-                public int getIconWidth() {
-                    return LINE_LENGTH + 4;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                    Graphics2D g2 = (Graphics2D) g;
-                    Stroke oldStroke = g2.getStroke();
-                    Color oldColor = g2.getColor();
-                    g2.setColor( Color.BLACK );
-                    g2.setStroke( new BasicStroke( LINE_THICKNESS,
-                                                   BasicStroke.CAP_BUTT,
-                                                   BasicStroke.JOIN_MITER, 10f,
-                                                   dash, 0f ) );
-                    int ypos = y + LINE_THICKNESS / 2;
-                    g2.drawLine( x + 4, ypos, y + x + LINE_LENGTH, ypos );
-                    g2.setStroke( oldStroke );
-                    g2.setColor( oldColor );
-                }
-            } );
-        }
-        return c;
+    protected String getRendererText( Object d ) {
+        return null;
+    }
+
+    protected Icon getRendererIcon( Object d ) {
+        final float[] dash = (float[]) d;
+        return new Icon() {
+            public int getIconHeight() {
+                return LINE_THICKNESS;
+            }
+            public int getIconWidth() {
+                return LINE_LENGTH + 4;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                Graphics2D g2 = (Graphics2D) g;
+                Stroke oldStroke = g2.getStroke();
+                Color oldColor = g2.getColor();
+                g2.setColor( Color.BLACK );
+                g2.setStroke( new BasicStroke( LINE_THICKNESS,
+                                               BasicStroke.CAP_BUTT,
+                                               BasicStroke.JOIN_MITER,
+                                               10f, dash, 0f ) );
+                int ypos = y + LINE_THICKNESS / 2;
+                g2.drawLine( x + 4, ypos, y + x + LINE_LENGTH, ypos );
+                g2.setStroke( oldStroke );
+                g2.setColor( oldColor );
+            }
+        };
     }
 }

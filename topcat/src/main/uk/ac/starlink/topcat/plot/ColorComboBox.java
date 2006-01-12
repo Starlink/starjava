@@ -5,10 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
+import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
  * Combo box for selecting colours.  Comes with its own renderer.
@@ -16,9 +13,7 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  */
-public class ColorComboBox extends JComboBox implements ListCellRenderer {
-
-    private final ListCellRenderer renderer_;
+public class ColorComboBox extends RenderingComboBox {
 
     private static final int ICON_WIDTH = 24;
     private static final int ICON_HEIGHT = 12;
@@ -37,8 +32,6 @@ public class ColorComboBox extends JComboBox implements ListCellRenderer {
      */
     public ColorComboBox( Color[] colors ) {
         super( (Color[]) colors.clone() );
-        renderer_ = new BasicComboBoxRenderer();
-        setRenderer( this );
         setSelectedIndex( 0 );
     }
 
@@ -60,32 +53,25 @@ public class ColorComboBox extends JComboBox implements ListCellRenderer {
         return (Color) getSelectedItem();
     }
 
-    public Component getListCellRendererComponent( JList list, Object value,
-                                                   int index,
-                                                   boolean isSelected,
-                                                   boolean hasFocus ) {
-        Component c =
-            renderer_.getListCellRendererComponent( list, value, index,
-                                                    isSelected, hasFocus );
-        if ( c instanceof JLabel ) {
-            final Color color =
-                (Color) getItemAt( index >= 0 ? index : getSelectedIndex() );
-            ((JLabel) c).setText( null );
-            ((JLabel) c).setIcon( new Icon() {
-                public int getIconHeight() {
-                    return ICON_HEIGHT;
-                }
-                public int getIconWidth() {
-                    return ICON_WIDTH;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                    Color oldColor = g.getColor();
-                    g.setColor( color );
-                    g.fillRect( x, y, ICON_WIDTH, ICON_HEIGHT );
-                    g.setColor( oldColor );
-                }
-            } );
-        }
-        return c;
+    protected String getRendererText( Object obj ) {
+        return null;
+    }
+
+    protected Icon getRendererIcon( Object obj ) {
+        final Color color = (Color) obj;
+        return new Icon() {
+            public int getIconHeight() {
+                return ICON_HEIGHT;
+            }
+            public int getIconWidth() {
+                return ICON_WIDTH;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                Color oldColor = g.getColor();
+                g.setColor( color );
+                g.fillRect( x, y, ICON_WIDTH, ICON_HEIGHT );
+                g.setColor( oldColor );
+            }
+        };
     }
 }
