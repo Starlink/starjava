@@ -16,7 +16,9 @@ public class AxisLabels {
     /**
      * Sets up a new AxisLabels.
      *
-     * @param  
+     * @param   ticks  numeric values of the ticks
+     * @param   labels  string values for each of the elements of
+     *                  <code>ticks</code>
      */
     public AxisLabels( double[] ticks, String[] labels ) {
         ticks_ = (double[]) ticks.clone();
