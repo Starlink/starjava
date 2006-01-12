@@ -58,7 +58,7 @@ public class RenderingComboBox extends JComboBox implements ListCellRenderer {
      * @param  item  item
      * @return  textual label for item
      */
-    protected String getRendererLabel( Object item ) {
+    protected String getRendererText( Object item ) {
         return item == null ? null : item.toString();
     }
 
@@ -84,7 +84,7 @@ public class RenderingComboBox extends JComboBox implements ListCellRenderer {
             renderer_.getListCellRendererComponent( list, value, index,
                                                     isSelected, hasFocus );
         if ( c instanceof JLabel ) {
-            ((JLabel) c).setText( getRendererLabel( value ) );
+            ((JLabel) c).setText( getRendererText( value ) );
             ((JLabel) c).setIcon( getRendererIcon( value ) );
         }
         return c;
