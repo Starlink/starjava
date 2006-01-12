@@ -24,7 +24,7 @@ public class BarStyle extends DefaultStyle implements Icon {
     private static final int ICON_WIDTH = 8;
 
     /** Bar form using open rectangles. */
-    public static final Form FORM_OPEN = new Form( "open" ) {
+    public static final Form FORM_OPEN = new Form( "Open" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             Graphics2D g2 = (Graphics2D) g;
             int thickness = ( g2.getStroke() instanceof BasicStroke )
@@ -43,21 +43,21 @@ public class BarStyle extends DefaultStyle implements Icon {
     };
 
     /** Bar form using filled rectangles. */
-    public static final Form FORM_FILLED = new Form( "filled" ) {
+    public static final Form FORM_FILLED = new Form( "Filled" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.fillRect( x, y, Math.max( width - 1, 1 ), height );
         }
     };
 
     /** Bar form using filled 3d rectangles. */
-    public static final Form FORM_FILLED3D = new Form( "filled3D" ) {
+    public static final Form FORM_FILLED3D = new Form( "Filled 3D" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.fill3DRect( x, y, Math.max( width - 1, 1 ), height, true );
         }
     };
 
     /** Bar form drawing only the tops of the bars. */
-    public static final Form FORM_TOP = new Form( "top" ) {
+    public static final Form FORM_TOP = new Form( "Tops" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.drawLine( x, y, x + width, y );
         }
@@ -67,7 +67,7 @@ public class BarStyle extends DefaultStyle implements Icon {
     };
 
     /** Bar form using 1-d spikes. */
-    public static final Form FORM_SPIKE = new Form( "spike" ) {
+    public static final Form FORM_SPIKE = new Form( "Spikes" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setStroke( getStroke( g2.getStroke(), BasicStroke.CAP_ROUND,
