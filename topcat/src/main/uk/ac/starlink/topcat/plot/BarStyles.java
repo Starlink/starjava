@@ -189,36 +189,71 @@ public class BarStyles {
         final int nSet = data.length;
         final int nBar = data[ 0 ].length - 2;
         final int barWidth = nSet * 5;
-        final int xPad = barWidth;
         return new Icon() {
             public int getIconHeight() {
                 return height;
             }
             public int getIconWidth() {
-                return nBar * barWidth + xPad;
+                return nBar * barWidth;
             }
-            public void paintIcon( Component c, Graphics g,
-                                   int xoff, int yoff ) {
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
                 for ( int iset = 0; iset < nSet; iset++ ) {
                     for ( int ibar = 0; ibar < nBar; ibar++ ) {
-                        int x = barWidth * ibar;
                         int lastDatum = (int) data[ iset ][ ibar ];
                         int datum = (int) data[ iset ][ ibar + 1 ];
                         int nextDatum = (int) data[ iset ][ ibar + 2 ];
-                        int y = height - datum;
                         BarStyle style = (BarStyle) styleSet.getStyle( iset );
-                        int xlo = xPad + ibar * barWidth;
+                        int xlo = x + ibar * barWidth;
                         int xhi = xlo + barWidth;
                         int ylo = height - datum;
-                        int lastYlo = height - lastDatum;
-                        int nextYlo = height - nextDatum;
-                        int yhi = height;
+                        int lastYlo = y + height - lastDatum;
+                        int nextYlo = y + height - nextDatum;
+                        int yhi = y + height;
                         if ( ibar == 0 ) {
                             style.drawEdge( g, xlo, ylo, lastYlo, iset, nSet );
                         }
                         style.drawBar( g, xlo, xhi, ylo, yhi, iset, nSet );
                         style.drawEdge( g, xhi, ylo, nextYlo, iset, nSet );
                     }
+                }
+            }
+        };
+    }
+
+    /**
+     * Generates an icon based on a BarStlye.Form object.
+     * This icon is suitable for putting in a menu.
+     */
+    public static Icon getIcon( BarStyle.Form form ) {
+        final int height = 16;
+        final double[] data = { 0, 4, 7, 12, 15, 9, 0 };
+        final int nBar = data.length - 2;
+        final int barWidth = 10;
+        final BarStyle style =
+            new BarStyle( Color.BLACK, form, BarStyle.PLACE_OVER );
+        return new Icon() {
+            public int getIconHeight() {
+                return height;
+            }
+            public int getIconWidth() {
+                return nBar * barWidth;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                for ( int ibar = 0; ibar < nBar; ibar++ ) {
+                    int lastDatum = (int) data[ ibar ];
+                    int datum = (int) data[ ibar + 1 ];
+                    int nextDatum = (int) data[ ibar + 2 ];
+                    int xlo = x + ibar * barWidth;
+                    int xhi = xlo + barWidth;
+                    int ylo = y + height - datum;
+                    int lastYlo = y + height - lastDatum;
+                    int nextYlo = y + height - nextDatum;
+                    int yhi = y + height;
+                    if ( ibar == 0 ) {
+                        style.drawEdge( g, xlo, ylo, lastYlo, 0, 1 );
+                    }
+                    style.drawBar( g, xlo, xhi, ylo, yhi, 0, 1 );
+                    style.drawEdge( g, xhi, ylo, nextYlo, 0, 1 );
                 }
             }
         };
