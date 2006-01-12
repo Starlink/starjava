@@ -37,75 +37,147 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.types.FileList;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.PatternSet;
+import org.apache.tools.ant.types.Environment;
 import org.apache.tools.ant.util.FileUtils;
 
 /**
  * <p>An ant task which creates a Mac OS X Application Bundle for a
  * Java application.</p>
  *
- * <pre>
+ * <p>
  * Required attributes:
+ * <dl>
+ * <dt>dir</dt>
+ * <dd>The directory into which to put the new application bundle.</dd>
+ * <dt>name</dt>
+ * <dd>The name of the application bundle.</dd>
+ * <dt>mainclass</dt>
+ * <dd>The main Java class to call when running the application.</dd>
+ * </dl>
  *
- *  dir         The directory into which to put the new application bundle.
- *  name        The name of the application bundle.
- *  mainclass   The main Java class to call when running the application.
+ * <p>One of the following three MUST be used:
+ * <ol>
+ * <li>jars        Space or comma-separated list of JAR files to include.;
+ * OR</li>
+ * <li>One or more nested  &lt;jarfileset&gt;s. These are normal ANT FileSets;
+ * OR </li>
+ * <li>One or more nested &lt;jarfilelist&gt;s. These are standard ANT
+ * FileLists. </li>
+ * <ol>
  *
- * One of the following three MUST be used:
- *  jars        Space or comma-separated list of JAR files to include.
- * OR
- *  One or more nested  &lt;jarfileset&gt;s. These are normal ANT FileSets.
- * OR
- *  One or more nested &lt;jarfilelist&gt;s. These are standard ANT FileLists.
+ * <p>Optional attributes:
  *
- * Optional attributes:
- *
- * The following attributes are not required, but you can use them to
+ * <p>The following attributes are not required, but you can use them to
  * override default behavior.
  *
- *   verbose       If true, show more verbose output while running the task
- *   version       Version information about your application (e.g., "1.0")
- *   infostring    String to show in the "Get Info" dialog
- *   jvmversion    (e.g. "1.3", "1.3+", "1.4+", "1.4.1")
+ * <dl>
+ *   <dt>verbose
+ *   <dd>If true, show more verbose output while running the task
  *
- * These attributes control the fine-tuning of the "Mac OS X" look and
+ *   <dt>version       
+ *   <dd>Version information about your application (e.g., "1.0")
+ *
+ *   <dt>infostring    
+ *   <dd>String to show in the "Get Info" dialog
+ *
+ *   <dt>jvmversion    
+ *   <dd>(e.g. "1.3", "1.3+", "1.4+", "1.4.1")
+ * </dl>
+ * 
+ * <p>These attributes control the fine-tuning of the "Mac OS X" look and
  * feel.
+ * <dl>
+ * <dt>arguments
+ * <dd>Command line arguments. (no default)
  *
- *   arguments               Command line arguments. (no default)
- *   smalltabs               Use small tabs. (default "false")
- *                             Deprecated under JVM 1.4.1
- *   antialiasedgraphics     Use anti-aliased graphics (default "false")
- *   antialiasedtext         Use anti-aliased text (default "false")
- *   bundleid                Unique identifier for this bundle, in the
- *                           form of a Java package.  No default.
- *   developmentregion       Development Region.  Default "English".
- *   execs                   Files to be copied into "Resources/MacOS" and
- *                           made executable
- *   liveresize              Use "Live resizing" (default "false")
- *                             Deprecated under JVM 1.4.1
- *   growbox                 Show growbox (default "true")
- *   growboxintrudes         Intruding growbox (default "false")
- *                             Deprecated under JVM 1.4.1
- *   screenmenu              Put swing menu into Mac OS X menu bar.
- *   type                    Bundle type (default "APPL")
- *   signature               Bundle Signature (default "????")
- *   stubfile                The Java Application Stub file to copy for
- *                           your application (default MacOS system stub file)
+ * <dt>smalltabs
+ * <dd>Use small tabs. (default "false") Deprecated under JVM 1.4.1
  *
- * Rarely used optional attributes.
+ * <dt>antialiasedgraphics
+ * <dd>Use anti-aliased graphics (default "false")
  *
- *   chmod                   Full path to the chmod command.  This almost
- *                           certainly does NOT need to be set.
+ * <dt>antialiasedtext
+ * <dd>Use anti-aliased text (default "false")
  *
- * The task also supports nested &lt;execfileset&gt; and/or &lt;execfilelist&gt;
- * elements, which are standard Ant FileSet and FileList elements.
+ * <dt>bundleid
+ * <dd>Unique identifier for this bundle, in the form of a Java
+ * package.  No default.
  *
- * eg:
- * Minimum example:
+ * <dt>developmentregion
+ * <dd>Development Region.  Default "English".
  *
+ * <dt>execs
+ * <dd>Files to be copied into "Resources/MacOS" and made executable
+ *
+ * <dt>liveresize
+ * <dd>Use "Live resizing" (default "false") Deprecated under JVM 1.4.1
+ *
+ * <dt>growbox
+ * <dd>Show growbox (default "true")
+ *
+ * <dt>growboxintrudes
+ * <dd>Intruding growbox (default "false") Deprecated under JVM 1.4.1
+ *
+ * <dt>screenmenu
+ * <dd>Put swing menu into Mac OS X menu bar.
+ *
+ * <dt>type
+ * <dd>Bundle type (default "APPL")
+ *
+ * <dt>signature
+ * <dd>Bundle Signature (default "????")
+ *
+ * <dt>stubfile
+ * <dd>The Java Application Stub file to copy for your application
+ * (default MacOS system stub file)
+ * </dl>
+ *
+ * <p>Rarely used optional attributes.
+ * <dl>
+ * <dt>chmod
+ * <dd>Full path to the chmod command.  This almost certainly does NOT
+ * need to be set.
+ * </dl>
+ *
+ * <p>The task also supports nested &lt;execfileset&gt; and/or
+ * &lt;execfilelist&gt; elements, and &lt;resourcefileset&gt; and/or
+ * &lt;resourcefilelist&gt; elements, which are standard Ant FileSet
+ * and FileList elements.  In the first case, the referenced files are
+ * copied to the <code>Contents/MacOS</code> directory and made
+ * executable, and in the second they are copied to the
+ * <code>Contents/Resources</code> directory and not made executable.
+ * If you winrces, note that in fact the files are installed in locations
+ * which have the same relation to the <code>Contents/Resources</code>
+ * directory as the files in the FileSet or FileList have to the 'dir'
+ * attribute.  Thus in the case
+ * <pre>
+ * &lt;resourcefileset dir="builddir/architectures"
+ *                     includes="ppc/*.jnilib"/&gt;
+ * </pre>
+ * the <code>*.jnilib</code> files will be installed in
+ * <code>Contents/Resources/ppc</code>.
+ *
+ * <p>The task supports a nested &lt;javaproperty&gt; element, which
+ * allows you to specify further properties which are set for the JVM
+ * when the application is launched.  This takes a required
+ * <code>key</code> attribute, giving the property key, plus an
+ * attribute giving the property value, which may be one of
+ * <code>value</code>, giving the string value of the property,
+ * <code>file</code>, setting the value of the property to be the
+ * absolute path of the given file, or <code>path</code>, which sets
+ * the value to the given path.  If you are setting paths here, recall
+ * that, within the bundle, <code>$APP_PACKAGE</code> is set to the
+ * root directory of the bundle (ie, the path to the
+ * <code>foo.app</code> directory), and <code>$JAVAROOT</code> to the
+ * directory <code>Contents/Resources/Java</code>.
+ *
+ * <p>Minimum example:
+ * <pre>
  *  &lt;jarbundler dir="release" name="Bar Project" mainclass="org.bar.Main"
  *      jars="bin/Bar.jar" /&gt;
- *
- * Using Filesets
+ * </pre>
+ * <p>Using Filesets
+ * <pre>
  *  &lt;jarbundler dir="release" name="Bar Project" mainclass="org.bar.Main"&gt;
  *    &lt;jarfileset dir="bin"&gt;
  *      &lt;include name="*.jar" /&gt;
@@ -115,9 +187,10 @@ import org.apache.tools.ant.util.FileUtils;
  *      &lt;include name="**" /&gt;
  *    &lt;/execfileset&gt;
  *  &lt;/jarbundler&gt;
+ * </pre>
  *
- * Much Longer example:
- *
+ * <p>Much Longer example:
+ * <pre>
  *  &lt;jarbundler dir="release" name="Foo Project" mainclass="org.bar.Main"
  *      version="1.0 b 1" infostring="Foo Project (c) 2002" type="APPL"
  *      jars="bin/foo.jar bin/bar.jar" execs="exec/foobar"
@@ -140,9 +213,11 @@ public class JarBundler extends MatchingTask {
 
   private List mJarFileSets = new ArrayList();
   private List mExecFileSets = new ArrayList();
+  private List mResourceFileSets = new ArrayList();
   private List mExtraClassPathFileSets = new ArrayList();
   private List mJarFileLists = new ArrayList();
   private List mExecFileLists = new ArrayList();
+  private List mResourceFileLists = new ArrayList();
   private List mExtraClassPathFileLists = new ArrayList();
   private List mJarAttrs = new ArrayList();
   private List mExecAttrs = new ArrayList();
@@ -170,6 +245,9 @@ public class JarBundler extends MatchingTask {
   // "Contents/Resources/Java" directory in the application bundle.
   private File mJavaDir;
 
+  // "Contents/Resources" directory in the application bundle
+  private File mResourcesDir;
+
   // Full path to the 'chmod' command.  Can be overridden
   // with the 'chmod' attribute.  Won't cause any harm if
   // not set, or if this executable doesn't exist.
@@ -184,6 +262,15 @@ public class JarBundler extends MatchingTask {
    * The method executing the task
    */
   public void execute() throws BuildException {
+
+    // Check that we're running on a Mac.  If not, tell the user and
+    // throw an exception.  For the property name to test, see
+    // <http://developer.apple.com/documentation/Java/Conceptual/Java14Development/06-JavaVM/JavaVM.html>
+    if (! System.getProperty("os.name").equals("Mac OS X")) {
+      throw new BuildException("The JarBundler ant task is designed to work on OS X alone; it will not work on this OS ("
+                               + System.getProperty("os.name")
+                               + ")");
+    }
 
     // Validate
     if (mRootDir == null) {
@@ -300,14 +387,14 @@ public class JarBundler extends MatchingTask {
     }
 
     // Make the Resources directory
-    File resourceDir = new File(mContentsDir, "Resources");
-    if (!resourceDir.mkdir()) {
+    mResourcesDir = new File(mContentsDir, "Resources");
+    if (!mResourcesDir.mkdir()) {
       throw new BuildException("Unable to create directory "
-			       + resourceDir);
+			       + mResourcesDir);
     }
 
     // Make the Resources/Java directory
-    mJavaDir = new File(resourceDir, "Java");
+    mJavaDir = new File(mResourcesDir, "Java");
     if (!mJavaDir.mkdir()) {
       throw new BuildException("Unable to create directory "
 			       + mJavaDir);
@@ -317,7 +404,7 @@ public class JarBundler extends MatchingTask {
     // is supplied, the default icon will be used.
     if (mAppIcon != null) {
       try {
-	mFileUtils.copyFile(mAppIcon, new File(resourceDir,
+	mFileUtils.copyFile(mAppIcon, new File(mResourcesDir,
 					       mAppIcon.getName()));
       } catch (IOException ex) {
 	throw new BuildException("Cannot copy icon file: " + ex);
@@ -341,6 +428,12 @@ public class JarBundler extends MatchingTask {
 
     // Copy executable(s) from the nested execfilelist element(s)
     processExecFileLists();
+
+    // Copy resource(s) from the nested resourcefileset element(s)
+    processResourceFileSets();
+
+    // Copy resource(s) from the nested resourcefilelist element(s)
+    processResourceFileLists();
 
     // Add external classpath references from the extraclasspath
     // attributes
@@ -383,12 +476,35 @@ public class JarBundler extends MatchingTask {
     mExecFileLists.add(fl);
   }
 
+  public void addResourcefileset(FileSet fs) {
+    mResourceFileSets.add(fs);
+  }
+
+  public void addResourcefilelist(FileList fl) {
+    mResourceFileLists.add(fl);
+  }
+
   public void addExtraclasspathfileset(FileSet fs) {
     mExtraClassPathFileSets.add(fs);
   }
 
   public void addExtraclasspathfilelist(FileList fl) {
     mExtraClassPathFileLists.add(fl);
+  }
+
+  public void addConfiguredJavaproperty(Environment.Variable ev) {
+    String key = ev.getKey();
+    String value = ev.getValue();
+    if (key == null) {
+      System.err.println("no key in <javaproperty>");
+    } else {
+      if (value == null) {
+        System.err.println("no value in <javaproperty>: using null value");
+        mProps.addJavaProperty(key, "");
+      } else {
+        mProps.addJavaProperty(key, value);
+      }
+    }
   }
 
   /**
@@ -803,7 +919,17 @@ public class JarBundler extends MatchingTask {
   }
 
   private void processExecFileSets() {
-    for (Iterator execIter = mExecFileSets.iterator(); execIter.hasNext();) {
+    processCopyingFileSets(mExecFileSets, mMacOsDir, true);
+  }
+
+  private void processResourceFileSets() {
+    processCopyingFileSets(mResourceFileSets, mResourcesDir, false);
+  }
+
+  private void processCopyingFileSets(List fileSets,
+                                      File targetdir,
+                                      boolean setExec) {
+    for (Iterator execIter = fileSets.iterator(); execIter.hasNext();) {
       FileSet fs = (FileSet)execIter.next();
       Project p = fs.getProject();
       File srcDir = fs.getDir(p);
@@ -811,42 +937,71 @@ public class JarBundler extends MatchingTask {
       fs.setupDirectoryScanner(ds,p);
       ds.scan();
       String[] files = ds.getIncludedFiles();
-      try {
-	for (int i = 0; i < files.length; i++) {
-	  String fileName = files[i];
-	  File src = new File(srcDir, fileName);
-	  File dest = new File(mMacOsDir, fileName);
-	  if (mVerbose) {
-	    System.out.println("Copying from " + src + " to " + dest);
-	  }
-	  mFileUtils.copyFile(src, dest);
-	  setExecutable(dest);
-	}
-      } catch (IOException ex) {
-	throw new BuildException("Cannot copy exec file: " + ex);
+      if (files.length == 0) {
+        // this is probably an error -- warn about it
+        System.err.println("WARNING: fileset for copying from directory "
+                           + srcDir
+                           + ": no files found");
+      } else {
+        try {
+          for (int i = 0; i < files.length; i++) {
+            String fileName = files[i];
+            File src = new File(srcDir, fileName);
+            File dest = new File(targetdir, fileName);
+            if (mVerbose) {
+              System.out.println("Copying "
+                                 + (setExec ? "exec" : "resource")
+                                 + " from " + src + " to " + dest);
+            }
+            mFileUtils.copyFile(src, dest);
+            if (setExec)
+              setExecutable(dest);
+          }
+        } catch (IOException ex) {
+          throw new BuildException("Cannot copy file: " + ex);
+        }
       }
     }
   }
 
   private void processExecFileLists() throws BuildException {
-    for (Iterator execIter = mExecFileLists.iterator(); execIter.hasNext();) {
+    processCopyingFileLists(mExecFileLists, mMacOsDir, true);
+  }
+
+  private void processResourceFileLists() throws BuildException {
+    processCopyingFileLists(mResourceFileLists, mResourcesDir, false);
+  }
+
+  private void processCopyingFileLists(List fileLists,
+                                       File targetDir,
+                                       boolean setExec)
+      throws BuildException {
+    for (Iterator execIter = fileLists.iterator(); execIter.hasNext();) {
       FileList fl = (FileList)execIter.next();
       Project p = fl.getProject();
       File srcDir = fl.getDir(p);
       String[] files = fl.getFiles(p);
-      try {
-	for (int i = 0; i < files.length; i++) {
-	  String fileName = files[i];
-	  File src = new File(srcDir, fileName);
-	  File dest = new File(mMacOsDir, fileName);
-	  if (mVerbose) {
-	    System.out.println("Copying from " + src + " to " + dest);
-	  }
-	  mFileUtils.copyFile(src, dest);
-	  setExecutable(dest);
-	}
-      } catch (IOException ex) {
-	throw new BuildException("Cannot copy jar file: " + ex);
+      if (files.length == 0) {
+        // this is probably an error -- warn about it
+        System.err.println("WARNING: filelist for copying from directory "
+                           + srcDir
+                           + ": no files found");
+      } else {
+        try {
+          for (int i = 0; i < files.length; i++) {
+            String fileName = files[i];
+            File src = new File(srcDir, fileName);
+            File dest = new File(targetDir, fileName);
+            if (mVerbose) {
+              System.out.println("Copying from " + src + " to " + dest);
+            }
+            mFileUtils.copyFile(src, dest);
+            if (setExec)
+              setExecutable(dest);
+          }
+        } catch (IOException ex) {
+          throw new BuildException("Cannot copy jar file: " + ex);
+        }
       }
     }
   }
@@ -893,5 +1048,4 @@ public class JarBundler extends MatchingTask {
       if (pkgWriter != null) pkgWriter.close();
     }
   }
-
 }
