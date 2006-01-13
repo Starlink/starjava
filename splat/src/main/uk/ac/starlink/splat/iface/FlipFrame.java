@@ -192,7 +192,8 @@ public class FlipFrame
 
         //  Panel for spectrum choice, includes copy of current spectrum.
         JPanel spectrumPanel = new JPanel();
-        spectrumPanel.setBorder(BorderFactory.createTitledBorder("Spectrum:"));
+        spectrumPanel.setBorder
+            ( BorderFactory.createTitledBorder( "Comparison spectrum:" ) );
         GridBagLayouter gbl1 = new GridBagLayouter( spectrumPanel,
                                                     GridBagLayouter.SCHEME3 );
 
@@ -244,10 +245,22 @@ public class FlipFrame
 
         //  Respond to changes in selection.
         availableSpectra.addItemListener( this );
+        availableSpectra.setSelectedIndex( -1 );
+
+        //  Make the spectrum the visitor list.
+        LocalAction makeVisAction =
+            new LocalAction( LocalAction.MAKEVIS, "Set as visitor list" );
+        JButton makeVisButton = new JButton( makeVisAction );
+        makeVisButton.setToolTipText
+            ( "Press to make this spectrum the visitor line list");
+        gbl1.add( Box.createGlue(), false );
+        gbl1.add( makeVisButton, false );
+        gbl1.add( Box.createGlue(), true );
 
         //  Translation controls.
         JPanel transPanel = new JPanel();
-        transPanel.setBorder(BorderFactory.createTitledBorder("Translation:"));
+        transPanel.setBorder( BorderFactory.createTitledBorder
+                              ( "Comparison spectrum translation:" ) );
         GridBagLayouter gbl2 = new GridBagLayouter( transPanel,
                                                     GridBagLayouter.SCHEME3 );
 
@@ -307,7 +320,7 @@ public class FlipFrame
 
         //  Read in list for LineVisitor control.
         LocalAction readVisitorAction =
-            new LocalAction( LocalAction.READVISITOR, "Read line list" );
+            new LocalAction(LocalAction.READVISITOR, "Read visitor line list");
         fileMenu.add( readVisitorAction );
 
         //  Action bar for buttons.
@@ -376,10 +389,10 @@ public class FlipFrame
         setTitle( Utilities.getTitle( "Flip/translate spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         if ( spefoBox.isSelected() ) {
-            setSize( new Dimension( 400, 650 ) );
+            setSize( new Dimension( 400, 700 ) );
         }
         else {
-            setSize( new Dimension( 400, 400 ) );
+            setSize( new Dimension( 400, 500 ) );
         }
         setVisible( true );
     }
@@ -720,8 +733,12 @@ public class FlipFrame
             if ( result == fileChooser.APPROVE_OPTION ) {
                 File file = fileChooser.getSelectedFile();
                 try {
-                    visitor.readLines( file );
-                    visitor.setEnabled( true );
+                    SpecData specData = visitor.readLines( file );
+                    if ( specData != null ) {
+                        visitor.setEnabled( true );
+                        globalList.add( specData );
+                        globalList.addSpectrum( plot, specData );
+                    }
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -750,6 +767,17 @@ public class FlipFrame
             //  But allow all files as well.
             fileChooser.addChoosableFileFilter
                 ( fileChooser.getAcceptAllFileFilter() );
+        }
+    }
+
+    /**
+     * Set the comparison spectrum as the visitor line list.
+     */
+    protected void setVisitorLineList()
+    {
+        if ( visitor != null && comparisonSpectrum != null ) {
+            visitor.setLineList( comparisonSpectrum );
+            visitor.setEnabled( true );
         }
     }
 
@@ -873,12 +901,15 @@ public class FlipFrame
     //
     public void itemStateChanged( ItemEvent e )
     {
-        EditableSpecData spectrum = getSelectedSpectrum();
-        StoredProperties storedProperties = getStoredProperties( spectrum );
+        comparisonSpectrum = getSelectedSpectrum();
+        if ( comparisonSpectrum != null ) {
+            StoredProperties storedProperties = 
+                getStoredProperties( comparisonSpectrum );
 
-        // Need to restore the offset last used for this spectrum.
-        offsetSpinner.setValue
-            ( new Double( storedProperties.getOffset() ) );
+            // Need to restore the offset last used for this spectrum.
+            offsetSpinner.setValue
+                ( new Double( storedProperties.getOffset() ) );
+        }
     }
 
     //
@@ -1134,6 +1165,7 @@ public class FlipFrame
         public static final int SPEFO = 3;
         public static final int SPEFOSAVE = 4;
         public static final int READVISITOR = 5;
+        public static final int MAKEVIS = 6;
 
         //  The type of this instance.
         private int actionType = CLOSE;
@@ -1184,6 +1216,10 @@ public class FlipFrame
                }
                case READVISITOR: {
                    readVisitorLineList();
+                   break;
+               }
+               case MAKEVIS: {
+                   setVisitorLineList();
                    break;
                }
             }

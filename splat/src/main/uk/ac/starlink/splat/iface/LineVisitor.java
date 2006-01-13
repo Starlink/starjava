@@ -28,6 +28,7 @@ import javax.swing.event.ListDataListener;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.splat.ast.ASTJ;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -36,14 +37,14 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * A simple class for controlling a {@link LineProvider}, so that
- * a list of spectral lines can be viewed and analysed, one-by-one.
+ * a list of spectral lines can be viewed, one-by-one.
  * <p>
  * This class provides controls for selecting a line and for stepping through
  * a list of lines. The line coordinate are stored in a simple text file (the
  * text files are line identifier files, with the additional capability of
  * containing just one column). When a line is "visited" it can have a state
  * object associated with it. This allows any known information associated
- * with the line to be restored.
+ * with the line to be restored (like analysis and UI state).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -64,8 +65,8 @@ public class LineVisitor
     /** Extracted 1D Frame describing the coordinate system and units */
     private Frame coordFrame = null;
 
-    /** The coordinates */
-    private double[] coords = null;
+    /** The EditableSpecData instance*/
+    private EditableSpecData specData = null;
 
     /** Storage for labels. These need to be unique so include coordinate */
     private ArrayList labels = new ArrayList();
@@ -101,16 +102,20 @@ public class LineVisitor
             new GridBagLayouter( this, GridBagLayouter.SCHEME5 );
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 0.0;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
 
         //  Current line, is displayed and selectable by this control.
         lineBoxModel = new LineListModel();
         lineBox = new JComboBox();
         lineBox.addActionListener( this );
+        gbc.gridwidth = 1;
+        layouter.add( Box.createGlue(), gbc );
+        gbc.gridwidth = 7;
         layouter.add( lineBox, gbc );
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        layouter.add( Box.createGlue(), gbc );
 
         //  Back to start.
         FirstAction firstAction = new FirstAction();
@@ -158,6 +163,8 @@ public class LineVisitor
     public void step( int action )
     {
         //  Check for nothing read yet.
+        if ( specData == null ) return;
+        double[] coords = specData.getXData();
         if ( coords == null || coords.length == 0 ) return;
 
         //  Determine position within bounds of list, following the given
@@ -191,7 +198,9 @@ public class LineVisitor
     protected void moveto( int newPosition, boolean updateLineBox )
     {
         //  Don't do anything unless needed (stops lineBox from looping).
+        if ( specData == null ) return;
         if ( newPosition != position ) {
+            double[] coords = specData.getXData();
             if ( coords != null && coords.length > 0 ) {
 
                 //  Get current state and store for next time.
@@ -201,7 +210,7 @@ public class LineVisitor
 
                 //  Move to new line. Pass stored state so it can be restored.
                 position = newPosition;
-                provider.viewLine( coords[position], coordFrame, 
+                provider.viewLine( coords[position], coordFrame,
                                    states[position] );
 
                 //  Set the lineBox to show this value.
@@ -214,26 +223,54 @@ public class LineVisitor
     }
 
     /**
-     * Read a simple text file of line positions. XXX deal with coordinate
-     * system.
+     * Read a simple text file of line positions. This creates a
+     * {@link LineIDSpecData} that should be added to the global list and
+     * plotted, if appropriate.
+     *
+     * @param file the text file containing the positions to visit. This can
+     *             be a fully specified line identifier file and include
+     *             labels and coordinate system information.
+     *
+     * @return the {@link LineIDSpecData} representing the positions, null if
+     *         anything fails.
      */
-    public void readLines( File file )
+    public LineIDSpecData readLines( File file )
         throws SplatException
     {
-        if ( ! file.exists() ) return;
+        if ( ! file.exists() ) return null;
 
         LineIDTXTSpecDataImpl impl = new LineIDTXTSpecDataImpl( file );
         LineIDSpecData specData = new LineIDSpecData( impl );
 
-        //  Success, so clear existing lists.
-        coords = specData.getXData();
+        setLineList( specData );
+        return specData;
+    }
+
+    /**
+     * Set a {@link EditableSpecData} to use as the visitor list. If this is
+     * an instance of {@link LineIDSpecData}, then the labels will be used in
+     * the combobox of selectable positions. Otherwise it will contain the
+     * coordinates.
+     */
+    public void setLineList( EditableSpecData specData )
+    {
+        //  Release existing states and get new coordinates.
+        this.specData = specData;
+        double[] coords = specData.getXData();
         states = new Object[coords.length];
 
         //  Generate labels for JComboBox. Must be unique, so add index.
         labels.clear();
-        String[] specLabels = specData.getLabels();
-        for ( int i = 0; i < specLabels.length; i++ ) {
-            labels.add( i + ": " + specLabels[i] );
+        if ( specData instanceof LineIDSpecData ) {
+            String[] specLabels = ((LineIDSpecData)specData).getLabels();
+            for ( int i = 0; i < specLabels.length; i++ ) {
+                labels.add( i + ": " + specLabels[i] );
+            }
+        }
+        else {
+            for ( int i = 0; i < coords.length; i++ ) {
+                labels.add( i + ": " + coords[i] );
+            }
         }
 
         //  Extract the coordinate Frame describing the units (first axis of
@@ -252,6 +289,7 @@ public class LineVisitor
      */
     public void clearStates()
     {
+        double[] coords = specData.getXData();
         states = new Object[coords.length];
     }
 
@@ -365,14 +403,17 @@ public class LineVisitor
         }
         public Object getSelectedItem()
         {
-            if ( coords != null && position != -1 ) {
-                return labels.get( position );
+            if ( specData != null ) {
+                double[] coords = specData.getXData();
+                if ( coords != null && position != -1 ) {
+                    return labels.get( position );
+                }
             }
             return null;
         }
         public void setSelectedItem( Object anItem )
         {
-            if ( coords == null ) return;
+            if ( specData == null ) return;
             int index = labels.indexOf( anItem );
             if ( index > -1 ) {
                 moveto( index, false );
@@ -381,14 +422,14 @@ public class LineVisitor
         }
         public Object getElementAt( int index )
         {
-            if ( coords != null ) {
+            if ( specData != null ) {
                 return labels.get( index );
             }
             return null;
         }
         public int getSize()
         {
-            if ( coords != null ) {
+            if ( specData != null ) {
                 return labels.size();
             }
             return 0;
