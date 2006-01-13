@@ -98,8 +98,7 @@ public class LineVisitor
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 0.0;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 

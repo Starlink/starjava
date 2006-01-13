@@ -357,10 +357,10 @@ public class FlipFrame
         setTitle( Utilities.getTitle( "Flip/translate spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         if ( spefoBox.isSelected() ) {
-            setSize( new Dimension( 400, 550 ) );
+            setSize( new Dimension( 400, 650 ) );
         }
         else {
-            setSize( new Dimension( 400, 300 ) );
+            setSize( new Dimension( 400, 400 ) );
         }
         setVisible( true );
     }
@@ -799,7 +799,6 @@ public class FlipFrame
         }
     }
 
-
     /**
      * Close the window. Delete any ranges that are shown.
      */
@@ -920,11 +919,13 @@ public class FlipFrame
                 //  Offset.
                 offsetSpinner.setValue( stateStore.getOffset() );
 
-                //  SPEFO values:
-                spefoArea.setText( stateStore.getSPEFOValueText() );
+                if ( spefoBox.isSelected() ) {
+                    //  SPEFO values:
+                    spefoArea.setText( stateStore.getSPEFOValueText() );
 
-                //  SPEFO Notes:
-                spefoNotes.setText( stateStore.getSPEFONoteText() );
+                    //  SPEFO Notes:
+                    spefoNotes.setText( stateStore.getSPEFONoteText() );
+                }
             }
             catch (SplatException e) {
                 //  Nothing to do? Could make a dialog report.
@@ -1001,8 +1002,10 @@ public class FlipFrame
             setShiftRedShift( redshiftBox.isSelected() );
             setIncrement( incrementSpinner.getDoubleValue() );
             setOffset( (Double) offsetSpinner.getValue() );
-            setSPEFOValueText( spefoArea.getText() );
-            setSPEFONoteText( spefoNotes.getText() );
+            if ( spefoBox.isSelected() ) {
+                setSPEFOValueText( spefoArea.getText() );
+                setSPEFONoteText( spefoNotes.getText() );
+            }
         }
 
         public void setComparisonSpectrum( EditableSpecData spectrum )
