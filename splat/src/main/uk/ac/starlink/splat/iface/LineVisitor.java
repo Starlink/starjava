@@ -26,6 +26,8 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.ListDataListener;
 
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -59,9 +61,11 @@ public class LineVisitor
     /** The list of associated states */
     private Object[] states = null;
 
-    /** Backing spectrum for reading coordinates and providing transformation
-      * facilities */
-    private LineIDSpecData specData = null;
+    /** Extracted 1D Frame describing the coordinate system and units */
+    private Frame coordFrame = null;
+
+    /** The coordinates */
+    private double[] coords = null;
 
     /** Storage for labels. These need to be unique so include coordinate */
     private ArrayList labels = new ArrayList();
@@ -154,8 +158,6 @@ public class LineVisitor
     public void step( int action )
     {
         //  Check for nothing read yet.
-        if ( specData == null ) return;
-        double[] coords = specData.getXData();
         if ( coords == null || coords.length == 0 ) return;
 
         //  Determine position within bounds of list, following the given
@@ -190,7 +192,6 @@ public class LineVisitor
     {
         //  Don't do anything unless needed (stops lineBox from looping).
         if ( newPosition != position ) {
-            double[] coords = specData.getXData();
             if ( coords != null && coords.length > 0 ) {
 
                 //  Get current state and store for next time.
@@ -200,7 +201,8 @@ public class LineVisitor
 
                 //  Move to new line. Pass stored state so it can be restored.
                 position = newPosition;
-                provider.viewLine( coords[position], states[position] );
+                provider.viewLine( coords[position], coordFrame, 
+                                   states[position] );
 
                 //  Set the lineBox to show this value.
                 if ( updateLineBox ) {
@@ -223,9 +225,8 @@ public class LineVisitor
         LineIDTXTSpecDataImpl impl = new LineIDTXTSpecDataImpl( file );
         LineIDSpecData specData = new LineIDSpecData( impl );
 
-        //  Success, so clear existing lists and keep this SpecData;
-        this.specData = specData;
-        double[] coords = specData.getXData();
+        //  Success, so clear existing lists.
+        coords = specData.getXData();
         states = new Object[coords.length];
 
         //  Generate labels for JComboBox. Must be unique, so add index.
@@ -234,6 +235,11 @@ public class LineVisitor
         for ( int i = 0; i < specLabels.length; i++ ) {
             labels.add( i + ": " + specLabels[i] );
         }
+
+        //  Extract the coordinate Frame describing the units (first axis of
+        //  the plot FrameSet associated with the spectrum).
+        coordFrame =
+            specData.getAst().getRef().pickAxes( 1, new int[]{ 1 }, null );
 
         //  Move to first line. Reset model to force update of lineBox.
         position = -1;
@@ -351,14 +357,14 @@ public class LineVisitor
         }
         public Object getSelectedItem()
         {
-            if ( specData != null && position != -1 ) {
+            if ( coords != null && position != -1 ) {
                 return labels.get( position );
             }
             return null;
         }
         public void setSelectedItem( Object anItem )
         {
-            if ( specData == null ) return;
+            if ( coords == null ) return;
             int index = labels.indexOf( anItem );
             if ( index > -1 ) {
                 moveto( index, false );
@@ -367,14 +373,14 @@ public class LineVisitor
         }
         public Object getElementAt( int index )
         {
-            if ( specData != null ) {
+            if ( coords != null ) {
                 return labels.get( index );
             }
             return null;
         }
         public int getSize()
         {
-            if ( specData != null ) {
+            if ( coords != null ) {
                 return labels.size();
             }
             return 0;

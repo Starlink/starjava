@@ -53,24 +53,26 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.ast.gui.ScientificSpinner;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.MathUtils;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.PhysicalConstants;
-import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * Provides a toolbox for optionally flipping and translating a modifiable
@@ -875,15 +877,28 @@ public class FlipFrame
     // LineProvider interface. Used to configure for a visit to a place where
     // a line is expected.
     //
-    public void viewLine( double coord, Object state )
+    public void viewLine( double coord, Frame coordFrame, Object state )
     {
         //  Move to line and view it (create flipped spectrum and zoom),
         //  restore it's "state" from state? What is "state" in our context?
         //  Should we move to coord first time and then just restore the old
         //  system later?
-        System.out.println( "move to: " + coord );
         if ( comparisonSpectrum != null ) {
             globalList.removeSpectrum( plot, comparisonSpectrum );
+        }
+
+
+        //  Attempt to transform coord from its system into the system of the
+        //  plot current spectrum.
+        SpecData spec = plot.getCurrentSpectrum();
+        Frame specFrame =
+            spec.getAst().getRef().pickAxes( 1, new int[]{1}, null );
+        Mapping mapping = coordFrame.convert( specFrame, "" );
+        if ( mapping != null ) {
+            double[] frameCoords = new double[1];
+            frameCoords[0] = coord;
+            double[] tranCoords = mapping.tran1( 1, frameCoords, true );
+            coord = tranCoords[0];
         }
 
         //  Flip centre shows the coordinate, always (note disabled when not

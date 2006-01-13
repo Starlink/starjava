@@ -7,6 +7,8 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import uk.ac.starlink.ast.Frame;
+
 /**
  * Defines an interface to be used for interacting with a {@link LineVisitor}
  * control.
@@ -19,15 +21,19 @@ public interface LineProvider
     /**
      * Move to a view of a line, possibilty restoring some related state
      * information.
-     * 
-     * @param coords the coordinate of the line.
+     *
+     * @param coords the coordinate of the line in wcs units.
+     * @param coordFrame {@link Frame} defining the coordinate system and
+     *                   units. This should be used to transform into the
+     *                   coordinate system as understood by the LineProvider.
      * @param state previously returned state information, null for none.
      */
-    public void viewLine( double coords, Object state );
+    public void viewLine( double coords, Frame coordFrame, Object state );
 
     /**
-     * Return any state information about the current line.
-     * 
+     * Return any state information about the current line. What
+     * this state contains is only understood by the LineProvider.
+     *
      * @return an Object defining the current state
      */
     public Object getLineState();
