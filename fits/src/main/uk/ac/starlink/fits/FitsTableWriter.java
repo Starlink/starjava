@@ -90,7 +90,7 @@ public class FitsTableWriter extends StreamStarTableWriter {
             throws IOException {
         DataOutputStream strm = new DataOutputStream( out );
         FitsTableSerializer serializer = new FitsTableSerializer( startab );
-        writePrimary( startab, strm );
+        writePrimary( startab, serializer, strm );
         serializer.writeHeader( strm );
         serializer.writeData( strm );
         strm.flush();
@@ -104,9 +104,11 @@ public class FitsTableWriter extends StreamStarTableWriter {
      * should be a legal primary FITS HDU.
      *
      * @param  startab  the table which will be written into the next HDU
+     * @param  fitser  fits serializer initialised from <cod>startab</code>
      * @param  strm     the stream down which it will be written
      */
-    protected void writePrimary( StarTable startab, DataOutputStream strm )
+    protected void writePrimary( StarTable startab, FitsTableSerializer fitser,
+                                 DataOutputStream strm )
             throws IOException {
         FitsConstants.writeEmptyPrimary( strm );
     }
