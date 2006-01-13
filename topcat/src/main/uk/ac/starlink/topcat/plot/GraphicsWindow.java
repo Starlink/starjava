@@ -307,15 +307,12 @@ public abstract class GraphicsWindow extends AuxWindow
         return new DefaultPointSelector( axisNames_, toggleSets );
     };
 
-    protected StyleEditor createStyleEditor() {
-// temporary measure - haven't implementted StyleEditor for all
-// Style subclasses yet.
-        return new StyleEditor() {
-            Style style_;
-            public void setStyle( Style style ) { style_ = style; }
-            public Style getStyle() { return style_; }
-        };
-    }
+    /**
+     * Creates a style editor suitable for this window.
+     *
+     * @return   new style editor
+     */
+    protected abstract StyleEditor createStyleEditor();
 
     /**
      * Returns a StyleSet which can supply markers.
