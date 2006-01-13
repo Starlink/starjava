@@ -12,6 +12,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
@@ -75,13 +76,14 @@ public class FitsPlusTableWriter extends FitsTableWriter {
      * Attempts to write a VOTable containing metadata for <tt>table</tt>
      * into the primary HDU.
      */
-    protected void writePrimary( StarTable table, DataOutputStream strm )
+    protected void writePrimary( StarTable table, FitsTableSerializer fitser,
+                                 DataOutputStream strm )
             throws IOException {
 
         /* Try to write the metadata as VOTable text in the primary HDU. */
         Exception thrown = null;
         try {
-            writeVOTablePrimary( table, strm );
+            writeVOTablePrimary( table, fitser, strm );
             return;
         }
         catch ( IOException e ) {
@@ -97,20 +99,21 @@ public class FitsPlusTableWriter extends FitsTableWriter {
                         "Failed to write VOTable metadata to primary HDU",
                         thrown );
         }
-        super.writePrimary( table, strm );
+        super.writePrimary( table, fitser, strm );
     }
 
     /**
      * Writes a primary that consists of a character array holding a 
      * VOTable which holds the table metadata.
      */
-    private void writeVOTablePrimary( StarTable table, DataOutputStream strm ) 
+    private void writeVOTablePrimary( StarTable table,
+                                      FitsTableSerializer fitser,
+                                      DataOutputStream strm ) 
             throws IOException, FitsException {
 
         /* Get a serializer that knows how to write VOTable metadata for
          * this table. */
-        VOSerializer voser = VOSerializer.makeSerializer( DataFormat.FITS,
-                                                          table );
+        VOSerializer voser = VOSerializer.makeFitsSerializer( table, fitser );
 
         /* Get a buffer to hold the VOTable character data. */
         StringWriter textWriter = new StringWriter();

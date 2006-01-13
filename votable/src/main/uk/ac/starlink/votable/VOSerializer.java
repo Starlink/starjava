@@ -367,20 +367,16 @@ public abstract class VOSerializer {
     }
 
     /**
-     * Factory method which returns a serializer capable of serializing
-     * a given table to a given data format.
+     * Prepares a table to have a VOSerializer built from it.
+     * It ensures that columns have NULL_VALUE_INFO keys in their
+     * auxiliary metadata if they need them (that is, if they are nullable
+     * integer typed columns).  This may be requied to ensure that
+     * null values get serialized properly.
      *
-     * @param  dataFormat  one of the supported VOTable serialization formats
-     * @param  table  the table to be serialized
+     * @param table  table for preparation
+     * @return   prepared table (possibly the same as input).
      */
-    public static VOSerializer makeSerializer( DataFormat dataFormat,
-                                               StarTable table )
-            throws IOException {
-
-        /* Ensure that columns have NULL_VALUE_INFO keys in their auxiliary
-         * metadata if they need them (that is, if they are nullable
-         * integer typed columns).  This may be required to ensure that 
-         * null values get serialized properly. */
+    private static StarTable prepareForSerializer( StarTable table ) {
         ValueInfo badKey = Tables.NULL_VALUE_INFO;
         int ncol = table.getColumnCount();
         final ColumnInfo[] colInfos = new ColumnInfo[ ncol ];
@@ -419,13 +415,30 @@ public abstract class VOSerializer {
                 }
             };
         }
+        return table;
+    }
+
+    /**
+     * Factory method which returns a serializer capable of serializing
+     * a given table to a given data format.
+     *
+     * @param  dataFormat  one of the supported VOTable serialization formats
+     * @param  table  the table to be serialized
+     */
+    public static VOSerializer makeSerializer( DataFormat dataFormat,
+                                               StarTable table )
+            throws IOException {
+
+        /* Prepare. */
+        table = prepareForSerializer( table );
 
         /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
-            return new TabledataVOSerializer( table );
+            return new TabledataVOSerializer( table);
         }
         else if ( dataFormat == DataFormat.FITS ) {
-            return new FITSVOSerializer( table );
+            return new FITSVOSerializer( table,
+                                         new FitsTableSerializer( table ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             return new BinaryVOSerializer( table );
@@ -434,6 +447,23 @@ public abstract class VOSerializer {
             throw new AssertionError( "No such format " 
                                     + dataFormat.toString() );
         }
+    }
+
+    /**
+     * Constructs a FITS-type VOSerializer.  Since a FitsTableSerializer is
+     * required for this, if one is already available then supplying it 
+     * directly here will be more efficient than calling
+     * <code>makeSerializer</code> which will have to construct another,
+     * possibly an expensive step.
+     *
+     * @param  table  table for serialization
+     * @param  fitser  fits serializer
+     */
+    public static VOSerializer makeFitsSerializer( StarTable table,
+                                                   FitsTableSerializer fitser )
+            throws IOException {
+        table = prepareForSerializer( table );
+        return new FITSVOSerializer( table, fitser );
     }
 
 
@@ -683,9 +713,10 @@ public abstract class VOSerializer {
 
         private final FitsTableSerializer fitser;
 
-        FITSVOSerializer( StarTable table ) throws IOException {
+        FITSVOSerializer( StarTable table, FitsTableSerializer fitser )
+                throws IOException {
             super( table, DataFormat.FITS, "FITS" );
-            fitser = new FitsTableSerializer( table );
+            this.fitser = fitser;
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
