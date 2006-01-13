@@ -3231,6 +3231,12 @@ but my thanks are especially due to the following:
     handled more carefully for FITS and VOTable files.</li>
 <li>When joining tables, column name comparison to determine whether
     deduplication is required is now case-insensitive.</li>
+<li>Error message improved when no automatic format detection is attempted
+    for streamed tables.</li>
+<li>Setting <code>istream=true</code> is now less likely to cause a
+    "Can't re-read stream" error.</li>
+<li>Efficiency improvement when writing FITS-plus format (now only requires
+    a maximum of two passes rather than three of the input rows).</li>
 </ul>
 </p></dd>
 
