@@ -136,6 +136,9 @@ public class FlipFrame
     /** LineVisitor for stepping between lines */
     LineVisitor visitor = null;
 
+    /** Menu item retaining state of visitor state changes */
+    protected JCheckBoxMenuItem singleComparisonBox = null;
+
     /** File chooser used for line visitor files */
     protected BasicFileChooser fileChooser = null;
 
@@ -318,7 +321,8 @@ public class FlipFrame
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
-        resetButton.setToolTipText( "Reset spectrum to default offset" );
+        resetButton.setToolTipText( "Reset spectrum to default offset and"
+                                    + " clear visitor states" );
 
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
@@ -337,12 +341,25 @@ public class FlipFrame
         JMenu optionsMenu = new JMenu( "Options" );
         menuBar.add( optionsMenu );
 
+        //  Do not create new comparison spectra for each visitor.
+        singleComparisonBox =
+            new JCheckBoxMenuItem( "One spectrum for visitor" );
+        optionsMenu.add( singleComparisonBox );
+        boolean state = prefs.getBoolean( "FlipFrame_ONECMP", false );
+        singleComparisonBox.setSelected( state );
+        singleComparisonBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    boolean state = singleComparisonBox.isSelected();
+                    prefs.putBoolean( "FlipFrame_ONECMP", state );
+                }
+            });
+
         //  Switch on the SPEFO additions.
         LocalAction spefoAction = new LocalAction( LocalAction.SPEFO,
                                                    "SPEFO options" );
         spefoBox = new JCheckBoxMenuItem( spefoAction );
         optionsMenu.add( spefoBox );
-        boolean state = prefs.getBoolean( "FlipFrame_SPEFO", false );
+        state = prefs.getBoolean( "FlipFrame_SPEFO", false );
         spefoBox.setSelected( state );
         makeSpefoChanges();
 
@@ -879,14 +896,13 @@ public class FlipFrame
     //
     public void viewLine( double coord, Frame coordFrame, Object state )
     {
-        //  Move to line and view it (create flipped spectrum and zoom),
-        //  restore it's "state" from state? What is "state" in our context?
-        //  Should we move to coord first time and then just restore the old
-        //  system later?
-        if ( comparisonSpectrum != null ) {
+        //  Move to line and view it and restore any associated state.
+
+        //  Remove comparisonSpectrum, if we're replacing it.
+        boolean onespec = singleComparisonBox.isSelected();
+        if ( comparisonSpectrum != null && ! onespec ) {
             globalList.removeSpectrum( plot, comparisonSpectrum );
         }
-
 
         //  Attempt to transform coord from its system into the system of the
         //  plot current spectrum.
@@ -907,20 +923,23 @@ public class FlipFrame
         flipCentre.setDoubleValue( coord );
         flipCentre.setEnabled( flipBox.isSelected() );
 
-        if ( state != null ) {
+        //  Restore old state, unless just have one comparison spectrum. That
+        //  retains same values all the time.
+        if ( state != null && ! onespec ) {
             // Restoring old state.
             StateStore stateStore = (StateStore) state;
             try {
                 //  Comparison spectrum.
                 comparisonSpectrum = stateStore.getComparisonSpectrum();
                 if ( comparisonSpectrum != null ) {
-                   globalList.addSpectrum( plot, comparisonSpectrum );
+                    globalList.addSpectrum( plot, comparisonSpectrum );
                 }
 
                 //  Flip selector.
                 flipBox.setSelected( stateStore.isCopyFlip() );
 
-                //  Translation spectrum.
+                //  Make sure comparisonSpectrum is current (so changes effect
+                //  it).
                 if ( comparisonSpectrum != null ) {
                    availableSpectra.setSelectedItem( comparisonSpectrum );
                 }
@@ -948,8 +967,11 @@ public class FlipFrame
             }
         }
         else {
-            //  Create a new spectrum.
-            copyFlipCurrentSpectrum();
+            //  Create a new spectrum, or we'll just move to the given
+            //  coordinates.
+            if ( comparisonSpectrum == null || ! onespec ) {
+                copyFlipCurrentSpectrum();
+            }
         }
 
         //  Make sure we can view the line.
@@ -958,7 +980,11 @@ public class FlipFrame
 
     public Object getLineState()
     {
-        //  Return the current state, for the current line.
+        //  Return the current state, for the current line. Not used if a
+        //  single comparison spectrum is requested.
+        if( singleComparisonBox.isSelected() ) {
+            return null;
+        }
         return new StateStore();
     }
 
@@ -1141,6 +1167,7 @@ public class FlipFrame
                }
                case RESET: {
                    resetSelectedSpectrum();
+                   visitor.clearStates();
                    break;
                }
                case COPY: {

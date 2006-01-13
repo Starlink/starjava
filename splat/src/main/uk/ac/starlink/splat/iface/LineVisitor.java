@@ -247,6 +247,14 @@ public class LineVisitor
         step( FIRST );
     }
 
+    /**
+     * Clear all states so that they can be refreshed on next visits.
+     */
+    public void clearStates()
+    {
+        states = new Object[coords.length];
+    }
+
     //  Provide enabled so that children are affected.
     public void setEnabled( boolean enabled )
     {
