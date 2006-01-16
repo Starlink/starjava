@@ -52,6 +52,7 @@ public class DensityWindow extends GraphicsWindow {
     private final PixelSizeAction pixIncAction_;
     private final PixelSizeAction pixDecAction_;
     private final Action fitsAction_;
+    private final DensityStyle[] styles_;
     private int pixelSize_ = 1;
 
     private static FileFilter fitsFilter_ =
@@ -66,6 +67,14 @@ public class DensityWindow extends GraphicsWindow {
      */
     public DensityWindow( Component parent ) {
         super( "Density Plot", new String[] { "X", "Y" }, parent );
+
+        /* There's only one style set it makes sense to use for this window.
+         * Construct it here. */
+        styles_ = new DensityStyle[] {
+            new DStyle( DensityStyle.RED ),
+            new DStyle( DensityStyle.GREEN ),
+            new DStyle( DensityStyle.BLUE ),
+        };
 
         /* Construct a plotting surface to receive the graphics. */
         final PlotSurface surface = new PtPlotSurface( this );
@@ -232,6 +241,10 @@ public class DensityWindow extends GraphicsWindow {
         return plot_;
     }
 
+    protected StyleEditor createStyleEditor() {
+        return new DensityStyleEditor( styles_ );
+    }
+
     protected PlotState createPlotState() {
         return new DensityPlotState();
     }
@@ -239,37 +252,13 @@ public class DensityWindow extends GraphicsWindow {
     public PlotState getPlotState() {
         DensityPlotState state = (DensityPlotState) super.getPlotState();
         boolean valid = state != null && state.getValid();
-
-        rgbModel_.setEnabled( state.getValid() &&
-                              state.getPointSelection()
-                                   .getStyles().length <= 3 );
-        state.setRgb( rgbModel_.isEnabled() && rgbModel_.isSelected() );
-
+        state.setRgb( rgbModel_.isSelected() );
         state.setLogZ( zLogModel_.isSelected() );
-
         state.setLoCut( cutter_.getLowValue() );
         state.setHiCut( cutter_.getHighValue() );
         state.setPixelSize( pixelSize_ );
         pixIncAction_.configureEnabledness();
         pixDecAction_.configureEnabledness();
-
-        /* Manipulate the style choices directly.  The default handling done
-         * in the superclass uses a pool of styles which is shared around
-         * between the plotted subsets, new ones being assigned as required.
-         * This isn't suitable here, since there are only 4 possible ones;
-         * if we've got three or less styles we can use red, green, blue,
-         * otherwise we can only use a single greyscale set. */
-        if ( state.getValid() ) {
-            Style[] styles = state.getPointSelection().getStyles();
-            assert styles == state.getPointSelection()
-                            .getStyles();  // check we're not getting a clone
-            boolean rgb = state.getRgb() && styles.length <= 3;
-            fitsAction_.setEnabled( ! rgb || styles.length == 1 );
-            for ( int is = 0; is < styles.length; is++ ) {
-                styles[ is ] = rgb ? DensityStyle.RGB.getStyle( is )
-                                   : DensityStyle.WHITE;
-            }
-        }
         return state;
     }
 
@@ -295,8 +284,14 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
-        return ((DensityPlotState) getPlotState()).getRgb() ? DensityStyle.RGB
-                                                            : DensityStyle.MONO;
+        return new StyleSet() {
+            public String getName() {
+                return "RGB";
+            }
+            public Style getStyle( int index ) {
+                return styles_[ index % styles_.length ];
+            }
+        };
     }
 
     private void exportFits( OutputStream ostrm )
@@ -409,6 +404,21 @@ public class DensityWindow extends GraphicsWindow {
             out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
         }
         out.flush();
+    }
+
+    /**
+     * Style used by density window.  Most of this class is defined
+     * by the abstract DensityStyle class, but we have to fill in one
+     * method (isRGB) here since behaviour is dependent on the current
+     * state of this window.
+     */
+    private class DStyle extends DensityStyle {
+        DStyle( DensityStyle.Channel channel ) {
+            super( channel );
+        }
+        protected boolean isRGB() {
+            return rgbModel_.isSelected();
+        }
     }
 
     /**
