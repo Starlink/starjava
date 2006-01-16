@@ -659,6 +659,49 @@
 
   </target>
 
+  <!-- Create an MacOS X Java application bundle, using the osxjarbundler ant
+   !   task built in to Starlink ant (but derived from the task available
+   !   from http://www.loomcom.com/jarbundler/
+   !
+   !   The osxjarbundler task will work only on OS X (it checks)
+   !-->
+  <target name="build_osxapp"
+          depends="build_demo,build-standalone">
+    <mkdir dir="release"/>
+    <delete dir="release/${Name}.app" quiet="true"/>   <!--just in case...-->
+    <osxjarbundler dir="release"
+                mainclass="${package.name}.Driver"
+                name="${Name}"
+                aboutmenuname="${Name}"
+                bundleid="${package.name}"
+                icon="${src.dir}/lib/MacOS/Topcat.icns"
+                infostring="${Name} ${version} ${copyright.string}"
+                jvmversion="1.5*"
+                screenmenu="true"
+                version="${version}"
+                jars="${dist.lib.pkg}/topcat-full.jar">
+
+      <!-- Copy in the ppc JNI libraries -->
+      <resourcefileset dir="${star.dir}/lib"
+                       includes="ppc/*.jnilib"/>
+      <javaproperty key="java.library.path"
+                    value="$APP_PACKAGE/Contents/Resources/ppc"/>
+
+      <!-- The first Intel Macs will appear in February/March 2006; at
+       !   that point it will become necessary to add ix86/osx
+       !   libraries to the bundle, and possible to test it. -->
+
+      <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->
+      <resourcefileset dir="${src.etc}"
+                       includes="demo/**"/>
+      <javaproperty key="uk.ac.starlink.topcat.demodir"
+                    value="$APP_PACKAGE/Contents/Resources/demo"/>
+
+      <javaproperty key="uk.ac.starlink.topcat.cmdname"
+                    value="topcat"/>
+    </osxjarbundler>
+  </target>
+
   <!--
    !   =================================
    !   Configures the local distribution
