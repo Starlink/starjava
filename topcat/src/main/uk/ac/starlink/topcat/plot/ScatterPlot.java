@@ -14,11 +14,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
@@ -261,84 +256,6 @@ public class ScatterPlot extends SurfacePlot {
      */
     private void drawAnnotations( Graphics g ) {
         annotations_.draw( g );
-    }
-
-    /**
-     * Informs the user what the coefficients are for any regression
-     * lines currently plotted.
-     *
-     * <p>This isn't very beautifully done one way and another - there 
-     * should really be a live regression line control window which gives you
-     * control over what's plotted and displayed - this just gives you
-     * a modal dialogue.  I'm not sure if this is going to be a very
-     * widely used facility though, so I don't know if its' worth the
-     * effort.  Also, to do it properly would require some reorganisation
-     * of how data is distributed/calculated between ScatterPlot and
-     * PlotWindow - this needs to be done in tandem with the move to
-     * multiplots.
-     */
-    public void displayRegressionCoefficients() {
-        final RowSubset[] sets = getPointSelection().getSubsets();
-  boolean[] regressions = new boolean[ sets.length ];
-        TableModel tmodel = new AbstractTableModel() {
-        // Don't do this - the default renderers are rubbish (represent 
-        // values near zero as 0.
-        //  public Class getColumnClass( int icol ) {
-        //      return icol == 0 ? String.class : Double.class;
-        //  }
-            public int getColumnCount() {
-                return 4;
-            }
-            public int getRowCount() {
-                return sets.length;
-            }
-            public String getColumnName( int icol ) {
-                switch ( icol ) {
-                    case 0: return "Subset";
-                    case 1: return "Gradient";
-                    case 2: return "Intercept";
-                    case 3: return "Correlation";
-                    default: throw new IllegalArgumentException();
-                }
-            }
-            public Object getValueAt( int irow, int icol ) {
-                if ( icol == 0 ) {
-                    return sets[ irow ].getName();
-                }
-                else {
-                    XYStats stats = statSets_[ irow ];
-                    if ( stats == null ) {
-                        return null;
-                    }
-                    else {
-                        switch( icol ) {
-                            case 1:
-                                double m = stats.getLinearCoefficients()[ 1 ];
-                                return new Float( (float) m );
-                            case 2:
-                                double c = stats.getLinearCoefficients()[ 0 ];
-                                return new Float( (float) c );
-                            case 3: 
-                                double r = stats.getCorrelation();
-                                return new Float( (float) r );
-                            default:
-                                throw new IllegalArgumentException();
-                        }
-                    }
-                }
-            }
-        };
-        JTable jtab = new JTable( tmodel );
-        JScrollPane tscroller = new JScrollPane( jtab );
-        tscroller.setPreferredSize( new Dimension( 450, 100 ) );
-         
-        Object[] msg = new Object[] { 
-            "Coefficients for plotted regression lines",
-            tscroller,
-        };
-        JOptionPane.showMessageDialog( this, msg, 
-                                       "Linear Regression Coefficients",
-                                       JOptionPane.INFORMATION_MESSAGE );
     }
 
     /**
