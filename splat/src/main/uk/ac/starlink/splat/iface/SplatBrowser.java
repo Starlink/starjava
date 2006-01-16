@@ -205,6 +205,11 @@ public class SplatBrowser
     protected JCheckBoxMenuItem showShortNamesItem = null;
 
     /**
+     * Whether short names are simplified.
+     */
+    protected JCheckBoxMenuItem showSimpleShortNamesItem = null;
+
+    /**
      *  Open or save file chooser.
      */
     protected BasicFileChooser fileChooser = null;
@@ -532,6 +537,7 @@ public class SplatBrowser
 
         //  Short or full names.
         setShowShortNames( true );
+        setShowSimpleShortNames( false );
 
         //  Set up the control area.
         controlArea.setLayout( controlAreaLayout );
@@ -891,6 +897,15 @@ public class SplatBrowser
             ( "Show short names in global list, otherwise long names" );
         showShortNamesItem.addItemListener( this );
 
+        //  Whether global list shows simple short names.
+        showSimpleShortNamesItem = 
+            new JCheckBoxMenuItem( "Simple short names" );
+        optionsMenu.add( showSimpleShortNamesItem );
+        showSimpleShortNamesItem.setToolTipText
+            ( "Show simplified short names in global list, " + 
+              "when they are same as long names" );
+        showSimpleShortNamesItem.addItemListener( this );
+
         //  Arrange the JSplitPane vertically or horizontally.
         splitOrientation = new JCheckBoxMenuItem( "Vertical split" );
         optionsMenu.add( splitOrientation );
@@ -950,6 +965,23 @@ public class SplatBrowser
         boolean state = showShortNamesItem.isSelected();
         prefs.putBoolean( "SplatBrowser_showshortnames", state );
         ((SpecListModel)specList.getModel()).setShowShortNames( state );
+    }
+
+    /**
+     * Set whether each spectrum is described by its simplified shortname in
+     * the global list, when showing short names.
+     */
+    protected void setShowSimpleShortNames( boolean init )
+    {
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state = 
+                prefs.getBoolean( "SplatBrowser_showsimpleshortnames", false );
+            showSimpleShortNamesItem.setSelected( state );
+        }
+        boolean state = showSimpleShortNamesItem.isSelected();
+        prefs.putBoolean( "SplatBrowser_showsimpleshortnames", state );
+        ((SpecListModel)specList.getModel()).setShowSimpleShortNames( state );
     }
 
     /**
@@ -2821,6 +2853,9 @@ public class SplatBrowser
         }
         else if ( source.equals( showShortNamesItem ) ) {
             setShowShortNames( false );
+        }
+        else if ( source.equals( showSimpleShortNamesItem ) ) {
+            setShowSimpleShortNames( false );
         }
     }
 

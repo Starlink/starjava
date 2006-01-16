@@ -56,7 +56,6 @@ public class LineRenderer
      */
     private static boolean showShortNames = true;
 
-
     /**
      * Length of the line drawn to show the symbolic rendering.
      */

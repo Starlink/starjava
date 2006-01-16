@@ -11,6 +11,7 @@ package uk.ac.starlink.splat.data;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -165,8 +166,8 @@ public class SpecData
         throws SplatException
     {
         this.impl = impl;
-        shortName = impl.getShortName();
         fullName = impl.getFullName();
+        setShortName( impl.getShortName() );
         if ( ! check || ( check && impl.getData() != null  ) ) {
             readDataPrivate();
         }
@@ -371,6 +372,12 @@ public class SpecData
     protected String fullName = null;
 
     /**
+     * Whether symbolic names should be truncated when equal to the full name.
+     * Shared by all instances.
+     */
+    protected static boolean simplifyShortNames = false;
+
+    /**
      * The range of coordinates spanned (min/max values in xPos and
      * yPos).
      */
@@ -534,15 +541,31 @@ public class SpecData
 
 
     /**
-     * Get a symbolic name for spectrum.
+     * Get a symbolic name for spectrum. This will be "simplified" if 
+     * {@link simplyShortNames} is currently true and the symbolic name is the
+     * same as the full name (usually the disk file name).
+     * <p>
+     * Simplication means removing all but the last part of the path (parent
+     * directory) and the filename.
      *
      * @return the short name.
      */
     public String getShortName()
     {
-        return shortName;
+        String sName = shortName;
+        if ( simplifyShortNames && fullName.equals( sName ) ) {
+            File file = new File( sName );
+            File par = file.getParentFile();
+            if ( par != null ) {
+                String parPar = par.getParent();
+                if ( parPar != null ) {
+                    //  Short name has a fuller path than we want remove this.
+                    sName = sName.substring( parPar.length() + 1 );
+                }
+            }
+        }
+        return sName;
     }
-
 
     /**
      * Change the symbolic name of a spectrum.
@@ -554,6 +577,27 @@ public class SpecData
         this.shortName = shortName;
     }
 
+    /**
+     * Set whether to simplify all short names when they are requested.
+     * Applies to all instances of SpecData.
+     * 
+     * @param simplify whether to simplify short names.
+     */
+    public static void setSimplifiedShortNames( boolean simplify )
+    {
+        simplifyShortNames = simplify;
+    }
+
+    /**
+     * Get whether we're simplifying all short names when they are requested.
+     * Applies to all instances of SpecData.
+     *
+     * @return the current state
+     */
+    public static boolean isSimplifiedShortNames()
+    {
+        return simplifyShortNames;
+    }
 
     /**
      * Get references to spectrum X data (the coordinates as a single array).
@@ -1570,7 +1614,7 @@ public class SpecData
         if ( mapping == null ) {
 
             //  If fails then just use the values we have.
-            logger.info( shortName + ": cannot data units from " +
+            logger.info( shortName + ": cannot convert data units from " +
                          currentFrame.getC( "unit" ) + " to " +
                          apparentDataUnits );
             apparentDataUnits = null;

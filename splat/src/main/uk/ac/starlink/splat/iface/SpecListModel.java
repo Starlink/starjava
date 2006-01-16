@@ -81,6 +81,19 @@ public class SpecListModel
         }
     }
 
+    /**
+     *  Whether we return the short names as simplified versions
+     *  (when the simple name is the same as the long name).
+     */
+    public void setShowSimpleShortNames( boolean showSimpleShortNames )
+    {
+        boolean cValue = SpecData.isSimplifiedShortNames();
+        if ( ( cValue != showSimpleShortNames ) && showShortNames ) {
+            fireContentsChanged( this, 0, getSize() - 1 );
+        }
+        SpecData.setSimplifiedShortNames( showSimpleShortNames );
+    }
+
 //
 //  Implement rest of ListModel interface (listeners are free from
 //  AbstractListModel)
