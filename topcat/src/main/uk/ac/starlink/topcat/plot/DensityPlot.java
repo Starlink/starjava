@@ -14,8 +14,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.RowSubset;
@@ -196,20 +198,32 @@ public class DensityPlot extends SurfacePlot {
             double loCut = state.getLoCut();
             double hiCut = state.getHiCut();
 
+            /* Ensure that we have no more than one grid to plot for each
+             * style (i.e. each colour channel). */
+            Style[] styles =
+                (Style[]) state.getPointSelection().getStyles().clone();
+            if ( grids.length > 1 ) {
+                grids = (BinGrid[]) grids.clone();
+                styles = (Style[]) styles.clone();
+                foldGrids( grids, styles );
+            }
+
             /* Create and populate an array of 32-bit ARGB colour pixel values
              * which will provide the image. */
-            Style[] styles = state.getPointSelection().getStyles();
-            int nset = styles.length;
             int[] rgb = new int[ npix ];
             Arrays.fill( rgb, 0xff000000 );
             for ( int is = 0; is < grids.length; is++ ) {
                 DensityStyle style = (DensityStyle) styles[ is ];
                 BinGrid grid = grids[ is ];
-                byte[] data = grid.getBytes( grid.getCut( loCut ),
-                                             grid.getCut( hiCut ),
-                                             state.getLogZ() );
-                for ( int ipix = 0; ipix < npix; ipix++ ) {
-                    rgb[ ipix ] = rgb[ ipix ] | style.levelBits( data[ ipix ] );
+                assert ( grid == null ) == ( style == null );
+                if ( grid != null ) {
+                    byte[] data = grid.getBytes( grid.getCut( loCut ),
+                                                 grid.getCut( hiCut ),
+                                                 state.getLogZ() );
+                    for ( int ipix = 0; ipix < npix; ipix++ ) {
+                        rgb[ ipix ] =
+                           rgb[ ipix ] | style.levelBits( data[ ipix ] );
+                    }
                 }
             }
 
@@ -226,6 +240,55 @@ public class DensityPlot extends SurfacePlot {
 
         /* Return the result. */
         return image_;
+    }
+
+    /**
+     * Takes an array of grids and corresponding styles and arranges it
+     * so that if any of the styles are the same (represent the same
+     * colour channel) then they are combined by summing their count arrays.
+     * On output the elements of the <code>grids</code> and <code>styles</code>
+     * arrays may be replaced by new values; these arrays may end up 
+     * with fewer elements than on input.  In this case, some elements will
+     * contain nulls on exit.
+     *
+     * @param   grids   input array of data grids (modified on exit)
+     * @param   styles  input array of plotting DensityStyles corresponding to 
+     *          <code>grids</code> (modified on exit)
+     */
+    private void foldGrids( BinGrid[] grids, Style[] styles ) {
+        int ngrid = grids.length;
+        if ( styles.length != ngrid ) {
+            throw new IllegalArgumentException();
+        }
+        BinGrid[] rgbGrids = new BinGrid[ 3 ];
+        DensityStyle[] rgbStyles = new DensityStyle[ 3 ];
+        List seenStyles = new ArrayList();
+        for ( int is = 0; is < ngrid; is++ ) {
+            int iseen = seenStyles.indexOf( styles[ is ] );
+            if ( iseen < 0 ) {
+                DensityStyle style = (DensityStyle) styles[ is ];
+                iseen = seenStyles.size();
+                seenStyles.add( style );
+                rgbGrids[ iseen ] = grids[ is ];
+                rgbStyles[ iseen ] = style;
+            }
+            else {
+                int[] c1 = grids[ is ].getCounts();
+                int[] c0 = rgbGrids[ iseen ].getCounts();
+                int npix = c0.length;
+                assert npix == c1.length;
+                for ( int i = 0; i < npix; i++ ) {
+                    c0[ i ] += c1[ i ];
+                }
+                rgbGrids[ iseen ].recalculate();
+            }
+        }
+        Arrays.fill( grids, null );
+        Arrays.fill( styles, null );
+        for ( int irgb = 0; irgb < seenStyles.size(); irgb++ ) {
+            grids[ irgb ] = rgbGrids[ irgb ];
+            styles[ irgb ] = rgbStyles[ irgb ];
+        }
     }
 
     /**
@@ -273,8 +336,8 @@ public class DensityPlot extends SurfacePlot {
      *
      * <p>This method actually works in two slightly different ways according
      * to whether plotting is RGB or monochrome.  In the former case an
-     * array of N BinGrids will be returned, where N is not greater than
-     * 3 and each one represents a separate subset from the PointSelection.
+     * array of N BinGrids will be returned, one for each subset from 
+     * the PointSelection.
      * In the latter case a 1-element array is returned, the values being
      * a sum of counts from all the subsets.
      *
@@ -337,7 +400,7 @@ public class DensityPlot extends SurfacePlot {
             /* Decide if we're working in monochrome mode (sum all subset
              * counts) or RGB mode (accumulate counts for different subsets
              * into different bin grids). */
-            boolean sumAll = ! state.getRgb() || nset > 3;
+            boolean sumAll = ! state.getRgb();
             if ( sumAll ) {
                 grids = new BinGrid[] { new BinGrid( xpix, ypix ) };
             }
