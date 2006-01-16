@@ -34,7 +34,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.diva.DrawActions;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -490,14 +492,14 @@ public class GenerateFromInterpFrame
         try {
             EditableSpecData newSpec =
                 SpecDataFactory.getInstance().createEditable( name );
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( spectrum.getAst().getRef(), 1 );
             if ( errors == null ) {
-                newSpec.setFullData( spectrum.getFrameSet(),
-                                     spectrum.getCurrentDataUnits(),
+                newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
                                      data );
             }
             else {
-                newSpec.setFullData( spectrum.getFrameSet(),
-                                     spectrum.getCurrentDataUnits(),
+                newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
                                      data, errors );
             }
             globalList.add( newSpec );
