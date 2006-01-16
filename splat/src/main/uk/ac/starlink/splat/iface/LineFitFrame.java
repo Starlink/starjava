@@ -41,7 +41,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.ScientificFormat;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -591,7 +593,7 @@ public class LineFitFrame
 
         //  If no ranges are defined, then nothing to do.
         int[] ranges = rangeList.extractRanges( false, false, specXData );
-        if ( ranges.length == 0 ) {
+        if ( ranges == null || ranges.length == 0 ) {
             JOptionPane.showMessageDialog( this,
                                            "You have not selected any lines",
                                            "No lines",
@@ -1135,8 +1137,10 @@ public class LineFitFrame
             values[0] = value;
             values[1] = value;
 
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
             constantSpectrum.setSimpleUnitData
-                ( currentSpectrum.getFrameSet(), coords,
+                ( frameSet, coords,
                   currentSpectrum.getCurrentDataUnits(), values );
             constantSpectrum.setType( SpecData.POLYNOMIAL );
             constantSpectrum.setUseInAutoRanging( false );
@@ -1165,8 +1169,9 @@ public class LineFitFrame
             EditableSpecData lineSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
 
-            lineSpec.setSimpleUnitData( currentSpectrum.getFrameSet(),
-                                        coords, 
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
+            lineSpec.setSimpleUnitData( frameSet, coords, 
                                         currentSpectrum.getCurrentDataUnits(),
                                         data );
 

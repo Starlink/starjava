@@ -944,21 +944,21 @@ public class SpecData
     }
 
     /**
-     * Create a new (memory-resident) spectrum from the given data and
-     * coordinates. This looses the full WCS as new coords are assumed no
-     * longer directly related, i.e.<!-- --> indices of data do not map to
-     * proper coordinates using the WCS, but the coordinate system of the
-     * spectrum should be preserved (using the SpecFrame to reconstruct a new
-     * WCS).
+     * Create a new (memory-resident) spectrum using the given data and
+     * coordinates, but based on this instance.
+     * <p>
+     * This looses the full WCS as the new coordinates are assumed no longer
+     * directly related, i.e.<!-- --> indices of data do not map to proper
+     * coordinates using the WCS, but the coordinate system of the spectrum
+     * should be preserved (using the SpecFrame to reconstruct a new WCS).
      */
-    protected SpecData createNewSpectrum( String name, double[] coords,
-                                          double[] data, double[] errors )
+    protected  SpecData createNewSpectrum( String name, double[] coords,
+                                           double[] data, double[] errors )
     {
         EditableSpecData newSpec = null;
         try {
             newSpec = SpecDataFactory.getInstance().createEditable( name );
-            FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(),
-                                                    getMostSignificantAxis() );
+            FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(), 1 );
             if ( errors == null ) {
                 newSpec.setSimpleUnitDataQuick( frameSet, coords,
                                                 getCurrentDataUnits(), data );
