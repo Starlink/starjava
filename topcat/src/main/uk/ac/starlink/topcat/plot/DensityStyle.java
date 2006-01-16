@@ -13,75 +13,28 @@ import javax.swing.Icon;
  */
 public abstract class DensityStyle implements Style, Icon {
 
+    private final Channel channel_;
+
     private static final int ICON_WIDTH = 24;
     private static final int ICON_HEIGHT = 8;
 
-    /** Style which gives levels of redness. */
-    public static final DensityStyle RED = new DensityStyle() {
-        public int levelBits( byte level ) {
-            return ( 0x000000ff & level ) << 16;
-        }
-    };
+    /** Red colour channel. */
+    public static final Channel RED = new Channel( "Red", 0 );
 
-    /** Style which gives levels of greenness. */
-    public static final DensityStyle GREEN = new DensityStyle() {
-        public int levelBits( byte level ) {
-            return ( 0x000000ff & level ) << 8;
-        }
-    };
+    /** Green colour channel. */
+    public static final Channel GREEN = new Channel( "Green", 1 );
 
-    /** Style which gives levels of blueness. */
-    public static final DensityStyle BLUE = new DensityStyle() {
-        public int levelBits( byte level ) {
-            return ( 0x000000ff & level );
-        }
-    };
-
-    /** Greyscale style. */
-    public static final DensityStyle WHITE = new DensityStyle() {
-        public int levelBits( byte level ) {
-            int lev = 0x000000ff & level;
-            assert lev >= 0 && lev < 256;
-            return lev | ( lev << 8 ) | ( lev << 16 );
-        }
-    };
-
-    /** Blank (invisible) style. */
-    public static final DensityStyle BLANK = new DensityStyle() {
-        public int levelBits( byte level ) {
-            return 0;
-        }
-    };
+    /** Blue colour channel. */
+    public static final Channel BLUE = new Channel( "Blue", 2 );
 
     /**
-     * Styleset which contains RED, GREEN and BLUE.  Any styles beyond the
-     * first three are invisible (transparent).
+     * Constructs a new style which plots in a given colour channel.
+     *
+     * @param  channel  colour channel
      */
-    public static final StyleSet RGB = new StyleSet() {
-        public String getName() {
-            return "RGB";
-        }
-        public Style getStyle( int index ) {
-            switch ( index ) {
-                case 0: return RED;
-                case 1: return GREEN;
-                case 2: return BLUE;
-                default: return BLANK;
-            }
-        }
-    };
-
-    /**
-     * Styleset for which every entry is greyscale.
-     */
-    public static final StyleSet MONO = new StyleSet() {
-        public String getName() {
-            return "Monochrome";
-        }
-        public Style getStyle( int index ) {
-            return WHITE;
-        }
-    };
+    DensityStyle( Channel channel ) {
+        channel_ = channel;
+    }
 
     /**
      * Defines how the style looks.
@@ -93,7 +46,33 @@ public abstract class DensityStyle implements Style, Icon {
      * @param  level  unsigned byte value
      * @return  ORable bit mask for modifying a colour value
      */
-    public abstract int levelBits( byte level );
+    public int levelBits( byte level ) {
+        if ( isRGB() ) {
+            return ( 0x000000ff & level ) << channel_.shift_;
+        }
+        else {
+            int lev = 0x000000ff & level;
+            assert lev >= 0 && lev < 256;
+            return lev | ( lev << 8 ) | ( lev << 16 );
+        }
+    }
+
+    /**
+     * Returns the colour channel.
+     *
+     * @return  0 = red, 1 = green, 2 = blue
+     */
+    private Channel getChannel() {
+        return channel_;
+    }
+
+    /**
+     * Indicates whether the plotting is currently to be treated as
+     * three-channel RGB plotting or as single-channel intensity plotting.
+     *
+     * @return   true iff plotting is currently three-channel
+     */
+    protected abstract boolean isRGB();
 
     public Icon getLegendIcon() {
         return this;
@@ -115,6 +94,40 @@ public abstract class DensityStyle implements Style, Icon {
             byte level = (byte) ( 255 * i / ICON_WIDTH );
             g.setColor( new Color( 0xff000000 | levelBits( level ), true ) );
             g.drawLine( x + i, ylo, x + i, yhi );
+        }
+    }
+
+    public String toString() {
+        return channel_.toString();
+    }
+
+    /**
+     * Enumeration class which describes a colour channel.
+     */
+    public static class Channel {
+        private final String name_;
+        private final int irgb_;
+        private final int shift_;
+
+        /**
+         * Constructor.
+         *
+         * @param   name   channel (colour) name
+         * @param   irgb   RGB index: 0 = red, 1 = green, 2 = blue
+         * @param   number of bits to shift left to turn an 8-bit value into
+         *                 an or-able 24-bit value for this channel
+         */
+        private Channel( String name, int irgb ) {
+            name_ = name;
+            irgb_ = irgb;
+            shift_ = 8 * ( 2 - irgb );
+        }
+
+        /**
+         * Returns channel name.
+         */
+        public String toString() {
+            return name_;
         }
     }
 }
