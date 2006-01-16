@@ -245,15 +245,15 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
                                       "Scatter Plot",
                                       PlotWindow.class ),
-            new GraphicsWindowAction( "Density", ResourceIcon.DENSITY,
-                                      "Density plot (2D histogram)",
-                                      DensityWindow.class ),
             new GraphicsWindowAction( "3D", ResourceIcon.PLOT3D,
                                       "Three-dimensional scatter plot",
                                       Cartesian3DWindow.class ),
             new GraphicsWindowAction( "Sky", ResourceIcon.SPHERE,
                                       "Spherical polar scatter plot",
                                       SphereWindow.class ),
+            new GraphicsWindowAction( "Density", ResourceIcon.DENSITY,
+                                      "Density plot (2D histogram)",
+                                      DensityWindow.class ),
         };
         writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
                                          "Write out the current table" ) {
