@@ -565,6 +565,7 @@ XXX delete
   <target name="build_osxapp"
           depends="build_demo,build-standalone">
     <mkdir dir="release"/>
+    <delete dir="release/${Name}.app" quiet="true"/>   <!--just in case...-->
     <osxjarbundler dir="release"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
@@ -577,18 +578,15 @@ XXX delete
                 version="${version}"
                 jars="${dist.lib.pkg}/treeview-full.jar">
 
-      <!-- Copy in JNI libraries -->
+      <!-- Copy in the ppc JNI libraries -->
       <resourcefileset dir="${star.dir}/lib"
                        includes="ppc/*.jnilib"/>
-      <!-- Include x86 libraries, too, since the first Intel Macs have
-       !   just recently appeared (as of January 2006).  I don't have
-       !   one, however, so I can't test that this works.  -->
-      <resourcefileset dir="${star.dir}/lib"
-                       includes="i386/*.so"/>
-
-      <!-- Put _both_ of these directories on the library path -->
       <javaproperty key="java.library.path"
-                    value="$APP_PACKAGE/Contents/Resources/ppc:$APP_PACKAGE/Contents/Resources/i386"/>
+                    value="$APP_PACKAGE/Contents/Resources/ppc"/>
+
+      <!-- The first Intel Macs will appear in February/March 2006; at
+       !   that point it will become necessary to add ix86/osx
+       !   libraries to the bundle, and possible to test it. -->
 
       <!-- demo data lives in ${build.etc}/demo (see target build_demo) -->
       <resourcefileset dir="${build.etc}"
