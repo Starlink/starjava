@@ -151,54 +151,53 @@ public class ScatterPlot extends SurfacePlot {
         Style[] styles = getPointSelection().getStyles();
         int nset = sets.length;
 
-        /* Draw the points, optionally accumulating statistics for 
-         * X-Y correlations if we're going to need to draw regression lines. */
-        statSets_ = new XYStats[ nset ];
+        /* Draw the points. */
         double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
+            RowSubset set = sets[ is ];
             MarkStyle style = (MarkStyle) styles[ is ];
-            boolean hide = style.getHidePoints();
-
-            /* Prepare to calculate linear regression if required. */
-            boolean regress = style.getLine() == MarkStyle.LINEAR;
-            XYStats stats = regress ? new XYStats( state.getLogFlags()[ 0 ],
-                                                   state.getLogFlags()[ 1 ] )
-                                    : null;
-            statSets_[ is ] = stats;
-
-            /* Prepare to draw connecting lines if required. */
-            boolean joindots = style.getLine() == MarkStyle.DOT_TO_DOT;
-            Graphics2D lineGraphics = null;
-            if ( joindots ) {
-                lineGraphics = (Graphics2D) g.create();
-                style.configureForLine( lineGraphics, BasicStroke.CAP_BUTT,
-                                        BasicStroke.JOIN_MITER );
-            }
-            boolean notFirst = false;
-
-            /* Iterate over points for this set. */
-            int maxr = style.getMaximumRadius();
-            int maxr2 = maxr * 2;
-            int lastxp = 0;
-            int lastyp = 0;
-            for ( int ip = 0; ip < np; ip++ ) {
-                if ( sets[ is ].isIncluded( (long) ip ) ) {
-                    points.getCoords( ip, coords );
-                    double x = coords[ 0 ];
-                    double y = coords[ 1 ];
-                    Point point = surface.dataToGraphics( x, y, ! joindots );
-                    if ( point != null ) {
-                        int xp = point.x;
-                        int yp = point.y;
-                        if ( g.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
-                            if ( ! hide ) {
+            if ( ! style.getHidePoints() ) {
+                int maxr = style.getMaximumRadius();
+                int maxr2 = maxr * 2;
+                for ( int ip = 0; ip < np; ip++ ) {
+                    if ( set.isIncluded( (long) ip ) ) {
+                        points.getCoords( ip, coords );
+                        double x = coords[ 0 ];
+                        double y = coords[ 1 ];
+                        Point point = surface.dataToGraphics( x, y, true );
+                        if ( point != null ) {
+                            int xp = point.x;
+                            int yp = point.y;
+                            if ( g.hitClip( xp - maxr, yp - maxr,
+                                            maxr2, maxr2 ) ) {
                                 style.drawMarker( g, xp, yp );
                             }
-                            if ( regress ) {
-                                stats.addPoint( x, y );
-                            }
                         }
-                        if ( joindots ) {
+                    }
+                }
+            }
+        }
+
+        /* Join the dots as required. */
+        for ( int is = 0; is < nset; is++ ) {
+            MarkStyle style = (MarkStyle) styles[ is ];
+            if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
+                RowSubset set = sets[ is ];
+                Graphics2D lineGraphics = (Graphics2D) g.create();
+                style.configureForLine( lineGraphics, BasicStroke.CAP_BUTT,
+                                        BasicStroke.JOIN_MITER );
+                int lastxp = 0;
+                int lastyp = 0;
+                boolean notFirst = false;
+                for ( int ip = 0; ip < np; ip++ ) {
+                    if ( set.isIncluded( (long) ip ) ) {
+                        points.getCoords( ip, coords );
+                        double x = coords[ 0 ];
+                        double y = coords[ 1 ];
+                        Point point = surface.dataToGraphics( x, y, false );
+                        if ( point != null ) {
+                            int xp = point.x;
+                            int yp = point.y;
                             if ( notFirst ) {
                                 lineGraphics.drawLine( lastxp, lastyp, xp, yp );
                             }
@@ -213,12 +212,42 @@ public class ScatterPlot extends SurfacePlot {
             }
         }
 
-        /* Draw regression lines as required. */
-        g.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                            RenderingHints.VALUE_ANTIALIAS_ON );
+        /* Do linear regression as required. */
+        statSets_ = new XYStats[ nset ];
         for ( int is = 0; is < nset; is++ ) {
-            XYStats stats = statSets_[ is ];
-            if ( stats != null ) {
+            RowSubset set = sets[ is ];
+            MarkStyle style = (MarkStyle) styles[ is ];
+            if ( style.getLine() == MarkStyle.LINEAR ) {
+
+                /* Accumulate statistics. */
+                XYStats stats = new XYStats( state.getLogFlags()[ 0 ],
+                                             state.getLogFlags()[ 1 ] );
+                statSets_[ is ] = stats;
+                int maxr = style.getMaximumRadius();
+                int maxr2 = maxr * 2;
+                for ( int ip = 0; ip < np; ip++ ) {
+                    if ( set.isIncluded( (long) ip ) ) {
+                        points.getCoords( ip, coords );
+                        double x = coords[ 0 ];
+                        double y = coords[ 1 ];
+                        Point point = surface.dataToGraphics( x, y, true );
+                        if ( point != null ) {
+                            int xp = point.x;
+                            int yp = point.y;
+                            if ( g.hitClip( xp - maxr, yp - maxr,
+                                            maxr2, maxr2 ) ) {
+                                stats.addPoint( x, y );
+                            }
+                        }
+                    }
+                }
+
+                /* Draw regression line. */
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                     RenderingHints.VALUE_ANTIALIAS_ON );
+                style.configureForLine( g2, BasicStroke.CAP_BUTT,
+                                        BasicStroke.JOIN_MITER );
                 double[] ends = stats.linearRegressionLine();
                 if ( ends != null ) {
                     Point p1 = surface.dataToGraphics( ends[ 0 ], ends[ 1 ],
@@ -226,11 +255,7 @@ public class ScatterPlot extends SurfacePlot {
                     Point p2 = surface.dataToGraphics( ends[ 2 ], ends[ 3 ],
                                                        false );
                     if ( p1 != null && p2 != null ) {
-                        Graphics g1 = g.create();
-                        ((MarkStyle) styles[ is ])
-                                    .configureForLine( g1, BasicStroke.CAP_BUTT,
-                                                       BasicStroke.JOIN_MITER );
-                        g1.drawLine( p1.x, p1.y, p2.x, p2.y );
+                        g2.drawLine( p1.x, p1.y, p2.x, p2.y );
                     }
                 }
             }
