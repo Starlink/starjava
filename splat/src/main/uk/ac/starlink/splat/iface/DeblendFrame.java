@@ -36,6 +36,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -853,9 +855,11 @@ public class DeblendFrame
             values[0] = value;
             values[1] = value;
 
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
             constantSpectrum.setSimpleUnitData
-                ( currentSpectrum.getFrameSet(), coords,
-                  currentSpectrum.getCurrentDataUnits(), values );
+                ( frameSet, coords, currentSpectrum.getCurrentDataUnits(), 
+                  values );
             constantSpectrum.setType( SpecData.POLYNOMIAL );
             constantSpectrum.setUseInAutoRanging( false );
             constantSpectrum.setShortName( "Constant " + value );
@@ -882,8 +886,11 @@ public class DeblendFrame
         try {
             EditableSpecData lineSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
-            lineSpec.setSimpleUnitData( currentSpectrum.getFrameSet(),
-                                        coords, 
+
+
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
+            lineSpec.setSimpleUnitData( frameSet, coords, 
                                         currentSpectrum.getCurrentDataUnits(),
                                         data );
             lineSpec.setType( SpecData.LINEFIT );

@@ -1140,8 +1140,8 @@ public class LineFitFrame
             FrameSet frameSet = 
                 ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
             constantSpectrum.setSimpleUnitData
-                ( frameSet, coords,
-                  currentSpectrum.getCurrentDataUnits(), values );
+                ( frameSet, coords, currentSpectrum.getCurrentDataUnits(), 
+                  values );
             constantSpectrum.setType( SpecData.POLYNOMIAL );
             constantSpectrum.setUseInAutoRanging( false );
             constantSpectrum.setShortName( "Constant " + value );
