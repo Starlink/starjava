@@ -127,6 +127,20 @@ public class BinGrid {
     }
 
     /**
+     * Recalculates invariants.  This must be called if the counts arrray
+     * is modified directly.
+     */
+    public void recalculate() {
+        maxCount_ = 0;
+        totalPoints_ = 0;
+        for ( int ip = 0; ip < npix_; ip++ ){ 
+            int count = counts_[ ip ];
+            maxCount_ = Math.max( maxCount_, count );
+            totalPoints_ += count;
+        }
+    }
+
+    /**
      * Returns an array of bytes representing the values in this grid.
      * The values are scaled to occupy the full range 0-255 or
      * roughly so.
