@@ -114,6 +114,7 @@ public class DensityPlotState extends PlotState {
         if ( super.equals( o ) && o instanceof DensityPlotState ) {
             DensityPlotState other = (DensityPlotState) o;
             return rgb_ == other.rgb_
+                && zLog_ == other.zLog_
                 && loCut_ == other.loCut_
                 && hiCut_ == other.hiCut_
                 && pixSize_ == other.pixSize_;
@@ -126,6 +127,7 @@ public class DensityPlotState extends PlotState {
     public int hashCode() {
         int code = super.hashCode();
         code = 23 * code + ( rgb_ ? 1 : 0 );
+        code = 23 * code + ( zLog_ ? 1 : 0 );
         code = 23 * code + Float.floatToIntBits( (float) loCut_ );
         code = 23 * code + Float.floatToIntBits( (float) hiCut_ );
         code = 23 * code + pixSize_;
