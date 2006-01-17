@@ -112,6 +112,33 @@ public class MarkStyles {
     }
 
     /**
+     * Returns a StyleSet based on another one but with a given opaque limit
+     * for each of the dispensed styles.
+     *
+     * @param   name   name of the returned style set
+     * @param   base   style set on which the returns will be based
+     * @param   opaqueLimit   initial opaque limit of styles dispensed by
+     *          the return
+     * @return  new style set
+     */
+    public static StyleSet faded( final String name, final StyleSet base,
+                                  final int opaqueLimit ) {
+         if ( opaqueLimit < 1 ) {
+             throw new IllegalArgumentException();
+         }
+         return new StyleSet() {
+             public String getName() {
+                 return name;
+             }
+             public Style getStyle( int index ) {
+                 MarkStyle style = (MarkStyle) base.getStyle( index );
+                 style.setOpaqueLimit( opaqueLimit );
+                 return style;
+             }
+         };
+    }
+
+    /**
      * Returns an icon which represents a given marker style set. 
      * It consists of a row of example legends corresponding to the set.
      *

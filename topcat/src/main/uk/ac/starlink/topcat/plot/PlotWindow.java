@@ -86,6 +86,10 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
         MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
         MarkStyles.openShapes( "Large Black Outlines", 5, Color.black ),
+        MarkStyles.faded( "Faint Transparent Pixels", MARKERS1, 20 ),
+        MarkStyles.faded( "Faint Transparent Dots", MARKERS2, 20 ),
+        MarkStyles.faded( "Medium Transparent Pixels", MARKERS1, 5 ),
+        MarkStyles.faded( "Medium Transparent Dots", MARKERS2, 5 ),
     };
 
     /**
@@ -410,7 +414,12 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
-        if ( npoint > 20000 ) {
+        if ( npoint > 100000 ) {
+            int opaqueLimit = npoint / 50000;
+            return MarkStyles.faded( "Ghost " + opaqueLimit, MARKERS1,
+                                     opaqueLimit );
+        }
+        if ( npoint > 10000 ) {
             return MARKERS1;
         }
         else if ( npoint > 2000 ) {
