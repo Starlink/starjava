@@ -87,7 +87,7 @@ public class StyleWindow extends JDialog {
             Rectangle dpos = getBounds();
             Rectangle screen = gc.getBounds();
             int y = bot - dpos.height;
-            int x = Math.min( side - 50, screen.width - dpos.width );
+            int x = Math.min( side - 10, screen.width - dpos.width );
             setLocation( x, y );
         }
     }
