@@ -15,6 +15,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JRadioButton;
+import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
@@ -34,6 +35,7 @@ public class MarkStyleEditor extends StyleEditor {
     private final JComboBox shapeSelector_;
     private final JComboBox sizeSelector_;
     private final ColorComboBox colorSelector_;
+    private final JSlider opaqueSlider_;
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
     private final ValueButtonGroup lineSelector_;
@@ -98,6 +100,16 @@ public class MarkStyleEditor extends StyleEditor {
         colorSelector_ = new ColorComboBox();
         colorSelector_.addActionListener( this );
 
+        /* Opacity limit slider. */
+        opaqueSlider_ = new JSlider( 1, 10, 1 );
+        opaqueSlider_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                if ( ! opaqueSlider_.getValueIsAdjusting() ) {
+                    MarkStyleEditor.this.stateChanged( evt );
+                }
+            }
+        } );
+
         /* Marker hiding selector. */
         markFlagger_ = new JCheckBox( "Hide Markers" );
         markFlagger_.setSelected( false );
@@ -123,24 +135,43 @@ public class MarkStyleEditor extends StyleEditor {
         corrLabel_ = new JLabel();
 
         /* Place marker selection components. */
-        JComponent markBox = Box.createHorizontalBox();
-        markBox.add( new JLabel( "Shape: " ) );
-        markBox.add( new ShrinkWrapper( shapeSelector_ ) );
-        markBox.add( Box.createHorizontalStrut( 5 ) );
-        markBox.add( new ComboBoxBumper( shapeSelector_ ) );
-        markBox.add( Box.createHorizontalStrut( 10 ) );
-        markBox.add( new JLabel( "Size: " ) );
-        markBox.add( sizeSelector_ );
-        markBox.add( Box.createHorizontalStrut( 5 ) );
-        markBox.add( new ShrinkWrapper( new ComboBoxBumper( sizeSelector_ ) ) );
-        markBox.add( Box.createHorizontalStrut( 10 ) );
-        markBox.add( new JLabel( "Colour: " ) );
-        markBox.add( colorSelector_ );
-        markBox.add( Box.createHorizontalStrut( 5 ) );
-        markBox.add( new ShrinkWrapper( new ComboBoxBumper(
+        JComponent formBox = Box.createHorizontalBox();
+        formBox.add( new JLabel( "Shape: " ) );
+        formBox.add( new ShrinkWrapper( shapeSelector_ ) );
+        formBox.add( Box.createHorizontalStrut( 5 ) );
+        formBox.add( new ComboBoxBumper( shapeSelector_ ) );
+        formBox.add( Box.createHorizontalStrut( 10 ) );
+        formBox.add( new JLabel( "Size: " ) );
+        formBox.add( new ShrinkWrapper( sizeSelector_ ) );
+        formBox.add( Box.createHorizontalStrut( 5 ) );
+        formBox.add( new ShrinkWrapper( new ComboBoxBumper( sizeSelector_ ) ) );
+        formBox.add( Box.createHorizontalStrut( 5 ) );
+        formBox.add( Box.createHorizontalGlue() );
+
+        JComponent colorBox = Box.createHorizontalBox();
+        colorBox.add( new JLabel( "Colour: " ) );
+        colorBox.add( colorSelector_ );
+        colorBox.add( Box.createHorizontalStrut( 5 ) );
+        colorBox.add( new ShrinkWrapper( new ComboBoxBumper(
                                                 colorSelector_ ) ) );
-        markBox.add( Box.createHorizontalStrut( 5 ) );
-        markBox.add( Box.createHorizontalGlue() );
+        colorBox.add( Box.createHorizontalStrut( 10 ) );
+        colorBox.add( new JLabel( "Saturation: " ) );
+        colorBox.add( opaqueSlider_ );
+        colorBox.add( Box.createHorizontalStrut( 5 ) );
+        colorBox.add( Box.createHorizontalGlue() );
+
+        JComponent hideBox = Box.createHorizontalBox();
+        hideBox.add( markFlagger_ );
+        hideBox.add( Box.createHorizontalGlue() );
+
+        JComponent markBox = Box.createVerticalBox();
+        markBox.add( formBox );
+        markBox.add( Box.createVerticalStrut( 5 ) );
+        markBox.add( colorBox );
+        if ( withLines ) {
+            markBox.add( Box.createVerticalStrut( 5 ) );
+            markBox.add( hideBox );
+        }
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
 
@@ -156,8 +187,7 @@ public class MarkStyleEditor extends StyleEditor {
             lineStyleBox.add( new ShrinkWrapper( dashSelector_ ) );
             lineStyleBox.add( Box.createHorizontalStrut( 5 ) );
             lineStyleBox.add( new ComboBoxBumper( dashSelector_ ) );
-            lineStyleBox.add( Box.createHorizontalStrut( 10 ) );
-            lineStyleBox.add( markFlagger_ );
+            lineStyleBox.add( Box.createHorizontalStrut( 5 ) );
             lineStyleBox.add( Box.createHorizontalGlue() );
 
             Box noneLineBox = Box.createHorizontalBox();
@@ -186,6 +216,7 @@ public class MarkStyleEditor extends StyleEditor {
         shapeSelector_.setSelectedItem( mstyle.getShapeId() );
         sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
+        opaqueSlider_.setValue( mstyle.getOpaqueLimit() );
         thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
         dashSelector_.setSelectedDash( mstyle.getDash() );
         lineSelector_.setValue( mstyle.getLine() );
@@ -196,6 +227,7 @@ public class MarkStyleEditor extends StyleEditor {
         return getStyle( (MarkShape) shapeSelector_.getSelectedItem(),
                          sizeSelector_.getSelectedIndex(),
                          colorSelector_.getSelectedColor(),
+                         opaqueSlider_.getValue(),
                          markFlagger_.isEnabled() && markFlagger_.isSelected(),
                          (MarkStyle.Line) lineSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
@@ -214,10 +246,12 @@ public class MarkStyleEditor extends StyleEditor {
      * @return  marker
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
-                                       boolean hidePoints, MarkStyle.Line line,
+                                       int opaqueLimit, boolean hidePoints,
+                                       MarkStyle.Line line,
                                        int thick, float[] dash ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
                                     : shape.getStyle( color, size );
+        style.setOpaqueLimit( opaqueLimit );
         style.setLine( line );
         style.setHidePoints( hidePoints );
         style.setLineWidth( thick );
@@ -313,14 +347,15 @@ public class MarkStyleEditor extends StyleEditor {
                 if ( ! useText_ ) {
                     setText( null );
                 }
-                MarkStyle style = index >= 0 ? getStyle( getMarkShape( index ),
-                                                         getMarkSize( index ),
-                                                         getMarkColor( index ),
-                                                         false, null, 1, null )
-                                             : getStyle( getMarkShape(),
-                                                         getMarkSize(),
-                                                         getMarkColor(),
-                                                         false, null, 1, null );
+                MarkStyle style = index >= 0
+                                ? getStyle( getMarkShape( index ),
+                                            getMarkSize( index ),
+                                            getMarkColor( index ),
+                                            1, false, null, 1, null )
+                                : getStyle( getMarkShape(),
+                                            getMarkSize(),
+                                            getMarkColor(),
+                                            1, false, null, 1, null );
                 label.setIcon( style.getLegendIcon() );
             }
             return c;
