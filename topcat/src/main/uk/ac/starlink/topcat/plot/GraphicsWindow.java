@@ -80,6 +80,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private PlotState lastState_;
     private Box statusBox_;
     private boolean initialised_;
+    private int guidePointCount_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -188,7 +189,6 @@ public abstract class GraphicsWindow extends AuxWindow
         super.setVisible( visible );
     }
 
-
     /**
      * Check that initialisations have been performed.
      */
@@ -211,13 +211,37 @@ public abstract class GraphicsWindow extends AuxWindow
 
         /* Set a suitable default style set. */
         long npoint = 0;
-        ListModel tablesList = ControlWindow.getInstance().getTablesListModel();
-        for ( int i = 0; i < tablesList.getSize(); i++ ) {
-            TopcatModel tcModel = (TopcatModel) tablesList.getElementAt( i );
-            npoint += tcModel.getDataModel().getRowCount();
+        if ( guidePointCount_ > 0 ) {
+            npoint = guidePointCount_;
+        }
+        else {
+            TopcatModel selectedTable =
+                getPointSelectors().getMainSelector().getTable();
+            if ( selectedTable != null ) {
+                npoint = selectedTable.getDataModel().getRowCount();
+            }
+            else {
+                ListModel tablesList = ControlWindow.getInstance()
+                                                    .getTablesListModel();
+                for ( int i = 0; i < tablesList.getSize(); i++ ) {
+                    npoint += ((TopcatModel) tablesList.getElementAt( i ))
+                             .getDataModel().getRowCount();
+                }
+            }
         }
         setStyles( getDefaultStyles( (int) Math.min( npoint,
                                                      Integer.MAX_VALUE ) ) );
+    }
+
+    /**
+     * Provides a hint to this window how many points it's likely to be
+     * plotting.  This should be called before the window is first 
+     * displayed, and may influence the default plotting style.
+     *
+     * @param   npoint  approximate number of data points that may be plotted
+     */
+    public void setGuidePointCount( int npoint ) {
+        guidePointCount_ = npoint;
     }
 
     /**

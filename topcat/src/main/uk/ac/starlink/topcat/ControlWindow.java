@@ -1007,8 +1007,12 @@ public class ControlWindow extends AuxWindow
                 try {
                     GraphicsWindow window = 
                         (GraphicsWindow) constructor_.newInstance( args );
-                    window.setVisible( true );
                     TopcatModel tcModel = getCurrentModel();
+                    int npoint =
+                        (int) Math.min( tcModel.getDataModel().getRowCount(),
+                                        (long) Integer.MAX_VALUE );
+                    window.setGuidePointCount( npoint );
+                    window.setVisible( true );
                     if ( tcModel != null ) {
                         window.setMainTable( tcModel );
                     }
