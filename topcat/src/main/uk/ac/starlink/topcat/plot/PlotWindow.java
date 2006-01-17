@@ -385,6 +385,15 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
     private void recordPixelMaxCounts( SetId[] setIds, int[] maxCounts ) {
         if ( maxCounts != null ) {
+            maxCounts = (int[]) maxCounts.clone();
+
+            /* In practice the maximum needs to be limited sometimes.
+             * This is a very sloppy way of doing it.  The proper way would
+             * involve using a quantile of the counts rather than just
+             * getting the maximum or something. */
+            for ( int i = 0; i < maxCounts.length; i++ ) {
+                maxCounts[ i ] = Math.min( 1000, maxCounts[ i ] );
+            }
             ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
                               .setMaxPixelCounts( setIds, maxCounts );
         }
