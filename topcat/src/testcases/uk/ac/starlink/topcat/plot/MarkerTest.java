@@ -50,6 +50,7 @@ public class MarkerTest extends TestCase {
 
                 MarkStyle copy = style.getShapeId()
                                 .getStyle( style.getColor(), style.getSize() );
+                copy.setOpaqueLimit( style.getOpaqueLimit() );
                 assertEquals( style, copy );
             }
         }
