@@ -59,11 +59,10 @@ public abstract class MarkShape {
         public MarkStyle getStyle( Color color, int size ) {
             return new MarkStyle( color, id, this, 0, 1 ) {
                 protected void drawShape( Graphics g ) {
-                    g.drawLine( 0, 0, 0, 0 );
+                    g.fillRect( 0, 0, 1, 1 );
                 }
                 protected void drawLegendShape( Graphics g ) {
-                    g.fillOval( -1, -1, 2, 2 );
-                    g.drawOval( -1, -1, 2, 2 );
+                    g.fillRect( 0, 0, 2, 2 );
                 }
             };
         }
