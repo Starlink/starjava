@@ -41,9 +41,11 @@ public class MarkStyleEditor extends StyleEditor {
     private final ValueButtonGroup lineSelector_;
     private final JLabel corrLabel_;
     private final Map statMap_;
+    private final Map maxCountMap_;
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
+    private static final int MIN_TRANSPARENCY_RANGE = 6;
     private static final MarkShape[] SHAPES = new MarkShape[] {
         MarkShape.FILLED_CIRCLE,
         MarkShape.OPEN_CIRCLE,
@@ -65,6 +67,7 @@ public class MarkStyleEditor extends StyleEditor {
     public MarkStyleEditor( boolean withLines ) {
         super();
         statMap_ = new HashMap();
+        maxCountMap_ = new HashMap();
 
         /* Shape selector. */
         shapeSelector_ = new JComboBox( SHAPES );
@@ -101,9 +104,14 @@ public class MarkStyleEditor extends StyleEditor {
         colorSelector_.addActionListener( this );
 
         /* Opacity limit slider. */
-        opaqueSlider_ = new JSlider( 1, 10, 1 );
+        opaqueSlider_ = new JSlider( 1, MIN_TRANSPARENCY_RANGE, 1 );
+        opaqueSlider_.setMinorTickSpacing( 1 );
+        opaqueSlider_.setSnapToTicks( true );
+        final JLabel opaqueLabel = new JLabel();
         opaqueSlider_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
+                opaqueLabel.setText( opaqueSlider_.getValue() + "/" + 
+                                     opaqueSlider_.getMaximum() );
                 if ( ! opaqueSlider_.getValueIsAdjusting() ) {
                     MarkStyleEditor.this.stateChanged( evt );
                 }
@@ -150,15 +158,19 @@ public class MarkStyleEditor extends StyleEditor {
 
         JComponent colorBox = Box.createHorizontalBox();
         colorBox.add( new JLabel( "Colour: " ) );
-        colorBox.add( colorSelector_ );
+        colorBox.add( new ShrinkWrapper( colorSelector_ ) );
         colorBox.add( Box.createHorizontalStrut( 5 ) );
-        colorBox.add( new ShrinkWrapper( new ComboBoxBumper(
-                                                colorSelector_ ) ) );
-        colorBox.add( Box.createHorizontalStrut( 10 ) );
-        colorBox.add( new JLabel( "Saturation: " ) );
-        colorBox.add( opaqueSlider_ );
+        colorBox.add( new ComboBoxBumper( colorSelector_ ) );
         colorBox.add( Box.createHorizontalStrut( 5 ) );
         colorBox.add( Box.createHorizontalGlue() );
+
+        JComponent opaqueBox = Box.createHorizontalBox();
+        opaqueBox.add( new JLabel( "Transparency: " ) );
+        opaqueBox.add( opaqueSlider_ );
+        opaqueBox.add( Box.createHorizontalStrut( 5 ) );
+        opaqueBox.add( opaqueLabel );
+        opaqueBox.add( Box.createHorizontalStrut( 5 ) );
+        opaqueBox.add( Box.createHorizontalGlue() );
 
         JComponent hideBox = Box.createHorizontalBox();
         hideBox.add( markFlagger_ );
@@ -168,6 +180,8 @@ public class MarkStyleEditor extends StyleEditor {
         markBox.add( formBox );
         markBox.add( Box.createVerticalStrut( 5 ) );
         markBox.add( colorBox );
+        markBox.add( Box.createVerticalStrut( 5 ) );
+        markBox.add( opaqueBox );
         if ( withLines ) {
             markBox.add( Box.createVerticalStrut( 5 ) );
             markBox.add( hideBox );
@@ -216,7 +230,11 @@ public class MarkStyleEditor extends StyleEditor {
         shapeSelector_.setSelectedItem( mstyle.getShapeId() );
         sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
-        opaqueSlider_.setValue( mstyle.getOpaqueLimit() );
+        int opaqueLimit = mstyle.getOpaqueLimit();
+        if ( opaqueSlider_.getMaximum() < opaqueLimit ) {
+            opaqueSlider_.setMaximum( opaqueLimit );
+        }
+        opaqueSlider_.setValue( opaqueLimit );
         thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
         dashSelector_.setSelectedDash( mstyle.getDash() );
         lineSelector_.setValue( mstyle.getLine() );
@@ -279,12 +297,32 @@ public class MarkStyleEditor extends StyleEditor {
         refreshState();
     }
 
+    /**
+     * Sets the known maximum pixel densities for a list of plottable sets.
+     * Each value is the most times a pixel in the output plot was hit
+     * for each subset.  This is a measure of how crowded the field is 
+     * for each subset being plotted.
+     */
+    public void setMaxPixelCounts( SetId[] setIds, int[] maxCounts ) {
+        maxCountMap_.clear();
+        if ( setIds.length != maxCounts.length ) {
+            throw new IllegalArgumentException();
+        }
+        for ( int i = 0; i < maxCounts.length; i++ ) {
+            if ( maxCounts[ i ] > 0 ) {
+                maxCountMap_.put( setIds[ i ], new Integer( maxCounts[ i ] ) );
+            }
+        }
+        refreshState();
+    }
+
     protected void refreshState() {
         super.refreshState();
+        SetId setId = getSetId();
 
         /* Ensure that information about linear correlations is up to date. */
         String statText;
-        XYStats stats = (XYStats) statMap_.get( getSetId() );
+        XYStats stats = (XYStats) statMap_.get( setId );
         if ( stats != null ) {
             statText = new StringBuffer()
                 .append( " - " )
@@ -300,6 +338,18 @@ public class MarkStyleEditor extends StyleEditor {
             statText = "";
         }
         corrLabel_.setText( statText );
+
+        /* Fix range of opacity slider so that it has values which make sense
+         * in the context of the density values found in the most recent
+         * plot. */
+        if ( maxCountMap_.containsKey( setId ) ) {
+            int maxCount = ((Integer) maxCountMap_.get( setId )).intValue();
+            if ( maxCount > 1 &&
+                 maxCount > MIN_TRANSPARENCY_RANGE &&
+                 maxCount >= opaqueSlider_.getValue() ) {
+                opaqueSlider_.setMaximum( maxCount );
+            }
+        }
 
         /* Make sure that marker presence control is only enabled if 
          * a line is being plotted. */

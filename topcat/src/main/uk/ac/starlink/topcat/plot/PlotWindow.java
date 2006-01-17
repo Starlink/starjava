@@ -118,8 +118,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                      ( replotted_ || height != lastHeight_
                                   || width != lastWidth_ ) ) {
                     recordVisiblePoints( state, getPoints(), getSurface() );
-                    recordCorrelations( getPointSelection().getSetIds(),
-                                        getCorrelations() );
+                    SetId[] setIds = getPointSelection().getSetIds();
+                    recordCorrelations( setIds, getCorrelations() );
+                    recordPixelMaxCounts( setIds, getMaxPixelCounts() );
                     lastHeight_ = height;
                     lastWidth_ = width;
                     replotted_ = false;
@@ -376,6 +377,13 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private void recordCorrelations( SetId[] setIds, XYStats[] stats ) {
         ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
                           .setStats( setIds, stats );
+    }
+
+    private void recordPixelMaxCounts( SetId[] setIds, int[] maxCounts ) {
+        if ( maxCounts != null ) {
+            ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
+                              .setMaxPixelCounts( setIds, maxCounts );
+        }
     }
 
     /*

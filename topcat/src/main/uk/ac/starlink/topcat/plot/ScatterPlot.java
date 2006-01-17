@@ -37,6 +37,7 @@ public class ScatterPlot extends SurfacePlot {
     private int lastHeight_;
     private Image image_;
     private XYStats[] statSets_;
+    private int[] maxPixelCounts_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
@@ -164,11 +165,13 @@ public class ScatterPlot extends SurfacePlot {
         /* Draw the points. */
         List setList = new ArrayList();
         List styleList = new ArrayList();
+        List indexList = new ArrayList();
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
             if ( ! style.getHidePoints() ) {
                 setList.add( sets[ is ] );
                 styleList.add( style );
+                indexList.add( new Integer( is ) );
             }
         }
         RowSubset[] activeSets =
@@ -176,7 +179,14 @@ public class ScatterPlot extends SurfacePlot {
         MarkStyle[] activeStyles =
             (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );
         if ( pixels ) {
-            plotPointsBitmap( g, points, activeSets, activeStyles, surface );
+            int[] mc = new int[ activeSets.length ];
+            plotPointsBitmap( g, points, activeSets, activeStyles, surface,
+                              mc );
+            maxPixelCounts_ = new int[ nset ];
+            for ( int i = 0; i < indexList.size(); i++ ) {
+                int is = ((Integer) indexList.get( i )).intValue();
+                maxPixelCounts_[ is ] = mc[ i ];
+            }
         }
         else {
             plotPointsVector( g, points, activeSets, activeStyles, surface );
@@ -315,12 +325,21 @@ public class ScatterPlot extends SurfacePlot {
      * @param   sets   row subsets
      * @param   styles   array of MarkStyle objects corresponding to sets
      * @param   surface  plotting surface
+     * @param   maxCounts  if non-null, on exit will contain for each set the
+     *          number of counts in the most heavily painted pixel 
      */
     private static void plotPointsBitmap( Graphics2D g, Points points,
                                           RowSubset[] sets, MarkStyle[] styles,
-                                          PlotSurface surface ) {
+                                          PlotSurface surface,
+                                          int[] maxCounts ) {
         int np = points.getCount();
         int nset = sets.length;
+        if ( maxCounts == null ) {
+            maxCounts = new int[ nset ];
+        }
+        else {
+            Arrays.fill( maxCounts, 0 );
+        }
 
         /* Work out padding round the edge of the raster we will be drawing on.
          * This has to be big enough that we can draw markers on the edge
@@ -430,22 +449,25 @@ public class ScatterPlot extends SurfacePlot {
               ipix = mask.nextSetBit( ipix + 1 ) ) {
             float remain = 1.0f;
             float[] weights = new float[ nset ];
-            for ( int is = nset - 1; is >= 0 && remain > 0.0; is-- ) {
-                float weight = opacity[ is ] * buffers[ is ][ ipix ];
-                weight = Math.min( remain, weight );
-                weights[ is ] = weight;
-                remain -= weight;
+            for ( int is = nset - 1; is >= 0; is-- ) {
+                int count = buffers[ is ][ ipix ];
+                maxCounts[ is ] = Math.max( maxCounts[ is ], count );
+                if ( remain > 0f ) {
+                    float weight = Math.min( remain, opacity[ is ] * count );
+                    weights[ is ] = weight;
+                    remain -= weight;
+                }
             }
             if ( remain < 1.0f ) {
                 float totWeight = 1.0f - remain;
                 float[] argb = new float[ 4 ];
                 argb[ 3 ] = totWeight;
                 for ( int is = 0; is < nset; is++ ) {
-                    float weight = weights[ is ] / totWeight;
-                    if ( weight > 0 ) {
-                        argb[ 0 ] += weight * rCols[ is ];
-                        argb[ 1 ] += weight * gCols[ is ];
-                        argb[ 2 ] += weight * bCols[ is ];
+                    float fw = weights[ is ] / totWeight;
+                    if ( fw > 0 ) {
+                        argb[ 0 ] += fw * rCols[ is ];
+                        argb[ 1 ] += fw * gCols[ is ];
+                        argb[ 2 ] += fw * bCols[ is ];
                     }
                 }
                 rgbBuf[ ipix ] = colorModel.getDataElement( argb, 0 );
@@ -461,10 +483,23 @@ public class ScatterPlot extends SurfacePlot {
      * Returns the X-Y statistics calculated the last time this component
      * was painted.
      *
-     * @return  X-Y correlation statistics objects
+     * @return  X-Y correlation statistics objects for each set
      */
     public XYStats[] getCorrelations() {
         return statSets_;
+    }
+
+    /**
+     * Returns the maximum number of times any pixel in each set was painted
+     * over the last time this component was painted.
+     * The result may be null or contain misleading zeroes if the last
+     * painting was done in a way which did not calculate these values for
+     * some reason.
+     *
+     * @return   maximum density of hits per pixel for each set
+     */
+    public int[] getMaxPixelCounts() {
+        return maxPixelCounts_;
     }
 
     /**
@@ -674,13 +709,13 @@ public class ScatterPlot extends SurfacePlot {
          */
         protected void printComponent( Graphics g ) {
             if ( getPoints() != null && getState() != null ) {
+                boolean usePixels = false;
 
             // this doesn't work properly - the background is black
             //  /* If there are any transparent styles involved, we will
             //   * need to plot using pixels, since printer graphics contexts
             //   * usually can't handle transparency 
             //   * (well, PostScript can't). */
-            //  boolean usePixels = false;
             //  Style[] styles = getPointSelection().getStyles();
             //  for ( int is = 0; is < styles.length; is++ ) {
             //      if ( ((MarkStyle) styles[ is ]).getOpaqueLimit() != 1 ) {
