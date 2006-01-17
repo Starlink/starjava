@@ -5,7 +5,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 
 /**
@@ -20,7 +26,8 @@ import javax.swing.Icon;
  *    style1.setLine( style0.getLine() );
  *    style1.setLineWidth( style0.getLineWidth() );
  *    style1.setDash( style0.getDash() );
- *    styel1.setHidePoints( style0.getHidePoints() );
+ *    style1.setHidePoints( style0.getHidePoints() );
+ *    style1.setOpaqueLimit( style0.getOpaqueLimit() );
  * </pre>
  * style0 and style1 should then match according to the <code>equals()</code>
  * method.  A style may however have a null <code>shapeId</code>, in
@@ -36,6 +43,9 @@ public abstract class MarkStyle extends DefaultStyle {
     private final MarkShape shapeId_;
     private Line line_;
     private boolean hidePoints_;
+    private int opaqueLimit_ = 1;
+    private int[] pixoffs_;
+    private static final RenderingHints pixHints_;
 
     /** Symbolic constant meaning join points by straight line segments. */
     public static final Line DOT_TO_DOT = new Line( "DotToDot" );
@@ -45,6 +55,18 @@ public abstract class MarkStyle extends DefaultStyle {
 
     private static final int LEGEND_ICON_WIDTH = 20;
     private static final int LEGEND_ICON_HEIGHT = 12;
+
+    static {
+        pixHints_ = new RenderingHints( null );
+        pixHints_.put( RenderingHints.KEY_ANTIALIASING,
+                       RenderingHints.VALUE_ANTIALIAS_OFF );
+        pixHints_.put( RenderingHints.KEY_RENDERING,
+                       RenderingHints.VALUE_RENDER_QUALITY );
+        pixHints_.put( RenderingHints.KEY_DITHERING,
+                       RenderingHints.VALUE_DITHER_DISABLE );
+        pixHints_.put( RenderingHints.KEY_FRACTIONALMETRICS,
+                       RenderingHints.VALUE_FRACTIONALMETRICS_ON );
+    }
 
     /**
      * Constructor.
@@ -155,6 +177,30 @@ public abstract class MarkStyle extends DefaultStyle {
      */
     public boolean getHidePoints() {
         return hidePoints_;
+    }
+
+    /**
+     * Sets the opacity limit for this style.  The limit is the number
+     * of pixels plotted on top of each other which will result in
+     * complete opacity.  The default is one, which corresponds to 
+     * fully opaque pixels.
+     *
+     * @param   lim  new opacity limit
+     */
+    public void setOpaqueLimit( int lim ) {
+        if ( lim < 1 ) {
+            throw new IllegalArgumentException();
+        }
+        opaqueLimit_ = lim;
+    }
+
+    /**
+     * Returns the opacity limit for this style.
+     *
+     * @return  opacity limit
+     */
+    public int getOpaqueLimit() {
+        return opaqueLimit_;
     }
 
     /**
@@ -272,11 +318,70 @@ public abstract class MarkStyle extends DefaultStyle {
         };
     }
 
+    /**
+     * Returns an array of pixel offsets which can be used to draw this
+     * marker onto a raster.  This can be used as an alternative to 
+     * rendering the marker using the <code>drawMarker()</code> methods
+     * in situations where it might be more efficient.
+     * The returned value is a 2N-element array describing N points
+     * as offsets from (0,0); the format is (xoff0,yoff0, xoff1,yoff1, ...).
+     * The assumption is that all the pixels are the same colour.
+     *
+     * @return   array of pixel offsets reprensenting this style as a bitmap
+     */
+    public int[] getPixelOffsets() {
+        if ( pixoffs_ == null ) {
+
+            /* Construct a BufferedImage big enough to hold all the pixels
+             * in a rendering of the marker. */
+            int xdim = 2 * maxr_ + 1;
+            int ydim = 2 * maxr_ + 1;
+            int xoff = maxr_;
+            int yoff = maxr_;
+            BufferedImage im =
+                new BufferedImage( xdim, ydim, BufferedImage.TYPE_INT_ARGB );
+
+            /* Draw this marker onto the graphics associated with it.
+             * We use high quality rendering hints since we're only going to
+             * do this once so we might as well get the best shape for it
+             * (not that it seems to make much difference). */
+            Graphics2D g = im.createGraphics();
+            g.setRenderingHints( pixHints_ );
+            drawMarker( g, xoff, yoff, null );
+
+            /* Now examine the pixels in the image we've just drawn to, and
+             * extract a list of the touched pixels. */
+            Raster raster = im.getData();
+            List pointList = new ArrayList( xdim * ydim );
+            for ( int ix = 0; ix < xdim; ix++ ) {
+                for ( int iy = 0; iy < ydim; iy++ ) {
+                    int alpha = raster.getSample( ix, iy, 3 );
+                    if ( alpha > 0 ) {
+                        assert alpha == 255 : alpha;
+                        pointList.add( new Point( ix - xoff, iy - yoff ) );
+                    }
+                }
+            }
+
+            /* Turn it into an xy array suitable for return. */
+            int noff = pointList.size();
+            int[] pixoffs = new int[ noff * 2 ];
+            for ( int ioff = 0; ioff < noff; ioff++ ) {
+                Point p = (Point) pointList.get( ioff );
+                pixoffs[ ioff * 2 + 0 ] = p.x;
+                pixoffs[ ioff * 2 + 1 ] = p.y;
+            }
+            pixoffs_ = pixoffs;
+        }
+        return pixoffs_;
+    }
+
     public boolean equals( Object o ) {
         if ( super.equals( o ) ) {
             MarkStyle other = (MarkStyle) o;
             return this.line_ == other.line_
-                && this.hidePoints_ == other.hidePoints_;
+                && this.hidePoints_ == other.hidePoints_
+                && this.opaqueLimit_ == other.opaqueLimit_;
         }
         else {
             return false;
@@ -287,6 +392,7 @@ public abstract class MarkStyle extends DefaultStyle {
         int code = super.hashCode();
         code = code * 23 + ( line_ == null ? 1 : line_.hashCode() );
         code = code * 23 + ( hidePoints_ ? 0 : 1 );
+        code = code * 23 + opaqueLimit_;
         return code;
     }
 
