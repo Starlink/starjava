@@ -189,7 +189,7 @@ public abstract class MarkStyle extends DefaultStyle {
      */
     public void setOpaqueLimit( int lim ) {
         if ( lim < 1 ) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException( lim + " < 1" );
         }
         opaqueLimit_ = lim;
     }
