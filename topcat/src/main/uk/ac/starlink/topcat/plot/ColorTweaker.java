@@ -32,7 +32,7 @@ public interface ColorTweaker {
     /**
      * Modifies the red, green, blue, alpha components of a colour,
      * as packed into an integer in the format 
-     * {@link java.awt.image.BufferedImage.TYPE_INT_ARGB}
+     * {@link java.awt.image.BufferedImage#TYPE_INT_ARGB}
      *
      * @param  rgba  packed input colour
      * @return  packed output colour

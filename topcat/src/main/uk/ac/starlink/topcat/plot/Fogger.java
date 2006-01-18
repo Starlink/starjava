@@ -63,7 +63,7 @@ public class Fogger implements ColorTweaker {
 
     /**
      * Sets the distance in the depth direction for which subsequent
-     * {@link #tweak}s of the colour will configure.
+     * tweaks of the colour will configure.
      * For reasonable rendering, <code>z</code> should be greater than
      * or equal to zero, and of order of this renderer's scale distance.
      *

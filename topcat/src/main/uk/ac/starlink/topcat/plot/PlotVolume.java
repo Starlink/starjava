@@ -13,7 +13,7 @@ import java.awt.Graphics;
  * <p>To enable strategies which may require some kind of sorting on a
  * full set of points prior to doing any plotting, clients of this class
  * must first submit all the points to be plotted using the
- * {@link #plot(double[],uk.ac.starlink.topcat.plot.MarkStyle)} method,
+ * {@link #plot(double[],int)} method,
  * and finally call {@link #flush()} to ensure that the plotting has
  * taken place.
  *
