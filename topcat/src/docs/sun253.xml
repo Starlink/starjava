@@ -6932,6 +6932,8 @@ introduced since the last version:
 <li>When joining tables, column name comparison to determine whether
     deduplication is required is now case-insensitive.</li>
 <li>Add hide all/reveal all actions to Columns window.</li>
+<li>Prevent TOPCAT crash when attempting to save an altered copy of a FITS
+    file under the same name.</li>
 </ul>
 </p></dd>
 
