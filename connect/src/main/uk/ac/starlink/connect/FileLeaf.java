@@ -29,6 +29,21 @@ class FileLeaf extends FileNode implements Leaf {
     }
 
     public OutputStream getOutputStream() throws IOException {
+
+        /* Delete the file first if it already exists.  This can prevent some 
+         * problems - for instance in the case of a file which is mapped
+         * and is being overwritten, failing to perform this step will
+         * mess up the mapped copy.  This has the effect of causing
+         * TOPCAT to crash if you attempt to save to a FITS file that
+         * you're editing.  Deleting it first makes it OK, at least on
+         * Linux.  Effect on other OSs is unpredictable, since file
+         * mapping is unavoidably system dependent, but it's likely to
+         * be a good bet. */
+        if ( file_.exists() ) {
+            file_.delete();
+        }
+
+        /* And then construct and return the output stream. */
         return new FileOutputStream( file_ );
     }
 
