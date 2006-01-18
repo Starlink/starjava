@@ -64,7 +64,7 @@ public class MarkStyleEditor extends StyleEditor {
     /**
      * Constructor.
      */
-    public MarkStyleEditor( boolean withLines ) {
+    public MarkStyleEditor( boolean withLines, boolean withTransparency ) {
         super();
         statMap_ = new HashMap();
         maxCountMap_ = new HashMap();
@@ -180,8 +180,10 @@ public class MarkStyleEditor extends StyleEditor {
         markBox.add( formBox );
         markBox.add( Box.createVerticalStrut( 5 ) );
         markBox.add( colorBox );
-        markBox.add( Box.createVerticalStrut( 5 ) );
-        markBox.add( opaqueBox );
+        if ( withTransparency ) {
+            markBox.add( Box.createVerticalStrut( 5 ) );
+            markBox.add( opaqueBox );
+        }
         if ( withLines ) {
             markBox.add( Box.createVerticalStrut( 5 ) );
             markBox.add( hideBox );
