@@ -23,24 +23,27 @@ import java.awt.Graphics;
 public abstract class PlotVolume {
 
     private final Graphics graphics_;
+    private final MarkStyle[] styles_;
     private final int scale_;
     private final int xoff_;
     private final int yoff_;
-    private DepthTweaker tweaker_;
+    private final Fogger fogger_;
 
     /**
      * Constructor.
      *
      * @param   c  component on which points will be plotted
      * @param   g  graphics context on which points will be plotted
+     * @param   styles  array of marker styles which may be used to plot
      * @param   padFactor  minimum amount of space outside the unit cube
      *          in both dimensions - 1 means no extra space
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
      */
-    protected PlotVolume( Component c, Graphics g, double padFactor,
-                          int[] padBorders ) {
+    protected PlotVolume( Component c, Graphics g, MarkStyle[] styles, 
+                          double padFactor, int[] padBorders ) {
         graphics_ = g;
+        styles_ = (MarkStyle[]) styles.clone();
         int padLeft = padBorders[ 0 ];
         int padRight = padBorders[ 1 ];
         int padBottom = padBorders[ 2 ];
@@ -50,7 +53,16 @@ public abstract class PlotVolume {
         scale_ = (int) Math.round( Math.min( h, w ) / padFactor );
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. ) + padLeft;
         yoff_ = h - (int) ( ( h - scale_ ) / 2. ) + padTop;
-        tweaker_ = new DepthTweaker( 1.0 );
+        fogger_ = new Fogger( 1.0 );
+    }
+
+    /**
+     * Returns the array of styles whose markers can be plotted on this volume.
+     *
+     * @return  mark style array
+     */
+    public MarkStyle[] getStyles() {
+        return styles_;
     }
 
     /**
@@ -67,6 +79,15 @@ public abstract class PlotVolume {
     }
 
     /**
+     * Returns the fogger used for rendering depth effects.
+     *
+     * @return  fogger
+     */
+    public Fogger getFogger() {
+        return fogger_;
+    }
+
+    /**
      * Submits a point for plotting.  The graphical effect is not guaranteed
      * to occur until a subsequent call to {@link #flush}.
      * The coordinate array gives the point's 3D position in normalised 
@@ -78,25 +99,17 @@ public abstract class PlotVolume {
      * of the values if it needs to retain them.
      *
      * @param   coords   normalised (x,y,z) coordinates
-     * @param   style    marker style for point
+     * @param   istyle   index into the array of styles set up for this volume
+     *                   which will define how the marker is plotted
      */
-    public void plot( double[] coords, MarkStyle style ) {
+    public void plot( double[] coords, int istyle ) {
         int xp = projectX( coords[ 0 ] );
         int yp = projectY( coords[ 1 ] );
-        int maxr = style.getMaximumRadius();
+        int maxr = styles_[ istyle ].getMaximumRadius();
         int maxr2 = maxr * 2;
         if ( graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
-            plot( xp, yp, coords[ 2 ], style );
+            plot( xp, yp, coords[ 2 ], istyle );
         }
-    }
-
-    /**
-     * Returns the graphics tweaker used for rendering depth effects.
-     *
-     * @return  depth tweaker
-     */
-    public DepthTweaker getDepthTweaker() {
-        return tweaker_;
     }
 
     /**
@@ -125,16 +138,15 @@ public abstract class PlotVolume {
      * Plots a marker at a given point in graphics coordinates with a 
      * given additional Z coordinate.  As well as providing a z-buffer
      * type ordering to determine which marks obscure which others,
-     * the Z value can be passed to this volume's
-     * <code>DepthTweaker</code> object to perform depth rendering.
+     * the Z value may be used as a cue to do some depth rendering.
      *
      * @param  px  graphics space X coordinate
      * @param  py  graphics space Y coordinate
      * @param  z   depth of point; a point with a greater <code>z</code>
      *             should obscure a point with a lesser one
-     * @param  style  object used to plot the point
+     * @param  istyle  index of the style used to plot the point
      */
-    protected abstract void plot( int px, int py, double z, MarkStyle style );
+    protected abstract void plot( int px, int py, double z, int istyle );
 
     /**
      * Ensures that all points submitted through the <code>plot</code>

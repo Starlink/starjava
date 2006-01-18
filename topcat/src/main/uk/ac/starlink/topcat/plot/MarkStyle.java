@@ -218,8 +218,8 @@ public abstract class MarkStyle extends DefaultStyle {
 
     /**
      * Draws this marker in a way which may be modified by a supplied
-     * <code>GraphicsTweaker</code> object.  This permits changes to
-     * be made to the graphics context just before the marker is drawn.
+     * <code>ColorTweaker</code> object.  This permits changes to
+     * be made to the colour just before the marker is drawn.
      * In some cases this could be handled by modifying the graphics 
      * context before the call to <code>drawMarker</code>, but doing it
      * like this makes sure that the graphics context has been assigned
@@ -228,15 +228,17 @@ public abstract class MarkStyle extends DefaultStyle {
      * @param  g  graphics context
      * @param  x  x position
      * @param  y  y position
-     * @param  fixer  hook for modifying the graphics context (may be null)
+     * @param  fixer  hook for modifying the colour (may be null)
      */
-    public void drawMarker( Graphics g, int x, int y, GraphicsTweaker fixer ) {
-        Color col = g.getColor();
-        g.setColor( getColor() );
+    public void drawMarker( Graphics g, int x, int y, ColorTweaker fixer ) {
+        Color origColor = g.getColor();
+        Color markColor = fixer == null ? getColor()
+                                        : fixer.tweakColor( getColor() );
+        g.setColor( markColor );
         g.translate( x, y );
-        drawShape( fixer == null ? g : fixer.tweak( g ) );
+        drawShape( g );
         g.translate( -x, -y );
-        g.setColor( col );
+        g.setColor( origColor );
     }
 
     /**

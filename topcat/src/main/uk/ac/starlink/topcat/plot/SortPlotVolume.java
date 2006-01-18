@@ -23,28 +23,29 @@ public class SortPlotVolume extends PlotVolume {
      *
      * @param   c  component
      * @param   g  graphics context
+     * @param   styles array of marker styles which may be used to plot
      * @param   padFactor  minimum amount of space outside the unit cube 
      *          in both dimensions - 1 means no extra space
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
      */
-    public SortPlotVolume( Component c, Graphics g, double padFactor,
-                           int[] padBorders ) {
-        super( c, g, padFactor, padBorders );
+    public SortPlotVolume( Component c, Graphics g, MarkStyle[] styles,
+                           double padFactor, int[] padBorders ) {
+        super( c, g, styles, padFactor, padBorders );
         points_ = new TreeSet();
     }
 
-    public void plot( int px, int py, double z, MarkStyle style ) {
-        points_.add( new Point3D( px, py, z, style, ++iseq_ ) );
+    public void plot( int px, int py, double z, int istyle ) {
+        points_.add( new Point3D( px, py, z, getStyles()[ istyle ], ++iseq_ ) );
     }
 
     public void flush() {
         Graphics g = getGraphics();
-        DepthTweaker tweaky = getDepthTweaker();
+        Fogger fogger = getFogger();
         for ( Iterator it = points_.iterator(); it.hasNext(); ) {
             Point3D point = (Point3D) it.next();
-            tweaky.setZ( point.z_ );
-            point.style_.drawMarker( g, point.px_, point.py_, tweaky );
+            fogger.setZ( point.z_ );
+            point.style_.drawMarker( g, point.px_, point.py_, fogger );
         }
         points_.clear();
     }
