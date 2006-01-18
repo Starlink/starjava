@@ -42,6 +42,7 @@ public class Plot3D extends JPanel {
     private PointRegistry pointReg_;
     private double[][][] sphereGrid_;
     private int plotTime_;
+    private ZBufferPlotVolume.Workspace zbufWorkspace_;
     private final Plot3DDataPanel plotArea_;
     private final Legend legend_;
 
@@ -306,7 +307,7 @@ public class Plot3D extends JPanel {
         Transformer3D trans = 
             new Transformer3D( state.getRotation(), loBoundsG_, hiBoundsG_ );
 
-        /* Set up a plotting volume to render the 3-d points. */
+        /* Work out padding factors for the plot volume. */
         double padFactor;
         int[] padBorders;
         if ( state instanceof SphericalPlotState ) {
@@ -328,8 +329,25 @@ public class Plot3D extends JPanel {
              * line of view. */
             padFactor = Math.sqrt( 3. );
         }
-        PlotVolume vol = new SortPlotVolume( c, g, padFactor, padBorders );
-        vol.getDepthTweaker().setFogginess( state_.getFogginess() );
+
+        /* Prepare an array of styles which we may need to plot on the
+         * PlotVolume object. */
+        List plotStyleList = new ArrayList( Arrays.asList( styles ) );
+        int iDotStyle = plotStyleList.size();
+        plotStyleList.add( DOT_STYLE );
+        MarkStyle[] plotStyles =
+            (MarkStyle[]) plotStyleList.toArray( new MarkStyle[ 0 ] );
+
+        /* Create the plot volume.  We currently use a ZBufferPlotVolume here,
+         * which seems to be reasonably efficient for large numbers of points.
+         * An alternative implementation is SortPlotVolume, but this slows
+         * down a bit after a few thousand points. */
+        PlotVolume vol =
+            new ZBufferPlotVolume( c, g, plotStyles, padFactor, padBorders,
+                                   getZBufferWorkspace() );
+
+        /* Set its fog factor appropriately for depth rendering as requested. */
+        vol.getFogger().setFogginess( state_.getFogginess() );
 
         /* Plot back part of bounding box. */
         boolean grid = state.getGrid();
@@ -374,7 +392,7 @@ public class Plot3D extends JPanel {
                     // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
                     for ( int is = 0; is < nset; is++ ) {
                         if ( sets[ is ].isIncluded( lp ) ) {
-                            vol.plot( coords, (MarkStyle) styles[ is ] );
+                            vol.plot( coords, is );
                         }
                     }
                 }
@@ -382,7 +400,7 @@ public class Plot3D extends JPanel {
         }
 
         /* Plot a teeny static dot in the middle of the data. */
-        vol.plot( new double[] { .5, .5, .5 }, DOT_STYLE );
+        vol.plot( new double[] { .5, .5, .5 }, iDotStyle );
 
         /* Tell the volume that all the points are in for plotting.
          * This will do the painting on the graphics context if it hasn't
@@ -1141,10 +1159,18 @@ public class Plot3D extends JPanel {
     }
 
     /**
-     * Determines whether the plotting area is wider than it is high.
+     * Lazily constructs and returns a ZBufferPlotVolume workspace object
+     * owned by this plot.
      *
-     * @return  true if we're short and fat; false if we're tall and thin
+     * @return   new or used workspace object
      */
+    private ZBufferPlotVolume.Workspace getZBufferWorkspace() {
+        if ( zbufWorkspace_ == null ) {
+            zbufWorkspace_ = new ZBufferPlotVolume.Workspace();
+        }
+        return zbufWorkspace_;
+    }
+
     /**
      * Decides whether, other thiings being equal, it's better to put
      * annotation information at the bottom of the plotting area or at
