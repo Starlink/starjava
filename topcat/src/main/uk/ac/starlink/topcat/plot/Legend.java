@@ -50,13 +50,17 @@ public class Legend extends JPanel {
          * accordingly.  The drawing is done onto an ad hoc graphics context
          * just to work out the size; the drawing is then thrown away.
          * The actual plot is only done within the paintComponent method. */
-        Dimension size = drawLegend( getGraphics() );
-        boolean bigger = size.width > size_.width || size.height > size_.height;
-        size_ = size;
-        setSize( size );
-        setPreferredSize( size );
-        if ( bigger ) {
-            revalidate();
+        Graphics g = getGraphics();
+        if ( g != null ) {
+            Dimension size = drawLegend( g );
+            boolean bigger = size.width > size_.width
+                          || size.height > size_.height;
+            size_ = size;
+            setSize( size );
+            setPreferredSize( size );
+            if ( bigger ) {
+                revalidate();
+            }
         }
     }
 
