@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.util.Iterator;
@@ -41,13 +42,24 @@ public class SortPlotVolume extends PlotVolume {
 
     public void flush() {
         Graphics g = getGraphics();
-        Fogger fogger = getFogger();
+        FogColor foggy = new FogColor();
         for ( Iterator it = points_.iterator(); it.hasNext(); ) {
             Point3D point = (Point3D) it.next();
-            fogger.setZ( point.z_ );
-            point.style_.drawMarker( g, point.px_, point.py_, fogger );
+            foggy.depth_ = point.z_;
+            point.style_.drawMarker( g, point.px_, point.py_, foggy );
         }
         points_.clear();
+    }
+
+    /**
+     * Implements ColorTweaker to perform fogging of distant points.
+     */
+    private class FogColor implements ColorTweaker {
+        double depth_;
+        final Fogger fog_ = getFogger();
+        public Color tweakColor( Color color ) {
+            return fog_.fogAt( depth_, color );
+        }
     }
 
     /**

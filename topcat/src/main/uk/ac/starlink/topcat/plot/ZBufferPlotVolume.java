@@ -150,8 +150,7 @@ public class ZBufferPlotVolume extends PlotVolume {
             ymax = Math.max( ymax, iy );
             float z = zbuf_[ ipix ];
             int is = (int) sbuf_[ ipix ];
-            fogger.setZ( z );
-            rgbBuf_[ ipix ] = fogger.tweakARGB( argbs[ is ] );
+            rgbBuf_[ ipix ] = fogger.fogAt( z, argbs[ is ] );
         }
 
         /* Take the rectangle of the RGB buffer which was affected, 
