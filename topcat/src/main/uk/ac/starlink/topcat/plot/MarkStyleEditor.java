@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JRadioButton;
-import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
@@ -35,13 +36,12 @@ public class MarkStyleEditor extends StyleEditor {
     private final JComboBox shapeSelector_;
     private final JComboBox sizeSelector_;
     private final ColorComboBox colorSelector_;
-    private final JSlider opaqueSlider_;
+    private final LogSlider opaqueSlider_;
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
     private final ValueButtonGroup lineSelector_;
     private final JLabel corrLabel_;
     private final Map statMap_;
-    private final Map maxCountMap_;
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
@@ -67,7 +67,6 @@ public class MarkStyleEditor extends StyleEditor {
     public MarkStyleEditor( boolean withLines, boolean withTransparency ) {
         super();
         statMap_ = new HashMap();
-        maxCountMap_ = new HashMap();
 
         /* Shape selector. */
         shapeSelector_ = new JComboBox( SHAPES );
@@ -104,14 +103,18 @@ public class MarkStyleEditor extends StyleEditor {
         colorSelector_.addActionListener( this );
 
         /* Opacity limit slider. */
-        opaqueSlider_ = new JSlider( 1, MIN_TRANSPARENCY_RANGE, 1 );
-        opaqueSlider_.setMinorTickSpacing( 1 );
-        opaqueSlider_.setSnapToTicks( true );
-        final JLabel opaqueLabel = new JLabel();
+        opaqueSlider_ = new LogSlider( 1000 );
+        final JLabel opaqueLabel = new JLabel( "", SwingConstants.RIGHT );
         opaqueSlider_.addChangeListener( new ChangeListener() {
+            Dimension size;;
             public void stateChanged( ChangeEvent evt ) {
-                opaqueLabel.setText( opaqueSlider_.getValue() + "/" + 
-                                     opaqueSlider_.getMaximum() );
+                if ( size == null ) {
+                    opaqueLabel.setText( "9999" );
+                    size = opaqueLabel.getPreferredSize();
+                }
+                opaqueLabel.setText( Integer.toString( opaqueSlider_
+                                                      .getValue1() ) );
+                opaqueLabel.setPreferredSize( size );
                 if ( ! opaqueSlider_.getValueIsAdjusting() ) {
                     MarkStyleEditor.this.stateChanged( evt );
                 }
@@ -233,10 +236,10 @@ public class MarkStyleEditor extends StyleEditor {
         sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
         int opaqueLimit = mstyle.getOpaqueLimit();
-        if ( opaqueSlider_.getMaximum() < opaqueLimit ) {
-            opaqueSlider_.setMaximum( opaqueLimit );
+        if ( opaqueSlider_.getMaximum1() < opaqueLimit ) {
+            opaqueSlider_.setMaximum1( opaqueLimit );
         }
-        opaqueSlider_.setValue( opaqueLimit );
+        opaqueSlider_.setValue1( opaqueLimit );
         thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
         dashSelector_.setSelectedDash( mstyle.getDash() );
         lineSelector_.setValue( mstyle.getLine() );
@@ -247,7 +250,7 @@ public class MarkStyleEditor extends StyleEditor {
         return getStyle( (MarkShape) shapeSelector_.getSelectedItem(),
                          sizeSelector_.getSelectedIndex(),
                          colorSelector_.getSelectedColor(),
-                         opaqueSlider_.getValue(),
+                         opaqueSlider_.getValue1(),
                          markFlagger_.isEnabled() && markFlagger_.isSelected(),
                          (MarkStyle.Line) lineSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
@@ -299,25 +302,6 @@ public class MarkStyleEditor extends StyleEditor {
         refreshState();
     }
 
-    /**
-     * Sets the known maximum pixel densities for a list of plottable sets.
-     * Each value is the most times a pixel in the output plot was hit
-     * for each subset.  This is a measure of how crowded the field is 
-     * for each subset being plotted.
-     */
-    public void setMaxPixelCounts( SetId[] setIds, int[] maxCounts ) {
-        maxCountMap_.clear();
-        if ( setIds.length != maxCounts.length ) {
-            throw new IllegalArgumentException();
-        }
-        for ( int i = 0; i < maxCounts.length; i++ ) {
-            if ( maxCounts[ i ] > 0 ) {
-                maxCountMap_.put( setIds[ i ], new Integer( maxCounts[ i ] ) );
-            }
-        }
-        refreshState();
-    }
-
     protected void refreshState() {
         super.refreshState();
         SetId setId = getSetId();
@@ -340,18 +324,6 @@ public class MarkStyleEditor extends StyleEditor {
             statText = "";
         }
         corrLabel_.setText( statText );
-
-        /* Fix range of opacity slider so that it has values which make sense
-         * in the context of the density values found in the most recent
-         * plot. */
-        if ( maxCountMap_.containsKey( setId ) ) {
-            int maxCount = ((Integer) maxCountMap_.get( setId )).intValue();
-            if ( maxCount > 1 &&
-                 maxCount > MIN_TRANSPARENCY_RANGE &&
-                 maxCount >= opaqueSlider_.getValue() ) {
-                opaqueSlider_.setMaximum( maxCount );
-            }
-        }
 
         /* Make sure that marker presence control is only enabled if 
          * a line is being plotted. */

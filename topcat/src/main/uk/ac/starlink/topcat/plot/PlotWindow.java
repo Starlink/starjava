@@ -122,9 +122,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                      ( replotted_ || height != lastHeight_
                                   || width != lastWidth_ ) ) {
                     recordVisiblePoints( state, getPoints(), getSurface() );
-                    SetId[] setIds = getPointSelection().getSetIds();
-                    recordCorrelations( setIds, getCorrelations() );
-                    recordPixelMaxCounts( setIds, getMaxPixelCounts() );
+                    recordCorrelations( getPointSelection().getSetIds(),
+                                        getCorrelations() );
                     lastHeight_ = height;
                     lastWidth_ = width;
                     replotted_ = false;
@@ -381,22 +380,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private void recordCorrelations( SetId[] setIds, XYStats[] stats ) {
         ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
                           .setStats( setIds, stats );
-    }
-
-    private void recordPixelMaxCounts( SetId[] setIds, int[] maxCounts ) {
-        if ( maxCounts != null ) {
-            maxCounts = (int[]) maxCounts.clone();
-
-            /* In practice the maximum needs to be limited sometimes.
-             * This is a very sloppy way of doing it.  The proper way would
-             * involve using a quantile of the counts rather than just
-             * getting the maximum or something. */
-            for ( int i = 0; i < maxCounts.length; i++ ) {
-                maxCounts[ i ] = Math.min( 1000, maxCounts[ i ] );
-            }
-            ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
-                              .setMaxPixelCounts( setIds, maxCounts );
-        }
     }
 
     /*

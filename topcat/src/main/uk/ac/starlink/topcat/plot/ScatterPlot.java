@@ -37,7 +37,6 @@ public class ScatterPlot extends SurfacePlot {
     private int lastHeight_;
     private Image image_;
     private XYStats[] statSets_;
-    private int[] maxPixelCounts_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
@@ -179,14 +178,7 @@ public class ScatterPlot extends SurfacePlot {
         MarkStyle[] activeStyles =
             (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );
         if ( pixels ) {
-            int[] mc = new int[ activeSets.length ];
-            plotPointsBitmap( g, points, activeSets, activeStyles, surface,
-                              mc );
-            maxPixelCounts_ = new int[ nset ];
-            for ( int i = 0; i < indexList.size(); i++ ) {
-                int is = ((Integer) indexList.get( i )).intValue();
-                maxPixelCounts_[ is ] = mc[ i ];
-            }
+            plotPointsBitmap( g, points, activeSets, activeStyles, surface );
         }
         else {
             plotPointsVector( g, points, activeSets, activeStyles, surface );
@@ -325,21 +317,12 @@ public class ScatterPlot extends SurfacePlot {
      * @param   sets   row subsets
      * @param   styles   array of MarkStyle objects corresponding to sets
      * @param   surface  plotting surface
-     * @param   maxCounts  if non-null, on exit will contain for each set the
-     *          number of counts in the most heavily painted pixel 
      */
     private static void plotPointsBitmap( Graphics2D g, Points points,
                                           RowSubset[] sets, MarkStyle[] styles,
-                                          PlotSurface surface,
-                                          int[] maxCounts ) {
+                                          PlotSurface surface ) {
         int np = points.getCount();
         int nset = sets.length;
-        if ( maxCounts == null ) {
-            maxCounts = new int[ nset ];
-        }
-        else {
-            Arrays.fill( maxCounts, 0 );
-        }
 
         /* Work out padding round the edge of the raster we will be drawing on.
          * This has to be big enough that we can draw markers on the edge
@@ -451,7 +434,6 @@ public class ScatterPlot extends SurfacePlot {
             float[] weights = new float[ nset ];
             for ( int is = nset - 1; is >= 0; is-- ) {
                 int count = buffers[ is ][ ipix ];
-                maxCounts[ is ] = Math.max( maxCounts[ is ], count );
                 if ( remain > 0f ) {
                     float weight = Math.min( remain, opacity[ is ] * count );
                     weights[ is ] = weight;
@@ -487,19 +469,6 @@ public class ScatterPlot extends SurfacePlot {
      */
     public XYStats[] getCorrelations() {
         return statSets_;
-    }
-
-    /**
-     * Returns the maximum number of times any pixel in each set was painted
-     * over the last time this component was painted.
-     * The result may be null or contain misleading zeroes if the last
-     * painting was done in a way which did not calculate these values for
-     * some reason.
-     *
-     * @return   maximum density of hits per pixel for each set
-     */
-    public int[] getMaxPixelCounts() {
-        return maxPixelCounts_;
     }
 
     /**
