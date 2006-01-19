@@ -69,7 +69,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         JPanel plotPanel = new JPanel();
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
-                addNewSubsets( plot_.getPointRegistry()
+                addNewSubsets( plot_.getPlottedPointIterator()
                                     .getContainedPoints( blob ) );
             }
         };
@@ -395,7 +395,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         public void mouseClicked( MouseEvent evt ) {
             int butt = evt.getButton();
             if ( butt == MouseEvent.BUTTON1 ) {
-                int ip = plot_.getPointRegistry()
+                int ip = plot_.getPlottedPointIterator()
                               .getClosestPoint( evt.getPoint(), 4 );
                 if ( ip >= 0 ) {
                     PointSelection psel = plot_.getState().getPointSelection();

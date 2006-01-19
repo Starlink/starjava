@@ -39,7 +39,6 @@ public class Plot3D extends JPanel {
     private double[] hiBoundsG_;
     private PlotVolume lastVol_;
     private Transformer3D lastTrans_;
-    private PointRegistry pointReg_;
     private double[][][] sphereGrid_;
     private int plotTime_;
     private Object plotvolWorkspace_;
@@ -433,7 +432,6 @@ public class Plot3D extends JPanel {
         /* Store information about the most recent plot. */
         lastVol_ = vol;
         lastTrans_ = trans;
-        pointReg_ = null;
 
         /* Notify information about the points that were plotted.
          * I'm not sure that this has to be done outside of the paint
@@ -1105,49 +1103,53 @@ public class Plot3D extends JPanel {
     }
 
     /**
-     * Returns a PointRegistry which knows where all the points are
-     * plotted on the current view.  The registry is returned in a ready
-     * state.
+     * Returns an iterator over the points plotted last time this component
+     * painted itself.
      *
-     * @return  point registry
+     * @return  point iterator
      */
-    public PointRegistry getPointRegistry() {
-        if ( pointReg_ == null ) {
-            PlotVolume vol = lastVol_;
-            Transformer3D trans = lastTrans_;
-            Points points = getPoints();
-            PointRegistry reg = new PointRegistry();
-            if ( vol != null && points != null && points != null ) {
-                boolean[] logFlags = getState().getLogFlags();
-                int np = points.getCount();
-                RowSubset[] sets = getPointSelection().getSubsets();
-                int nset = sets.length;
+    public PointIterator getPlottedPointIterator() {
+        final PlotVolume vol = lastVol_;
+        final Transformer3D trans = lastTrans_;
+        final Points points = getPoints();
+        if ( vol != null && trans != null && points != null ) {
+            final boolean[] logFlags = getState().getLogFlags();
+            final int np = points.getCount();
+            final RowSubset[] sets = getPointSelection().getSubsets();
+            final int nset = sets.length;
+            return new PointIterator() {
+                int ip = -1;
+                int[] point = new int[ 3 ];
                 double[] coords = new double[ 3 ];
-                for ( int ip = 0; ip < np; ip++ ) {
-                    long lp = (long) ip; 
-                    boolean use = false;
-                    for ( int is = 0; is < nset && ! use; is++ ) {
-                        use = use || sets[ is ].isIncluded( lp );
-                    }
-                    if ( use ) {
-                        points.getCoords( ip, coords );
-                        if ( inRange( coords, loBounds_, hiBounds_ ) &&
-                             logize( coords, logFlags ) ) {
-                            trans.transform( coords );
-                            Point p = new Point( vol.projectX( coords[ 0 ] ),
-                                                 vol.projectY( coords[ 1 ] ) );
-                            reg.addPoint( ip, p );
+                protected int[] nextPoint() {
+                    while ( ++ip < np ) {
+                        long lp = (long) ip;
+                        boolean use = false;
+                        for ( int is = 0; is < nset && !use; is++ ) {
+                            use = use || sets[ is ].isIncluded( lp );
+                        }
+                        if ( use ) {
+                            points.getCoords( ip, coords );
+                            if ( inRange( coords, loBounds_, hiBounds_ ) &&
+                                 logize( coords, logFlags ) ) {
+                                trans.transform( coords );
+                                point[ 0 ] = ip;
+                                point[ 1 ] = vol.projectX( coords[ 0 ] );
+                                point[ 2 ] = vol.projectY( coords[ 1 ] );
+                                return point;
+                            }
                         }
                     }
+                    return null;
                 }
-            }
-            reg.ready();
-            pointReg_ = reg;
+            };
         }
-        return pointReg_;
+        else {
+            return null;
+        }
     }
 
-    /**     
+    /**
      * Determines whether a point with a given index is included in the
      * current plot.  This doesn't necessarily mean it's visible, since
      * it might fall outside the bounds of the current display area,

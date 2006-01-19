@@ -56,10 +56,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final Action fromVisibleAction_;
     private final CountsLabel plotStatus_;
 
-    private boolean replotted_;
-    private BitSet visibleRows_;
-    private PointRegistry visiblePoints_;
-
     private static final StyleSet MARKERS1;
     private static final StyleSet MARKERS2;
     private static final StyleSet MARKERS3;
@@ -101,33 +97,21 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     public PlotWindow( Component parent ) {
         super( "Scatter Plot", new String[] { "X", "Y" }, parent );
 
-        /* Construct the plot component.  The paint method is
-         * overridden so that when the points are replotted we maintain
-         * a record of their current positions.  The Swing tutorial
-         * generally recommends against overriding paint itself
-         * (normally one should override paintComponent) but since all
-         * we're doing here is invoking the superclass implementation
-         * and some non-graphics-related stuff, it should be OK.
-         * Overriding paintComponent would be no good, since it needs
-         * to be called following paintChildren. */
+        /* Construct the plot component.  Provide an implementation of the
+         * hook reportStats() method to accept useful information generated
+         * during the component paint so it can be displayed in the GUI. */
         plot_ = new ScatterPlot( new PtPlotSurface( this ) ) {
-            int lastHeight_;
-            int lastWidth_;
-            public void paint( Graphics g ) {
-                super.paint( g );
-                int height = getHeight();
-                int width = getWidth();
-                PlotState state = getState();
-                if ( state.getValid() &&
-                     ( replotted_ || height != lastHeight_
-                                  || width != lastWidth_ ) ) {
-                    recordVisiblePoints( state, getPoints(), getSurface() );
-                    recordCorrelations( getPointSelection().getSetIds(),
-                                        getCorrelations() );
-                    lastHeight_ = height;
-                    lastWidth_ = width;
-                    replotted_ = false;
-                }
+            protected void reportStats( SetId[] setIds, XYStats[] stats,
+                                        int nPoint, int nIncluded,
+                                        int nVisible ) {
+                boolean someVisible = nVisible > 0;
+                fromVisibleAction_.setEnabled( someVisible );
+                blobAction_.setEnabled( someVisible );
+                plotStatus_.setValues( new int[] { nPoint, nIncluded,
+                                                   nVisible } );
+                ((MarkStyleEditor) getPointSelectors().getStyleWindow()
+                                                      .getEditor())
+                                  .setStats( setIds, stats );
             }
         };
 
@@ -136,7 +120,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         JPanel plotPanel = new JPanel();
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
-                addNewSubsets( visiblePoints_.getContainedPoints( blob ) );
+                addNewSubsets( plot_.getPlottedPointIterator()
+                                    .getContainedPoints( blob ) );
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
@@ -214,7 +199,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                               "containing only " +
                                               "currently visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( visibleRows_ );
+                addNewSubsets( plot_.getPlottedPointIterator().getAllPoints() );
             }
         };
         fromVisibleAction_.setEnabled( false );
@@ -287,99 +272,12 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             plot_.rescale();
         }
 
-        /* Schedule for repainting so the changes can take effect.
-         * It's tempting to call recordVisiblePoints here and have done
-         * with it, but it has to be done from within the painting
-         * system since the window geometry might not be correct here. */
-        replotted_ = true;
+        /* Schedule for repainting so the changes can take effect. */
         plot_.repaint();
     }
 
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( true, true );
-    }
-
-    /**
-     * Works out which points are currently visible and stores this
-     * information for possible later use.  Although this information
-     * has to be calculcated by the ScatterPlot's paintComponent method,
-     * it's not really possible to use that version of the information,
-     * since it might be done in several calls of paintComponent
-     * (with different clips) and it's not clear how to amalgamate all
-     * these.  So we have to do this work more than once.
-     *
-     * <p>This method works out which points are visible in the current
-     * plotting surface and stores the answer in a BitSet.  Elements of
-     * this will be false if they either fall outside the range of the
-     * current axes or do not appear in any of the plot state's
-     * included subsets.
-     *
-     * @param  state  plotting state
-     * @param  points  data points
-     * @param  surface  plotting surface
-     */
-    private void recordVisiblePoints( PlotState state, final Points points,
-                                      PlotSurface surface ) {
-        if ( points == null || state == null ) {
-            return;
-        }
-        int np = points.getCount();
-        RowSubset[] sets = state.getPointSelection().getSubsets();
-        int nset = sets.length;
-        final BitSet visible = new BitSet();
-        PointRegistry plotted = new PointRegistry();
-        int nVisible = 0;
-        int nInvisible = 0;
-        double[] coords = new double[ 2 ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            points.getCoords( ip, coords );
-            Point point = surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
-                                                  true );
-            if ( point != null ) {
-                int xp = point.x;
-                int yp = point.y;
-                long lp = (long) ip;
-                for ( int is = 0; is < nset; is++ ) {
-                    if ( sets[ is ].isIncluded( lp ) ) {
-                        visible.set( ip );
-                        plotted.addPoint( ip, point );
-                        nVisible++;
-                        break;
-                    }
-                }
-            }
-            else {
-                for ( int is = 0; is < nset; is++ ) {
-                    if ( sets[ is ].isIncluded( ip ) ) {
-                        nInvisible++;
-                        break;
-                    }
-                }
-            }
-        }
-        plotted.ready();
-        visiblePoints_ = plotted;
-        visibleRows_ = visible;
-        final boolean someVisible = nVisible > 0;
-        final int potentialCount = points.getCount();
-        final int includedCount = visible.cardinality() + nInvisible;
-        final int visibleCount = visible.cardinality();
-        assert potentialCount >= includedCount;
-        assert includedCount >= visibleCount;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                fromVisibleAction_.setEnabled( someVisible );
-                blobAction_.setEnabled( someVisible );
-                plotStatus_.setValues( new int[] { potentialCount,
-                                                   includedCount,
-                                                   visibleCount } );
-            }
-        } );
-    }
-
-    private void recordCorrelations( SetId[] setIds, XYStats[] stats ) {
-        ((MarkStyleEditor) getPointSelectors().getStyleWindow().getEditor())
-                          .setStats( setIds, stats );
     }
 
     /*
@@ -438,7 +336,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         public void mouseClicked( MouseEvent evt ) {
             int butt = evt.getButton();
             if ( butt == MouseEvent.BUTTON1 ) {
-                int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 4 );
+                int ip = plot_.getPlottedPointIterator()
+                              .getClosestPoint( evt.getPoint(), 4 );
                 if ( ip >= 0 ) {
                     PointSelection psel = plot_.getState().getPointSelection();
                     psel.getPointTable( ip )

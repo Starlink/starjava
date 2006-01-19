@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
@@ -36,7 +37,6 @@ public class ScatterPlot extends SurfacePlot {
     private int lastWidth_;
     private int lastHeight_;
     private Image image_;
-    private XYStats[] statSets_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
@@ -177,11 +177,14 @@ public class ScatterPlot extends SurfacePlot {
             (RowSubset[]) setList.toArray( new RowSubset[ 0 ] );
         MarkStyle[] activeStyles =
             (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );
+        int[] pointCounts = new int[ 2 ];
         if ( pixels ) {
-            plotPointsBitmap( g, points, activeSets, activeStyles, surface );
+            plotPointsBitmap( g, points, activeSets, activeStyles, surface,
+                              pointCounts );
         }
         else {
-            plotPointsVector( g, points, activeSets, activeStyles, surface );
+            plotPointsVector( g, points, activeSets, activeStyles, surface,
+                              pointCounts );
         }
 
         /* Join the dots as required. */
@@ -220,7 +223,7 @@ public class ScatterPlot extends SurfacePlot {
         }
 
         /* Do linear regression as required. */
-        statSets_ = new XYStats[ nset ];
+        final XYStats[] statSets = new XYStats[ nset ];
         for ( int is = 0; is < nset; is++ ) {
             RowSubset set = sets[ is ];
             MarkStyle style = (MarkStyle) styles[ is ];
@@ -229,7 +232,7 @@ public class ScatterPlot extends SurfacePlot {
                 /* Accumulate statistics. */
                 XYStats stats = new XYStats( state.getLogFlags()[ 0 ],
                                              state.getLogFlags()[ 1 ] );
-                statSets_[ is ] = stats;
+                statSets[ is ] = stats;
                 int maxr = style.getMaximumRadius();
                 int maxr2 = maxr * 2;
                 for ( int ip = 0; ip < np; ip++ ) {
@@ -267,6 +270,77 @@ public class ScatterPlot extends SurfacePlot {
                 }
             }
         }
+
+        /* Report information gathered from the plot.  I'm not certain this
+         * has to be done outside of the paint call, but it's probably
+         * a good idea. */
+        final SetId[] setIds = getPointSelection().getSetIds();
+        final int nPoint = np;
+        final int nIncluded = pointCounts[ 0 ];
+        final int nVisible = pointCounts[ 1 ];
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                reportStats( setIds, statSets, nPoint, nIncluded, nVisible );
+            }
+        } );
+    }
+
+    /**
+     * This method is called following a repaint with information gleaned
+     * from the painting step.  It is intended as a hook for clients which
+     * want to know that information in a way which is kept up to date.
+     * The default implementation does nothing.
+     *
+     * @param   setIds  identifiers for sets plotted in an order which
+     *          matches the <code>stats</code> argument
+     * @param   stats   X-Y statistics (correlation information) if calculated
+     * @param   nPoint  total number of points available
+     * @param   nIncluded  number of points included in marked subsets
+     * @param   nVisible  number of points actually plotted (may be less
+     *          nIncluded if some are out of bounds)
+     */
+    protected void reportStats( SetId[] setIds, XYStats[] stats,
+                                int nPoint, int nIncluded, int nVisible ) {
+    }
+
+    /**
+     * Returns an iterator over the points plotted last time this component
+     * plotted itself.
+     *
+     * @return  point iterator
+     */
+    public PointIterator getPlottedPointIterator() {
+        final Points points = getPoints();
+        final PlotSurface surface = getSurface();
+        final RowSubset[] sets = getPointSelection().getSubsets();
+        final int np = points.getCount();
+        final int nset = sets.length;
+        return new PointIterator() {
+            int ip = -1;
+            int[] point = new int[ 3 ];
+            double[] coords = new double[ 2 ];
+            protected int[] nextPoint() {
+                while ( ++ip < np ) {
+                    boolean use = false;
+                    for ( int is = 0; is < nset && ! use; is++ ) {
+                        use = use || sets[ is ].isIncluded( (long) ip );
+                    }
+                    if ( use ) {
+                        points.getCoords( ip, coords );
+                        double x = coords[ 0 ];
+                        double y = coords[ 1 ];
+                        Point p = surface.dataToGraphics( x, y, true );
+                        if ( p != null ) {
+                            point[ 0 ] = ip;
+                            point[ 1 ] = p.x;
+                            point[ 2 ] = p.y;
+                        }
+                        return point;
+                    }
+                }
+                return null;
+            }
+        };
     }
 
     /**
@@ -278,11 +352,16 @@ public class ScatterPlot extends SurfacePlot {
      * @param   sets   row subsets
      * @param   styles   array of MarkStyle objects corresponding to sets
      * @param   surface  plotting surface
+     * @param   counts   if non-null, receives two values: number of points
+     *                   included in visible subsets, and number of points
+     *                   actually plotted (in range as well)
      */
     private static void plotPointsVector( Graphics2D g, Points points,
                                           RowSubset[] sets, MarkStyle[] styles, 
-                                          PlotSurface surface ) {
+                                          PlotSurface surface, int[] counts ) {
         int np = points.getCount();
+        int nIncluded = 0;
+        int nVisible = 0;
         int nset = sets.length;
         double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
@@ -292,11 +371,13 @@ public class ScatterPlot extends SurfacePlot {
             int maxr2 = maxr * 2;
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( set.isIncluded( (long) ip ) ) {
+                    nIncluded++;
                     points.getCoords( ip, coords );
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
                     Point point = surface.dataToGraphics( x, y, true );
                     if ( point != null ) {
+                        nVisible++;
                         int xp = point.x;
                         int yp = point.y;
                         if ( g.hitClip( xp - maxr, yp - maxr,
@@ -306,6 +387,10 @@ public class ScatterPlot extends SurfacePlot {
                     }
                 }
             }
+        }
+        if ( counts != null ) {
+            counts[ 0 ] = nIncluded;
+            counts[ 1 ] = nVisible;
         }
     }
 
@@ -317,10 +402,13 @@ public class ScatterPlot extends SurfacePlot {
      * @param   sets   row subsets
      * @param   styles   array of MarkStyle objects corresponding to sets
      * @param   surface  plotting surface
+     * @param   counts   if non-null, receives two values: number of points
+     *                   included in visible subsets, and number of points
+     *                   actually plotted (in range as well)
      */
     private static void plotPointsBitmap( Graphics2D g, Points points,
                                           RowSubset[] sets, MarkStyle[] styles,
-                                          PlotSurface surface ) {
+                                          PlotSurface surface, int[] counts ) {
         int np = points.getCount();
         int nset = sets.length;
 
@@ -368,31 +456,50 @@ public class ScatterPlot extends SurfacePlot {
          * times each of its pixels has been painted. */
         BitSet mask = new BitSet( npix );
         double[] coords = new double[ 2 ];
+        boolean[] includeSets = new boolean[ nset ];
+        int nIncluded = 0;
+        int nVisible = 0;
         for ( int ip = 0; ip < np; ip++ ) {
-            points.getCoords( ip, coords );
-            double x = coords[ 0 ];
-            double y = coords[ 1 ];
-            Point point = surface.dataToGraphics( x, y, true );
-            if ( point != null ) {
-                int xp = point.x;
-                int yp = point.y;
-                int xbase = xp - xoff;
-                int ybase = yp - yoff;
-                if ( xbase > maxr && xbase < xdim - maxr &&
-                     ybase > maxr && ybase < ydim - maxr ) {
-                    int base = xbase + xdim * ybase;
-                    for ( int is = 0; is < nset; is++ ) {
-                        if ( sets[ is ].isIncluded( (long) ip ) ) {
-                            for ( int ioff = 0; ioff < npixoffs[ is ];
-                                  ioff++ ) {
-                                int ipix = base + pixoffs[ is ][ ioff ];
-                                buffers[ is ][ ipix ]++;
-                                mask.set( ipix );
+            boolean use = false;
+            for ( int is = 0; is < nset; is++ ) {
+                boolean inc = sets[ is ].isIncluded( (long) ip );
+                includeSets[ is ] = inc;
+                use = use || inc;
+            }
+            if ( use ) {
+                nIncluded++;
+                points.getCoords( ip, coords );
+                double x = coords[ 0 ];
+                double y = coords[ 1 ];
+                Point point = surface.dataToGraphics( x, y, true );
+                if ( point != null ) {
+                    int xp = point.x;
+                    int yp = point.y;
+                    int xbase = xp - xoff;
+                    int ybase = yp - yoff;
+                    if ( xbase > maxr && xbase < xdim - maxr &&
+                         ybase > maxr && ybase < ydim - maxr ) {
+                        nVisible++;
+                        int base = xbase + xdim * ybase;
+                        for ( int is = 0; is < nset; is++ ) {
+                            if ( includeSets[ is ] ) {
+                                for ( int ioff = 0; ioff < npixoffs[ is ];
+                                      ioff++ ) {
+                                    int ipix = base + pixoffs[ is ][ ioff ];
+                                    buffers[ is ][ ipix ]++;
+                                    mask.set( ipix );
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+
+        /* Record information about the number of points seen. */
+        if ( counts != null ) {
+            counts[ 0 ] = nIncluded;
+            counts[ 1 ] = nVisible;
         }
 
         /* Now combine the rasters using the colours and opacities described
@@ -459,16 +566,6 @@ public class ScatterPlot extends SurfacePlot {
         /* Finally paint the constructed image onto the graphics context. */
         im.setRGB( 0, 0, xdim, ydim, rgbBuf, 0, xdim );    
         g.drawImage( im, xoff, yoff, null );
-    }
-
-    /**
-     * Returns the X-Y statistics calculated the last time this component
-     * was painted.
-     *
-     * @return  X-Y correlation statistics objects for each set
-     */
-    public XYStats[] getCorrelations() {
-        return statSets_;
     }
 
     /**
