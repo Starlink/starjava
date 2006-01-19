@@ -45,7 +45,6 @@ public class MarkStyleEditor extends StyleEditor {
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
-    private static final int MIN_TRANSPARENCY_RANGE = 6;
     private static final MarkShape[] SHAPES = new MarkShape[] {
         MarkShape.FILLED_CIRCLE,
         MarkShape.OPEN_CIRCLE,
@@ -236,9 +235,6 @@ public class MarkStyleEditor extends StyleEditor {
         sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
         int opaqueLimit = mstyle.getOpaqueLimit();
-        if ( opaqueSlider_.getMaximum1() < opaqueLimit ) {
-            opaqueSlider_.setMaximum1( opaqueLimit );
-        }
         opaqueSlider_.setValue1( opaqueLimit );
         thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
         dashSelector_.setSelectedDash( mstyle.getDash() );
