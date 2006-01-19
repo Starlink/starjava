@@ -10,7 +10,7 @@ import java.util.BitSet;
 
 /**
  * PlotVolume which uses a Z-buffer to keep track of which pixels are in
- * front.
+ * front.  It can only render opaque markers.
  *
  * @author   Mark Taylor
  * @since    18 Jan 2006
@@ -30,12 +30,6 @@ public class ZBufferPlotVolume extends PlotVolume {
 
     /**
      * Constructs a new plot volume.
-     * Note that a workspace <code>ws</code> must be provided.
-     * If you're going to create multiple successive ZBufferPlotVolume
-     * instances, you can cut down dramatically on garbage collection time
-     * by supplying the same workspace to each one.
-     * Don't use the same one for multiple volumes operating concurrently
-     * though.
      *
      * @param   c  component on which points will be plotted
      * @param   g  graphics context on which points will be plotted
