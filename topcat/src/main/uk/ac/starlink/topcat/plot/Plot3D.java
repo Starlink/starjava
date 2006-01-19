@@ -42,7 +42,7 @@ public class Plot3D extends JPanel {
     private PointRegistry pointReg_;
     private double[][][] sphereGrid_;
     private int plotTime_;
-    private ZBufferPlotVolume.Workspace zbufWorkspace_;
+    private Object plotvolWorkspace_;
     private final Plot3DDataPanel plotArea_;
     private final Legend legend_;
 
@@ -338,13 +338,21 @@ public class Plot3D extends JPanel {
         MarkStyle[] plotStyles =
             (MarkStyle[]) plotStyleList.toArray( new MarkStyle[ 0 ] );
 
-        /* Create the plot volume.  We currently use a ZBufferPlotVolume here,
-         * which seems to be reasonably efficient for large numbers of points.
-         * An alternative implementation is SortPlotVolume, but this slows
-         * down a bit after a few thousand points. */
-        PlotVolume vol =
-            new ZBufferPlotVolume( c, g, plotStyles, padFactor, padBorders,
-                                   getZBufferWorkspace() );
+        /* Create the plot volume.  The implementation we use depends on
+         * whether any transparency has to be rendered; if it doesn't
+         * we can get away with a simpler algorithm. */
+        boolean allOpaque = true;
+        for ( int is = 0; is < nset && allOpaque; is++ ) {
+            allOpaque = allOpaque && plotStyles[ is ].getOpaqueLimit() == 1;
+        }
+        PlotVolume vol = allOpaque
+            ? (PlotVolume)
+              new ZBufferPlotVolume( c, g, plotStyles, padFactor, padBorders,
+                                     getZBufferWorkspace() )
+            : (PlotVolume)
+              new PackedSortPlotVolume( c, g, plotStyles, padFactor, padBorders,
+                                        points.getCount() + 2, 0.0, 1.0,
+                                        getPackedSortWorkspace() );
 
         /* Set its fog factor appropriately for depth rendering as requested. */
         vol.getFogger().setFogginess( state_.getFogginess() );
@@ -390,9 +398,11 @@ public class Plot3D extends JPanel {
                     nVisible++;
                     trans.transform( coords );
                     // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
-                    for ( int is = 0; is < nset; is++ ) {
+                    boolean done = false;
+                    for ( int is = nset - 1; is >= 0 && ! done; is-- ) {
                         if ( sets[ is ].isIncluded( lp ) ) {
                             vol.plot( coords, is );
+                            done = true;
                         }
                     }
                 }
@@ -1165,10 +1175,24 @@ public class Plot3D extends JPanel {
      * @return   new or used workspace object
      */
     private ZBufferPlotVolume.Workspace getZBufferWorkspace() {
-        if ( zbufWorkspace_ == null ) {
-            zbufWorkspace_ = new ZBufferPlotVolume.Workspace();
+        if ( ! ( plotvolWorkspace_ instanceof ZBufferPlotVolume.Workspace ) ) {
+            plotvolWorkspace_ = new ZBufferPlotVolume.Workspace();
         }
-        return zbufWorkspace_;
+        return (ZBufferPlotVolume.Workspace) plotvolWorkspace_;
+    }
+
+    /**
+     * Lazily constructs and returns a PackedSortPlotVolume workspace object
+     * owned by this plot.
+     *
+     * @return   new or used workspace object
+     */
+    private PackedSortPlotVolume.Workspace getPackedSortWorkspace() {
+        if ( ! ( plotvolWorkspace_ instanceof
+                 PackedSortPlotVolume.Workspace ) ) {
+            plotvolWorkspace_ = new PackedSortPlotVolume.Workspace();
+        }
+        return (PackedSortPlotVolume.Workspace) plotvolWorkspace_;
     }
 
     /**
