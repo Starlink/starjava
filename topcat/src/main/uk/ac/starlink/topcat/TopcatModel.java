@@ -6,6 +6,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,6 +33,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
@@ -465,10 +468,15 @@ public class TopcatModel {
     /**
      * Adds a listener to be notified of changes in this model.
      *
+     * <p>We use a WeakReference to keep track of the listeners.
+     * This means that if a listener becomes otherwise unreachable it
+     * can be garbage collected - its presence in this TopcatModel's 
+     * listener list will not prevent that from happening.
+     *
      * @param  listener  listener to add
      */
     public void addTopcatListener( TopcatListener listener ) {
-        listeners_.add( listener );
+        listeners_.add( new WeakReference( listener ) );
     }
 
     /**
@@ -477,7 +485,13 @@ public class TopcatModel {
      * @param  listener  listener to remove
      */
     public void removeTopcatListener( TopcatListener listener ) {
-        listeners_.remove( listener );
+        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
+            TopcatListener referent =
+                (TopcatListener) ((Reference) it.next()).get();
+            if ( referent == null || referent.equals( listener ) ) {
+                it.remove();
+            }
+        }
     }
 
     /**
@@ -491,7 +505,14 @@ public class TopcatModel {
     public void fireModelChanged( int code, Object datum ) {
         TopcatEvent evt = new TopcatEvent( this, code, datum );
         for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            ((TopcatListener) it.next()).modelChanged( evt );
+            TopcatListener listener =
+                (TopcatListener) ((Reference) it.next()).get();
+            if ( listener == null ) {
+                it.remove();
+            }
+            else {
+                listener.modelChanged( evt );
+            }
         }
     }
 
@@ -816,6 +837,24 @@ public class TopcatModel {
      */
     private static boolean equalObject( Object o1, Object o2 ) {
         return o1 == null ? o2 == null : o1.equals( o2 );
+    }
+
+    /**
+     * Creates and returns a new TopcatModel with no data.
+     * This does not increment the count of existing models - it's intended
+     * for things like initialising data models which must stop referring
+     * to a live TopcatModel.
+     *
+     * @return  new empty TopcatModel
+     */
+    public static synchronized TopcatModel createDummyModel() {
+        int ic = instanceCount;
+        instanceCount = -1;
+        TopcatModel dummy = 
+            new TopcatModel( new RowListStarTable( new ColumnInfo[ 0 ] ),
+                             "dummy", null );
+        instanceCount = ic;
+        return dummy;
     }
 
     /**
