@@ -28,23 +28,31 @@ import javax.swing.event.ListDataListener;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.splat.ast.ASTJ;
+import uk.ac.starlink.splat.data.AssociatedLineIDSpecData;
+import uk.ac.starlink.splat.data.AssociatedLineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecData;
-import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * A simple class for controlling a {@link LineProvider}, so that
- * a list of spectral lines can be viewed, one-by-one.
+ * a list of spectral lines and optionally related spectra can be viewed,
+ * one-by-one.
  * <p>
- * This class provides controls for selecting a line and for stepping through
- * a list of lines. The line coordinate are stored in a simple text file (the
- * text files are line identifier files, with the additional capability of
- * containing just one column). When a line is "visited" it can have a state
- * object associated with it. This allows any known information associated
- * with the line to be restored (like analysis and UI state).
+ * This class provides controls for stepping through a list of lines and,
+ * optionally, their related spectra. If no related spectra are known then the
+ * current spectrum of the {@link LineProvider} will be used.
+ * <p>
+ * The line coordinates are stored in a simple text file (the text files can
+ * be line identifier files, with just one column, or files like those, except
+ * with three columns, coordinates, label and associated spectrum).  When a
+ * line is "visited" it can have a state object associated with it. This
+ * allows any known information associated with the line to be restored (like
+ * analysis and UI state).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -68,8 +76,15 @@ public class LineVisitor
     /** The EditableSpecData instance*/
     private EditableSpecData specData = null;
 
-    /** Storage for labels. These need to be unique so include coordinate */
+    /** Storage for labels. These need to be unique Strings so include
+     *  an index */
     private ArrayList labels = new ArrayList();
+
+    /** Storage for associated spectra. */
+    private SpecData[] spectra = null;
+
+    /** Storage for associated spectra names as stored in the line list. */
+    private String[] spectraNames = null;
 
     /** Local constants for various actions. */
     public static final int FIRST = -2;
@@ -82,7 +97,13 @@ public class LineVisitor
     private JComboBox lineBox = null;
     private LineListModel lineBoxModel = null;
 
-    /**
+    /**  The global list of spectra */
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+
+    /**  The spectrum factory */
+    protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
+
+   /**
      * Create an instance.
      *
      * @param provider an instance of {@link LineProvider}.
@@ -208,8 +229,41 @@ public class LineVisitor
                     states[position] = provider.getLineState();
                 }
 
-                //  Move to new line. Pass stored state so it can be restored.
+                //  If we have a spectrum and it's not realized yet, do that
+                //  now.
                 position = newPosition;
+                if ( spectraNames != null &&
+                     spectraNames[position] != null &&
+                     spectra[position] == null ) {
+                    try {
+                        SpecData newSpec = null;
+                        int index =
+                            globalList.specKnown( spectraNames[position] );
+                        if ( index != -1 ) {
+                            //  Already in global list, so reuse.
+                            newSpec = globalList.getSpectrum( index );
+                        }
+                        else {
+                            //  Create by reading file and enter into global
+                            //  list.
+                            newSpec =
+                                specDataFactory.get( spectraNames[position] );
+                            globalList.add( newSpec );
+                        }
+                        spectra[position] = newSpec;
+                    }
+                    catch (SplatException e) {
+                        //  Complain and stop a future attempt.
+                        e.printStackTrace();
+                        spectraNames[position] = null;
+                    }
+                }
+
+                //  Move to new line. Ask for the spectrum to be displayed, if
+                //  available and also pass stored state so it can be restored.
+                if ( spectra[position] != null ) {
+                    provider.viewSpectrum( spectra[position] );
+                }
                 provider.viewLine( coords[position], coordFrame,
                                    states[position] );
 
@@ -234,13 +288,15 @@ public class LineVisitor
      * @return the {@link LineIDSpecData} representing the positions, null if
      *         anything fails.
      */
-    public LineIDSpecData readLines( File file )
+    public AssociatedLineIDSpecData readLines( File file )
         throws SplatException
     {
         if ( ! file.exists() ) return null;
 
-        LineIDTXTSpecDataImpl impl = new LineIDTXTSpecDataImpl( file );
-        LineIDSpecData specData = new LineIDSpecData( impl );
+        AssociatedLineIDTXTSpecDataImpl impl =
+            new AssociatedLineIDTXTSpecDataImpl( file );
+        AssociatedLineIDSpecData specData =
+            new AssociatedLineIDSpecData( impl );
 
         setLineList( specData );
         return specData;
@@ -254,14 +310,25 @@ public class LineVisitor
      */
     public void setLineList( EditableSpecData specData )
     {
-        //  Release existing states and get new coordinates.
+        //  Release existing states and spectra and get new coordinates.
         this.specData = specData;
         double[] coords = specData.getXData();
         states = new Object[coords.length];
+        spectra = new SpecData[coords.length];
+        spectraNames = null;
 
         //  Generate labels for JComboBox. Must be unique, so add index.
         labels.clear();
-        if ( specData instanceof LineIDSpecData ) {
+        if ( specData instanceof AssociatedLineIDSpecData ) {
+            String[] specLabels =
+                ((AssociatedLineIDSpecData)specData).getLabels();
+            for ( int i = 0; i < specLabels.length; i++ ) {
+                labels.add( i + ": " + specLabels[i] );
+            }
+            spectraNames =
+                ((AssociatedLineIDSpecData)specData).getAssociations();
+        }
+        else if ( specData instanceof LineIDSpecData ) {
             String[] specLabels = ((LineIDSpecData)specData).getLabels();
             for ( int i = 0; i < specLabels.length; i++ ) {
                 labels.add( i + ": " + specLabels[i] );

@@ -193,16 +193,16 @@ public class SpecList implements Serializable
 
     /**
      *  See if a spectrum is already present using its specification
-     * (i.e.<!-- --> file name).
+     * (i.e.<!-- --> file name). Returns the index if found and -1 otherwise.
      */
-    public boolean known( String fileName )
+    public int known( String fileName )
     {
         for ( int i = 0; i < spectra.size(); i++ ) {
-            if ( ((SpecData) spectra.get(i)).getFullName().equals( fileName ) ) {
-                return true;
+            if ( ((SpecData)spectra.get(i)).getFullName().equals(fileName) ) {
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 
     /**

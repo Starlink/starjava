@@ -66,6 +66,16 @@ public class LineIDTXTSpecDataImpl
     extends LineIDMEMSpecDataImpl
 {
     /**
+     * Empty constructor for sub-classes.
+     */
+    protected LineIDTXTSpecDataImpl()
+        throws SplatException
+    {
+        // Do nothing, repeat sequence of calls to next constructor.
+        super( null );
+    }
+
+    /**
      * Create an object by opening a text file and reading its
      * content.
      *
@@ -138,7 +148,7 @@ public class LineIDTXTSpecDataImpl
      *
      * @param file the text file.
      */
-    protected void readFromFile( File file )
+    private void readFromFile( File file )
         throws SplatException
     {
         //  Check file exists.
@@ -171,7 +181,7 @@ public class LineIDTXTSpecDataImpl
      *
      * @param file File object.
      */
-    protected void readData( File file )
+    private void readData( File file )
         throws SplatException
     {
         //  Get a BufferedReader to read the file line-by-line. Note
@@ -188,55 +198,16 @@ public class LineIDTXTSpecDataImpl
             throw new SplatException( e );
         }
 
-        // Look for a header section.
-        int nhead = 0;
-        StringTokenizer st = null;
-        String raw = null;
-        try {
-            raw = r.readLine();
-            if ( "#BEGIN".equals( raw ) ) {
-                attributes = new LinkedHashMap();
-                //  Default set for laboratory lines.
-                attributes.put( "StdOfRest", "Topocentric" );
-                attributes.put( "SourceVRF", "Topocentric" );
-                attributes.put( "SourceVel", "0.0" );
-                nhead++;
-
-                while ( ( raw = r.readLine() ) != null ) {
-                    if ( "#END".equals( raw ) ) {
-                        nhead++;
-                        break;
-                    }
-
-                    // Skip blank lines and other comment lines.
-                    if ( raw.length() == 0 || raw.charAt(0) == '!'
-                         || raw.charAt(0) == '*' ) {
-                        continue;
-                    }
-                    st = new StringTokenizer( raw );
-                    st.nextToken(); // Skip comment
-                    attributes.put( st.nextToken(), st.nextToken() );
-                    nhead++;
-                }
-                if ( nhead == 0 ) attributes = null;
-            }
-            else {
-                // Rewind.
-                r.close();
-                f.close();
-                f = new FileInputStream( file );
-                r = new BufferedReader( new InputStreamReader( f ) );
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Look for a header section. Leaves r positioned after header.
+        int nhead = readHeaders( r );
 
         //  First pass of file. Read file input until end of file
         //  occurs.
         int count = 0;
         int nlines = 0;
         int nwords = 0;
+        String raw;
+        StringTokenizer st;
         try {
             while ( ( raw = r.readLine() ) != null ) {
 
@@ -349,6 +320,59 @@ public class LineIDTXTSpecDataImpl
     }
 
     /**
+     * Locate a header section in the given BufferedReader, and if found
+     * record the WCS information in the attributes map. The BufferedReader is
+     * left positioned after the last read and the number of lines read is
+     * returned.
+     */
+    protected int readHeaders( BufferedReader r )
+    {
+        int nhead = 0;
+        StringTokenizer st = null;
+        String raw = null;
+        try {
+            //  Allow for rewind of one line.
+            r.mark( 256 );
+            raw = r.readLine();
+            if ( "#BEGIN".equals( raw ) ) {
+                attributes = new LinkedHashMap();
+                //  Default set for laboratory lines.
+                attributes.put( "StdOfRest", "Topocentric" );
+                attributes.put( "SourceVRF", "Topocentric" );
+                attributes.put( "SourceVel", "0.0" );
+                nhead++;
+
+                while ( ( raw = r.readLine() ) != null ) {
+                    if ( "#END".equals( raw ) ) {
+                        nhead++;
+                        break;
+                    }
+
+                    // Skip blank lines and other comment lines.
+                    if ( raw.length() == 0 || raw.charAt(0) == '!'
+                         || raw.charAt(0) == '*' ) {
+                        continue;
+                    }
+                    st = new StringTokenizer( raw );
+                    st.nextToken(); // Skip comment
+                    attributes.put( st.nextToken(), st.nextToken() );
+                    nhead++;
+                }
+                if ( nhead == 0 ) attributes = null;
+            }
+            else {
+                // Rewind back one line as no header.
+                r.reset();
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return nhead;
+    }
+
+
+    /**
      * Write spectral data to the file.
      *
      * @param file File object.
@@ -368,28 +392,7 @@ public class LineIDTXTSpecDataImpl
         }
 
         // Add a header to the file.
-        try {
-            r.write( "#BEGIN\n" );
-            r.write( "# File created by " +Utilities.getReleaseName()+ "\n" );
-            r.write( "# name " + shortName + "\n" );
-            writeAstAtt( r, "System" );
-            writeAstAtt( r, "Unit" );
-            writeAstAtt( r, "StdOfRest" );
-            writeAstAtt( r, "SourceVRF" );
-            writeAstAtt( r, "SourceVel" );
-            String units = getDataUnits();
-            if ( units != null ) {
-                r.write( "# DataUnits " + units + "\n" );
-            }
-            String label = getDataLabel();
-            if ( label != null ) {
-                r.write( "# DataLabel " + label + "\n" );
-            }
-            r.write( "#END\n" );
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        writeHeaders( r );
 
         // Now write the data.
         for ( int i = 0; i < data.length; i++ ) {
@@ -413,6 +416,36 @@ public class LineIDTXTSpecDataImpl
         }
         catch (Exception e) {
             //  Do nothing.
+        }
+    }
+
+
+    /**
+     * Write a header section to a BufferedWriter.
+     */
+    protected void writeHeaders( BufferedWriter r ) 
+    {
+        try {
+            r.write( "#BEGIN\n" );
+            r.write( "# File created by " +Utilities.getReleaseName()+ "\n" );
+            r.write( "# name " + shortName + "\n" );
+            writeAstAtt( r, "System" );
+            writeAstAtt( r, "Unit" );
+            writeAstAtt( r, "StdOfRest" );
+            writeAstAtt( r, "SourceVRF" );
+            writeAstAtt( r, "SourceVel" );
+            String units = getDataUnits();
+            if ( units != null ) {
+                r.write( "# DataUnits " + units + "\n" );
+            }
+            String label = getDataLabel();
+            if ( label != null ) {
+                r.write( "# DataLabel " + label + "\n" );
+            }
+            r.write( "#END\n" );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

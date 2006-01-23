@@ -8,6 +8,7 @@
 package uk.ac.starlink.splat.iface;
 
 import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.splat.data.SpecData;
 
 /**
  * Defines an interface to be used for interacting with a {@link LineVisitor}
@@ -29,6 +30,15 @@ public interface LineProvider
      * @param state previously returned state information, null for none.
      */
     public void viewLine( double coords, Frame coordFrame, Object state );
+
+    /**
+     * Display a spectrum. Can replace or add to those already displayed
+     * depending on the context. This spectrum will already be in the global
+     * list of spectra.
+     *
+     * @param specData the spectrum to display
+     */
+    public void viewSpectrum( SpecData specData );
 
     /**
      * Return any state information about the current line. What

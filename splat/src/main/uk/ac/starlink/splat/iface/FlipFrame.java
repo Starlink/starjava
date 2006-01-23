@@ -123,9 +123,6 @@ public class FlipFrame
     /** The PlotControl that is displaying the current spectrum. */
     protected PlotControl plot = null;
 
-    /** The copy or flipped spectrum. */
-    protected EditableSpecData comparisonSpectrum = null;
-
     /** Menu item retaining state of SPEFO changes */
     protected JCheckBoxMenuItem spefoBox = null;
 
@@ -414,6 +411,7 @@ public class FlipFrame
         else {
             name = "Copy of: " + spec.getShortName();
         }
+        EditableSpecData comparisonSpectrum = null;
         try {
             comparisonSpectrum =
                 SpecDataFactory.getInstance().createEditable( name, spec,
@@ -424,7 +422,6 @@ public class FlipFrame
             JOptionPane.showMessageDialog( this, e.getMessage(),
                                            "Failed to create copy",
                                            JOptionPane.ERROR_MESSAGE );
-            comparisonSpectrum = null;
             return;
         }
 
@@ -478,7 +475,7 @@ public class FlipFrame
         //  If no spectrum has been given then we need to access the currently
         //  selected one.
         if ( spectrum == null ) {
-            spectrum = getSelectedSpectrum();
+            spectrum = getComparisonSpectrum();
         }
 
         //  Recover the stored properties, such as the original FrameSet
@@ -614,7 +611,7 @@ public class FlipFrame
     protected void updateNames()
     {
         //  Keep reference to currently selected spectrum.
-        EditableSpecData currentSpectrum = getSelectedSpectrum();
+        EditableSpecData currentSpectrum = getComparisonSpectrum();
         if ( globalList.getSpectrumIndex( currentSpectrum ) == -1 ) {
             //  This has been removed.
             currentSpectrum = null;
@@ -642,9 +639,10 @@ public class FlipFrame
     }
 
     /**
-     * Access the selected spectrum.
+     * Access the comparison spectrum, this is the one selected in the
+     * JComboBox of spectra.
      */
-    protected EditableSpecData getSelectedSpectrum()
+    protected EditableSpecData getComparisonSpectrum()
     {
         EditableSpecData spectrum =
             (EditableSpecData) availableSpectra.getSelectedItem();
@@ -775,8 +773,8 @@ public class FlipFrame
      */
     protected void setVisitorLineList()
     {
-        if ( visitor != null && comparisonSpectrum != null ) {
-            visitor.setLineList( comparisonSpectrum );
+        if ( visitor != null && getComparisonSpectrum() != null ) {
+            visitor.setLineList( getComparisonSpectrum() );
             visitor.setEnabled( true );
         }
     }
@@ -901,7 +899,7 @@ public class FlipFrame
     //
     public void itemStateChanged( ItemEvent e )
     {
-        comparisonSpectrum = getSelectedSpectrum();
+        EditableSpecData comparisonSpectrum = getComparisonSpectrum();
         if ( comparisonSpectrum != null ) {
             StoredProperties storedProperties = 
                 getStoredProperties( comparisonSpectrum );
@@ -925,14 +923,29 @@ public class FlipFrame
     // LineProvider interface. Used to configure for a visit to a place where
     // a line is expected.
     //
+    public void viewSpectrum( SpecData specData )
+    {
+        //  Make our associated plot display this spectrum.
+        SpecData currentSpec = plot.getCurrentSpectrum();
+        try {
+            plot.removeSpectrum( currentSpec );
+            plot.addSpectrum( specData );
+            plot.setCurrentSpectrum( specData );
+        }
+        catch (SplatException e) {
+            e.printStackTrace();
+            //  And live with it.
+        }
+    }
+
     public void viewLine( double coord, Frame coordFrame, Object state )
     {
         //  Move to line and view it and restore any associated state.
 
         //  Remove comparisonSpectrum, if we're replacing it.
         boolean onespec = singleComparisonBox.isSelected();
-        if ( comparisonSpectrum != null && ! onespec ) {
-            globalList.removeSpectrum( plot, comparisonSpectrum );
+        if ( getComparisonSpectrum() != null && ! onespec ) {
+            globalList.removeSpectrum( plot, getComparisonSpectrum() );
         }
 
         //  Attempt to transform coord from its system into the system of the
@@ -961,7 +974,8 @@ public class FlipFrame
             StateStore stateStore = (StateStore) state;
             try {
                 //  Comparison spectrum.
-                comparisonSpectrum = stateStore.getComparisonSpectrum();
+                EditableSpecData comparisonSpectrum = 
+                    stateStore.getComparisonSpectrum();
                 if ( comparisonSpectrum != null ) {
                     globalList.addSpectrum( plot, comparisonSpectrum );
                 }
@@ -1000,7 +1014,7 @@ public class FlipFrame
         else {
             //  Create a new spectrum, or we'll just move to the given
             //  coordinates.
-            if ( comparisonSpectrum == null || ! onespec ) {
+            if ( getComparisonSpectrum() == null || ! onespec ) {
                 copyFlipCurrentSpectrum();
             }
         }
@@ -1069,7 +1083,7 @@ public class FlipFrame
 
         public StateStore()
         {
-            setComparisonSpectrum( comparisonSpectrum );
+            setComparisonSpectrum( FlipFrame.this.getComparisonSpectrum() );
             setCopyFlip( flipBox.isSelected() );
             setShiftRedShift( redshiftBox.isSelected() );
             setIncrement( incrementSpinner.getDoubleValue() );

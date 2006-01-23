@@ -116,14 +116,14 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  See if a spectrum is already known by a specification 
-     *  (usually the filename).
+     *  See if a spectrum is already known by a specification. This
+     *  corresponds to the full name, so is usually the file name.
      *
      *  @param name name to check.
      *
-     *  @return true if the name is known.
+     *  @return index if known, -1 otherwise.
      */
-    public boolean specKnown( String name )
+    public int specKnown( String name )
     {
         return specList.known( name );
     }
