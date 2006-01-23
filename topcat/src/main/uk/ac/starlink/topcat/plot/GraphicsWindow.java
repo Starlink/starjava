@@ -716,6 +716,28 @@ public abstract class GraphicsWindow extends AuxWindow
         forceReplot();
     }
 
+    public void dispose() {
+        super.dispose();
+
+        /* Configure all the point selectors to use a new, dummy TopcatModel
+         * instead of the one they were using before.  The main purpose of 
+         * this is to give the selectors a chance to unregister themselves
+         * as listeners to the old TopcatModel.  This is important so that
+         * no references exist in listener lists to this window, so that
+         * it can be garbage collected (once disposed, this window can't
+         * become visible again). */
+        TopcatModel dummyModel = TopcatModel.createDummyModel();
+        PointSelectorSet psels = getPointSelectors();
+        for ( int i = 0; i < psels.getSelectorCount(); i++ ) {
+            psels.getSelector( i ).configureForTable( dummyModel );
+        }
+    }
+
+//  public void finalize() throws Throwable {
+//      super.finalize();
+//      logger_.fine( "Finalize " + this.getClass().getName() );
+//  }
+
     /**
      * Actions for exporting the plot to a file.
      */
