@@ -8,6 +8,9 @@
    The generate interpolated lines toolbox now includes controls for
    drawing an interpolated line (avoids use of "Graphics" menu in plot window).
 
+   Added a line visitor tool to the flip/shift toolbox. Allows a series
+   of lines to be preloaded for visiting.
+
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
