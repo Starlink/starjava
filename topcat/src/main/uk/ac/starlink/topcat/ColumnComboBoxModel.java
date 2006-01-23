@@ -12,6 +12,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
 
 /**
  * Adaptor class which turns a {@link javax.swing.table.TableColumnModel}
@@ -51,7 +52,8 @@ public class ColumnComboBoxModel extends AbstractListModel
     public ColumnComboBoxModel( TableColumnModel colModel, boolean hasNone ) {
         this.colModel = colModel;
         setHasNone( hasNone );
-        colModel.addColumnModelListener( this );
+        colModel.addColumnModelListener( 
+            new WeakTableColumnModelListener( this ) );
     }
 
     /**

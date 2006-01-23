@@ -5,6 +5,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import uk.ac.starlink.util.gui.WeakListDataListener;
 
 /**
  * ComboBoxModel which tracks the current contents of the ControlWindow's
@@ -24,7 +25,7 @@ public class TablesListComboBoxModel extends AbstractListModel
      */
     public TablesListComboBoxModel() {
         tablesList = ControlWindow.getInstance().getTablesListModel();
-        tablesList.addListDataListener( this );
+        tablesList.addListDataListener( new WeakListDataListener( this ) );
     }
 
     /**
