@@ -16,8 +16,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  */
 public class ColumnCellRenderer implements ListCellRenderer {
 
-    /* Should I be getting this from the PLAF somehow? */
-    private static ListCellRenderer baseRenderer_ = new BasicComboBoxRenderer();
+    private final ListCellRenderer baseRenderer_;
     private Object nullRep_;
     private JComboBox comboBox_;
 
@@ -30,6 +29,9 @@ public class ColumnCellRenderer implements ListCellRenderer {
      */
     public ColumnCellRenderer( JComboBox comboBox ) {
         comboBox_ = comboBox;
+
+        /* Should I be getting this from the PLAF somehow? */
+        baseRenderer_ = new BasicComboBoxRenderer();
     }
 
     /**
