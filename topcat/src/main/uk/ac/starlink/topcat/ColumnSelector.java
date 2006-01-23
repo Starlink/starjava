@@ -139,8 +139,7 @@ public class ColumnSelector extends JComponent {
      * @param  tcModel  table model
      */
     public void setTable( TopcatModel tcModel ) {
-        setModel( tcModel == null ? new ColumnSelectorModel( null, info_ )
-                                  : tcModel.getColumnSelectorModel( info_ ) );
+        setModel( new ColumnSelectorModel( tcModel, info_ ) );
     }
 
     /**
