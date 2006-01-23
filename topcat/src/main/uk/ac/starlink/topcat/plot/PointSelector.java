@@ -452,7 +452,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      *
      * @param  tcModel  table to work with
      */
-    private void configureForTable( TopcatModel tcModel ) {
+    public void configureForTable( TopcatModel tcModel ) {
 
         /* Reset our record of the topcat model, ensuring that we continue
          * to listen to the right one. */
@@ -476,6 +476,10 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         annotator_ = new StyleAnnotator( subsets, selModel );
         CheckBoxStack subStack = new CheckBoxStack( subsets, annotator_ );
         subStack.setSelectionModel( selModel );
+        Component oldStack = subsetScroller_.getViewport().getView();
+        if ( oldStack instanceof CheckBoxStack ) {
+            ((CheckBoxStack) oldStack).setListModel( new DefaultListModel() );
+        }
         subsetScroller_.setViewportView( subStack );
 
         /* Reset our record of the subset selection model, keeping listeners
