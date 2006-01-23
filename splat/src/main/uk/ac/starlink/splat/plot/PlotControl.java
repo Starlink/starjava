@@ -1528,6 +1528,18 @@ public class PlotControl
     }
 
     /**
+     * Set the current spectrum (top of the combobox of names).
+     *
+     * @param specData the current spectrum, must already be displayed.
+     */
+    public void setCurrentSpectrum( SpecData specData )
+    {
+        if ( spectra.have( specData ) ) {
+            spectra.setCurrentSpectrum( specData );
+        }
+    }
+
+    /**
      * Add an ItemListener to the JComboBox that selects the current
      * spectrum. Register with this when you need to be informed about changes
      * to the current spectrum.
