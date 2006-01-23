@@ -1248,7 +1248,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nCountFitsHeader
     fits = *(FitsHeader **) &jfits;
 
     /*  Return the count */
-    return (jint) fits->ncard;
+    if ( fits != NULL ) {
+        return (jint) fits->ncard;
+    } 
+    return (jint) 0;
 }
 
 /*
