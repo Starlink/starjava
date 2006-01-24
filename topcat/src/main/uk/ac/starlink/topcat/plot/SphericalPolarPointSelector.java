@@ -14,11 +14,8 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.topcat.ColumnCellRenderer;
-import uk.ac.starlink.topcat.ColumnComboBoxModel;
 import uk.ac.starlink.topcat.ColumnSelector;
-import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -68,8 +65,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         selectors[ 1 ] = thetaSelector_;
 
         /* Selector for radius column. */
-        rSelector_ = new JComboBox();
-        rSelector_.setRenderer( new ColumnCellRenderer( rSelector_ ) );
+        rSelector_ = ColumnDataComboBoxModel.createComboBox();
         rSelector_.addActionListener( actionForwarder_ );
         rSelector_.setEnabled( false );
         Box rBox = Box.createHorizontalBox();
@@ -137,11 +133,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         else {
             phiSelector_.setTable( tcModel );
             thetaSelector_.setTable( tcModel );
-            rSelector_.setModel( RestrictedColumnComboBoxModel
-                                .makeClassColumnComboBoxModel( tcModel
-                                                              .getColumnModel(),
-                                                               true,
-                                                               Number.class ) );
+            rSelector_.setModel( new ColumnDataComboBoxModel( tcModel, true ) );
         }
         phiSelector_.setEnabled( tcModel != null );
         thetaSelector_.setEnabled( tcModel != null );
@@ -177,13 +169,16 @@ public class SphericalPolarPointSelector extends PointSelector {
      * @return   radius column
      */
     private ColumnData getR() {
-        StarTableColumn tcol = (StarTableColumn) rSelector_.getSelectedItem();
-        int icol = tcol == null ? -1 : tcol.getModelIndex();
-        return icol >= 0
-             ? (ColumnData) new SelectedColumnData( getTable(),
-                                                    tcol.getModelIndex(),
-                                                    logToggler_.isSelected() )
-             : (ColumnData) UnitColumnData.INSTANCE;
+        ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
+        if ( cdata == null ) {
+            return UnitColumnData.INSTANCE;
+        }
+        else if ( logToggler_.isSelected() ) {
+            return new LogColumnData( cdata );
+        }
+        else {
+            return cdata;
+        }
     }
 
     /**
@@ -194,10 +189,16 @@ public class SphericalPolarPointSelector extends PointSelector {
      * @return   radial column info
      */
     public ValueInfo getRadialInfo() {
-        StarTableColumn tcol = (StarTableColumn) rSelector_.getSelectedItem();
-        return ( tcol == null || tcol == ColumnComboBoxModel.NO_COLUMN )
-             ? null
-             : tcol.getColumnInfo();
+        ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
+        if ( cdata == null ) {
+            return null;
+        }
+        else if ( logToggler_.isSelected() ) {
+            return new LogColumnData( cdata ).getColumnInfo();
+        }
+        else {
+            return cdata.getColumnInfo();
+        }
     }
 
     /**
@@ -215,80 +216,52 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     /**
-     * ColumnData implementation which picks data from a given column of
-     * a base table.  An intelligent implementation of equals() is provided.
+     * ColumnData implementation which represents the log() values of
+     * a base ColumnData.
+     * An intelligent implementation of equals() is provided.
      */
-    private static class SelectedColumnData extends ColumnData {
+    private static class LogColumnData extends ColumnData {
 
-        private final TopcatModel tcModel_;
-        private final int icol_;
-        private final boolean logFlag_;
-        private final StarTable baseTable_;
+        private final ColumnData base_;
 
         /**
-         * Constructs a new SelectedColumnData.
+         * Constructs a new LogColumnData.
          *
-         * @param  tcModel  topcat model containing the table data
-         * @param  icol    column index (in tcModel's data model StarTable)
-         *                 of the column data to copy
-         * @param  logFlag  true iff you want the logarithms of the
-         *                  selected column
+         * @param  base  (unlogged) base column data
          */
-        SelectedColumnData( TopcatModel tcModel, int icol, boolean logFlag ) {
-            tcModel_ = tcModel;
-            icol_ = icol;
-            logFlag_ = logFlag;
-            baseTable_ = tcModel.getDataModel();
-            ColumnInfo cinfo = 
-                new ColumnInfo( baseTable_.getColumnInfo( icol_ ) );
-            if ( logFlag_ ) {
-                String units = cinfo.getUnitString();
-                if ( units != null && units.trim().length() > 0 ) {
-                    cinfo.setUnitString( "log(" + units + ")" );
-                }
-                cinfo.setName( "log(" + cinfo.getName() + ")" );
-                cinfo.setContentClass( Double.class );
+        LogColumnData( ColumnData base ) {
+            base_ = base;
+            ColumnInfo cinfo = new ColumnInfo( base.getColumnInfo() );
+            String units = cinfo.getUnitString();
+            if ( units != null && units.trim().length() > 0 ) {
+                cinfo.setUnitString( "log(" + units + ")" );
             }
+            cinfo.setName( "log(" + cinfo.getName() + ")" );
+            cinfo.setContentClass( Double.class );
             setColumnInfo( cinfo );
         }
 
         public Object readValue( long irow ) throws IOException {
-            Object val = baseTable_.getCell( irow, icol_ );
-            if ( logFlag_ ) {
-                if ( val instanceof Number ) {
-                    double dval = ((Number) val).doubleValue();
-                    return dval > 0 ? new Double( Math.log( dval ) )
-                                    : null;
-                }
-                else {
-                    return null;
-                }
+            Object val = base_.readValue( irow );
+            if ( val instanceof Number ) {
+                double dval = ((Number) val).doubleValue();
+                return dval > 0 ? new Double( Math.log( dval ) )
+                                : null;
             }
             else {
-                return val;
+                return null;
             }
         }
 
         public boolean equals( Object o ) {
-            if ( o instanceof SelectedColumnData ) {
-                SelectedColumnData other = (SelectedColumnData) o;
-                return this.tcModel_ == other.tcModel_
-                    && this.icol_ == other.icol_
-                    && this.logFlag_ == other.logFlag_;
-            }
-            else {
-                return false;
-            }
+            return ( o instanceof LogColumnData )
+                 ? this.base_.equals( ((LogColumnData) o).base_ )
+                 : false;
         }
 
         public int hashCode() {
-            int code = 555;
-            code = 23 * code + tcModel_.hashCode();
-            code = 23 * code + icol_;
-            code = 23 * code + ( logFlag_ ? 1 : 0 );
-            return code;
+            return base_.hashCode() * 999;
         }
-    
     }
 
     /**

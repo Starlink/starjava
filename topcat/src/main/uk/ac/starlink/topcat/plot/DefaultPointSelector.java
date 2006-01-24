@@ -8,12 +8,10 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.topcat.ColumnCellRenderer;
-import uk.ac.starlink.topcat.ColumnComboBoxModel;
-import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -52,9 +50,7 @@ public class DefaultPointSelector extends PointSelector {
             entryBox_.add( cPanel );
 
             /* Add and configure the column selector. */
-            colSelectors_[ i ] = new JComboBox();
-            colSelectors_[ i ]
-                .setRenderer( new ColumnCellRenderer( colSelectors_[ i ] ) );
+            colSelectors_[ i ] = ColumnDataComboBoxModel.createComboBox();
             colSelectors_[ i ].addActionListener( actionForwarder_ );
             cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
             cPanel.add( Box.createHorizontalStrut( 5 ) );
@@ -99,10 +95,9 @@ public class DefaultPointSelector extends PointSelector {
         if ( getTable() == null ) {
             return false;
         }
-        StarTableColumn[] cols = getColumns();
+        ColumnData[] cols = getColumns();
         for ( int i = 0; i < cols.length; i++ ) {
-            if ( cols[ i ] == null ||
-                 cols[ i ] == ColumnComboBoxModel.NO_COLUMN ) {
+            if ( cols[ i ] == null ) {
                 return false;
             }
         }
@@ -110,13 +105,7 @@ public class DefaultPointSelector extends PointSelector {
     }
 
     public StarTable getData() {
-        int[] colMap = new int[ ndim_ ];
-        TopcatModel tcModel = getTable();
-        StarTableColumn[] cols = getColumns();
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            colMap[ idim ] = cols[ idim ].getModelIndex();
-        }
-        return new SelectedColumnTable( tcModel, colMap );
+        return new ColumnDataTable( getTable(), getColumns() );
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
@@ -128,11 +117,10 @@ public class DefaultPointSelector extends PointSelector {
         else {
             for ( int i = 0; i < ndim_; i++ ) {
                 colSelectors_[ i ].setModel(
-                    new RestrictedColumnComboBoxModel( tcModel.getColumnModel(),
-                                                       true ) {
-                        public boolean acceptColumn( ColumnInfo cinfo ) {
+                    new ColumnDataComboBoxModel( tcModel, true ) {
+                        public boolean acceptType( Class clazz ) {
                             return DefaultPointSelector.this
-                                  .acceptColumn( cinfo );
+                                  .acceptType( clazz );
                         }
                     }
                 );
@@ -156,8 +144,7 @@ public class DefaultPointSelector extends PointSelector {
      * @return   true iff a column like <code>cinfo</code> should be
      *           choosable
      */
-    private boolean acceptColumn( ColumnInfo cinfo ) {
-        Class clazz = cinfo.getContentClass();
+    private boolean acceptType( Class clazz ) {
         return Number.class.isAssignableFrom( clazz )
             || Date.class.isAssignableFrom( clazz );
     }
@@ -167,10 +154,10 @@ public class DefaultPointSelector extends PointSelector {
      * 
      * @return  columns array
      */
-    private StarTableColumn[] getColumns() {
-        StarTableColumn[] cols = new StarTableColumn[ ndim_ ];
+    private ColumnData[] getColumns() {
+        ColumnData[] cols = new ColumnData[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (StarTableColumn) colSelectors_[ i ].getSelectedItem();
+            cols[ i ] = (ColumnData) colSelectors_[ i ].getSelectedItem();
         }
         return cols;
     }
@@ -188,35 +175,44 @@ public class DefaultPointSelector extends PointSelector {
     }               
 
     /**
-     * Like a ColumnPermutedStarTable, but implements equals() properly.
+     * Table class built up from ColumnData objects.  Implements equals().
      */
-    private static class SelectedColumnTable extends ColumnPermutedStarTable {
+    private static class ColumnDataTable extends ColumnStarTable {
 
         private final TopcatModel tcModel_;
-        private final int[] colMap_;
+        private final ColumnData[] cols_;
 
-        SelectedColumnTable( TopcatModel tcModel, int[] colMap ) {
-            super( tcModel.getDataModel(), colMap, false );
+        /**
+         * Constructor.
+         *
+         * @param   tcModel  topcat model
+         * @param   cols   array of columns
+         */
+        ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
             tcModel_ = tcModel;
-            colMap_ = colMap;
+            cols_ = cols;
+            for ( int i = 0; i < cols.length; i++ ) {
+                addColumn( cols[ i ] );
+            }
         }
 
-        public boolean equals( Object other ) {
-            if ( other instanceof SelectedColumnTable ) {
-                SelectedColumnTable o = (SelectedColumnTable) other;
-                return this.tcModel_ == o.tcModel_ &&
-                       Arrays.equals( this.colMap_, o.colMap_ );
+        public long getRowCount() {
+            return tcModel_.getDataModel().getRowCount();
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof ColumnDataTable ) {
+                ColumnDataTable other = (ColumnDataTable) o;
+                return this.tcModel_ == other.tcModel_
+                    && Arrays.equals( this.cols_, other.cols_ );
             }
             else {
                 return false;
             }
         }
+
         public int hashCode() {
-            int code = tcModel_.hashCode();
-            for ( int i = 0; i < colMap_.length; i++ ) {
-                code = 23 * code + colMap_[ i ];
-            }
-            return code;
+            return tcModel_.hashCode() + Arrays.asList( cols_ ).hashCode();
         }
     }
 }
