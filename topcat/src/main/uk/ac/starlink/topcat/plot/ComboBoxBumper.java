@@ -103,8 +103,31 @@ public class ComboBoxBumper extends JPanel {
 
         public void actionPerformed( ActionEvent evt ) {
             int nItem = comboBox_.getItemCount();
-            int index = ( comboBox_.getSelectedIndex() + inc_ + nItem ) % nItem;
-            comboBox_.setSelectedIndex( index );
+
+            /* Locate the index of the currently selected item.  Don't use
+             * JComboBox.getSelectedIndex() - it doesn't cope properly
+             * with nulls. */
+            int isel = -1;
+            Object sel = comboBox_.getSelectedItem();
+            for ( int i = 0; i < nItem && isel < 0; i++ ) {
+                Object item = comboBox_.getItemAt( i );
+                if ( item == null ? sel == null
+                                  : item.equals( sel ) ) {
+                    isel = i;
+                }
+            }
+
+            /* If we have a selection which is in the combo box, bump it
+             * from the current selection in the requested direction. */
+            if ( isel >= 0 ) {
+                isel = ( isel + inc_ + nItem ) % nItem;
+            }
+
+            /* Otherwise, bump it to position zero. */
+            else {
+                isel = 0;
+            }
+            comboBox_.setSelectedIndex( isel );
         }
     }
 }
