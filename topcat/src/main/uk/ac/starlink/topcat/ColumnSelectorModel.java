@@ -23,12 +23,13 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  * @author   Mark Taylor (Starlink)
  * @since    6 Oct 2004
  */
-public class ColumnSelectorModel implements ListDataListener {
+public class ColumnSelectorModel {
 
     private final ValueInfo info_;
     private final ComboBoxModel convChooser_;
     private final ColumnConverter converter0_;
     private final Map convMap_ = new HashMap();
+    private final SelectionListener selectionListener_;
     private TopcatModel tcModel_;
     private ComboBoxModel colChooser_;
 
@@ -40,6 +41,7 @@ public class ColumnSelectorModel implements ListDataListener {
      */
     public ColumnSelectorModel( TopcatModel tcModel, ValueInfo info ) {
         info_ = info;
+        selectionListener_ = new SelectionListener();
 
         /* Get a suitable model for selection of the unit converter, if
          * appropriate. */
@@ -48,7 +50,7 @@ public class ColumnSelectorModel implements ListDataListener {
         if ( converters.length > 1 ) {
             converter0_ = null;
             convChooser_ = new DefaultComboBoxModel( converters );
-            convChooser_.addListDataListener( this );
+            convChooser_.addListDataListener( selectionListener_ );
         }
         else {
             convChooser_ = null;
@@ -69,16 +71,16 @@ public class ColumnSelectorModel implements ListDataListener {
         /* Get a suitable model for selection of the base column from the 
          * table. */
         if ( colChooser_ != null ) {
-            colChooser_.removeListDataListener( this );
+            colChooser_.removeListDataListener( selectionListener_ );
         }
         colChooser_ = makeColumnModel( tcModel_, info_ );
-        colChooser_.addListDataListener( this );
+        colChooser_.addListDataListener( selectionListener_ );
 
         /* Force an update to make sure that the correct converter for any
          * currently-selected column is selected. */
-        StarTableColumn tcol = getSelectedColumn();
-        if ( tcol != null ) {
-            columnSelected( tcol );
+        ColumnData cdata = (ColumnData) colChooser_.getSelectedItem();
+        if ( cdata != null ) {
+            columnSelected( cdata );
         }
     }
 
@@ -87,7 +89,7 @@ public class ColumnSelectorModel implements ListDataListener {
      *
      * @return  converter
      */
-    public ColumnConverter getConverter() {
+    private ColumnConverter getConverter() {
         if ( converter0_ != null ) {
             return converter0_;
         }
@@ -107,6 +109,9 @@ public class ColumnSelectorModel implements ListDataListener {
 
     /**
      * Returns the model used for choosing columns.
+     * The elements of this model will be 
+     * {@link uk.ac.starlink.table.ColumnData} instances (or null),
+     * and will not take account of any selected converter.
      *
      * @return  columns combo box model
      */
@@ -138,24 +143,10 @@ public class ColumnSelectorModel implements ListDataListener {
      *          or null if none is selected
      */
     public ColumnData getColumnData() {
-        StarTableColumn tcol = getSelectedColumn();
-        if ( tcol == null ) {
-            return null;
-        }
-        final int icol = tcol.getModelIndex();
-        final ColumnConverter colConverter = getConverter();
-        final StarTable table = tcModel_.getDataModel();
-        assert colConverter != null;
-        return new ColumnSelectorData( tcol, getConverter(), tcModel_ );
-    }
-
-    /**
-     * Returns the currently selected column.
-     *
-     * @return  column
-     */
-    private StarTableColumn getSelectedColumn() {
-        return (StarTableColumn) colChooser_.getSelectedItem();
+        ColumnData cdata = (ColumnData) colChooser_.getSelectedItem();
+        ColumnConverter conv = getConverter();
+        return cdata == null ? null
+                             : new ConvertedColumnData( cdata, conv );
     }
 
     /**
@@ -163,10 +154,10 @@ public class ColumnSelectorModel implements ListDataListener {
      *
      * @param  col  new column (not null)
      */
-    private void columnSelected( StarTableColumn tcol ) {
+    private void columnSelected( ColumnData cdata ) {
         if ( convChooser_ != null ) {
             ColumnConverter storedConverter =
-               (ColumnConverter) convMap_.get( tcol );
+               (ColumnConverter) convMap_.get( cdata );
 
             /* If we've used this column before, set the converter type
              * to the one that was in effect last time. */
@@ -178,7 +169,7 @@ public class ColumnSelectorModel implements ListDataListener {
              * of the selected column. */
             else {
                 convChooser_
-               .setSelectedItem( guessConverter( tcol.getColumnInfo() ) );
+               .setSelectedItem( guessConverter( cdata.getColumnInfo() ) );
             }
         }
     }
@@ -264,6 +255,8 @@ public class ColumnSelectorModel implements ListDataListener {
     /**
      * Returns a combobox model which allows selection of columns
      * from a table model suitable for a given argument.
+     * The elements of the model are instances of
+     * ColumnData (or null).
      */
     private static ComboBoxModel makeColumnModel( TopcatModel tcModel,
                                                   ValueInfo argInfo ) {
@@ -274,72 +267,69 @@ public class ColumnSelectorModel implements ListDataListener {
         }
 
         /* Make the model. */
-        TableColumnModel columnModel = tcModel.getColumnModel();
-        RestrictedColumnComboBoxModel model =
-            RestrictedColumnComboBoxModel
-           .makeClassColumnComboBoxModel( columnModel, argInfo.isNullable(),
-                                          argInfo.getContentClass() );
+        ComboBoxModel model = 
+            new ColumnDataComboBoxModel( tcModel, argInfo.isNullable() );
 
         /* Have a guess what will be a good value for the initial
          * selection.  There is scope for doing this better. */
-        int selection = -1;
-        ColumnInfo[] cinfos =
-            Tables.getColumnInfos( tcModel.getApparentStarTable() );
-        int ncol = cinfos.length;
+        ColumnData selected = null;
         String ucd = argInfo.getUCD();
         if ( ucd != null ) {
-            for ( int i = 0; i < ncol && selection < 0; i++ ) {
-                if ( model.acceptColumn( cinfos[ i ] ) &&
-                     cinfos[ i ].getUCD() != null &&
-                     cinfos[ i ].getUCD().indexOf( ucd ) >= 0 ) {
-                    selection = i;
+            for ( int i = 0; i < model.getSize() && selected == null; i++ ) {
+                ColumnData cdata = (ColumnData) model.getElementAt( i );
+                ColumnInfo info = cdata.getColumnInfo();
+                if ( info.getUCD() != null && 
+                     info.getUCD().indexOf( ucd ) >= 0 ) {
+                    selected = cdata;
                 }
             }
         }
         String name = argInfo.getName().toLowerCase();
-        if ( name != null && selection < 0 ) {
-            for ( int i = 0; i < ncol && selection < 0; i++ ) {
-                if ( model.acceptColumn( cinfos[ i ] ) ) {
-                    String cname = cinfos[ i ].getName();
-                    if ( cname != null &&
-                         cname.toLowerCase().startsWith( name ) ) {
-                        selection = i;
-                    }
+        if ( name != null ) {
+            for ( int i = 0; i < model.getSize() && selected == null; i++ ) {
+                ColumnData cdata = (ColumnData) model.getElementAt( i );
+                ColumnInfo info = cdata.getColumnInfo();
+                String cname = info.getName();
+                if ( cname != null && cname.toLowerCase().startsWith( name ) ) {
+                    selected = cdata;
                 }
             }
         }
-        if ( selection >= 0 ) { 
-            model.setSelectedItem( columnModel.getColumn( selection ) );
+        if ( selected != null ) { 
+            model.setSelectedItem( selected );
         }
         return model;
     }
 
-    /*
-     * ListDataListener implementation.
+    /**
+     * Implements ListDataListener to react when the column selector or
+     * the converter selector changes.
      */
-    public void intervalAdded( ListDataEvent evt ) {
-    }
-    public void intervalRemoved( ListDataEvent evt ) {
-    }
-    public void contentsChanged( ListDataEvent evt ) {
+    private class SelectionListener implements ListDataListener {
+        public void intervalAdded( ListDataEvent evt ) {
+        }
+        public void intervalRemoved( ListDataEvent evt ) {
+        }
+        public void contentsChanged( ListDataEvent evt ) {
 
-        /* Contrary to API documentation, this is called when the selection
-         * on a ComboBoxModel is changed. */
-        if ( evt.getSource() == colChooser_ ) {
-            StarTableColumn col = getSelectedColumn();
-            if ( col != null ) {
-                columnSelected( col );
+            /* Contrary to API documentation, this is called when the selection
+             * on a ComboBoxModel is changed. */
+            if ( evt.getSource() == colChooser_ ) {
+                ColumnData cdata = (ColumnData) colChooser_.getSelectedItem();
+                if ( cdata != null ) {
+                    columnSelected( cdata );
+                }
             }
-        }
-        else if ( evt.getSource() == convChooser_ ) {
-            ColumnConverter conv =
-                (ColumnConverter) convChooser_.getSelectedItem();
-            if ( conv != null ) {
-                converterSelected( conv );
+            else if ( evt.getSource() == convChooser_ ) {
+                ColumnConverter conv =
+                    (ColumnConverter) convChooser_.getSelectedItem();
+                if ( conv != null ) {
+                    converterSelected( conv );
+                }
             }
-        }
-        else {
-            assert false;
+            else {
+                assert false;
+            }
         }
     }
 
@@ -348,39 +338,32 @@ public class ColumnSelectorModel implements ListDataListener {
      * column described by the current state of this component.
      * It has non-trivial implementations of equals and hashCode.
      */
-    private static class ColumnSelectorData extends ColumnData {
+    private static class ConvertedColumnData extends ColumnData {
 
-        final int colIndex_;
-        final ColumnConverter converter_;
-        final TopcatModel tcModel_;
-        final StarTable table_;
+        private final ColumnData base_;
+        private final ColumnConverter converter_;
 
         /**
          * Constructor.
          *
-         * @param   tcol  column
+         * @param   base   base column data
          * @param   converter   converter
-         * @param   tcModel   topcat model
          */
-        ColumnSelectorData( StarTableColumn tcol, ColumnConverter converter,
-                            TopcatModel tcModel ) {
-            super( tcol.getColumnInfo() );
-            colIndex_ = tcol.getModelIndex();
+        ConvertedColumnData( ColumnData base, ColumnConverter converter ) {
+            super( base.getColumnInfo() );
+            base_ = base;
             converter_ = converter;
-            tcModel_ = tcModel;
-            table_ = tcModel_.getDataModel();
         }
 
         public Object readValue( long irow ) throws IOException {
-            return converter_.convertValue( table_.getCell( irow, colIndex_ ) );
+            return converter_.convertValue( base_.readValue( irow ) );
         }
 
         public boolean equals( Object o ) {
-            if ( o instanceof ColumnSelectorData ) {
-                ColumnSelectorData other = (ColumnSelectorData) o;
-                return this.colIndex_ == other.colIndex_
-                    && this.converter_ == other.converter_
-                    && this.tcModel_ == other.tcModel_;
+            if ( o instanceof ConvertedColumnData ) {
+                ConvertedColumnData other = (ConvertedColumnData) o;
+                return this.base_ == other.base_
+                    && this.converter_ == other.converter_;
             }
             else {
                 return false;
@@ -389,9 +372,8 @@ public class ColumnSelectorModel implements ListDataListener {
 
         public int hashCode() {
             int code = 9997;
-            code = 23 * code + colIndex_;
+            code = 23 * code + base_.hashCode();
             code = 23 * code + converter_.hashCode();
-            code = 23 * code + tcModel_.hashCode();
             return code;
         }
     }
