@@ -564,9 +564,11 @@ XXX delete
    !-->
   <target name="build_osxapp"
           depends="build_demo,build-standalone">
-    <mkdir dir="release"/>
-    <delete dir="release/${Name}.app" quiet="true"/>   <!--just in case...-->
-    <osxjarbundler dir="release"
+    <property name="release.dir" value="release-osx"/>
+    <mkdir dir="${release.dir}"/>
+    <delete dir="${release.dir}/${Name}.app"
+            quiet="true"/>   <!--just in case...-->
+    <osxjarbundler dir="${release.dir}"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
                 aboutmenuname="${Name}"
@@ -597,6 +599,22 @@ XXX delete
       <javaproperty key="uk.ac.starlink.treeview.cmdname"
                     value="treeview"/>
     </osxjarbundler>
+
+    <!-- Copy the docs into the release directory (anything else?) -->
+    <copy todir="${release.dir}">
+      <fileset dir="${dist.docs}"/>
+    </copy>
+
+    <!-- Create a .dmg file containing the app and docs -->
+    <exec executable="/usr/bin/hdiutil" os="Mac OS X">
+      <arg value="create"/>
+      <arg value="-srcfolder"/>
+      <arg value="${release.dir}"/>
+      <arg value="-volname"/>
+      <arg value="${Name} ${version}"/>
+      <arg value="-ov"/>
+      <arg value="${Name}-${version}.dmg"/>
+    </exec>
   </target>
 
   <!--
@@ -946,6 +964,13 @@ XXX delete
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
     <delete dir="${dist.etc}"/>
+
+    <!-- The following are magic names, deleting products built only on OS X:
+     !   they probably ought to be synchronised better with
+     !   target build_osxapp.
+     ! -->
+    <delete dir="release-osx" quiet="true"/>
+    <delete file="${Name}-${version}.dmg" quiet="true"/>
 
   </target>
 
