@@ -50,4 +50,8 @@ public class DensityStyleEditor extends StyleEditor {
     public Style getStyle() {
         return (Style) styleSelector_.getSelectedItem();
     }
+
+    public String getHelpID() {
+        return "DensityStyleEditor";
+    }
 }

@@ -110,6 +110,13 @@ public abstract class StyleEditor extends JPanel
     public abstract Style getStyle();
 
     /**
+     * Returns the help ID associated with this editor.
+     *
+     * @return  ID within TOPCAT HelpSet
+     */
+    public abstract String getHelpID();
+
+    /**
      * Returns the label currently entered in this component.
      *
      * @return   label

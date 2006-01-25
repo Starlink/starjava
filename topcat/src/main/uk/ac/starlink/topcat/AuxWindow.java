@@ -14,13 +14,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.net.URL;
 import java.util.logging.Logger;
-import javax.help.BadIDException;
-import javax.help.HelpSet;
-import javax.help.HelpSetException;
 import javax.swing.Action;
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -62,7 +57,6 @@ public class AuxWindow extends JFrame {
     private Action controlAct;
     private Action closeAct;
     private Action exitAct;
-    private Action helpAct;
 
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
@@ -70,7 +64,6 @@ public class AuxWindow extends JFrame {
     private static final Icon LOGO =
         new ImageIcon( ResourceIcon.STAR_LOGO.getImage()
                       .getScaledInstance( -1, 34, Image.SCALE_SMOOTH ) );
-    private static HelpSet hset;
 
     /**
      * Constructs an AuxWindow.
@@ -176,21 +169,13 @@ public class AuxWindow extends JFrame {
         helpMenu.setMnemonic( KeyEvent.VK_H );
         menuBar.add( helpMenu );
 
-        /* Get action to activate the help browser. */
-        if ( helpIdExists( helpID ) ) {
-            helpAct = new HelpAction( helpID );
-        }
-        else {
-            helpAct = new HelpAction( null );
-            logger.warning( "Unknown help ID " + helpID );
-        }
-
-        /* Add it to the tool bar. */
+        /* Add an action to activate the help browser. */
+        Action helpAct = new HelpAction( helpID, this );
         toolBar.add( helpAct );
 
         /* Add one or two items to the help menu. */
         if ( helpID != null ) {
-            helpMenu.add( new HelpAction( null ) );
+            helpMenu.add( new HelpAction( null, this ) );
         }
         helpMenu.add( helpAct );
         helpMenu.addSeparator();
@@ -434,33 +419,6 @@ public class AuxWindow extends JFrame {
     }
 
     /**
-     * Tests whether a given helpID is available.
-     *
-     * @param  helpID  the help ID to test
-     * @return  true  iff <tt>helpID</tt> is a known ID in this application's
-     *          HelpSet
-     */
-    public static boolean helpIdExists( String helpID ) {
-        if ( hset == null ) {
-            URL hsResource = HelpWindow.class.getResource( HelpWindow
-                                                          .HELPSET_LOCATION );
-            try {
-                hset = new HelpSet( null, hsResource );
-            }
-            catch ( HelpSetException e ) {
-                logger.warning( "Can't locate helpset at " + hsResource );
-            }
-        }
-        try {
-            javax.help.Map.ID.create( helpID, hset );
-            return true;
-        }
-        catch ( BadIDException e ) {
-            return false;
-        }
-    }
-
-    /**
      * Recursively calls {@link java.awt.Component#setEnabled} on a component
      * and (if it is a container) any of the components it contains.
      *
@@ -510,41 +468,4 @@ public class AuxWindow extends JFrame {
             }
         }
     }
-
-    /**
-     * Helper class providing an action for invoking help.
-     */
-    public class HelpAction extends AbstractAction {
-
-        private String helpID;
-        private HelpWindow helpWin;
-
-        /**
-         * Constructs a new help window for a given helpID.
-         * If helpID is non-null, the corresponding topic will be displayed
-         * in the browser when the action is invoked.  If it's null,
-         * the browser will come up as is.
-         *
-         * @param  helpID  help id string
-         */
-        public HelpAction( String helpID ) {
-            this.helpID = helpID;
-            putValue( NAME, helpID == null ? "Help" : "Help for window" );
-            putValue( SMALL_ICON, helpID == null ? ResourceIcon.BLANK
-                                                 : ResourceIcon.HELP );
-            putValue( SHORT_DESCRIPTION, 
-                      helpID == null 
-                          ? "Display help browser" 
-                          : "Display help for this window in browser" );
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            if ( helpWin == null ) {
-                helpWin = HelpWindow.getInstance( AuxWindow.this );
-            }
-            helpWin.makeVisible();
-            helpWin.setID( helpID );
-        }
-    }
-
 }

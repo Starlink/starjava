@@ -137,7 +137,9 @@ public abstract class PointSelectorSet extends JPanel {
         if ( styleWindow_ == null ) {
             Frame parent =
                 (Frame) SwingUtilities.getAncestorOfClass( Frame.class, this );
-            styleWindow_ = new StyleWindow( parent, createStyleEditor() );
+            StyleEditor ed = createStyleEditor();
+            styleWindow_ = new StyleWindow( parent, ed );
+            styleWindow_.setTitle( "Plot Style Editor" );
         }
         return styleWindow_;
     }

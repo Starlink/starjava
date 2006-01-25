@@ -253,6 +253,10 @@ public class MarkStyleEditor extends StyleEditor {
                          dashSelector_.getSelectedDash() );
     }
 
+    public String getHelpID() {
+        return "MarkStyleEditor";
+    }
+
     /**
      * Returns a MarkStyle described by its attributes.
      *

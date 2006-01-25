@@ -129,6 +129,10 @@ public class BarStyleEditor extends StyleEditor {
                          dashSelector_.getSelectedDash() );
     }
 
+    public String getHelpID() {
+        return "BarStyleEditor";
+    }
+
     private static Style getStyle( Color color, BarStyle.Form form,
                                    BarStyle.Placement placement, int thick,
                                    float[] dash ) {

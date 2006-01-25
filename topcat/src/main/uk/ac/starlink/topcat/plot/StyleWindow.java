@@ -7,13 +7,16 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JToolBar;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.HelpAction;
 
 /**
  * Dialogue which houses a StyleEditor.
@@ -31,6 +34,9 @@ public class StyleWindow extends JDialog {
     private ActionListener target_;
     private boolean seen_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+
     /**
      * Constructor.
      *
@@ -46,6 +52,14 @@ public class StyleWindow extends JDialog {
         editor_.setBorder( BorderFactory.createEmptyBorder( 10, 10, 10, 10 ) );
         getContentPane().setLayout( new BorderLayout() );
         getContentPane().add( editor, BorderLayout.CENTER );
+
+        /* Add help button. */
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable( false );
+        toolBar.add( Box.createHorizontalGlue() );
+        toolBar.add( new HelpAction( editor_.getHelpID(), this ) );
+        toolBar.addSeparator();
+        getContentPane().add( toolBar, BorderLayout.NORTH );
 
         /* Construct and place action buttons. */
         Box buttonBox = Box.createHorizontalBox();
