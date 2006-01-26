@@ -7,10 +7,14 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -53,6 +57,7 @@ public class DensityWindow extends GraphicsWindow {
     private final PixelSizeAction pixDecAction_;
     private final Action fitsAction_;
     private final DensityStyle[] styles_;
+    private final List rgbRepaintList_;
     private int pixelSize_ = 1;
 
     private static FileFilter fitsFilter_ =
@@ -133,6 +138,15 @@ public class DensityWindow extends GraphicsWindow {
                                            "greyscale rendering" );
         rgbModel_.setSelected( true );
         rgbModel_.addActionListener( getReplotListener() );
+        rgbRepaintList_ = new ArrayList();
+        rgbModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                for ( Iterator it = rgbRepaintList_.iterator();
+                      it.hasNext(); ) {
+                    ((JComponent) it.next()).repaint();
+                }
+            }
+        } );
 
         /* Action for linear/log scale for colour map. */
         zLogModel_ = new ToggleButtonModel( "Log Intensity",
@@ -242,7 +256,15 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new DensityStyleEditor( styles_ );
+        final StyleEditor editor = new DensityStyleEditor( styles_ );
+        rgbRepaintList_.add( editor );
+        return editor;
+    }
+
+    protected PointSelector createPointSelector() {
+        PointSelector psel = super.createPointSelector();
+        rgbRepaintList_.add( psel );
+        return psel;
     }
 
     protected PlotState createPlotState() {
