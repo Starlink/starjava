@@ -212,17 +212,19 @@ public class DensityPlot extends SurfacePlot {
              * which will provide the image. */
             int[] rgb = new int[ npix ];
             Arrays.fill( rgb, 0xff000000 );
-            for ( int is = 0; is < grids.length; is++ ) {
-                DensityStyle style = (DensityStyle) styles[ is ];
-                BinGrid grid = grids[ is ];
-                assert ( grid == null ) == ( style == null );
-                if ( grid != null ) {
-                    byte[] data = grid.getBytes( grid.getCut( loCut ),
-                                                 grid.getCut( hiCut ),
-                                                 state.getLogZ() );
-                    for ( int ipix = 0; ipix < npix; ipix++ ) {
-                        rgb[ ipix ] =
-                           rgb[ ipix ] | style.levelBits( data[ ipix ] );
+            if ( styles.length > 0 ) {
+                for ( int is = 0; is < grids.length; is++ ) {
+                    DensityStyle style = (DensityStyle) styles[ is ];
+                    BinGrid grid = grids[ is ];
+                    assert ( grid == null ) == ( style == null );
+                    if ( grid != null ) {
+                        byte[] data = grid.getBytes( grid.getCut( loCut ),
+                                                     grid.getCut( hiCut ),
+                                                     state.getLogZ() );
+                        for ( int ipix = 0; ipix < npix; ipix++ ) {
+                            rgb[ ipix ] =
+                               rgb[ ipix ] | style.levelBits( data[ ipix ] );
+                        }
                     }
                 }
             }
