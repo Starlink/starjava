@@ -3237,6 +3237,7 @@ but my thanks are especially due to the following:
     "Can't re-read stream" error.</li>
 <li>Efficiency improvement when writing FITS-plus format (now only requires
     a maximum of two passes rather than three of the input rows).</li>
+<li>Added <code>check</code> processing filter (for debugging use only).</li>
 </ul>
 </p></dd>
 
