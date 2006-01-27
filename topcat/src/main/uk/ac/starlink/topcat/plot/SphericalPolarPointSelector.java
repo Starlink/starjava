@@ -131,7 +131,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         final AxisEditor ed = new AxisEditor( "Radial" ) {
             public void setAxis( ValueInfo axis, double lo, double hi ) {
                 super.setAxis( axis, lo, hi );
-                loField_.setText( "0" );
+                loField_.setText( "" );
                 loField_.setEnabled( false );
             }
         };
