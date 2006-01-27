@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Date;
 import javax.swing.Box;
@@ -27,6 +29,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class DefaultPointSelector extends PointSelector {
 
     private final int ndim_;
+    private final String[] axisNames_;
     private final JComboBox[] colSelectors_;
     private final JComponent entryBox_;
 
@@ -39,6 +42,7 @@ public class DefaultPointSelector extends PointSelector {
     public DefaultPointSelector( String[] axisNames, ToggleSet[] toggleSets ) {
         super();
         ndim_ = axisNames.length;
+        axisNames_ = (String[]) axisNames.clone();
         
         entryBox_ = Box.createVerticalBox();
         colSelectors_ = new JComboBox[ ndim_ ];
@@ -106,6 +110,23 @@ public class DefaultPointSelector extends PointSelector {
 
     public StarTable getData() {
         return new ColumnDataTable( getTable(), getColumns() );
+    }
+
+    public AxisEditor[] createAxisEditors() {
+        AxisEditor[] eds = new AxisEditor[ ndim_ ];
+        for ( int i = 0; i < ndim_; i++ ) {
+            final AxisEditor axed = new AxisEditor( axisNames_[ i ] );
+            final JComboBox csel = colSelectors_[ i ];
+            csel.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    ColumnData cdata = (ColumnData) csel.getSelectedItem();
+                    axed.setAxis( cdata == null ? null : cdata.getColumnInfo(),
+                                  Double.NaN, Double.NaN );
+                }
+            } );
+            eds[ i ] = axed;
+        }
+        return eds;
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {

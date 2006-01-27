@@ -127,6 +127,7 @@ public class DensityWindow extends GraphicsWindow {
                                                "Rescale the plot to show " +
                                                "all data" ) {
             public void actionPerformed( ActionEvent evt ) {
+                getAxisWindow().clearRanges();
                 plot_.rescale();
                 forceReplot();
             }
@@ -196,6 +197,7 @@ public class DensityWindow extends GraphicsWindow {
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( resizeAction );
+        plotMenu.add( getAxisEditAction() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -235,6 +237,7 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Add actions to the toolbar. */
         getToolBar().add( resizeAction );
+        getToolBar().add( getAxisEditAction() );
         getToolBar().add( zLogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );

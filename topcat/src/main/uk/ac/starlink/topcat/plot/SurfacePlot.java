@@ -129,10 +129,15 @@ public abstract class SurfacePlot extends JPanel implements Printable {
                                                : null;
         double xlo, ylo, xhi, yhi;
         if ( range != null ) {
-            xlo = range[ 0 ];
-            ylo = range[ 1 ];
-            xhi = range[ 2 ];
-            yhi = range[ 3 ];
+            double[][] ranges = state_.getRanges();
+            xlo = ranges[ 0 ][ 0 ];
+            ylo = ranges[ 1 ][ 0 ];
+            xhi = ranges[ 0 ][ 1 ];
+            yhi = ranges[ 1 ][ 1 ];
+            xlo = Double.isNaN( xlo ) ? range[ 0 ] : xlo;
+            ylo = Double.isNaN( ylo ) ? range[ 1 ] : ylo;
+            xhi = Double.isNaN( xhi ) ? range[ 2 ] : xhi;
+            yhi = Double.isNaN( yhi ) ? range[ 3 ] : yhi;
         }
         else {
             boolean xlog = false;

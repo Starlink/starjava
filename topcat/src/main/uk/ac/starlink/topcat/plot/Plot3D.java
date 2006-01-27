@@ -37,6 +37,7 @@ public class Plot3D extends JPanel {
     private double[] hiBounds_;
     private double[] loBoundsG_;
     private double[] hiBoundsG_;
+    private RangeChecker rangeChecker_;
     private PlotVolume lastVol_;
     private Transformer3D lastTrans_;
     private double[][][] sphereGrid_;
@@ -155,15 +156,26 @@ public class Plot3D extends JPanel {
     /**
      * Resets the scaling so that all the data points known by this plot
      * will be visible at all rotations.  This method sets 
-     * loBounds_, hiBounds_, loBoundsG_ and hiBoundsG_.
+     * loBounds_, hiBounds_, loBoundsG_, hiBoundsG_ and rangeChecker_.
      */
     public void rescale() {
+        loBounds_ = null;
+        hiBounds_ = null;
+        loBoundsG_ = null;
+        hiBoundsG_ = null;
+        rangeChecker_ = null;
         if ( getState() instanceof SphericalPlotState ) {
             rescaleSpherical();
         }
         else {
             rescaleCartesian();
         }
+        assert loBounds_ != null;
+        assert hiBounds_ != null;
+        assert loBoundsG_ != null;
+        assert hiBoundsG_ != null;
+        assert rangeChecker_ != null;
+
         lastVol_ = null;
         lastTrans_ = null;
     }
@@ -215,6 +227,15 @@ public class Plot3D extends JPanel {
             }
         }
         for ( int i = 0; i < 3; i++ ) {
+            double[] range = getState().getRanges()[ i ];
+            if ( ! Double.isNaN( range[ 0 ] ) && 
+                 ( ! logFlags[ i ] || range[ 0 ] > 0.0 ) ) {
+                loBounds[ i ] = range[ 0 ];
+            }
+            if ( ! Double.isNaN( range[ 1 ] ) &&
+                 ( ! logFlags[ i ] || range[ 1 ] > 0.0 ) ) {
+                hiBounds[ i ] = range[ 1 ];
+            }
             if ( nok == 0 ) {
                 loBounds[ i ] = logFlags[ i ] ? 1.0 : 0.0;
                 hiBounds[ i ] = logFlags[ i ] ? 10.0 : 1.0;
@@ -241,6 +262,16 @@ public class Plot3D extends JPanel {
             loBoundsG_[ i ] = flip ? hi : lo;
             hiBoundsG_[ i ] = flip ? lo : hi;
         }
+
+        final double[] lo = (double[]) loBounds_.clone();
+        final double[] hi = (double[]) hiBounds_.clone();
+        rangeChecker_ = new RangeChecker() {
+            boolean inRange( double[] coords ) {
+                return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
+                    && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
+                    && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
+            }
+        };
     }
 
     /**
@@ -249,33 +280,44 @@ public class Plot3D extends JPanel {
      * to twice the maximum radius ((x^2 + y^2 + z^2)^0.5).
      */
     private void rescaleSpherical() {
-        double r2max = 0.0;
-        Points points = getPoints();
-        int np = points.getCount();
-        RowSubset[] sets = getPointSelection().getSubsets();
-        int nset = sets.length;
+        SphericalPlotState state = (SphericalPlotState) getState();
+        double rangeMax = state.getRanges()[ 0 ][ 1 ];
+        if ( state.getRadialLog() ) {
+            rangeMax = Math.log( rangeMax );
+        }
+        double rmax;
+        if ( Double.isNaN( rangeMax ) || rangeMax <= 0.0 ) {
+            double r2max = 0.0;
+            Points points = getPoints();
+            int np = points.getCount();
+            RowSubset[] sets = getPointSelection().getSubsets();
+            int nset = sets.length;
 
-        /* Calculate the maximum radius of points being plotted. */
-        double[] coords = new double[ 3 ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            boolean use = false;
-            for ( int is = 0; is < nset && ! use; is++ ) {
-                use = use || sets[ is ].isIncluded( lp );
-            }
-            if ( use ) {
-                points.getCoords( ip, coords );
-                double r2 = coords[ 0 ] * coords[ 0 ]
-                          + coords[ 1 ] * coords[ 1 ]
-                          + coords[ 2 ] * coords[ 2 ];
-                if ( r2 > r2max && ! Double.isInfinite( r2 ) ) {
-                    r2max = r2;
+            /* Calculate the maximum radius of points being plotted. */
+            double[] coords = new double[ 3 ];
+            for ( int ip = 0; ip < np; ip++ ) {
+                long lp = (long) ip;
+                boolean use = false;
+                for ( int is = 0; is < nset && ! use; is++ ) {
+                    use = use || sets[ is ].isIncluded( lp );
+                }
+                if ( use ) {
+                    points.getCoords( ip, coords );
+                    double r2 = coords[ 0 ] * coords[ 0 ]
+                              + coords[ 1 ] * coords[ 1 ]
+                              + coords[ 2 ] * coords[ 2 ];
+                    if ( r2 > r2max && ! Double.isInfinite( r2 ) ) {
+                        r2max = r2;
+                    }
                 }
             }
+            rmax = r2max > 0.0 ? Math.sqrt( r2max ) : 1.0;
+        }
+        else {
+            rmax = rangeMax;
         }
 
         /* Set the bounds arrays accordingly. */
-        double rmax = r2max > 0.0 ? Math.sqrt( r2max ) : 1.0;
         double[] loBounds = new double[ 3 ];
         double[] hiBounds = new double[ 3 ];
         Arrays.fill( loBounds, -rmax );
@@ -284,6 +326,15 @@ public class Plot3D extends JPanel {
         hiBounds_ = hiBounds;
         loBoundsG_ = (double[]) loBounds.clone();
         hiBoundsG_ = (double[]) hiBounds.clone();
+
+        final double range2 = rmax * rmax;
+        rangeChecker_ = new RangeChecker() {
+            boolean inRange( double[] coords ) {
+                return ( coords[ 0 ] * coords[ 0 ] +
+                         coords[ 1 ] * coords[ 1 ] +
+                         coords[ 2 ] * coords[ 2 ] ) <= range2;
+            }
+        };
     }
 
     /**
@@ -382,6 +433,7 @@ public class Plot3D extends JPanel {
         boolean[] logFlags = getState().getLogFlags();
         double[] coords = new double[ 3 ];
         boolean[] useMask = new boolean[ nset ];
+        RangeChecker ranger = rangeChecker_;
         for ( int ip = 0; ip < np; ip += step ) {
             long lp = (long) ip;
             boolean use = false;
@@ -392,8 +444,7 @@ public class Plot3D extends JPanel {
             if ( use ) {
                 nInclude++;
                 points.getCoords( ip, coords );
-                if ( inRange( coords, loBounds_, hiBounds_ ) &&
-                     logize( coords, logFlags ) ) {
+                if ( ranger.inRange( coords ) && logize( coords, logFlags ) ) {
                     nVisible++;
                     trans.transform( coords );
                     // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
@@ -741,7 +792,7 @@ public class Plot3D extends JPanel {
         g2.transform( atf );
 
         /* Draw the annotated axis. */
-        annotateAxis( g2, state_.getAxes()[ iaxis ], sx, sy,
+        annotateAxis( g2, state_.getAxisLabels()[ iaxis ], sx, sy,
                       loBounds_[ iaxis ], hiBounds_[ iaxis ],
                       logFlags[ iaxis ],
                       ( ! forward ) ^ state_.getFlipFlags()[ iaxis ] );
@@ -754,7 +805,7 @@ public class Plot3D extends JPanel {
      * (0,0)->(sx,sy) of the graphics context.
      *
      * @param  g         graphics context
-     * @param  axisInfo  axis metadata giving name, units etc
+     * @param  label     text of annotation label
      * @param  sx        horizontal extent of the drawing region
      *                   (length of the axis in pixels)
      * @param  sy        vertical extent of the drawing region 
@@ -764,17 +815,12 @@ public class Plot3D extends JPanel {
      * @param  log       true iff axis is logarithmic
      * @param  flip      true iff axis values increase right to left
      */
-    private static void annotateAxis( Graphics g, ValueInfo axisInfo,
+    private static void annotateAxis( Graphics g, String label,
                                       int sx, int sy, double lo, double hi,
                                       boolean log, boolean flip ) {
 
         /* Write the name of the axis. */
         FontMetrics fm = g.getFontMetrics();
-        String label = axisInfo.getName();
-        String units = axisInfo.getUnitString();
-        if ( units != null && units.trim().length() > 0 ) {
-            label += " / " + units.trim();
-        }
         g.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, 2 * sy );
 
         /* Work out where to put ticks on the axis.  Do this recursively;
@@ -918,12 +964,10 @@ public class Plot3D extends JPanel {
         }
         g.setColor( col );
 
-
         /* Now draw a single horizontal axis to indicate the range of
          * the radial coordinate. */
         SphericalPlotState sstate = ((SphericalPlotState) getState());
-        ValueInfo axInfo = sstate.getRadialInfo();
-        if ( axInfo != null ) {
+        if ( sstate.getRadialInfo() != null ) {
             int scale = vol.getScale();
             boolean log = sstate.getRadialLog();
             double[] d0 = new double[] { 0.0, 0.0, 0.0 };
@@ -940,7 +984,7 @@ public class Plot3D extends JPanel {
             g2.translate( xp0, yp1 );
             g2.drawLine( 0, 0, xp1 - xp0, 0 );
             double radius = hiBounds_[ 0 ];
-            annotateAxis( g2, axInfo, xp1 - xp0,
+            annotateAxis( g2, sstate.getAxisLabels()[ 0 ], xp1 - xp0,
                           g2.getFontMetrics().getHeight(),
                           log ? Math.exp( 0.0 ) : 0.0,
                           log ? Math.exp( radius ) : radius, log, false );
@@ -1117,6 +1161,7 @@ public class Plot3D extends JPanel {
             final int np = points.getCount();
             final RowSubset[] sets = getPointSelection().getSubsets();
             final int nset = sets.length;
+            final RangeChecker ranger = rangeChecker_;
             return new PointIterator() {
                 int ip = -1;
                 int[] point = new int[ 3 ];
@@ -1130,7 +1175,7 @@ public class Plot3D extends JPanel {
                         }
                         if ( use ) {
                             points.getCoords( ip, coords );
-                            if ( inRange( coords, loBounds_, hiBounds_ ) &&
+                            if ( ranger.inRange( coords ) &&
                                  logize( coords, logFlags ) ) {
                                 trans.transform( coords );
                                 point[ 0 ] = ip;
@@ -1252,6 +1297,24 @@ public class Plot3D extends JPanel {
         return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
             && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
             && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
+    }
+
+    /**
+     * Interface for checking that a 3-d coordinate is in range.
+     */
+    private static abstract class RangeChecker {
+
+        /**
+         * Returns true iff the 3-element coords array is considered in
+         * plotting range for a particular 3D plot.
+         * Sitting on the boundary normally counts as in range.
+         * If any of the elements of <code>coords</code> is NaN,
+         * the return should be <code>false</code>.
+         *
+         * @param  coords  3-element coordinates of a point in data space
+         * @return  true  iff coords in in range for this plot
+         */
+        abstract boolean inRange( double[] coords );
     }
 
     /**

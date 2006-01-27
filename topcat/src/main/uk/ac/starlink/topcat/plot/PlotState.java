@@ -18,6 +18,8 @@ public class PlotState {
     private boolean[] flipFlags_;
     private boolean grid_;
     private PointSelection pointSelection_;
+    private double[][] ranges_ = new double[ 0 ][];
+    private String[] axisLabels_ = new String[ 0 ];
 
     /**
      * Sets whether this state should be used to attempt a successful plot.
@@ -118,6 +120,52 @@ public class PlotState {
     }
 
     /**
+     * Sets data ranges for each axis.
+     * <code>ranges</code> is an N-element array of 2-element double arrays.
+     * Each of its elements gives (low,high) limits for the data to be 
+     * considered.  Either or both elements may be NaN.
+     * A non-NaN value is considered as a request to fix the lower/upper
+     * limit of the indicated axis to the value given.  A NaN value
+     * normally means that the limit should be determined dynamically
+     * (by assessing the range of the available data points).
+     *
+     * @param   ranges   array of (low,high) fixed range limits
+     */
+    public void setRanges( double[][] ranges ) {
+        ranges_ = ranges;
+    }
+
+    /**
+     * Returns the data ranges for each axis.
+     *
+     * @return   array of (low,high) fixed range limits
+     * @see      #setRanges
+     */
+    public double[][] getRanges() {
+        return ranges_;
+    }
+
+    /**
+     * Sets the text labels to use for annotating axes.
+     *
+     * @param   labels   axis annotation strings, one for each axis that
+     *          needs labelling
+     */
+    public void setAxisLabels( String[] labels ) {
+        axisLabels_ = labels;
+    }
+ 
+    /**
+     * Returns the labels to use for annotating axes.
+     *
+     * @return  axis annotation strings, one for each axis that needs
+     *          labelling
+     */
+    public String[] getAxisLabels() {
+        return axisLabels_;
+    }
+
+    /**
      * Sets the point selection object for this state.
      *
      * @param   pointSelection  data selection object
@@ -162,7 +210,8 @@ public class PlotState {
         return other != null
             && Arrays.equals( axes_, other.axes_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
-            && Arrays.equals( flipFlags_, other.flipFlags_ );
+            && Arrays.equals( flipFlags_, other.flipFlags_ )
+            && equalRanges( ranges_, other.ranges_ );
     }
 
     public boolean equals( Object otherObject ) {
@@ -175,6 +224,7 @@ public class PlotState {
             && Arrays.equals( axes_, other.axes_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ )
+            && Arrays.equals( axisLabels_, other.axisLabels_ )
             && ( pointSelection_ == null 
                     ? other.pointSelection_ == null
                     : pointSelection_.equals( other.pointSelection_ ) );
@@ -207,10 +257,39 @@ public class PlotState {
         for ( int i = 0; i < flipFlags_.length; i++ ) {
             code = 23 * code + ( flipFlags_[ i ] ? 1 : 2 );
         }
+        for ( int i = 0; i < axisLabels_.length; i++ ) {
+            code = 23 * code + ( axisLabels_[ i ] == null
+                               ? 0 :axisLabels_[ i ].hashCode() );
+        }
+        for ( int i = 0; i < ranges_.length; i++ ) {
+            code = 23 * code + 
+                  (int) Double.doubleToLongBits( ranges_[ i ][ 0 ] );
+            code = 23 * code +
+                  (int) Double.doubleToLongBits( ranges_[ i ][ 1 ] );
+        }
         code = 23 * code + ( pointSelection_ == null 
                                 ? 0
                                 : pointSelection_.hashCode() );
         return code;
+    }
+
+    private static boolean equalRanges( double[][] r1, double[][] r2 ) {
+        if ( r1.length == r2.length ) {
+            for ( int i = 0; i < r1.length; i++ ) {
+                double a10 = r1[ i ][ 0 ];
+                double a11 = r1[ i ][ 1 ];
+                double a20 = r2[ i ][ 0 ];
+                double a21 = r2[ i ][ 1 ];
+                if ( ! ( a10 == a20 ||
+                         ( Double.isNaN( a10 ) && Double.isNaN( a20 ) ) ) ||
+                     ! ( a11 == a21 ||
+                         ( Double.isNaN( a11 ) && Double.isNaN( a21 ) ) ) ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**

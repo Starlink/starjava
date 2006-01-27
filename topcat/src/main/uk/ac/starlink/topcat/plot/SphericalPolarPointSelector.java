@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.JComboBox;
@@ -119,6 +121,28 @@ public class SphericalPolarPointSelector extends PointSelector {
     public StarTable getData() {
         return new SphericalPolarTable( getTable(),
                                         getPhi(), getTheta(), getR() );
+    }
+
+    public AxisEditor[] createAxisEditors() {
+
+        /* We only have one axis editor, that for the radial coordinate.
+         * Override the default implementation of setAxis so that only
+         * the upper bound can be set - the lower bound is always zero. */
+        final AxisEditor ed = new AxisEditor( "Radial" ) {
+            public void setAxis( ValueInfo axis, double lo, double hi ) {
+                super.setAxis( axis, lo, hi );
+                loField_.setText( "0" );
+                loField_.setEnabled( false );
+            }
+        };
+        rSelector_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
+                ed.setAxis( cdata == null ? null : cdata.getColumnInfo(),
+                            Double.NaN, Double.NaN );
+            }
+        } );
+        return new AxisEditor[] { ed };
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {

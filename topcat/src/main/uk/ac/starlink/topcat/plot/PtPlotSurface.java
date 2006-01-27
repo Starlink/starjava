@@ -259,22 +259,8 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         }
 
         /* Axes. */
-        ValueInfo xInfo = state.getAxes()[ 0 ];
-        ValueInfo yInfo = state.getAxes()[ 1 ];
-        String xName = xInfo.getName();
-        String yName = yInfo.getName();
-        String xUnit = xInfo.getUnitString();
-        String yUnit = yInfo.getUnitString();
-        String xLabel = xName;
-        String yLabel = yName;
-        if ( xUnit != null && xUnit.trim().length() > 0 ) {
-            xLabel = xLabel + " / " + xUnit;
-        }
-        if ( yUnit != null && yUnit.trim().length() > 0 ) {
-            yLabel = yLabel + " / " + yUnit;
-        }
-        setXLabel( xLabel );
-        setYLabel( yLabel );
+        setXLabel( state.getAxisLabels()[ 0 ] );
+        setYLabel( state.getAxisLabels()[ 1 ] );
 
         /* Logarithmic plot flags. */
         setXLog( state.getLogFlags()[ 0 ] );

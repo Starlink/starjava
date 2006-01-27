@@ -58,6 +58,34 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 /**
  * Abstract superclass for windows doing N-dimensional plots of table data.
  *
+ * <p>The basic way that plotting works is as follows.  Almost all the
+ * controls visible on the GraphicsWindow do nothing except trigger 
+ * the replot action {@link #getReplotAction} when their state changes,
+ * which schedules a replot to occur later on the event dispatch thread. 
+ * When the replot is executed, the {@link #getPlotState} method is 
+ * called which goes through all the controls and assembles a 
+ * {@link PlotState} object (of a class which is probably speicific to
+ * the window implementation).  <em>Only if</em> this PlotState differs
+ * from the last gathered PlotState will any actual plotting action take
+ * place.  This means that we don't worry about triggering loads of
+ * replot actions - as long as the state doesn't change materially 
+ * between one and the next, they're cheap.  If the state does change
+ * materially, then a new plot is required.  The work done for plotting
+ * depends on the details of how the PlotState has changed - in some cases
+ * new data will be acquired (<code>readPoints</code> is called - possibly
+ * expensive), but if the data is the same as before, the plot just
+ * needs to be redrawn (usually quite fast, since the various plotting
+ * classes are written as efficiently as possible).
+ * It is therefore very important for performance reasons that you can
+ * tell whether one plot state differs from the last one.  Since the
+ * PlotState is a newly created object each time, its <code>equals()</code>
+ * method is used - so <code>PlotState.equals()</code> must be written 
+ * with great care.  There's an assertion in this class which tests that
+ * two PlotStates gathered at the same time are equal, so you should find
+ * out if your equals() method is calling two equal states unequal.
+ * If it's calling two unequal states equal, then you'll find that the
+ * plot doesn't get updated when state changes.
+ *
  * @author   Mark Taylor
  * @since    26 Oct 2005
  */
@@ -69,6 +97,7 @@ public abstract class GraphicsWindow extends AuxWindow
 
     private final ReplotListener replotListener_;
     private final Action replotAction_;
+    private final Action axisEditAction_;
     private final String[] axisNames_;
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
@@ -81,6 +110,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private Box statusBox_;
     private boolean initialised_;
     private int guidePointCount_;
+    private AxisWindow axisWindow_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -89,7 +119,7 @@ public abstract class GraphicsWindow extends AuxWindow
         new SuffixFileFilter( new String[] { ".gif" } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
-
+        
     /**
      * Constructor.
      *
@@ -176,6 +206,11 @@ public abstract class GraphicsWindow extends AuxWindow
                                             "drawn" );
         gridModel_.setSelected( true );
         gridModel_.addActionListener( replotListener_ );
+
+        /* Action for performing user configuration of axes. */
+        axisEditAction_ = new GraphicsAction( "Configure Axes",
+                                              ResourceIcon.AXIS_EDIT,
+                                              "Set axis labels and ranges" );
     }
 
     public void setVisible( boolean visible ) {
@@ -206,8 +241,17 @@ public abstract class GraphicsWindow extends AuxWindow
     private void init() {
 
         /* Add a starter point selector. */
-        pointSelectors_.addNewSelector( createPointSelector() );
+        PointSelector mainSel = createPointSelector();
+        pointSelectors_.addNewSelector( mainSel );
         pointSelectors_.revalidate();
+
+        /* Construct an axis configuration window. */
+        AxisEditor[] axeds = mainSel.createAxisEditors();
+        for ( int i = 0; i < axeds.length; i++ ) {
+            axeds[ i ].addActionListener( replotAction_ );
+        }
+        axisWindow_ = new AxisWindow( this, axeds );
+        axisWindow_.addActionListener( replotAction_ );
 
         /* Set a suitable default style set. */
         long npoint = 0;
@@ -403,6 +447,19 @@ public abstract class GraphicsWindow extends AuxWindow
         state.setLogFlags( logFlags );
         state.setFlipFlags( flipFlags );
 
+        /* Set items configured in the axis editor window. */
+        AxisEditor[] eds = axisWindow_.getEditors();
+        int nax = eds.length;
+        String[] labels = new String[ nax ];
+        double[][] ranges = new double[ nax ][];
+        for ( int i = 0; i < eds.length; i++ ) {
+            AxisEditor ed = eds[ i ];
+            labels[ i ] = ed.getLabel();
+            ranges[ i ] = ed.getRange();
+        }
+        state.setAxisLabels( labels );
+        state.setRanges( ranges );
+
         /* Set point selection. */
         state.setPointSelection( pointSelectors_.getPointSelection() );
 
@@ -431,6 +488,15 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public Action getReplotAction() {
         return replotAction_;
+    }
+
+    /**
+     * Returns an action which can be used to configure axes manually.
+     *
+     * @return   axis configuration action
+     */
+    public Action getAxisEditAction() {
+        return axisEditAction_;
     }
 
     /**
@@ -543,6 +609,15 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     protected ReplotListener getReplotListener() {
         return replotListener_;
+    }
+
+    /**
+     * Returns the axis configuration window associated with this window.
+     *
+     * @return  axis editor dialogue
+     */
+    public AxisWindow getAxisWindow() {
+        return axisWindow_;
     }
 
     /**
@@ -711,8 +786,30 @@ public abstract class GraphicsWindow extends AuxWindow
 
     /**
      * SurfaceListener implementation.
+     *
+     * <p>This method is triggered when the PlotSurface decides it wants to
+     * change its geometry, probably as a result of some mouse gesture by
+     * the user.  In other words, information about the geometry of the
+     * plot is held both by the plot itself and by the PlotState.  This is
+     * really a bad way to do it, and makes it practically impossible for
+     * the window to work properly - the historical reason for this bad
+     * design is that this class used to be based heavily on PtPlotBox
+     * which provides zooming for free, but I'd have saved myself trouble
+     * in the long run if I'd done the zooming by hand here.  
+     * Really I should remove any responsibility
+     * for doing this from the plot surface (PtPlotSurface) and make sure
+     * that only the GraphicsWindow does it.  The main consequences of this
+     * problem at the moment are:
+     * <ol>
+     * <li>If you've set the axis limits using the AxisWindow and then
+     *     zoom in by dragging the mouse, the effect will be to rescale
+     *     to full data range
+     * <li>Changing the flip/log axis flags has the effect of rescaling to
+     *     full data range (as well)
+     * </ol>
      */
     public void surfaceChanged() {
+        axisWindow_.clearRanges();
         forceReplot();
     }
 
@@ -852,6 +949,9 @@ public abstract class GraphicsWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == replotAction_ ) {
                 scheduleReplot( true, true );
+            }
+            else if ( this == axisEditAction_ ) {
+                axisWindow_.show();
             }
         }
     }

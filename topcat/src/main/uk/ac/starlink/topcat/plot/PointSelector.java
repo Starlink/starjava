@@ -212,6 +212,16 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      */
     public abstract StarTable getData();
 
+    /**
+     * Constructs an array of AxisEditor objects suitable for modifying the
+     * axes which are defined by this PointSelector.  The number of
+     * them is often, but not necessarily, the same as the dimensionality
+     * of this selector.
+     *
+     * @return  array of new AxisEditors 
+     */
+    public abstract AxisEditor[] createAxisEditors();
+
     public void setVisible( boolean visible ) {
         if ( visible ) {
             revalidate();

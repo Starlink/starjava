@@ -138,6 +138,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( rescaleAction );
         plotMenu.add( reorientAction );
+        plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
@@ -171,6 +172,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
         /* Add actions to the toolbar. */
         getToolBar().add( rescaleAction );
+        getToolBar().add( getAxisEditAction() );
         getToolBar().add( reorientAction );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( fogModel_.createToolbarButton() );

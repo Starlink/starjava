@@ -138,6 +138,7 @@ public class ResourceIcon implements Icon {
         COLOR = makeIcon( "rgb.gif" ),
         FINE = makeIcon( "smallpix.gif" ),
         ROUGH = makeIcon( "bigpix2.gif" ),
+        AXIS_EDIT = makeIcon( "axed3.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),

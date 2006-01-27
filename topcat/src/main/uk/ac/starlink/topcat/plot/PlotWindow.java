@@ -166,6 +166,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                                "Rescale the plot to show " +
                                                "all points" ) {
             public void actionPerformed( ActionEvent evt ) {
+                getAxisWindow().clearRanges();
                 plot_.rescale();
                 forceReplot();
             }
@@ -175,6 +176,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( resizeAction );
+        plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
@@ -229,6 +231,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Add actions to the toolbar. */
         getToolBar().add( resizeAction );
+        getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );

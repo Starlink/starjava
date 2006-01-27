@@ -108,6 +108,7 @@ public class HistogramWindow extends GraphicsWindow {
         plotMenu.add( rescaleActionXY );
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
+        plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
@@ -160,6 +161,7 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( rescaleActionXY );
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
+        getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
@@ -188,6 +190,33 @@ public class HistogramWindow extends GraphicsWindow {
         return plot_;
     }
 
+    protected PointSelector createPointSelector() {
+
+        /* This bit just copied from the superclass. */
+        DefaultPointSelector.ToggleSet[] toggleSets =
+            new DefaultPointSelector.ToggleSet[] {
+                new DefaultPointSelector.ToggleSet( "Log", getLogModels() ),
+                new DefaultPointSelector.ToggleSet( "Flip", getFlipModels() ),
+            };
+
+        /* The superclass implementation assumes that the number of
+         * axes on the screen is the same as the number of dimensions of
+         * the data being plotted - not true for a histogram (2 vs. 1,
+         * respectively).  So we need to make sure the AxisEditor array
+         * supplied by the PointSelector is 2 long - one for the data
+         * axis and one for the counts axis (screen Y axis). */
+        return new DefaultPointSelector( new String[] { "X" }, toggleSets ) {
+            public AxisEditor[] createAxisEditors() {
+                AxisEditor countEd = new AxisEditor( "Count" );
+                countEd.setAxis( COUNT_INFO, Double.NaN, Double.NaN );
+                return new AxisEditor[] {
+                    super.createAxisEditors()[ 0 ],
+                    countEd,
+                };
+            }
+        };
+    }
+
     protected void doReplot( PlotState pstate, Points points ) {
         HistogramPlotState state = (HistogramPlotState) pstate;
         HistogramPlotState lastState = (HistogramPlotState) plot_.getState();
@@ -198,7 +227,7 @@ public class HistogramWindow extends GraphicsWindow {
             /* Calculate bin width here if it needs to be done.  We can't
              * do it when the plot state is initialised, since at that
              * point we don't have the Points data, and that is needed
-             * to work out the range of the data and hence how wid the 
+             * to work out the range of the data and hence how wide the 
              * bins are going to be. */
             if ( state.getValid() ) {
                 double bw = autoBinWidth( state, points );
@@ -215,8 +244,15 @@ public class HistogramWindow extends GraphicsWindow {
          * approximately the same data points rather than creeping up/down
          * with a change in the bin width. */
         else if ( ! state.getCumulative() &&
-                  ( state.getBinWidth() != lastState.getBinWidth() ) ) {
-            plot_.scaleYFactor( state.getBinWidth() / lastState.getBinWidth() );
+                  ( state.getBinWidth() != lastState.getBinWidth() ) ) { 
+
+            /* Only attempt it if the Y axis range has not been fixed by the
+             * user though. */
+            double[] yRange = state.getRanges()[ 1 ];
+            if ( Double.isNaN( yRange[ 0 ] ) && Double.isNaN( yRange[ 1 ] ) ) {
+                plot_.scaleYFactor( state.getBinWidth()
+                                  / lastState.getBinWidth() );
+            }
         }
 
         /* Schedule a repaint. */
@@ -431,6 +467,13 @@ public class HistogramWindow extends GraphicsWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
+            AxisEditor[] axeds = getAxisWindow().getEditors();
+            if ( scaleX_ ) {
+                axeds[ 0 ].setRange( Double.NaN, Double.NaN );
+            }
+            if ( scaleY_ ) {
+                axeds[ 1 ].setRange( Double.NaN, Double.NaN );
+            }
             plot_.rescale( scaleX_, scaleY_ );
             forceReplot();
         }
