@@ -60,7 +60,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  *
  * <p>The basic way that plotting works is as follows.  Almost all the
  * controls visible on the GraphicsWindow do nothing except trigger 
- * the replot action {@link #getReplotAction} when their state changes,
+ * the replot action {@link #getReplotListener} when their state changes,
  * which schedules a replot to occur later on the event dispatch thread. 
  * When the replot is executed, the {@link #getPlotState} method is 
  * called which goes through all the controls and assembles a 
@@ -246,12 +246,17 @@ public abstract class GraphicsWindow extends AuxWindow
         pointSelectors_.revalidate();
 
         /* Construct an axis configuration window. */
+        ActionListener replotForcer = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                scheduleReplot( true, false );
+            }
+        };
         AxisEditor[] axeds = mainSel.createAxisEditors();
         for ( int i = 0; i < axeds.length; i++ ) {
-            axeds[ i ].addActionListener( replotAction_ );
+            axeds[ i ].addActionListener( replotForcer );
         }
         axisWindow_ = new AxisWindow( this, axeds );
-        axisWindow_.addActionListener( replotAction_ );
+        axisWindow_.addActionListener( replotForcer );
 
         /* Set a suitable default style set. */
         long npoint = 0;
