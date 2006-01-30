@@ -401,7 +401,7 @@ public class Plot3D extends JPanel {
                                      getZBufferWorkspace() )
             : (PlotVolume)
               new PackedSortPlotVolume( c, g, plotStyles, padFactor, padBorders,
-                                        points.getCount() + 2, 0.0, 1.0,
+                                        points.getCount() + 2, -1.0, 2.0,
                                         getPackedSortWorkspace() );
 
         /* Set its fog factor appropriately for depth rendering as requested. */
