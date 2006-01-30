@@ -63,7 +63,7 @@ public class PackedSortPlotVolume extends PlotVolume {
         /* Store the z dimension scaling factors. */
         zmin_ = zmin;
         zmax_ = zmax;
-        zmult_ = ( zmax - zmin ) * Integer.MAX_VALUE;
+        zmult_ = Integer.MAX_VALUE / ( zmax - zmin );
 
         /* Work out the dimensions of the pixel grid that we're going
          * to need. */
