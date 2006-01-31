@@ -74,7 +74,7 @@ public class AxisWindow extends JDialog {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable( false );
         toolBar.add( Box.createHorizontalGlue() );
-        toolBar.add( new HelpAction( "AxisWindow", this ) );
+        toolBar.add( new HelpAction( "axisConfig", this ) );
         toolBar.addSeparator();
         getContentPane().add( toolBar, BorderLayout.NORTH );
 
