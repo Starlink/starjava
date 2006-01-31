@@ -50,6 +50,9 @@
   <!ENTITY FIG.MethodWindow '&figs;MethodWindow.gif'>
   <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.gif'>
   <!ENTITY FIG.LogWindow '&figs;LogWindow.gif'>
+  <!ENTITY FIG.PointSelector '&figs;PointSelector.gif'>
+  <!ENTITY FIG.AxisWindow '&figs;AxisWindow.gif'>
+  <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -73,7 +76,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>13 October 2005</docdate>
+<docdate>1 February 2006</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -103,8 +106,9 @@ even with modest memory and CPU resources.
 <px>It offers a variety of ways to view and analyse the data,
 including a browser for the cell data themselves, 
 viewers for information about table and column metadata,
-and facilities for plotting, calculating statistics and joining tables
-using flexible matching algorithms.
+tools for joining table using flexible matching algorithms,
+and visualisation facilities including histograms, 2- and 3-dimensional
+scatter plots, and density maps.
 Using a powerful and extensible Java-based expression language
 new columns can be defined and row subsets selected for separate analysis.
 Selecting a row can be configured to trigger an action, for instance
@@ -146,7 +150,8 @@ Here is a summary of its main capabilities:
 <li>Sort rows on the values in a given column</li>
 <li>Define row subsets in various ways, including algebraically 
     and graphically</li>
-<li>Plot columns against each other, distinguishing different subsets</li>
+<li>Plot columns against each other in 1, 2 and 3 dimensions,
+    distinguishing different subsets</li>
 <li>Calculate statistics on each column for some or all rows</li>
 <li>Trigger a configurable action (e.g. object image display) when a 
     column is selected</li>
@@ -205,15 +210,94 @@ The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
 which is documented more fully in <docxref doc="sun252"/>.
-It is written in pure Java (the current version requires J2SE1.4; 
-it will run under version 1.5/5.0, but certain features don't work correctly)
-which makes it highly portable, since it can run on any machine which has
+It is written in pure Java, and should run on any J2SE 1.4 or 1.5 platform.
+This makes it highly portable, since it can run on any machine which has
 a suitable Java installation; however some of the external viewer 
 applications it talks to rely on non-Java code though so one or 
 two facilities, such as displaying spectra, may be absent in some cases.
 TOPCAT is available under the terms of the 
 GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
             >General Public License</webref>.
+</p>
+
+</sect>
+
+<sect id="quick">
+<subhead><title>Quick Start Guide</title></subhead>
+
+<p>This is a quite a fat manual which aims to give tutorial and reference
+descriptions of most of TOPCAT's capabilities.  You are encouraged to
+consult it if you can't see how to do something or the program isn't
+behaving as you expected, however, in many cases you should be able to 
+work out how to use it by starting it up and playing around.
+This section provides a short introduction for the impatient,
+explaining how to get started.
+</p>
+
+<p>To start the program, you will probably type <code>topcat</code> or 
+something like
+<code>java -jar topcat-lite.jar</code> (see <ref id="invoke"/> for
+more detail).  To view a table that you have on disk, you can either
+give its name on the command line or load it using the <label>Load</label>
+button from the GUI.  FITS and VOTable files are recognised automatically;
+if your data is in another format such as ASCII (see <ref id="inFormats"/>)
+you need to tell the program (e.g. <code>-f ascii</code> on the command line).
+If you just want to try the program out, <code>topcat -demo</code> will
+start with a couple of small tables for demonstration purposes.
+</p>
+
+<p>The first thing that you see is the 
+<ref id="ControlWindow" plaintextref="yes">Control Window</ref>.
+This has a list of the loaded table(s) on the left.  If one of these
+is highlighted by clicking on it, information about it will
+be shown on the right; some of this (table name, sort order) you
+can change here.
+Along the top is a toolbar with a number of buttons, most of which
+open up new windows.  These fall into a few groups:
+
+<dl>
+<dt>&IMG.LOAD; &IMG.SAVE; &IMG.COPY;</dt>
+<dd><p>Load/save etc.</p></dd>
+
+<dt>&IMG.VIEWER; &IMG.PARAMS; &IMG.COLUMNS; &IMG.SUBSETS; &IMG.STATS;</dt>
+<dd><p>Display various aspects of information about the table's data and
+    metadata.</p></dd>
+
+<dt>&IMG.HISTOGRAM; &IMG.PLOT; &IMG.PLOT3D; &IMG.SPHERE; IMG.DENSITY;</dt>
+<dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
+
+<dt>&IMG.CONCAT; &IMG.MATCH1; &IMG.MATCH2;</dt>
+<dd><p>Join tables in various ways, including spatial crossmatching</p></dd>
+
+<dt>&IMG.HELP; &IMG.FUNCTION;</dt>
+<dd><p>Help and information</p></dd>
+</dl>
+
+The <label>Help</label> (&IMG.HELP;) button appears in most windows -
+if you click it a help browser will be displayed showing an appropriate 
+part of this manual.  As well as the tool bar there are a number of 
+menus along the top - most of the options just repeat those appearing on the
+toolbar, but a few less common ones may be available as well.
+All the windows follow roughly this pattern.  For some of the toolbar
+buttons you can probably guess what they do from their icons, 
+for others probably not - to find out
+you can hover with the mouse to see the tooltip, 
+look in the menus, or read the manual, or just push it and see.
+</p>
+
+<p>Some of the windows allow you to make changes of various sorts to the
+tables, such as performing sorts, selecting rows, modifying data or
+metadata.  None of these affect the table on disk (or database, or wherever),
+but if you subsequently save the table the changes will be reflected
+in the table that you save.
+</p>
+
+<p>A final point to bear in mind concerns memory.
+TOPCAT is fairly efficient in use of memory, but in some cases when 
+dealing with large tables you might see an OutOfMemoryError.
+It is usually possible to work round this by using either or both
+of the <code>-disk</code> or <code>-Xmx</code><em>NNN</em><code>M</code>
+flags on startup - see <ref id="jvmMemory"/>.
 </p>
 
 </sect>
@@ -360,7 +444,8 @@ and marking groups of rows to plot using different markers in the
     </p></dd>
 
 <dt>Visible plotted points</dt>
-<dd><p>In the <ref id="PlotWindow">Plot Window</ref> you can plot columns
+<dd><p>In some of the <ref id="GraphicsWindow">graphics windows</ref>
+    you can plot columns
     against each other, and subsequently zoom in and out using the
     mouse.  If you zoom to display only some of the plotted points and
     then use the <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
@@ -372,7 +457,8 @@ and marking groups of rows to plot using different markers in the
 <dt>Selected plotted points</dt>
 <dd><p>For more control over which plotted points are to be included in
     a subset, you can use the <label>Draw Subset Region</label> 
-    (&IMG.BLOB_SUBSET;) button in the Plot Window.  This allows you 
+    (&IMG.BLOB_SUBSET;) button in some of the the graphics windows.
+    This allows you 
     to trace out with the mouse a region or regions of any shape, 
     creating a new subset containing only those rows represented by 
     the points within those regions.
@@ -497,6 +583,9 @@ whether they are currently visible is indicated by the (leftmost)
     button in the toolbar or menu.
     Note when selecting rows, don't drag the mouse over the Visible 
     column, do it somewhere in the middle of the table.
+    The <label>Hide All</label> (&IMG.HIDE_ALL;) and
+    <label>Reveal All</label> buttons set all columns in the table
+    invisible or visible - a useful convenience if there are many columns.
     </p>
 
     <p>You can also hide a column by right-clicking on it in the 
@@ -1524,12 +1613,14 @@ simply a row of the displayed JTable, and in a plot it corresponds to
 one plotted point.
 </p>
 
-<p>If you click on a point in a plot, or on a row in the 
+<p>If you click on plotted point in one of the graphics windows,
+or on a row in the 
 Data Window, the corresponding table row will be <em>activated</em>.
 When a row is activated, three things happen:
 <ol>
-<li>If the Plot Window is visible, a marker will be drawn centred on 
-    the point</li>
+<li>If that row is represented by a point in any open 2- or 3-diemensional
+    scatter plot windows, a visible cursor marker will be drawn
+    centred on that point.</li>
 <li>If the Data Window is visible, the table will be scrolled to show the
     row and it will be highlighted</li>
 <li>If an <em>activation action</em> has been defined, it will be invoked</li>
@@ -1578,7 +1669,7 @@ have activated.
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
 
-<p>TOPCAT allows you to enter algebraic expressions in three contexts:
+<p>TOPCAT allows you to enter algebraic expressions in a number of contexts:
 <ol>
 <li>To define a new column in terms of existing columns in the
     <ref id="SyntheticColumnQueryWindow">Synthetic Column</ref> dialogue</li>
@@ -1588,6 +1679,9 @@ have activated.
 <li>To define a custom
     <ref id="activation" plaintextref="yes">Activation Action</ref>
     in the <ref id="ActivationQueryWindow">Activation</ref> dialogue.</li>
+<li>When faced with a column selector for plotting or other purposes,
+    in some cases you can type in an expression rather than selecting
+    or typing a simple column name.</li>
 </ol>
 This is a powerful feature which permits you to manipulate and select
 table data in very flexible ways - you can think of it like a 
@@ -1661,11 +1755,13 @@ You can do this in two ways:
     </p></dd>
 </dl>
 </p>
-<p>There is a special column whose name is "Index" and whose ID is 
-"&column.id.char;0".
+<p>There is a special column whose name is "Index" and whose 
+&column.id.char;ID is "&column.id.char;0".
 The value of this is the same as the row number in the unsorted table
 (the grey numbers on the left of the grid in the 
-<ref id="TableViewerWindow">Data Window</ref>).
+<ref id="TableViewerWindow">Data Window</ref>),
+so for the first column in the unsorted table it's 1, for the second 
+it's 2, and so on.
 </p>
 
 <p>The value of the variables so referenced will be a primitive
@@ -1699,11 +1795,11 @@ is in each subset.  Again there are two ways of doing this:
     may always be used to refer to it.
     Like the "&column.id.char;ID" identifier for columns above,
     this is a unique
-    index preceded by a special symbol, this time the underscore, 
+    integer preceded by a special symbol, this time the underscore, 
     "&subset.id.char;".
     </p>
 
-    <p><strong>Note:</strong> in previous versions of TOPCAT the hash
+    <p><strong>Note:</strong> in early versions of TOPCAT the hash
     sign ("#") was used instead of the underscore for this purpose;
     the hash sign no longer has this meaning.
     </p></dd>
@@ -1928,7 +2024,7 @@ packages <code>uk.ac.starlink.ttools.func</code> and
 (<code>uk.ac.starlink.topcat.func.Strings</code> etc).
 However, the public static methods are all imported into an anonymous
 namespace for bytecode compilation, so that you write
-(<code>sqrt(x,y)</code> and not <code>Maths.sqrt(x,y)</code>.
+(<code>sqrt(x)</code> and not <code>Maths.sqrt(x)</code>.
 The same happens to other classes that are imported (which can be
 in any package or none) - their public
 static methods all go into the anonymous namespace.  Thus, method
@@ -1970,8 +2066,9 @@ probably best off ignoring this feature.
 <subsect id="jelExamples">
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples for synthetic columns 
-(i.e. expressions which return values to appear in the table):
+<p>Here are some general examples.
+They could be used to define synthetic columns or (where numeric) to 
+define values for one of the axes in a plot.
 <dl>
 
 <dt>Average</dt>
@@ -2103,12 +2200,12 @@ to define <ref id="subsets">row subsets</ref>
 <p>The functions provided by default for use with algebraic expressions,
 while powerful, may not provide all the operations you need.
 For this reason, it is possible to write your own extensions to the
-expression language.  In this way you can specify abritrarily complicated
+expression language.  In this way you can specify arbitrarily complicated
 functions.
 Note however that this will only allow you to define new columns or subsets
-where each cell is a function only of the other cells in the same
-row - it will not allow values in one row to be functions of values
-in another.
+where each cell is a function only of the other cells in the same row - 
+there is no way to define a value in one row as a function of
+values in other rows.
 </p>
 
 <p>In order to do this, you have to write and compile a 
@@ -2134,7 +2231,7 @@ be incomprehensible to non-specialists.
     as described in <ref id="jvmProperties"/>
     <em>or</em> during a run using the 
     <ref id="MethodWindow">Available Function Window</ref>'s
-    <label>Add Class</label> (&IMG.ADD;) button</li>
+   I<label>Add Class</label> (&IMG.ADD;) button</li>
 </ol>
 </p>
 
@@ -2148,7 +2245,9 @@ They should be defined to take and return the relevant primitive or
 Object types for the function required
 (in the case of activation functions the return value should normally
 be a short log string).
-For instance a class written as follows would define a three-value average:
+</p>
+
+<p>For example, a class written as follows would define a three-value average:
 <verbatim>
     public class AuxFuncs {
         public static double average3( double x, double y, double z ) {
@@ -2208,10 +2307,14 @@ any of the command line options described below.
 </p>
 
 <p>Alternatively you will have to invoke the program from the command line.
-If you have the full starjava installation on a Unix-like operating
-system, you can use the <code>topcat</code> script, which should
-be in the <code>java/bin/</code> directory.  So if that directory is
-on your path, you can write:
+On Unix-like operating systems, you can use the <code>topcat</code> script.
+If you have the full starjava installation, this is probably in 
+the <em>starjava</em>/java/bin directory.  If you have one of the
+standalone jar files (topcat-full.jar or topcat-lite.jar), it should
+be in the same directory as it/them.  If it's not there,
+you can unpack it from the jar file itself, using a command like
+<code>unzip topcat-lite.jar topcat</code>.
+If that directory (and java) is on your path then you can write:
 <verbatim>
    topcat [java-args] [topcat-args]
 </verbatim>
@@ -2222,7 +2325,7 @@ be used in addition to the TOPCAT classes,
 and any remaining arguments are used by TOPCAT.
 </p>
 
-<p>If you don't have the starjava Unix installation then to start from the
+<p>If you're not running Unix then to start from the
 command line you will have to use the <code>java</code> command itself.
 The most straightforward way of doing this will look like:
 <verbatim>
@@ -2286,7 +2389,7 @@ The meaning of the flags is as follows:
 
 <dt>-help</dt>
 <dd><p>If the <code>-help</code> (or <code>-h</code>) 
-    flag is given, TOPCAT will write a short usage
+    flag is given, TOPCAT will write a usage
     message and exit straight away.
     </p></dd>
 
@@ -2317,14 +2420,9 @@ The meaning of the flags is as follows:
     directory (defined by the <code>java.io.tmpdir</code> system property -
     often <code>/tmp</code> - and deleted when the program exits, unless
     it exits in an unusual way.
-    </p>
-    <p>There are a couple of additional points to make here: firstly,
-    uncompressed FITS binary tables are not read into memory in any case
-    (they are <em>mapped</em>) so the <code>-disk</code> flag may not make 
-    much difference with FITS.
-    Secondly, if you try to load tables which require temporary disk files
-    bigger than the total amount of physical memory available, certain 
-    actions can result in disk thrashing and become very slow.
+    Note however that uncompressed FITS binary tables on disk are not 
+    read into memory in any case (they are <em>mapped</em>)
+    so the <code>-disk</code> flag may not make much difference with FITS.
     </p></dd>
 
 <dt>-verbose</dt>
@@ -2474,11 +2572,15 @@ In any case, multiple (extra) paths should be separated by colons
 in the <var>other-paths</var> string.
 </p>
 
-<p>Note that if you are running TOPCAT using java's <code>-jar</code>
-flag, any attempt you make to specify the classpath will be ignored!
+<p><strong>Note</strong> that if you are running TOPCAT 
+using java's <code>-jar</code> flag,
+any attempt you make to specify the classpath will be ignored!
 This is to do with Java's security model.
 If you need to specify a classpath which includes more than the
-TOPCAT classes themselves, you can't use <code>java -jar</code>.
+TOPCAT classes themselves, you can't use <code>java -jar</code>
+(use 
+<code>java -classpath topcat-lite.jar:... uk.ac.starlink.topcat.Driver</code>
+instead).
 </p>
 
 </subsubsect>
@@ -2696,6 +2798,22 @@ with the following RDBMSs and corresponding JDBC drivers:
     <webref url="http://jdbc.postgresql.org/">its own driver</webref>.
     Note the performance of this driver appears to be rather poor,
     at least for writing tables.
+    </p></dd>
+
+<dt><webref url="http://www.oracle.com/">Oracle</webref></dt>
+<dd><p>You can use Oracle with TOPCAT, but you can't currently use the SQL
+    <ref id="SQLReadDialog">load</ref>/<ref id="SQLWriteDialog">save</ref>
+    dialogue boxes to do it.  You have to specify a JDBC URL specifying
+    the query to read/table as a string in the table load/save dialogue
+    boxes.  This will look something like
+    <verbatim>
+    jdbc:oracle:thin:@//hostname:1521/database#sql-query
+    </verbatim>
+    for querying an existing database (loading) and
+    <verbatim>
+    jdbc:oracle:thin:@//hostname:1521/database#new-table-name
+    </verbatim>
+    for writing a new table (saving).
     </p></dd>
 </dl>
 Other RDBMSs and drivers may or may not work - please let us know the
@@ -3169,6 +3287,12 @@ Here is what the individual items mean:
     rows are part of the Apparent Table
     and allows you to choose another one.  "All" indicates that all
     rows are included.
+    If you select a new value using this selector, then other windows
+    which display subset-sensitive information for the current table
+    will change their displayed subset to the newly-selected one.
+    However the reverse does not happen - you can change the visible
+    subset in the statistics window for instance or one of the graphics
+    windows and it will not affect the value displayed here.
     </p></dd>
 
 <dt>Activation Action</dt>
@@ -3649,6 +3773,9 @@ rows by dragging the mouse over them and then using the
 <label>Hide Selected</label> (&IMG.HIDE;) or 
 <label>Reveal Selected</label> (&IMG.REVEAL;) 
 toolbar buttons or menu items.
+If you want to hide or reveal all the columns in the table, use the
+<label>Hide All</label> (&IMG.HIDE_ALL;) or 
+<label>Reveal All</label> (&IMG.REVEAL_ALL;) buttons.
 </p>
 
 <p>Each column in the displayed JTable corresponds to one piece of
@@ -3790,6 +3917,18 @@ so can be changed by dragging the column headers around in the
     the current <ref id="columns">Column Set</ref>.
     This has the same effect as selecting all the checkboxes corresponding
     to these columns in the <label>Visible</label> column.
+    </p></dd>
+
+<dt>&IMG.HIDE_ALL; Hide All Columns</dt>
+<dd><p>Clicking this button will hide all the columns in the table;
+    the table will have no columns visible in it following this.
+    If you just want to see a few columns, it may be convenient to use this
+    button and then select a few visible ones individually to reveal.
+    </p></dd>
+
+<dt>&IMG.REVEAL_ALL; Reveal All Columns</dt>
+<dd><p>Clicking this button will ensure that all the table's columns
+    are visible (none are hidden).
     </p></dd>
 
 <dt>&IMG.EXPLODE; Explode Array Column</dt>
@@ -4070,6 +4209,289 @@ the superceded calculation will be stopped.
 
 </subsubsect>
 
+</subsect>
+
+<subsect id="GraphicsWindow">
+<subhead><title>Graphics Windows</title></subhead>
+
+<p>TOPCAT has a number of windows for performing data visualisation of
+various kinds.  These share various characteristics which are described
+in the first subsection below; the specific windows themselves 
+are described in the subsequent subsections.
+</p>
+
+<subsubsect>
+<subhead><title>Common Features</title></subhead>
+
+<p>The various types of graphics windows have different characteristics
+to fulfil their different functions, but they share a common way of
+doing things.  Each window contains a number of controls including
+toolbar buttons, menu items and others.  In general any change that
+you make to any of the controls will cause the plot to be redrawn
+immediately to take account of the change.
+</p>
+
+<p>Each of the graphics windows is displayed by clicking its
+toolbar button in the <ref id="ControlWindow">Control Window</ref>.
+If one of the tables in the list is selected at the time (the Current Table)
+the new plot window will initially be displayed showing data from 
+some of its columns (usually the first few numeric columns) 
+by way of illustration.  You will usually want to change the controls
+so it displays the quantities you are interested in.
+</p>
+
+<p>The following subsections describes some of the features which 
+work the same for most or all of the graphics windows.
+</p>
+
+
+<subsubsubsect id="PointSelector">
+<subhead><title>Dataset Selectors</title></subhead>
+
+<p>All the graphics windows provide one or more axes on which to plot -
+histogram has 1, the 2d scatter and density plots have 2, the 3d scatter
+plot has 3 and the spherical plot has 2 or 3.  In each case you select
+one or more dataset to plot on these axes, and select what plotting
+style to use for each set.  A dataset is typically a number of columns
+from a table (the number matching the number of axes of the plot) and
+a selection of row subsets associated with that table.  You select this
+and the plotting style(s) using the panel at the bottom of each plot
+window.  Here is the one for the 2d scatter plot:
+</p>
+
+<figure>
+<caption><px>Dataset selector from 2d scatter plot window</px></caption>
+<figureimage src="&FIG.PointSelector;"/>
+</figure>
+
+<p>The different parts of this control work as follows:
+<dl>
+
+<dt>Data panel</dt>
+<dd><p>The <label>Table</label> selector gives the identifier of the table
+    (one of the ones loaded into TOPCAT) that the data comes from.
+    </p>
+    <p>The <label>Axis</label> selectors 
+    (here <label>X Axis</label> and <label>Y Axis</label>) give the columns
+    to be plotted.  If you click the little down arrow at the right
+    of each selector you get a list of all the numeric columns in the
+    chosen table, from which you can select one.
+    If you click the little left and right arrows to the right of the 
+    selector it will cycle through all the columns in the table.
+    However, if you prefer you can type in an expression to use here.
+    This may be more convenient if there's a very long list of columns.
+    However, what you type in doesn't have to be a column name, it can
+    be an algebraic expression based on columns in the table.
+    In the example, the X axis is a straight column name, and the Y axis
+    is an expression.  The expression language syntax is explained in
+    <ref id="jel"/>.
+    </p>
+    <p>The <label>Log</label> and <label>Flip</label> checkboxes
+    are used to select whether axes should be plotted using linear or
+    logarithmic scaling, and whether the axis values increase in
+    the conventional direction (left to right, bottom to top) or its opposite.
+    </p></dd>
+
+<dt>Row Subsets panel</dt>
+<dd><p>This defines which row subsets for will be plotted in this window,
+    and what plotting style should be used for them.  In this case there
+    are three defined subsets, All, galaxy and star.  The checkboxes on
+    the left indicate which ones will be displayed - here, only the latter
+    two.  Sets of points are generally plotted in the order they are 
+    selected for viewing; since points plotted afterwards can obscure ones
+    plotted before ("underneath") this makes a difference.
+    If you want to see a set of points without it being obscured by other
+    ones in the plot, then deselect it and reselect it again (clicking
+    twice in the corresponding checkbox), and this will ensure that its
+    points are plotted on top.
+    </p>
+    <p>The buttons to the right of each subset name show the symbol
+    that is used in the plot to display the data from that subset,
+    in this case a red cross and a blue circle.
+    These are selected automatically when the subset is first selected
+    for viewing (the initial default style depends mainly on how many
+    rows there are in the selected table - many rows gives small dots,
+    few gives big ones).  However, you have a lot of freedom to configure
+    how they appear.  If you click the button with the symbol on it
+    a dialogue will pop up which allows you to select colour, shape, 
+    transparency and so on, as well as things like whether fitted lines
+    will be plotted for that subset.  The options available differ 
+    according to the kind of plot, and are described along with the 
+    different graphics windows in the following subsections.
+    The style window stays visible until you dismiss it, but if you
+    click on another of the buttons in the Row Subsets panel its contents
+    will change to allow you to select values for the corresponding
+    subset.
+    Most graphics windows have a <label>Marker Style</label> menu. 
+    This allows you to change all the styles in the plot at once to
+    be members of a uniform set, for instance different coloured pixels,
+    or black open shapes.  If you select one of these it will overwrite
+    the existing style selections, but they can be edited individually
+    afterwards.
+    </p></dd>
+
+<dt>Tabs</dt>
+<dd><p>The example shows two tabs: <label>Main</label> and <label>A</label>;
+    the Main one is currently visible.  You can select a tab by clicking
+    on its name.  In each tab you select a table and a set of 
+    columns/expressions, and if they are all filled in it will 
+    contribute points (or bars, or whatever) to the plot.
+    The Main dataset determines the initial values
+    for the axis labels, but the data comes equally from all of them.
+    The numerical values of the coordinates are the same for all the
+    datasets, though their meanings might be different (for instance
+    one dataset may be plotting V magnitude against ellipticity and another
+    plotting B magnitude against ellipticity).
+    </p>
+    <p>The + and - buttons at the left allow you to insert a new tab or
+    remove an existing one respectively.  You cannot remove the Main tab
+    (which is why the - button is disabled in the figure).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="axisConfig">
+<subhead><title>Axis Configuration</title></subhead>
+
+<p>In general terms the displayed on which the graphics are displayed are
+defined by the datasets you have selected for displayed.
+The axis labels are set from the column names or expressions chosen
+for the <label>Main</label> dataset, and the ranges are determined
+so that all the data from the chosen datasets can be seen.
+However, these things can be adjusted manually.
+</p>
+
+<p>Two features are available directly from the window for configuring
+axis range:
+<dl>
+<dt>Zoom</dt>
+<dd><p>In the 2d windows (2d scatter plot, histogram and density map), 
+    you can change the axis ranges by zooming in or out
+    with the mouse.  To zoom in, place the mouse at the top left of the
+    region you want to examine, press the button, drag it to the
+    bottom right corner, and release the button.  To zoom out, drag
+    up and left instead.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>If you find you're zoomed to a region you don't want to be in,
+    you can use the Rescale toolbar button to return to the default 
+    scale (full coverage).
+    </p></dd>
+</dl>
+</p>
+
+<p>For more control over axis range and labelling, use the
+<label>Configure Axes</label> (&IMG.AXIS_EDIT;) toolbar button,
+which will pop up the following dialogue:
+</p>
+<figure>
+<caption><px>Axis Configuration Dialogue</px></caption>
+<figureimage src="&FIG.AxisWindow;"/>
+</figure>
+
+<p>You can fill in these values as follows:
+<dl>
+<dt>Label</dt>
+<dd><p>For each axis the label box contains the text used to annotate
+    the axis in the plot.  By default this is the same as the text
+    in the <label>Main</label> dataset column selector 
+    (usually a column name), followed by the units if known.
+    However, you can change it by typing whatever text you like.
+    </p></dd>
+
+<dt>Range</dt>
+<dd><p>The range boxes allow you to specify the lower and upper limits
+    of each axis.  By default these are blank, meaning that the plot
+    will size its axes so that all the data can be seen.  However, if
+    you fill in one or both of the boxes with a suitable numeric value,
+    the lower/upper bound will be fixed at that.  Note that the lower
+    bound (left box) must be numerically less than the upper bound
+    (right box).
+    </p></dd>
+</dl>
+Both values are reset if the plot's axis is changed (a new column or
+expression is selected for the Main dataset).
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="plotSubsets">
+<subhead><title>Defining Subsets by Region</title></subhead>
+
+<p>When quantities are plotted in one of the graphics windows it becomes
+easy to see groupings of the data which may not otherwise be apparent;
+a cluster of (X,Y) points representing a group of rows may correspond
+to a physically meaningful grouping of objects which you would like
+to treat separately elsewhere in the program, for instances
+by calculating statistics on just these rows, writing them out to
+a new table, or plotting them in a different colour on graphs
+with different coordinates.
+This is easily accomplished by creating a new
+<ref id="subsets">Row Subset</ref> containing the grouped points,
+and the graphics windows provide ways of doing this.
+</p>
+
+<p>In the 2-d plots (Histogram, 2d Scatter plot and Density map)
+you can set the axis ranges (either manually or by zooming with the
+mouse) so that only the points you want to identify are visible,
+and then click the 
+<label>New Subset From Visible</label> 
+(&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;) toolbar button.
+This defines a subset consisting of all the points that are visible
+on the current plot.
+This is only useful if the group you are interested in
+corresponds to a rectangular region in the plotting space.
+</p>
+
+<p>A much more flexible way is to draw a region or regions
+on the plot which identify the points you are interested in.
+To do this, hit the
+<label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
+toolbar button.  Having done this, you can drag the mouse around
+on the plot (keep the left mouse button down while you move)
+to encircle the points that you're interested in.
+As you do so, a translucent grey blob will be left behind -
+anything inside the
+blob will end up in the subset.  You can draw one or many blobs,
+which may be overlapping or not.  If you make a mistake while
+drawing a sequence of blobs, you can click the right mouse button,
+and the most recently added blob will disappear.
+When you're in this region-drawing mode,
+you can't zoom or resize the window or change the characteristics
+of the plot, and the <label>Draw Subset Region</label> button
+appears with a tick over it (&IMG.BLOB_SUBSET_END;) to remind you
+you're in it.  Here's what the plot looks like while you're drawing:
+</p>
+<figure>
+<caption><px>Region-Drawing Mode</px></caption>
+<figureimage src="&FIG.PlotWindow_blob;"/>
+</figure>
+<p>When you're happy with the region you've defined, click the
+&IMG.BLOB_SUBSET_END; toolbar button again.
+</p>
+
+<p>In either case, when you have indicated that you want to define a 
+new row subset, a dialogue box will pop up to ask you its name.
+As described in <ref id="subsetDef"/>, it's a good idea to use a
+name which you haven't used before, and which is just composed
+of letters, numbers and underscores.
+When you enter a name and hit the <label>OK</label> button, 
+the new subset will be created and the points in it will be 
+shown straight away on the plot using a new symbol.  
+As usual, you can toggle whether the points in this subset are displayed
+using the <label>Row Subsets</label> box at the bottom of the Plot Window.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+
+
 <subsubsect id="PlotWindow">
 <subhead><title>Plot Window</title></subhead>
 
@@ -4078,11 +4500,10 @@ the superceded calculation will be stopped.
 <figureimage src="&FIG.PlotWindow;"/>
 </figure>
 
-<p>The plot window allows you to plot the values in two table
-columns against each other.
+<p>The plot window allows you to do 2-dimensional scatter plots of
+one or more pair of table columns (or derived quantities).
 You can display it using the <label>Plot</label> (&IMG.PLOT;)
-button when the chosen table is selected in the
-<ref id="ControlWindow">Control Window</ref>'s Table List.
+in the <ref id="ControlWindow">Control Window</ref>'s Table List.
 </p>
 
 <p>On the plotting surface a marker is plotted for each row in the
@@ -4090,60 +4511,10 @@ selected <ref id="subsets" plaintextref="yes">Row Subsets</ref>
 at a position determined by the
 values in the table columns selected to provide the X and Y values.
 A marker will only be plotted if both the X and Y values are not blank.
-If more than one subset is being plotted, they will be drawn using
-different markers.  A key on the right hand side indicates the marker
-being used for each subset.  The marker types can be changed using the
-<label>Marker Types</label> menu.
-</p>
-
-<p>You can <label>zoom</label> in and out of the plot by dragging with the left mouse
-button down and right (zoom in) or up and left (zoom out) - this takes
-a little practice but is easy to use after a couple of goes.
-If you get lost you can push the
-<label>Rescale</label> button (&IMG.RESIZE;) 
-to return the scaling to normal.
-</p>
-
-<p>Below the plot there are two sets of controls for selecting the
-table column which will provide the X and Y axis values.
-Each one consists of two parts:
-<dl>
-<dt>Column selector</dt>
-<dd><p>A selection box from which column names in the main table can be
-    selected.  Only columns which can be plotted from (i.e. scalar numeric
-    ones) will be displayed in this selector.
-    </p></dd>
-
-<dt>Log checkbox</dt>
-<dd><p>This checkbox can be clicked to toggle whether the axis in question
-    is to be plotted logarithmically or not.  If it is logarithmic,
-    any negative values are simply ignored (not plotted).
-    </p></dd>
-
-<dt>Flip checkbox</dt>
-<dd><p>This checkbox can be clicked to toggle whether the axis in question
-    is to be plotted reversed.  Normally (unticked) X axis increases
-    left to right and Y axis increases bottom to top.  When ticked, 
-    X axis increases right to left, and Y axis increases top to bottom.
-    </p></dd>
-</dl>
-</p>
-
-<p>To the right is a set of checkboxes headed 
-<label>Row Subsets</label>.
-Click on these to choose which of the table's 
-defined <ref id="subsets">Row Subsets</ref> should be plotted on this graph.
-Different subsets are plotted
-using different markers, so you can see where different groups of results
-lie in relation to each other.
-You can alternatively use the <label>Subsets To Plot</label> item on the
-<label>Subsets</label> menu.
-The subsets are plotted in order of which was most recently selected.
-This makes a difference on a crowded plot or where some points are 
-members of multiple subsets, since the most recently plotted symbol 
-will appear on top.  If points from one subset are being hidden behind
-those from another, you can deselect and reselect that subset and
-they'll be shown on top.
+Select the quantities to plot and the symbols that using the 
+<ref id="PointSelector">dataset selector</ref> at the bottom.
+You can configure the axes, including zooming in and out, with the
+mouse or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>The following extra buttons are available on the toolbar:
@@ -4175,6 +4546,15 @@ they'll be shown on top.
     because of changes in the subset selection or from zooming in or out.
     </p></dd>
 
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
+
+<dt>&IMG.GRID_ON; Grid</dt>
+<dd><p>Toggles whether a grid is drawn over the plotting surface or not.
+    </p></dd>
+
 <dt>&IMG.REDO; Replot</dt>
 <dd><p>Redraws the current plot.  It is usually not necessary to 
     use this button, since if you change any of the plot characteristics
@@ -4185,10 +4565,6 @@ they'll be shown on top.
     expensive operation and you may not require it).
     Clicking this button redraws the plot taking account of any changes
     to the table data.
-    </p></dd>
-
-<dt>&IMG.GRID_ON; Grid</dt>
-<dd><p>Toggles whether a grid is drawn over the plotting surface or not.
     </p></dd>
 
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
@@ -4208,115 +4584,157 @@ they'll be shown on top.
 </dl>
 </p>
 
-<p>The <label>Marker Types</label> menu allows you to select a 
-set of markers which will be used for plotting.
-Some of these sets are marked "Transparent" - for these, 
-instead of pixels on the plot blocking out ones already plotted,
-the more markers that are plotted at a given screen position, 
-the darker in colour it will appear.  This can be useful if
-you have very many points to plot, since you can see by the 
-colour of pixels on the plot how many points are there in 
-crowded regions.  Unfortunately transparent points are not rendered
-properly when exported to PostScript files (they come out opaque),
-but they still work when exported to GIF format.
-The marker type set used initially depends on how many rows there 
-are in the table (large dots for few rows, small ones for many).
+<p>You have considerable freedom to configure how the points are
+plotted including symbol shapes, colours, transparency and whether
+fitted or joined are plotted; this is described in the following
+subsection.
 </p>
 
-<p>The <label>Regression</label> menu provides facilities for
-calculating and plotting linear regression lines for some or
-all of the subsets on display.  The following options appear
-on the menu:
+<subsubsubsect id="MarkStyleEditor">
+<subhead><title>Plot Style Editor</title></subhead>
+
+<p>When plotting points in a scatter plot there are many different
+ways that each point can be displayed.  By default, TOPCAT chooses
+a set of markers on the basis of how many points there are in the
+table and uses a different one for each plotted set.  The marker for
+each set is displayed in a button to the right of its name in the 
+dataset selector panel at the bottom of the plot window.  If you 
+click this button the following dialogue will pop up which enables
+you to change the appearance.
+</p>
+
+<figure>
+<caption><px>Style editor dialogue for 2d scatter plot</px></caption>
+<figureimage src="&FIG.MarkStyleEditor;"/>
+</figure>
+
+<p>The <label>Legend</label> box defines how the marker will be displayed
+in the legend which appears alongside the plot:
 <dl>
-<dt>&IMG.PLOT_LINES; Plot Regression For Subsets...</dt>
-<dd><p>Presents you with a checkbox menu which allows you to select
-    which subsets regression lines will be displayed for.
-    Each subset whose box you select will have a line plotted on the
-    graph representing its least-squares fit regression line
-    in the same colour as the points for that subset.
+<dt>Icon</dt>
+<dd><p>Displays the icon which will be shown to identify the points in
+    the selected set.  Its appearance depends on the selections you
+    make in the rest of this dialogue window.
     </p></dd>
 
-<dt>&IMG.EQUATION; Display Regression Coefficients</dt>
-<dd><p>Displays a window giving the gradient, intercept and
-    product moment correlation coefficient for each regression line
-    which has been plotted.
+<dt>Label</dt>
+<dd><p>Gives the name written in the legend to label the subset.
+    By default this is derived from the Row Subset's name and, if it's
+    not part of the main dataset, the name of the dataset's tab.
+    You can type in a new value to change what is written in the legend.
     </p></dd>
 </dl>
-Note the regression lines plotted are those calculated from all the
-<em>visible</em> points in the subset in question - any points
-off the edge of the graph are disregarded.  Thus, zooming in and
-out will change the correlation coefficients and line geometry.
-The linear correlation functionality is experimental in this version
-of the program, and will be improved in future.
 </p>
 
-<subsubsubsect id="plotSubsets">
-<subhead><title>Defining Subsets From Plots</title></subhead>
+<p>The <label>Marker</label> box defines how the markers plotted for
+each data point will appear:
+<dl>
+<dt>Shape</dt>
+<dd><p>Choose from a variety of shapes such as open or filled 
+    circles, squares, crosses etc.
+    </p></dd>
 
-<p>When columns are plotted against each other in the 
-<ref id="PlotWindow">Plot Window</ref>, it becomes easy 
-to see groupings of the data which may not be otherwise apparent;
-a cluster of (X,Y) points representing a group of rows 
-may correspond to a physically important grouping of objects which
-you would like to treat separately elsewhere in the program, 
-for instance by calculating statistics on just these rows, 
-writing them out to a new table, 
-or plotting them in a different colour on graphs with different coordinates.
-This is easily accomplished by creating a new 
-<ref id="subsets">Row Subset</ref> containing the grouped points,
-and the Plot Window gives you two ways to do this.
+<dt>Size</dt>
+<dd><p>Choose the size of the marker; the value given is approximate radius
+    in pixels.  If a size of zero is chosen, then the shape doesn't matter,
+    the points will be plotted as single pixels.
+    </p></dd>
+
+<dt>Colour</dt>
+<dd><p>Choose one of the dozen-odd colours in which the markers, and
+    any line if one is drawn, will be plotted.
+    </p></dd>
+
+<dt>Transparency</dt>
+<dd><p>Choose transparency of the plotted symbols.
+    The scale on the slider is logarithmic, with 1 at the left hand end.
+    The actual value chosen is an integer written at the right of the
+    slider.  This number gives the number of markers for this set which
+    need to be plotted in the same position to result in fully opaque
+    pixels - any fewer and the background, or other markers plotted
+    underneath, will show through to some extent. 
+    Setting this to some value greater than 1 is very useful if you
+    have a very large number of points being plotted (especially if it's
+    comparable with the number of the pixels on the screen), since it
+    enables to you distinguish regions where there are lots of points
+    on top of each other from those where there are only a few.
+    </p></dd>
+
+<dt>Hide Markers</dt>
+<dd><p>This check box is only enabled if a line is being plotted; it allows
+    the markers to be invisible, so that only the line is seen.
+    </p></dd>
+
+</dl>
 </p>
 
-<p>The simplest way is to zoom the plot so that only the points you
-want to identify are visible (by dragging the mouse down-and-right
-to zoom in or up-and-left to zoom out) and hitting the 
-<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
-toolbar button.  This defines a subset consisting of all the points
-that are currently visible.
-This has the limitation that only a rectangular grouping of points
-can be selected.
+<p>The <label>Line</label> box determines if any lines are drawn associated
+with the current set and if so what their appearance will be.
+<dl>
+<dt>Thickness</dt>
+<dd><p>Selects the line thickness in pixels.
+    </p></dd>
+
+<dt>Dash</dt>
+<dd><p>Selects a dash pattern (solid, dotted, dashed or dot-dashed) for
+    the line.
+    </p></dd>
+
+<dt>Type</dt>
+<dd><p>The other radio buttons determine what kind of line, if any,
+    will be plotted for these points.  There are three options:
+    <dl>
+    <dt>None</dt>
+    <dd><p>No line is drawn - this is the default.
+        </p></dd>
+    <dt>Dot to Dot</dt>
+    <dd><p>A straight line segment is drawn between each of the points.
+        If the points effectively form an ordered set of samples of a 
+        function, this will result in a more-or-less smooth drawing of
+        that function on the plot.  Note that the lines are drawn in
+        the order that the points appear in the basic table, and if
+        this doesn't match the 'ordinate' order the result will be a mess.
+        Really, the drawing order ought to be the table's current sort
+        order - that it is not is a misfeature which may be corrected
+        at some point.
+        Note also that if you try this with a huge table you're likely
+        to get a result which (a) is messy and (b) takes a very long time
+        to draw.
+        </p></dd>
+    <dt>Linear Correlation</dt>
+    <dd><p>If you select this option then a linear regression line will
+        be plotted.  The correlation coefficients will also be displayed
+        to the right of the radio button (you may need to resize the
+        window to see them all).  The values cited are
+        <m>m</m> (gradient), <m>c</m> (intercept) and 
+        <m>r</m> (product moment correlation coefficient).
+        </p>
+        <p><strong>Note</strong> that for both the plotted line and the
+        quoted coefficients the data is taken only from the points which
+        are currently visible - that means that if you've zoomed the
+        axes to exclude some of the data points, they will not be
+        contributing to the calculated statistics.
+        </p></dd>
+    </dl>
+    </p></dd>
+</dl>
 </p>
 
-<p>A much more flexible way is to draw a region or regions 
-on the plot which identify the points you are interested in.
-To do this, hit the
-<label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
-toolbar button.  Having done this, you can drag the mouse around
-on the plot (keep the left mouse button down while you move)
-to encircle the points that you're interested in.
-As you do so, a translucent grey blob will be left behind - 
-anything inside the
-blob will end up in the subset.  You can draw one or many blobs, 
-which may be overlapping or not.  If you make a mistake while 
-drawing a sequence of blobs, you can click the right mouse button,
-and the most recently added blob will disappear.
-When you're in this region-drawing mode,
-you can't zoom or resize the window or change the characteristics
-of the plot, and the <label>Draw Subset Region</label> button 
-appears with a tick over it (&IMG.BLOB_SUBSET_END;) to remind you
-you're in it.  Here's what the plot looks like while you're drawing:
-</p>
-<figure>
-<caption><px>Region-Drawing Mode</px></caption>
-<figureimage src="&FIG.PlotWindow_blob;"/>
-</figure>
-<p>When you're happy with the region you've defined, click the
-&IMG.BLOB_SUBSET_END; toolbar button again.
+<p>Any changes you make in this window are reflected in the plot straight
+away.  If you click the <label>OK</label> button at the bottom, the window
+will disappear and the changes remain.  If you click <label>Cancel</label>
+the window will disappear and any changes you made will be discarded.
 </p>
 
-<p>In either case, when you have indicated that you want to define a 
-new row subset, a dialogue box will pop up to ask you its name.
-As described in <ref id="subsetDef"/>, it's a good idea to use a
-name which you haven't used before, and which is just composed
-of letters, numbers and underscores.
-When you enter a name and hit the <label>OK</label> button, 
-the new subset will be created and the points in it will be 
-shown straight away on the plot using a new symbol.  
-As usual, you can toggle whether the points in this subset are displayed
-using the <label>Row Subsets</label> box at the bottom of the Plot Window.
+<p>You can also change all the plotting styles at once by using the
+<label>Marker Style</label> menu in the plot window.
+This will assign a default set (e.g. all open 2-pixel markers 
+with different colours and shapes) to the plotted sets as you
+select.
 </p>
 
 </subsubsubsect>
+
 
 </subsubsect>
 
@@ -6352,6 +6770,7 @@ comments (apologies for any missed out):
 <li>Francois Ochsenbein (Strasbourg)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Bob Mann (Edinburgh/Strasbourg)</li>
+<li>Danny Boxhoorn (Kapteyn, Groningen)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
 <li>James Price (Bristol)</li>
@@ -6910,31 +7329,129 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Next version</dt>
-<dd><p>
-<ul>
-<li>Loads of plotting stuff.</li>
-<li>Selection of a subset in the Control Window now triggers its selection
-    in other windows (plot, statistics, subsets).  The same thing doesn't
-    happen the other way around, since that might lead to confusing 
-    consequences.</li>
-<li>Experimental implementation of Aladin interoperability interface.</li>
-<li>Fixed java 1.5 bug in which subset checkboxes didn't appear in Plot Window.
-    </li>
-<li>Plotting: axes now have a threshold of 1e4 for exponent factorisation
-    on axis labels.</li>
-<li>Boolean columns now display null values distinctly from false ones.
-    Additionally, null/false distinctions are handled more carefully in
-    FITS and VOTable files.</li>
-<li>Sky Coordinates Window now suggests names for new columns.</li>
-<li>Filestore Browser now allows you to enter the position in a file of the
-    table to load (e.g. HDU index for FITS or TABLE index for VOTable).</li>
-<li>When joining tables, column name comparison to determine whether
-    deduplication is required is now case-insensitive.</li>
-<li>Add hide all/reveal all actions to Columns window.</li>
-<li>Prevent TOPCAT crash when attempting to save an altered copy of a FITS
-    file under the same name.</li>
-</ul>
+<dt>Version 2.0 (1 February 2006)</dt>
+<dd><p>A major upgrade of TOPCAT's visualisation capabilities has taken
+    place in this release.  There are considerable improvements in 
+    functionality, flexibility and efficiency over previous versions:
+    <dl>
+
+    <dt>New graphics windows</dt>
+    <dd><p> In addition to the 2-d scatter plot from previous versions,
+        the following visualisation windows are now available:
+        <ul>
+        <li>Histogram (1-d)</li>
+        <li>3-d Cartesian scatter plot</li>
+        <li>3-d Spherical scatter plot (with optional radial dimension)</li>
+        <li>2-d Density map (2-d histogram)</li>
+        </ul>
+        The new 3-d functionality does <em>not</em> require you to install
+        Java3D or any other third-party 3D toolkit to work (nor does it
+        take advantage of any such toolkit which may be present).
+        </p></dd>
+
+    <dt>Multi-dataset/multi-table plotting</dt>
+    <dd><p>The plot windows are no longer associated with a single table.
+        All of them allow you to display data from different tables,
+        or from different columns of the same table, on the same plot.
+        You can layer as many plots as you like on the same axes,
+        using different plotting styles for the different datasets.
+        As before, you can still display data from different subsets
+        of the same table and same columns using different styles.
+        </p></dd>
+
+    <dt>Plotting Styles</dt>
+    <dd><p>All the graphics windows allow you to set the plotting style
+        for each data set individually, using a wide range of options
+        including colour, line width, marker size, (histogram) bar style, etc.
+        This allows you considerable control over the visual details of the
+        plots.
+        </p></dd>
+
+    <dt>Transparent markers</dt>
+    <dd><p>All the 2-d and 3-d scatter plots allow you to render points
+        using markers of variable transparency.  In a crowded plot, this
+        allows you to see much more information than using opaque points,
+        since you can get some idea of how many points (of different data
+        sets) have been drawn at a given point on the plotting surface.
+        </p></dd>
+
+    <dt>Line drawing &amp; linear correlation</dt>
+    <dd><p>The 2-d scatter plot can now optionally plot lines associated
+        with data sets.  It can either draw straight line segments joining
+        all the plotted points in a set, or draw per-dataset linear 
+        correlation lines.  In the latter case it will report line 
+        gradient, intercept and correlation coefficient.
+        </p></dd>
+
+    <dt>Improved column selection</dt>
+    <dd><p>The selector boxes for selecting which columns to plot are
+        now 'editable' - that is, instead of selecting the column from
+        a drop down list it is now also possible to type an expression 
+        into them instead.  This may be more convenient if there is a
+        very long list of columns.  It also means that you can use an
+        algebraic expression based on the names of one or more columns
+        instead of a simple column name.
+        The selectors also have small arrow boxes next to them which 
+        makes it easy to cycle through the list of known columns.
+        These features are also available at some other places in the
+        program where a column value is required.
+        </p></dd>
+
+    <dt>Manual axis configuration</dt>
+    <dd><p>As well as zooming in and out using the mouse, you can now 
+        set the axis limits by typing them into a dialogue box.
+        You can also set the text which will form the axis annotation
+        on the plot.
+        </p></dd>
+
+    <dt>Status line</dt>
+    <dd><p>Most plots now feature a panel at the bottom of the window
+        indicating how many points have been plotted and the current
+        position of the mouse pointer (if any) on the plotting surface.
+        </p></dd>
+
+    <dt>Performance</dt>
+    <dd><p>Scatter plots of large datasets now use considerably less memory
+        and around an order of magnitude less CPU time than previously
+        (a 2-d million point replot now takes about 1 second - plotting
+        it the first time may be rather longer since it needs to acquire
+        the data which may be I/O intensive).
+        </p></dd>
+        
+    </dl>
+    </p>
+
+    <p>Some non graphics-related improvements have also been made as follows:
+    <ul>
+    <li>Selection of a subset in the Control Window now triggers its selection
+        in other windows (plot, statistics, subsets).  The same thing doesn't
+        happen the other way around, since that might lead to confusing 
+        consequences.
+        </li>
+    <li>Boolean columns now display null values distinctly from false ones.
+        Additionally, null/false distinctions are handled more carefully in
+        FITS and VOTable files.
+        </li>
+    <li>The Sky Coordinates Window now suggests names for new columns.
+        </li>
+    <li>The Filestore Browser now allows you to enter the position 
+        in a file of the table to load (e.g. HDU index for FITS 
+        or TABLE index for VOTable).
+        </li>
+    <li>Added Hide All &amp; Reveal All actions to the Columns window.
+        </li>
+    <li>When joining tables, column name comparison to determine whether
+        deduplication is required is now case-insensitive.
+        </li>
+    <li>Fixed a problem which was causing TOPCAT to crash when attempting 
+        to save an altered copy of a FITS file under the same name.
+        </li>
+    <li>There is an experimental implementation of the Aladin 
+        interoperability interface.  This hasn't really been tested however,
+        so may not work.  Improved Aladin interoperability is expected in 
+        future releases.
+        </li>
+    </ul>
 </p></dd>
 
 </dl>
