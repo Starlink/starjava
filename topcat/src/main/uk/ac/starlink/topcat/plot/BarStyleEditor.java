@@ -63,7 +63,7 @@ public class BarStyleEditor extends StyleEditor {
         formSelector_.addActionListener( this );
 
         JComponent colorBox = Box.createHorizontalBox();
-        colorBox.add( new JLabel( "Color: " ) );
+        colorBox.add( new JLabel( "Colour: " ) );
         colorBox.add( new ShrinkWrapper( colorSelector_ ) );
         colorBox.add( Box.createHorizontalStrut( 5 ) );
         colorBox.add( new ComboBoxBumper( colorSelector_ ) );
