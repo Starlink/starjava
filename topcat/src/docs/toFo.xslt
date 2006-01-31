@@ -423,6 +423,7 @@
             <xsl:text>/../figures/</xsl:text>
             <xsl:value-of select="figureimage/@src"/>
           </xsl:attribute>
+     <!-- <xsl:attribute name="content-width">50%</xsl:attribute> -->
         </xsl:element>
       </fo:block>
       <fo:block font-weight="bold" text-align="center">
