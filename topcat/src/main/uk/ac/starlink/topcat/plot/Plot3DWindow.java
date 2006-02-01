@@ -150,6 +150,11 @@ public abstract class Plot3DWindow extends GraphicsWindow
         renderMenu.add( antialiasModel_.createMenuItem() );
         getJMenuBar().add( renderMenu );
 
+        /* Construct a new menu for subset options. */
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.setMnemonic( KeyEvent.VK_S );
+        subsetMenu.add( blobAction_ );
+
         /* Construct a new menu for marker style set selection. */
         JMenu styleMenu = new JMenu( "Marker Style" );
         styleMenu.setMnemonic( KeyEvent.VK_M );
