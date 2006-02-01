@@ -236,6 +236,7 @@ public class DensityWindow extends GraphicsWindow {
         getJMenuBar().add( subsetMenu );
 
         /* Add actions to the toolbar. */
+        getToolBar().add( fitsAction_ );
         getToolBar().add( resizeAction );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( zLogModel_.createToolbarButton() );
