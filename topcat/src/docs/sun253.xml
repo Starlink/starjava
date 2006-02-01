@@ -5054,6 +5054,17 @@ see <ref id="activation"/>.
 </dl>
 </p>
 
+<p>The following additional item is available as a menu item only:
+<dl>
+<dt>&IMG.ANTIALIAS; Antialias</dt>
+<dd><p>Toggles whether the axes and their annotations are drawn antialiased.
+    Antialiased lines are smoother and generally look more pleasing, 
+    especially for text at a sharp angle, but it can slow the rendering 
+    down a bit.
+    </p></dd>
+</dl>
+</p>
+
 <p>You have considerable freedom to configure how the points are plotted
 including symbol shapes, colours and transparency; this is described
 in the following subsection.
@@ -5192,6 +5203,180 @@ see <ref id="Plot3DWindow"/>.
 
 </subsubsect>
 
+
+<subsubsect id="DensityWindow">
+<subhead><title>Density Map</title></subhead>
+
+<figure>
+<caption><px>Density map window</px></caption>
+<figureimage src="&FIG.DensityWindow;"/>
+</figure>
+
+<p>The density map window plots a 2-dimensional density map of 
+one or more pairs of table columns (or derived quantities);
+the colour of each pixel displayed is determined by the number of 
+points in the data set which fall within its bounds.
+Another way to think of this is as a histogram on a 2-dimensional
+grid, rather than a 1-dimensional one as in the 
+<ref id="HistogramWindow">Histogram Window</ref>.
+If multiple datasets are being plotted, pixel colours can either
+be single brightness level derived from total number of points,
+or up to three independent (red, green, blue) colour channels from
+different datasets.
+</p>
+
+<p>Density maps are suitable when you have a very large number of points
+to plot, since in this case it's important to be able to see not just 
+whether there is a point at a given pixel, but how many points fall
+on that pixel.  To a large extent, the transparency features of the
+other 2d and 3d plotting windows address this issue, but the 
+density map gives you a bit more control.  It can also export
+the result as a FITS image, which can then be processed or viewed
+using image-specific software such as GAIA or Aladin.
+</p>
+
+<p>You can configure the axes, including zooming in and out, with the mouse
+or manually as described in <ref id="axisConfig"/>.
+</p>
+
+<p>The <label>Cut Percentile Levels</label> panel below the plot controls
+how the number of counts in each pixel maps to a brigtness.
+There are two sliders, one for the lower bound and one for the upper bound.
+They are labelled (logarithmically) with percentile values.
+If the upper one is set to 90, it means that any pixel above the 90th
+percentile of the pixels in the image in terms of count level will be
+shown with maximum brightness, and similarly for the lower one.
+These values apply independently to each colour channel if more than
+one is in use.
+If the image is not fairly completely covered, this control doesn't
+give you as much control as you might like - the user interface may
+be improved in future releases.
+</p>
+
+<p>The following buttons are available on the toolbar:
+<dl>
+<dt>&IMG.PRINT; Export as EPS</dt>
+<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size
+    of the output GIF.
+    </p></dd>
+
+<dt>&IMG.FITS; Export as FITS</dt>
+<dd><p>Pops up a dialogue which will output the plotted map as a 2d FITS
+    image file.  The output FITS file will have a single HDU with dimensions
+    the same as the displayed image.  Basic coordinate system information,
+    as well as DATAMIN and DATAMAX cards, will be written to the header.
+    The output array will have some integer type; its length (BITPIX) 
+    will depend on the maximum value of any of the pixels.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes of the current plot so that it contains all
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection or from zooming in or out.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
+
+<dt>&IMG.COLOR_LOG; Log Intensity</dt>
+<dd><p>Toggles between linear and logarithmic mapping for colour intensity
+    as a function of number of counts.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to 
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.COLOR; Colour</dt>
+<dd><p>Toggles between one-channel (monochrome) and three-channel (RGB)
+    images.  When the display is monochrome, the brightness of every 
+    pixel depends on the number of counts that fall in its bounds summed
+    from every plotted dataset, and the display runs from black (low cut)
+    to white (high cut) via shades of grey.
+    For RGB, each dataset is assigned one of the colours red, green or blue,
+    and the brightness of each colour is individually determined by the
+    number of counts from datasets assigned that colour.
+    </p></dd>
+
+<dt>&IMG.ROUGH; Bigger Pixels</dt>
+<dd><p>Increments the size of screen pixel corresponding to one density
+    map bin.
+    </p></dd>
+
+<dt>&IMG.FINE; Smaller Pixels</dt>
+<dd><p>Decrements the size of screen pixel corresponding to one density
+    map bin.
+    </p></dd>
+
+<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dd><p>Allows you to draw a region on the screen defining a new 
+    <ref id="subsets">Row Subset</ref>.  When you have finished 
+    drawing it, click this button again to indicate you're done.
+    See <ref id="plotSubsets"/> for more details.
+    </p></dd>
+
+<dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
+<dd><p>Defines a new <label>Row Subset</label>
+    consisting of only the points which
+    are currently visible on the plotting surface.
+    See <ref id="plotSubsets"/> for more explanation.
+    </p></dd>
+</dl>
+</p>
+
+<p>How to set the colour channel corresponding to each dataset is
+explained in the following subsection.
+</p>
+
+<subsubsubsect id="DensityStyleEditor">
+<subhead><title>Density Style Editor</title></subhead>
+
+<p>When you are doing a three-channel (RGB) density plot, each dataset
+is assigned a colour channel to which it contributes.  A representation
+of this is displayed in a button to the right of its name in the dataset
+selector panel at the bottom of the density map window.
+If you click this button the following dialogue will pop up which
+enables you to change the colour channel
+</p>
+
+<figure>
+<caption><px>Style editor dialogue for density map</px></caption>
+<figureimage src="&FIG.DensityStyleEditor;"/>
+</figure>
+
+<p>The <label>Label</label> text box allows you to set the name which
+will be written in the plot's legend to label the dataset.
+By default this is derived from the Row Subset's name and, if it's not
+part of the main dataset, the name of the dataset's tab.
+</p>
+
+<p>The <label>Channel</label> selector allows you to select either 
+Red, Green or Blue channel for this dataset to contribute to.
+Note that if plotting is in monochrome mode, this setting won't 
+have any material effect on the appearance of the plot;
+also, the legend icons will appear monochrome in this case.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
 
 </subsect>
 
