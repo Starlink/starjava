@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.Box;
@@ -69,6 +70,17 @@ public class TupleSelector extends JPanel {
             main.add( colSelectors[ i ] );
         }
         main.add( Box.createVerticalGlue() );
+
+        /* Align the selectors. */
+        Dimension labelSize = new Dimension( 0, 0 );
+        for ( int i = 0; i < nCols; i++ ) {
+            Dimension s = colSelectors[ i ].getLabel().getPreferredSize();
+            labelSize.width = Math.max( labelSize.width, s.width );
+            labelSize.height = Math.max( labelSize.height, s.height );
+        }
+        for ( int i = 0; i < nCols; i++ ) {
+            colSelectors[ i ].getLabel().setPreferredSize( labelSize );
+        }
     }
 
     /**

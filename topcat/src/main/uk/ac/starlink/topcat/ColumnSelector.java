@@ -30,6 +30,7 @@ public class ColumnSelector extends JComponent {
     private final JComboBox colComboBox_;
     private final JComboBox convComboBox_;
     private final Component[] components_;
+    private final JLabel label_;
 
     /**
      * Constructs a new selector ready to select columns corresponding to
@@ -45,8 +46,8 @@ public class ColumnSelector extends JComponent {
         List compList = new ArrayList();
 
         /* Set up label. */
-        JLabel label = new JLabel( info_.getName() + " column:" );
-        label.setToolTipText( "Select column for " + info_.getDescription() );
+        label_ = new JLabel( info_.getName() + " column:" );
+        label_.setToolTipText( "Select column for " + info_.getDescription() );
 
         /* Set up column selector box. */
         colComboBox_ = ColumnDataComboBoxModel.createComboBox();
@@ -66,8 +67,8 @@ public class ColumnSelector extends JComponent {
         /* Lay out components. */
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         if ( showLabel ) {
-            add( label );
-            compList.add( label );
+            add( label_ );
+            compList.add( label_ );
             add( Box.createHorizontalStrut( 5 ) );
         }
         add( colComboBox_ );
@@ -161,6 +162,17 @@ public class ColumnSelector extends JComponent {
      */
     public ColumnSelectorModel getModel() {
         return model_;
+    }
+
+    /**
+     * Returns the label which annotates this selector (though it may
+     * or may not be displayed in this component according to how
+     * the constructor was called).
+     *
+     * @return  label   annotating label
+     */
+    public JLabel getLabel() {
+        return label_;
     }
 
     /**
