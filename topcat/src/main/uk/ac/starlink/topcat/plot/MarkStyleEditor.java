@@ -42,6 +42,7 @@ public class MarkStyleEditor extends StyleEditor {
     private final ValueButtonGroup lineSelector_;
     private final JLabel corrLabel_;
     private final Map statMap_;
+    private final String helpId_;
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
@@ -66,6 +67,7 @@ public class MarkStyleEditor extends StyleEditor {
     public MarkStyleEditor( boolean withLines, boolean withTransparency ) {
         super();
         statMap_ = new HashMap();
+        helpId_ = withLines ? "MarkStyleEditor" : "MarkStyleEditorNoLines";
 
         /* Shape selector. */
         shapeSelector_ = new JComboBox( SHAPES );
@@ -254,7 +256,7 @@ public class MarkStyleEditor extends StyleEditor {
     }
 
     public String getHelpID() {
-        return "MarkStyleEditor";
+        return helpId_;
     }
 
     /**
