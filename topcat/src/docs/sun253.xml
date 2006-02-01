@@ -23,8 +23,6 @@
   <!ENTITY FIG.TableViewerWindow '&figs;TableViewerWindow.gif'>
   <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.gif'>
   <!ENTITY FIG.StatsWindow '&figs;StatsWindow.gif'>
-  <!ENTITY FIG.PlotWindow '&figs;PlotWindow.gif'>
-  <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
   <!ENTITY FIG.LoadQueryWindow '&figs;LoadQueryWindow.gif'>
   <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.gif'>
   <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
@@ -52,9 +50,16 @@
   <!ENTITY FIG.LogWindow '&figs;LogWindow.gif'>
   <!ENTITY FIG.PointSelector '&figs;PointSelector.gif'>
   <!ENTITY FIG.AxisWindow '&figs;AxisWindow.gif'>
-  <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.gif'>
   <!ENTITY FIG.HistogramWindow '&figs;HistogramWindow.gif'>
+  <!ENTITY FIG.PlotWindow '&figs;PlotWindow.gif'>
+  <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
+  <!ENTITY FIG.Plot3DWindow '&figs;Plot3DWindow.gif'>
+  <!ENTITY FIG.SphereWindow '&figs;SphereWindow.gif'>
+  <!ENTITY FIG.DensityWindow '&figs;DensityWindow.gif'>
+  <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.gif'>
+  <!ENTITY FIG.MarkStyleEditorNoLines '&figs;MarkStyleEditorNoLines.gif'>
   <!ENTITY FIG.BarStyleEditor '&figs;BarStyleEditor.gif'>
+  <!ENTITY FIG.DensityStyleEditor '&figs;DensityStyleEditor.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -4508,14 +4513,19 @@ in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
 </p>
 
 <p>On the plotting surface a marker is plotted for each row in the
-selected <ref id="subsets" plaintextref="yes">Row Subsets</ref> 
+selected dataset(s)
 at a position determined by the
 values in the table columns selected to provide the X and Y values.
 A marker will only be plotted if both the X and Y values are not blank.
-Select the quantities to plot and the symbols that using the 
-<ref id="PointSelector">dataset selector</ref> at the bottom.
+Select the quantities to plot and the plotting symbols with the 
+<ref id="PointSelector" plaintextref="yes">dataset selector</ref>
+at the bottom.
 You can configure the axes, including zooming in and out, with the
 mouse or manually as described in <ref id="axisConfig"/>.
+</p>
+
+<p>Clicking on any of the plotted points will <label>activate</label> it - 
+see <ref id="activation"/>.
 </p>
 
 <p>The following buttons are available on the toolbar:
@@ -4753,7 +4763,8 @@ button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
 </p>
 
 <p>You select the quantity or quantities to plot using the
-<ref id="PointSelector">dataset selector</ref> at the bottom of the window.
+<ref id="PointSelector" plaintextref="yes">dataset selector</ref>
+at the bottom of the window.
 You can configure the axes, including zooming in and out, with the
 mouse or manually as described in <ref id="axisConfig"/>.
 The width of the bars can be selected using the <label>Bin Widths</label> 
@@ -4929,6 +4940,258 @@ bars with different colours) for the plotted sets.
 </subsubsubsect>
 
 </subsubsect>
+
+<subsubsect id="Plot3DWindow">
+<subhead><title>3D Plot</title></subhead>
+
+<figure>
+<caption><px>3D scatter plot window</px></caption>
+<figureimage src="&FIG.Plot3DWindow;"/>
+</figure>
+
+<p>The 3D plot window draws 3-dimensional scatter plots of one or more
+triples of table columns (or derived quantities) on Cartesian axes.
+You can display it using the <label>3D</label> (&IMG.PLOT3D;) button
+in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
+</p>
+
+<p>On the display a marker is plotted for each row in the selected
+dataset(s) at a position determined by the values in the table columns
+selected to provide the X, Y and Z values.
+A marker will only be plotted if none of the X, Y and Z values are blank.
+Select the quantities to plot and the plotting symbols with the
+<ref id="PointSelector" plaintextref="yes">dataset selector</ref> 
+at the bottom.
+</p>
+
+<p>The 3D space can be rotated by dragging the mouse around on the
+surface - it will rotate around the point in the centre of the
+plotted cube.  The axis labels try to display themselves the right
+way up and in a way which is readable from the viewing point if possible,
+which means they move around while the rotation is happening.
+By default the points are rendered as though the 3D space is filled
+with a 'fog', so that more distant points appear more washed out - 
+this provides a visual cue which can help to distinguish the depth
+of plotted points.  However, you can turn this off if you want.
+You can't zoom in and out of the plot using the mouse, but you can use the 
+<ref id="axisConfig" plaintextref="yes">Axis Configuration Dialogue</ref>
+to set axis ranges (and labels) manually.
+If there are many points, then you may find that they're not all plotted
+in the middle of a drag-to-rotate gesture.  This is done to cut down on 
+rendering time so that GUI response stays fast.  When the drag is
+finished (i.e. when you release the mouse button) all the points will
+come back again.
+</p>
+
+<p>Clicking on any of the plotted points will <label>activate</label> it - 
+see <ref id="activation"/>.
+</p>
+
+<p>The following buttons are available on the toolbar:
+<dl>
+
+<dt>&IMG.PRINT; Export as EPS</dt>
+<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+    In general this is a faithful and high quality rendering of what
+    is displayed in the plot window.  However, if plotting is being done
+    using the transparent markers, it won't come out right since
+    transparency cannot be represented in PostScript; the markers will
+    be rendered as if they were opaque.
+    Currently, if there are many points being plotted, this can result
+    in a rather large output file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size
+    of the output GIF.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes of the current plot so that it contains all
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection.
+    </p></dd>
+
+<dt>&IMG.XYZ; Reorient</dt>
+<dd><p>Reorients the axes of the current plot to their default position.
+    This can be useful if you've lost track of where you've rotated
+    the plot to with the mouse.
+    </p></dd>
+
+<dt>&IMG.GRID_ON; Grid</dt>
+<dd><p>Toggles whether the axis lines are drawn or not.
+    </p></dd>
+
+<dt>&IMG.FOG; Fog</dt>
+<dd><p>Toggles whether rendering is done as if the space is filled with fog.
+    If this option is selected, distant points will appear more washed out
+    than near ones.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dd><p>Allows you to draw a region on teh screen defining a new
+    <ref id="subsets">Row Subset</ref>.  When you have finished
+    drawing it, click this button again to indicate you're done.
+    The subset will include points at all depths in the viewing direction
+    which fall in the region you have drawn.
+    See <ref id="plotSubsets"/> for more details.
+    </p></dd>
+</dl>
+</p>
+
+<p>You have considerable freedom to configure how the points are plotted
+including symbol shapes, colours and transparency; this is described
+in the following subsection.
+</p>
+
+<subsubsubsect id="MarkStyleEditorNoLines">
+<subhead><title>3D Plot Style Editor</title></subhead>
+
+<p>When plotting points in a 3D plot there are many different
+ways that each point can be displayed.  By default, TOPCAT chooses
+a set of markers on the basis of how many points there are in the
+table and uses a different one for each plotted set.  The marker for
+each set is displayed in a button to the right of its name in the 
+dataset selector panel at the bottom of the plot window.  If you 
+click this button the following dialogue will pop up which enables
+you to change the appearance.
+</p>
+
+<figure>
+<caption><px>Style editor dialogue for 3d plots</px></caption>
+<figureimage src="&FIG.MarkStyleEditorNoLines;"/>
+</figure>
+
+<p>The <label>Legend</label> box defines how the marker will be displayed
+in the legend which appears alongside the plot:
+<dl>
+<dt>Icon</dt>
+<dd><p>Displays the icon which will be shown to identify the points in
+    the selected set.  Its appearance depends on the selections you
+    make in the rest of this dialogue window.
+    </p></dd>
+
+<dt>Label</dt>
+<dd><p>Gives the name written in the legend to label the subset.
+    By default this is derived from the Row Subset's name and, if it's
+    not part of the main dataset, the name of the dataset's tab.
+    You can type in a new value to change what is written in the legend.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Marker</label> box defines how the markers plotted for
+each data point will appear:
+<dl>
+<dt>Shape</dt>
+<dd><p>Choose from a variety of shapes such as open or filled 
+    circles, squares, crosses etc.
+    </p></dd>
+
+<dt>Size</dt>
+<dd><p>Choose the size of the marker; the value given is approximate radius
+    in pixels.  If a size of zero is chosen, then the shape doesn't matter,
+    the points will be plotted as single pixels.
+    </p></dd>
+
+<dt>Colour</dt>
+<dd><p>Choose one of the dozen-odd colours in which the markers, and
+    any line if one is drawn, will be plotted.
+    </p></dd>
+
+<dt>Transparency</dt>
+<dd><p>Choose transparency of the plotted symbols.
+    The scale on the slider is logarithmic, with 1 at the left hand end.
+    The actual value chosen is an integer written at the right of the
+    slider.  This number gives the number of markers for this set which
+    need to be plotted in the same position to result in fully opaque
+    pixels - any fewer and the background, or other markers plotted
+    underneath, will show through to some extent. 
+    Setting this to some value greater than 1 is very useful if you
+    have a very large number of points being plotted (especially if it's
+    comparable with the number of the pixels on the screen), since it
+    enables to you distinguish regions where there are lots of points
+    on top of each other from those where there are only a few.
+    If a finite transparency is set, you may find it useful to turn off
+    fogging.
+    </p></dd>
+</dl>
+</p>
+
+<p>Any changes you make in this window are reflected in the plot straight
+away.  If you click the <label>OK</label> button at the bottom, the window
+will disappear and the changes remain.  If you click <label>Cancel</label>
+the window will disappear and any changes you made will be discarded.
+</p>
+
+<p>You can also change all the plotting styles at once by using the
+<label>Marker Style</label> menu in the plot window.
+Here you can select a standard group of styles (e.g. all open 2-pixel 
+markers with different colours and shapes) for the plotted sets.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="SphereWindow">
+<subhead><title>Spherical Plot</title></subhead>
+
+<figure>
+<caption><px>Spherical plot window</px></caption>
+<figureimage src="&FIG.SphereWindow;"/>
+</figure>
+
+<p>The spherical plot window draws 3-dimensional scatter plots
+of datasets from one or more tables on spherical polar axes,
+so it's suitable for displaying the position of coordinates on
+the sky or some other spherical coordinate system, such as the
+surface of a planet or the sun.
+You can display it using the <label>Sphere</label> (&IMG.SPHERE;) button
+in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
+</p>
+
+<p>In most respects this window works like the 
+<ref id="Plot3DWindow">3D Plot</ref> window,
+but it uses spherical polar axes rather than Cartesian ones,
+You have to fill in the 
+<ref id="PointSelector" plaintextref="yes">dataset selector</ref>
+at the bottom with longitude- and latitude-type coordinates
+from the table.  
+Selectors are included to indicate the units of those coordinates.
+If TOPCAT can locate columns in the table which appear to represent
+Right Ascension and Declination, these will be filled in automatically.
+If only these two are filled in, then the points will be plotted on
+the surface of the unit sphere - this is suitable if you just want to
+inspect the positions of a set of objects in the sky.
+You can optionally fill in the <label>Radius</label> selector as well.
+If you do this, then points will be plotted on the interior of the
+sphere, at a distance from the centre given by the value of the radial
+coordinate.
+</p>
+
+<p>Rotation, subset creation, fogging, marker customisation and toolbar
+actions are all as for the Cartesian 3D plot window - 
+see <ref id="Plot3DWindow"/>.
+</p>
+
+</subsubsect>
+
 
 </subsect>
 
