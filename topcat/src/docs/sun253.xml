@@ -53,7 +53,7 @@
   <!ENTITY FIG.HistogramWindow '&figs;HistogramWindow.gif'>
   <!ENTITY FIG.PlotWindow '&figs;PlotWindow.gif'>
   <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
-  <!ENTITY FIG.Plot3DWindow '&figs;Plot3DWindow.gif'>
+  <!ENTITY FIG.Cartesian3DWindow '&figs;Cartesian3DWindow.gif'>
   <!ENTITY FIG.SphereWindow '&figs;SphereWindow.gif'>
   <!ENTITY FIG.DensityWindow '&figs;DensityWindow.gif'>
   <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.gif'>
@@ -270,7 +270,7 @@ open up new windows.  These fall into a few groups:
 <dd><p>Display various aspects of information about the table's data and
     metadata.</p></dd>
 
-<dt>&IMG.HISTOGRAM; &IMG.PLOT; &IMG.PLOT3D; &IMG.SPHERE; IMG.DENSITY;</dt>
+<dt>&IMG.HISTOGRAM; &IMG.PLOT; &IMG.PLOT3D; &IMG.SPHERE; &IMG.DENSITY;</dt>
 <dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
 
 <dt>&IMG.CONCAT; &IMG.MATCH1; &IMG.MATCH2;</dt>
@@ -3318,98 +3318,142 @@ Here is what the individual items mean:
 <subsubsect id="controlTools">
 <subhead><title>Toolbar Buttons</title></subhead>
 
-<p>The following buttons deal with table import and export:
+<p>There are a number of buttons on the Control Window's toolbar;
+these are the most convenient way of invoking most of TOPCAT's
+functions.  They are grouped as follows:
+
 <dl>
+<dt>Import and export</dt>
+<dd><p>
+    <dl>
 
-<dt>&IMG.LOAD; Load Table</dt>
-<dd><p>Pops up the <ref id="LoadQueryWindow">Load Table</ref> dialogue
-    which allows you to load a table into TOPCAT.
-    If a table is loaded it becomes the new current table.
+    <dt>&IMG.LOAD; Load Table</dt>
+    <dd><p>Pops up the <ref id="LoadQueryWindow">Load Table</ref> dialogue
+        which allows you to load a table into TOPCAT.
+        If a table is loaded it becomes the new current table.
+        </p></dd>
+
+    <dt>&IMG.SAVE; Save Table</dt>
+    <dd><p>Pops up the <ref id="SaveQueryWindow">Save Table</ref> dialogue
+        which allows you to write out the current 
+        <ref id="apparent">Apparent Table</ref>.
+        </p></dd>
+
+    <dt>&IMG.COPY; Duplicate Table</dt>
+    <dd><p>Adds a new copy of the current 
+        <ref id="apparent">Apparent Table</ref> to the list of known tables.
+        This is like loading in the current table again, except that 
+        its apparent characteristics become the basic characteristics
+        of the copied one, so for instance whatever is the current
+        row order becomes the natural order of the new one.
+        </p></dd>
+
+    </dl>
     </p></dd>
 
-<dt>&IMG.SAVE; Save Table</dt>
-<dd><p>Pops up the <ref id="SaveQueryWindow">Save Table</ref> dialogue
-    which allows you to write out the current 
-    <ref id="apparent">Apparent Table</ref>.
+<dt>Table views (see <ref id="views"/>)</dt>
+<dd><p>
+    <dl>
+
+    <dt>&IMG.VIEWER; <ref id="TableViewerWindow">Data Window</ref></dt>
+    <dd><p>Displays the table rows and columns in a scrollable viewer so you
+        can see the cell contents themselves.
+        </p></dd>
+
+    <dt>&IMG.PARAMS; <ref id="ParameterWindow">Parameters Window</ref></dt>
+    <dd><p>Displays table "parameters", that is metadata which applies to the
+        whole table.
+        </p></dd>
+
+    <dt>&IMG.COLUMNS; <ref id="ColumnInfoWindow">Columns Window</ref></dt>
+    <dd><p>Displays metadata about each column such as data type, units,
+        description, UCDs etc.
+        </p></dd>
+
+    <dt>&IMG.SUBSETS; <ref id="SubsetWindow">Subsets Window</ref></dt>
+    <dd><p>Displays the currently defined 
+        <ref id="subsets" plaintextref="yes">row subsets</ref>
+        and enables new ones to be defined.
+        </p></dd>
+
+    <dt>&IMG.STATS; <ref id="StatsWindow">Statistics Window</ref></dt>
+    <dd><p>Displays a window for calculating 
+        statistical quantities for the values in each
+        column of the table.
+        </p></dd>
+
+    </dl>
     </p></dd>
 
-<dt>&IMG.COPY; Duplicate Table</dt>
-<dd><p>Adds a new copy of the current <ref id="apparent">Apparent Table</ref>
-    to the list of known tables.  This is like loading in the current table
-    again, except that its apparent characteristics 
-    become the basic characteristics of the copied one, so for instance
-    whatever is the current row order becomes the natural order of the 
-    new one.
+<dt>Graphics windows</dt>
+<dd><p>
+    <dl>
+
+    <dt>&IMG.HISTOGRAM; <ref id="HistogramWindow">Histogram</ref></dt>
+    <dd><p>Displays a window for plotting 1-d histograms.
+        </p></dd>
+
+    <dt>&IMG.PLOT; <ref id="PlotWindow">2d Scatter Plot</ref></dt>
+    <dd><p>Displays a window for plotting 2-d scatter plots.
+        </p></dd>
+
+    <dt>&IMG.PLOT3D; <ref id="Cartesian3DWindow">3D Scatter Plot</ref></dt>
+    <dd><p>Displays a window for plotting 3-d scatter plots on Cartesian axes.
+        </p></dd>
+
+    <dt>&IMG.SPHERE; <ref id="SphereWindow">Spherical Scatter Plot</ref></dt>
+    <dd><p>Displays a window for plotting 3-d scatter plots on spherical
+        polar axes, with or without a radial coordinate.
+        </p></dd>
+
+    <dt>&IMG.DENSITY; <ref id="DensityWindow">Density Map</ref></dt>
+    <dd><p>Displays a window for plotting 2-d density maps 
+        (image-like histograms on a 2-d grid of bins).
+        </p></dd>
+
+    </dl>
     </p></dd>
 
-</dl>
-</p>
+<dt>Matching and joining (see <ref id="join"/>)</dt>
+<dd><p>
+    <dl>
 
-<p>The following buttons display various views of the current table;
-these views are described in more details in <ref id="views"/>.
-<dl>
+    <dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatenation Window</ref></dt>
+    <dd><p>Displays a dialog for joining tables top-to-bottom.
+        </p></dd>
 
-<dt>&IMG.VIEWER; <ref id="TableViewerWindow">Data Window</ref></dt>
-<dd><p>Displays the table rows and columns in a scrollable viewer so you
-    can see the cell contents themselves.
+    <dt>&IMG.MATCH1; <ref id="MatchWindow1">Internal Match Window</ref></dt>
+    <dd><p>Displays a dialog for finding internal matches between the rows
+        of a table.
+        </p></dd>
+
+    <dt>&IMG.MATCH2; <ref id="MatchWindow">Pair Match Window</ref></dt>
+    <dd><p>Displays a dialog for joining tables side-by-side by locating
+        rows which match between them.
+        </p></dd>
+
+    </dl>
     </p></dd>
 
-<dt>&IMG.PARAMS; <ref id="ParameterWindow">Parameters Window</ref></dt>
-<dd><p>Displays table "parameters", that is metadata which applies to the
-    whole table.
-    </p></dd>
+<dt>Miscellaneous</dt>
+<dd><p>
+    <dl>
 
-<dt>&IMG.COLUMNS; <ref id="ColumnInfoWindow">Columns Window</ref></dt>
-<dd><p>Displays metadata about each column such as data type, units,
-    description, UCDs etc.
-    </p></dd>
+    <dt>&IMG.FUNCTION; <ref id="MethodWindow">Available Functions</ref></dt>
+    <dd><p>Displays a window containing all the functions which can be used 
+        for writing algebraic expressions (see <ref id="jel"/>).
+        </p></dd>
 
-<dt>&IMG.SUBSETS; <ref id="SubsetWindow">Subsets Window</ref></dt>
-<dd><p>Displays the currently defined 
-    <ref id="subsets" plaintextref="yes">row subsets</ref>
-    and enables new ones to be defined.
-    </p></dd>
+    <dt>&IMG.HELP; <ref id="HelpWindow">Help</ref></dt>
+    <dd><p>Displays the help browser, open at the entry on the
+        Control Window.
+        </p></dd>
 
-<dt>&IMG.STATS; <ref id="StatsWindow">Statistics Window</ref></dt>
-<dd><p>Displays a window for calculating 
-    statistical quantities for the values in each
-    column of the table.
-    </p></dd>
+    <dt>&IMG.EXIT; Exit</dt>
+    <dd><p>Queries for confirmation, then exits the application.
+        </p></dd>
 
-<dt>&IMG.PLOT; <ref id="PlotWindow">Plot window</ref></dt>
-<dd><p>Permits plotting of columns against each other.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>The following buttons deal with matching and joining tables
-(see <ref id="join"/> for discussion of these functions):
-<dl>
-
-<dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatenation Window</ref></dt>
-<dd><p>Displays a dialog for joining tables top-to-bottom.
-    </p></dd>
-
-<dt>&IMG.MATCH1; <ref id="MatchWindow1">Internal Match Window</ref></dt>
-<dd><p>Displays a dialog for finding internal matches between the rows
-    of a table.
-    </p></dd>
-
-<dt>&IMG.MATCH2; <ref id="MatchWindow">Pair Match Window</ref></dt>
-<dd><p>Displays a dialog for joining tables side-by-side by locating
-    rows which match between them.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>The following buttons are miscellaneous:
-<dl>
-
-<dt>&IMG.FUNCTION; <ref id="MethodWindow">Available Functions Window</ref></dt>
-<dd><p>Displays a window containing all the functions which can be used 
-    for writing algebraic expressions (see <ref id="jel"/>).
+    </dl>
     </p></dd>
 
 </dl>
@@ -4396,7 +4440,7 @@ axis range:
 which will pop up the following dialogue:
 </p>
 <figure>
-<caption><px>Axis Configuration Dialogue</px></caption>
+<caption><px>Axis Configuration Dialogue for 2-d axes</px></caption>
 <figureimage src="&FIG.AxisWindow;"/>
 </figure>
 
@@ -4497,6 +4541,198 @@ using the <label>Row Subsets</label> box at the bottom of the Plot Window.
 
 </subsubsect>
 
+<subsubsect id="HistogramWindow">
+<subhead><title>Histogram</title></subhead>
+
+<figure>
+<caption><px>Histogram Window</px></caption>
+<figureimage src="&FIG.HistogramWindow;"/>
+</figure>
+
+<p>The histogram window lets you plot histograms of one or more 
+columns or derived quantities.
+You can display it using the <label>Histogram</label> (&IMG.HISTOGRAM;)
+button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
+</p>
+
+<p>You select the quantity or quantities to plot using the
+<ref id="PointSelector" plaintextref="yes">dataset selector</ref>
+at the bottom of the window.
+You can configure the axes, including zooming in and out, with the
+mouse or manually as described in <ref id="axisConfig"/>.
+The width of the bars can be selected using the <label>Bin Widths</label> 
+entry box.  Either type in the value you want or use the tiny up/down
+arrows at the right to increase/decrease the bin size.
+</p>
+
+<p>The following buttons are available on the toolbar:
+<dl>
+
+<dt>&IMG.PRINT; Export as EPS</dt>
+<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size
+    of the output GIF.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes so that the width and height are sufficient to
+    accommodate all the non-zero bars in the histogram for all the currently
+    selected datasets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection or from zooming in or out.
+    </p></dd>
+
+<dt>&IMG.RESIZE_X; Rescale X</dt>
+<dd><p>Rescales the horizontal axis to accommodate all the 
+    currently plotted bars.
+    The vertical axis scaling is not changed.
+    </p></dd>
+
+<dt>&IMG.RESIZE_Y; Rescale Y</dt>
+<dd><p>Rescaleas the vertical axis to accommodate all the
+    currently plotted bars.
+    The horizontal axis scaling is not changed.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
+
+<dt>&IMG.GRID_ON; Grid</dt>
+<dd><p>Toggles whether a grid is drawn over the plotting surface or not.
+    </p></dd>
+
+<dt>&IMG.CUMULATIVE; Cumulative Plot</dt>
+<dd><p>Toggles whether the histogram should be normal or cumulative.
+    Normally the height of each bar is determined by counting the
+    number of points which fall into the range on the X axis that it covers.
+    For a cumulative plot, the height is determined by counting all the
+    points between negative infinity and the upper bound of the range on
+    the X axis that it covers.
+    </p></dd>
+
+<dt>&IMG.YLOG; Log Y Axis</dt>
+<dd><p>Toggles whether the Y axis is scaled logarithmically or not.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.RANGE_SUBSET; Subset From Visible</dt>
+<dd><p>Defines a new <label>Row Subset</label> consisting of only the
+    data in the bars which are visible in the current plot.
+    See <ref id="plotSubsets"/> for more explanation.
+    </p></dd>
+</dl>
+</p>
+
+<p>You have considerable freedom to configure how the bars are drawn;
+controlling this is described in the following subsection.
+</p>
+
+<subsubsubsect id="BarStyleEditor">
+<subhead><title>Histogram Style Editor</title></subhead>
+
+<p>The bins in a histogram can be represented in many different ways.
+A representation of how a bar will be displayed is shown on a button
+to the right of the name of each visible subset, at the bottom right
+of the histogram window.  If you click this button the following 
+dialogue will pop up which enables you to change the appearance.
+</p>
+
+<figure>
+<caption><px>Style editor dialogue for histogram bars</px></caption>
+<figureimage src="&FIG.BarStyleEditor;"/>
+</figure>
+
+<p>The <label>Legend</label> box defines how the marker will be displayed
+in the legend which appears alongside the plot:
+<dl>
+<dt>Icon</dt>
+<dd><p>Displays the icon which will be shown to identify the points in
+    the selected set.  Its appearance depends on the selections you
+    make in the rest of this dialogue window.
+    </p></dd>
+
+<dt>Label</dt>
+<dd><p>Gives the name written in the legend to label the subset.
+    By default this is derived from the Row Subset's name and, if it's
+    not part of the main dataset, the name of the dataset's tab.
+    You can type in a new value to change what is written in the legend.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Bars</label> panel describes the form of the bars to be
+plotted for each data set.
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the colour for the bar or line which will represent this set.
+    </p></dd>
+
+<dt>Bar Form</dt>
+<dd><p>Selects the style of bar which will be plotted.
+    Available styles are filled rectangles, open rectangles, stepped lines
+    and spikes.
+    </p></dd>
+
+<dt>Bar Placement</dt>
+<dd><p>Selects where each bar will be placed on the X axis within the
+    ordinate region which it represents.  There are currently two options:
+    <label>Over</label> means that it covers the whole of its range,
+    and <label>Adjacent</label> means that it covers only a proportion of
+    its range, so that multiple datasets plotted on the same graph don't
+    obscure each other (if 2 sets are plotted, the first one will take the
+    left half and the second will take the right half of each bin region,
+    and so on).  In the case that there is only a single data set plotted,
+    it doesn't matter which of these is chosen.
+    </p></dd>
+
+<dt>Line Thickness</dt>
+<dd><p>Determines the thickness in pixels of any lines which are drawn.
+    Only applies to those <label>Bar Form</label>s which use lines rather
+    than solid blocks.
+    </p></dd>
+
+<dt>Dash</dt>
+<dd><p>Determines the dash style (solid, dotted, dashed or dot-dashed) for
+    any lines which are drawn.  Only applies to those <label>Bar Form</label>s
+    which use lines rather than solid blocks.
+    </p></dd>
+    
+</dl>
+</p>
+
+<p>Any changes you make in this window are reflected in the plot straight
+away.  If you click the <label>OK</label> button at the bottom, the window
+will disappear and the changes remain.  If you click <label>Cancel</label>
+the window will disappear and any changes you made will be discarded.
+</p>
+
+<p>You can also change all the plotting styles at once by using the
+<label>Marker Style</label> menu in the histogram window.
+Here you can select a standard group of styles (e.g. all filled adjacent
+bars with different colours) for the plotted sets.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
 
 <subsubsect id="PlotWindow">
 <subhead><title>Plot Window</title></subhead>
@@ -4745,208 +4981,14 @@ markers with different colours and shapes) for the plotted sets.
 
 </subsubsubsect>
 
-
 </subsubsect>
 
-<subsubsect id="HistogramWindow">
-<subhead><title>Histogram</title></subhead>
-
-<figure>
-<caption><px>Histogram Window</px></caption>
-<figureimage src="&FIG.HistogramWindow;"/>
-</figure>
-
-<p>The histogram window lets you plot histograms of one or more 
-columns or derived quantities.
-You can display it using the <label>Histogram</label> (&IMG.HISTOGRAM;)
-button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
-</p>
-
-<p>You select the quantity or quantities to plot using the
-<ref id="PointSelector" plaintextref="yes">dataset selector</ref>
-at the bottom of the window.
-You can configure the axes, including zooming in and out, with the
-mouse or manually as described in <ref id="axisConfig"/>.
-The width of the bars can be selected using the <label>Bin Widths</label> 
-entry box.  Either type in the value you want or use the tiny up/down
-arrows at the right to increase/decrease the bin size.
-</p>
-
-<p>The following buttons are available on the toolbar:
-<dl>
-
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
-    </p></dd>
-
-<dt>&IMG.IMAGE; Export as GIF</dt>
-<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
-    The output file is just the same as the plotted image that you see.
-    Resize the plotting window before the export to control the size
-    of the output GIF.
-    </p></dd>
-
-<dt>&IMG.RESIZE; Rescale</dt>
-<dd><p>Rescales the axes so that the width and height are sufficient to
-    accommodate all the non-zero bars in the histogram for all the currently
-    selected datasets.
-    By default the plot will be scaled like this, but it it may have changed
-    because of changes in the subset selection or from zooming in or out.
-    </p></dd>
-
-<dt>&IMG.RESIZE_X; Rescale X</dt>
-<dd><p>Rescales the horizontal axis to accommodate all the 
-    currently plotted bars.
-    The vertical axis scaling is not changed.
-    </p></dd>
-
-<dt>&IMG.RESIZE_Y; Rescale Y</dt>
-<dd><p>Rescaleas the vertical axis to accommodate all the
-    currently plotted bars.
-    The horizontal axis scaling is not changed.
-    </p></dd>
-
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
-    </p></dd>
-
-<dt>&IMG.GRID_ON; Grid</dt>
-<dd><p>Toggles whether a grid is drawn over the plotting surface or not.
-    </p></dd>
-
-<dt>&IMG.CUMULATIVE; Cumulative Plot</dt>
-<dd><p>Toggles whether the histogram should be normal or cumulative.
-    Normally the height of each bar is determined by counting the
-    number of points which fall into the range on the X axis that it covers.
-    For a cumulative plot, the height is determined by counting all the
-    points between negative infinity and the upper bound of the range on
-    the X axis that it covers.
-    </p></dd>
-
-<dt>&IMG.YLOG; Log Y Axis</dt>
-<dd><p>Toggles whether the Y axis is scaled logarithmically or not.
-    </p></dd>
-
-<dt>&IMG.REDO; Replot</dt>
-<dd><p>Redraws the current plot.  It is usually not necessary to
-    use this button, since if you change any of the plot characteristics
-    with the controls in this window the plot will be redrawn
-    automatically.  However if you have changed the data, e.g. by
-    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
-    the plot is not automatically redrawn (since this is potentially an
-    expensive operation and you may not require it).
-    Clicking this button redraws the plot taking account of any changes
-    to the table data.
-    </p></dd>
-
-<dt>&IMG.RANGE_SUBSET; Subset From Visible</dt>
-<dd><p>Defines a new <label>Row Subset</label> consisting of only the
-    data in the bars which are visible in the current plot.
-    See <ref id="plotSubsets"/> for more explanation.
-    </p></dd>
-</dl>
-</p>
-
-<p>You have considerable freedom to configure how the bars are drawn;
-controlling this is described in the following subsection.
-</p>
-
-<subsubsubsect id="BarStyleEditor">
-<subhead><title>Histogram Style Editor</title></subhead>
-
-<p>The bins in a histogram can be represented in many different ways.
-A representation of how a bar will be displayed is shown on a button
-to the right of the name of each visible subset, at the bottom right
-of the histogram window.  If you click this button the following 
-dialogue will pop up which enables you to change the appearance.
-</p>
-
-<figure>
-<caption><px>Style editor dialogue for histogram bars</px></caption>
-<figureimage src="&FIG.BarStyleEditor;"/>
-</figure>
-
-<p>The <label>Legend</label> box defines how the marker will be displayed
-in the legend which appears alongside the plot:
-<dl>
-<dt>Icon</dt>
-<dd><p>Displays the icon which will be shown to identify the points in
-    the selected set.  Its appearance depends on the selections you
-    make in the rest of this dialogue window.
-    </p></dd>
-
-<dt>Label</dt>
-<dd><p>Gives the name written in the legend to label the subset.
-    By default this is derived from the Row Subset's name and, if it's
-    not part of the main dataset, the name of the dataset's tab.
-    You can type in a new value to change what is written in the legend.
-    </p></dd>
-</dl>
-</p>
-
-<p>The <label>Bars</label> panel describes the form of the bars to be
-plotted for each data set.
-<dl>
-<dt>Colour</dt>
-<dd><p>Selects the colour for the bar or line which will represent this set.
-    </p></dd>
-
-<dt>Bar Form</dt>
-<dd><p>Selects the style of bar which will be plotted.
-    Available styles are filled rectangles, open rectangles, stepped lines
-    and spikes.
-    </p></dd>
-
-<dt>Bar Placement</dt>
-<dd><p>Selects where each bar will be placed on the X axis within the
-    ordinate region which it represents.  There are currently two options:
-    <label>Over</label> means that it covers the whole of its range,
-    and <label>Adjacent</label> means that it covers only a proportion of
-    its range, so that multiple datasets plotted on the same graph don't
-    obscure each other (if 2 sets are plotted, the first one will take the
-    left half and the second will take the right half of each bin region,
-    and so on).  In the case that there is only a single data set plotted,
-    it doesn't matter which of these is chosen.
-    </p></dd>
-
-<dt>Line Thickness</dt>
-<dd><p>Determines the thickness in pixels of any lines which are drawn.
-    Only applies to those <label>Bar Form</label>s which use lines rather
-    than solid blocks.
-    </p></dd>
-
-<dt>Dash</dt>
-<dd><p>Determines the dash style (solid, dotted, dashed or dot-dashed) for
-    any lines which are drawn.  Only applies to those <label>Bar Form</label>s
-    which use lines rather than solid blocks.
-    </p></dd>
-    
-</dl>
-</p>
-
-<p>Any changes you make in this window are reflected in the plot straight
-away.  If you click the <label>OK</label> button at the bottom, the window
-will disappear and the changes remain.  If you click <label>Cancel</label>
-the window will disappear and any changes you made will be discarded.
-</p>
-
-<p>You can also change all the plotting styles at once by using the
-<label>Marker Style</label> menu in the histogram window.
-Here you can select a standard group of styles (e.g. all filled adjacent
-bars with different colours) for the plotted sets.
-</p>
-
-</subsubsubsect>
-
-</subsubsect>
-
-<subsubsect id="Plot3DWindow">
+<subsubsect id="Cartesian3DWindow">
 <subhead><title>3D Plot</title></subhead>
 
 <figure>
 <caption><px>3D scatter plot window</px></caption>
-<figureimage src="&FIG.Plot3DWindow;"/>
+<figureimage src="&FIG.Cartesian3DWindow;"/>
 </figure>
 
 <p>The 3D plot window draws 3-dimensional scatter plots of one or more
@@ -5178,7 +5220,7 @@ in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
 </p>
 
 <p>In most respects this window works like the 
-<ref id="Plot3DWindow">3D Plot</ref> window,
+<ref id="Cartesian3DWindow">3D Plot</ref> window,
 but it uses spherical polar axes rather than Cartesian ones,
 You have to fill in the 
 <ref id="PointSelector" plaintextref="yes">dataset selector</ref>
@@ -5198,7 +5240,7 @@ coordinate.
 
 <p>Rotation, subset creation, fogging, marker customisation and toolbar
 actions are all as for the Cartesian 3D plot window - 
-see <ref id="Plot3DWindow"/>.
+see <ref id="Cartesian3DWindow"/>.
 </p>
 
 </subsubsect>
@@ -6861,7 +6903,9 @@ display many types of document (perhaps using plugins) as well as HTML.
 <figureimage src="&FIG.HelpWindow;"/>
 </figure>
 
-<p>The help window is a browser for displaying help information on TOPCAT.
+<p>The help window is a browser for displaying help information on TOPCAT;
+it can be obtained by clicking the <label>Help</label> (&IMG.HELP;) button
+that appears in the toolbar of most windows.
 It views the text contained in this document, so it may be what you are
 looking at now.
 The panel on the left hand side gives a hierarchical
