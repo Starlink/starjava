@@ -140,6 +140,18 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         PlotSurface surface = plot_.getSurface();
         surface.getComponent().addMouseListener( new PointClickListener() );
 
+        /* Hack - this repaint shouldn't be required, but for some
+         * reason a mouse click which doesn't cause any point to
+         * be selected or deselected causes the screen to go blank;
+         * I don't know where the event responsible is coming from,
+         * though it's connected with zooming. Anyway, a repaint 
+         * here fixes it. */
+        surface.getComponent().addMouseListener( new MouseAdapter() {
+            public void mouseClicked( MouseEvent evt ) {
+               plot_.repaint();
+            }
+        } );
+
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
 

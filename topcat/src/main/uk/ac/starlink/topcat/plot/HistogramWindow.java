@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
@@ -57,6 +59,18 @@ public class HistogramWindow extends GraphicsWindow {
         plot_ = new Histogram( new PtPlotSurface( this ) {
             void _setYRange( double min, double max ) {
                 super._setYRange( Math.max( getMinYValue(), min ), max );
+            }
+        } );
+
+        /* Hack - this repaint shouldn't be required, but for some
+         * reason a mouse click which doesn't cause any point to
+         * be selected or deselected causes the screen to go blank;
+         * I don't know where the event responsible is coming from,
+         * though it's connected with zooming. Anyway, a repaint
+         * here fixes it. */
+        plot_.getSurface().getComponent().addMouseListener( new MouseAdapter() {
+            public void mouseClicked( MouseEvent evt ) {
+                plot_.repaint();
             }
         } );
 
