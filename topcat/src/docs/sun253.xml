@@ -5282,7 +5282,7 @@ or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>The <label>Cut Percentile Levels</label> panel below the plot controls
-how the number of counts in each pixel maps to a brigtness.
+how the number of counts in each pixel maps to a brightness.
 There are two sliders, one for the lower bound and one for the upper bound.
 They are labelled (logarithmically) with percentile values.
 If the upper one is set to 90, it means that any pixel above the 90th
@@ -5290,8 +5290,10 @@ percentile of the pixels in the image in terms of count level will be
 shown with maximum brightness, and similarly for the lower one.
 These values apply independently to each colour channel if more than
 one is in use.
+Immediately below the sliders, the pixel values which correspond to 
+minimum (black) and maximum brightness are displayed for each channel.
 If the image is not fairly completely covered, this control doesn't
-give you as much control as you might like - the user interface may
+give you as much freedom as you might like - the user interface may
 be improved in future releases.
 </p>
 
@@ -5309,10 +5311,15 @@ be improved in future releases.
     </p></dd>
 
 <dt>&IMG.FITS; Export as FITS</dt>
-<dd><p>Pops up a dialogue which will output the plotted map as a 2d FITS
-    image file.  The output FITS file will have a single HDU with dimensions
-    the same as the displayed image.  Basic coordinate system information,
-    as well as DATAMIN and DATAMAX cards, will be written to the header.
+<dd><p>Pops up a dialogue which will output the plotted map as a FITS array.
+    If only one channel is visible (either one colour channel or monochrome
+    mode) then the output FITS file will be a 2d array with dimensions the
+    same as the displayed image.  If there are multiple RGB channels then
+    the output array will be 3d with the third dimension having an extent
+    of 2 or 3, depending on the number of colour channels visible.
+    In either case the FITS file will have a single (primary) HDU.
+    Basic coordinate system information, as well as DATAMIN and DATAMAX cards,
+    will be written to the header.
     The output array will have some integer type; its length (BITPIX) 
     will depend on the maximum value of any of the pixels.
     </p></dd>
@@ -6044,7 +6051,10 @@ If you don't take these steps, this dialogue may be inaccessible.
 
 </subsect>
 
-<subsect id="ConcatWindow">
+<subsect>
+<subhead><title>Other Windows</title></subhead>
+
+<subsubsect id="ConcatWindow">
 <subhead><title>Concatenation Window</title></subhead>
 
 <figure>
@@ -6097,9 +6107,9 @@ hidden columns, or sorts currently in force will be reflected in the
 output.
 </p>
 
-</subsect>
+</subsubsect>
 
-<subsect id="MatchWindow">
+<subsubsect id="MatchWindow">
 <subhead><title>Pair Match Window</title></subhead>
 
 <figure>
@@ -6184,7 +6194,7 @@ It consists of these main parts:
 <p>The following sections describe some of these components in more detail.
 </p>
 
-<subsubsect id="matchCriteria">
+<subsubsubsect id="matchCriteria">
 <subhead><title>Match Criteria</title></subhead>
 
 <p>The match criteria box allows you to specify what counts as a match
@@ -6323,9 +6333,9 @@ displayed alongside the entry box.  You must choose units which
 are correct for the number you enter.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="matchColumnSelect">
+<subsubsubsect id="matchColumnSelect">
 <subhead><title>Column Selection Boxes</title></subhead>
 
 <p>The column selection boxes allow you to select which of the
@@ -6351,9 +6361,9 @@ Only suitable columns are available for choosing from these column
 selectors; in most cases this means numeric ones.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="matchRowSelect">
+<subsubsubsect id="matchRowSelect">
 <subhead><title>Output Rows Selector Box</title></subhead>
 
 <p>When the match is complete a new table will be created which 
@@ -6520,12 +6530,12 @@ and <label>1 not 2</label> would give you this:
 </verbatim>
 </p>
 
+</subsubsubsect>
+
 </subsubsect>
 
-</subsect>
 
-
-<subsect id="MatchWindow1">
+<subsubsect id="MatchWindow1">
 <subhead><title>Internal Match Window</title></subhead>
 
 <figure>
@@ -6578,7 +6588,7 @@ be examined, manipulated and saved like any other.
     created) when the matching groups of rows have been identified.
     </p></dd>
 
-<dt>Log Window</dt>
+<dt>Log Panel</dt>
 <dd><p>Displays progress as the match is taking place.  The progress bar
     at the bottom of the window also provides an indication of how
     far through each stage processing has got.
@@ -6595,7 +6605,7 @@ be examined, manipulated and saved like any other.
 </dl>
 </p>
 
-<subsubsect id="matchInternalAction">
+<subsubsubsect id="matchInternalAction">
 <subhead><title>Internal Match Action box</title></subhead>
 
 <p>The Internal Match Action box gives a list of options for what
@@ -6652,11 +6662,11 @@ are these:
 </dl>
 </p>
 
+</subsubsubsect>
+
 </subsubsect>
 
-</subsect>
-
-<subsect id="ActivationQueryWindow">
+<subsubsect id="ActivationQueryWindow">
 <subhead><title>Activation Window</title></subhead>
 
 <figure>
@@ -6784,7 +6794,7 @@ If these don't do what you want, you can use the
 described in <ref id="activationJel"/>, to invoke your own.
 </p>
 
-<subsubsect id="imageViewers">
+<subsubsubsect id="imageViewers">
 <subhead><title>Image Viewer Applications</title></subhead>
 
 <p>If you choose the <label>Display Cutout Image</label> or
@@ -6820,9 +6830,9 @@ The fallback image viewer looks like this:
 <figureimage src="&FIG.ImageWindow;"/>
 </figure>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="spectrumViewers">
+<subsubsubsect id="spectrumViewers">
 <subhead><title>Spectrum Viewers</title></subhead>
 
 <p>If you choose the <label>View URL as Spectrum</label> option in
@@ -6854,9 +6864,9 @@ An example of SPLAT display of multiple spectra is shown below.
 or in <docxref doc="sun243"/>.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="documentViewers">
+<subsubsubsect id="documentViewers">
 <subhead><title>Web Browsers</title></subhead>
 
 <p>If you choose the <label>View URL as Web Page</label> option in
@@ -6891,11 +6901,11 @@ Doing it this way has the advantage that your browser can probably
 display many types of document (perhaps using plugins) as well as HTML.
 </p>
 
+</subsubsubsect>
+
 </subsubsect>
 
-</subsect>
-
-<subsect id="HelpWindow">
+<subsubsect id="HelpWindow">
 <subhead><title>Help Window</title></subhead>
 
 <figure>
@@ -6963,9 +6973,9 @@ be displayed in a line at the bottom of the window.  You can cut
 and paste from this using your platform's usual mechanisms for this.
 </p>
 
-</subsect>
+</subsubsect>
 
-<subsect id="ParameterQueryWindow">
+<subsubsect id="ParameterQueryWindow">
 <subhead><title>New Parameter Window</title></subhead>
 
 <figure>
@@ -6992,10 +7002,10 @@ field as well.  Often, the parameter will have a string value,
 in which case the <label>Units</label> field is not very relevant.
 </p>
 
-</subsect>
+</subsubsect>
 
 
-<subsect id="SyntheticColumnQueryWindow">
+<subsubsect id="SyntheticColumnQueryWindow">
 <subhead><title>Synthetic Column Window</title></subhead>
 
 <figure>
@@ -7103,9 +7113,9 @@ If the table is saved the new column and its contents will
 be written to the new output table.
 </p>
 
-</subsect>
+</subsubsect>
 
-<subsect id="SkyColumnQueryWindow">
+<subsubsect id="SkyColumnQueryWindow">
 <subhead><title>Sky Coordinates Window</title></subhead>
 
 <figure>
@@ -7137,9 +7147,9 @@ Then just hit the <label>OK</label> button, and the new columns
 will be appended at the right of the table.
 </p>
 
-</subsect>
+</subsubsect>
 
-<subsect id="SyntheticSubsetQueryWindow">
+<subsubsect id="SyntheticSubsetQueryWindow">
 <subhead><title>Algebraic Subset Window</title></subhead>
 
 <figure>
@@ -7202,9 +7212,9 @@ problem.
 </p>
 
 
-</subsect>
+</subsubsect>
 
-<subsect id="MethodWindow">
+<subsubsect id="MethodWindow">
 <subhead><title>Available Functions Window</title></subhead>
 
 <figure>
@@ -7295,9 +7305,9 @@ not have proper documentation (clicking on them may not reveal
 a description in the right hand panel).
 </p>
 
-</subsect>
+</subsubsect>
 
-<subsect id="LogWindow">
+<subsubsect id="LogWindow">
 <subhead><title>Log Window</title></subhead>
 
 <figure>
@@ -7337,6 +7347,8 @@ e.g., the <code>java.util.logging.config.*</code> system
 properties, you may find that it's not behaving exactly as
 you expected.  Sorry.
 </p>
+
+</subsubsect>
 
 </subsect>
 
@@ -8130,11 +8142,16 @@ introduced since the last version:
     <li>Fixed a problem which was causing TOPCAT to crash when attempting 
         to save an altered copy of a FITS file under the same name.
         </li>
+    <li>The manual has been reorganised somewhat, and a new
+        <label>Quick Start</label> section added.
+        </li>
     <li>There is an experimental implementation of the Aladin 
         interoperability interface.  This hasn't really been tested however,
         so may not work.  Improved Aladin interoperability is expected in 
         future releases.
         </li>
+    <li>Fixed a bug in Cartesian crossmatching algorithms which failed
+        to match if the required error in any dimension was zero.</li>
     </ul>
 </p></dd>
 
