@@ -320,12 +320,25 @@ public class DensityWindow extends GraphicsWindow {
         };
     }
 
+    /**
+     * Exports the grids currently displayed in the plot as a FITS image
+     * (primary HDU).
+     *
+     * @param   ostrm   output stream
+     */
     private void exportFits( OutputStream ostrm )
             throws IOException, FitsException {
         final DataOutputStream out = new DataOutputStream( ostrm );
 
-        BinGrid grid = plot_.getBinnedData()[ 0 ];
-        int max = grid.getMaxCount();
+        BinGrid[] grids = plot_.getBinnedData();
+        int ngrid = grids.length;
+
+        /* Set up an object that can write the data of this grid using
+         * an appropriate datatype. */
+        int max = 0;
+        for ( int i = 0; i < ngrid; i++ ) {
+            max = Math.max( max, grids[ i ].getMaxCount() );
+        }
         int bitpix;
         abstract class IntWriter {
             abstract void writeInt( int value ) throws IOException;
@@ -366,8 +379,15 @@ public class DensityWindow extends GraphicsWindow {
             };
         }
 
-        int nx = grid.getSizeX();
-        int ny = grid.getSizeY();
+        /* Assemble FITS header.  The output is a 2d array if there is a
+         * single channel displayed, or a 3d array if there is more than
+         * one channel. */
+        int nx = grids[ 0 ].getSizeX();
+        int ny = grids[ 0 ].getSizeY();
+        for ( int i = 0; i < ngrid; i++ ) {
+            assert grids[ i ].getSizeX() == nx;
+            assert grids[ i ].getSizeY() == ny;
+        }
         DensityPlotState state = (DensityPlotState) plot_.getState();
         int psize = state.getPixelSize();
         ValueInfo[] axes = state.getAxes();
@@ -390,45 +410,72 @@ public class DensityWindow extends GraphicsWindow {
         Header hdr = new Header();
         hdr.addValue( "SIMPLE", true, "" );
         hdr.addValue( "BITPIX", bitpix, "Data type" );
-        hdr.addValue( "NAXIS", 2, "Number of axes" );
-        hdr.addValue( "NAXIS1", grid.getSizeX(), "X dimension" );
-        hdr.addValue( "NAXIS2", grid.getSizeY(), "Y dimension" );
+        hdr.addValue( "NAXIS", ngrid == 1 ? 2 : 3, "Number of axes" );
+        hdr.addValue( "NAXIS1", nx, "X dimension" );
+        hdr.addValue( "NAXIS2", ny, "Y dimension" );
+        if ( ngrid > 1 ) {
+            hdr.addValue( "NAXIS3", ngrid, "Number of channels" );
+        }
         hdr.addValue( "DATE", Times.mjdToIso( Times.unixMillisToMjd( 
                                            System.currentTimeMillis() ) ),
                       "HDU creation date" );
         hdr.addValue( "CTYPE1", name1, axes[ 0 ].getDescription() );
         hdr.addValue( "CTYPE2", name2, axes[ 1 ].getDescription() );
+        if ( ngrid > 1 ) {
+            hdr.addValue( "CTYPE3", "Channel index",
+                          "Separate histograms stored in different planes" );
+        }
         hdr.addValue( "BUNIT", "COUNTS", "Number of points per pixel (bin)" );
         hdr.addValue( "DATAMIN", 0.0, "Minimum value" );
-        hdr.addValue( "DATAMAX", (double) grid.getMaxCount(), "Maximum value" );
+        hdr.addValue( "DATAMAX", (double) max, "Maximum value" );
         hdr.addValue( "CRPIX1", 0.0, "Reference pixel X index" );
         hdr.addValue( "CRPIX2", (double) ny, "Reference pixel Y index" );
+        if ( ngrid > 1 ) {
+            hdr.addValue( "CRPIX3", 0.0, "Reference pixel plane index" );
+        }
         hdr.addValue( "CRVAL1", log1 ? Maths.log10( p0[ 0 ] ) : p0[ 0 ],
                                 "Reference pixel X position" );
         hdr.addValue( "CRVAL2", log2 ? Maths.log10( p0[ 1 ] ) : p0[ 1 ],
                                 "Reference pixel Y position" );
+        if ( ngrid > 1 ) {
+            hdr.addValue( "CRVAL3", 0.0,
+                          "Reference pixel plane index position" );
+        }
         hdr.addValue( "CDELT1", log1 ? Maths.log10( p1[ 0 ] / p0[ 0 ] )
                                      : ( p1[ 0 ] - p0[ 0 ] ),
                                 "X extent of reference pixel" );
         hdr.addValue( "CDELT2", log2 ? Maths.log10( p0[ 1 ] / p1[ 1 ] )
                                      : ( p0[ 1 ] - p1[ 1 ] ),
                                 "Y extent of reference pixel" );
+        if ( ngrid > 1 ) {
+            hdr.addValue( "CDELT3", 1.0,
+                          "Plane index extent of reference pixel" );
+        }
         hdr.addValue( "ORIGIN", "TOPCAT " + TopcatUtils.getVersion() + 
                       " (" + getClass().getName() + ")", null );
+
+        /* Write the FITS header. */
         FitsConstants.writeHeader( out, hdr );
 
-        int[] data = grid.getCounts();
-        for ( int iy = 0; iy < ny; iy++ ) {
-            int yoff = ( ny - 1 - iy ) * nx;
-            for ( int ix = 0; ix < nx; ix++ ) {
-                intWriter.writeInt( data[ yoff + ix ] );
+        /* Write the data. */
+        for ( int i = 0; i < ngrid; i++ ) {
+            int[] data = grids[ i ].getCounts();
+            for ( int iy = 0; iy < ny; iy++ ) {
+                int yoff = ( ny - 1 - iy ) * nx;
+                for ( int ix = 0; ix < nx; ix++ ) {
+                    intWriter.writeInt( data[ yoff + ix ] );
+                }
             }
         }
-        int nbyte = nx * ny * intWriter.size();
+
+        /* Write padding to an integral number of FITS block sizes. */
+        int nbyte = nx * ny * ngrid * intWriter.size();
         int over = nbyte % FitsConstants.FITS_BLOCK;
         if ( over > 0 ) {
             out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
         }
+
+        /* Flush. */
         out.flush();
     }
 
