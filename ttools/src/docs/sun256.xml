@@ -3238,6 +3238,8 @@ but my thanks are especially due to the following:
 <li>Efficiency improvement when writing FITS-plus format (now only requires
     a maximum of two passes rather than three of the input rows).</li>
 <li>Added <code>check</code> processing filter (for debugging use only).</li>
+<li>Fixed a bug in Cartesian matching which failed to match if the required
+    error in any dimension was zero.</li>
 </ul>
 </p></dd>
 
