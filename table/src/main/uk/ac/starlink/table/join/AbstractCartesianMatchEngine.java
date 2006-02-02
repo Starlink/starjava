@@ -262,7 +262,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     public void setError( int idim, double error ) {
         assert CELL_SCALE >= 1.0;
         errors_[ idim ] = error;
-        err2rs_[ idim ] = 1.0 / ( error * error );
+        err2rs_[ idim ] = error == 0.0 ? Double.MAX_VALUE
+                                       : 1.0 / ( error * error );
         cellScales_[ idim ] = 1.0 / ( CELL_SCALE * error );
     }
 
