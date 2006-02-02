@@ -116,7 +116,8 @@ public class Histogram extends SurfacePlot {
         g = g.create();
 
         /* Clip it to the bounds of the drawable part of the surface. */
-        g.setClip( getSurface().getClip() );
+        g.setClip( g.getClip().getBounds()
+                  .createIntersection( getSurface().getClip().getBounds() ) );
 
         /* Get the plotting styles to use. */
         boolean xflip = state.getFlipFlags()[ 0 ];
