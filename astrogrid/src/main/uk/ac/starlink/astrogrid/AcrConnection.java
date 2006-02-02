@@ -17,13 +17,11 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.apache.xmlrpc.XmlRpcClient;
+import org.apache.xmlrpc.XmlRpcClientLite;
 import org.apache.xmlrpc.XmlRpcException;
 import uk.ac.starlink.connect.Branch;
 import uk.ac.starlink.connect.Connection;
 import uk.ac.starlink.connect.Connector;
-import org.apache.xmlrpc.XmlRpcClient;
-import org.apache.xmlrpc.XmlRpcClientLite;
-import org.apache.xmlrpc.XmlRpcException;
 
 /**
  * Connection to an ACR server.
@@ -174,7 +172,8 @@ class AcrConnection extends Connection {
         URL url = new URL( outLoc );
 
         /* Acquire and configure the HTTP connection. */
-        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        final HttpURLConnection httpConn =
+            (HttpURLConnection) url.openConnection();
         httpConn.setAllowUserInteraction( false );
         httpConn.setDoInput( false );
         httpConn.setDoOutput( true );
@@ -197,10 +196,18 @@ class AcrConnection extends Connection {
 
         /* Make the connection and return the result. */
         httpConn.connect();
-        return new FilterOutputStream( httpConn.getOutputStream() ) {
+        final OutputStream httpStream = httpConn.getOutputStream();
+        return new FilterOutputStream( httpStream ) {
             public void close() throws IOException {
                 flush();
                 super.close();
+
+                /* The following is said to have some important effect
+                 * on the communications, though I'm not sure it's actually
+                 * making things work properly.  Remove with care. */
+                int response = httpConn.getResponseCode();
+                logger_.info( "Response code from writable HTTP connection: " 
+                            + response );
             }
         };
     }
