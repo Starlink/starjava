@@ -19,6 +19,7 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
@@ -53,6 +54,7 @@ public class DensityWindow extends GraphicsWindow {
     private final ToggleButtonModel rgbModel_;
     private final ToggleButtonModel zLogModel_;
     private final CutChooser cutter_;
+    private final JLabel cutLabel_;
     private final PixelSizeAction pixIncAction_;
     private final PixelSizeAction pixDecAction_;
     private final Action fitsAction_;
@@ -94,6 +96,18 @@ public class DensityWindow extends GraphicsWindow {
         plot_ = new DensityPlot( surface ) {
             protected void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
+            }
+            protected void reportCuts( int[] loCuts, int[] hiCuts ) {
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; loCuts != null && i < loCuts.length; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ";  " );
+                    }
+                    sbuf.append( loCuts[ i ] )
+                        .append( " \u2014 " )
+                        .append( hiCuts[ i ] );
+                }
+                cutLabel_.setText( sbuf.toString() );
             }
         };
         JPanel plotPanel = new JPanel();
@@ -189,9 +203,17 @@ public class DensityWindow extends GraphicsWindow {
         cutter_ = new CutChooser(); 
         cutter_.setLowValue( 0.1 );
         cutter_.setHighValue( 0.9 );
-        cutter_.setBorder( makeTitledBorder( "Cut Percentile Levels" ) );
         cutter_.addChangeListener( getReplotListener() );
-        getMainArea().add( cutter_, BorderLayout.SOUTH );
+        cutLabel_ = new JLabel();
+        JComponent cutBox = Box.createVerticalBox();
+        cutBox.setBorder( makeTitledBorder( "Cut Percentile Levels" ) );
+        JComponent clbox = Box.createHorizontalBox();
+        clbox.add( Box.createHorizontalGlue() );
+        clbox.add( cutLabel_ );
+        clbox.add( Box.createHorizontalGlue() );
+        cutBox.add( cutter_ );
+        cutBox.add( clbox ); 
+        getMainArea().add( cutBox, BorderLayout.SOUTH );
 
         /* General plot operation menu. */
         JMenu plotMenu = new JMenu( "Plot" );

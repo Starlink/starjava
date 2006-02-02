@@ -39,6 +39,8 @@ public class DensityPlot extends SurfacePlot {
     private BufferedImage image_;
     private Rectangle lastPlotZone_;
     private DensityPlotState lastState_;
+    private int[] loCuts_;
+    private int[] hiCuts_;
 
     /**
      * Constructor.
@@ -142,6 +144,8 @@ public class DensityPlot extends SurfacePlot {
         Rectangle plotZone = getSurface().getClip().getBounds();
         DensityPlotState state = (DensityPlotState) getState();
         g2 = (Graphics2D) g2.create();
+        final int[] loCuts;
+        final int[] hiCuts;
         if ( state.getValid() ) {
             int psize = state.getPixelSize();
             BufferedImage im = getImage( plotZone, state );
@@ -152,12 +156,34 @@ public class DensityPlot extends SurfacePlot {
                                       .TYPE_NEAREST_NEIGHBOR );
             g2.setClip( plotZone );
             g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
+            loCuts = loCuts_;
+            hiCuts = hiCuts_;
         }
         else {
             g2.setColor( Color.BLACK );
             g2.fillRect( plotZone.x, plotZone.y, 
                          plotZone.width, plotZone.height );
+            loCuts = null;
+            hiCuts = null;
         }
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                reportCuts( loCuts, hiCuts );
+            }
+        } );
+    }
+
+    /**
+     * Report information gathered from the plot.
+     * This method is called following a repaint with information gleaned
+     * from the painting step.  It is intended as a hook for clients
+     * which want to know that information in a way which is up to date.
+     * The default implementation does nothing.
+     *
+     * @param  loCuts  lower bounds for cut levels in pixel counts, per channel
+     * @param  hiCuts  upper bounds for cut levesl in pixel counts, per channel
+     */
+    protected void reportCuts( int[] loCuts, int[] hiCuts ) {
     }
         
     /**
@@ -212,21 +238,35 @@ public class DensityPlot extends SurfacePlot {
              * which will provide the image. */
             int[] rgb = new int[ npix ];
             Arrays.fill( rgb, 0xff000000 );
+            int[] loCuts = new int[ grids.length ];
+            int[] hiCuts = new int[ grids.length ];
+            List cutList = new ArrayList();
             if ( styles.length > 0 ) {
                 for ( int is = 0; is < grids.length; is++ ) {
                     DensityStyle style = (DensityStyle) styles[ is ];
                     BinGrid grid = grids[ is ];
                     assert ( grid == null ) == ( style == null );
                     if ( grid != null ) {
-                        byte[] data = grid.getBytes( grid.getCut( loCut ),
-                                                     grid.getCut( hiCut ),
-                                                     state.getLogZ() );
+                        int lo = grid.getCut( loCut );
+                        int hi = grid.getCut( hiCut );
+                        if ( lo == 1 ) {
+                            lo = 0;
+                        }
+                        cutList.add( new int[] { lo, hi } );
+                        byte[] data = grid.getBytes( lo, hi, state.getLogZ() );
                         for ( int ipix = 0; ipix < npix; ipix++ ) {
                             rgb[ ipix ] =
                                rgb[ ipix ] | style.levelBits( data[ ipix ] );
                         }
                     }
                 }
+            }
+            loCuts_ = new int[ cutList.size() ];
+            hiCuts_ = new int[ cutList.size() ];
+            for ( int i = 0; i < cutList.size(); i++ ) {
+                int[] cuts = (int[]) cutList.get( i );
+                loCuts_[ i ] = cuts[ 0 ];
+                hiCuts_[ i ] = cuts[ 1 ];
             }
 
             /* Create an image contaning the pixels we've prepared. */
