@@ -2821,13 +2821,19 @@ with the following RDBMSs and corresponding JDBC drivers:
     </p></dd>
 
 <dt><webref url="http://www.oracle.com/">Oracle</webref></dt>
-<dd><p>You can use Oracle with TOPCAT, but you can't currently use the SQL
-    <ref id="SQLReadDialog">load</ref>/<ref id="SQLWriteDialog">save</ref>
+<dd><p>You can use Oracle with the JDBC driver that comes as part of its
+    <webref url="http://www.oracle.com/technology/tech/oci/instantclient/instantclient.html"
+            >Basic Instant Client Package</webref>.
+    However, you <em>can't</em> currently use the
+    <ref id="SQLReadDialog">SQL load</ref
+         >/<ref id="SQLWriteDialog">SQL save</ref>
     dialogue boxes to do it.  You have to specify a JDBC URL specifying
-    the query to read/table to write as a string in the table 
-    load/save dialogue boxes.  This will look something like
+    the query to read/table to write as a string in the 
+    <label>Location</label> field of the normal table 
+    <ref id="LoadQueryWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
+    dialogue boxes.  The URL will look something like
     <verbatim>
-    jdbc:oracle:thin:@//hostname:1521/database#sql-query
+    jdbc:oracle:thin:@//hostname:1521/database#SELECT ...
     </verbatim>
     for querying an existing database (loading) and
     <verbatim>
@@ -2842,21 +2848,31 @@ Sun maintain a list of JDBC drivers for various databases; it can be found at
 <webref url="http://servlet.java.sun.com/products/jdbc/drivers"/>.
 </p>
 
-<p>Here are a couple of command lines to start up TOPCAT using 
+<p>Here are example command lines to start up TOPCAT using 
 databases known to work.
 <dl>
+
 <dt>PostgreSQL</dt>
 <dd><p><verbatim>
    java -classpath topcat-full.jar:pg73jdbc3.jar \
         -Djdbc.drivers=org.postgresql.Driver \
         uk.ac.starlink.topcat.Driver
 </verbatim></p></dd>
+
 <dt>MySQL</dt>
 <dd><p><verbatim>
    java -classpath topcat-full.jar:mysql-connector-java-3.0.8-bin.jar \
         -Djdbc.drivers=com.mysql.jdbc.Driver \
         uk.ac.starlink.topcat.Driver
 </verbatim></p></dd>
+
+<dt>Oracle</dt>
+<dd><p><verbatim>
+   java -classpath topcat-full.jar:ojdbc14.jar \
+        -Djdbc.drivers=oracle.jdbc.driver.OracleDriver \
+        uk.ac.starlink.topcat.Driver
+</verbatim></p></dd>
+
 </dl>
 </p>
 
