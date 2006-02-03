@@ -6,7 +6,7 @@
 package uk.ac.starlink.ttools.func;
 
 /**
- * Functions for coverting between strings and numeric values.
+ * Functions for converting between strings and numeric values.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004
