@@ -8,6 +8,9 @@
   <!-- Define automatically generated text entities. -->
   <!ENTITY general.runtime.method.docs SYSTEM "general-javadocs.xml">
   <!ENTITY activation.runtime.method.docs SYSTEM "activation-javadocs.xml">
+  <!ENTITY general.runtime.class.docs SYSTEM "general-classes-javadocs.xml">
+  <!ENTITY activation.runtime.class.docs SYSTEM 
+                                         "activation-classes-javadocs.xml">
   <!ENTITY topcat.usage SYSTEM "topcat.usage">
 
   <!-- Define some character constants. -->
@@ -134,7 +137,8 @@ are provided by the Starlink Tables Infrastructure Library.
 <sect id="intro">
 <subhead><title>Introduction</title></subhead>
 
-<p>TOPCAT is a graphical program which can examine, analyse, combine, edit and
+<p>TOPCAT is an interactive graphical program which can 
+examine, analyse, combine, edit and
 write out tables.  A table is, roughly, something with columns and rows;
 each column contains objects of the same type
 (for instance floating point numbers) and each row has an entry for
@@ -211,17 +215,21 @@ read in its HTML form than on paper.
 <p>Recent news about the program can be found on the
 <webref url="http://www.starlink.ac.uk/topcat/" plaintextref="yes"
         >TOPCAT web page</webref>.
-It has been written by the
+It was initially developed within the now-terminated
 <webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
-which is documented more fully in <docxref doc="sun252"/>.
-It is written in pure Java, and should run on any J2SE 1.4 or 1.5 platform.
+which is documented more fully in 
+<docxref doc="sun252" plaintextref="yes"/>.
+The software is written in pure Java, and should run on any 
+J2SE 1.4 or 1.5 platform.
 This makes it highly portable, since it can run on any machine which has
-a suitable Java installation; however some of the external viewer 
-applications it talks to rely on non-Java code though so one or 
-two facilities, such as displaying spectra, may be absent in some cases.
+a suitable Java installation, which is available for MS Windows, Mac OS X and
+most flavours of Unix amongst others.
+Some of the external viewer applications it talks to rely on 
+non-Java code however so one or two facilities, 
+such as displaying spectra, may be absent in some cases.
 TOPCAT is available under the terms of the 
 GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
             >General Public License</webref>.
@@ -232,11 +240,15 @@ GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
 <sect id="quick">
 <subhead><title>Quick Start Guide</title></subhead>
 
-<p>This is a quite a fat manual which aims to give tutorial and reference
-descriptions of most of TOPCAT's capabilities.  You are encouraged to
-consult it if you can't see how to do something or the program isn't
-behaving as you expected, however, in many cases you should be able to 
-work out how to use it by starting it up and playing around.
+<p>This manual aims to give detailed tutorial and reference 
+documentation on most aspects of TOPCAT's capabilities, and reading
+it is an excellent way to to learn about the program.
+However, it's quite a fat document, and if you feel you've got better
+things to do with your time than read it all, you should be able to
+do most things by playing around with the software and dipping into
+the manual (or equivalently the online help) 
+when you can't see how to do something or the program isn't behaving 
+as expected.
 This section provides a short introduction for the impatient,
 explaining how to get started.
 </p>
@@ -299,12 +311,18 @@ but if you subsequently save the table the changes will be reflected
 in the table that you save.
 </p>
 
-<p>A final point to bear in mind concerns memory.
+<p>An notable point to bear in mind concerns memory.
 TOPCAT is fairly efficient in use of memory, but in some cases when 
 dealing with large tables you might see an OutOfMemoryError.
 It is usually possible to work round this by using either or both
 of the <code>-disk</code> or <code>-Xmx</code><em>NNN</em><code>M</code>
 flags on startup - see <ref id="jvmMemory"/>.
+</p>
+
+<p>Finally, if you have queries, comments or requests about the software,
+and they don't appear to be addressed in the manual, consult the
+<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT web page</webref>
+and by all means contact the author - user feedback is always welcome.
 </p>
 
 </sect>
@@ -332,14 +350,14 @@ the current state of the table according to the changes that you have made.
 imported into the program plus any of the following changes that you
 have made:
 <ul>
-<li>Changes to the current 
-    <ref id="columns" plaintextref="yes">Column Set</ref> caused
-    by adding, hiding or moving columns</li>
+<li>Selection of rows changed by changing the current
+    <ref id="subsets" plaintextref="yes">Row Subset</ref></li>
 <li>Changes to the current 
     <ref id="order" plaintextref="yes">Row Order</ref> caused by 
     doing a sort</li>
-<li>Selection of rows changed by changing the current
-    <ref id="subsets" plaintextref="yes">Row Subset</ref></li>
+<li>Changes to the current 
+    <ref id="columns" plaintextref="yes">Column Set</ref> caused
+    by adding, hiding or moving columns</li>
 <li>Changes to cell data by editing cells in the 
     <ref id="TableViewerWindow">Data window</ref></li>
 <li>Changes to table metadata by editing cells in the 
@@ -455,7 +473,8 @@ and marking groups of rows to plot using different markers in the
     you can plot columns
     against each other, and subsequently zoom in and out using the
     mouse.  If you zoom to display only some of the plotted points and
-    then use the <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
+    then use the <label>New Subset From Visible</label> 
+    (&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;)
     button then a new subset will be
     created containing only rows represented by points in the field of
     view of the plot at the time.
@@ -591,8 +610,9 @@ whether they are currently visible is indicated by the (leftmost)
     Note when selecting rows, don't drag the mouse over the Visible 
     column, do it somewhere in the middle of the table.
     The <label>Hide All</label> (&IMG.HIDE_ALL;) and
-    <label>Reveal All</label> buttons set all columns in the table
-    invisible or visible - a useful convenience if there are many columns.
+    <label>Reveal All (&IMG.REVEAL_ALL;)</label>
+    buttons set all columns in the table invisible or visible - 
+    a useful convenience if you've got a very wide table.
     </p>
 
     <p>You can also hide a column by right-clicking on it in the 
@@ -1608,71 +1628,6 @@ or contact the author.
 
 </sect>
 
-<sect id="activation">
-<subhead><title>Activation Actions</title></subhead>
-
-<p>As well as seeing the overview of table data provided by a plot
-or statistics summary, it is often necessary to focus on a particular row
-of the table, which according to the nature of the table may represent
-an astronomical object, an event or some other entity.  
-In the <ref id="TableViewerWindow">Data Window</ref> a table row is
-simply a row of the displayed JTable, and in a plot it corresponds to
-one plotted point.
-</p>
-
-<p>If you click on plotted point in one of the graphics windows,
-or on a row in the 
-Data Window, the corresponding table row will be <em>activated</em>.
-When a row is activated, three things happen:
-<ol>
-<li>If that row is represented by a point in any open 2- or 3-diemensional
-    scatter plot windows, a visible cursor marker will be drawn
-    centred on that point.</li>
-<li>If the Data Window is visible, the table will be scrolled to show the
-    row and it will be highlighted</li>
-<li>If an <em>activation action</em> has been defined, it will be invoked</li>
-</ol>
-The first two of these mean that you can easily see which point in a
-plot corresponds to which row in the table and vice versa - just click
-on one and the other will be highlighted.
-</p>
-
-<p>The third one can be more complicated.  By default, no activation
-action is set, so nothing else happens, and this may very well be
-what you want.  
-However, by clicking on the <label>Activation Action</label> selector in the 
-<ref id="ControlWindow">Control Window</ref> 
-you can bring up the <ref id="ActivationQueryWindow">Activation Window</ref>
-which enables you to choose an additional action to take place.
-There are various options here and various ways to achieve them
-(see <ref id="ActivationQueryWindow"/> for more details)
-but the kinds of actions which are envisaged are to display one or
-more images or spectra relating to the row you have identified.
-One of the options available for instance retrieves a postage-stamp image
-of a few arcminutes around the sky position defined by the row
-from a SuperCOSMOS all-sky image survey and pops it up in a viewer
-window.  So for instance having spotted an interesting point in a 
-plot of a galaxy catalogue you can click on it, and immediately see 
-a picture to identify its morphological type.
-</p>
-
-<p>The exact actions you want to perform may be closely tailored to the 
-data you have, for instance you may have a set of spectra on disk
-named by object ID.  It's impossible to cater for such possibilities
-with a set of pre-packaged options, so you are able to define your own 
-custom actions here.  This is done by writing a expression
-using the syntax described in <ref id="jel"/>.
-A number of special functions (described in <ref id="activationJel"/>) 
-are provided to do things like display an image or a spectrum in a browser
-(given its filename or URL), or access data from certain data servers 
-on the web, but there is nothing to stop the adventurous plugging in their
-own external programs so in principle you can configure pretty much 
-anything to happen on the basis of the values in the row that you
-have activated.
-</p>
-
-</sect>
-
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
 
@@ -1951,8 +1906,7 @@ The common ones are:
 <p>Many functions are available for use within your expressions,
 covering standard mathematical and trigonometric functions,
 arithmetic utility functions, type conversions, and some more 
-specialised astronomical ones, as well as providing actions
-to take when a point is activated.
+specialised astronomical ones.
 You can use them in just the way you'd expect,
 by using the function name 
 (unlike column names, this is case-sensitive) followed by 
@@ -1964,53 +1918,17 @@ will give you the larger of the values in the columns IMAG and JMAG,
 and so on.
 </p>
 
-<p>The functions available for use by default 
-are listed by class in the following subsections,
-one for general functions (used in defining new synthetic columns or 
-row subsets) and the other for activation functions
-(used only for defining <ref id="activation">Activation Actions</ref>).
-More detailed documentation of what these functions do, 
-the meaning of their parameters examples of use etc
-is available from within TOPCAT in the 
+<p>The functions are grouped into the following classes:
+ 
+&general.runtime.class.docs;
+
+</p>
+
+<p>A listing of the functions in these classes is given in 
+<ref id="generalJel"/>, and complete documentation on them is
+available within TOPCAT from the 
 <ref id="MethodWindow">Available Functions Window</ref>.
 </p>
-
-<subsubsect id="generalJel">
-<subhead><title>General Functions</title></subhead>
-
-<p>The following functions can be used anywhere that you can write an
-algebraic expression in TOPCAT.  They will typically be used for
-defining new synthetic columns or algebraically-defined row subsets.
-
-&general.runtime.method.docs;
-
-</p>
-
-<p>More detail on these functions is available from within TOPCAT in the
-<ref id="MethodWindow">Available Functions</ref> window.
-</p>
-
-</subsubsect>
-
-<subsubsect id="activationJel">
-<subhead><title>Activation Functions</title></subhead>
-
-<p>The following functions can be used only for defining 
-<ref plaintextref="yes" id="activation">Activation Actions</ref> - 
-they mostly deal with causing something to happen, such
-as popping up an image display window.  They generally return a 
-short string, which will be logged to the user to give a short
-indication of what happened (or didn't happen, or should have happened).
-
-&activation.runtime.method.docs;
-
-</p>
-
-<p>More detail on these functions is available from within TOPCAT in the
-<ref id="MethodWindow">Available Functions</ref> window.
-</p>
-
-</subsubsect>
 
 <subsubsect>
 <subhead><title>Technical Note</title></subhead>
@@ -2280,6 +2198,97 @@ but it might involve doing something like the following:
 
 </sect>
 
+<sect id="activation">
+<subhead><title>Activation Actions</title></subhead>
+
+<p>As well as seeing the overview of table data provided by a plot
+or statistics summary, it is often necessary to focus on a particular row
+of the table, which according to the nature of the table may represent
+an astronomical object, an event or some other entity.  
+In the <ref id="TableViewerWindow">Data Window</ref> a table row is
+simply a row of the displayed JTable, and in a plot it corresponds to
+one plotted point.
+</p>
+
+<p>If you click on plotted point in one of the graphics windows,
+or on a row in the 
+Data Window, the corresponding table row will be <em>activated</em>.
+When a row is activated, three things happen:
+<ol>
+<li>If that row is represented by a point in any open 2- or 3-diemensional
+    scatter plot windows, a visible cursor marker will be drawn
+    centred on that point.</li>
+<li>If the Data Window is visible, the table will be scrolled to show the
+    row and it will be highlighted</li>
+<li>If an <em>activation action</em> has been defined, it will be invoked</li>
+</ol>
+The first two of these mean that you can easily see which point in a
+plot corresponds to which row in the table and vice versa - just click
+on one and the other will be highlighted.
+</p>
+
+<p>The third one can be more complicated.  By default, no activation
+action is set, so nothing else happens, and this may very well be
+what you want.  
+However, by clicking on the <label>Activation Action</label> selector in the 
+<ref id="ControlWindow">Control Window</ref> 
+you can bring up the <ref id="ActivationQueryWindow">Activation Window</ref>
+which enables you to choose an additional action to take place.
+There are various options here and various ways to achieve them
+(see <ref id="ActivationQueryWindow"/> for more details)
+but the kinds of actions which are envisaged are to display one or
+more images or spectra relating to the row you have identified.
+One of the options available for instance retrieves a postage-stamp image
+of a few arcminutes around the sky position defined by the row
+from a SuperCOSMOS all-sky image survey and pops it up in a viewer
+window.  So for instance having spotted an interesting point in a 
+plot of a galaxy catalogue you can click on it, and immediately see 
+a picture to identify its morphological type.
+</p>
+
+<p>The exact actions you want to perform may be closely tailored to the 
+data you have, for instance you may have a set of spectra on disk
+named by object ID.  It's impossible to cater for such possibilities
+with a set of pre-packaged options, so you are able to define your own 
+custom actions here.  This is done by writing a expression
+using the syntax described in <ref id="jel"/>.
+A number of special functions 
+(described in the <ref id="activationJel">following subsection</ref>)
+are provided to do things like display an image or a spectrum in a browser
+(given its filename or URL), or access data from certain data servers 
+on the web, but there is nothing to stop the adventurous plugging in their
+own external programs so in principle you can configure pretty much 
+anything to happen on the basis of the values in the row that you
+have activated.
+</p>
+
+<subsect>
+<subhead><title>Activation Functions</title></subhead>
+
+<p>When defining custom activation actions in the
+<ref id="ActivationQueryWindow">Activation Window</ref>,
+you enter an expression to be invoked on a row when it is activated.
+This expression uses the syntax defined in <ref id="jel"/> and
+can make use of the functions listed in <ref id="generalJel"/>.
+However in this case there is an additional list of functions you can use 
+which cause something to happen (for instance displaying an image) rather
+than just returning a value.  The following classes of functions
+are available:
+
+&activation.runtime.class.docs;
+
+</p>
+
+<p>A listing of the functions in these classes is given in
+<ref id="activationJel"/>, and complete documentation on them is
+available within TOPCAT from the
+<ref id="MethodWindow">Available Functions Window</ref>.
+</p>
+
+</subsect>
+
+</sect>
+
 <sect id="invoke">
 <subhead><title>Invoking TOPCAT</title></subhead>
 
@@ -2448,7 +2457,7 @@ The meaning of the flags is as follows:
     starts up an AXIS server which can accept 
     requests using the SOAP protocol to display tables from other
     applications.  Specifying the <code>-noserv</code> flag prevents
-    the server being started.
+    the server being started (and may save a bit of time on startup).
     </p></dd>
 
 </dl>
@@ -2708,11 +2717,15 @@ The following ones have special significance within TOPCAT:
 <dt><code>apple.laf.useScreenMenuBar</code></dt>
 <dd><p>On the Apple Macintosh platform only, this property controls whether
     menus appear at the top of the screen as usual for Mac, or at the
-    top of individual windows as usual for Java.  By default it is
-    set to <code>true</code> for TOPCAT, so menus mostly appear at the top
-    of the screen (though it's not true to say that TOPCAT obeys the
-    Mac look and feel completely); if you prefer the more Java-like
-    look and feel, set it to <code>false</code>.
+    top of individual windows as usual for Java.  By default when using
+    Java 1.5 or later it is set to <code>true</code> for TOPCAT, 
+    so menus mostly appear at the top of the screen (though it's not 
+    true to say that TOPCAT obeys the Mac look and feel completely); 
+    if you prefer the more Java-like look and feel, set it to 
+    <code>false</code>.
+    There are bugs with this feature in Apple's Java 1.4 JRE, so it's
+    set false by default in that case, but you can try setting it true 
+    at your own risk if you like.
     </p></dd>
 
 </dl>
@@ -2811,8 +2824,8 @@ with the following RDBMSs and corresponding JDBC drivers:
 <dd><p>You can use Oracle with TOPCAT, but you can't currently use the SQL
     <ref id="SQLReadDialog">load</ref>/<ref id="SQLWriteDialog">save</ref>
     dialogue boxes to do it.  You have to specify a JDBC URL specifying
-    the query to read/table as a string in the table load/save dialogue
-    boxes.  This will look something like
+    the query to read/table to write as a string in the table 
+    load/save dialogue boxes.  This will look something like
     <verbatim>
     jdbc:oracle:thin:@//hostname:1521/database#sql-query
     </verbatim>
@@ -3433,6 +3446,8 @@ functions.  They are grouped as follows:
         </p></dd>
 
     </dl>
+    Note that matches involving more than two tables can be done using
+    the options in the <label>Joins</label> menu.
     </p></dd>
 
 <dt>Miscellaneous</dt>
@@ -3569,8 +3584,7 @@ but with more tables.
 <p>Many of the windows you will see within TOPCAT display information
 about a single table. 
 There are several of these, each displaying a different aspect of
-the table data - cell contents, statistics, column metadata, 
-plotted values etc.
+the table data - cell contents, statistics, column metadata etc.
 There is one of each type for each of the tables currently loaded,
 though they won't necessarily all be displayed at once.
 The title bar of these windows will say something like
@@ -3937,7 +3951,8 @@ so can be changed by dragging the column headers around in the
 
 <dt>&IMG.ADDSKY; Add Sky Coordinate Columns</dt>
 <dd><p>This pops up a 
-    <ref id="SkyColumnQueryWindow">Sky Coordinates Window</ref>
+    <ref id="SkyColumnQueryWindow" plaintextref="yes"
+         >Sky Coordinates Window</ref>
     which allows you to define a pair of new sky coordinate columns based on 
     an existing pair of sky coordinate columns.
     </p></dd>
@@ -3945,7 +3960,8 @@ so can be changed by dragging the column headers around in the
 <dt>&IMG.MODIFY; Replace Column With Synthetic</dt>
 <dd><p>If a single column is selected, then clicking this button will
     pop up a 
-    <ref id="SyntheticColumnQueryWindow">Synthetic Column dialogue</ref>
+    <ref id="SyntheticColumnQueryWindow" plaintextref="yes"
+         >Synthetic Column dialogue</ref>
     to replace the selected column with a new synthetic one.
     The dialogue is initialised with the same name, units etc as the
     selected column, and with an expression that evaluates to its value.
@@ -4277,9 +4293,9 @@ are described in the subsequent subsections.
 <p>The various types of graphics windows have different characteristics
 to fulfil their different functions, but they share a common way of
 doing things.  Each window contains a number of controls including
-toolbar buttons, menu items and others.  In general any change that
-you make to any of the controls will cause the plot to be redrawn
-immediately to take account of the change.
+toolbar buttons, menu items, column selectors and others.
+In general any change that you make to any of the controls will 
+cause the plot to be redrawn immediately to take account of the change.
 </p>
 
 <p>Each of the graphics windows is displayed by clicking its
@@ -4300,14 +4316,14 @@ work the same for most or all of the graphics windows.
 <subhead><title>Dataset Selectors</title></subhead>
 
 <p>All the graphics windows provide one or more axes on which to plot -
-histogram has 1, the 2d scatter and density plots have 2, the 3d scatter
+the histogram has 1, the 2d scatter and density plots have 2, the 3d scatter
 plot has 3 and the spherical plot has 2 or 3.  In each case you select
 one or more dataset to plot on these axes, and select what plotting
 style to use for each set.  A dataset is typically a number of columns
-from a table (the number matching the number of axes of the plot) and
+from a table (the number matching the dimensionality of the plot) and
 a selection of row subsets associated with that table.  You select this
 and the plotting style(s) using the panel at the bottom of each plot
-window.  Here is the one for the 2d scatter plot:
+window.  Here is dataset selector for the 2d scatter plot:
 </p>
 
 <figure>
@@ -4323,7 +4339,7 @@ window.  Here is the one for the 2d scatter plot:
     (one of the ones loaded into TOPCAT) that the data comes from.
     </p>
     <p>The <label>Axis</label> selectors 
-    (here <label>X Axis</label> and <label>Y Axis</label>) give the columns
+    (here <label>X Axis</label> and <label>Y Axis</label>) give the quantities
     to be plotted.  If you click the little down arrow at the right
     of each selector you get a list of all the numeric columns in the
     chosen table, from which you can select one.
@@ -4337,11 +4353,14 @@ window.  Here is the one for the 2d scatter plot:
     is an expression.  The expression language syntax is explained in
     <ref id="jel"/>.
     </p>
-    <p>The <label>Log</label> and <label>Flip</label> checkboxes
-    are used to select whether axes should be plotted using linear or
-    logarithmic scaling, and whether the axis values increase in
-    the conventional direction (left to right, bottom to top) or its opposite.
-    </p></dd>
+    <p>The <label>Log</label> checkbox for each axis is used to 
+    select whether the scale should be logarithmic or linear.
+    </p>
+    <p>The <label>Flip</label> checbox for each axis is used to select
+    whether the axis values increase in the conventional direction
+    (left to right, bottom to top) or its opposite.
+    </p>
+    </dd>
 
 <dt>Row Subsets panel</dt>
 <dd><p>This defines which row subsets for will be plotted in this window,
@@ -4360,7 +4379,7 @@ window.  Here is the one for the 2d scatter plot:
     that is used in the plot to display the data from that subset,
     in this case a red cross and a blue circle.
     These are selected automatically when the subset is first selected
-    for viewing (the initial default style depends mainly on how many
+    for viewing (the initial default style set depends mainly on how many
     rows there are in the selected table - many rows gives small dots,
     few gives big ones).  However, you have a lot of freedom to configure
     how they appear.  If you click the button with the symbol on it
@@ -4407,8 +4426,8 @@ window.  Here is the one for the 2d scatter plot:
 <subsubsubsect id="axisConfig">
 <subhead><title>Axis Configuration</title></subhead>
 
-<p>In general terms the displayed on which the graphics are displayed are
-defined by the datasets you have selected for displayed.
+<p>In general terms the axes on which the graphics are plotted are
+defined by the datasets you have selected.
 The axis labels are set from the column names or expressions chosen
 for the <label>Main</label> dataset, and the ranges are determined
 so that all the data from the chosen datasets can be seen.
@@ -4419,7 +4438,10 @@ However, these things can be adjusted manually.
 axis range:
 <dl>
 <dt>Zoom</dt>
-<dd><p>In the 2d windows (2d scatter plot, histogram and density map), 
+<dd><p>In the 2d windows 
+    (<ref id="PlotWindow">2d scatter plot</ref>,
+     <ref id="HistogramWindow">histogram</ref> and 
+     <ref id="DensityWindow">density map</ref>), 
     you can change the axis ranges by zooming in or out
     with the mouse.  To zoom in, place the mouse at the top left of the
     region you want to examine, press the button, drag it to the
@@ -4437,7 +4459,7 @@ axis range:
 
 <p>For more control over axis range and labelling, use the
 <label>Configure Axes</label> (&IMG.AXIS_EDIT;) toolbar button,
-which will pop up the following dialogue:
+which will pop up a dialogue like the following:
 </p>
 <figure>
 <caption><px>Axis Configuration Dialogue for 2-d axes</px></caption>
@@ -4477,7 +4499,7 @@ expression is selected for the Main dataset).
 easy to see groupings of the data which may not otherwise be apparent;
 a cluster of (X,Y) points representing a group of rows may correspond
 to a physically meaningful grouping of objects which you would like
-to treat separately elsewhere in the program, for instances
+to treat separately elsewhere in the program, for instance
 by calculating statistics on just these rows, writing them out to
 a new table, or plotting them in a different colour on graphs
 with different coordinates.
@@ -4486,9 +4508,13 @@ This is easily accomplished by creating a new
 and the graphics windows provide ways of doing this.
 </p>
 
-<p>In the 2-d plots (Histogram, 2d Scatter plot and Density map)
+<p>In the 2-d plots 
+(<ref id="HistogramWindow">Histogram</ref>
+ <ref id="PlotWindow">2d Scatter plot</ref> and
+ <ref id="DensityWindow">Density map</ref>)
 you can set the axis ranges (either manually or by zooming with the
-mouse) so that only the points you want to identify are visible,
+mouse - see <ref id="axisConfig"/>) 
+so that only the points you want to identify are visible,
 and then click the 
 <label>New Subset From Visible</label> 
 (&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;) toolbar button.
@@ -4498,7 +4524,7 @@ This is only useful if the group you are interested in
 corresponds to a rectangular region in the plotting space.
 </p>
 
-<p>A much more flexible way is to draw a region or regions
+<p>A more flexible way is to draw a region or regions
 on the plot which identify the points you are interested in.
 To do this, hit the
 <label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
@@ -4569,7 +4595,7 @@ arrows at the right to increase/decrease the bin size.
 <dl>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -4594,7 +4620,7 @@ arrows at the right to increase/decrease the bin size.
     </p></dd>
 
 <dt>&IMG.RESIZE_Y; Rescale Y</dt>
-<dd><p>Rescaleas the vertical axis to accommodate all the
+<dd><p>Rescales the vertical axis to accommodate all the
     currently plotted bars.
     The horizontal axis scaling is not changed.
     </p></dd>
@@ -4725,7 +4751,7 @@ the window will disappear and any changes you made will be discarded.
 </p>
 
 <p>You can also change all the plotting styles at once by using the
-<label>Marker Style</label> menu in the histogram window.
+<label>Bar Style</label> menu in the histogram window.
 Here you can select a standard group of styles (e.g. all filled adjacent
 bars with different colours) for the plotted sets.
 </p>
@@ -4735,7 +4761,7 @@ bars with different colours) for the plotted sets.
 </subsubsect>
 
 <subsubsect id="PlotWindow">
-<subhead><title>Plot Window</title></subhead>
+<subhead><title>2D Plot</title></subhead>
 
 <figure>
 <caption><px>Plot Window</px></caption>
@@ -4768,7 +4794,7 @@ see <ref id="activation"/>.
 <dl>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
     In general this is a faithful and high quality rendering of what
     is displayed in the plot window.  However, if plotting is being done
     using the transparent markers, it won't come out right since 
@@ -4888,7 +4914,7 @@ each data point will appear:
     </p></dd>
 
 <dt>Colour</dt>
-<dd><p>Choose one of the dozen-odd colours in which the markers, and
+<dd><p>Choose the colour in which the markers, and
     any line if one is drawn, will be plotted.
     </p></dd>
 
@@ -5019,7 +5045,7 @@ You can't zoom in and out of the plot using the mouse, but you can use the
 <ref id="axisConfig" plaintextref="yes">Axis Configuration Dialogue</ref>
 to set axis ranges (and labels) manually.
 If there are many points, then you may find that they're not all plotted
-in the middle of a drag-to-rotate gesture.  This is done to cut down on 
+while a drag-to-rotate gesture is in progress.  This is done to cut down on 
 rendering time so that GUI response stays fast.  When the drag is
 finished (i.e. when you release the mouse button) all the points will
 come back again.
@@ -5033,7 +5059,7 @@ see <ref id="activation"/>.
 <dl>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
     In general this is a faithful and high quality rendering of what
     is displayed in the plot window.  However, if plotting is being done
     using the transparent markers, it won't come out right since
@@ -5086,7 +5112,7 @@ see <ref id="activation"/>.
     </p></dd>
 
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
-<dd><p>Allows you to draw a region on teh screen defining a new
+<dd><p>Allows you to draw a region on the screen defining a new
     <ref id="subsets">Row Subset</ref>.  When you have finished
     drawing it, click this button again to indicate you're done.
     The subset will include points at all depths in the viewing direction
@@ -5163,8 +5189,7 @@ each data point will appear:
     </p></dd>
 
 <dt>Colour</dt>
-<dd><p>Choose one of the dozen-odd colours in which the markers, and
-    any line if one is drawn, will be plotted.
+<dd><p>Choose the colour in which the markers will be plotted.
     </p></dd>
 
 <dt>Transparency</dt>
@@ -5181,7 +5206,7 @@ each data point will appear:
     enables to you distinguish regions where there are lots of points
     on top of each other from those where there are only a few.
     If a finite transparency is set, you may find it useful to turn off
-    fogging.
+    fogging (see above).
     </p></dd>
 </dl>
 </p>
@@ -5262,9 +5287,9 @@ Another way to think of this is as a histogram on a 2-dimensional
 grid, rather than a 1-dimensional one as in the 
 <ref id="HistogramWindow">Histogram Window</ref>.
 If multiple datasets are being plotted, pixel colours can either
-be single brightness level derived from total number of points,
-or up to three independent (red, green, blue) colour channels from
-different datasets.
+be at a single brightness level derived from total number of points,
+or a combination of up to three independent (red, green, blue) 
+colour channels from different datasets.
 </p>
 
 <p>Density maps are suitable when you have a very large number of points
@@ -5300,7 +5325,7 @@ be improved in future releases.
 <p>The following buttons are available on the toolbar:
 <dl>
 <dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -5417,7 +5442,7 @@ part of the main dataset, the name of the dataset's tab.
 </p>
 
 <p>The <label>Channel</label> selector allows you to select either 
-Red, Green or Blue channel for this dataset to contribute to.
+the Red, Green or Blue channel for this dataset to contribute to.
 Note that if plotting is in monochrome mode, this setting won't 
 have any material effect on the appearance of the plot;
 also, the legend icons will appear monochrome in this case.
@@ -7354,6 +7379,60 @@ you expected.  Sorry.
 
 </sect>
 
+<sect>
+<subhead><title>Algebraic Functions</title></subhead>
+
+<p>This appendix lists the functions which can be used in algebraic
+expressions (see <ref id="jel"/>).  They are listed in two sections:
+the first gives the functions available for use anywhere an expression
+can be used, and the second gives those only for use
+in defining custom 
+<ref id="activation" plaintextref="yes">Activation Actions</ref>.
+</p>
+
+<p>Note that although all the available functions are listed here
+with short descriptions, their full explanation, including parameter
+descriptions and examples, is only available from the 
+<ref id="MethodWindow" plaintextref="yes">Available Functions Window</ref>,
+obtained using the &IMG.FUNCTION; toolbar button.
+</p>
+
+<subsect id="generalJel">
+<subhead><title>General Functions</title></subhead>
+
+<p>The following functions can be used anywhere that you can write
+an algebraic expression in TOPCAT.  They will typically be used for
+defining new synthetic columns or algebraically-defined row subsets.
+More complete documentation of them is available from within TOPCAT
+in the <ref id="MethodWindow">Available Functions Window</ref>.
+
+&general.runtime.method.docs;
+
+</p>
+
+</subsect>
+
+<subsect id="activationJel">
+<subhead><title>Activation Functions</title></subhead>
+
+<p>The following functions can be used only for defining custom
+<ref id="activation" plaintextref="yes">Activation Actions</ref> -
+they mostly deal with causing something to happen, such as 
+popping up an image display window.
+They generally return a short string, which will be logged to the user
+to give an indication of what happened (or didn't happen, or should
+have happened).
+More complete documentation of them is available from within TOPCAT
+in the <ref id="MethodWindow">Available Functions Window</ref>.
+
+&activation.runtime.method.docs;
+
+</p>
+
+</subsect>
+
+</sect>
+
 <sect id="release">
 <subhead><title>Release Notes</title></subhead>
 
@@ -8025,7 +8104,7 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 2.0 (1 February 2006)</dt>
+<dt>Version 2.0 (3 February 2006)</dt>
 <dd><p>A major upgrade of TOPCAT's visualisation capabilities has taken
     place in this release.  There are considerable improvements in 
     functionality, flexibility and efficiency over previous versions:
@@ -8048,7 +8127,8 @@ introduced since the last version:
     <dt>Multi-dataset/multi-table plotting</dt>
     <dd><p>The plot windows are no longer associated with a single table.
         All of them allow you to display data from different tables,
-        or from different columns of the same table, on the same plot.
+        or from different tuples of columns of the same table, 
+        on the same plot.
         You can layer as many plots as you like on the same axes,
         using different plotting styles for the different datasets.
         As before, you can still display data from different subsets
