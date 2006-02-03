@@ -57,7 +57,7 @@ public class BarStyle extends DefaultStyle implements Icon {
     };
 
     /** Bar form drawing only the tops of the bars. */
-    public static final Form FORM_TOP = new Form( "Tops" ) {
+    public static final Form FORM_TOP = new Form( "Steps" ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.drawLine( x, y, x + width, y );
         }
