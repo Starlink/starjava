@@ -24,6 +24,10 @@ import uk.ac.starlink.ttools.build.XmlDoclet;
  * <dt>-gen</dt>
  * <dd>Write output only for 'general' classes - as reported by
  *     {@link uk.ac.starlink.topcat.TopcatJELUtils.getStaticClasses}.</dd>
+ *
+ * <dt>-headonly</dt>
+ * <dd>Write only the class headers, not information about the methods
+ *     themselves.
  * </dl>
  * 
  * @author   Mark Taylor (Starlink)
@@ -33,6 +37,8 @@ public class SummaryXmlDoclet extends XmlDoclet {
 
     private boolean discardOutput_;
     private Class[] classes_;
+    private boolean headOnly_;
+    private boolean skipMembers_;
 
     /**
      * Begin processing document.
@@ -53,6 +59,9 @@ public class SummaryXmlDoclet extends XmlDoclet {
         else if ( option.equals( "-act" ) ) {
             return 1;
         }
+        else if ( option.equals( "-headonly" ) ) {
+            return 1;
+        }
         else {
             return XmlDoclet.optionLength( option );
         }
@@ -70,6 +79,9 @@ public class SummaryXmlDoclet extends XmlDoclet {
             else if ( opt.equals( "-act" ) ) {
                 classes_ = (Class[]) TopcatJELUtils.getActivationStaticClasses()
                                                    .toArray( new Class[ 0 ] );
+            }
+            else if ( opt.equals( "-headonly" ) ) {
+                headOnly_ = true;
             }
         }
     }
@@ -90,11 +102,19 @@ public class SummaryXmlDoclet extends XmlDoclet {
         if ( comment != null ) {
             out( doctorText( comment ) );
         }
-       out( "<p><dl>" );
+        if ( headOnly_ && ! discardOutput_ ) {
+            skipMembers_ = true;
+            discardOutput_ = true;
+        }
+        out( "<p><dl>" );
     }
 
     protected void endClass() throws IOException {
         out( "</dl></p>" );
+        if ( skipMembers_ ) {
+            discardOutput_ = false;
+            skipMembers_ = false;
+        }
         out( "</dd>" );
         discardOutput_ = false;
     }
