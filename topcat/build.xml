@@ -1198,6 +1198,24 @@
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
+    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
+             docletpathref="docs-classpath"
+             failonerror="true"
+             public="true"
+             additionalparam="-gen -headonly -o ${build.docs}/general-classes-javadocs.xml"
+             sourcepath="${java.dir}/../../../ttools/src/main"
+             packagenames="uk.ac.starlink.ttools.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
+             docletpathref="docs-classpath"
+             failonerror="true"
+             public="true"
+             additionalparam="-act -headonly -o ${build.docs}/activation-classes-javadocs.xml"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.topcat.func"
+             classpathref="classpath"
+             source="${source.version}"/>
 
     <!-- Construct HTML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and is available from the MethodWindow
