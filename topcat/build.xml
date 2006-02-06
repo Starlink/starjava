@@ -1174,6 +1174,7 @@
     <java classname="uk.ac.starlink.topcat.ResourceIcon" 
           output="${build.docs}/image.defs"
           failonerror="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-entities"/>
     </java>
