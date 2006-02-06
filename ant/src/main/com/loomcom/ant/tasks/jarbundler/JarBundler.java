@@ -103,6 +103,9 @@ import org.apache.tools.ant.util.FileUtils;
  * <dd>Unique identifier for this bundle, in the form of a Java
  * package.  No default.
  *
+ * <dt>buildnumber
+ * <dd>Unique identifier for this build
+ *
  * <dt>developmentregion
  * <dd>Development Region.  Default "English".
  *
@@ -191,14 +194,26 @@ import org.apache.tools.ant.util.FileUtils;
  *
  * <p>Much Longer example:
  * <pre>
- *  &lt;jarbundler dir="release" name="Foo Project" mainclass="org.bar.Main"
- *      version="1.0 b 1" infostring="Foo Project (c) 2002" type="APPL"
- *      jars="bin/foo.jar bin/bar.jar" execs="exec/foobar"
- *      signature="????" aboutmenuname="Foo Project"
- *      workingdirectory="temp" icon="resources/foo.icns"
- *      jvmversion="1.4.1+" vmoptions="-Xmx256m" smalltabs="false"
- *      antialiasedgraphics="false" antialiasedtext="false"
- *      liveresize="false" growbox="false" screenmenu="true"/&gt;
+ *  &lt;jarbundler dir="release"
+ *              name="Foo Project"
+ *              mainclass="org.bar.Main"
+ *              version="1.0 b 1"
+ *              infostring="Foo Project (c) 2002" 
+ *              type="APPL"
+ *              jars="bin/foo.jar bin/bar.jar"
+ *              execs="exec/foobar"
+ *              signature="????"
+ *              aboutmenuname="Foo Project"
+ *              workingdirectory="temp"
+ *              icon="resources/foo.icns"
+ *              jvmversion="1.4.1+"
+ *              vmoptions="-Xmx256m"
+ *              smalltabs="false"
+ *              antialiasedgraphics="false"
+ *              antialiasedtext="false"
+ *              liveresize="false"
+ *              growbox="false"
+ *              screenmenu="true"/&gt;
  * </pre>
  */
 
@@ -531,9 +546,16 @@ public class JarBundler extends MatchingTask {
   }
 
   /**
-   * Setter for the "name" attribute (required)
+   * Setter for the "name" attribute (required).  The maximum length
+   * for the CFBundleName property is 16 characters, so the name is
+   * (silently) cropped to this if necessary.
    */
   public void setName(String s) {
+//     if (s.length() > 16) {
+//       mProps.setCFBundleName(s.substring(0, 16));
+//     } else {
+//       mProps.setCFBundleName(s);
+//     }
     mProps.setCFBundleName(s);
   }
 
@@ -674,10 +696,20 @@ public class JarBundler extends MatchingTask {
   }
 
   /**
-   * Setter for the "version" attribute (optional)
+   * Setter for the "buildnumber" attribute (optional)
+   */
+  public void setBuildnumber(String s) {
+    mProps.setCFBundleVersion(s);
+  }
+
+  /** 
+   * Setter for the version attribute (optional).
+   * It is this property, not CFBundleVersion, which should receive
+   * the `short' version string.  See for example
+   * <http://developer.apple.com/documentation/MacOSX/Conceptual/BPRuntimeConfig/> 
    */
   public void setVersion(String s) {
-    mProps.setCFBundleVersion(s);
+    mProps.setCFBundleShortVersionString(s);
   }
 
   /**

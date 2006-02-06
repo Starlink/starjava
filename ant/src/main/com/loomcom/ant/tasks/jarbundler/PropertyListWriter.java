@@ -27,6 +27,7 @@ import org.apache.tools.ant.BuildException;
 
 /**
  * Write out a Java application bundle property list file.
+ * For descriptions of the property list keys, see <a href="http://developer.apple.com/documentation/MacOSX/Conceptual/BPRuntimeConfig/" >Apple docs</a>.
  */
 public class PropertyListWriter {
 
@@ -62,9 +63,16 @@ public class PropertyListWriter {
       writeKey(1, "CFBundleName");
       writeString(1, mProps.getCFBundleName());
 
-      // Required key
-      writeKey(1, "CFBundleVersion");
-      writeString(1, mProps.getCFBundleVersion());
+      // Optional key
+      if (mProps.getCFBundleVersion() != null) {
+        writeKey(1, "CFBundleVersion");
+        writeString(1, mProps.getCFBundleVersion());
+      }
+
+      if (mProps.getCFBundleShortVersionString() != null) {
+        writeKey(1, "CFBundleShortVersionString");
+        writeString(1, mProps.getCFBundleShortVersionString());
+      }
 
       // Required Key
       writeKey(1, "CFBundleAllowMixedLocalizations");

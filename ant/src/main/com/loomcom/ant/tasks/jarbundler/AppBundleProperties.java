@@ -31,7 +31,7 @@ public class AppBundleProperties {
   private String mMainClass;
 
   // Required keys, with defaults
-  private String mCFBundleVersion = "1.0";
+  private String mCFBundleShortVersionString = "1.0";
   // Explicit default: false
   private boolean mCFBundleAllowMixedLocalizations = false;
   // Explicit default: JavaApplicationStub
@@ -49,6 +49,7 @@ public class AppBundleProperties {
 
   // Optional keys, with no defaults.
   private String mCFBundleIconFile;
+  private String mCFBundleVersion;
   private String mCFBundleGetInfoString;
   private String mCFBundleIdentifier;
   private String mVMOptions; // Java VM options
@@ -68,6 +69,14 @@ public class AppBundleProperties {
 
   public String getCFBundleName() {
     return mCFBundleName;
+  }
+
+  public void setCFBundleShortVersionString(String s) {
+    mCFBundleShortVersionString = s;
+  }
+
+  public String getCFBundleShortVersionString() {
+    return mCFBundleShortVersionString;
   }
 
   public void setCFBundleVersion(String s) {
