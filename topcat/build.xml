@@ -369,6 +369,10 @@
       <format property="year" pattern="yyyy"/>
     </tstamp>
 
+    <!-- Human-readable copyright string -->
+    <property name="copyright.string"
+              value="Copyright &#169; 2004-${year} CCLRC: Council for the Central Laboratory of the Research Councils.  All Rights Reserved."/>
+
     <!-- This is a filterchain that can be used to copy-edit files
      !   that require the package version, current date and/or time -->
     <filterchain id="filters">
@@ -675,13 +679,17 @@
     <mkdir dir="${release.dir}"/>
     <delete dir="${release.dir}/${Name}.app"
             quiet="true"/> <!--just in case...-->
+    <!-- 'Infostring' should not contain a version number (as of OS X
+         10.4 - see docs for CFBundleGetInfoString); 'version' should
+         be the `marketing version of the bundle' (ie, the release
+         version); 'buildnumber' can optionally hold a rolling build number. -->
     <osxjarbundler dir="${release.dir}"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
                 aboutmenuname="${Name}"
                 bundleid="${package.name}"
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
-                infostring="${Name} ${version} ${copyright.string}"
+                infostring="${Name} ${copyright.string}"
                 jvmversion="1.5*"
                 screenmenu="true"
                 version="${version}"
@@ -1122,9 +1130,7 @@
 
       <group title="${Name} API" packages="${package.name}*"/>
 
-      <bottom>Copyright &#169; ${year} \\
-              CLRC: Central Laboratory of the Research Councils.
-              All Rights Reserved.</bottom>
+      <bottom>${copyright.string}</bottom>
     </javadoc>
 
   </target>
