@@ -371,7 +371,7 @@
 
     <!-- Human-readable copyright string -->
     <property name="copyright.string"
-              value="Copyright &#169; 2004-${year} CCLRC: Council for the Central Laboratory of the Research Councils.  All Rights Reserved."/>
+              value="Copyright &#169; 2003-${year} CCLRC: Council for the Central Laboratory of the Research Councils.  All Rights Reserved."/>
 
     <!-- This is a filterchain that can be used to copy-edit files
      !   that require the package version, current date and/or time -->
