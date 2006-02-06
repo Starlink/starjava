@@ -50,7 +50,9 @@ import org.apache.tools.ant.util.FileUtils;
  * <dt>dir</dt>
  * <dd>The directory into which to put the new application bundle.</dd>
  * <dt>name</dt>
- * <dd>The name of the application bundle.</dd>
+ * <dd>The name of the application bundle.  Note that the maximum
+ * length of this name is 16 characters, and it will be silently
+ * cropped if it is longer than this.</dd>
  * <dt>mainclass</dt>
  * <dd>The main Java class to call when running the application.</dd>
  * </dl>
@@ -551,12 +553,11 @@ public class JarBundler extends MatchingTask {
    * (silently) cropped to this if necessary.
    */
   public void setName(String s) {
-//     if (s.length() > 16) {
-//       mProps.setCFBundleName(s.substring(0, 16));
-//     } else {
-//       mProps.setCFBundleName(s);
-//     }
-    mProps.setCFBundleName(s);
+    if (s.length() > 16) {
+      mProps.setCFBundleName(s.substring(0, 16));
+    } else {
+      mProps.setCFBundleName(s);
+    }
   }
 
   /**
