@@ -84,12 +84,6 @@
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.treeview"/>
 
-  <!-- Human-readable copyright string -->
-  <property name="copyright.string"
-            value="Copyright &#169; ${year} \\
-    CLRC: Central Laboratory of the Research Councils.
-    All Rights Reserved."/>
-
   <!-- Compilation options -->
   <property name="debug" value="true"/>
   <property name="deprecation" value="true"/>
@@ -466,6 +460,10 @@ XXX delete
     <tstamp>
       <format property="year" pattern="yyyy"/>
     </tstamp>
+
+  <!-- Human-readable copyright string -->
+  <property name="copyright.string"
+            value="Copyright &#169; 2002-${year} CCLRC: Council for the Central Laboratory of the Research Councils.  All Rights Reserved."/>
 
   </target>
 
