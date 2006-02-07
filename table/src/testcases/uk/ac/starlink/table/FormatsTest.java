@@ -158,6 +158,7 @@ public class FormatsTest extends TestCase {
             "VOTable",
             "ASCII",
             "CSV",
+            "IPAC",
             "WDC",
         };
         StarTableFactory factory = new StarTableFactory();
