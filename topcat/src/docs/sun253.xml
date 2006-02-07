@@ -930,6 +930,34 @@ you wish to load a table in <code>ascii</code> format.
 
 </subsubsect>
 
+<subsubsect id="inIpac">
+<subhead><title>IPAC</title></subhead>
+
+<p>CalTech's Infrared Processing and Analysis Center
+use a text-based format for storage of tabular data,
+defined at 
+<webref 
+   url="http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html"/>.
+Tables can store column name, type, units and null values, as well
+as table parameters.  They typically have a filename extension 
+"<code>.tbl</code>" and are used for Spitzer data amongst other
+things.  An example looks like this:
+<verbatim>
+   \title='Animals'
+   \ This is a table with some animals in it.
+   |   RECNO |    SPECIES |          NAME |    LEGS | HEIGHT   |
+   |    char |       char |          char |     int | double   |
+   |         |            |               |         | m        |
+   |         |            |          null |         |          |
+            1          pig   Pigling Bland         4        0.8
+            2          cow           Daisy         4          2
+            3     goldfish          Dobbin         0       0.05
+            4          ant            null         6      0.001
+</verbatim>
+</p>
+
+</subsubsect>
+
 <subsubsect id="inCsv">
 <subhead><title>Comma-Separated Values</title></subhead>
 
@@ -8250,6 +8278,13 @@ introduced since the last version:
         to match if the required error in any dimension was zero.</li>
     </ul>
 </p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Added IPAC table format input handler.</li>
+    </ul>
+    </p></dd>
 
 </dl>
 </p>

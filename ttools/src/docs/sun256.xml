@@ -893,13 +893,17 @@ The following list gives the values usually allowed for this
     using approximately the conventions used by MS Excel.
     </p></dd>
 
+<dt><code>ipac</code></dt>
+<dd><p>IPAC Table Format.
+    </p></dd>
+
 <dt><code>wdc</code></dt>
 <dd><p>World Datacentre Format (experimental).
     </p></dd>
 
 </dl>
 For more details on these formats, see the descriptions in 
-<docxref doc="sun252" loc="tableBuilders"/>.
+<docxref doc="sun253" loc="inFormats"/>.
 </p>
 
 <p>In some cases (when using VOTable or FITS format tables) the 
@@ -985,7 +989,7 @@ Matching is case-insensitive.
 
 </dl>
 For more details on these formats, see the descriptions in 
-<docxref doc="sun252" loc="starTableWriters"/>.
+<docxref doc="sun253" loc="outFormats"/>.
 </p>
 
 <p>In some cases the tools may guess what output format you want
@@ -3240,6 +3244,7 @@ but my thanks are especially due to the following:
 <li>Added <code>check</code> processing filter (for debugging use only).</li>
 <li>Fixed a bug in Cartesian matching which failed to match if the required
     error in any dimension was zero.</li>
+<li>Added input handler for IPAC Table Format.</li>
 </ul>
 </p></dd>
 
