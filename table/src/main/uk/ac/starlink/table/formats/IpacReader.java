@@ -182,8 +182,10 @@ class IpacReader implements RowSequence {
     private String[] readDataTokens( String line ) {
         int ipos = 0;
         String[] tokens = tokens_;
+        int leng = line.length();
         for ( int icol = 0; icol < tokens.length; icol++ ) {
-            tokens[ icol ] = line.substring( ipos, ends_[ icol ] ).trim();
+            tokens[ icol ] = 
+                line.substring( ipos, Math.min( ends_[ icol ], leng ) ).trim();
             ipos = ends_[ icol ];
         }
         return tokens;
@@ -334,7 +336,7 @@ class IpacReader implements RowSequence {
         if ( sval.length() > 1 &&
              ( sval.charAt( 0 ) == '\'' && sval.charAt( sleng - 1 ) == '\'' ||
                sval.charAt( 0 ) == '"' && sval.charAt( sleng - 1 ) == '"' ) ) {
-            return createParameter( name, sval.substring( 1, sleng - 2 ) );
+            return createParameter( name, sval.substring( 1, sleng - 1 ) );
         }
         else if ( sval.length() == 0 ) {
             return createParameter( name, "" );
@@ -395,7 +397,7 @@ class IpacReader implements RowSequence {
         final String blankVal = ( blank == null || blank.trim().length() == 0 )
                               ? null
                              : blank.trim();
-        final boolean hasBlank = blank != null;
+        final boolean hasBlank = blankVal != null;
         if ( type.equals( "int" ) || type.equals( "i" ) ) {
             info.setContentClass( Integer.class );
             info.setNullable( hasBlank );
