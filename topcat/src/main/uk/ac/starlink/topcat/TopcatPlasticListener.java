@@ -110,7 +110,7 @@ public class TopcatPlasticListener implements PlasticListener {
         /* Return application name. */
         else if ( GET_NAME.equals( message ) &&
                   checkArgs( args, new Class[ 0 ] ) ) {
-            return APPLICATION_NAME.
+            return APPLICATION_NAME;
         }
 
         /* Load VOTable passed as text in an argument. */
