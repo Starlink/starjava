@@ -8283,6 +8283,7 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Added IPAC table format input handler.</li>
+    <li>Plastic interop.</li>
     </ul>
     </p></dd>
 

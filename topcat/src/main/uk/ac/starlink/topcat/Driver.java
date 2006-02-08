@@ -13,6 +13,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.astrogrid.Plastic;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -198,6 +199,7 @@ public class Driver {
         boolean demo = false;
         int verbosity = 0;
         boolean soapServe = true;
+        boolean plasticServe = true;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -229,6 +231,7 @@ public class Driver {
             else if ( arg.startsWith( "-noserv" ) ) {
                 it.remove();
                 soapServe = false;
+                plasticServe = false;
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
@@ -376,6 +379,15 @@ public class Driver {
             }
             catch ( Throwable e ) {
                 logger.warning( "No SOAP server: " + e );
+            }
+        }
+        if ( plasticServe ) {
+            try {
+                getControlWindow().registerPlastic( Plastic.getLocalHub() );
+                logger.info( "Registered as PLASTIC listener" );
+            }
+            catch ( IOException e ) {
+                logger.info( "PLASTIC registration failed: " + e );
             }
         }
     }

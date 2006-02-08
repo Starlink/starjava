@@ -64,6 +64,7 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
+import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -434,6 +435,16 @@ public class ControlWindow extends AuxWindow
             extApp_ = new TopcatExtApp( this );
         }
         return extApp_;
+    }
+
+    /**
+     * Instructs this window to register itself as a listener to the
+     * given PLASTIC hub.
+     *
+     * @param  hub  plastic hub
+     */
+    public void registerPlastic( PlasticHubListener hub ) throws IOException {
+        new TopcatPlasticListener( hub, this );
     }
 
     /**
