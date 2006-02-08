@@ -386,7 +386,7 @@ public class Driver {
                 getControlWindow().registerPlastic( Plastic.getLocalHub() );
                 logger.info( "Registered as PLASTIC listener" );
             }
-            catch ( IOException e ) {
+            catch ( Throwable e ) {
                 logger.info( "PLASTIC registration failed: " + e );
             }
         }
