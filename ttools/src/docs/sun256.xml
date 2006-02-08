@@ -3245,6 +3245,7 @@ but my thanks are especially due to the following:
 <li>Fixed a bug in Cartesian matching which failed to match if the required
     error in any dimension was zero.</li>
 <li>Added input handler for IPAC Table Format.</li>
+<li>Added "<code>plastic</code> output mode.</li>
 </ul>
 </p></dd>
 
