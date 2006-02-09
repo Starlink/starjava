@@ -188,9 +188,6 @@
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
 
-    <echo message="Executing TTOOLS target: ${what}"/>
-    <ant dir="./ttools" target="${what}"/>
-
     <echo message="Executing VO target: ${what}"/>
     <ant dir="./vo" target="${what}"/>
 
@@ -199,6 +196,9 @@
 
     <echo message="Executing AstroGrid target: ${what}"/>
     <ant dir="./astrogrid" target="${what}"/>
+
+    <echo message="Executing TTOOLS target: ${what}"/>
+    <ant dir="./ttools" target="${what}"/>
 
     <echo message="Executing DATANODE target: ${what}"/>
     <ant dir="./datanode" target="${what}"/>
