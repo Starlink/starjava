@@ -6,10 +6,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.astrogrid.Plastic;
@@ -45,6 +48,8 @@ public class PlasticMode implements ProcessingMode {
         getURI( "ivo://votech.org/votable/load" );
     private final static URI MSG_BYURL = 
         getURI( "ivo://votech.org/votable/loadFromURL" );
+    private final static URI MSG_NAME =
+        getURI( "ivo://votech.org/info/getName" );
 
     public String getDescription() {
         return new StringBuffer()
@@ -63,12 +68,12 @@ public class PlasticMode implements ProcessingMode {
             "<ul>",
             "<li><code>string</code>:",
             "VOTable serialized as a string and passed as a call parameter",
-            "(<code>ivo://votech.org/votable/load</code>).",
+            "(<code>" + MSG_BYTEXT + "</code>).",
             "Not suitable for very large files.</li>",
             "<li><code>file</code>:",
             "VOTable written to a temporary file and the filename passed as",
             "a call parameter",
-            "(<code>ivo://votech.org/votable/loadFromURL</code>).",
+            "(<code>" + MSG_BYURL + "</code>).",
             "The file ought to be deleted once it has been loaded.",
             "Not suitable for inter-machine communication.</li>",
             "</ul>",
@@ -111,10 +116,11 @@ public class PlasticMode implements ProcessingMode {
         catch ( Throwable e ) {
             throw new TaskException( "Can't connect to PLASTIC hub", e );
         }
+        final PrintStream out = env.getOutputStream();
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 try {
-                    broadcast( table, msg, hub, plasticId );
+                    broadcast( table, msg, hub, plasticId, out );
                 }
                 finally {
                     hub.unregister( plasticId );
@@ -130,9 +136,13 @@ public class PlasticMode implements ProcessingMode {
      * @param   table  table to broadcast
      * @param   msg    PLASTIC message key which defines how the transport
      *                 will take place (one of MSG_BYTEXT, MSG_BYURL or null)
+     * @param   hub    plastic hub object
+     * @param   plasticId  plastic identifier for this client
+     * @param   out    output stream to the environment
      */
     private static void broadcast( StarTable table, URI msg,
-                                   PlasticHubListener hub, URI plasticId )
+                                   PlasticHubListener hub, URI plasticId,
+                                   PrintStream out )
             throws IOException {
         long nrow = table.getRowCount();
 
@@ -178,10 +188,35 @@ public class PlasticMode implements ProcessingMode {
             /* Hub communication is synchronous; we want to wait until all
              * clients have responded so we can delete the temporary file
              * afterwards. */
-            Map responses = 
+            Map loadResponses = 
                 hub.request( plasticId, MSG_BYURL,
                              Arrays.asList( new Object[]{ tmpfile.toURL() } ) );
             tmpfile.delete();
+
+            /* Get the names of the listeners which responded. */
+            if ( loadResponses.size() > 0 ) {
+                out.print( "Broadcast to listeners: " );
+                Map nameResponses =
+                    hub.requestToSubset( plasticId, MSG_NAME, new ArrayList(),
+                                         new ArrayList( loadResponses
+                                                       .keySet() ) );
+                for ( Iterator it = loadResponses.keySet().iterator();
+                      it.hasNext(); ) {
+                    URI id = (URI) it.next();
+                    String name = (String) nameResponses.get( id );
+                    if ( name == null || name.trim().length() == 0 ) {
+                        name = id.toString();
+                    }
+                    out.print( name );
+                    if ( it.hasNext() ) {
+                        out.print( ", " );
+                    }
+                }
+                out.println();
+            }
+            else {
+                out.println( "Nobody listening" );
+            }
             return;
         }
 
