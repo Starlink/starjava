@@ -406,6 +406,13 @@ public class ControlWindow extends AuxWindow
         }
         getJMenuBar().add( winMenu );
 
+        /* Add a menu for tool interop. */
+        JMenu interopMenu = new JMenu( "Interop" );
+        interopMenu.setMnemonic( KeyEvent.VK_I );
+        interopMenu.add( getPlasticServer().getRegisterAction( true ) );
+        interopMenu.add( getPlasticServer().getRegisterAction( false ) );
+        getJMenuBar().add( interopMenu );
+
         /* Mark this window as top-level. */
         setCloseIsExit();
 

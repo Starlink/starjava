@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,12 +11,15 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.votech.plastic.PlasticListener;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.astrogrid.Plastic;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Implements the PlasticListener interface on behalf of the TOPCAT application.
@@ -29,6 +34,8 @@ public class TopcatPlasticListener implements PlasticListener {
     private final ControlWindow controlWindow_;
     private PlasticHubListener hub_;
     private URI plasticId_;
+    private final Action registerAct_;
+    private final Action unregisterAct_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -57,6 +64,8 @@ public class TopcatPlasticListener implements PlasticListener {
      */
     public TopcatPlasticListener( ControlWindow controlWindow ) {
         controlWindow_ = controlWindow;
+        registerAct_ = new RegisterAction( true );
+        unregisterAct_ = new RegisterAction( false );
         Runtime.getRuntime().addShutdownHook( new Thread() {
             public void run() {
                 unregister();
@@ -129,13 +138,22 @@ public class TopcatPlasticListener implements PlasticListener {
             /* Attempt the registration. */
             assert hub_ == null;
             assert plasticId_ == null;
-            PlasticHubListener hub = Plastic.getLocalHub();
-            URI id = hub.registerRMI( APPLICATION_NAME,
-                                      Arrays.asList( SUPPORTED_MESSAGES ),
-                                      this );
-            synchronized ( this ) {
-                hub_ = hub;
-                plasticId_ = id;
+            try {
+                PlasticHubListener hub = Plastic.getLocalHub();
+                URI id = hub.registerRMI( APPLICATION_NAME,
+                                          Arrays.asList( SUPPORTED_MESSAGES ),
+                                          this );
+                synchronized ( this ) {
+                    hub_ = hub;
+                    plasticId_ = id;
+                }
+                registerAct_.setEnabled( false );
+                unregisterAct_.setEnabled( true );
+            }
+            catch ( IOException e ) {
+                registerAct_.setEnabled( true );
+                unregisterAct_.setEnabled( false );
+                throw e;
             }
         }
     }
@@ -184,6 +202,12 @@ public class TopcatPlasticListener implements PlasticListener {
                 public void run() {
                     hub.unregister( id );
                     logger_.info( "PLASTIC unregistration successful" );
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            registerAct_.setEnabled( true );
+                            unregisterAct_.setEnabled( false );
+                        }
+                    } );
                 }
             };
             unregThread.setDaemon( true );
@@ -194,6 +218,17 @@ public class TopcatPlasticListener implements PlasticListener {
             catch ( InterruptedException e ) {
             }
         }
+    }
+
+    /**
+     * Returns an action which will register/unregister with the PLASTIC hub.
+     * The enabled status of the returned action is kept up to date.
+     *
+     * @param  reg   true for register action, false for unregister action
+     * @return  action
+     */
+    public Action getRegisterAction( final boolean reg ) {
+        return reg ? registerAct_ : unregisterAct_;
     }
 
     /**
@@ -388,6 +423,37 @@ public class TopcatPlasticListener implements PlasticListener {
             throw (IllegalArgumentException)
                   new IllegalArgumentException( "Bad URI: " + uri )
                  .initCause( e );
+        }
+    }
+
+    /**
+     * Action implementation that registers/unregisters with PLASTIC hub.
+     * The enabled status of this action is kept suitably up to date.
+     */
+    private class RegisterAction extends AbstractAction {
+        private final boolean reg_;
+        RegisterAction( boolean reg ) {
+            super( reg ? "Register with PLASTIC" : "Unregister with PLASTIC" );
+            reg_ = reg;
+            putValue( SHORT_DESCRIPTION,
+                      reg ? "Accept interop requests from other tools"
+                          : "Ignore interop requests from other tools" );
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            if ( reg_ ) {
+                try {
+                    register();
+                }
+                catch ( IOException e ) {
+                    Component parent = evt.getSource() instanceof Component
+                                     ? (Component) evt.getSource()
+                                     : null;
+                    ErrorDialog.showError( parent, "PLASTIC Error", e );
+                }
+            }
+            else {
+                unregister();
+            }
         }
     }
 }
