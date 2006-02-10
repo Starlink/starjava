@@ -222,8 +222,8 @@ public class ControlWindow extends AuxWindow
 
         dupAct_ = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
                                     "Create a duplicate of the current table" );
-        broadcastAct_ = new ExportAction( "Broadcast via PLASTIC",
-                                          ResourceIcon.DO_WHAT,
+        broadcastAct_ = new ExportAction( "Broadcast Table",
+                                          ResourceIcon.BROADCAST,
                                           "Broadcast table to all applications "
                                         + "listening with the PLASTIC " 
                                         + "protocol" );
@@ -411,6 +411,8 @@ public class ControlWindow extends AuxWindow
         interopMenu.setMnemonic( KeyEvent.VK_I );
         interopMenu.add( getPlasticServer().getRegisterAction( true ) );
         interopMenu.add( getPlasticServer().getRegisterAction( false ) );
+        interopMenu.addSeparator();
+        interopMenu.add( broadcastAct_ );
         getJMenuBar().add( interopMenu );
 
         /* Mark this window as top-level. */

@@ -139,6 +139,7 @@ public class ResourceIcon implements Icon {
         FINE = makeIcon( "smallpix.gif" ),
         ROUGH = makeIcon( "bigpix2.gif" ),
         AXIS_EDIT = makeIcon( "axed3.gif" ),
+        BROADCAST = makeIcon( "tx3.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
