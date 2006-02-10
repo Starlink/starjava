@@ -13,7 +13,6 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import uk.ac.starlink.astrogrid.Plastic;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -383,7 +382,7 @@ public class Driver {
         }
         if ( plasticServe ) {
             try {
-                getControlWindow().registerPlastic( Plastic.getLocalHub() );
+                getControlWindow().getPlasticServer().register();
                 logger.info( "Registered as PLASTIC listener" );
             }
             catch ( Throwable e ) {

@@ -19,6 +19,9 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
@@ -78,6 +81,7 @@ import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
+import uk.ac.starlink.ttools.mode.PlasticMode;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -124,6 +128,7 @@ public class ControlWindow extends AuxWindow
     private LoadQueryWindow loadWindow_;
     private ConcatWindow concatWindow_;
     private ExtApp extApp_;
+    private TopcatPlasticListener plasticServer_;
 
     private final JTextField idField_ = new JTextField();
     private final JLabel indexLabel_ = new JLabel();
@@ -139,6 +144,7 @@ public class ControlWindow extends AuxWindow
     private final Action readAct_;
     private final Action writeAct_;
     private final Action dupAct_;
+    private final Action broadcastAct_;
     private final Action mirageAct_;
     private final Action removeAct_;
     private final Action concatAct_;
@@ -216,6 +222,11 @@ public class ControlWindow extends AuxWindow
 
         dupAct_ = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
                                     "Create a duplicate of the current table" );
+        broadcastAct_ = new ExportAction( "Broadcast via PLASTIC",
+                                          ResourceIcon.DO_WHAT,
+                                          "Broadcast table to all applications "
+                                        + "listening with the PLASTIC " 
+                                        + "protocol" );
         mirageAct_ = new ExportAction( "Export To Mirage", null,
                                "Launch Mirage to display the current table" );
         mirageAct_.setEnabled( MirageHandler.isMirageAvailable() );
@@ -353,6 +364,7 @@ public class ControlWindow extends AuxWindow
         fileMenu.insertSeparator( fileMenuPos++ );
         fileMenu.insert( writeAct_, fileMenuPos++ );
         fileMenu.insert( dupAct_, fileMenuPos++ );
+        fileMenu.insert( broadcastAct_, fileMenuPos++ );
         if ( MirageHandler.isMirageAvailable() ) {
             fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
@@ -438,13 +450,16 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * Instructs this window to register itself as a listener to the
-     * given PLASTIC hub.
+     * Returns the object which acts as this window's server
+     * for PLASTIC requests.
      *
-     * @param  hub  plastic hub
+     * @return  plastic server  
      */
-    public void registerPlastic( PlasticHubListener hub ) throws IOException {
-        new TopcatPlasticListener( hub, this );
+    public TopcatPlasticListener getPlasticServer() {
+        if ( plasticServer_ == null ) {
+            plasticServer_ = new TopcatPlasticListener( this );
+        }
+        return plasticServer_;
     }
 
     /**
@@ -1177,6 +1192,20 @@ public class ControlWindow extends AuxWindow
             StarTable table = tcModel.getApparentStarTable();
             if ( this == dupAct_ ) {
                 addTable( table, "Copy of " + tcModel.getID(), true );
+            }
+            else if ( this == broadcastAct_ ) {
+                TopcatPlasticListener pserv = getPlasticServer();
+                try {
+                    pserv.register();
+                    PlasticMode.broadcast( table, null, pserv.getHub(),
+                                           pserv.getRegisteredId(),
+                                           getTableFactory().getStoragePolicy(),
+                                           null );
+                }
+                catch ( IOException e ) {
+                    ErrorDialog.showError( ControlWindow.this, "PLASTIC Error",
+                                           e );
+                }
             }
             else if ( this == mirageAct_ ) {
                 assert MirageHandler.isMirageAvailable();

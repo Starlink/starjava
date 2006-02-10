@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.votech.plastic.PlasticListener;
 import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.astrogrid.Plastic;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DataSource;
 
@@ -25,10 +26,9 @@ import uk.ac.starlink.util.DataSource;
  */
 public class TopcatPlasticListener implements PlasticListener {
 
-    private final PlasticHubListener hub_;
     private final ControlWindow controlWindow_;
-    private final URI plasticId_;
-    private boolean unregistered_;
+    private PlasticHubListener hub_;
+    private URI plasticId_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -52,22 +52,148 @@ public class TopcatPlasticListener implements PlasticListener {
      * Constructs a new listener which will react appropriately to 
      * messages from the hub.
      *
-     * @param   hub  plastic hub
      * @param   controlWindow   control window into which accepted tables
      *          will be loaded etc
      */
-    public TopcatPlasticListener( PlasticHubListener hub,
-                                  ControlWindow controlWindow ) {
-        hub_ = hub;
+    public TopcatPlasticListener( ControlWindow controlWindow ) {
         controlWindow_ = controlWindow;
-        plasticId_ = hub.registerRMI( APPLICATION_NAME,
-                                      Arrays.asList( SUPPORTED_MESSAGES ),
-                                      this );
         Runtime.getRuntime().addShutdownHook( new Thread() {
             public void run() {
                 unregister();
             }
         } );
+    }
+
+    /**
+     * Returns the ID with which this listener is registered with the
+     * prevailing PLASTIC hub.  If this listener is not currently registered,
+     * <code>null</code> will be returned.  If you want to do your best
+     * to get a non-null ID, call {@link #register} first.
+     *
+     * @return  plastic ID, or null
+     */
+    public URI getRegisteredId() {
+        return plasticId_;
+    }
+
+    /**
+     * Returns the hub which this listener is registered with.
+     * If this listener is not currently registered,
+     * <code>null</code> will be returned.  If you want to do your best
+     * to get a non-null hub, call {@link #register} first.
+     *
+     * @return  hub, or null
+     */
+    public PlasticHubListener getHub() {
+        return hub_;
+    }
+
+    /**
+     * Attempts to ensure that this listener is registered with the
+     * prevailing PLASTIC hub.
+     * If it's already registered, a check is made to see that the hub
+     * is alive, and if so nothing else is done.
+     * If it's not registered, an attempt is made to register.
+     * By the end of the call <em>either</em> this listener will be
+     * registered with a currently prevailing hub, <em>or</em> an
+     * exception will be thrown.
+     * It's therefore quite safe to call this method multiple times.
+     *
+     * @throws  IOException  if no registration can be achieved
+     */
+    public void register() throws IOException {
+
+        /* Decide in a thread-safe manner whether we need to attempt a new
+         * registration. */
+        boolean doRegister;
+        synchronized ( this ) {
+            if ( plasticId_ == null ) {
+                assert hub_ == null;
+                doRegister = true;
+            }
+            else {
+                assert hub_ != null;
+                try {
+                    hub_.getHubId();
+                    doRegister = false;
+                }
+                catch ( Throwable e ) {
+                    hub_ = null;
+                    plasticId_ = null;
+                    doRegister = true;
+                }
+            }
+        }
+        if ( doRegister ) {
+
+            /* Attempt the registration. */
+            assert hub_ == null;
+            assert plasticId_ == null;
+            PlasticHubListener hub = Plastic.getLocalHub();
+            URI id = hub.registerRMI( APPLICATION_NAME,
+                                      Arrays.asList( SUPPORTED_MESSAGES ),
+                                      this );
+            synchronized ( this ) {
+                hub_ = hub;
+                plasticId_ = id;
+            }
+        }
+    }
+
+    /**
+     * Makes an attempt to unregister from the hub if it's not already been
+     * done.  If this method is called when the hub connection is already
+     * inactive, nothing happens.  This method won't block indefinitely,
+     * even if the hub doesn't want to answer for some reason. 
+     * This means that the unregister is not guaranteed to complete
+     * successfully - too bad, failing to unregister is not a serious crime.
+     */
+    public void unregister() {
+
+        /* Check safely whether we've already attempted an unregister. */
+        boolean doUnregister;
+        final PlasticHubListener hub;
+        final URI id;
+        synchronized ( this ) {
+            if ( plasticId_ != null ) {
+                assert hub_ != null;
+                doUnregister = true;
+                id = plasticId_;
+                hub = hub_;
+                plasticId_ = null;
+                hub_ = null;
+            }
+            else {
+                doUnregister = false;
+                id = null;
+                hub = null;
+            }
+        }
+
+        /* Attempt the unregister in a separate daemon thread, and wait 
+         * up to 1 second for it to complete before returning.  This means 
+         * that if this method is being called as part of a JVM shutdown
+         * sequence, it's guaranteed not to delay shutdown indefinitely,
+         * since daemon threads are summarily terminated during JVM shutdown.
+         * However, unless that happens, the unregister thread can take
+         * as long as it likes.
+         * Am I being paranoid?  I don't know how likely it is that 
+         * the unregister() call might take long/for ever to return. */
+        if ( doUnregister ) {
+            Thread unregThread = new Thread( "PLASTIC unregister" ) {
+                public void run() {
+                    hub.unregister( id );
+                    logger_.info( "PLASTIC unregistration successful" );
+                }
+            };
+            unregThread.setDaemon( true );
+            unregThread.start();
+            try {
+                unregThread.join( 1000 );
+            }
+            catch ( InterruptedException e ) {
+            }
+        }
     }
 
     /**
@@ -92,12 +218,15 @@ public class TopcatPlasticListener implements PlasticListener {
      * @param  args     message argument list
      * @return  return value requested by message
      */
-    public Object doPerform( URI sender, URI message, List args )
+    private Object doPerform( URI sender, URI message, List args )
             throws IOException {
 
         /* Hub shutdown. */
         if ( HUB_STOP.equals( message ) ) {
-            unregistered_ = true;
+            synchronized ( this ) {
+                plasticId_ = null;
+                hub_ = null;
+            }
             return null;
         }
 
@@ -224,54 +353,6 @@ public class TopcatPlasticListener implements PlasticListener {
                 controlWindow_.addTable( table, "plastic", true );
             }
         } );
-    }
-
-    /**
-     * Makes an attempt to unregister from the hub if it's not already been
-     * done.  If this method is called when the hub connection is already
-     * inactive, nothing happens.  This method won't block indefinitely,
-     * even if the hub doesn't want to answer for some reason. 
-     * This means that the unregister is not guaranteed to complete
-     * successfully - too bad, failing to unregister is not a serious crime.
-     */
-    public void unregister() {
-
-        /* Check safely whether we've already attempted an unregister. */
-        boolean doUnregister;
-        synchronized ( this ) {
-            if ( ! unregistered_ ) {
-                doUnregister = true;
-                unregistered_ = true;
-            }
-            else {
-                doUnregister = false;
-            }
-        }
-
-        /* Attempt the unregister in a separate daemon thread, and wait 
-         * up to 1 second for it to complete before returning.  This means 
-         * that if this method is being called as part of a JVM shutdown
-         * sequence, it's guaranteed not to delay shutdown indefinitely,
-         * since daemon threads are summarily terminated during JVM shutdown.
-         * However, unless that happens, the unregister thread can take
-         * as long as it likes.
-         * Am I being paranoid?  I don't know how likely it is that 
-         * the unregister() call might take long/for ever to return. */
-        if ( doUnregister ) {
-            Thread unregThread = new Thread( "PLASTIC unregister" ) {
-                public void run() {
-                    hub_.unregister( plasticId_ );
-                    logger_.info( "PLASTIC unregistration successful" );
-                }
-            };
-            unregThread.setDaemon( true );
-            unregThread.start();
-            try {
-                unregThread.join( 1000 );
-            }
-            catch ( InterruptedException e ) {
-            }
-        }
     }
 
     /**
