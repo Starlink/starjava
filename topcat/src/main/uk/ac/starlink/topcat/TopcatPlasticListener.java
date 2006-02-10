@@ -66,6 +66,7 @@ public class TopcatPlasticListener implements PlasticListener {
         controlWindow_ = controlWindow;
         registerAct_ = new RegisterAction( true );
         unregisterAct_ = new RegisterAction( false );
+        unregisterAct_.setEnabled( false );
         Runtime.getRuntime().addShutdownHook( new Thread() {
             public void run() {
                 unregister();
