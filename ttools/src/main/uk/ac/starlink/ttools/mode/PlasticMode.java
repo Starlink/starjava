@@ -17,12 +17,14 @@ import java.util.Map;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.astrogrid.Plastic;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -44,10 +46,16 @@ public class PlasticMode implements ProcessingMode {
         TRANSPORT_STRING = "string",
         TRANSPORT_FILE = "file",
     };
-    private final static URI MSG_BYTEXT =
+
+    /** Message ID for load by passing VOTable text as a string argument. */
+    public final static URI MSG_BYTEXT =
         getURI( "ivo://votech.org/votable/load" );
-    private final static URI MSG_BYURL = 
+
+    /** Message ID for load by passing VOTable URL (temp file) as argument.*/
+    public final static URI MSG_BYURL = 
         getURI( "ivo://votech.org/votable/loadFromURL" );
+
+    /** Message ID for getting application name. */
     private final static URI MSG_NAME =
         getURI( "ivo://votech.org/info/getName" );
 
@@ -116,11 +124,12 @@ public class PlasticMode implements ProcessingMode {
         catch ( Throwable e ) {
             throw new TaskException( "Can't connect to PLASTIC hub", e );
         }
+        final StoragePolicy policy = TableEnvironment.getStoragePolicy( env );
         final PrintStream out = env.getOutputStream();
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 try {
-                    broadcast( table, msg, hub, plasticId, out );
+                    broadcast( table, msg, hub, plasticId, policy, out );
                 }
                 finally {
                     hub.unregister( plasticId );
@@ -138,11 +147,12 @@ public class PlasticMode implements ProcessingMode {
      *                 will take place (one of MSG_BYTEXT, MSG_BYURL or null)
      * @param   hub    plastic hub object
      * @param   plasticId  plastic identifier for this client
-     * @param   out    output stream to the environment
+     * @param   policy  storage policy
+     * @param   out    output stream to the environment (may be null)
      */
-    private static void broadcast( StarTable table, URI msg,
-                                   PlasticHubListener hub, URI plasticId,
-                                   PrintStream out )
+    public static void broadcast( StarTable table, URI msg,
+                                  PlasticHubListener hub, URI plasticId,
+                                  StoragePolicy policy, PrintStream out )
             throws IOException {
         long nrow = table.getRowCount();
 
@@ -150,7 +160,9 @@ public class PlasticMode implements ProcessingMode {
          * if the table looks short, then write the VOTable into a string
          * and pass it as one of the parameters to the hub call. */
         if ( ( MSG_BYTEXT.equals( msg ) ) ||
-             ( msg == null && nrow >= 0 && nrow < 1000 ) ) {
+             ( msg == null &&
+               policy == StoragePolicy.PREFER_MEMORY &&
+               nrow >= 0 && nrow < 1000 ) ) {
             try {
                 ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
                 new VOTableWriter( DataFormat.TABLEDATA, true )
@@ -193,29 +205,33 @@ public class PlasticMode implements ProcessingMode {
                              Arrays.asList( new Object[]{ tmpfile.toURL() } ) );
             tmpfile.delete();
 
-            /* Get the names of the listeners which responded. */
-            if ( loadResponses.size() > 0 ) {
-                out.print( "Broadcast to listeners: " );
-                Map nameResponses =
-                    hub.requestToSubset( plasticId, MSG_NAME, new ArrayList(),
-                                         new ArrayList( loadResponses
-                                                       .keySet() ) );
-                for ( Iterator it = loadResponses.keySet().iterator();
-                      it.hasNext(); ) {
-                    URI id = (URI) it.next();
-                    String name = (String) nameResponses.get( id );
-                    if ( name == null || name.trim().length() == 0 ) {
-                        name = id.toString();
+            /* If requested, get and output the names of the listeners which
+             * responded. */
+            if ( out != null ) {
+                if ( loadResponses.size() > 0 ) {
+                    out.print( "Broadcast to listeners: " );
+                    Map nameResponses =
+                        hub.requestToSubset( plasticId, MSG_NAME,
+                                             new ArrayList(),
+                                             new ArrayList( loadResponses
+                                                           .keySet() ) );
+                    for ( Iterator it = loadResponses.keySet().iterator();
+                          it.hasNext(); ) {
+                        URI id = (URI) it.next();
+                        String name = (String) nameResponses.get( id );
+                        if ( name == null || name.trim().length() == 0 ) {
+                            name = id.toString();
+                        }
+                        out.print( name );
+                        if ( it.hasNext() ) {
+                            out.print( ", " );
+                        }
                     }
-                    out.print( name );
-                    if ( it.hasNext() ) {
-                        out.print( ", " );
-                    }
+                    out.println();
                 }
-                out.println();
-            }
-            else {
-                out.println( "Nobody listening" );
+                else {
+                    out.println( "Nobody listening" );
+                }
             }
             return;
         }
