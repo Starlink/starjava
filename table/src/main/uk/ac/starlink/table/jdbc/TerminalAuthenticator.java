@@ -11,6 +11,8 @@ import java.io.PrintStream;
 public class TerminalAuthenticator implements JDBCAuthenticator {
 
     private final PrintStream err_;
+    private String user_;
+    private String pass_;
 
     /**
      * Constructs a new authenticator with a given stream to use for
@@ -30,7 +32,11 @@ public class TerminalAuthenticator implements JDBCAuthenticator {
     }
 
     public String[] authenticate() throws IOException {
-        return new String[] { readUser(), readPassword() };
+        if ( user_ == null ) {
+            user_ = readUser();
+            pass_ = readPassword();
+        }
+        return new String[] { user_, pass_ };
     }
 
     /**
