@@ -74,18 +74,10 @@ public class TablesListComboBoxModel extends AbstractListModel
      */
     private void checkConsistent() {
 
-        /* If the selected table is no longer part of the list, unset the
-         * selection. */
-        Object selected = getSelectedItem();
-        if ( selected != null ) {
-            int n = tablesList.getSize();
-            boolean in = false;
-            for ( int i = 0; i < n; i++ ) {
-                in = in || selected.equals( tablesList.getElementAt( i ) );
-            }
-            if ( ! in ) {
-                setSelectedItem( null );
-            }
-        }
+        /* Earlier versions of this routine unset the selection (set it 
+         * to null) if the selected item had just been removed from the
+         * list.  However, this is problematic since there's no way to
+         * inform listeners that a change has happened to the selection.
+         * So just don't do it. */
     }
 }
