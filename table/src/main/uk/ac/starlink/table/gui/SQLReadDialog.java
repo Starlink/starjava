@@ -38,6 +38,7 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
                                    final StarTableFactory factory,
                                    ComboBoxModel formatModel,
                                    TableConsumer eater ) {
+        useAuthenticator( factory.getJDBCHandler().getAuthenticator() );
         JDialog dialog = createDialog( parent, "Open JDBC table" );
         while ( true ) {
             dialog.show();
@@ -58,6 +59,4 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
             }
         }
     }
-
-
 }

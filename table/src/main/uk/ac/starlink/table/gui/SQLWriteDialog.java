@@ -36,6 +36,7 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
     public boolean showSaveDialog( Component parent, StarTableOutput sto,
                                    ComboBoxModel formatModel,
                                    StarTable table ) {
+        useAuthenticator( sto.getJDBCHandler().getAuthenticator() );
         JDialog dialog = createDialog( parent, "Write New SQL Table" );
         final boolean[] done = new boolean[ 1 ];
         while ( ! done[ 0 ] ) {
