@@ -15,7 +15,6 @@ public class JDBCHandler {
     private JDBCAuthenticator auth;
     private String user;
     private String passwd;
-    private boolean authDone;
 
     public JDBCHandler() {
         this( new TerminalAuthenticator() );
@@ -33,9 +32,6 @@ public class JDBCHandler {
      */
     public JDBCHandler( JDBCHandler jh ) {
         this( jh.auth );
-        this.user = jh.user;
-        this.passwd = jh.passwd;
-        this.authDone = jh.authDone;
     }
 
     public JDBCAuthenticator getAuthenticator() {
@@ -142,21 +138,18 @@ public class JDBCHandler {
 
     private Connection getConnection( String url )
             throws IOException, SQLException {
-        if ( ! authDone ) {
 
-            /* First attempt a connection without any authentication. */
-            try {
-                return DriverManager.getConnection( url );
-            }
+        /* First attempt a connection without any authentication. */
+        try {
+            return DriverManager.getConnection( url );
+        }
 
-            /* If that fails for any reason, request authentication details
-             * so we can try again. */
-            catch ( SQLException e ) {
-                String[] authInfo = auth.authenticate();
-                user = authInfo[ 0 ];
-                passwd = authInfo[ 1 ];
-                authDone = true;
-            }
+        /* If that fails for any reason, request authentication details
+         * so we can try again. */
+        catch ( SQLException e ) {
+            String[] authInfo = auth.authenticate();
+            user = authInfo[ 0 ];
+            passwd = authInfo[ 1 ];
         }
         return DriverManager.getConnection( url, user, passwd );
     }
