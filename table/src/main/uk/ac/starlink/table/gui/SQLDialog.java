@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.jdbc.Connector;
+import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
+import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 
 /**
  * A popup dialog for eliciting a JDBC access type URL string from the user.
@@ -33,6 +37,9 @@ public class SQLDialog extends JOptionPane {
     private JTextField tableField;
     private JTextField userField;
     private JPasswordField passField;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.gui" );
 
     /**
      * Constructs an SQLDialog using a given annotation for the 'ref'
@@ -83,6 +90,36 @@ public class SQLDialog extends JOptionPane {
         /* Password input field. */
         passField = new JPasswordField( 12 );
         stack.addLine( "Password", null, passField );
+    }
+
+    /**
+     * Initialises this dialog's fields in accordance with a given 
+     * JDBCAuthenticator object.  In general, this will call
+     * {@link uk.ac.starlink.table.jdbc.JDBCAuthenticator#authenticate}
+     * and fill the user and password fields with the result.
+     * However, if <code>auth</code> is a
+     * {@link uk.ac.starlink.table.jdbc.TextModelsAuthenticator}, it
+     * will actually use its models in the user and password fields.
+     *
+     * @param   auth   authenticator object to configure from
+     */
+    public void useAuthenticator( JDBCAuthenticator auth ) {
+        if ( auth instanceof TextModelsAuthenticator ) {
+            TextModelsAuthenticator tAuth = (TextModelsAuthenticator) auth;
+            userField.setDocument( tAuth.getUserDocument() );
+            passField.setDocument( tAuth.getPasswordDocument() );
+        }
+        else {
+            try {
+                String[] up = auth.authenticate();
+                userField.setText( up[ 0 ] );
+                passField.setText( up[ 1 ] );
+            }
+            catch ( IOException e ) {
+                logger_.log( Level.WARNING,
+                             "Authentication attempt failed", e );
+            }
+        }
     }
 
     /**
