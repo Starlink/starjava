@@ -107,8 +107,12 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         tableSelector_ = new JComboBox( tablesModel );
         tableSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
-                configureForTable( (TopcatModel)
-                                   tableSelector_.getSelectedItem() );
+                TopcatModel tcModel =
+                    (TopcatModel) tableSelector_.getSelectedItem();
+                if ( tcModel == null ) {
+                    tcModel = TopcatModel.createDummyModel();
+                }
+                configureForTable( tcModel );
             }
         } );
         tableSelector_.addActionListener( actionForwarder_ );
