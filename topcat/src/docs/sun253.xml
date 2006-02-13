@@ -7589,6 +7589,8 @@ comments (apologies for any missed out):
 <li>Francois Ochsenbein (Strasbourg)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Bob Mann (Edinburgh/Strasbourg)</li>
+<li>Anita Richards (Jodrell Bank)</li>
+<li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
@@ -8284,6 +8286,7 @@ introduced since the last version:
     <ul>
     <li>Added IPAC table format input handler.</li>
     <li>Plastic interop.</li>
+    <li>Improved JDBC login (fixed bugs and 'single sign on')</li>
     </ul>
     </p></dd>
 
