@@ -40,7 +40,7 @@ public class TextModelsAuthenticator implements JDBCAuthenticator {
     /**
      * Returns the text model for the password string.
      *
-     * @returen  password document
+     * @return  password document
      */
     public Document getPasswordDocument() {
         return passDocument_;
