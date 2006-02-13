@@ -43,8 +43,8 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
 
     /**
      * When <tt>readRow</tt> is not specified explicitly, this gives the
-     * threshold for determining how <tt>getRow</tt> methods are implemented;
-     * if
+     * threshold for determining how <tt>getRow</tt> methods are implemented.
+     * If
      * <pre>
      * getColumnCount() / getBaseTable().getColumnCount() &gt; READROW_FRACTION
      * </pre>
