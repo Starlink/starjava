@@ -26,6 +26,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
+import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.soap.TopcatSOAPServer;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
@@ -269,6 +270,10 @@ public class Driver {
 
         /* Configure logging. */
         configureLogging( verbosity );
+
+        /* Configure factory. */
+        tabfact.getJDBCHandler()
+               .setAuthenticator( new TextModelsAuthenticator() );
 
         /* Assemble pairs of (tables name, handler name) to be loaded. */
         List names = new ArrayList();

@@ -74,6 +74,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
@@ -159,6 +160,11 @@ public class ControlWindow extends AuxWindow
      */
     private ControlWindow() {
         super( "Starlink TOPCAT", null );
+
+        /* Configure table factory. */
+        tabfact_.getJDBCHandler()
+                .setAuthenticator( new TextModelsAuthenticator() );
+        taboutput_.setJDBCHandler( tabfact_.getJDBCHandler() );
 
         /* Set up a list of the known tables. */
         tablesModel_ = new DefaultListModel();
@@ -585,6 +591,7 @@ public class ControlWindow extends AuxWindow
      */
     public void setTableFactory( StarTableFactory tabfact ) {
         tabfact_ = tabfact;
+        taboutput_.setJDBCHandler( tabfact.getJDBCHandler() );
     }
 
     /**
@@ -1043,10 +1050,13 @@ public class ControlWindow extends AuxWindow
                     GraphicsWindow window = 
                         (GraphicsWindow) constructor_.newInstance( args );
                     TopcatModel tcModel = getCurrentModel();
-                    int npoint =
-                        (int) Math.min( tcModel.getDataModel().getRowCount(),
-                                        (long) Integer.MAX_VALUE );
-                    window.setGuidePointCount( npoint );
+                    if ( tcModel != null ) {
+                        int npoint =
+                            (int) Math.min( tcModel.getDataModel()
+                                                   .getRowCount(),
+                                            (long) Integer.MAX_VALUE );
+                        window.setGuidePointCount( npoint );
+                    }
                     window.setVisible( true );
                     if ( tcModel != null ) {
                         window.setMainTable( tcModel );

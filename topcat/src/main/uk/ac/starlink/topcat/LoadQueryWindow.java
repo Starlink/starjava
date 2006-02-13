@@ -22,7 +22,6 @@ import uk.ac.starlink.table.gui.LoadWorker;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
-import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 
 /**
  * Dialogue for user to enter a new table location for loading.
@@ -56,9 +55,6 @@ public abstract class LoadQueryWindow extends QueryWindow {
         super( "Load New Table", parent, false, true );
         tableFactory_ = factory;
         chooser_ = chooser;
-        SwingAuthenticator auth = new SwingAuthenticator();
-        auth.setParentComponent( this );
-        tableFactory_.getJDBCHandler().setAuthenticator( auth );
 
         /* Place a progress bar. */
         progBar_ = placeProgressBar();
