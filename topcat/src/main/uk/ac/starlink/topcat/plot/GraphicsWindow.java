@@ -272,9 +272,12 @@ public abstract class GraphicsWindow extends AuxWindow
             else {
                 ListModel tablesList = ControlWindow.getInstance()
                                                     .getTablesListModel();
+                npoint = 10000;
                 for ( int i = 0; i < tablesList.getSize(); i++ ) {
-                    npoint += ((TopcatModel) tablesList.getElementAt( i ))
-                             .getDataModel().getRowCount();
+                    npoint = Math.min( npoint,
+                                       ((TopcatModel)
+                                        tablesList.getElementAt( i ))
+                                      .getDataModel().getRowCount() );
                 }
             }
         }
