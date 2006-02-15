@@ -680,9 +680,16 @@
     <delete dir="${release.dir}/${Name}.app"
             quiet="true"/> <!--just in case...-->
     <!-- 'Infostring' should not contain a version number (as of OS X
-         10.4 - see docs for CFBundleGetInfoString); 'version' should
-         be the `marketing version of the bundle' (ie, the release
-         version); 'buildnumber' can optionally hold a rolling build number. -->
+     !   10.4 - see docs for CFBundleGetInfoString); 'version' should
+     !   be the `marketing version of the bundle' (ie, the release
+     !   version); 'buildnumber' can optionally hold a rolling build number.
+     !
+     !   Set the jvmversion to be '1.4+', which will work with the
+     !   highest version of the JVM available, and TOPCAT can work with
+     !   1.4.x or 1.5.  This might require some use configuration
+     !   to put 1.5 at the top of the list: see the 'Java Preferences'
+     !   application
+     !   -->
     <osxjarbundler dir="${release.dir}"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
@@ -690,7 +697,7 @@
                 bundleid="${package.name}"
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
                 infostring="${Name} ${copyright.string}"
-                jvmversion="1.5*"
+                jvmversion="1.4+"
                 screenmenu="true"
                 version="${version}"
                 jars="${dist.lib.pkg}/topcat-full.jar">
