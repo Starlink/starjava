@@ -572,8 +572,8 @@ XXX delete
                 aboutmenuname="${Name}"
                 bundleid="${package.name}"
                 icon="${src.lib}/MacOS/Treeview.icns"
-                infostring="${Name} ${version} ${copyright.string}"
-                jvmversion="1.5*"
+                infostring="${Name} ${copyright.string}"
+                jvmversion="1.4+"
                 screenmenu="true"
                 version="${version}"
                 jars="${dist.lib.pkg}/treeview-full.jar">
