@@ -146,9 +146,9 @@ public class FlipFrame
     {
         contentPane = (JPanel) getContentPane();
         contentPane.setLayout( new BorderLayout() );
-        setPlot( plot );
         initUI();
         initFrame();
+        setPlot( plot );
     }
 
     /**
@@ -625,7 +625,11 @@ public class FlipFrame
             spec = globalList.getSpectrum( i );
             if ( spec instanceof EditableSpecData ) {
                 if ( plot.isDisplayed( spec ) ) {
-                    v.add( globalList.getSpectrum( i ) );
+                    v.add( spec );
+                    if ( currentSpectrum == null ) {
+                        //  Top of list becomes current.
+                        currentSpectrum = (EditableSpecData) spec;
+                    }
                 }
             }
         }
@@ -705,7 +709,7 @@ public class FlipFrame
                                          new StoredProperties( spectrum ) );
             }
         }
-        else {
+        else if ( spectrum != null ) {
             storedPropertiesMap.put( spectrum,
                                      new StoredProperties( spectrum ) );
         }
