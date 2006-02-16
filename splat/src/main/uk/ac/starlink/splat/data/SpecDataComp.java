@@ -131,6 +131,11 @@ public class SpecDataComp
     private boolean prefixLineIDs = false;
 
     /**
+     * Whether line identifier spectra should show vertical marks.
+     */
+    private boolean showVerticalMarks = false;
+
+    /**
      * Whether line identifiers should be draw horizontally.
      */
     private boolean drawHorizontalLineIDs = false;
@@ -227,6 +232,20 @@ public class SpecDataComp
     public boolean isTrackerLineIDs()
     {
         return trackerLineIDs;
+    }
+
+    /**
+     */
+    public void setShowVerticalMarks( boolean showVerticalMarks )
+    {
+        this.showVerticalMarks = showVerticalMarks;
+    }
+
+    /**
+     */
+    public boolean isShowVerticalMarks()
+    {
+        return showVerticalMarks;
     }
 
     /**
@@ -937,6 +956,7 @@ public class SpecDataComp
                     lineSpec.setSpecData( null, null );
                 }
                 lineSpec.setPrefixShortName( prefixLineIDs );
+                lineSpec.setShowVerticalMarks( showVerticalMarks );
                 lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
             }
             spectrum.drawSpec( grf, localPlot, localClipLimits, physical,

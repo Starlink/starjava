@@ -153,6 +153,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem horizontalLineIDs = null;
     protected JCheckBoxMenuItem prefixLineIDs = null;
+    protected JCheckBoxMenuItem showVerticalMarks = null;
     protected JCheckBoxMenuItem showShortNames = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
@@ -646,6 +647,13 @@ public class PlotControlFrame
         boolean state = prefs.getBoolean( "PlotControlFrame_trackerlineids",
                                           false );
         trackerLineIDs.setSelected( state );
+
+        //  Show the vertical marks as well.
+        showVerticalMarks = new JCheckBoxMenuItem( "Show vertical lines" );
+        lineOptionsMenu.add( showVerticalMarks );
+        showVerticalMarks.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_showverticalmarks", true );
+        showVerticalMarks.setSelected( state );
 
         //  Prefix labels with the short name.
         prefixLineIDs = new JCheckBoxMenuItem( "Prefix name to labels" );
@@ -1727,6 +1735,14 @@ public class PlotControlFrame
             boolean state = trackerLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_trackerlineids", state );
             plot.getSpecDataComp().setTrackerLineIDs( state );
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( showVerticalMarks ) ) {
+            boolean state = showVerticalMarks.isSelected();
+            prefs.putBoolean( "PlotControlFrame_showverticalmarks", state );
+            plot.getSpecDataComp().setShowVerticalMarks( state );
             plot.updatePlot();
             return;
         }

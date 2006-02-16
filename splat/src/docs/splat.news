@@ -1,3 +1,6 @@
+   Line identifiers can now have vertical line drawn so show position
+   more accurately. 
+
    DSBSpecFrames are now handled by drawing the coordinates of the other
    sideband at the free X axis.
  

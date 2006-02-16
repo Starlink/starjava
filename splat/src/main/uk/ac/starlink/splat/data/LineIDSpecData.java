@@ -27,7 +27,7 @@ import uk.ac.starlink.splat.ast.ASTChannel;
 /**
  * A type of EditableSpecData that draws a string at a "spectral"
  * position. The expected use of these facilities is for identifying
- * line positions, (TODO: as a vertical bar marker) as a string.
+ * line positions as a string with a more accurate vertical bars.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -57,6 +57,11 @@ public class LineIDSpecData
      * Whether to prefix the short name to the labels.
      */
     private boolean prefixShortName = false;
+
+    /**
+     * Whether to draw vertical lines around the label.
+     */
+    private boolean showVerticalMarks = true;
 
     /**
      * Serialization version ID string.
@@ -157,6 +162,22 @@ public class LineIDSpecData
     public boolean isPrefixShortName()
     {
         return prefixShortName;
+    }
+
+    /**
+     * Set whether to show the vertical line markers.
+     */
+    public void setShowVerticalMarks( boolean showVerticalMarks )
+    {
+        this.showVerticalMarks = showVerticalMarks;
+    }
+
+    /**
+     * Get whether we're showing the vertical marks.
+     */
+    public boolean isShowVerticalMarks()
+    {
+        return showVerticalMarks;
     }
 
     /**
@@ -274,6 +295,9 @@ public class LineIDSpecData
         //  Get all labels.
         String[] labels = getLabels();
         double yshift = 0.1 * ( clipLimits[3] - clipLimits[1] );
+        
+        //  Guess a length for the lines.
+        double lineLength = yshift;
 
         //  Need to generate positions for placing the labels. The
         //  various schemes for this are use any positions read from
@@ -378,6 +402,12 @@ public class LineIDSpecData
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
                 plot.text( prefix + labels[i], pos, upVector, "CC" );
+                if ( showVerticalMarks ) {
+                    pos[1] = xypos[j+1] + yshift;
+                    plot.gridLine( 2, pos, lineLength );
+                    pos[1] = xypos[j+1] - yshift;
+                    plot.gridLine( 2, pos, -lineLength );
+                }
             }
         }
         else {
@@ -385,6 +415,12 @@ public class LineIDSpecData
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
                 plot.text( labels[i], pos, upVector, "CC" );
+                if ( showVerticalMarks ) {
+                    pos[1] = xypos[j+1] + yshift;
+                    plot.gridLine( 2, pos, lineLength );
+                    pos[1] = xypos[j+1] - yshift;
+                    plot.gridLine( 2, pos, -lineLength );
+                }
             }
         }
         resetGrfAttributes( defaultGrf, oldState, false );
