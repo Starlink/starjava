@@ -1,6 +1,8 @@
 package uk.ac.starlink.plastic;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,53 +29,48 @@ import org.apache.xmlrpc.XmlRpcHandler;
  * @author   Mark Taylor
  * @since    17 Feb 2006
  */
-public abstract class PlasticMonitor {
+public class PlasticMonitor implements PlasticApplication {
 
     private final String name_;
+    private final PrintStream out_;
     private boolean stopped_;
 
     /**
      * Constructor.
      *
-     * @param  name   implementation-specific label
+     * @param  name   application name
+     * @param  out    logging output stream
      */
-    private PlasticMonitor( String name ) {
+    protected PlasticMonitor( String name, PrintStream out ) {
         name_ = name;
+        out_ = out;
     }
 
-    /**
-     * Performs registration with the hub.
-     *
-     * @param  appName  application name to send to the hub
-     * @param  supportedMessages   list of supported messages
-     */
-    abstract URI register( String appName, URI[] supportedMessages )
-        throws IOException;
+    public String getName() {
+        return name_;
+    }
 
-    /**
-     * Performs logging of a PLASTIC execution request with given arguments.
-     * The HUB_STOPPING message is treated specially: 
-     * {@link #stopped_} is set and <code>notifyAll</code> is called on 
-     * this object.
-     *
-     * @param  sender  sender ID
-     * @param  message  message ID
-     * @parm   args   message argument list
-     */
-    void logCall( URI sender, URI message, List args ) {
+    public URI[] getSupportedMessages() {
+        return new URI[ 0 ];
+    }
+
+    public Object perform( URI sender, URI message, List args ) {
         String summary = new StringBuffer()
             .append( stringify( sender ) )
             .append( ": " )
             .append( stringify( message ) )
             .append( stringify( args ) )
             .toString();
-        System.out.println( summary );
+        if ( out_ != null ) {
+            out_.println( summary );
+        }
         if ( PlasticHub.HUB_STOPPING.equals( message ) ) {
             stopped_ = true;
             synchronized ( this ) {
                 notifyAll();
             }
         }
+        return null;
     }
 
     /**
@@ -112,117 +109,6 @@ public abstract class PlasticMonitor {
     }
 
     /**
-     * RMI implementation of PlasticMonitor.
-     */
-    private static class RmiMonitor extends PlasticMonitor {
-
-         public RmiMonitor() {
-             super( "RMI" );
-         }
-
-         public URI register( String appName, URI[] supportedMessages )
-                 throws IOException {
-             HubManager hubber = new HubManager( appName, supportedMessages ) {
-                 public Object doPerform( URI sender, URI message, List args ) {
-                     logCall( sender, message, args );
-                     return null;
-                 }
-             };
-             hubber.register();
-             return hubber.getRegisteredId();
-         }
-    }
-
-    /**
-     * XML-RPC implementation of PlasticMontor.
-     */
-    private static class XmlRpcMonitor extends PlasticMonitor
-                                       implements XmlRpcHandler {
-
-         public XmlRpcMonitor() {
-             super( "XML-RPC" );
-         }
-
-         public URI register( String appName, URI[] supportedMessages )
-                 throws IOException {
-
-             final XmlRpcClient client =
-                 new XmlRpcClient( PlasticUtils.getXmlRpcUrl() );
-
-             int port = 2112 - 1;
-             WebServer server = null;
-             RuntimeException error = null;
-             for ( int i = 0; i < 20 && server == null; i++ ) {
-                 port++;
-                 try {
-                     server = new WebServer( port );
-                     server.start();
-                 }
-                 catch ( RuntimeException e ) {
-                     server = null;
-                     error = e;
-                 }
-             }
-             if ( server == null ) {
-                 throw error;
-             }
-
-             URL serverUrl =
-                 new URL( "http://" + InetAddress.getLocalHost().getHostName()
-                        + ":" + port + "/" );
-             server.addHandler( "plastic.client", (XmlRpcHandler) this );
-
-             Vector argv = new Vector();
-             argv.add( appName );
-             argv.add( supportedMessages );
-             argv.add( serverUrl.toString() );
-             try {
-                 final Object result =
-                     client.execute( "plastic.hub.registerXMLRPC", argv );
-                 if ( result instanceof XmlRpcException ) {
-                     throw (XmlRpcException) result;
-                 }
-                 Runtime.getRuntime().addShutdownHook( new Thread() {
-                     public void run() {
-                         Vector argv = new Vector();
-                         argv.add( result );
-                         try {
-                             client.execute( "plastic.hub.unregister", argv );
-                         }
-                         catch ( Throwable e ) {
-                         }
-                     }
-                 } );
-                 return new URI( (String) result );
-             }
-             catch ( XmlRpcException e ) {
-                 throw (IOException) new IOException( e.getMessage() )
-                                    .initCause( e );
-             }
-             catch ( URISyntaxException e ) {
-                 throw (IOException) new IOException( e.getMessage() )
-                                    .initCause( e );
-             }
-         }
-
-         public Object execute( String method, Vector params )
-                 throws URISyntaxException {
-             List paramList = new ArrayList( params );
-             if ( "plastic.client.perform".equals( method ) ) {
-                 URI sender = new URI( (String) paramList.remove( 0 ) );
-                 URI message = new URI( (String) paramList.remove( 0 ) );
-                 List args = new ArrayList( (Collection)
-                                            paramList.remove( 0 ) );
-                 logCall( sender, message, args );
-                 return null;
-             }
-             else {
-                 throw new UnsupportedOperationException( method );
-             }
-         }
-    }
-
-    /**
      * Starts a monitor of the PLASTIC message bus which logs message
      * descriptions to standard output.
      * A choice of Java-RMI and XML-RPC communication is offered.
@@ -236,21 +122,22 @@ public abstract class PlasticMonitor {
      * </dl>
      */
     public static void main( String[] args ) throws IOException {
-        String usage = "Usage: " + PlasticMonitor.class.getClass().getName() 
+        String usage = "Usage: " + PlasticMonitor.class.getName() 
                      + " [-xmlrpc|-rmi]";
-        PlasticMonitor mon = null;
+        PlasticMonitor mon = new PlasticMonitor( "monitor", System.out );
 
         /* Process flags. */
         List argv = new ArrayList( Arrays.asList( args ) );
+        String mode = "rmi";
         for ( Iterator it = argv.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( "-xmlrpc".equals( arg ) ) {
                 it.remove();
-                mon = new XmlRpcMonitor();
+                mode = "xmlrpc";
             }
             else if ( "-rmi".equals( arg ) ) {
                 it.remove();
-                mon = new RmiMonitor();
+                mode = "rmi";
             }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
@@ -262,14 +149,17 @@ public abstract class PlasticMonitor {
             System.exit( 1 );
         }
 
-        /* Select default monitor implementation if none has been specified
-         * explicitly. */
-        if ( mon == null ) {
-            mon = new RmiMonitor();
+        System.out.println( "Connnecting in " + mode + " mode..." );
+        if ( "rmi".equals( mode ) ) {
+            PlasticUtils.registerRMI( mon );
         }
-
-        /* Register the monitor with the hub. */
-        URI id = mon.register( "monitor", new URI[ 0 ] );
+        else if ( "xmlrpc".equals( mode ) ) {
+            PlasticUtils.registerXMLRPC( mon );
+        }
+        else {
+            assert false;
+        }
+        System.out.println( "...connected." );
 
         /* Wait on the monitor.  If it receives a HUB_STOPPING message
          * it will be notified and execution of this method can complete. */
@@ -279,9 +169,10 @@ public abstract class PlasticMonitor {
                     mon.wait();
                 }
             }
-            System.exit( 0 );
+            System.out.println( "Hub stopped." );
         }
         catch ( InterruptedException e ) {
+            System.out.println( "Interrupted." );
         }
     }
 }
