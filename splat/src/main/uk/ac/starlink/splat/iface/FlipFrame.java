@@ -266,8 +266,8 @@ public class FlipFrame
 
         //  Offset, increment and redshift.
         redshiftBox = new JCheckBox( "Redshift" );
-        state = prefs.getBoolean( "FlipFrame_doredshift", false );
-        redshiftBox.setSelected( state );
+        boolean redshift = prefs.getBoolean( "FlipFrame_doredshift", false );
+        redshiftBox.setSelected( redshift );
         redshiftBox.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
                     boolean state = redshiftBox.isSelected();
@@ -281,17 +281,20 @@ public class FlipFrame
         gbl2.add( incrLabel, false );
 
         scientificFormat = new ScientificFormat();
-        incrementSpinner = new DecimalField( 1.0, 5, scientificFormat );
+        double incr = 10.0;
+        if ( redshift ) {
+            incr = 0.001;
+        }
+        incrementSpinner = new DecimalField( incr, 5, scientificFormat );
         incrementSpinner.addActionListener( this );
-        incrementSpinner.setToolTipText
-            ( "Increment used for spinner controls" );
+        incrementSpinner.setToolTipText("Increment used for spinner controls");
         gbl2.add( incrementSpinner, true );
 
         JLabel spinnerLabel = new JLabel( "Offset:" );
         gbl2.add( spinnerLabel, false );
 
         offsetModel = new SpinnerNumberModel( 0.0, -Double.MAX_VALUE,
-                                              Double.MAX_VALUE, 1.0 );
+                                              Double.MAX_VALUE, incr );
         scientificFormat = new ScientificFormat( "#0.######;-#0.######" );
         offsetSpinner = new ScientificSpinner( offsetModel, scientificFormat );
 
@@ -860,11 +863,13 @@ public class FlipFrame
     }
 
     /**
-     * Close the window. Delete any ranges that are shown.
+     * Close the window. Reset shift of current spectrum.
      */
     protected void closeWindowEvent()
     {
         globalList.removePlotListener( this );
+        flipTransform( 1.0, 0.0, null, redshiftBox.isSelected() );
+        visitor.clearStates();
         this.dispose();
     }
 
