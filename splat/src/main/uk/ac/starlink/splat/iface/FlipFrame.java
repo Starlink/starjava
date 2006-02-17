@@ -200,11 +200,14 @@ public class FlipFrame
 
         //  If current spectrum should be flipped.
         flipBox = new JCheckBox( "Flip" );
-        flipBox.setSelected( true );
+        boolean state = prefs.getBoolean( "FlipFrame_doflip", true );
+        flipBox.setSelected( state );
         flipBox.setToolTipText( "Flip copy left to right" );
         flipBox.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
-                    flipCentre.setEnabled( flipBox.isSelected() );
+                    boolean state = flipBox.isSelected();
+                    flipCentre.setEnabled( state );
+                    prefs.putBoolean( "FlipFrame_doflip", state );
                 }
             });
         gbl1.add( flipBox, false );
@@ -263,7 +266,14 @@ public class FlipFrame
 
         //  Offset, increment and redshift.
         redshiftBox = new JCheckBox( "Redshift" );
-        redshiftBox.setSelected( false );
+        state = prefs.getBoolean( "FlipFrame_doredshift", false );
+        redshiftBox.setSelected( state );
+        redshiftBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    boolean state = redshiftBox.isSelected();
+                    prefs.putBoolean( "FlipFrame_doredshift", state );
+                }
+            });
         redshiftBox.setToolTipText( "Interpret offset as a redshift" );
         gbl2.add( redshiftBox, true );
 
@@ -356,7 +366,7 @@ public class FlipFrame
         singleComparisonBox =
             new JCheckBoxMenuItem( "One spectrum for visitor" );
         optionsMenu.add( singleComparisonBox );
-        boolean state = prefs.getBoolean( "FlipFrame_ONECMP", false );
+        state = prefs.getBoolean( "FlipFrame_ONECMP", false );
         singleComparisonBox.setSelected( state );
         singleComparisonBox.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
