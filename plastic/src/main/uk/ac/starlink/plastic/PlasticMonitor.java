@@ -2,7 +2,6 @@ package uk.ac.starlink.plastic;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.BindException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
