@@ -121,8 +121,9 @@ public class PlasticMonitor implements PlasticApplication {
      * </dl>
      */
     public static void main( String[] args ) throws IOException {
-        String usage = "Usage: " + PlasticMonitor.class.getName() 
-                     + " [-xmlrpc|-rmi]";
+        String usage = "\nUsage: " + PlasticMonitor.class.getName() 
+                     + " [-xmlrpc|-rmi]"
+                     + "\n";
         PlasticMonitor mon = new PlasticMonitor( "monitor", System.out );
 
         /* Process flags. */

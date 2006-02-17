@@ -585,8 +585,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      */
     public static void main( String[] args )
             throws RemoteException, IOException {
-        String usage = "Usage: " + PlasticHub.class.getName() + ":" 
-                     + " [-verbose]";
+        String usage = "\nUsage: " + PlasticHub.class.getName() + ":" 
+                     + " [-verbose]"
+                     + "\n";
         PrintStream out = null;
 
         List argList = new ArrayList( Arrays.asList( args ) );
