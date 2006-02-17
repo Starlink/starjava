@@ -271,7 +271,7 @@ public class FlipFrame
         gbl2.add( incrLabel, false );
 
         scientificFormat = new ScientificFormat();
-        incrementSpinner = new DecimalField( 10.0, 5, scientificFormat );
+        incrementSpinner = new DecimalField( 1.0, 5, scientificFormat );
         incrementSpinner.addActionListener( this );
         incrementSpinner.setToolTipText
             ( "Increment used for spinner controls" );
@@ -281,8 +281,9 @@ public class FlipFrame
         gbl2.add( spinnerLabel, false );
 
         offsetModel = new SpinnerNumberModel( 0.0, -Double.MAX_VALUE,
-                                              Double.MAX_VALUE, 10.0 );
-        offsetSpinner = new ScientificSpinner( offsetModel );
+                                              Double.MAX_VALUE, 1.0 );
+        scientificFormat = new ScientificFormat( "#0.######;-#0.######" );
+        offsetSpinner = new ScientificSpinner( offsetModel, scientificFormat );
 
         offsetSpinner.addChangeListener( this );
         offsetSpinner.setToolTipText
