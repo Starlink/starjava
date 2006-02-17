@@ -243,10 +243,10 @@ public abstract class HubManager implements PlasticListener {
                 public void run() {
                     try {
                         hub.unregister( id );
-                        logger_.info( "PLASTIC unregistration successful" );
+                        logger_.config( "PLASTIC unregistration successful" );
                     }
                     catch ( Throwable e ) {
-                        logger_.info( "PLASTIC unregistration failed" );
+                        logger_.config( "PLASTIC unregistration failed" );
                     }
                     updateState( false );
                 }
@@ -286,7 +286,7 @@ public abstract class HubManager implements PlasticListener {
      * Implements the PlasticListener interface.
      */
     public Object perform( URI sender, URI message, List args ) {
-        logger_.info( "Received PLASTIC message " + message );
+        logger_.config( "Received PLASTIC message " + message );
         if ( HUB_STOPPING.equals( message ) ) {
             synchronized ( this ) {
                 plasticId_ = null;
