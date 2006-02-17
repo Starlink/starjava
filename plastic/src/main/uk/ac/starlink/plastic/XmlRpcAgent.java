@@ -85,7 +85,7 @@ class XmlRpcAgent extends Agent {
      * @param   arg   basic argument
      * @return  doctored argument
      */
-    private static Object doctorArgs( Object arg ) {
+    static Object doctorArgs( Object arg ) {
         if ( arg == null ) {
             return new Vector();
         }
@@ -99,6 +99,14 @@ class XmlRpcAgent extends Agent {
             Vector vec = new Vector();
             for ( Iterator it = ((Collection) arg).iterator(); it.hasNext(); ) {
                 vec.add( doctorArgs( it.next() ) );
+            }
+            return vec;
+        }
+        else if ( arg instanceof Object[] ) {
+            Vector vec = new Vector();
+            Object[] array = (Object[]) arg;
+            for ( int i = 0; i < array.length; i++ ) {
+                vec.add( doctorArgs( array[ i ] ) );
             }
             return vec;
         }
