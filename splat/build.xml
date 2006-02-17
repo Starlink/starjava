@@ -1299,4 +1299,41 @@ JNI libraries not built (NDF library not installed in ${stardev})"
      <antstructure output="project.dtd"/>
   </target>
 
+
+  <!--
+   !   ==========================
+   !   Build standalone jar files
+   !   ==========================
+   !
+   !  Builds jar files which can be used on their own, without needing any
+   !  other jars to be present, however, SPLAT will not work in this mode and
+   !  requires the shareable libraries of JNIAST and JNIHDS.
+   !-->
+  <target name="build-standalone"
+          description="-> builds a standalone jar file">
+
+    <property name="star.bin" value="${star.install}/bin"/>
+    <property name="star.lib" value="${star.install}/lib"/>
+    <property name="star.lib.pkg" value="${star.lib}/${name}"/>
+
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-o"/><arg value="${dist.lib.pkg}/splat-full.jar"/>
+      <arg value="-x"/><arg value="srb.jar"/>
+      <arg value="${star.lib.pkg}/splat.jar"/>
+    </java>
+    <jar destfile="${dist.lib.pkg}/splat-full.jar"
+         update="yes"
+         basedir="${star.bin}"
+         includes="splat"/>
+
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib.pkg}"
+               includes="splat-full.jar"/>
+    </signjar>
+  </target>
+
 </project>
