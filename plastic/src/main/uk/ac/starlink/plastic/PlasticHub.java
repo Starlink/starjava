@@ -92,10 +92,21 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
 
     public URI registerXMLRPC( String name, List supportedMessages,
                                URL callbackURL ) {
-        Agent agent = new XmlRpcAgent( ++nReg_, name,
-                                       (URI[]) supportedMessages
-                                              .toArray( new URI[ 0 ] ),
-                                       callbackURL );
+        URI[] messages = new URI[ supportedMessages.size() ];
+        for ( int i = 0; i < supportedMessages.size(); i++ ) {
+            Object msg = supportedMessages.get( i );
+            if ( msg instanceof URI ) {
+                messages[ i ] = (URI) msg;
+            }
+            else if ( msg instanceof String ) {
+                try {
+                    messages[ i ] = new URI( (String) msg );
+                }
+                catch ( URISyntaxException e ) {
+                }
+            }
+        }
+        Agent agent = new XmlRpcAgent( ++nReg_, name, messages, callbackURL );
         register( agent );
         return agent.getId();
     }
@@ -534,18 +545,22 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     }
 
     /**
-     * Creates and starts a PlasticHub running, writing the config information
-     * into the file {@link #PLASTIC_CONFIG_FILENAME} in the user's home
-     * directory.  If the <code>out</code> parameter is non-null,
-     * hub operations will be logged to that stream.
+     * Creates and starts a PlasticHub running, optionally 
+     * writing the config information into a given file and
+     * logging output to a print stream.
+     * The config file is usually 
+     * {@link org.votech.plastic.PlasticHubListener#PLASTIC_CONFIG_FILENAME}
+     * in the user's home directory.  This file will be deleted automatically
+     * under normal circumstances.
      *
-     * @param   out  logging output stream (may be null)
+     * @param   configFile  file to write setup information to,
+     *          if null no file is written
+     * @param   out  logging output stream (may be null for no logging)
      */
-    public static PlasticHubListener startHub( PrintStream out )
+    public static PlasticHubListener startHub( File configFile,
+                                               PrintStream out )
             throws RemoteException, IOException {
-        final File rvfile = new File( System.getProperty( "user.home" ),
-                                      PLASTIC_CONFIG_FILENAME );
-        final ServerSet servers = new ServerSet( rvfile );
+        final ServerSet servers = new ServerSet( configFile );
         final PlasticHub hub = new PlasticHub( servers );
         hub.setLogStream( out );
         Runtime.getRuntime().addShutdownHook( new Thread() {
@@ -590,6 +605,8 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             System.err.println( usage );
             System.exit( 1 );
         }
-        startHub( out );
+        startHub( new File( System.getProperty( "user.home" ),
+                            PlasticHubListener.PLASTIC_CONFIG_FILENAME ),
+                  out );
     }
 }
