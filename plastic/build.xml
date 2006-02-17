@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   PLASTIC build file
  !
- !   This file describes how to build and install {Package} from
- !   source and binary releases. {Package} is a class library
+ !   This file describes how to build and install PLASTIC from
+ !   source and binary releases. PLASTIC is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for PLASTIC" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,16 +77,16 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="PLASTIC"/>
+  <property name="name" value="plastic"/>
+  <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="{package.path}"/>
+  <property name="package.name" value="uk.ac.starlink.plastic"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
-  <property name="deprecation" value="false"/>
+  <property name="deprecation" value="true"/>
   <property name="optimize" value="true"/>
   <property name="source.version" value="1.4"/>
 
@@ -199,10 +199,7 @@
   <extclasspath id="installed.classpath">
 
     <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
+    <!-- <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/> -->
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -212,12 +209,10 @@
    !-->
   <extclasspath id="built.jarpath">
 
+    <!--
     <pathelement
        location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
+    -->
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -329,16 +324,6 @@
   <property name="tests-libpath" refid="tests-libpath.id"/>
 
   <!--
-   !    ===============
-   !    Extension tasks
-   !    ===============
-   !    Add any local or extension ANT tasks that are required. Local
-   !    tasks should be moved into the ANT package if used outside of this
-   !    package. 
-   !-->
-  <taskdef resource="axis-tasks.properties" classpathref="classpath"/>
-
-  <!--
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
@@ -349,22 +334,12 @@
    !-->
   <target name="check_packages"
           unless="runonly.install">
-
-    <!--  {Example package1} -->
+    <!--
     <available property="{package1}.present"
                classpathref="classpath"
                classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
     <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package2} available" unless="{package2}.present"/>
-
-    <!-- {More critical dependencies} -->
+    -->
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -426,20 +401,19 @@
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
       <exclude name="**/*.html"/>
       <exclude name="**/*.properties*"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+  <!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/{package.support.files}"/>
-        <include name="**/{more.package.support.files}"/>
       </fileset>
     </copy>
+  -->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
@@ -559,15 +533,19 @@
     <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
+ <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+  -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+ <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+  -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -922,6 +900,11 @@
             packagelistLoc="${javaapi.lis}"/>
 
       <group title="${Name} API" packages="${package.name}*"/>
+
+      <tag name="xmlrpc" description="XML-RPC" enabled="true"/>
+      <tag name="service" description="AstroGrid Service" enabled="false"/>
+      <tag name="date" description="Date" enabled="false"/>
+      <tag name="example" description="Example" enabled="true"/>
 
       <bottom>Copyright &#169; ${year} \\
               CLRC: Central Laboratory of the Research Councils.
