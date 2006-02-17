@@ -42,7 +42,7 @@ import uk.ac.starlink.splat.util.Utilities;
  * or more whitespace separated columns. If one column is present then that is
  * assumed to be the wavelength, and empty associations and labels are used,
  * if two columns are present then these are the wavelength and an association
- * label, if three or more then the second column is the label (in the sense
+ * spectrum, if three or more then the second column is the label (in the sense
  * of the superclass) and the third the association.
  * <P.
  * An optional feature is support for a header section that defines

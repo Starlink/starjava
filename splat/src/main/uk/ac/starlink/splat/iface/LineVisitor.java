@@ -320,6 +320,7 @@ public class LineVisitor
         //  Generate labels for JComboBox. Must be unique, so add index.
         labels.clear();
         if ( specData instanceof AssociatedLineIDSpecData ) {
+            //  may have associated spectra.
             String[] specLabels =
                 ((AssociatedLineIDSpecData)specData).getLabels();
             for ( int i = 0; i < specLabels.length; i++ ) {
@@ -329,12 +330,15 @@ public class LineVisitor
                 ((AssociatedLineIDSpecData)specData).getAssociations();
         }
         else if ( specData instanceof LineIDSpecData ) {
+            //  No associated spectra, just positions and labels.
             String[] specLabels = ((LineIDSpecData)specData).getLabels();
             for ( int i = 0; i < specLabels.length; i++ ) {
                 labels.add( i + ": " + specLabels[i] );
             }
         }
         else {
+            //  Any old spectrum, just use the positions and make up some
+            //  labels.
             for ( int i = 0; i < coords.length; i++ ) {
                 labels.add( i + ": " + coords[i] );
             }
