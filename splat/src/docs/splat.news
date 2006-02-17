@@ -1,20 +1,3 @@
-   Line identifiers can now have vertical line drawn so show position
-   more accurately. 
-
-   DSBSpecFrames are now handled by drawing the coordinates of the other
-   sideband at the free X axis.
- 
-   Graphics printing now allows PNG format too.
-
-   An integrated flux is now reported as part of the quick line fitting.
-
-   The generate interpolated lines toolbox now includes controls for
-   drawing an interpolated line (avoids use of "Graphics" menu in plot window).
-
-   Added a line visitor tool to the flip/shift toolbox. Allows a series
-   of lines to be preloaded for visiting.
-
-
 1 Starlink SPLAT now a tool for the Virtual Observatory
 
    In this release Starlink SPLAT has been enhanced to access prototype
@@ -50,6 +33,8 @@
         see this in action.
 
       - Postscript output can now be created in encapsulated form.
+
+      - Graphics printing now provides PNG format too.
 
       - Dual sideband data now have the coordinates of the second sideband
         shown along the opposing X axis of a plot. It is also possible to 
@@ -118,5 +103,20 @@
       - Data units are supported when editing and creating new spectra
         (polynomial and line fits).
 
+      - Line identifiers can now have vertical lines drawn so show the 
+        position more accurately. 
 
-Peter W. Draper (p.w.draper@durham.ac.uk)          20th July 2005
+      - An integrated flux is now reported as part of the quick line fitting.
+
+      - The generate interpolated lines toolbox now includes controls for
+        drawing an interpolated line (avoids use of "Graphics" menu in 
+        the plot window).
+
+      - The flip/shift toolbox now has a "line visitor" tool. This allows a
+        series of coordinate positions (lines) and, optionally, an associated
+        spectrum to displayed, one-by-one, and be re-visited simply.
+
+      - The flip/shift toolbox will now work with up to 5 decimal places, so 
+        that redshifts may be applied with higher accuracy.
+
+Peter W. Draper (p.w.draper@durham.ac.uk)          17th February 2006

@@ -64,19 +64,19 @@ This window allows you to do three related jobs.
 Flipping and shifting a spectrum allows you to assess the symmetry of a
 line. Shifting alone to determine how well spectra are aligned and redshifting
 to transform a spectrum or set of line identifiers to guess or confirm the
-redshift.
+redshift (all line identifier lists are already editable).
 
 <P>
 The transformation is applied to the spectrum shown in the
 <B>Spectrum:</B> drop-down menu. Initially this will show any editable
-spectra displayed in the associated plot (line identifiers are usually
-editable). If you want an editable copy of the current spectrum just press the
+spectra displayed in the associated plot (like the line identifiers).
+If you want an editable copy of the current spectrum just press the
 <B>Copy</B> button.
 
 <P>
 One subtlety is that the offset value is either a redshift or a value in the
 coordinate units of the spectrum being modified, depending on whether the
-z<B>Redshift</B> checkbox is selected, or not. The coordinate units of
+<B>Redshift</B> checkbox is selected, or not. The coordinate units of
 the spectrum may not be the same as those of the current spectrum in the plot,
 which can lead to surprising results.
 
@@ -92,6 +92,81 @@ the coordinate system toolbox to transform to another rest frame first.
 The <B>Reset</B> button returns a spectrum to an offset of zero.
 
 <P>
+<B><FONT SIZE="+1">Visitor lists</FONT></B>
+
+<P>
+It's often the case that you have a list of lines, in a spectrum, or many
+spectra, that you'd like to step through to check the radial velocity or
+redshift estimates, without the bother of reading each spectrum and line,
+positioning the plot <I>etc.</I> That's what a visitor list is designed for.
+
+<P>
+To use this create a simple text file containing either one, two, three
+or more whitespace separated columns. If one column is present then that is
+assumed to be the wavelength of the lines. If two columns are present then
+these are the wavelength and an associated spectrum. If three or more columns
+are present then the third columns contains the name of the associated
+spectrum and the second a label to be displayed at the position (when the
+label is missing it is set to the wavelength). Very short examples of the
+three types follow:
+
+<P>
+<BLOCKQUOTE>
+<PRE>
+ 6562.8170
+ 6583.6000
+ 6716.4700
+ 6730.8500
+ ...
+</PRE>
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+<PRE>
+ 6562.8170 spectrum1.fits
+ 6562.8170 spectrum2.fits
+ 6562.8170 spectrum3.fits
+ 6562.8170 spectrum4.fits
+ ...
+</PRE>
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+<PRE>
+ 6562.8170 HALPHA    spectrum1.fits
+ 6583.6000 [NII]     spectrum1.fits
+ 6716.4700 [SII]6717 spectrum2.fits
+ 6730.8500 [SII]6731 spectrum3.fits
+ ...
+</PRE>
+</BLOCKQUOTE>
+
+<P>
+Visitor lists are a type of line identifier spectrum, so can have fully
+specified spectral coordinate units written in a header section (see the line
+identifier lists in the SPLAT distribution themselves for details), so you are
+not restricted to having all your spectra in the same coordinate systems.
+
+<P>
+Once the visitor list is loaded <B>File-&gt;Read visitor line list</B>,
+you can start stepping through it using the <B>Visitor</B> controls, or
+jump to a particular line using the drop-down menu. The default behaviour of
+this tool, on each visit, is to create a copy of the current spectrum and then
+flip it centred on the line (the current zoom is also preserved). It you'd
+like to not create a copy of the spectrum for each visit, or indeed to flip
+it, then uncheck the <B>Flip</B> checkbox and select the menu item
+<B>Options-&gt;One spectrum for visitor</B> (these choices remain enforced
+between sessions).
+
+<P>
+Another way to use the visitor controls is to use a line identifier (either a
+built in one, or one of your own) as the visitor list. To do this load the
+line identifiers in the usual way (in the main window) and display them in the
+plot. You can then make this the visitor list by pressing
+<B>Set as visitor list</B>. Now using the visitor controls you can step
+between the lines (remember to de-select <B>Flip</B> and select
+<B>Options-&gt;One spectrum for visitor</B>, otherwise you'll get the line
+identifiers copied, flipped and maybe reused!).
+
+<P>
 <B><FONT SIZE="+1">SPEFO options</FONT></B>
 <BLOCKQUOTE>
 The original motivation for creating this tool (suggested by Petr Skoda, see
@@ -102,13 +177,13 @@ linear sense, as well as in redshift, and are enabled by selecting the
 <B>Options-&gt;SPEFO options</B> menu item. This reveals two text areas
 (you need to resize the window to actually see them first time). The upper one
 shows the flip corrected offset (that's half the standard shift) and the
-radial velocity for that flipped shift (calculated as 
+radial velocity for that flipped shift
+(calculated as 
 <!-- MATH
- $c*Offset*0.5/(Flip
-centre)$
+ $c*Offset*0.5/(Flip centre)$
  -->
-<I>c</I>*Offset*0.5/(<I>Flip</I>
-<I>centre</I>)), assuming that the coordinate system is some wavelength.
+<I>c</I>*Offset*0.5/(<I>Flip centre</I>)), 
+assuming that the coordinate system is some wavelength.
 
 <P>
 There's also an editable area for writing some notes about the measurement,
@@ -146,7 +221,7 @@ both these areas are written the file <TT>SPEFO.log</TT> by pressing the
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>06 January 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>17 Feburary 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 

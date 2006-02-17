@@ -26,11 +26,11 @@ Research Councils \& \\
 2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.11}
+\newcommand{\stardocnumber}    {243.12}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {06 January 2006}
+\newcommand{\stardocdate}      {17 Feburary 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.4-2}
+\newcommand{\stardocversion}   {3.5-0}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -2310,13 +2310,13 @@ plotted in a new window before fitting the lines.
 \mainfigure{generateline}
 
 This window is for generating a spectrum that is equivalent to an interpolated
-line that you have drawn (or are about to draw) on the plot. Such lines can 
-then be subtracted to or from, or divided into the current spectrum, 
+line that you have drawn (or are about to draw) on the plot. Such lines can
+then be subtracted to or from, or divided into the current spectrum,
 thus providing a way to background correct a spectrum using a hand-drawn line.
 
-To create an interpolated line just press the \labelitem{Draw curve} button, 
-or select the \submenuitem{Drawing mode}{\inline{curve}} option in the 
-\labelitem{Graphics} menu and draw out the line. 
+To create an interpolated line just press the \labelitem{Draw curve} button,
+or select the \submenuitem{Drawing mode}{\inline{curve}} option in the
+\labelitem{Graphics} menu and draw out the line.
 Different types of interpolated lines can be
 selected first in the \labelitem{Curve type} menu. The default is
 \labelitem{hermite} a type of spline that attempts to connect points in a
@@ -2605,17 +2605,17 @@ This window allows you to do three related jobs.
 Flipping and shifting a spectrum allows you to assess the symmetry of a
 line. Shifting alone to determine how well spectra are aligned and redshifting
 to transform a spectrum or set of line identifiers to guess or confirm the
-redshift.
+redshift (all line identifier lists are already editable).
 
 The transformation is applied to the spectrum shown in the
 \labelitem{Spectrum:} drop-down menu. Initially this will show any editable
-spectra displayed in the associated plot (line identifiers are usually
-editable). If you want an editable copy of the current spectrum just press the
+spectra displayed in the associated plot (like the line identifiers).
+If you want an editable copy of the current spectrum just press the
 \labelitem{Copy} button.
 
 One subtlety is that the offset value is either a redshift or a value in the
 coordinate units of the spectrum being modified, depending on whether the
-z\labelitem{Redshift} checkbox is selected, or not. The coordinate units of
+\labelitem{Redshift} checkbox is selected, or not. The coordinate units of
 the spectrum may not be the same as those of the current spectrum in the plot,
 which can lead to surprising results.
 
@@ -2628,6 +2628,74 @@ the coordinate system toolbox to transform to another rest frame first.
 
 The \labelitem{Reset} button returns a spectrum to an offset of zero.
 
+\subheading{Visitor lists}
+
+It's often the case that you have a list of lines, in a spectrum, or many
+spectra, that you'd like to step through to check the radial velocity or
+redshift estimates, without the bother of reading each spectrum and line,
+positioning the plot \etc\ That's what a visitor list is designed for.
+
+To use this create a simple text file containing either one, two, three
+or more whitespace separated columns. If one column is present then that is
+assumed to be the wavelength of the lines. If two columns are present then
+these are the wavelength and an associated spectrum. If three or more columns
+are present then the third columns contains the name of the associated
+spectrum and the second a label to be displayed at the position (when the
+label is missing it is set to the wavelength). Very short examples of the
+three types follow:
+
+\begin{quote}
+\begin{verbatim}
+ 6562.8170
+ 6583.6000
+ 6716.4700
+ 6730.8500
+ ...
+\end{verbatim}
+\end{quote}
+\begin{quote}
+\begin{verbatim}
+ 6562.8170 spectrum1.fits
+ 6562.8170 spectrum2.fits
+ 6562.8170 spectrum3.fits
+ 6562.8170 spectrum4.fits
+ ...
+\end{verbatim}
+\end{quote}
+\begin{quote}
+\begin{verbatim}
+ 6562.8170 HALPHA    spectrum1.fits
+ 6583.6000 [NII]     spectrum1.fits
+ 6716.4700 [SII]6717 spectrum2.fits
+ 6730.8500 [SII]6731 spectrum3.fits
+ ...
+\end{verbatim}
+\end{quote}
+
+Visitor lists are a type of line identifier spectrum, so can have fully
+specified spectral coordinate units written in a header section (see the line
+identifier lists in the SPLAT distribution themselves for details), so you are
+not restricted to having all your spectra in the same coordinate systems.
+
+Once the visitor list is loaded \submenuitem{File}{Read visitor line list},
+you can start stepping through it using the \labelitem{Visitor} controls, or
+jump to a particular line using the drop-down menu. The default behaviour of
+this tool, on each visit, is to create a copy of the current spectrum and then
+flip it centred on the line (the current zoom is also preserved). It you'd
+like to not create a copy of the spectrum for each visit, or indeed to flip
+it, then uncheck the \labelitem{Flip} checkbox and select the menu item
+\submenuitem{Options}{One spectrum for visitor} (these choices remain enforced
+between sessions).
+
+Another way to use the visitor controls is to use a line identifier (either a
+built in one, or one of your own) as the visitor list. To do this load the
+line identifiers in the usual way (in the main window) and display them in the
+plot. You can then make this the visitor list by pressing
+\labelitem{Set as visitor list}. Now using the visitor controls you can step
+between the lines (remember to de-select \labelitem{Flip} and select
+\submenuitem{Options}{One spectrum for visitor}, otherwise you'll get the line
+identifiers copied, flipped and maybe reused!).
+
 \subheading{SPEFO options}
 \begin{quote}
 The original motivation for creating this tool (suggested by Petr Skoda, see
@@ -2638,15 +2706,15 @@ linear sense, as well as in redshift, and are enabled by selecting the
 \submenuitem{Options}{SPEFO options} menu item. This reveals two text areas
 (you need to resize the window to actually see them first time). The upper one
 shows the flip corrected offset (that's half the standard shift) and the
-radial velocity for that flipped shift (calculated as $c*Offset*0.5/(Flip
-centre)$), assuming that the coordinate system is some wavelength.
+radial velocity for that flipped shift
+(calculated as $c*Offset*0.5/(Flip centre)$), 
+assuming that the coordinate system is some wavelength.
 
 There's also an editable area for writing some notes about the measurement,
 both these areas are written the file \hitext{SPEFO.log} by pressing the
 \labelitem{Save to SPEFO.log file} button.
 
 \end{quote}
-
 
 \newpage
 \subsection{Region statistics window}
@@ -2867,7 +2935,7 @@ or in shorthand:
 If you don't choose a dispersion axis \SPLAT\ will make a good intelligent
 guess about this and step along the first axis that isn't the dispersion axis.
 The other possible values for \hitext{ndaction} are \hitext{extract} and
-\hitext{vectorize}. These are described as \hitext{extract all spectra} 
+\hitext{vectorize}. These are described as \hitext{extract all spectra}
 and \hitext{open whole as 1D}, respectively, in the open file dialogue.
 
 %%%% Removed for the moment, may all be changing a lot soon.
@@ -3028,7 +3096,7 @@ research, contact Petr for further details).
 
 \section{Changes}
 
-\subsection{This release (3.3)}
+\subsection{This release (3.4)}
 
 Starlink SPLAT is now a tool for the Virtual Observatory and has been
 renamed to \SPLAT.
@@ -3065,6 +3133,8 @@ Other changes of note in this release:
       to see this in action.
 
 \item Postscript output can now be created in encapsulated form.
+
+\item Graphics printing now provides PNG format too.
 
 \item Dual sideband data now have the coordinates of the second sideband
       shown along the opposing X axis of a plot. It is also possible to
@@ -3133,6 +3203,22 @@ Other changes of note in this release:
 
 \item Data units are supported when editing and creating new spectra
      (polynomial and line fits).
+
+\item Line identifiers can now have vertical lines drawn so show the 
+      position more accurately. 
+
+\item An integrated flux is now reported as part of the quick line fitting.
+
+\item The generate interpolated lines toolbox now includes controls for
+      drawing an interpolated line (avoids use of "Graphics" menu in 
+      the plot window).
+
+\item The flip/shift toolbox now has a "line visitor" tool. This allows a
+      series of coordinate positions (lines) and, optionally, an associated
+      spectrum to displayed, one-by-one, and be re-visited simply.
+
+\item The flip/shift toolbox will now work with up to 5 decimal places, so 
+      that redshifts may be applied with higher accuracy.
 
 \end{itemize}
 
