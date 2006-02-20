@@ -129,6 +129,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
@@ -144,6 +145,7 @@
   <property name="dist.src" value="${dist.dir}/src"/>
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
+  <property name="dist.www" value="${dist.dir}/www"/>
 
   <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
   <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
@@ -198,8 +200,8 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- {Other packages} -->
-    <!-- <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/> -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
+    <pathelement location="${star.jar.dir}/xdoc/xdoc.jar"/>
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -209,10 +211,8 @@
    !-->
   <extclasspath id="built.jarpath">
 
-    <!--
-    <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    -->
+    <pathelement location="${star.build.dir}/xdoc/lib/xdoc/xdoc.jar"/>
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -717,6 +717,7 @@
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
     <delete dir="${dist.etc}"/>
+    <delete dir="${dist.www}"/>
 
   </target>
 
@@ -803,6 +804,49 @@
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
 
+  </target>
+
+  <!--
+   !   =============================
+   !   Prepare distribution web page
+   !   =============================
+   !-->
+  <target name="www"
+          depends="dist"
+          description="Prepare files for distribution web page">
+    <mkdir dir="${dist.www}"/>
+
+    <copy todir="${dist.www}">
+      <fileset dir="${dist.lib.pkg}"/>
+    </copy>
+
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-o"/><arg value="${dist.www}/${name}-full.jar"/>
+      <arg value="${dist.www}/${name}.jar"/>
+    </java>
+
+    <zip destfile="${dist.www}/${name}-src.zip"
+         basedir="${java.dir}"
+         includes="**/*.java">
+    </zip>
+
+    <zip destfile="${dist.www}/${name}-javadocs.zip"
+         basedir="${dist.docs.pkg}/javadocs">
+    </zip>
+
+    <unzip src="${dist.www}/${name}-javadocs.zip"
+           dest="${dist.www}/javadocs/"/>       
+
+    <java classname="uk.ac.starlink.xdoc.XalanProc"
+          output="${dist.www}/index.html"
+          dir="${dist.www}" fork="yes"
+          logerror="yes"
+          failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="${star.dir}/etc/xdoc/xhtml.xslt"/>
+      <arg value="${src.docs}/${name}.xhtml"/>
+    </java>
   </target>
 
   <!--
