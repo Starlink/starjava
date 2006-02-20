@@ -89,7 +89,7 @@ public class PlasticRequest {
             else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
-                System.exit( 0 );
+                return;
             }
         }
         if ( argList.isEmpty() ) {

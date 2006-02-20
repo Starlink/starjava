@@ -170,7 +170,7 @@ public class PlasticMonitor implements PlasticApplication {
                 }
             }
             System.out.println( "Hub stopped." );
-            System.exit( 0 );
+            return;
         }
         catch ( InterruptedException e ) {
             System.out.println( "Interrupted." );

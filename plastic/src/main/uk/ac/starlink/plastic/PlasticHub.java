@@ -609,7 +609,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      */
     public static void main( String[] args )
             throws RemoteException, IOException {
-        String usage = "\nUsage: " + PlasticHub.class.getName() + ":" 
+        String usage = "\nUsage: " + PlasticHub.class.getName()
                      + " [-verbose]"
                      + "\n";
         PrintStream out = null;
@@ -623,7 +623,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
-                System.exit( 0 );
+                return;
             }
         }
         if ( ! argList.isEmpty() ) {
