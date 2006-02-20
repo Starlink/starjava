@@ -229,41 +229,62 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     }
 
     public Map request( URI sender, URI message, List args ) {
-        return requestTo( sender, message, args,
-                          (Agent[]) agentMap_.values()
-                                             .toArray( new Agent[ 0 ] ) );
+        return requestTo( sender, message, args, getOtherAgents( sender ) );
     }
 
     public Map requestToSubset( URI sender, URI message, List args,
                                 List recipientIds ) {
-        List agentList = new ArrayList();
-        for ( Iterator it = recipientIds.iterator(); it.hasNext(); ) {
-            Agent agent = (Agent) agentMap_.get( it.next() );
-            if ( agent != null ) {
-                agentList.add( agent );
-            }
-        }
         return requestTo( sender, message, args,
-                          (Agent[]) agentList.toArray( new Agent[ 0 ] ) );
+                          getSelectedAgents( recipientIds ) );
     }
 
     public void requestAsynch( URI sender, URI message, List args ) {
-        requestAsynchTo( sender, message, args,
-                         (Agent[]) agentMap_.values()
-                                            .toArray( new Agent[ 0 ] ) );
+        requestAsynchTo( sender, message, args, getOtherAgents( sender ) );
     }
 
     public void requestToSubsetAsynch( URI sender, URI message, List args,
                                        List recipientIds ) {
+        requestAsynchTo( sender, message, args,
+                         getSelectedAgents( recipientIds ) );
+    }
+
+    /**
+     * Returns an array of all registered agents except for the one with
+     * a given identifier.
+     *
+     * @param   excluded  URI to exclude
+     * @return   array of all other agents
+     */
+    private Agent[] getOtherAgents( URI excluded ) {
         List agentList = new ArrayList();
-        for ( Iterator it = recipientIds.iterator(); it.hasNext(); ) {
+        for ( Iterator it = agentMap_.keySet().iterator(); it.hasNext(); ) {
+            URI id = (URI) it.next();
+            if ( id != null && ! id.equals( excluded ) ) {
+                Agent agent = (Agent) agentMap_.get( id );
+                if ( agent != null ) {
+                    agentList.add( agent );
+                }
+            }
+        }
+        return (Agent[]) agentList.toArray( new Agent[ 0 ] );
+    }
+
+    /**
+     * Returns an array of the agents corresponding to a given list of
+     * identifiers.
+     *
+     * @param  idList  list of URIs identifying registered agents
+     * @return  array of agents corresponding to <code>idList</code>
+     */
+    private Agent[] getSelectedAgents( List idList ) {
+        List agentList = new ArrayList();
+        for ( Iterator it = idList.iterator(); it.hasNext(); ) {
             Agent agent = (Agent) agentMap_.get( it.next() );
             if ( agent != null ) {
                 agentList.add( agent );
             }
         }
-        requestAsynchTo( sender, message, args,
-                         (Agent[]) agentList.toArray( new Agent[ 0 ] ) );
+        return (Agent[]) agentList.toArray( new Agent[ 0 ] );
     }
 
     /**
@@ -563,6 +584,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
         final ServerSet servers = new ServerSet( configFile );
         final PlasticHub hub = new PlasticHub( servers );
         hub.setLogStream( out );
+        if ( out != null ) {
+            out.println( "Hub started." );
+        }
         Runtime.getRuntime().addShutdownHook( new Thread() {
             public void run() {
                 hub.stop();
