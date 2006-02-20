@@ -134,6 +134,9 @@
     <echo message="Executing SOAPSERVER target: ${what}"/>
     <ant dir="./soapserver" target="${what}"/>
 
+    <echo message="Executing PLASTIC target: ${what}"/>
+    <ant dir="./plastic" target="${what}"/>
+
     <echo message="Executing Task target: ${what}"/>
     <ant dir="./task" target="${what}"/>
 
@@ -387,6 +390,10 @@
       </packageset>
 
       <packageset dir="soapserver/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="plastic/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
