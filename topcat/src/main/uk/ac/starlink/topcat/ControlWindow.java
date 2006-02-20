@@ -417,6 +417,8 @@ public class ControlWindow extends AuxWindow
         interopMenu.setMnemonic( KeyEvent.VK_I );
         interopMenu.add( getPlasticServer().getRegisterAction( true ) );
         interopMenu.add( getPlasticServer().getRegisterAction( false ) );
+        interopMenu.add( getPlasticServer().getHubStartAction( true ) );
+        interopMenu.add( getPlasticServer().getHubStartAction( false ) );
         interopMenu.addSeparator();
         interopMenu.add( broadcastAct_ );
         getJMenuBar().add( interopMenu );
