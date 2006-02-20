@@ -48,8 +48,6 @@ public abstract class HubManager implements PlasticListener {
 
     private final String applicationName_;
     private final URI[] supportedMessages_;
-    private final Action registerAct_;
-    private final Action unregisterAct_;
     private final JToggleButton.ToggleButtonModel registerToggle_;
     private URI plasticId_;
     private PlasticHubListener hub_;
@@ -80,8 +78,6 @@ public abstract class HubManager implements PlasticListener {
     public HubManager( String appName, URI[] supportedMessages ) {
         applicationName_ = appName;
         supportedMessages_ = (URI[]) supportedMessages.clone();
-        registerAct_ = new RegisterAction( true );
-        unregisterAct_ = new RegisterAction( false );
         registerToggle_ = new JToggleButton.ToggleButtonModel();
         registerToggle_.setSelected( false );
         registerToggle_.addChangeListener( new ChangeListener() {
@@ -269,7 +265,70 @@ public abstract class HubManager implements PlasticListener {
      * @return  action
      */
     public Action getRegisterAction( final boolean reg ) {
-        return reg ? registerAct_ : unregisterAct_;
+        return new RegisterAction( reg );
+    }
+
+    /**
+     * Returns an action which will attempt to start up a PLASTIC hub.
+     * Depending on the <code>internal</code> flag, the action may either
+     * start a hub in this JVM (in which case it will expire when the JVM does)
+     * or in a separate process.
+     * An attempt is made to keep the enabledness of this action up to date
+     * with current knowledge about whether the hub is running or not.
+     *
+     * @param   internal   true for an in-JVM hub, false for one in a new JVM
+     * @return  hub start action
+     */
+    public Action getHubStartAction( final boolean internal ) {
+        final Action hubAct = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    if ( internal ) {
+                        PlasticHub.startHub( null );
+                    }
+                    else {
+                        PlasticUtils.startExternalHub();
+                    }
+                }
+                catch ( Throwable e ) {
+                    Component parent = evt.getSource() instanceof Component
+                                     ? (Component) evt.getSource()
+                                     : null;
+                    Object errmsg = new String[] {
+                        "Failed to start new PLASTIC hub:",
+                        e.toString(),
+                    };
+                    JOptionPane.showMessageDialog( parent, errmsg,
+                                                   "Hub Start Error",
+                                                   JOptionPane
+                                                  .WARNING_MESSAGE );
+                }
+            }
+        };
+        hubAct.putValue( Action.NAME,
+                         "Start " + ( internal ? "internal" : "external" ) +
+                         " PLASTIC Hub" );
+        hubAct.putValue( Action.SHORT_DESCRIPTION,
+                         "Start a PLASTIC hub running" +
+                         ( internal ? " in this JVM"
+                                    : " in a separate process" ) );
+        registerToggle_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                if ( registerToggle_.isSelected() ) {
+                    hubAct.setEnabled( false );
+                }
+                else {
+                    hubAct.setEnabled( ! PlasticUtils.isHubRunning() );
+                }
+            }
+        } );
+        if ( registerToggle_.isSelected() ) {
+            hubAct.setEnabled( false );
+        }
+        else {
+            hubAct.setEnabled( ! PlasticUtils.isHubRunning() );
+        }
+        return hubAct;
     }
 
     /**
@@ -361,8 +420,6 @@ public abstract class HubManager implements PlasticListener {
     private void updateState( final boolean registered ) {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                registerAct_.setEnabled( ! registered );
-                unregisterAct_.setEnabled( registered );
                 registerToggle_.setSelected( registered );
             }
         } );
@@ -419,15 +476,20 @@ public abstract class HubManager implements PlasticListener {
      * Action implementation that registers/unregisters with PLASTIC hub.
      * The enabled status of this action is kept suitably up to date.
      */
-    private class RegisterAction extends AbstractAction {
+    private class RegisterAction extends AbstractAction
+                                 implements ChangeListener {
         private final boolean reg_;
+
         RegisterAction( boolean reg ) {
             super( reg ? "Register with PLASTIC" : "Unregister with PLASTIC" );
             reg_ = reg;
             putValue( SHORT_DESCRIPTION,
                       reg ? "Accept interop requests from other tools"
                           : "Ignore interop requests from other tools" );
+            registerToggle_.addChangeListener( this );
+            stateChanged( null );
         }
+
         public void actionPerformed( ActionEvent evt ) {
             if ( reg_ ) {
                 try {
@@ -437,7 +499,7 @@ public abstract class HubManager implements PlasticListener {
                     Component parent = evt.getSource() instanceof Component
                                      ? (Component) evt.getSource()
                                      : null;
-                    Object[] errmsg = new String[] {
+                    Object errmsg = new String[] {
                         "Registration with PLASTIC hub failed:",
                         e.toString(),
                     };
@@ -450,6 +512,10 @@ public abstract class HubManager implements PlasticListener {
             else {
                 unregister();
             }
+        }
+
+        public void stateChanged( ChangeEvent evt ) {
+            setEnabled( reg_ ^ registerToggle_.isSelected() );
         }
     }
 }
