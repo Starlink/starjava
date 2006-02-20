@@ -566,6 +566,19 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     }
 
     /**
+     * Creates and starts a PlasticHub running, writing its config information
+     * to the default file and optionally logging output to a print stream.
+     * The config file will be deleted automatically if the hub stops running.
+     *
+     * @param   out  logging output stream (may be null for no logging)
+     */
+    public static PlasticHubListener startHub( PrintStream out ) 
+            throws IOException, RemoteException {
+        return startHub( out, new File( System.getProperty( "user.home" ),
+                                        PLASTIC_CONFIG_FILENAME ) );
+    }
+
+    /**
      * Creates and starts a PlasticHub running, optionally 
      * writing the config information into a given file and
      * logging output to a print stream.
@@ -578,8 +591,8 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      *          if null no file is written
      * @param   out  logging output stream (may be null for no logging)
      */
-    public static PlasticHubListener startHub( File configFile,
-                                               PrintStream out )
+    public static PlasticHubListener startHub( PrintStream out,
+                                               File configFile )
             throws RemoteException, IOException {
         final ServerSet servers = new ServerSet( configFile );
         final PlasticHub hub = new PlasticHub( servers );
@@ -630,8 +643,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             System.err.println( usage );
             System.exit( 1 );
         }
-        startHub( new File( System.getProperty( "user.home" ),
-                            PlasticHubListener.PLASTIC_CONFIG_FILENAME ),
-                  out );
+        startHub( out, new File( System.getProperty( "user.home" ),
+                                 PlasticHubListener.PLASTIC_CONFIG_FILENAME ) );
     }
 }
