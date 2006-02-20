@@ -141,7 +141,7 @@ public class PlasticMonitor implements PlasticApplication {
             }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
-                System.exit( 0 );
+                return;
             }
         }
         if ( ! argv.isEmpty() ) {
@@ -170,6 +170,7 @@ public class PlasticMonitor implements PlasticApplication {
                 }
             }
             System.out.println( "Hub stopped." );
+            System.exit( 0 );
         }
         catch ( InterruptedException e ) {
             System.out.println( "Interrupted." );
