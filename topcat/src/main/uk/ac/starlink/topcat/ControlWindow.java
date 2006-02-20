@@ -720,6 +720,7 @@ public class ControlWindow extends AuxWindow
          * are up to date. */
         writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
+        broadcastAct_.setEnabled( hasModel );
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
         subsetSelector_.setEnabled( hasModel );
