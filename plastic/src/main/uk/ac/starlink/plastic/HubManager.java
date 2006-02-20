@@ -41,6 +41,9 @@ import org.votech.plastic.PlasticListener;
  * <li>ivo://votech.org/hub/HubStopping</li>
  * </ul>
  *
+ * <p>Actions are also provided for registering/unregistering and starting
+ * a hub, ready for use in a GUI.
+ *
  * @author   Mark Taylor
  * @since    15 Feb 2006
  */
