@@ -30,8 +30,7 @@ public class PlasticTest extends TestCase {
     public void testHub() throws IOException, InterruptedException {
         PlasticHubListener hub;
         if ( ! configFile.exists() ) {
-            hub = PlasticHub.startHub( configFile,
-                                       VERBOSE ? System.out : null );
+            hub = PlasticHub.startHub( VERBOSE ? System.out : null );
         }
         else {
             hub = PlasticUtils.getLocalHub();
