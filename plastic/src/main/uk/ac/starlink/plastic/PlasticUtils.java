@@ -106,6 +106,22 @@ public class PlasticUtils {
     }
 
     /**
+     * Attempts to determine if a plastic hub is currently running.
+     * The results are not completely guaranteed to be true.
+     *
+     * @return  true  if a hub appears to be running, false if it doesn't
+     */
+    public static boolean isHubRunning() {
+        try {
+            getPlasticProperties();
+            return true;
+        }
+        catch ( Throwable e ) {
+            return false;
+        }
+    }
+
+    /**
      * Returns the properties set which is stored in {@link #PLASTIC_FILE}.
      *
      * @return  plastic properties
@@ -120,8 +136,8 @@ public class PlasticUtils {
             return props;
         }
         else {
-            throw new FileNotFoundException( "No PLASTIC hub detected "
-                                           + "(no file ~/.plastic" );
+            throw new NoHubException( "No PLASTIC hub detected "
+                                    + "(no file ~/.plastic)" );
         }
     }
 
@@ -294,6 +310,21 @@ public class PlasticUtils {
         finally {
             hub.unregister( id );
         }
+    }
+
+    /**
+     * Attempts to start a hub running in an external process.
+     * There's no guarantee that this will be successful.
+     */
+    public static void startExternalHub() throws IOException {
+        String[] args = new String[] {
+            "java",
+            "-classpath",
+            System.getProperty( "java.class.path" ),
+            PlasticHub.class.getName(),
+            "-verbose",
+        };
+        Runtime.getRuntime().exec( args );
     }
 
     /**
