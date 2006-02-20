@@ -1,0 +1,12 @@
+XDOC is a package containing classes and other files (e.g. XSLT stylesheets)
+used at build time for constructing documentation (mostly XML-based).
+It is not intended for use except at build time, so need not be distributed
+in pre-built versions of the software.
+
+At time of writing (20 Feb 2006) the files here are a post-hoc collection
+of items which formed parts of build systems not in the starjava 
+repository.  Having been knocked together for essentially private use,
+the standard of documentation of this pacakge itself may not be very high.
+Sorry.
+
+Mark Taylor
