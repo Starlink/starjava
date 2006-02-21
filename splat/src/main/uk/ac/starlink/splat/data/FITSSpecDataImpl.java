@@ -747,20 +747,24 @@ public class FITSSpecDataImpl
             //  Query the current HDU.
             try {
                 int[] dims = hdurefs[hdunum].getAxes();
-                int ndims = dims.length;
-                if ( ndims > 1 ) {
-                    int[] reorder = new int[ndims];
-                    for ( int i = 0, j = ndims - 1; i < ndims; i++, j-- ) {
-                        reorder[i] = dims[j];
+                if ( dims != null ) {
+                    int ndims = dims.length;
+                    if ( ndims > 1 ) {
+                        int[] reorder = new int[ndims];
+                        for ( int i = 0, j = ndims - 1; i < ndims; i++, j-- ) {
+                            reorder[i] = dims[j];
+                        }
+                        dims = reorder;
                     }
-                    dims = reorder;
+                    return dims;
                 }
-                return dims;
             }
             catch (FitsException e) {
                 //  Just ignore and return dummy dimension.
             }
         }
+
+        //  Also fall-through when dims == null.
         int[] dummy = new int[1];
         dummy[0] = 0;
         return dummy;

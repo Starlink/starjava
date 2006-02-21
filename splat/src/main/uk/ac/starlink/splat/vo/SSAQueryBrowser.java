@@ -666,16 +666,16 @@ public class SSAQueryBrowser
             }
             catch (TableFormatException te) {
                 progressPanel.logMessage( te.getMessage() );
-                te.printStackTrace();
+                System.out.println( te.getMessage() );
             }
             catch (IOException ie) {
                 progressPanel.logMessage( ie.getMessage() );
-                ie.printStackTrace();
+                System.out.println( ie.getMessage() );
             }
-            catch (Exception ge ) {
+            catch (Exception ge) {
                 //  General exception.
                 progressPanel.logMessage( ge.getMessage() );
-                ge.printStackTrace();
+                System.out.println( ge.getMessage() );
             }
             if ( Thread.interrupted() ) {
                 throw new InterruptedException();
