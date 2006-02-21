@@ -57,7 +57,7 @@
       - Several new smoothing filters have been introduced - Hanning, Hamming,
         Welch and Barlett.
 
-      - Line identifiers are now available in the webstart version of SPLAT.
+      - Line identifiers are now also available in the webstart version of SPLAT.
 
       - Line identifiers that fall within range of a spectrum can now be
         automatically loaded. Other changes allow the positioning to follow
