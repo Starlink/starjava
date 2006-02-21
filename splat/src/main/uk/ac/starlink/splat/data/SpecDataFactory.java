@@ -870,9 +870,9 @@ public class SpecDataFactory
             namer.setPath( tmpFile );
             datsrc.close();
 
-            //  Check file. In an error occurred with the request at the
+            //  Check file. If an error occurred with the request at the
             //  server end this will probably result in the download of an
-            //  HTML file.
+            //  HTML file, or a file starting with NULL.
             FileInputStream fis = new FileInputStream( tmpFile );
             byte[] header = new byte[4];
             fis.read( header );
@@ -886,7 +886,12 @@ public class SpecDataFactory
                 //  Must be HTML.
                 throw new SplatException( "Cannot use the file returned" + 
                                           " by the URL : " + url.toString() +
-                                          "it contains an HTML document" );
+                                          " it contains an HTML document" );
+            }
+            else if ( header[0] == 0 && header[1] == 0 ) {
+                throw new SplatException( "Cannot use the file returned" + 
+                                          " by the URL : " + url.toString() +
+                                          " as it is empty" );
             }
         }
         catch (Exception e) {
