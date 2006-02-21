@@ -283,8 +283,15 @@ public class FilestoreChooser extends JPanel {
      */
     public void addDefaultBranches() {
 
-        /* Add branches for local filesystems. */
+        /* Note: there is a problem with listRoots on Windows 2000 - it
+         * pops up a dialogue about empty removable drives (floppy, cd-rom).
+         * See Java bug id #4711632.  There may be workarounds but I tried
+         * for a bit and didn't manage (hard without a local win2000 machine),
+         * so I've given up for now since there's probably not that many
+         * win2000 users. */
         File[] fileRoots = File.listRoots();
+
+        /* Add branches for local filesystems. */
         for ( int i = 0; i < fileRoots.length; i++ ) {
             File fileRoot = fileRoots[ i ];
             if ( fileRoot.isDirectory() && fileRoot.canRead() ) {

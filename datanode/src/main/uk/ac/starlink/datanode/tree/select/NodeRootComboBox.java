@@ -97,8 +97,15 @@ public class NodeRootComboBox extends JComboBox {
      */
     public void addDefaultRoots() {
 
-        /* Add nodes for local filesystems. */
+        /* Note: there is a problem with listRoots on Windows 2000 - it
+         * pops up a dialogue about empty removable drives (floppy, cd-rom).
+         * See Java bug id #4711632.  There may be workarounds but I tried
+         * for a bit and didn't manage (hard without a local win2000 machine),
+         * so I've given up for now since there's probably not that many
+         * win2000 users. */
         File[] fileRoots = File.listRoots();
+
+        /* Add nodes for local filesystems. */
         for ( int i = 0; i < fileRoots.length; i++ ) {
             File dir = fileRoots[ i ];
             if ( dir.isDirectory() && dir.canRead() ) {
