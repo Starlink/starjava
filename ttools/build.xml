@@ -563,6 +563,7 @@
          <extension name="FITS" href="fits.jnlp"/>
          <extension name="MIRAGE" href="mirage.jnlp"/>
          <extension name="VOTABLE" href="votable.jnlp"/>
+         <extension name="PLASTIC" href="plastic.jnlp"/>
        </resources>
 
        <!-- This is a component -->

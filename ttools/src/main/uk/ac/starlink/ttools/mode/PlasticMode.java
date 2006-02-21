@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import org.votech.plastic.PlasticHubListener;
-import uk.ac.starlink.astrogrid.Plastic;
+import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -118,7 +118,7 @@ public class PlasticMode implements ProcessingMode {
         final PlasticHubListener hub;
         final URI plasticId;
         try {
-            hub = Plastic.getLocalHub();
+            hub = PlasticUtils.getLocalHub();
             plasticId = hub.registerNoCallBack( "stilts" );
         }
         catch ( Throwable e ) {
