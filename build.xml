@@ -134,6 +134,9 @@
     <echo message="Executing SOAPSERVER target: ${what}"/>
     <ant dir="./soapserver" target="${what}"/>
 
+    <echo message="Executing XDOC target: ${what}"/>
+    <ant dir="./xdoc" target="${what}"/>
+
     <echo message="Executing PLASTIC target: ${what}"/>
     <ant dir="./plastic" target="${what}"/>
 
@@ -390,6 +393,10 @@
       </packageset>
 
       <packageset dir="soapserver/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="xdoc/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
