@@ -82,7 +82,6 @@ import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
-import uk.ac.starlink.ttools.mode.PlasticMode;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -1219,10 +1218,7 @@ public class ControlWindow extends AuxWindow
                 TopcatPlasticListener pserv = getPlasticServer();
                 try {
                     pserv.register();
-                    PlasticMode.broadcast( table, null, pserv.getHub(),
-                                           pserv.getRegisteredId(),
-                                           getTableFactory().getStoragePolicy(),
-                                           null );
+                    pserv.broadcastTable( tcModel );
                 }
                 catch ( IOException e ) {
                     ErrorDialog.showError( ControlWindow.this, "PLASTIC Error",
