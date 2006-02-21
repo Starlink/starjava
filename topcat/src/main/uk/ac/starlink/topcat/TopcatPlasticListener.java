@@ -100,7 +100,7 @@ public class TopcatPlasticListener extends HubManager {
             }
         };
         loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( datsrc, "votable" ) );
+                  .makeStarTable( datsrc, "votable" ), sender );
     }
 
     /**
@@ -112,7 +112,7 @@ public class TopcatPlasticListener extends HubManager {
     private void votableLoadFromURL( URI sender, String url )
             throws IOException {
         loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( url, "votable" ) );
+                  .makeStarTable( url, "votable" ), sender );
     }
 
     /**
@@ -120,13 +120,17 @@ public class TopcatPlasticListener extends HubManager {
      *
      * @param  table  table to load
      */
-    private void loadTable( final StarTable table ) {
+    private void loadTable( final StarTable table, final URI sender ) {
 
         /* Best do it asynchronously since this may not be called from the
          * event dispatch thread. */
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                controlWindow_.addTable( table, "plastic", true );
+                String title = table.getName();
+                if ( title == null || title.trim().length() == 0 ) {
+                    title = sender.toString();
+                }
+                controlWindow_.addTable( table, title, true );
             }
         } );
     }
