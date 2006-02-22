@@ -992,6 +992,7 @@
           depends="build"
           if="junit.present">
 
+<!--
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -1003,6 +1004,7 @@
       <classpath refid="tests-classpath"/>
 
     </javac>
+-->
 
   </target>
 
@@ -1018,6 +1020,7 @@
   <target name="run-tests"
           depends="compile-tests"
           if="junit.present">
+<!--
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
@@ -1042,6 +1045,7 @@
       </batchtest>
 
     </junit>
+-->
 
   </target>
 
