@@ -16,6 +16,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -33,7 +34,10 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
@@ -69,6 +73,7 @@ public class ActivationQueryWindow extends QueryWindow {
             new ImageActivatorFactory(),
             new SpectrumActivatorFactory(),
             new BrowserActivatorFactory(),
+            new PlasticPointAtActivatorFactory(),
             new JELActivatorFactory(),
         };
 
@@ -389,6 +394,84 @@ public class ActivationQueryWindow extends QueryWindow {
 
         Activator makeActivator() {
             return cutter_.makeActivator();
+        }
+    }
+
+    /**
+     * Factory implementation for broadcasting a PointAt message over PLASTIC.
+     */
+    private class PlasticPointAtActivatorFactory extends ActivatorFactory {
+        ColumnSelector raSelector_;
+        ColumnSelector decSelector_;
+
+        PlasticPointAtActivatorFactory() {
+            super( "Broadcast Coordinates" );
+            raSelector_ = new ColumnSelector(
+                tcModel_.getColumnSelectorModel( Tables.RA_INFO ), false );
+            decSelector_ = new ColumnSelector(
+                tcModel_.getColumnSelectorModel( Tables.DEC_INFO ), false );
+            LabelledComponentStack stack = new LabelledComponentStack();
+            stack.addLine( "RA Column", raSelector_ );
+            stack.addLine( "Dec Column", decSelector_ );
+            queryPanel_.add( stack );
+            JLabel[] labels = stack.getLabels();
+            enablables_ = new Component[] {
+                raSelector_, decSelector_, labels[ 0 ], labels[ 1 ],
+            };
+        }
+
+        Activator makeActivator() {
+            final ColumnData raData = raSelector_.getColumnData();
+            final ColumnData decData = decSelector_.getColumnData();
+            if ( raData == null || decData == null ) {
+                JOptionPane.showMessageDialog( ActivationQueryWindow.this,
+                                               "Must give RA and Dec",
+                                               "No Action Defined",
+                                               JOptionPane.ERROR_MESSAGE );
+                return null;
+            }
+            final TopcatPlasticListener pserv =
+                ControlWindow.getInstance().getPlasticServer();
+            return new Activator() {
+                public String activateRow( long lrow ) {
+                    Object raObj;
+                    Object decObj;
+                    try {
+                        raObj = raData.readValue( lrow );
+                        decObj = decData.readValue( lrow );
+                    }
+                    catch ( IOException e ) {
+                        return "Error reading position " + e;
+                    }
+                    if ( raObj instanceof Number &&
+                         decObj instanceof Number ) {
+                        double ra = ((Number) raObj).doubleValue();
+                        double dec = ((Number) decObj).doubleValue();
+                        if ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) ) {
+                            ra = Math.toDegrees( ra );
+                            dec = Math.toDegrees( dec );
+                            try {
+                                Collection dests = pserv.pointAt( ra, dec );
+                                return "(" + ra + ", " + dec + ") -> "
+                                     + dests;
+                            }
+                            catch ( IOException e ) {
+                                return "Error transmitting position " + e;
+                            }
+                        }
+                        else {
+                            return "No position at (" + raObj + ", " 
+                                 + decObj + ")";
+                        }
+                    }
+                    else {
+                        return "No position";
+                    }
+                }
+                public String toString() {
+                    return "pointAt($ra, $dec)";
+                }
+            };
         }
     }
 
