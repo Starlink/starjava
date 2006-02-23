@@ -2317,6 +2317,156 @@ available within TOPCAT from the
 
 </sect>
 
+<sect id="interop">
+<subhead><title>Tool Interoperability</title></subhead>
+
+<p>TOPCAT makes use of a tool interoperability protocol called
+PLASTIC (PLatform for AStronomical InterConnectivity).
+This can be used to exchange messages between TOPCAT and other
+PLASTIC-aware tools such as 
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+<webref url="http://visivo.cineca.it/">VisIVO</webref> and 
+<webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>.  
+The messages which are relevant to TOPCAT are things like 
+"load this table" or "highlight this set of rows".
+</p>
+
+<p>The communication works by all tools communicating with a 
+central 'hub' process, so a hub must be running in order for the
+messaging to operate.  If a hub is running when TOPCAT starts, it
+will connect to it automatically, listening for messages sent by 
+other tools.  If not, you can start a hub from the
+<label>Interop</label> menu in the 
+<ref id="ControlWindow">Control Window</ref> or start one
+externally and then connect to it using that menu.
+Other tools will have their own policy for connecting to the hub,
+but in general it's best to start a hub first before starting up
+the tools which you want to talk to it.
+Currently, the usual way to run a hub is to start up the AstroGrid 
+<webref url="http://software.astrogrid.org/userdocs/workbench.html"
+        plaintextref="yes">Workbench</webref> 
+which has a hub that forms part of it.
+You can run Workbench using Java WebStart from the link above.
+</p>
+
+<p>The interoperability has two aspects to it: on the one hand TOPCAT
+can send messages to other applications which cause them to do
+things, and on the other hand TOPCAT can receive and act on such
+messages sent by other applications.
+These are described separately in the subsections below.
+</p>
+
+<subsect>
+<subhead><title>Messages Sent</title></subhead>
+
+<p>This section describes the messages which TOPCAT can send to other 
+tools which understand the PLASTIC protocol, and how to cause them
+to be sent.
+The PLASTIC message IDs are listed along with the descriptions;
+unless you are a tool developer you can probably ignore these.
+
+<dl>
+<dt>Broadcast Table</dt>
+<dd><p>The <label>Broadcast Table</label> (&IMG.BROADCAST;) option on the
+    <label>Interop</label> menu in the Control Window will cause the
+    currently selected table to be sent to listening applications.
+    They are invited to load the table in its current form.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/votable/load</code>
+                or <code>ivo://votech.org/votable/loadFromURL</code>
+    </p></dd>
+
+<dt>Broadcast Subset</dt>
+<dd><p>The <label>Broadcast Subset</label> (&IMG.BROADCAST;) button 
+    in the <ref id="SubsetWindow" plaintextref="yes">Subset Window</ref>
+    causes the selected subset to be sent to listening applications
+    (only available if one of the subsets is currently selected).
+    They are invited to highlight the rows corresponding to that subset.
+    Note this will only have an effect if the other application(s) are
+    displaying the table that this subset relates to.  This will be
+    the case in one of two situations:
+    (1) the table has been loaded from the same URL/filename by the 
+    other tool(s) or
+    (2) the other tool(s) have acquired the table because it has 
+    already been broadcast using PLASTIC.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
+    </p></dd>
+
+<dt>Broadcast Coordinates</dt>
+<dd><p>One of the
+    <ref id="activation" plaintextref="yes">Activation Actions</ref>
+    you can choose is <label>Broadcast Coordinates</label>.
+    If this is chosen, then every time you select a row 
+    (e.g. by clicking on the corresponding point in a plot),
+    other applications are invited to highlight this point in some way,
+    for instance by positioning the cursor on it.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
+    </p></dd>
+
+<dt>Broadcast Image</dt>
+<dd><p>The <ref id="DensityWindow" plaintextref="yes">Density Plot</ref> 
+    produces a 2-d histogram which is actually an image.
+    The <label>Broadcast Image</label> (&IMG.BROADCAST;) option in the
+    <label>Export</label> menu allows you to send this (as a FITS image)
+    to other applications which can display it in some way.
+    This is a useful supplement to the factilities of the Density Plot
+    window, since it doesn't have very sophisticated image display
+    features (variable colour maps, contour plots etc).
+    </p>
+    <p>Message ID: <code>ivo://votech.org/fits/image/loadFromURL</code>
+    </p></dd>
+</dl>
+</p>
+
+</subsect>
+
+<subsect>
+<subhead><title>Messages Received</title></subhead>
+
+<p>This section describes the messages which TOPCAT will respond to 
+when it receives them from other applications via the PLASTIC hub.
+The PLASTIC message IDs are listed along with the descriptions;
+unless you are a tool developer you can probably ignore these.
+
+<dl>
+<dt>Load Table</dt>
+<dd><p>Loads a table broadcast by another application.
+    It is added to the list of tables in the
+    <ref id="ControlWindow">Control Window</ref>.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/votable/load</code>
+                or <code>ivo://votech.org/votable/loadFromURL</code>
+    </p></dd>
+
+<dt>New Subset</dt>
+<dd><p>If TOPCAT already has loaded the table identified by the request,
+    it will add a new <ref id="RowSubset">Row Subset</ref> with a name
+    like "plastic-1" to the list of subsets for that table, and will
+    set it as the currently selected one.  This has the effect of 
+    setting it as the only displayed subset in any open plot windows,
+    as well as changing the current state of the 
+    <ref id="apparent" plaintextref="yes">Apparent Table</ref>.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
+    </p></dd>
+</dl>
+</p>
+
+<p>The following system-level messages are also responded to:
+<ul>
+<li><code>ivo://votech.org/test/echo</code></li>
+<li><code>ivo://votech.org/info/getName</code></li>
+<li><code>ivo://votech.org/hub/event/HubStopping</code></li>
+<li><code>ivo://votech.org/info/getIconURL</code></li>
+</ul>
+</p>
+
+</subsect>
+
+</sect>
+
 <sect id="invoke">
 <subhead><title>Invoking TOPCAT</title></subhead>
 
