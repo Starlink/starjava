@@ -9,12 +9,19 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -27,15 +34,20 @@ import javax.swing.filechooser.FileFilter;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
+import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatPlasticListener;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Graphics window which displays a density plot, that is a 2-dimensional
@@ -66,6 +78,9 @@ public class DensityWindow extends GraphicsWindow {
         new SuffixFileFilter( new String[] { ".fits", ".fit", ".fts", } );
     private static FileFilter jpegFilter_ =
         new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
+
+    private static final URI MSG_LOADIMG =
+        PlasticUtils.createURI( "ivo://votech.org/fits/image/loadFromURL" );
 
     /**
      * Constructs a new DensityWindow.
@@ -181,7 +196,7 @@ public class DensityWindow extends GraphicsWindow {
                                  "Decrease number of screen pixels per bin",
                                  -1 );
 
-        /* Action for exporting image. */
+        /* Action for exporting FITS file. */
         fitsAction_ = new ExportAction( "FITS", ResourceIcon.FITS, 
                                         "Save image as FITS array",
                                         fitsFilter_ ) {
@@ -195,9 +210,29 @@ public class DensityWindow extends GraphicsWindow {
                 }
             }
         };
+
+        /* Action for exporting image as JPEG. */
         Action jpegAction = new ImageIOExportAction( "JPEG", jpegFilter_ );
+
+        /* Action for broadcasting image via PLASTIC. */
+        Action broadcastAction = new BasicAction( "Broadcast Image",
+                                                  ResourceIcon.BROADCAST,
+                                                  "Broadcast image as FITS "
+                                                + "via PLASTIC" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    broadcastFits();
+                }
+                catch ( IOException e ) {
+                    ErrorDialog.showError( DensityWindow.this, "PLASTIC Error",
+                                           e );
+                }
+            }
+        };
+
         getExportMenu().add( fitsAction_ );
         getExportMenu().add( jpegAction );
+        getExportMenu().add( broadcastAction );
 
         /* Cut level adjuster widgets. */
         cutter_ = new CutChooser(); 
@@ -340,6 +375,55 @@ public class DensityWindow extends GraphicsWindow {
                 return styles_[ index % styles_.length ];
             }
         };
+    }
+
+    /**
+     * Broadcasts the currently plotted image as a FITS file to PLASTIC
+     * listeners.
+     */
+    private void broadcastFits() throws IOException {
+
+        /* Get the hub and ID. */
+        TopcatPlasticListener pserv =
+            ControlWindow.getInstance().getPlasticServer();
+        pserv.register();
+        final PlasticHubListener hub = pserv.getHub();
+        final URI plasticId = pserv.getRegisteredId();
+
+        /* Write the data as a FITS image to a temporary file preparatory
+         * to broadcast. */
+        final File tmpfile = File.createTempFile( "plastic", ".fits" );
+        final URL tmpUrl = tmpfile.toURL();
+        tmpfile.deleteOnExit();
+        OutputStream ostrm = 
+            new BufferedOutputStream( new FileOutputStream( tmpfile ) );
+        try {
+            exportFits( ostrm );
+        }
+        catch ( IOException e ) {
+            tmpfile.delete();
+            throw e;
+        }
+        catch ( FitsException e ) {
+            tmpfile.delete();
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+        finally {
+            ostrm.close();
+        }
+
+        /* Do the broadcast, synchronously so that we don't delete the
+         * temporary file to early, but in another thread so we don't block
+         * the GUI. */
+        new Thread( "FITS broadcast" ) {
+            public void run() {
+                Map responses =
+                    hub.request( plasticId, MSG_LOADIMG,
+                                 Arrays.asList( new Object[] { tmpUrl } ) );
+                tmpfile.delete();
+            }
+        }.start();
     }
 
     /**
