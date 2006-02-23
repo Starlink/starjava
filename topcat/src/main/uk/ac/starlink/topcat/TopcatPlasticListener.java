@@ -15,6 +15,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,12 +46,16 @@ public class TopcatPlasticListener extends HubManager {
     private static final URI VOT_LOAD;
     private static final URI VOT_LOADURL;
     private static final URI VOT_SHOWOBJECTS;
+    private static final URI INFO_GETICON;
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
         VOT_LOAD = createURI( "ivo://votech.org/votable/load" ),
         VOT_LOADURL = createURI( "ivo://votech.org/votable/loadFromURL" ),
         VOT_SHOWOBJECTS = createURI( "ivo://votech.org/votable/showObjects" ),
+        INFO_GETICON = createURI( "ivo://votech.org/info/getIconURL" ),
     };
-
+    private static final URI SKY_POINTAT =
+        createURI( "ivo://votech.org/sky/pointAtCoords" );
+ 
     /**
      * Constructs a new listener which will react appropriately to 
      * messages from the hub.
@@ -100,6 +105,11 @@ public class TopcatPlasticListener extends HubManager {
             return Boolean.valueOf( showObjects( sender, tableId, objList ) );
         }
 
+        /* Get TOPCAT icon. */
+        else if ( INFO_GETICON.equals( message ) ) {
+            return "http://www.starlink.ac.uk/topcat/tc3.gif";
+        }
+
         /* Unknown message. */
         else {
             throw new UnsupportedOperationException();
@@ -121,7 +131,7 @@ public class TopcatPlasticListener extends HubManager {
         /* Write the data as a VOTable to a temporary file preparatory to
          * broadcast. */
         File tmpfile = File.createTempFile( "plastic", ".vot" );
-        URL tmpUrl = tmpfile.toURL();
+        String tmpUrl = tmpfile.toURL().toString();
         tmpfile.deleteOnExit();
         OutputStream ostrm =
             new BufferedOutputStream( new FileOutputStream( tmpfile ) );
@@ -154,7 +164,7 @@ public class TopcatPlasticListener extends HubManager {
 
     /**
      * Sends a given subset to plastic listeners.  It is broadcast using
-     * the {@link #VOT_SHOWOBJECTS} message.
+     * the <code>ivo://votech.org/votable/showObjects</code> message.
      *
      * @param   tcModel  topcat model
      * @param   rset   row subset within tcModel
@@ -188,7 +198,7 @@ public class TopcatPlasticListener extends HubManager {
                                         tcModel.getDataModel().getRowCount() );
                     for ( int i = 0; i < nrow; i++ ) {
                         if ( rset.isIncluded( i ) ) {
-                            rowList.add( new Integer( i ) );
+                            rowList.add( new Long( (long) i ) );
                         }
                     }
                 }
@@ -196,7 +206,7 @@ public class TopcatPlasticListener extends HubManager {
                     int nrow = rowMap.length;
                     for ( int i = 0; i < nrow; i++ ) {
                         if ( rset.isIncluded( rowMap[ i ] ) ) {
-                            rowList.add( new Integer( i ) );
+                            rowList.add( new Long( (long) i ) );
                         }
                     }
                 }
@@ -220,7 +230,7 @@ public class TopcatPlasticListener extends HubManager {
                                     tcModel.getDataModel().getRowCount() );
                 for ( int i = 0; i < nrow; i++ ) {
                     if ( rset.isIncluded( i ) ) {
-                        rowList.add( new Integer( i ) );
+                        rowList.add( new Long( (long) i ) );
                     }
                 }
                 hub.requestAsynch( plasticId, VOT_SHOWOBJECTS,
@@ -228,6 +238,26 @@ public class TopcatPlasticListener extends HubManager {
                                                                  rowList } ) );
             }
         }
+    }
+
+    /**
+     * Broadcasts a request for listening applications to point at a given
+     * sky position.
+     *
+     * @param  ra2000  right ascension J2000.0 in degrees
+     * @param  dec2000 declination J2000.0 in degrees
+     * @return  list of applications that the position was (successfully?)
+     *          broadcast to
+     */
+    public Collection pointAt( double ra2000, double dec2000 )
+            throws IOException {
+        register();
+        PlasticHubListener hub = getHub();
+        URI plasticId = getRegisteredId();
+        List args = Arrays.asList( new Object[] { new Double( ra2000 ),
+                                                  new Double( dec2000 ) } );
+        Map results = hub.request( plasticId, SKY_POINTAT, args );
+        return results.keySet();
     }
 
     /**
@@ -266,7 +296,7 @@ public class TopcatPlasticListener extends HubManager {
     private void votableLoadFromURL( URI sender, String url )
             throws IOException {
         loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( url, "votable" ), sender, url.toString() );
+                  .makeStarTable( url, "votable" ), sender, url );
     }
 
     /**
@@ -357,7 +387,7 @@ public class TopcatPlasticListener extends HubManager {
     }
 
     /**
-     * Attempts to locate a table by its ID.  This is currently a URL;
+     * Attempts to locate a table by its ID.  This is currently a URL string;
      * either one got from a previous VOT_LOADURL message or one inherent
      * in the table.
      *
