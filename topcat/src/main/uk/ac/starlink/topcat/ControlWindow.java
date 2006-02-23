@@ -296,6 +296,12 @@ public class ControlWindow extends AuxWindow
                                    "four existing tables", 4 ),
         };
 
+        Action interophelpAct = new HelpAction( "interop", this );
+        interophelpAct.putValue( Action.NAME, "Help on interoperability" );
+        interophelpAct.putValue( Action.SHORT_DESCRIPTION,
+                                 "Show help on PLASTIC with details of "
+                               + "supported messages" );
+
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
         MouseListener pasteLoader = new PasteLoader( this ) {
@@ -420,6 +426,8 @@ public class ControlWindow extends AuxWindow
         interopMenu.add( getPlasticServer().getHubStartAction( false ) );
         interopMenu.addSeparator();
         interopMenu.add( broadcastAct_ );
+        interopMenu.addSeparator();
+        interopMenu.add( interophelpAct );
         getJMenuBar().add( interopMenu );
 
         /* Mark this window as top-level. */
