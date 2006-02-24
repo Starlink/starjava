@@ -4780,9 +4780,17 @@ button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
 at the bottom of the window.
 You can configure the axes, including zooming in and out, with the
 mouse or manually as described in <ref id="axisConfig"/>.
-The width of the bars can be selected using the <label>Bin Widths</label> 
-entry box.  Either type in the value you want or use the tiny up/down
-arrows at the right to increase/decrease the bin size.
+</p>
+
+<p>The <label>Bin Placement</label> box below the main plot controls
+where the bars are drawn.  Select the horizontal range of each bar 
+using the <label>Width</label> entry box - either type in the value 
+you want or use the tiny up/down arrows at the right to increase/decrease
+the bin size.
+The <label>Offset</label> checkbox on the left determines where the zero
+point on the horizontal axis falls in relation to the bins; 
+if the box is checked then zero is in the centre of a bin, 
+and if it's unchecked then zero is on a bin boundary.
 </p>
 
 <p>The following buttons are available on the toolbar:
@@ -8437,6 +8445,7 @@ introduced since the last version:
     <li>Added IPAC table format input handler.</li>
     <li>Plastic interop.</li>
     <li>Improved JDBC login (fixed bugs and 'single sign on')</li>
+    <li>Added offset selector to histogram window.</li>
     </ul>
     </p></dd>
 
