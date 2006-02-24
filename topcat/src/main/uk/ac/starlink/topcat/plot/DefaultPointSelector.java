@@ -137,14 +137,8 @@ public class DefaultPointSelector extends PointSelector {
         }
         else {
             for ( int i = 0; i < ndim_; i++ ) {
-                colSelectors_[ i ].setModel(
-                    new ColumnDataComboBoxModel( tcModel, true ) {
-                        public boolean acceptType( Class clazz ) {
-                            return DefaultPointSelector.this
-                                  .acceptType( clazz );
-                        }
-                    }
-                );
+                colSelectors_[ i ]
+                    .setModel( new ColumnDataComboBoxModel( tcModel, true ) );
                 colSelectors_[ i ].setEnabled( true );
             }
         }
@@ -156,18 +150,6 @@ public class DefaultPointSelector extends PointSelector {
                 colSelectors_[ i ].setSelectedIndex( i + 1 );
             }
         }
-    }
-
-    /**
-     * Defines what columns will appear as possibles in the column selectors.
-     *
-     * @param  cinfo  column metadata
-     * @return   true iff a column like <code>cinfo</code> should be
-     *           choosable
-     */
-    private boolean acceptType( Class clazz ) {
-        return Number.class.isAssignableFrom( clazz )
-            || Date.class.isAssignableFrom( clazz );
     }
 
     /**

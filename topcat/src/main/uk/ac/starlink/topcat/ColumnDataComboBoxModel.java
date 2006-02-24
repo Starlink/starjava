@@ -19,9 +19,13 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.ttools.convert.Conversions;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
 
 /**
@@ -74,7 +78,8 @@ public class ColumnDataComboBoxModel
             activeColumns_.add( null );
         }
         for ( int i = 0; i < colModel_.getColumnCount(); i++ ) {
-            ColumnData cdata = new SelectedColumnData( tcModel_, i );
+            StarTableColumn tcol = (StarTableColumn) colModel_.getColumn( i );
+            SelectedColumnData cdata = getColumnData( tcModel, tcol );
             modelColumns_.add( cdata );
             if ( acceptType( cdata.getColumnInfo().getContentClass() ) ) {
                 activeColumns_.add( cdata );
@@ -131,7 +136,8 @@ public class ColumnDataComboBoxModel
 
     public void columnAdded( TableColumnModelEvent evt ) {
         int index = evt.getToIndex();
-        ColumnData cdata = new SelectedColumnData( tcModel_, index );
+        StarTableColumn tcol = (StarTableColumn) colModel_.getColumn( index );
+        ColumnData cdata = getColumnData( tcModel_, tcol );
         modelColumns_.add( cdata );
         if ( acceptType( cdata.getColumnInfo().getContentClass() ) ) {
             int pos = activeColumns_.size();
@@ -161,7 +167,9 @@ public class ColumnDataComboBoxModel
                 activeColumns_.add( null );
             }
             for ( int i = 0; i < colModel_.getColumnCount(); i++ ) {
-                ColumnData cdata = new SelectedColumnData( tcModel_, i );
+                StarTableColumn tcol =
+                    (StarTableColumn) colModel_.getColumn( i );
+                SelectedColumnData cdata = getColumnData( tcModel_, tcol );
                 modelColumns_.add( cdata );
                 if ( oldActive.contains( cdata ) ) {
                     activeColumns_.add( cdata );
@@ -203,6 +211,30 @@ public class ColumnDataComboBoxModel
         };
         comboBox.setEditable( true );
         return comboBox;
+    }
+
+    /**
+     * Returns a ColumnData associated with a given column of a table.
+     *
+     * @param   tcModel   topcat model that the column is from
+     * @param   tcol   column in tcModel
+     * @return  column data for column <code>icol</code>
+     */
+    private static SelectedColumnData getColumnData( TopcatModel tcModel, 
+                                                     StarTableColumn tcol ) {
+        ValueInfo info = tcol.getColumnInfo();
+        if ( Number.class.isAssignableFrom( info.getContentClass() ) ) {
+            return new SelectedColumnData( tcModel, tcol );
+        }
+        else {
+            ValueConverter conv = Conversions.getNumericConverter( info );
+            if ( conv != null ) {
+                return new ConvertedColumnData( tcModel, tcol, conv );
+            }
+            else {
+                return new SelectedColumnData( tcModel, tcol );
+            }
+        }
     }
 
     /**
@@ -363,14 +395,12 @@ public class ColumnDataComboBoxModel
          * Constructor.
          *
          * @param   tcModel   topcat model that the column is from
-         * @param   icol  index into tcModel's columnModel of the 
-         *          column to represent
+         * @param   tcol  table column in tcModel's column model
          */
-        SelectedColumnData( TopcatModel tcModel, int icol ) {
-            super( ((StarTableColumn) tcModel.getColumnModel()
-                                     .getColumn( icol )).getColumnInfo() );
+        SelectedColumnData( TopcatModel tcModel, StarTableColumn tcol ) {
+            super( tcol.getColumnInfo() );
             tcModel_ = tcModel;
-            icol_ = tcModel.getColumnModel().getColumn( icol ).getModelIndex();
+            icol_ = tcol.getModelIndex();
             dataModel_ = tcModel_.getDataModel();
         }
 
@@ -397,6 +427,38 @@ public class ColumnDataComboBoxModel
             int code = icol_;
             code = code * 23 + tcModel_.hashCode();
             return code;
+        }
+    }
+
+    /**
+     * ColumnData implementation for a column out of a table which is
+     * modified by a converter.  The equals() method is correct on the
+     * assumption that only one converter is ever used for a given 
+     * column of a given table.
+     */
+    private static class ConvertedColumnData extends SelectedColumnData {
+
+        private final ValueConverter conv_;
+
+        /**
+         * Constructor.
+         *
+         * @param   tcModel  topcat model that the column is from
+         * @param   tcol  table column in tcModel's column model
+         */
+        ConvertedColumnData( TopcatModel tcModel, StarTableColumn tcol,
+                             ValueConverter conv ) {
+            super( tcModel, tcol );
+            setColumnInfo( new ColumnInfo( conv.getOutputInfo() ) );
+            conv_ = conv;
+        }
+
+        public Object readValue( long irow ) throws IOException {
+            return conv_.convert( super.readValue( irow ) );
+        }
+
+        public boolean equals( Object o ) {
+            return o instanceof ConvertedColumnData && super.equals( o );
         }
     }
 }
