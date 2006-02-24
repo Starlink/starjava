@@ -3,15 +3,16 @@ package uk.ac.starlink.topcat.join;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Converts values for a ValueInfo between different string representations.
+ * Encodes and decodes values for a ValueInfo between different 
+ * string representations.
  *
  * @author   Mark Taylor (Starlink)
  * @since    7 Sep 2004
  */
-public abstract class ValueConverter {
+public abstract class ValueCodec {
 
     /**
-     * Decodes a string to give a value in the context of this converter.
+     * Decodes a string to give a value in the context of this codec.
      *
      * @param  text  string representation of the value 
      * @return  value object as read from <tt>text</tt>
@@ -20,7 +21,7 @@ public abstract class ValueConverter {
 
     /**
      * Returns a string representation of a given value in the context of
-     * this converter.
+     * this codec.
      * The returned string should be no longer than a given maximum length.
      *
      * @param  value  value object
@@ -29,9 +30,8 @@ public abstract class ValueConverter {
      */
     public abstract String formatValue( Object value, int maxLength );
 
-
     /**
-     * Returns an array of ValueConverter objects suitable for representing
+     * Returns an array of ValueCodec objects suitable for representing
      * the values pertaining to a given <tt>ValueInfo</tt> object.
      * The returned array will contain at least one element, which 
      * just gets its implementation from the behaviour of the submitted
@@ -39,34 +39,34 @@ public abstract class ValueConverter {
      * ones relating to different units.
      *
      * @param  info  description of the value to represent
-     * @return  array of value converters for <tt>info</tt>, containing
+     * @return  array of value codecs for <tt>info</tt>, containing
      *          at least one element
      */
-    public static ValueConverter[] getConverters( ValueInfo info ) {
+    public static ValueCodec[] getCodecs( ValueInfo info ) {
         String units = info.getUnitString();
         Class clazz = info.getContentClass();
         if ( Number.class.isAssignableFrom( clazz ) &&
              ( units != null && ( units.equalsIgnoreCase( "radian" ) ||
                                   units.equalsIgnoreCase( "radians" ) ) ) ) {
-            return new ValueConverter[] {
-                new FactorConverter( info, "arcsec", Math.PI / 180 / 60 / 60 ),
-                new FactorConverter( info, "arcmin", Math.PI / 180 / 60 ),
-                new FactorConverter( info, "degree", Math.PI / 180 ),
-                new FactorConverter( info, "radian", 1. ),
+            return new ValueCodec[] {
+                new FactorCodec( info, "arcsec", Math.PI / 180 / 60 / 60 ),
+                new FactorCodec( info, "arcmin", Math.PI / 180 / 60 ),
+                new FactorCodec( info, "degree", Math.PI / 180 ),
+                new FactorCodec( info, "radian", 1. ),
             };
         }
         else {
-            return new ValueConverter[] { new UnitConverter( info ) };
+            return new ValueCodec[] { new UnitCodec( info ) };
         }
     }
 
     /**
-     * Degenerate ValueConverter implementation which just defers 
+     * Degenerate ValueCodec implementation which just defers 
      * all the work to a ValueInfo.
      */
-    private static class UnitConverter extends ValueConverter {
+    private static class UnitCodec extends ValueCodec {
         private final ValueInfo info_;
-        public UnitConverter( ValueInfo info ) {
+        public UnitCodec( ValueInfo info ) {
             info_ = info;
         }
         public Object unformatString( String text ) {
@@ -78,23 +78,23 @@ public abstract class ValueConverter {
     }
 
     /**
-     * ValueConverter implementation which can represent a value modified
+     * ValueCodec implementation which can represent a value modified
      * by a given multiplicative factor.
      */
-    private static class FactorConverter extends ValueConverter {
+    private static class FactorCodec extends ValueCodec {
         private final ValueInfo info_;
         private final String name_;
         private final double factor_;
         private final double rotcaf_;
 
         /**
-         * Constructs a new FactorConverter.
+         * Constructs a new FactorCodec.
          * 
          * @param  info  value info on which it's based
-         * @param  name  name of this converter (typically a unit name)
+         * @param  name  name of this codec (typically a unit name)
          * @param  factor   multiplicative factor
          */
-        public FactorConverter( ValueInfo info, String name, double factor ) {
+        public FactorCodec( ValueInfo info, String name, double factor ) {
             info_ = info;
             name_ = name;
             factor_ = factor;

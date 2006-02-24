@@ -26,7 +26,7 @@ public class ParameterEditor extends JComponent
     private final DescribedValue dval_;
     private final JTextField field_;
     private final JComboBox conversionChooser_;
-    private final ValueConverter converter0_;
+    private final ValueCodec codec0_;
 
     /**
      * Constructs a new editor.
@@ -48,19 +48,19 @@ public class ParameterEditor extends JComponent
         field_.addFocusListener( this );
 
         /* Set up a chooser for value conversion. */
-        ValueConverter[] converters = ValueConverter.getConverters( info );
-        if ( converters.length > 1 ) {
-            converter0_ = null;
-            conversionChooser_ = new JComboBox( converters );
+        ValueCodec[] codecs = ValueCodec.getCodecs( info );
+        if ( codecs.length > 1 ) {
+            codec0_ = null;
+            conversionChooser_ = new JComboBox( codecs );
             conversionChooser_.setSelectedIndex( 0 );
             conversionChooser_.addActionListener( this );
             conversionChooser_.setToolTipText( "Units for " + info.getName() );
         }
         else {
             conversionChooser_ = null;
-            converter0_ = converters[ 0 ];
+            codec0_ = codecs[ 0 ];
         }
-        field_.setText( getConverter().formatValue( dval_.getValue(), 16 ) );
+        field_.setText( getCodec().formatValue( dval_.getValue(), 16 ) );
 
         /* Lay out components. */
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
@@ -76,18 +76,18 @@ public class ParameterEditor extends JComponent
     }
 
     /**
-     * Returns the currently active value converter - this is what converts
+     * Returns the currently active value codec - this is what converts
      * between the representation of the value in the text field and the
      * actual value in the parameter.
      *
-     * @return  current converter
+     * @return  current codec
      */
-    private ValueConverter getConverter() {
-        if ( converter0_ != null ) {
-            return converter0_;
+    private ValueCodec getCodec() {
+        if ( codec0_ != null ) {
+            return codec0_;
         }
         else {
-            return (ValueConverter) conversionChooser_.getSelectedItem();
+            return (ValueCodec) conversionChooser_.getSelectedItem();
         }
     }
 
@@ -97,13 +97,13 @@ public class ParameterEditor extends JComponent
      * might signal the user has made a change that should be attended to.
      */
     private void updateValue() {
-        ValueConverter converter = getConverter();
+        ValueCodec codec = getCodec();
         String text = field_.getText();
         try {
-            dval_.setValue( converter.unformatString( text ) );
+            dval_.setValue( codec.unformatString( text ) );
         }
         catch ( RuntimeException e ) {
-            field_.setText( converter.formatValue( dval_.getValue(), 16 ) );
+            field_.setText( codec.formatValue( dval_.getValue(), 16 ) );
             String msg = "Illegal value \"" + text + "\" for parameter " +
                          dval_.getInfo();
             ErrorDialog.showError( this, "Value Error", e, msg );
