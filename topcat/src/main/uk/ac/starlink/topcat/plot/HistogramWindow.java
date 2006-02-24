@@ -9,11 +9,15 @@ import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.Action;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -35,6 +39,7 @@ public class HistogramWindow extends GraphicsWindow {
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
     private final ToggleButtonModel cumulativeModel_;
+    private final JCheckBox offsetSelector_;
     private final RoundingSpinner binSizer_;
 
     private double binWidth_;
@@ -104,16 +109,26 @@ public class HistogramWindow extends GraphicsWindow {
                                                   "rather than counts" );
         cumulativeModel_.addActionListener( getReplotListener() );
 
-        /* Bin size selector widget. */
+        /* Bin size and offset selector box. */
         binSizer_ = new RoundingSpinner();
         getLogModels()[ 0 ].addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                binSizer_.setLogarithmic( getLogModels()[ 0 ].isSelected() );
+                boolean isLog = getLogModels()[ 0 ].isSelected();
+                binSizer_.setLogarithmic( isLog );
+                offsetSelector_.setEnabled( ! isLog );
             }
         } );
         binSizer_.addChangeListener( getReplotListener() );
-        binSizer_.setBorder( makeTitledBorder( "Bin Widths" ) );
-        getMainArea().add( binSizer_, java.awt.BorderLayout.SOUTH );
+        offsetSelector_ = new JCheckBox( "Offset:" );
+        offsetSelector_.setHorizontalTextPosition( SwingConstants.LEFT );
+        offsetSelector_.addChangeListener( getReplotListener() );
+        JComponent binBox = Box.createHorizontalBox();
+        binBox.add( offsetSelector_ );
+        binBox.add( Box.createHorizontalStrut( 15 ) );
+        binBox.add( new JLabel( "Width: " ) );
+        binBox.add( binSizer_ );
+        binBox.setBorder( makeTitledBorder( "Bin Placement" ) );
+        getMainArea().add( binBox, java.awt.BorderLayout.SOUTH );
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
@@ -304,6 +319,7 @@ public class HistogramWindow extends GraphicsWindow {
         if ( bw > 0 ) {
             state.setBinWidth( bw );
         }
+        state.setZeroMid( offsetSelector_.isSelected() );
         return state;
     }
 
@@ -329,7 +345,6 @@ public class HistogramWindow extends GraphicsWindow {
                 false
             } );
             Class clazz = state.getAxes()[ 0 ].getContentClass();
-            state.setZeroMid( clazz != Float.class && clazz != Double.class );
             state.setCumulative( cumulativeModel_.isSelected() );
         }
 
