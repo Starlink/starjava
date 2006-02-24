@@ -2442,7 +2442,7 @@ unless you are a tool developer you can probably ignore these.
 
 <dt>New Subset</dt>
 <dd><p>If TOPCAT already has loaded the table identified by the request,
-    it will add a new <ref id="RowSubset">Row Subset</ref> with a name
+    it will add a new <ref id="subsets">Row Subset</ref> with a name
     like "plastic-1" to the list of subsets for that table, and will
     set it as the currently selected one.  This has the effect of 
     setting it as the only displayed subset in any open plot windows,
