@@ -189,7 +189,7 @@ public class MapBinnedData implements BinnedData {
                 throw new IllegalArgumentException( "Bad width " + binWidth );
             }
             width_ = binWidth;
-            base_ = zeroMid ? -0.5 : 0.0;
+            base_ = zeroMid ? ( - binWidth / 2.0 ) : 0.0;
         }
         public Comparable getKey( double value ) {
             return new Long( (long) Math.floor( ( value - base_ ) / width_ ) );
