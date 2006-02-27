@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PushbackInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ReaderRowSequence;
@@ -34,6 +35,21 @@ public abstract class StreamStarTable extends AbstractStarTable {
     private final long nrow_;
     private final Decoder[] decoders_;
     private final ColumnInfo[] colInfos_;
+
+    private static final Pattern ISO8601_REGEX = Pattern.compile(
+        "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
+        "(?:[" + 'T' + " ]([0-9]{1,2})" +
+            "(?::([0-9]{1,2})" +
+                "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
+            ")?" +
+        "Z?)?" 
+    );
+    private static final Pattern HMS_REGEX = Pattern.compile(
+        "[ 012]?[0-9][:h ][ 0-5][0-9][:m ][0-5][0-9](\\.[0-9]*)?"
+    );
+    private static final Pattern DMS_REGEX = Pattern.compile(
+        "[-+][ 0-9]?[0-9][:d ][ 0-5][0-9][:m ][0-5][0-9](\\.[0-9]*)?"
+    );
 
     /** Char representation of -1 (as returned end-of-stream read) */
     protected final static char END = (char) -1;
@@ -181,6 +197,9 @@ public abstract class StreamStarTable extends AbstractStarTable {
         private boolean[] maybeLong_;
         private boolean[] maybeFloat_;
         private boolean[] maybeDouble_;
+        private boolean[] maybeDate_;
+        private boolean[] maybeHms_;
+        private boolean[] maybeDms_;
         private int[] stringLength_;
         private long nrow_;
         private int ncol_;
@@ -196,6 +215,9 @@ public abstract class StreamStarTable extends AbstractStarTable {
             maybeLong_ = makeFlagArray( true );
             maybeFloat_ = makeFlagArray( true );
             maybeDouble_ = makeFlagArray( true );
+            maybeDate_ = makeFlagArray( true );
+            maybeHms_ = makeFlagArray( true );
+            maybeDms_ = makeFlagArray( true );
             stringLength_ = new int[ ncol ]; 
         }
 
@@ -303,6 +325,30 @@ public abstract class StreamStarTable extends AbstractStarTable {
                         maybeDouble_[ icol ] = false;
                     }
                 }
+                if ( ! done && ( maybeDate_[ icol ] ) ) {
+                    if ( ISO8601_REGEX.matcher( cell ).matches() ) {
+                        done = true;
+                    }
+                    else {
+                        maybeDate_[ icol ] = false;
+                    }
+                }
+                if ( ! done && ( maybeHms_[ icol ] ) ) {
+                    if ( HMS_REGEX.matcher( cell ).matches() ) {
+                        done = true;
+                    }
+                    else {
+                        maybeHms_[ icol ] = false;
+                    }
+                }
+                if ( ! done && ( maybeDms_[ icol ] ) ) {
+                    if ( DMS_REGEX.matcher( cell ).matches() ) {
+                        done = true;
+                    }
+                    else {
+                        maybeDms_[ icol ] = false;
+                    }
+                }
             }
         }
 
@@ -379,6 +425,15 @@ public abstract class StreamStarTable extends AbstractStarTable {
                             return value;
                         }
                     };
+                    if ( maybeDate_[ icol ] ) {
+                        colinfo.setUnitString( "iso-8601" );
+                    }
+                    else if ( maybeHms_[ icol ] ) {
+                        colinfo.setUnitString( "hms" );
+                    }
+                    else if ( maybeDms_[ icol ] ) {
+                        colinfo.setUnitString( "dms" );
+                    }
                 }
                 colInfos[ icol ] = colinfo;
                 decoders[ icol ] = decoder;
