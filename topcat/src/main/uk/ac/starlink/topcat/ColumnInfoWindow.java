@@ -22,6 +22,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -295,7 +296,15 @@ public class ColumnInfoWindow extends AuxWindow {
         };
 
         /* Construct and place a JTable to contain it. */
-        jtab = new JTable( metaTableModel );
+        jtab = new JTable( metaTableModel ) {
+            public TableCellRenderer getDefaultRenderer( Class clazz ) {
+                TableCellRenderer rend = super.getDefaultRenderer( clazz );
+                if ( rend == null ) {
+                    rend = super.getDefaultRenderer( Object.class );
+                }
+                return rend;
+            }
+        };
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( true );
