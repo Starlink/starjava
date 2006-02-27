@@ -468,30 +468,41 @@ class IpacReader implements RowSequence {
             };
         }
         else if ( type.equals( "date" ) ) {
-            info.setContentClass( Date.class );
+            info.setContentClass( String.class );
+            info.setUnitString( "iso-8601" );
             info.setNullable( hasBlank );
-            TimeZone utc = TimeZone.getTimeZone( "UTC" );
-            GregorianCalendar cal = new GregorianCalendar( utc, Locale.UK );
-            cal.setLenient( false );
-            final DateFormat iso8601 = 
-                new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
-            iso8601.setTimeZone( utc );
-            iso8601.setCalendar( cal );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
                     if ( hasBlank && blankVal.equals( token ) ) {
                         return null;
                     }
                     else {
-                        try {
-                            return iso8601.parse( token );
-                        }
-                        catch ( ParseException e ) {
-                            return null;
-                        }
+                        return token;
                     }
                 }
             };
+            // TimeZone utc = TimeZone.getTimeZone( "UTC" );
+            // GregorianCalendar cal = new GregorianCalendar( utc, Locale.UK );
+            // cal.setLenient( false );
+            // final DateFormat iso8601 = 
+            //     new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
+            // iso8601.setTimeZone( utc );
+            // iso8601.setCalendar( cal );
+            // return new ColumnReader( info ) {
+            //     Object readValue( String token ) {
+            //         if ( hasBlank && blankVal.equals( token ) ) {
+            //             return null;
+            //         }
+            //         else {
+            //             try {
+            //                 return iso8601.parse( token );
+            //             }
+            //             catch ( ParseException e ) {
+            //                 return null;
+            //             }
+            //         }
+            //     }
+            // };
         }
         else {
             throw new TableFormatException( "Unknown IPAC data type " + type );
