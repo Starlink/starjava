@@ -24,7 +24,6 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
 
@@ -222,12 +221,14 @@ public class ColumnDataComboBoxModel
      */
     private static SelectedColumnData getColumnData( TopcatModel tcModel, 
                                                      StarTableColumn tcol ) {
-        ValueInfo info = tcol.getColumnInfo();
+        ColumnInfo info = tcol.getColumnInfo();
         if ( Number.class.isAssignableFrom( info.getContentClass() ) ) {
             return new SelectedColumnData( tcModel, tcol );
         }
         else {
-            ValueConverter conv = Conversions.getNumericConverter( info );
+            ValueConverter conv = (ValueConverter)
+                info.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
+                                       ValueConverter.class );
             if ( conv != null ) {
                 return new ConvertedColumnData( tcModel, tcol, conv );
             }

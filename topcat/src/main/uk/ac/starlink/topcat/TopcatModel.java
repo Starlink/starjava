@@ -39,6 +39,8 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.ttools.convert.Conversions;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * Defines all the state for the representation of a given table as
@@ -181,6 +183,21 @@ public class TopcatModel {
         //         }
         //     }
         // }
+
+        /* Install numeric converters as appropriate. */
+        for ( int icol = 0; icol < dataModel_.getColumnCount(); icol++ ) {
+            ColumnInfo cinfo = dataModel_.getColumnInfo( icol );
+            Class clazz = cinfo.getContentClass();
+            if ( ! Number.class.isAssignableFrom( clazz ) ) {
+                ValueConverter conv = Conversions.getNumericConverter( cinfo );
+                if ( conv != null ) {
+                    DescribedValue dval =
+                        new DescribedValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
+                                            conv );
+                    cinfo.setAuxDatum( dval );
+                }
+            }
+        }
 
         /* Create and configure some other actions. */
         newsubsetAct_ = new ModelAction( "New Subset Expression", null,

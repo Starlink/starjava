@@ -12,6 +12,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * Class containing miscellaneous static methods and constants 
@@ -59,6 +60,14 @@ public class TopcatUtils {
     public final static ValueInfo EXPR_INFO =
         new DefaultValueInfo( "Expression", String.class,
                               "Algebraic expression for column value" );
+
+    /**
+     * Column auxiliary metadata key identifying an object which can convert
+     * from non-numeric cell values to numeric ones.
+     */
+    public final static ValueInfo NUMERIC_CONVERTER_INFO =
+        new DefaultValueInfo( "Decoder", ValueConverter.class,
+                              "Converts from string to numeric values" );
 
     /**
      * Parameter key for storing an activation action for a table.
