@@ -103,6 +103,10 @@ public class Iso8601ToJulian implements ValueConverter {
         }
     }
 
+    public String toString() {
+        return "ISO-8601->Julian Year";
+    }
+
     /** 
      * Converts a Modified Julian Date to Julian Epoch.
      * For approximate purposes, the result

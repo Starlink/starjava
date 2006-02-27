@@ -59,4 +59,9 @@ public class SexagesimalToDegrees implements ValueConverter {
             return null;
         }
     }
+
+    public String toString() {
+        return hours_ ? "HMS->degrees"
+                      : "DMS->degrees";
+    }
 }
