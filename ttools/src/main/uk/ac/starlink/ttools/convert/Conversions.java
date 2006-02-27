@@ -77,10 +77,10 @@ public class Conversions {
                 if ( ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
                     return new Iso8601ToJulian( info );
                 }
-                else if ( DMS_UCD_PATTERN.matcher( units ).matches() ) {
+                else if ( DMS_UCD_PATTERN.matcher( ucd ).matches() ) {
                     return new SexagesimalToDegrees( info, false );
                 }
-                else if ( HMS_UCD_PATTERN.matcher( units ).matches() ) {
+                else if ( HMS_UCD_PATTERN.matcher( ucd ).matches() ) {
                     return new SexagesimalToDegrees( info, true );
                 }
             }
