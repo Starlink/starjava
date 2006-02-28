@@ -393,7 +393,7 @@ public class DensityWindow extends GraphicsWindow {
         /* Write the data as a FITS image to a temporary file preparatory
          * to broadcast. */
         final File tmpfile = File.createTempFile( "plastic", ".fits" );
-        final URL tmpUrl = tmpfile.toURL();
+        final String tmpUrl = tmpfile.toURL().toString();
         tmpfile.deleteOnExit();
         OutputStream ostrm = 
             new BufferedOutputStream( new FileOutputStream( tmpfile ) );
