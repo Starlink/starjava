@@ -601,6 +601,9 @@ public class DefaultValueInfo implements ValueInfo {
         else if ( clazz == Integer.class ) {
             return Integer.valueOf( rep );
         }
+        else if ( clazz == Long.class ) {
+            return Long.valueOf( rep );
+        }
         else if ( clazz == Float.class ) {
             if ( rep.trim().length() == 0 ) {
                 return new Float( Float.NaN );
@@ -622,7 +625,7 @@ public class DefaultValueInfo implements ValueInfo {
         }
         else {
             throw new UnsupportedOperationException(
-                "No unformatter available" );
+                "No unformatter available for " + clazz.getName() );
         }
     }
 
