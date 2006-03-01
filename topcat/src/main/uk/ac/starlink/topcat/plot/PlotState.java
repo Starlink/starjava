@@ -262,8 +262,10 @@ public class PlotState {
                                ? 0 :axisLabels_[ i ].hashCode() );
         }
         for ( int i = 0; i < ranges_.length; i++ ) {
-            code = 23 * code + Float.floatToIntBits( ranges_[ i ][ 0 ] );
-            code = 23 * code + Float.floatToIntBits( ranges_[ i ][ 1 ] );
+            code = 23 * code
+                 + Float.floatToIntBits( (float) ranges_[ i ][ 0 ] );
+            code = 23 * code
+                 + Float.floatToIntBits( (float) ranges_[ i ][ 1 ] );
         }
         code = 23 * code + ( pointSelection_ == null 
                                 ? 0
