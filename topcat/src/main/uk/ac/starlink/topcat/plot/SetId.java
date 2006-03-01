@@ -23,6 +23,25 @@ public class SetId {
         iset_ = iset;
     }
 
+    /**
+     * Returns the PointSelector which generated this ID.
+     *
+     * @return  point selector
+     */
+    public PointSelector getPointSelector() {
+        return psel_;
+    }
+
+    /**
+     * Returns the index of the set within its PointSelector which identifies
+     * this ID.
+     *
+     * @return   set index
+     */
+    public int getSetIndex() {
+        return iset_;
+    }
+
     public boolean equals( Object o ) {
         if ( o instanceof SetId ) {
             SetId other = (SetId) o;
