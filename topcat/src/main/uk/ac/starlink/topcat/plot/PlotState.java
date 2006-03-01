@@ -262,10 +262,8 @@ public class PlotState {
                                ? 0 :axisLabels_[ i ].hashCode() );
         }
         for ( int i = 0; i < ranges_.length; i++ ) {
-            code = 23 * code + 
-                  (int) Double.doubleToLongBits( ranges_[ i ][ 0 ] );
-            code = 23 * code +
-                  (int) Double.doubleToLongBits( ranges_[ i ][ 1 ] );
+            code = 23 * code + Float.floatToIntBits( ranges_[ i ][ 0 ] );
+            code = 23 * code + Float.floatToIntBits( ranges_[ i ][ 1 ] );
         }
         code = 23 * code + ( pointSelection_ == null 
                                 ? 0
@@ -273,7 +271,7 @@ public class PlotState {
         return code;
     }
 
-    private static boolean equalRanges( double[][] r1, double[][] r2 ) {
+    static boolean equalRanges( double[][] r1, double[][] r2 ) {
         if ( r1.length == r2.length ) {
             for ( int i = 0; i < r1.length; i++ ) {
                 double a10 = r1[ i ][ 0 ];
