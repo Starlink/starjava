@@ -359,9 +359,9 @@ public class TopcatPlasticListener extends HubManager {
                   it.hasNext(); ) {
                 String setName = ((RowSubset) it.next()).getName();
                 if ( setName.startsWith( "plastic-" ) ) {
-                    ipset = Math.max( ipset,
-                                      Integer.parseInt( setName
-                                                       .substring( 8 ) + 1 ) );
+                    ipset = 1 + Math.max( ipset,
+                                          Integer
+                                         .parseInt( setName.substring( 8 ) ) );
                 }
             }
             String setName = "plastic-" + ipset;
