@@ -186,10 +186,11 @@ public abstract class PointSelectorSet extends JPanel {
     /**
      * Returns the 'main' PointSelector contained in this set.
      *
-     * @return  main selector
+     * @return  main selector, or null if there isn't one yet
      */
     public PointSelector getMainSelector() {
-        return getSelector( 0 );
+        return tabber_.getTabCount() > 0 ? getSelector( 0 )
+                                         : null;
     }
 
     /**
