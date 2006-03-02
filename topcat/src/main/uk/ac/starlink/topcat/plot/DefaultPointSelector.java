@@ -112,6 +112,16 @@ public class DefaultPointSelector extends PointSelector {
         return new ColumnDataTable( getTable(), getColumns() );
     }
 
+    /**
+     * Returns one of the the column selector boxes used by this selector.
+     *
+     * @param  icol  column index
+     * @return column selector box
+     */
+    public JComboBox getColumnSelector( int icol ) {
+        return colSelectors_[ icol ];
+    }
+
     public AxisEditor[] createAxisEditors() {
         AxisEditor[] eds = new AxisEditor[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
@@ -175,7 +185,7 @@ public class DefaultPointSelector extends PointSelector {
             name_ = name;
             models_ = (ToggleButtonModel[]) models.clone(); 
         }       
-    }               
+    }
 
     /**
      * Table class built up from ColumnData objects.  Implements equals().
