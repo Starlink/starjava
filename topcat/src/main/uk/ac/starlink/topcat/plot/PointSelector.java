@@ -482,7 +482,10 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
 
         /* Hide the style editor if visible, to avoid problems with it
          * having the wrong idea of what table it refers to. */
-        getStyleWindow().dispose();
+        StyleWindow styler = getStyleWindow();
+        if ( styler != null ) {
+            styler.dispose();
+        }
 
         /* Install a new subset selector component. */
         OptionsListModel subsets = tcModel.getSubsets();
