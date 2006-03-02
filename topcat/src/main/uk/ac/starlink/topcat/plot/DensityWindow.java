@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
@@ -38,6 +39,7 @@ import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -497,8 +499,14 @@ public class DensityWindow extends GraphicsWindow {
         DensityPlotState state = (DensityPlotState) plot_.getState();
         int psize = state.getPixelSize();
         ValueInfo[] axes = state.getAxes();
-        String name1 = axes[ 0 ].getName();
-        String name2 = axes[ 1 ].getName();
+
+        /* Label this as Cartesian projected RA/DEC axes if it looks like
+         * that's what they are. */
+        String name1 = looksLike( axes[ 0 ], Tables.RA_INFO )
+                     ? "RA---CAR" : axes[ 0 ].getName();
+        String name2 = looksLike( axes[ 1 ], Tables.DEC_INFO )
+                     ? "DEC--CAR" : axes[ 1 ].getName();
+
         boolean log1 = state.getLogFlags()[ 0 ];
         boolean log2 = state.getLogFlags()[ 1 ];
         if ( state.getLogFlags()[ 0 ] ) {
@@ -525,6 +533,7 @@ public class DensityWindow extends GraphicsWindow {
         hdr.addValue( "DATE", Times.mjdToIso( Times.unixMillisToMjd( 
                                            System.currentTimeMillis() ) ),
                       "HDU creation date" );
+
         hdr.addValue( "CTYPE1", name1, axes[ 0 ].getDescription() );
         hdr.addValue( "CTYPE2", name2, axes[ 1 ].getDescription() );
         if ( ngrid > 1 ) {
@@ -534,19 +543,27 @@ public class DensityWindow extends GraphicsWindow {
         hdr.addValue( "BUNIT", "COUNTS", "Number of points per pixel (bin)" );
         hdr.addValue( "DATAMIN", 0.0, "Minimum value" );
         hdr.addValue( "DATAMAX", (double) max, "Maximum value" );
-        hdr.addValue( "CRPIX1", 0.0, "Reference pixel X index" );
-        hdr.addValue( "CRPIX2", (double) ny, "Reference pixel Y index" );
-        if ( ngrid > 1 ) {
-            hdr.addValue( "CRPIX3", 0.0, "Reference pixel plane index" );
-        }
-        hdr.addValue( "CRVAL1", log1 ? Maths.log10( p0[ 0 ] ) : p0[ 0 ],
-                                "Reference pixel X position" );
-        hdr.addValue( "CRVAL2", log2 ? Maths.log10( p0[ 1 ] ) : p0[ 1 ],
-                                "Reference pixel Y position" );
+
+        /* For -CAR projections, it's essential that the CRVALn values are
+         * at zero, and the CRPIXn ones are set to whatever makes the
+         * mapping right. */
+        hdr.addValue( "CRVAL1", 0.0, "Reference pixel X position" );
+        hdr.addValue( "CRVAL2", 0.0, "Reference pixel Y position" );
+
+        Point origin = surface.dataToGraphics( 0.0, 0.0, false );
+        hdr.addValue( "CRPIX1",
+                      ( origin.x - x0 ) / (double) psize,
+                      "Reference pixel X index" );
+        hdr.addValue( "CRPIX2",
+                      ( y0 + bbox.height - origin.y ) / (double) psize,
+                      "Reference pixel Y index" );
+
         if ( ngrid > 1 ) {
             hdr.addValue( "CRVAL3", 0.0,
                           "Reference pixel plane index position" );
+            hdr.addValue( "CRPIX3", 0.0, "Reference pixel plane index" );
         }
+
         hdr.addValue( "CDELT1", log1 ? Maths.log10( p1[ 0 ] / p0[ 0 ] )
                                      : ( p1[ 0 ] - p0[ 0 ] ),
                                 "X extent of reference pixel" );
@@ -583,6 +600,36 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Flush. */
         out.flush();
+    }
+
+    /**
+     * Determines whether a given column appears to match a target one.
+     * The algorithm is a bit scrappy.
+     *
+     * @param  test   column to assess
+     * @param  target  column info that it's being matched against
+     * @return  true  if <code>test</code> appears to be the kind of 
+     *          quantity described by <code>target</code>
+     */
+    private boolean looksLike( ValueInfo test, ValueInfo target ) {
+        try {
+            String selectedName = getPointSelectors()
+                                 .getMainSelector()
+                                 .getTable()
+                                 .getColumnSelectorModel( target )
+                                 .getColumnData()
+                                 .getColumnInfo()
+                                 .getName();   // sorry.
+            if ( selectedName.equals( test.getName() ) ) {
+                return true;
+            }
+        }
+        catch ( NullPointerException e ) {
+        }
+        if ( target.getName().equalsIgnoreCase( test.getName() ) ) {
+            return true;
+        }
+        return false;
     }
 
     /**
