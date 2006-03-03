@@ -46,7 +46,7 @@ public class LinesPlotState extends PlotState {
     public void setYAxes( ValueInfo[] yAxes ) {
         yAxes_ = new SimpleValueInfo[ yAxes.length ];
         for ( int i = 0; i < yAxes.length; i++ ) {
-            if ( yAxes_[ i ] != null ) {
+            if ( yAxes[ i ] != null ) {
                 yAxes_[ i ] = new SimpleValueInfo( yAxes[ i ] );
             }
         }
