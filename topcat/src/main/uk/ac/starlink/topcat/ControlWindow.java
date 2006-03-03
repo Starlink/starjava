@@ -80,6 +80,7 @@ import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
 import uk.ac.starlink.topcat.plot.HistogramWindow;
+import uk.ac.starlink.topcat.plot.LinesWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.util.gui.DragListener;
@@ -268,6 +269,9 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "Sky", ResourceIcon.SPHERE,
                                       "Spherical polar scatter plot",
                                       SphereWindow.class ),
+            new GraphicsWindowAction( "Lines", ResourceIcon.STACK,
+                                      "Stacked line plot",
+                                      LinesWindow.class ),
             new GraphicsWindowAction( "Density", ResourceIcon.DENSITY,
                                       "Density plot (2D histogram)",
                                       DensityWindow.class ),
