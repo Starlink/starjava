@@ -815,9 +815,9 @@ public class Plot3D extends JPanel {
      * @param  log       true iff axis is logarithmic
      * @param  flip      true iff axis values increase right to left
      */
-    private static void annotateAxis( Graphics g, String label,
-                                      int sx, int sy, double lo, double hi,
-                                      boolean log, boolean flip ) {
+    static void annotateAxis( Graphics g, String label,
+                              int sx, int sy, double lo, double hi,
+                              boolean log, boolean flip ) {
 
         /* Write the name of the axis. */
         FontMetrics fm = g.getFontMetrics();

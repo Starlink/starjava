@@ -1,12 +1,16 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JComponent;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Plotting surface for drawing graphs on.
@@ -17,25 +21,26 @@ import javax.swing.JComponent;
 public class GraphSurface implements PlotSurface {
 
     private final JComponent component_;
-    private final Rectangle bounds_;
+    private final int igraph_;
+    private Rectangle bounds_;
     private double xlo_;
     private double xhi_;
     private double ylo_;
     private double yhi_;
-    private boolean labelX_ = true;
-    private boolean labelY_ = true;
+    private LinesPlotState state_;
+    private boolean labelX_;
+    private boolean labelY_;
 
     /**
      * Constructor.
      *
      * @param   component  the component on which this surface will draw
-     * @param   bounds   the region of the component which represents the
-     *          target for data points; annotations may be drawn outside 
-     *          this region
+     * @param   igraph  index of the graph in the plot state which this
+     *          surface will be used for
      */
-    public GraphSurface( JComponent component, Rectangle bounds ) {
+    public GraphSurface( JComponent component, int igraph ) {
         component_ = component;
-        bounds_ = new Rectangle( bounds );
+        igraph_ = igraph;
     }
 
     public Shape getClip() {
@@ -51,6 +56,19 @@ public class GraphSurface implements PlotSurface {
         ylo_ = ylo;
         xhi_ = xhi;
         yhi_ = yhi;
+    }
+
+    /**
+     * Sets the rectangle within which data points may be plotted.
+     * Additional annotations (such as axis labels) may be drawn outside
+     * this region.
+     *
+     * @param   bounds   the region of the component which represents the
+     *          target for data points; annotations may be drawn outside 
+     *          this region
+     */
+    public void setBounds( Rectangle bounds ) {
+        bounds_ = new Rectangle( bounds );
     }
 
     public Point dataToGraphics( double x, double y, boolean insideOnly ) {
@@ -86,6 +104,7 @@ public class GraphSurface implements PlotSurface {
     }
 
     public void setState( PlotState state ) {
+        state_ = (LinesPlotState) state;
     }
 
     /**
@@ -105,17 +124,37 @@ public class GraphSurface implements PlotSurface {
         g.fillRect( bounds_.x, bounds_.y, bounds_.width, bounds_.height );
         g.setColor( Color.BLACK );
         g.drawRect( bounds_.x, bounds_.y, bounds_.width, bounds_.height );
+        int sy = component_.getGraphics().getFontMetrics().getHeight();
+        if ( labelX_ ) {
+            ValueInfo xInfo = state_.getAxes()[ 0 ];
+            Graphics gx = g.create();
+            gx.translate( bounds_.x, bounds_.y + bounds_.height );
+            Plot3D.annotateAxis( gx, xInfo.getName(), bounds_.width, sy,
+                                 xlo_, xhi_, state_.getLogFlags()[ 0 ],
+                                 state_.getFlipFlags()[ 1 ] );
+        }
+        if ( labelY_ ) {
+            ValueInfo yInfo = state_.getYAxes()[ igraph_ ];
+            if ( yInfo != null ) {
+                Graphics2D gy = (Graphics2D) g.create();
+                gy.translate( bounds_.x, bounds_.y + bounds_.height );
+                gy.rotate( - Math.PI * 0.5 );
+                Plot3D.annotateAxis( gy, yInfo.getName(), bounds_.height, sy,
+                                     ylo_, yhi_, false, false );
+            }
+        }
     }
 
     /**
-     * Returns the additional space required outside the clip of a 
-     * GraphSurface which is be required for label annotation on
-     * axes for which labels will be drawn.
+     * Returns the space required around the edge of the plot region for
+     * axis annotation and so on.
      *
-     * @param   comp  component on which the drawing is done
+     * @return   annotation insets
      */
-    public static int getLabelGap( JComponent comp ) {
-        return 1;
+    public Insets getAnnotationInsets() {
+        FontMetrics fm = component_.getGraphics().getFontMetrics();
+        int fh = fm.getHeight();
+        return new Insets( fh / 2, fh * 2, fh * 2, 1 );
     }
 
     public String toString() {

@@ -174,25 +174,37 @@ public class LinesPlot extends javax.swing.JPanel {
             }
         }
 
-        /* Assemble an array of graphs to draw data on, and draw axes. */
-        int width = getSize().width;
-        int height = getSize().height;
-        Insets insets = getInsets();
-        int labelGap = GraphSurface.getLabelGap( this );
-        int xInc = width - insets.right - labelGap - insets.left - 1;
-        int xPos = labelGap + insets.left;
-        int yInc = ( height - insets.top - insets.bottom - labelGap ) / ngraph;
-        int yPos = height - insets.bottom - labelGap - yInc;
+        /* Assemble an array of graphs to draw data on, and calculate 
+         * the borders we need to leave for axis annotation. */
         GraphSurface[] graphs = new GraphSurface[ ngraph ];
-        int[] graphIndices = state.getGraphIndices();
-        double[] coords = new double[ 2 ];
+        Insets border = new Insets( 0, 0, 0, 0 );
         for ( int igraph = 0; igraph < ngraph; igraph++ ) {
-            Rectangle bounds = new Rectangle( xPos, yPos, xInc, yInc );
-            GraphSurface graph = new GraphSurface( this, bounds );
+            GraphSurface graph = new GraphSurface( this, igraph );
             graphs[ igraph ] = graph;
             graph.setDataRange( xRange[ 0 ], yRanges[ igraph ][ 0 ],
                                 xRange[ 1 ], yRanges[ igraph ][ 1 ] );
             graph.setLabelAxes( igraph == 0, true );
+            Insets ai = graph.getAnnotationInsets();
+            border.left = Math.max( border.left, ai.left );
+            border.right = Math.max( border.right, ai.right );
+        }
+        border.bottom = graphs[ 0 ].getAnnotationInsets().bottom;
+        border.top = graphs[ ngraph - 1 ].getAnnotationInsets().top;
+
+        /* Position each graph and draw the axes. */
+        int width = getSize().width;
+        int height = getSize().height;
+        Insets insets = getInsets();
+        int xInc = width - insets.left - border.left
+                         - border.right - insets.right;
+        int xPos = insets.left + border.left;
+        int yInc = ( height - insets.bottom - border.bottom 
+                            - border.top - insets.top ) / ngraph;
+        int yPos = height - insets.bottom - border.bottom - yInc;
+        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
+            GraphSurface graph = graphs[ igraph ];
+            graph.setBounds( new Rectangle( xPos, yPos, xInc, yInc ) );
+            graph.setState( state );
             graph.paintSurface( g );
             yPos -= yInc;
         }
@@ -200,7 +212,9 @@ public class LinesPlot extends javax.swing.JPanel {
         /* Draw data points and lines. */
         RowSubset[] sets = state.getPointSelection().getSubsets();
         Style[] styles = state.getPointSelection().getStyles();
+        int[] graphIndices = state.getGraphIndices();
         int nset = sets.length;
+        double[] coords = new double[ 2 ];
         for ( int iset = 0; iset < nset; iset++ ) {
             Style style = styles[ iset ];
             Graphics lineGraphics = g.create();
