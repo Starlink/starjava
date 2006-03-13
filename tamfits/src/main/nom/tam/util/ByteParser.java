@@ -425,7 +425,7 @@ public class ByteParser {
     /** Is a region blank?
       * @param length The length of the region to be tested
       */
-    private boolean isWhite(int length) {
+    public boolean isWhite(int length) {
         int oldOffset = offset;
         boolean value= skipWhite(length) == length;
 	offset = oldOffset;
