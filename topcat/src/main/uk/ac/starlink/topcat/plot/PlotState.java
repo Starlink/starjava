@@ -259,7 +259,7 @@ public class PlotState {
         }
         for ( int i = 0; i < axisLabels_.length; i++ ) {
             code = 23 * code + ( axisLabels_[ i ] == null
-                               ? 0 :axisLabels_[ i ].hashCode() );
+                               ? 0 : axisLabels_[ i ].hashCode() );
         }
         for ( int i = 0; i < ranges_.length; i++ ) {
             code = 23 * code
