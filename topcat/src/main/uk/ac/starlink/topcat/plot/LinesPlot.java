@@ -1,8 +1,11 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -174,38 +177,74 @@ public class LinesPlot extends javax.swing.JPanel {
             }
         }
 
+        /* Get component dimensions. */
+        FontMetrics fm = g.getFontMetrics();
+        int height = getSize().height;
+        int width = getSize().width;
+        Insets border = getInsets();
+        border.top++;
+        border.right++;
+
+        /* Work out how much space is required for the annotations at the
+         * bottom of the plot (single annotated X axis). */
+        int approxWidth = width - border.left - border.right;;
+        border.bottom +=
+            new AxisLabeller( state.getAxisLabels()[ 0 ],
+                              xRange[ 0 ], xRange[ 1 ], approxWidth,
+                              state.getLogFlags()[ 0 ],
+                              state.getFlipFlags()[ 0 ], fm, AxisLabeller.X,
+                              10 )
+           .getAnnotationHeight();
+
+        /* Work out the available height for each plotted graph. */
+        int yInc = ( height - border.bottom - border.top ) / ngraph;
+
         /* Assemble an array of graphs to draw data on, and calculate 
          * the borders we need to leave for axis annotation. */
         GraphSurface[] graphs = new GraphSurface[ ngraph ];
-        Insets border = new Insets( 0, 0, 0, 0 );
+        AxisLabeller[] yAxes = new AxisLabeller[ ngraph ];
         for ( int igraph = 0; igraph < ngraph; igraph++ ) {
-            GraphSurface graph = new GraphSurface( this, igraph );
-            graphs[ igraph ] = graph;
-            graph.setDataRange( xRange[ 0 ], yRanges[ igraph ][ 0 ],
-                                xRange[ 1 ], yRanges[ igraph ][ 1 ] );
-            graph.setLabelAxes( igraph == 0, true );
-            Insets ai = graph.getAnnotationInsets();
-            border.left = Math.max( border.left, ai.left );
-            border.right = Math.max( border.right, ai.right );
+            double ylo = yRanges[ igraph ][ 0 ];
+            double yhi = yRanges[ igraph ][ 1 ];
+            graphs[ igraph ] = new GraphSurface( this );
+            graphs[ igraph ].setDataRange( xRange[ 0 ], ylo, xRange[ 1 ], yhi );
+            yAxes[ igraph ] =
+                new AxisLabeller( state.getYAxisLabels()[ igraph ], ylo, yhi,
+                                  yInc, false, false, fm, AxisLabeller.Y, 6 );
+            int left = yAxes[ igraph ].getAnnotationHeight();
+            border.left = Math.max( border.left,
+                                    yAxes[ igraph ].getAnnotationHeight() );
         }
-        border.bottom = graphs[ 0 ].getAnnotationInsets().bottom;
-        border.top = graphs[ ngraph - 1 ].getAnnotationInsets().top;
+
+        /* Work out available width for plotted graphs and set up axis
+         * labeller appropriately. */
+        int xInc = width - border.left - border.right;
+        AxisLabeller xAxis = new AxisLabeller( state.getAxisLabels()[ 0 ],
+                                               xRange[ 0 ], xRange[ 1 ], xInc,
+                                               state.getLogFlags()[ 0 ],
+                                               state.getFlipFlags()[ 0 ],
+                                               fm, AxisLabeller.X, 10 );
 
         /* Position each graph and draw the axes. */
-        int width = getSize().width;
-        int height = getSize().height;
-        Insets insets = getInsets();
-        int xInc = width - insets.left - border.left
-                         - border.right - insets.right;
-        int xPos = insets.left + border.left;
-        int yInc = ( height - insets.bottom - border.bottom 
-                            - border.top - insets.top ) / ngraph;
-        int yPos = height - insets.bottom - border.bottom - yInc;
+        int xPos = border.left;
+        int yPos = height - border.bottom - yInc;
         for ( int igraph = 0; igraph < ngraph; igraph++ ) {
+            Graphics g1 = g.create();
             GraphSurface graph = graphs[ igraph ];
             graph.setBounds( new Rectangle( xPos, yPos, xInc, yInc ) );
-            graph.setState( state );
-            graph.paintSurface( g );
+            graph.paintSurface( g1 );
+            g1.setColor( Color.WHITE );
+            g1.fillRect( xPos, yPos, xInc, yInc );
+            g1.setColor( Color.BLACK );
+            g1.drawRect( xPos, yPos, xInc, yInc );
+            Graphics gx = g1.create();
+            gx.translate( xPos, yPos + yInc );
+            xAxis.setDrawText( igraph == 0 );
+            xAxis.annotateAxis( gx );
+            Graphics2D gy = (Graphics2D) g1.create();
+            gy.translate( xPos, yPos + yInc );
+            gy.rotate( - Math.PI * 0.5 );
+            yAxes[ igraph ].annotateAxis( gy );
             yPos -= yInc;
         }
 
