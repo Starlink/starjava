@@ -13,6 +13,7 @@ public class LinesPlotState extends PlotState {
 
     private final int ngraph_;
     private SimpleValueInfo[] yAxes_;
+    private String[] yAxisLabels_ = new String[ 0 ];
     private double[][] yRanges_;
     private int[] graphIndices_;
 
@@ -50,6 +51,26 @@ public class LinesPlotState extends PlotState {
                 yAxes_[ i ] = new SimpleValueInfo( yAxes[ i ] );
             }
         }
+    }
+
+    /**
+     * Sets the text labels for the different Y axes to be plotted
+     * (one for each graph).
+     *
+     * @param  yAxisLabels  Y axis label array
+     */
+    public void setYAxisLabels( String[] yAxisLabels ) {
+        yAxisLabels_ = yAxisLabels;
+    }
+
+    /**
+     * Returns the text labels for the different Y axes to be plotted
+     * (one for each graph).
+     *
+     * @return  Y axis label array
+     */
+    public String[] getYAxisLabels() {
+        return yAxisLabels_;
     }
 
     /**
@@ -128,6 +149,7 @@ public class LinesPlotState extends PlotState {
                 return true;
             }
             return Arrays.equals( yAxes_, other.yAxes_ )
+                && Arrays.equals( yAxisLabels_, other.yAxisLabels_ )
                 && equalRanges( yRanges_, other.yRanges_ )
                 && Arrays.equals( graphIndices_, other.graphIndices_ );
         }
@@ -155,6 +177,10 @@ public class LinesPlotState extends PlotState {
         for ( int i = 0; i < yAxes_.length; i++ ) {
             code = 23 * code + 
                    ( yAxes_[ i ] == null ? 0 : yAxes_[ i ].hashCode() );
+        }
+        for ( int i = 0; i < yAxisLabels_.length; ) {
+            code = 23 * code + ( yAxisLabels_[ i ] == null 
+                               ? 0 : yAxisLabels_[ i ].hashCode() );
         }
         for ( int i = 0; i < yRanges_.length; i++ ) {
             code = 23 * code

@@ -70,6 +70,7 @@ public class LinesWindow extends GraphicsWindow {
 
         /* Configure range and axis information for each plot. */
         ValueInfo[] yAxes = new ValueInfo[ nsel ];
+        String[] yAxisLabels = new String[ nsel ];
         double[][] yRanges = new double[ nsel ][];
         List pselList = new ArrayList( nsel );
         for ( int isel = 0; isel < nsel; isel++ ) {
@@ -78,9 +79,11 @@ public class LinesWindow extends GraphicsWindow {
             yRanges[ isel ] = new double[] { Double.NaN, Double.NaN };
             if ( psel.isValid() ) {
                 yAxes[ isel ] = psel.getData().getColumnInfo( 1 );
+                yAxisLabels[ isel ] = yAxes[ isel ].getName();
             }
         }
         state.setYAxes( yAxes );
+        state.setYAxisLabels( yAxisLabels );
         state.setYRanges( yRanges );
 
         /* Configure information for each subset about which graph it will
