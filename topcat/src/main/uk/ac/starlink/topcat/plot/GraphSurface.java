@@ -21,13 +21,11 @@ import uk.ac.starlink.table.ValueInfo;
 public class GraphSurface implements PlotSurface {
 
     private final JComponent component_;
-    private final int igraph_;
     private Rectangle bounds_;
     private double xlo_;
     private double xhi_;
     private double ylo_;
     private double yhi_;
-    private LinesPlotState state_;
     private boolean labelX_;
     private boolean labelY_;
 
@@ -35,12 +33,9 @@ public class GraphSurface implements PlotSurface {
      * Constructor.
      *
      * @param   component  the component on which this surface will draw
-     * @param   igraph  index of the graph in the plot state which this
-     *          surface will be used for
      */
-    public GraphSurface( JComponent component, int igraph ) {
+    public GraphSurface( JComponent component ) {
         component_ = component;
-        igraph_ = igraph;
     }
 
     public Shape getClip() {
@@ -104,57 +99,9 @@ public class GraphSurface implements PlotSurface {
     }
 
     public void setState( PlotState state ) {
-        state_ = (LinesPlotState) state;
-    }
-
-    /**
-     * Determines whether labels are drawn for each axis.
-     *
-     * @param   labelX  true iff you want the horizontal axis labelled
-     * @param   labelY  true iff you want the vertical axis labelled
-     */
-    public void setLabelAxes( boolean labelX, boolean labelY ) {
-        labelX_ = labelX;
-        labelY_ = labelY;
     }
 
     public void paintSurface( Graphics g ) {
-        g = g.create();
-        g.setColor( Color.WHITE );
-        g.fillRect( bounds_.x, bounds_.y, bounds_.width, bounds_.height );
-        g.setColor( Color.BLACK );
-        g.drawRect( bounds_.x, bounds_.y, bounds_.width, bounds_.height );
-        int sy = component_.getGraphics().getFontMetrics().getHeight();
-        if ( labelX_ ) {
-            ValueInfo xInfo = state_.getAxes()[ 0 ];
-            Graphics gx = g.create();
-            gx.translate( bounds_.x, bounds_.y + bounds_.height );
-            Plot3D.annotateAxis( gx, xInfo.getName(), bounds_.width, sy,
-                                 xlo_, xhi_, state_.getLogFlags()[ 0 ],
-                                 state_.getFlipFlags()[ 1 ] );
-        }
-        if ( labelY_ ) {
-            ValueInfo yInfo = state_.getYAxes()[ igraph_ ];
-            if ( yInfo != null ) {
-                Graphics2D gy = (Graphics2D) g.create();
-                gy.translate( bounds_.x, bounds_.y + bounds_.height );
-                gy.rotate( - Math.PI * 0.5 );
-                Plot3D.annotateAxis( gy, yInfo.getName(), bounds_.height, sy,
-                                     ylo_, yhi_, false, false );
-            }
-        }
-    }
-
-    /**
-     * Returns the space required around the edge of the plot region for
-     * axis annotation and so on.
-     *
-     * @return   annotation insets
-     */
-    public Insets getAnnotationInsets() {
-        FontMetrics fm = component_.getGraphics().getFontMetrics();
-        int fh = fm.getHeight();
-        return new Insets( fh / 2, fh * 2, fh * 2, 1 );
     }
 
     public String toString() {
