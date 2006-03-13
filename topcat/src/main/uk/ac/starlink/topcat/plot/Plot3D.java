@@ -792,72 +792,12 @@ public class Plot3D extends JPanel {
         g2.transform( atf );
 
         /* Draw the annotated axis. */
-        annotateAxis( g2, state_.getAxisLabels()[ iaxis ], sx, sy,
-                      loBounds_[ iaxis ], hiBounds_[ iaxis ],
-                      logFlags[ iaxis ],
-                      ( ! forward ) ^ state_.getFlipFlags()[ iaxis ] );
-    }
-
-    /**
-     * Draws axis annotations including axis name,
-     * tick marks and numeric labels onto a given region 
-     * of a graphics context.  The drawing is done onto the region
-     * (0,0)->(sx,sy) of the graphics context.
-     *
-     * @param  g         graphics context
-     * @param  label     text of annotation label
-     * @param  sx        horizontal extent of the drawing region
-     *                   (length of the axis in pixels)
-     * @param  sy        vertical extent of the drawing region 
-     *                   (should be of the order of font height)
-     * @param  lo        lower bound of axis range
-     * @param  hi        upper bound of axis range
-     * @param  log       true iff axis is logarithmic
-     * @param  flip      true iff axis values increase right to left
-     */
-    static void annotateAxis( Graphics g, String label,
-                              int sx, int sy, double lo, double hi,
-                              boolean log, boolean flip ) {
-
-        /* Write the name of the axis. */
-        FontMetrics fm = g.getFontMetrics();
-        g.drawString( label, ( sx - fm.stringWidth( label ) ) / 2, 2 * sy );
-
-        /* Work out where to put ticks on the axis.  Do this recursively;
-         * if we find that the labels are too crowded on the axis decrease
-         * the number of tick marks and try again. */
-        int[] tickPos = null;
-        String[] tickLabels = null;
-        int nTick = 0;
-        int labelGap = fm.stringWidth( "99" );
-        for ( int mTick = 4; nTick == 0 && mTick > 0; mTick-- ) {
-            AxisLabels axer = log ? AxisLabels.labelLogAxis( lo, hi, mTick )
-                                  : AxisLabels.labelLinearAxis( lo, hi, mTick );
-            nTick = axer.getCount();
-            tickPos = new int[ nTick ];
-            tickLabels = new String[ nTick ];
-            for ( int i = 0; i < nTick; i++ ) {
-                double tick = axer.getTick( i );
-                tickLabels[ i ] = axer.getLabel( i );
-                double frac = log ? Math.log( tick / lo ) / Math.log( hi / lo )
-                                  : ( tick - lo ) / ( hi - lo );
-                tickPos[ i ] = 
-                    (int) Math.round( sx * ( flip ? ( 1. - frac ) : frac ) );
-                if ( i > 0 && Math.abs( tickPos[ i ] - tickPos[ i - 1 ] ) 
-                              < fm.stringWidth( tickLabels[ i - 1 ] + "99" ) ) {
-                    nTick = 0;
-                    break;
-                }
-            }
-        }
-
-        /* Draw the actual tick marks and labels. */
-        for ( int i = 0; i < nTick; i++ ) {
-            int tpos = tickPos[ i ];
-            String tlabel = tickLabels[ i ];
-            g.drawLine( tpos, -2, tpos, +2 );
-            g.drawString( tlabel, tpos - fm.stringWidth( tlabel ) / 2, sy );
-        }
+        new AxisLabeller( state_.getAxisLabels()[ iaxis ],
+                          loBounds_[ iaxis ], hiBounds_[ iaxis ], sx,
+                          logFlags[ iaxis ],
+                          ( ! forward ) ^ state_.getFlipFlags()[ iaxis ],
+                          g2.getFontMetrics(), AxisLabeller.X, 4 )
+           .annotateAxis( g2 );
     }
 
     /**
@@ -984,10 +924,12 @@ public class Plot3D extends JPanel {
             g2.translate( xp0, yp1 );
             g2.drawLine( 0, 0, xp1 - xp0, 0 );
             double radius = hiBounds_[ 0 ];
-            annotateAxis( g2, sstate.getAxisLabels()[ 0 ], xp1 - xp0,
-                          g2.getFontMetrics().getHeight(),
-                          log ? Math.exp( 0.0 ) : 0.0,
-                          log ? Math.exp( radius ) : radius, log, false );
+            new AxisLabeller( sstate.getAxisLabels()[ 0 ],
+                              log ? Math.exp( 0.0 ) : 0.0,
+                              log ? Math.exp( radius ) : radius,
+                              xp1 - xp0, log, false, g2.getFontMetrics(),
+                              AxisLabeller.X, 6 )
+               .annotateAxis( g2 );
         }
     }
 
