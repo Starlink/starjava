@@ -234,13 +234,15 @@ public class AsciiTable extends Data implements TableData {
 	    if        (array[col] instanceof String[]) {
 	        ((String[]) array[col])[row] = bp.getString(length);
 	    } else if (array[col] instanceof int[]) {
-	        ((int[])    array[col])[row] = bp.getInt(length);
+	        ((int[])    array[col])[row] = bp.isWhite(length)
+                                             ? 0 : bp.getInt(length);
 	    } else if (array[col] instanceof float[]) {
 	        ((float[])  array[col])[row] = bp.getFloat(length);
 	    } else if (array[col] instanceof double[]) {
 	        ((double[]) array[col])[row] = bp.getDouble(length);
 	    } else if (array[col] instanceof long[]) {
-	        ((long[])   array[col])[row] = bp.getLong(length);
+	        ((long[])   array[col])[row] = bp.isWhite(length)
+                                             ? 0L : bp.getLong(length);
 	    } else {
 	        throw new FitsException("Invalid type for ASCII table conversion:"+array[col]);
 	    }
