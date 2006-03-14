@@ -37,7 +37,9 @@ public class DefaultPointSelector extends PointSelector {
      * Constructor.
      *
      * @param   axisNames  labels for the columns to choose
-     * @param   toggleSets toggle sets to associate with each axes (may be null)
+     * @param   toggleSets toggle sets to associate with each axis;
+     *                     <code>toggleSets</code> itself or any of
+     *                     its elements may be null
      */
     public DefaultPointSelector( String[] axisNames, ToggleSet[] toggleSets ) {
         super();
@@ -66,11 +68,14 @@ public class DefaultPointSelector extends PointSelector {
             if ( toggleSets != null ) {
                 for ( int j = 0; j < toggleSets.length; j++ ) {
                     ToggleSet toggleSet = toggleSets[ j ];
-                    JCheckBox checkBox = toggleSet.models_[ i ]
-                                                  .createCheckBox();
-                    checkBox.setText( toggleSet.name_ );
-                    cPanel.add( Box.createHorizontalStrut( 5 ) );
-                    cPanel.add( checkBox );
+                    if ( toggleSet != null &&
+                         toggleSet.models_[ i ] != null ) {
+                        JCheckBox checkBox = toggleSet.models_[ i ]
+                                                      .createCheckBox();
+                        checkBox.setText( toggleSet.name_ );
+                        cPanel.add( Box.createHorizontalStrut( 5 ) );
+                        cPanel.add( checkBox );
+                    }
                 }
             }
 
