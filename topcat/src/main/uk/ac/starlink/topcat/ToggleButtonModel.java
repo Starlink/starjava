@@ -36,12 +36,21 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
     }
 
     /**
-     * Sets the text associated with this model.
+     * Sets the text label associated with this model.
      *
      * @param  text  button name
      */
     public void setText( String text ) {
         text_ = text;
+    }
+
+    /**
+     * Returns the text label associated with this model.
+     *
+     * @return  button name
+     */
+    public String getText() {
+        return text_;
     }
 
     /**
@@ -54,12 +63,30 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
     }
 
     /**
+     * Returns the icon associated with this model.
+     *
+     * @return   button icon
+     */
+    public Icon getIcon() {
+        return icon_;
+    }
+
+    /**
      * Sets the description (for tooltips etc) associated with this model.
      *
      * @param   shortdesc  description
      */
     public void setDescription( String shortdesc ) {
         shortdesc_ = shortdesc;
+    }
+
+    /**
+     * Returns the description (for tooltips etc) associated with this model.
+     *
+     * @return  description
+     */
+    public String getDescription() {
+        return shortdesc_;
     }
 
     /**
