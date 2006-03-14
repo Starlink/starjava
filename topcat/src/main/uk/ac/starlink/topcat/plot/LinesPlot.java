@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
@@ -255,13 +256,28 @@ public class LinesPlot extends javax.swing.JPanel {
         int nset = sets.length;
         double[] coords = new double[ 2 ];
         for ( int iset = 0; iset < nset; iset++ ) {
-            Style style = styles[ iset ];
-            Graphics lineGraphics = g.create();
-            ((MarkStyle) style).configureForLine( lineGraphics,
-                                                  BasicStroke.CAP_BUTT,
-                                                  BasicStroke.JOIN_MITER );
+            MarkStyle style = (MarkStyle) styles[ iset ];
             GraphSurface graph = graphs[ graphIndices[ iset ] ];
-            lineGraphics.setClip( graph.getClip() );
+            Graphics lineGraphics = null;
+            if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
+                lineGraphics = g.create();
+                style.configureForLine( lineGraphics,
+                                        BasicStroke.CAP_BUTT,
+                                        BasicStroke.JOIN_MITER );
+                lineGraphics.setClip( graph.getClip() );
+                if ( lineGraphics instanceof Graphics2D ) {
+                    ((Graphics2D) lineGraphics)
+                   .setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                      state.getAntialias()
+                                         ? RenderingHints.VALUE_ANTIALIAS_ON
+                                         : RenderingHints.VALUE_ANTIALIAS_OFF );
+                }
+            }
+            Graphics pointGraphics = null;
+            if ( ! style.getHidePoints() ) {
+                pointGraphics = g.create();
+                pointGraphics.setClip( graph.getClip() );
+            }
             RowSubset rset = sets[ iset ];
             boolean notFirst = false;
             int lastxp = 0;
@@ -275,8 +291,13 @@ public class LinesPlot extends javax.swing.JPanel {
                     if ( point != null ) {
                         int xp = point.x;
                         int yp = point.y;
+                        if ( pointGraphics != null ) {
+                            style.drawMarker( pointGraphics, xp, yp );
+                        }
                         if ( notFirst ) {
-                            lineGraphics.drawLine( lastxp, lastyp, xp, yp );
+                            if ( lineGraphics != null ) {
+                                lineGraphics.drawLine( lastxp, lastyp, xp, yp );
+                            }
                         }
                         else {
                             notFirst = true;
