@@ -246,6 +246,7 @@ public class MarkStyleEditor extends StyleEditor {
      * @param  hidePoints  whether markers are invisible
      * @param  line   line type
      * @param  thick  line thickness
+     * @param  dash   line dash pattern
      * @return  marker
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
