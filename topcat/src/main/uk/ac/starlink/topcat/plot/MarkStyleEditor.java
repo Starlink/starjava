@@ -70,33 +70,11 @@ public class MarkStyleEditor extends StyleEditor {
         helpId_ = withLines ? "MarkStyleEditor" : "MarkStyleEditorNoLines";
 
         /* Shape selector. */
-        shapeSelector_ = new JComboBox( SHAPES );
-        shapeSelector_.setRenderer( new MarkRenderer() {
-            public MarkShape getMarkShape( int index ) {
-                return (MarkShape) shapeSelector_.getItemAt( index );
-            }
-            public Color getMarkColor() {
-                return Color.BLACK;
-            }
-            public int getMarkSize() {
-                return 5;
-            }
-        } );
+        shapeSelector_ = createShapeSelector();
         shapeSelector_.addActionListener( this );
 
         /* Size selector. */
-        sizeSelector_ = new JComboBox( createNumberedModel( MAX_SIZE + 1 ) );
-        sizeSelector_.setRenderer( new MarkRenderer( true ) {
-            public int getMarkSize( int index ) {
-                return index;
-            }
-            public Color getMarkColor() {
-                return Color.BLACK;
-            }
-            public MarkShape getMarkShape() {
-                return MarkShape.OPEN_SQUARE;
-            }
-        } );
+        sizeSelector_ = createSizeSelector();
         sizeSelector_.addActionListener( this );
 
         /* Colour selector. */
@@ -333,9 +311,60 @@ public class MarkStyleEditor extends StyleEditor {
     }
 
     /**
+     * Returns a new JComboBox which will contain a standard set of 
+     * MarkShape objects.
+     *
+     * @return  new shape selection combo box
+     */
+    public static JComboBox createShapeSelector() {
+        final JComboBox selector = new JComboBox( SHAPES );
+        selector.setRenderer( new MarkRenderer() {
+            public MarkShape getMarkShape( int index ) {
+                return (MarkShape) selector.getItemAt( index );
+            }
+            public MarkShape getMarkShape() {
+                return (MarkShape) selector.getSelectedItem();
+            }
+            public Color getMarkColor() {
+                return Color.BLACK;
+            }
+            public int getMarkSize() {
+                return 5;
+            }
+        } );
+        return selector;
+    }
+
+    /**
+     * Returns a new JComboBox which will contain a standard set of integers
+     * for specifying marker size (0..MAX_SIZE).
+     *
+     * @return  new size selection combo box
+     */
+    public static JComboBox createSizeSelector() {
+        final JComboBox selector = 
+            new JComboBox( createNumberedModel( MAX_SIZE + 1 ) );
+        selector.setRenderer( new MarkRenderer( true ) {
+            public int getMarkSize( int index ) {
+                return index;
+            }
+            public int getMarkSize() {
+                return selector.getSelectedIndex();
+            }
+            public Color getMarkColor() {
+                return Color.BLACK;
+            }
+            public MarkShape getMarkShape() {
+                return MarkShape.OPEN_SQUARE;
+            }
+        } );
+        return selector;
+    }
+
+    /**
      * ComboBoxRenderer class suitable for rendering MarkStyles.
      */
-    private class MarkRenderer extends BasicComboBoxRenderer {
+    private static abstract class MarkRenderer extends BasicComboBoxRenderer {
         private boolean useText_;
         MarkRenderer() {
             this( false );
@@ -346,21 +375,15 @@ public class MarkStyleEditor extends StyleEditor {
         MarkShape getMarkShape( int itemIndex ) {
             return getMarkShape();
         }
-        MarkShape getMarkShape() {
-            return (MarkShape) shapeSelector_.getSelectedItem();
-        }
+        abstract MarkShape getMarkShape();
         int getMarkSize( int itemIndex ) {
             return getMarkSize();
         }
-        int getMarkSize() {
-            return sizeSelector_.getSelectedIndex();
-        }
+        abstract int getMarkSize();
         Color getMarkColor( int itemIndex ) {
             return getMarkColor();
         }
-        Color getMarkColor() {
-            return colorSelector_.getSelectedColor();
-        }
+        abstract Color getMarkColor();
         public Component getListCellRendererComponent( JList list, Object value,
                                                        int index,
                                                        boolean isSelected,
