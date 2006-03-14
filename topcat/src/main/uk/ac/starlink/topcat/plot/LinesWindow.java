@@ -9,6 +9,8 @@ import java.util.BitSet;
 import java.util.List;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 
 /**
@@ -20,6 +22,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 public class LinesWindow extends GraphicsWindow {
 
     private final LinesPlot plot_;
+    private final ToggleButtonModel antialiasModel_;
 
     /**
      * Constructor.
@@ -33,6 +36,15 @@ public class LinesWindow extends GraphicsWindow {
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
 
         getMainArea().add( plot_, BorderLayout.CENTER );
+
+        antialiasModel_ = new ToggleButtonModel( "Antialias",
+                                                 ResourceIcon.ANTIALIAS,
+                                                 "Select whether lines are " +
+                                                 "drawn with antialiasing" );
+        antialiasModel_.setSelected( false );
+        antialiasModel_.addActionListener( getReplotListener() );
+
+        getToolBar().add( antialiasModel_.createToolbarButton() );
 
         /* Add standard help actions. */
         addHelp( "LinesWindow" );
@@ -97,6 +109,9 @@ public class LinesWindow extends GraphicsWindow {
         }
         state.setGraphIndices( graphIndices );
 
+        /* Antialiasing. */
+        state.setAntialias( antialiasModel_.isSelected() );
+
         /* Return state. */
         return state;
     }
@@ -153,14 +168,14 @@ public class LinesWindow extends GraphicsWindow {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new MarkStyleEditor( true, false );
+        return new LinesStyleEditor();
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
         final MarkStyle lineStyle = 
             (MarkStyle) MarkStyles.points( null ).getStyle( 0 );
         lineStyle.setColor( Color.BLACK );
-        boolean many = npoint > 10000;
+        boolean many = npoint > 2000;
         lineStyle.setLine( many ? null : MarkStyle.DOT_TO_DOT );
         lineStyle.setHidePoints( ! many );
         return new StyleSet() {
