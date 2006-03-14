@@ -28,14 +28,27 @@ public class GraphSurface implements PlotSurface {
     private double yhi_;
     private boolean labelX_;
     private boolean labelY_;
+    private boolean xLog_;
+    private boolean yLog_;
+    private boolean xFlip_;
+    private boolean yFlip_;
 
     /**
      * Constructor.
      *
      * @param   component  the component on which this surface will draw
+     * @param   xLog  true iff X axis is logarithmically scaled
+     * @param   yLog  true iff Y axis is logarithmically scaled
+     * @param   xFlip true iff X axis is inverted
+     * @param   yFlip true iff Y axis is inverted
      */
-    public GraphSurface( JComponent component ) {
+    public GraphSurface( JComponent component, boolean xLog, boolean yLog,
+                         boolean xFlip, boolean yFlip ) {
         component_ = component;
+        xLog_ = xLog;
+        yLog_ = yLog;
+        xFlip_ = xFlip;
+        yFlip_ = yFlip;
     }
 
     public Shape getClip() {
@@ -70,12 +83,21 @@ public class GraphSurface implements PlotSurface {
         if ( insideOnly && ( x < xlo_ || x > xhi_ || y < ylo_ || y > yhi_ ) ) {
             return null;
         }
-        else if ( Double.isNaN( x ) || Double.isNaN( y ) ) {
+        else if ( Double.isNaN( x ) || Double.isNaN( y ) ||
+                  ( xLog_ && x <= 0.0 ) || ( yLog_ && y <= 0.0 ) ) {
             return null;
         }
         else {
-            double rx = ( x - xlo_ ) / ( xhi_ - xlo_ );
-            double ry = ( y - ylo_ ) / ( yhi_ - ylo_ );
+            double rx = xLog_ ? Math.log( x / xlo_ ) / Math.log( xhi_ / xlo_ )
+                              : ( x - xlo_ ) / ( xhi_ - xlo_ );
+            double ry = yLog_ ? Math.log( y / ylo_ ) / Math.log( yhi_ / ylo_ )
+                              : ( y - ylo_ ) / ( yhi_ - ylo_ );
+            if ( xFlip_ ) {
+                rx = 1.0 - rx;
+            }
+            if ( yFlip_ ) {
+                ry = 1.0 - ry;
+            }
             return new Point(
                 bounds_.x + (int) ( rx * bounds_.width ),
                 bounds_.y + (int) ( ( 1.0 - ry ) * bounds_.height ) );
@@ -91,9 +113,17 @@ public class GraphSurface implements PlotSurface {
         else {
             double rx = px - bounds_.x / bounds_.width;
             double ry = py - bounds_.y / bounds_.height;
+            if ( xFlip_ ) {
+                rx = 1.0 - rx;
+            }
+            if ( yFlip_ ) {
+                ry = 1.0 - ry;
+            }
             return new double[] {
-                xlo_ + rx * ( xhi_ - xlo_ ),
-                ylo_ + ( 1.0 - ry ) * ( yhi_ - ylo_ ), 
+                xLog_ ? xlo_ * Math.exp( rx * Math.log( xhi_ / xlo_ ) )
+                      : xlo_ + rx * ( xhi_ - xlo_ ),
+                yLog_ ? ylo_ * Math.exp( ry * Math.log( yhi_ / ylo_ ) )
+                      : ylo_ + ( 1.0 - ry ) * ( yhi_ - ylo_ ), 
             };
         }
     }

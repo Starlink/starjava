@@ -83,10 +83,15 @@ public class LinesPlot extends javax.swing.JPanel {
         /* Set up initial values for extrema. */
         double xlo = Double.MAX_VALUE;
         double xhi = - Double.MAX_VALUE;
+        boolean xLog = state.getValid() && state.getLogFlags()[ 0 ];
         double[][] yRanges = new double[ ngraph ][ 2 ];
+        boolean[] yLogs = state.getYLogFlags();
         for ( int i = 0; i < ngraph; i++ ) {
-            yRanges[ i ] = 
-                new double[] { Double.MAX_VALUE, - Double.MAX_VALUE };
+            yRanges[ i ] = new double[] {
+                Double.MAX_VALUE,
+                ( state.getValid() && yLogs[ i ] ) ? Double.MIN_VALUE
+                                                   : - Double.MAX_VALUE
+            };
         }
 
         /* Go through all the data finding extrema. */
@@ -102,23 +107,31 @@ public class LinesPlot extends javax.swing.JPanel {
                 double x = coords[ 0 ];
                 double y = coords[ 1 ];
                 if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) &&
-                     ! Double.isNaN( y ) && ! Double.isInfinite( y ) ) {
-                    if ( x < xlo ) {
-                        xlo = x;
-                    }
-                    if ( x > xhi ) {
-                        xhi = x;
-                    }
+                     ! Double.isNaN( y ) && ! Double.isInfinite( y ) &&
+                     ( ! xLog || x > 0.0 ) ) {
+                    boolean isUsed = false;
                     for ( int iset = 0; iset < nset; iset++ ) {
                         if ( sets[ iset ].isIncluded( ip ) ) {
                             int igraph = graphIndices[ iset ];
-                            double[] yRange = yRanges[ igraph ];
-                            if ( y < yRange[ 0 ] ) {
-                                yRange[ 0 ] = y;
+                            boolean yLog = yLogs[ igraph ];
+                            if ( ! yLog || y > 0.0 ) {
+                                isUsed = true;
+                                double[] yRange = yRanges[ igraph ];
+                                if ( y < yRange[ 0 ] ) {
+                                    yRange[ 0 ] = y;
+                                }
+                                if ( y > yRange[ 1 ] ) {
+                                    yRange[ 1 ] = y;
+                                }
                             }
-                            if ( y > yRange[ 1 ] ) {
-                                yRange[ 1 ] = y;
-                            }
+                        }
+                    }
+                    if ( isUsed ) {
+                        if ( x < xlo ) {
+                            xlo = x;
+                        }
+                        if ( x > xhi ) {
+                            xhi = x;
                         }
                     }
                 }
@@ -126,19 +139,32 @@ public class LinesPlot extends javax.swing.JPanel {
         }
 
         /* Set defaults in the case of no data. */
-        xRange_ = xlo < xhi ? new double[] { xlo, xhi }
-                            : new double[] { 0.0, 1.0 };
+        double[] xRange = new double[] { xlo, xhi };
+        if ( ! ( xRange[ 0 ] < xRange[ 1 ] ) ) {
+            xRange[ 0 ] = xLog ? 0.1 : 0.0;
+            xRange[ 1 ] = 1.0;
+        }
+        xRange_ = xRange;
         for ( int i = 0; i < yRanges.length; i++ ) {
             double[] yRange = yRanges[ i ];
+            boolean yLog = state.getValid() && yLogs[ i ];
             if ( ! ( yRange[ 0 ] < yRange[ 1 ] ) ) {
-                yRange[ 0 ] = 0.0;
+                yRange[ 0 ] = yLog ? 0.1 : 0.0;
                 yRange[ 1 ] = 1.0;
             }
 
             /* Add padding on Y axis. */
-            double pad = ( yRange[ 1 ] - yRange[ 0 ] ) * padRatio_;
-            yRange[ 0 ] -= pad;
-            yRange[ 1 ] += pad;
+            if ( yLog ) {
+                double pad = Math.exp( Math.log( yRange[ 1 ] / yRange[ 0 ] )
+                                       * padRatio_ );
+                yRange[ 0 ] /= pad;
+                yRange[ 1 ] *= pad;
+            }
+            else {
+                double pad = ( yRange[ 1 ] - yRange[ 0 ] ) * padRatio_;
+                yRange[ 0 ] -= pad;
+                yRange[ 1 ] += pad;
+            }
         }
         yRanges_ = yRanges;
     }
@@ -158,6 +184,11 @@ public class LinesPlot extends javax.swing.JPanel {
             return;
         }
         int npoint = points.getCount();
+
+        boolean xLogFlag = state.getLogFlags()[ 0 ];
+        boolean xFlipFlag = state.getFlipFlags()[ 0 ];
+        boolean[] yLogFlags = state.getYLogFlags();
+        boolean[] yFlipFlags = state.getYFlipFlags();
 
         /* Adjust data ranges as requested. */
         ValueInfo xInfo = state.getAxes()[ 0 ];
@@ -188,7 +219,7 @@ public class LinesPlot extends javax.swing.JPanel {
 
         /* Work out how much space is required for the annotations at the
          * bottom of the plot (single annotated X axis). */
-        int approxWidth = width - border.left - border.right;;
+        int approxWidth = width - border.left - border.right;
         border.bottom +=
             new AxisLabeller( state.getAxisLabels()[ 0 ],
                               xRange[ 0 ], xRange[ 1 ], approxWidth,
@@ -207,11 +238,16 @@ public class LinesPlot extends javax.swing.JPanel {
         for ( int igraph = 0; igraph < ngraph; igraph++ ) {
             double ylo = yRanges[ igraph ][ 0 ];
             double yhi = yRanges[ igraph ][ 1 ];
-            graphs[ igraph ] = new GraphSurface( this );
+            graphs[ igraph ] =
+                new GraphSurface( this,
+                                  xLogFlag, yLogFlags[ igraph ],
+                                  xFlipFlag, yFlipFlags[ igraph ] );
             graphs[ igraph ].setDataRange( xRange[ 0 ], ylo, xRange[ 1 ], yhi );
             yAxes[ igraph ] =
                 new AxisLabeller( state.getYAxisLabels()[ igraph ], ylo, yhi,
-                                  yInc, false, false, fm, AxisLabeller.Y, 6 );
+                                  yInc,
+                                  yLogFlags[ igraph ], yFlipFlags[ igraph ],
+                                  fm, AxisLabeller.Y, 6 );
             int left = yAxes[ igraph ].getAnnotationHeight();
             border.left = Math.max( border.left,
                                     yAxes[ igraph ].getAnnotationHeight() );

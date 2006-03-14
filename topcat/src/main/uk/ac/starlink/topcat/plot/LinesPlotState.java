@@ -15,6 +15,8 @@ public class LinesPlotState extends PlotState {
     private SimpleValueInfo[] yAxes_;
     private String[] yAxisLabels_ = new String[ 0 ];
     private double[][] yRanges_;
+    private boolean[] yLogFlags_ = new boolean[ 0 ];
+    private boolean[] yFlipFlags_ = new boolean [ 0 ];
     private int[] graphIndices_;
 
     /**
@@ -110,6 +112,46 @@ public class LinesPlotState extends PlotState {
     }
 
     /**
+     * Sets flags for which Y axes will be plotted logarithmically 
+     * (one for each graph).
+     *
+     * @param   yLogFlags   Y log flags 
+     */
+    public void setYLogFlags( boolean[] yLogFlags ) {
+        yLogFlags_ = yLogFlags;
+    }
+
+    /**
+     * Returns flags for which Y axes will be plotted logarithmically
+     * (one for each graph).
+     *
+     * @return   Y log flags
+     */
+    public boolean[] getYLogFlags() {
+        return yLogFlags_;
+    }
+
+    /**
+     * Sets flags for which Y axes will be plotted inverted
+     * (one for each graph).
+     *
+     * @param   yFlipFlags  Y flip flags
+     */
+    public void setYFlipFlags( boolean[] yFlipFlags ) {
+        yFlipFlags_ = yFlipFlags;
+    }
+
+    /**
+     * Returns flags for which Y axes will be plotted inverted
+     * (one for each graph).
+     *
+     * @return   Y flip flags
+     */
+    public boolean[] getYFlipFlags() {
+        return yFlipFlags_;
+    }
+
+    /**
      * Sets the mapping of subsets to graph indices.
      * This defines which graph each subset will be displayed in.
      * The <i>i</i>'th element of the array gives the index of the 
@@ -135,7 +177,9 @@ public class LinesPlotState extends PlotState {
             LinesPlotState other = (LinesPlotState) o;
             return Arrays.equals( yAxes_, other.yAxes_ )
                 && equalRanges( yRanges_, other.yRanges_ )
-                && Arrays.equals( graphIndices_, other.graphIndices_ );
+                && Arrays.equals( graphIndices_, other.graphIndices_ )
+                && Arrays.equals( yLogFlags_, other.yLogFlags_ )
+                && Arrays.equals( yFlipFlags_, other.yFlipFlags_ );
         }
         else {
             return false;
@@ -151,7 +195,9 @@ public class LinesPlotState extends PlotState {
             return Arrays.equals( yAxes_, other.yAxes_ )
                 && Arrays.equals( yAxisLabels_, other.yAxisLabels_ )
                 && equalRanges( yRanges_, other.yRanges_ )
-                && Arrays.equals( graphIndices_, other.graphIndices_ );
+                && Arrays.equals( graphIndices_, other.graphIndices_ )
+                && Arrays.equals( yLogFlags_, other.yLogFlags_ )
+                && Arrays.equals( yFlipFlags_, other.yFlipFlags_ );
         }
         else {
             return false;
@@ -168,6 +214,10 @@ public class LinesPlotState extends PlotState {
                          ? "" : " yRanges" );
             sbuf.append( Arrays.equals( graphIndices_, other.graphIndices_ )
                          ? "" : " graphIndices" );
+            sbuf.append( Arrays.equals( yLogFlags_, other.yLogFlags_ )
+                         ? "" : " yLogFlags" );
+            sbuf.append( Arrays.equals( yFlipFlags_, other.yFlipFlags_ )
+                         ? "" : " yFlipFlags" );
         }
         return sbuf.toString();
     }
@@ -190,6 +240,12 @@ public class LinesPlotState extends PlotState {
         }
         for ( int i = 0; i < graphIndices_.length; i++ ) {
             code = 23 * code + graphIndices_[ i ];
+        }
+        for ( int i = 0; i < yLogFlags_.length; i++ ) {
+            code = 23 * code + ( yLogFlags_[ i ] ? 1 : 2 );
+        }
+        for ( int i = 0; i < yFlipFlags_.length; i++ ) {
+            code = 23 * code + ( yFlipFlags_[ i ] ? 1 : 2 );
         }
         return code;
     }
