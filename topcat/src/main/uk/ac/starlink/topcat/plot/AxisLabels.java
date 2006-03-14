@@ -116,7 +116,8 @@ public class AxisLabels {
     public static AxisLabels labelLogAxis( double lo, double hi,
                                            int approxTicks ) {
         if ( hi <= lo || lo <= 0 || hi <= 0 ) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException( "Bad range: "
+                                              + lo + " .. " + hi );
         }
         if ( hi / lo < 4.0 ) {
             return labelLinearAxis( lo, hi, approxTicks );
