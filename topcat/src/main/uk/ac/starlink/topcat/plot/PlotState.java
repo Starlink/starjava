@@ -17,6 +17,7 @@ public class PlotState {
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
+    private boolean antialias_;
     private PointSelection pointSelection_;
     private double[][] ranges_ = new double[ 0 ][];
     private String[] axisLabels_ = new String[ 0 ];
@@ -117,6 +118,24 @@ public class PlotState {
      */
     public boolean getGrid() {
         return grid_;
+    }
+
+    /**
+     * Sets whether antialiasing hint is preferred for drawing lines.
+     *
+     * @param  antialias   true to antialias, false not
+     */
+    public void setAntialias( boolean antialias ) {
+        antialias_ = antialias;
+    }
+
+    /**
+     * Determines whether antialiasing is preferred for drawing lines.
+     *
+     * @return  true to antialias, false not
+     */
+    public boolean getAntialias() {
+        return antialias_;
     }
 
     /**
@@ -221,6 +240,7 @@ public class PlotState {
         PlotState other = (PlotState) otherObject;
         return valid_ == other.valid_
             && grid_ == other.grid_
+            && antialias_ == other.antialias_
             && Arrays.equals( axes_, other.axes_ )
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ )
@@ -234,6 +254,7 @@ public class PlotState {
         StringBuffer sbuf = new StringBuffer( "Mismatches:" );
         sbuf.append( valid_ == o.valid_ ? "" : " valid" );
         sbuf.append( grid_ == o.grid_ ? "" : " grid" );
+        sbuf.append( antialias_ == o.antialias_ ? "" : " antialias" );
         sbuf.append( Arrays.equals( axes_, o.axes_ ) ? "" : " axes" );
         sbuf.append( Arrays.equals( logFlags_, o.logFlags_ ) ? "" : " log" );
         sbuf.append( Arrays.equals( flipFlags_, o.flipFlags_  ) ? "" :" flip ");
@@ -248,6 +269,7 @@ public class PlotState {
         int code = 555;
         code = 23 * code + ( valid_ ? 99 : 999 );
         code = 23 * code + ( grid_ ? 11 : 17 );
+        code = 23 * code + ( antialias_ ? 109 : 901 );
         for ( int i = 0; i < axes_.length; i++ ) {
             code = 23 * code + axes_[ i ].hashCode();
         }
