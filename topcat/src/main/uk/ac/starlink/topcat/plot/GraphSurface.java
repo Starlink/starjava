@@ -111,12 +111,12 @@ public class GraphSurface implements PlotSurface {
             return null;
         }
         else {
-            double rx = px - bounds_.x / bounds_.width;
-            double ry = py - bounds_.y / bounds_.height;
+            double rx = ( px - bounds_.x ) / (double) bounds_.width;
+            double ry = ( py - bounds_.y ) / (double) bounds_.height;
             if ( xFlip_ ) {
                 rx = 1.0 - rx;
             }
-            if ( yFlip_ ) {
+            if ( ! yFlip_ ) {
                 ry = 1.0 - ry;
             }
             return new double[] {
