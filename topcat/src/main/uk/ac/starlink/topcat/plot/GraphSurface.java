@@ -95,12 +95,12 @@ public class GraphSurface implements PlotSurface {
             if ( xFlip_ ) {
                 rx = 1.0 - rx;
             }
-            if ( yFlip_ ) {
+            if ( ! yFlip_ ) {
                 ry = 1.0 - ry;
             }
             return new Point(
                 bounds_.x + (int) ( rx * bounds_.width ),
-                bounds_.y + (int) ( ( 1.0 - ry ) * bounds_.height ) );
+                bounds_.y + (int) ( ry * bounds_.height ) );
         }
     }
 
@@ -123,7 +123,7 @@ public class GraphSurface implements PlotSurface {
                 xLog_ ? xlo_ * Math.exp( rx * Math.log( xhi_ / xlo_ ) )
                       : xlo_ + rx * ( xhi_ - xlo_ ),
                 yLog_ ? ylo_ * Math.exp( ry * Math.log( yhi_ / ylo_ ) )
-                      : ylo_ + ( 1.0 - ry ) * ( yhi_ - ylo_ ), 
+                      : ylo_ + ry * ( yhi_ - ylo_ ), 
             };
         }
     }
