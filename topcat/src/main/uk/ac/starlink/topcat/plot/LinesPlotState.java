@@ -210,6 +210,8 @@ public class LinesPlotState extends PlotState {
             LinesPlotState other = (LinesPlotState) o;
             sbuf.append( Arrays.equals( yAxes_, other.yAxes_ )
                          ? "" : " yAxes" );
+            sbuf.append( Arrays.equals( yAxisLabels_, other.yAxisLabels_ )
+                         ? "" : " yAxisLabels" );
             sbuf.append( equalRanges( yRanges_, other.yRanges_ )
                          ? "" : " yRanges" );
             sbuf.append( Arrays.equals( graphIndices_, other.graphIndices_ )

@@ -245,6 +245,7 @@ public class PlotState {
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ )
             && Arrays.equals( axisLabels_, other.axisLabels_ )
+            && equalRanges( ranges_, other.ranges_ )
             && ( pointSelection_ == null 
                     ? other.pointSelection_ == null
                     : pointSelection_.equals( other.pointSelection_ ) );
@@ -258,6 +259,9 @@ public class PlotState {
         sbuf.append( Arrays.equals( axes_, o.axes_ ) ? "" : " axes" );
         sbuf.append( Arrays.equals( logFlags_, o.logFlags_ ) ? "" : " log" );
         sbuf.append( Arrays.equals( flipFlags_, o.flipFlags_  ) ? "" :" flip ");
+        sbuf.append( Arrays.equals( axisLabels_, o.axisLabels_ )
+                     ? "" : " axisLabels" );
+        sbuf.append( equalRanges( ranges_, o.ranges_ ) ? "" : " ranges" );
         sbuf.append( ( pointSelection_ == null 
                            ? o.pointSelection_ == null
                            : pointSelection_.equals( o.pointSelection_ ) )
@@ -298,14 +302,19 @@ public class PlotState {
     static boolean equalRanges( double[][] r1, double[][] r2 ) {
         if ( r1.length == r2.length ) {
             for ( int i = 0; i < r1.length; i++ ) {
-                double a10 = r1[ i ][ 0 ];
-                double a11 = r1[ i ][ 1 ];
-                double a20 = r2[ i ][ 0 ];
-                double a21 = r2[ i ][ 1 ];
-                if ( ! ( a10 == a20 ||
-                         ( Double.isNaN( a10 ) && Double.isNaN( a20 ) ) ) ||
-                     ! ( a11 == a21 ||
-                         ( Double.isNaN( a11 ) && Double.isNaN( a21 ) ) ) ) {
+                if ( r1[ i ] != null && r2[ i ] != null ) {
+                    double a10 = r1[ i ][ 0 ];
+                    double a11 = r1[ i ][ 1 ];
+                    double a20 = r2[ i ][ 0 ];
+                    double a21 = r2[ i ][ 1 ];
+                    if ( ! ( a10 == a20 || ( Double.isNaN( a10 ) &&
+                                             Double.isNaN( a20 ) ) ) ||
+                         ! ( a11 == a21 || ( Double.isNaN( a11 ) &&
+                                             Double.isNaN( a21 ) ) ) ) {
+                        return false;
+                    }
+                }
+                else if ( r1[ i ] != null ^ r2[ i ] != null ) {
                     return false;
                 }
             }
