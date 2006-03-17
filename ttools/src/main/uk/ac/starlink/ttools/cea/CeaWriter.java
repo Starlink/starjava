@@ -282,7 +282,6 @@ public class CeaWriter extends XmlWriter {
                          "Performs flexible crossmatching on a pair "
                        + "of tables." );
         appList.add( tmatch2 );
-        tmatch2.removeParameter( "omode" );
 
         CeaTask votcopy =
             new CeaTask( (Task) taskFactory.createObject( "votcopy" ),
