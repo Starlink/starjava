@@ -1,0 +1,137 @@
+package uk.ac.starlink.ttools.cea;
+
+import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.InputStreamParameter;
+import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.task.InputTableParameter;
+import uk.ac.starlink.ttools.task.MultiParameter;
+import uk.ac.starlink.ttools.task.OutputTableParameter;
+import uk.ac.starlink.ttools.task.TableConsumerParameter;
+
+/**
+ * Represents a parameter of a CEA task.
+ *
+ * @author   Mark Taylor
+ * @since    17 Mar 2006
+ */
+class CeaParameter {
+
+    private String name_;
+    private String description_;
+    private String type_;
+    private String dflt_;
+    private boolean isOutput_;
+    private boolean isRef_;
+    private boolean isMulti_;
+    private boolean isNullPermitted_;
+    private String[] options_;
+
+    /**
+     * Constructor.
+     *
+     * @param   taskParam   parameter within the ttools/task parameter system
+     */
+    public CeaParameter( Parameter taskParam ) {
+        name_ = taskParam.getName();
+        description_ = taskParam.getDescription();
+        dflt_ = taskParam.getDefault();
+        isNullPermitted_ = taskParam.isNullPermitted();
+        if ( taskParam instanceof OutputTableParameter ) {
+            isOutput_ = true;
+            isRef_ = true;
+        }
+        if ( taskParam instanceof InputTableParameter ||
+             taskParam instanceof InputStreamParameter ) {
+            isRef_ = true;
+        }
+        if ( taskParam instanceof ChoiceParameter ) {
+            options_ = ((ChoiceParameter) taskParam).getOptions();
+        }
+        if ( taskParam instanceof MultiParameter ) {
+            isMulti_ = true;
+        }
+    }
+
+    /**
+     * Returns this parameter's name.
+     *
+     * @return   parameter name
+     */
+    public String getName() {
+        return name_;
+    }
+
+    /**
+     * Returns this parameter's description.
+     *
+     * @return  parameter description
+     */
+    public String getDescription() {
+        return description_;
+    }
+
+    /**
+     * Returns the CEA type (CmdLineParameterDef/type) of this parameter.
+     *
+     * @return  CEA type
+     */
+    public String getType() {
+        return type_;
+    }
+
+    /**
+     * Returns whether this parameter is an output parameter in the CEA sense.
+     *
+     * @return  true iff this parameter is for output
+     */
+    public boolean isOutput() {
+        return isOutput_;
+    }
+
+    /**
+     * Returns whether this parameter is a CEA 'reference' parameter 
+     * (points to a file).
+     *
+     * @return   true iff this is a file reference parameter
+     */
+    public boolean isRef() {
+        return isRef_;
+    }
+
+    /**
+     * Returns whether this parameter can be specified multiple times on
+     * the command line.
+     *
+     * @return  true iff this parameter is multiple
+     */
+    public boolean isMulti() {
+        return isMulti_;
+    }
+
+    /**
+     * Returns whether null is a permitted value for this parameter.
+     *
+     * @param  true iff null is legal
+     */
+    public boolean isNullPermitted() {
+        return isNullPermitted_;
+    }
+
+    /**
+     * Returns the default value of this parameter if there is one.
+     *
+     * @return  default value, or null
+     */
+    public String getDefault() {
+        return dflt_;
+    }
+
+    /**
+     * Returns an array of permitted options if there is one.
+     *
+     * @param   array of sole permitted values, or null
+     */
+    public String[] getOptions() {
+        return options_;
+    }
+}
