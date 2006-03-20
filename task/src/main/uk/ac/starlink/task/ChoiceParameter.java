@@ -57,4 +57,14 @@ public class ChoiceParameter extends Parameter {
         }
         throw new ParameterValueException( this, sbuf.toString() );
     }
+
+    /**
+     * Returns a copy of the array of options which is accepted by this
+     * parameter.
+     *
+     * @return  permitted options
+     */
+    public String[] getOptions() {
+        return (String[]) options_.clone();
+    }
 }
