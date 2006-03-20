@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.cea;
 
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.InputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
@@ -36,12 +38,14 @@ class CeaParameter {
         description_ = taskParam.getDescription();
         dflt_ = taskParam.getDefault();
         isNullPermitted_ = taskParam.isNullPermitted();
+        type_ = "text";
         if ( taskParam instanceof OutputTableParameter ) {
-            isOutput_ = true;
-            isRef_ = true;
+            setOutput( true );
         }
         if ( taskParam instanceof InputTableParameter ||
              taskParam instanceof InputStreamParameter ) {
+            dflt_ = null;
+            isNullPermitted_ = false;
             isRef_ = true;
         }
         if ( taskParam instanceof ChoiceParameter ) {
@@ -49,6 +53,12 @@ class CeaParameter {
         }
         if ( taskParam instanceof MultiParameter ) {
             isMulti_ = true;
+        }
+        if ( taskParam instanceof BooleanParameter ) {
+            type_ = "boolean";
+        }
+        if ( taskParam instanceof DoubleParameter ) {
+            type_ = "double";
         }
     }
 
@@ -86,6 +96,15 @@ class CeaParameter {
      */
     public boolean isOutput() {
         return isOutput_;
+    }
+
+    public void setOutput( boolean isOutput ) {
+        isOutput_ = isOutput;
+        if ( isOutput ) {
+            isRef_ = true;
+            dflt_ = null;
+            isNullPermitted_ = false;
+        }
     }
 
     /**
