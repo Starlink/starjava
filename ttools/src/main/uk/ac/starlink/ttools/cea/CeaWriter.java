@@ -288,6 +288,7 @@ public class CeaWriter extends XmlWriter {
                          "votcopy",
                          "Transforms VOTables between different encodings" );
         appList.add( votcopy );
+        votcopy.getParameter( "out" ).setOutput( true );
 
         return (CeaTask[]) appList.toArray( new CeaTask[ 0 ] );
     }
@@ -302,13 +303,13 @@ public class CeaWriter extends XmlWriter {
         String usage = "\n   Usage: " + CeaWriter.class.getName()
                      + " [-help]"
                      + " -path stilts-path"
-                     + " -name cea-app-name"
+                     + " -auth cea-auth"
                      + "\n";
 
         /* Process arguments. */
         List argList = new ArrayList( Arrays.asList( args ) );
         String appPath = null;
-        String appName = "stilts";
+        String ceaAuth = "astrogrid.cam";
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-path" ) && it.hasNext() ) {
@@ -316,9 +317,9 @@ public class CeaWriter extends XmlWriter {
                 appPath = (String) it.next();
                 it.remove();
             }
-            if ( arg.equals( "-appname" ) && it.hasNext() ) {
+            if ( arg.equals( "-auth" ) && it.hasNext() ) {
                 it.remove();
-                appName = (String) it.next();
+                ceaAuth = (String) it.next();
                 it.remove();
             }
             else if ( arg.startsWith( "-h" ) ) {
@@ -329,12 +330,13 @@ public class CeaWriter extends XmlWriter {
         }
 
         /* Validate arguments. */
-        if ( ! argList.isEmpty() || appPath == null || appName == null ) {
+        if ( ! argList.isEmpty() || appPath == null || ceaAuth == null ) {
             System.err.println( usage );
             System.exit( 1 );
         }
 
         /* Do work. */
-        new CeaWriter( System.out, getTasks(), appPath, appName ).writeConfig();
+        new CeaWriter( System.out, getTasks(), appPath, ceaAuth + "/stilts" )
+           .writeConfig();
     }
 }
