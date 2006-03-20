@@ -75,6 +75,21 @@ class CeaTask {
     }
 
     /**
+     * Returns a named parameter of this task.
+     *
+     * @param   name of the parameter
+     */
+    public CeaParameter getParameter( String name ) {
+        for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
+            CeaParameter param = (CeaParameter) it.next();
+            if ( name.equals( param.getName() ) ) {
+                return param;
+            }
+        }
+        throw new IllegalArgumentException( "No such parameter: " + name );
+    }
+
+    /**
      * Returns a list of the parameters associated with this task for
      * the purposes of CEA use.
      *
