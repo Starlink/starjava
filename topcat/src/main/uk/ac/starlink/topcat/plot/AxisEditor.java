@@ -27,6 +27,7 @@ import uk.ac.starlink.topcat.AuxWindow;
 public class AxisEditor extends JPanel {
 
     private final JTextField labelField_;
+    private final JComponent mainBox_;
     protected final JTextField loField_;
     protected final JTextField hiField_;
     private final ActionForwarder actionForwarder_;
@@ -66,12 +67,12 @@ public class AxisEditor extends JPanel {
         rangeBox.add( hiField_ );
 
         /* Place the components in the center of this dialogue. */
-        JComponent main = Box.createVerticalBox();
-        main.add( labelBox );
-        main.add( Box.createVerticalStrut( 5 ) );
-        main.add( rangeBox );
-        main.setBorder( AuxWindow.makeTitledBorder( axname + " Axis" ) );
-        add( main );
+        mainBox_ = Box.createVerticalBox();
+        mainBox_.add( labelBox );
+        mainBox_.add( Box.createVerticalStrut( 5 ) );
+        mainBox_.add( rangeBox );
+        setTitle( axname + " Axis" );
+        add( mainBox_ );
 
         /* Align labels. */
         int wmax = 0;
@@ -204,6 +205,16 @@ public class AxisEditor extends JPanel {
      */
     public void removeActionListener( ActionListener listener ) {
         actionForwarder_.removeListener( listener );
+    }
+
+    /**
+     * Sets the title of this editor.  It is used to label the component's
+     * border.
+     *
+     * @param   title  title text
+     */
+    public void setTitle( String title ) {
+        mainBox_.setBorder( AuxWindow.makeTitledBorder( title ) );
     }
 
     /**
