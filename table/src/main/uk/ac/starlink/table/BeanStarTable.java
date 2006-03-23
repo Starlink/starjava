@@ -9,8 +9,10 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * StarTable which displays beans.
@@ -26,8 +28,10 @@ import java.util.List;
  */
 public class BeanStarTable extends RandomStarTable {
 
-    private final PropertyDescriptor[] properties_;
     private final Class beanClass_;
+    private final Map colInfos_;
+    private final Map props_;
+    private PropertyDescriptor[] colProps_;
     private Object[] data_;
 
     private static final ValueInfo PROGNAME_INFO = 
@@ -41,24 +45,34 @@ public class BeanStarTable extends RandomStarTable {
      * @param   clazz  class of which all beans held by this table are members
      */
     public BeanStarTable( Class clazz ) throws IntrospectionException {
-        beanClass_ = clazz;
         if ( clazz.isPrimitive() ) {
             throw new IllegalArgumentException( "Can't do primitive class" );
         }
-        BeanInfo info = Introspector.getBeanInfo( clazz );
-        List propList =
-            new ArrayList( Arrays.asList( info.getPropertyDescriptors() ) );
-        for ( Iterator it = propList.iterator(); it.hasNext(); ) {
-            PropertyDescriptor prop = (PropertyDescriptor) it.next();
-            if ( ! useProperty( prop ) ) {
-                it.remove();
+        beanClass_ = clazz;
+        PropertyDescriptor[] props =
+            Introspector.getBeanInfo( clazz ).getPropertyDescriptors();
+        List colPropList = new ArrayList();
+        colInfos_ = new HashMap();
+        props_ = new HashMap();
+        for ( int i = 0; i < props.length; i++ ) {
+            PropertyDescriptor prop = props[ i ];
+            String progName = prop.getName();
+            props_.put( progName, prop );
+            ColumnInfo colInfo =
+                new ColumnInfo( prop.getDisplayName(),
+                                getObjectType( prop.getPropertyType() ),
+                                prop.getShortDescription() );
+            colInfo.setAuxDatum( new DescribedValue( PROGNAME_INFO,
+                                                     progName ) );
+            colInfos_.put( progName, colInfo );
+            if ( useProperty( prop ) ) {
+                colPropList.add( prop );
             }
         }
-        properties_ = (PropertyDescriptor[])
-                      propList.toArray( new PropertyDescriptor[ 0 ] );
+        colProps_ = (PropertyDescriptor[])
+                    colPropList.toArray( new PropertyDescriptor[ 0 ] );
         data_ = (Object[]) Array.newInstance( clazz, 0 );
     }
-
 
     /**
      * Populates this model with items.
@@ -93,25 +107,74 @@ public class BeanStarTable extends RandomStarTable {
     }
 
     public int getColumnCount() {
-        return properties_.length;
+        return colProps_.length;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        PropertyDescriptor prop = properties_[ icol ];
-        String name = prop.getDisplayName();
-        String description = prop.getShortDescription();
-        String progName = prop.getName();
-        Class clazz = getObjectType( prop.getPropertyType() );
-        ColumnInfo cinfo = 
-            new ColumnInfo( new DefaultValueInfo( name, clazz, description ) );
-        if ( progName != null && progName.trim().length() > 0 ) {
-            cinfo.setAuxDatum( new DescribedValue( PROGNAME_INFO, progName ) );
+        return (ColumnInfo) colInfos_.get( colProps_[ icol ].getName() );
+    }
+
+    /**
+     * Resets the metadata for a column representing a property with a
+     * given name.
+     *
+     * @param   name  property's programmatic name
+     * @param   info  new column metadata
+     */
+    public void setColumnInfo( String name, ValueInfo info ) {
+        if ( colInfos_.containsKey( name ) ) {
+            ColumnInfo cinfo = info instanceof ColumnInfo
+                             ? (ColumnInfo) info
+                             : new ColumnInfo( info );
+            colInfos_.put( name, cinfo );
         }
-        return cinfo;
+        else {
+            throw new IllegalArgumentException( "No such property " + name );
+        }
+    }
+
+    /**
+     * Returns an array of the property names which correspond to the
+     * columns of this table.
+     *
+     * @return   array of strings giving programmatic names of bean properties,
+     *           one for each table column
+     */
+    public String[] getColumnProperties() {
+        String[] propNames = new String[ colProps_.length ];
+        for ( int i = 0; i < colProps_.length; i++ ) {
+            propNames[ i ] = colProps_[ i ].getName();
+        }
+        return propNames;
+    }
+
+    /**
+     * Fixes the columns which are to be used for this table.
+     * <code>propNames</code> is an array of the programmatic names of
+     * each of the properties of this bean which is used to get a column
+     * value.
+     *
+     * @param   array of programmatic names of properties to be used as
+     *          columns
+     */
+    public void setColumnProperties( String[] propNames ) {
+        PropertyDescriptor[] props = new PropertyDescriptor[ propNames.length ];
+        for ( int i = 0; i < propNames.length; i++ ) {
+            String name = propNames[ i ];
+            if ( props_.containsKey( name ) ) {
+                props[ i ] = (PropertyDescriptor) props_.get( name );
+            }
+            else {
+                throw new IllegalArgumentException( "No such property "
+                                                  + name );
+            }
+        }
+        colProps_ = props;
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
-        return getProperty( data_[ checkedLongToInt( irow ) ], icol );
+        return getProperty( data_[ checkedLongToInt( irow ) ],
+                            colProps_[ icol ] );
     }
 
     /**
@@ -119,12 +182,13 @@ public class BeanStarTable extends RandomStarTable {
      * Any checked exceptions are rethrown as IOExceptions for convenience.
      *
      * @param  bean  the bean to interrogate
-     * @param  iprop  index of the property required
-     * @return   value of the chosen property of <tt>bean</tt>
+     * @param  prop  property whose value is required
+     * @return   value of the <tt>prop</tt> in <tt>bean</tt>
      */
-    public Object getProperty( Object bean, int iprop ) throws IOException {
+    private Object getProperty( Object bean, PropertyDescriptor prop )
+            throws IOException {
         try {
-            return properties_[ iprop ].getReadMethod().invoke( bean, NO_ARGS );
+            return prop.getReadMethod().invoke( bean, NO_ARGS );
         }
         catch ( IllegalAccessException e ) {
             throw (AssertionError)
