@@ -34,6 +34,10 @@ public class PlasticUtils {
     /** Location in the user's home directory of the PLASTIC rendezvous file. */
     public static final String PLASTIC_FILE = ".plastic";
 
+    /** Prefix for XML-RPC "perform" method. */
+    // public static final String XMLRPC_PREFIX = null;
+    public static final String XMLRPC_PREFIX = "plastic.client";
+
     /**
      * Private sole constructor blocks instantiation.
      */
@@ -241,7 +245,8 @@ public class PlasticUtils {
                 return app.perform( sender, message, args );
             } 
         };
-        server.addHandler( "plastic.client", handler );
+        server.addHandler( XMLRPC_PREFIX == null ? "$default" : XMLRPC_PREFIX,
+                           handler );
 
         Vector argv = new Vector();
         argv.add( app.getName() );

@@ -42,7 +42,10 @@ class XmlRpcAgent extends Agent {
         argv.add( message.toString() );
         argv.add( doctorArgs( args ) );
         try {
-            Object result = client_.execute( "plastic.client.perform", argv );
+            String method = PlasticUtils.XMLRPC_PREFIX == null 
+                          ? "perform"
+                          : ( PlasticUtils.XMLRPC_PREFIX + ".perform" );
+            Object result = client_.execute( method, argv );
             if ( result instanceof IOException ) {
                 throw (IOException) result;
             }
