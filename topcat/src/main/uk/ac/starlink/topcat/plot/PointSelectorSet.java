@@ -52,6 +52,8 @@ public abstract class PointSelectorSet extends JPanel {
     private int selectorsCreated_;
     private StyleWindow styleWindow_;
 
+    public static final String MAIN_TAB_NAME = "Main";
+
     /**
      * Constructs a new set.
      */
@@ -294,7 +296,7 @@ public abstract class PointSelectorSet extends JPanel {
 
         /* Add the selector to the tabbed frame. */
         String label = getNextTabName();
-        if ( ! label.equals( "Main" ) ) {
+        if ( ! label.equals( MAIN_TAB_NAME ) ) {
             psel.setLabel( label );
         }
         tabber_.add( label, psel );
@@ -343,7 +345,7 @@ public abstract class PointSelectorSet extends JPanel {
      */
     private String getNextTabName() {
         return selectorsCreated_++ == 0
-             ? "Main"
+             ? MAIN_TAB_NAME
              : new String( new char[] { (char)
                                         ( 'A' + selectorsCreated_ - 2 ) } );
     }
