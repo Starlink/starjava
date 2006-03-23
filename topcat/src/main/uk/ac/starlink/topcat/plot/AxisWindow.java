@@ -26,12 +26,13 @@ import uk.ac.starlink.topcat.HelpAction;
  */
 public class AxisWindow extends JDialog {
 
-    private final AxisEditor[] editors_;
     private final Action applyAction_;
     private final Action cancelAction_;
     private final Action okAction_;
     private final ActionForwarder forwarder_;
     private final Frame parent_;
+    private final JComponent edBox_;
+    private AxisEditor[] editors_;
     private boolean seen_;
 
     /**
@@ -45,14 +46,13 @@ public class AxisWindow extends JDialog {
         parent_ = parent;
         setTitle( "Axis Configuration" );
         editors_ = editors;
-        int naxis = editors.length;
         forwarder_ = new ActionForwarder();
 
         /* Configure and place main container. */
-        JComponent main = Box.createVerticalBox();
-        main.setBorder( BorderFactory.createEmptyBorder( 10, 10, 10, 10 ) );
+        edBox_ = Box.createVerticalBox();
+        edBox_.setBorder( BorderFactory.createEmptyBorder( 10, 10, 10, 10 ) );
         getContentPane().setLayout( new BorderLayout() );
-        getContentPane().add( main, BorderLayout.CENTER );
+        getContentPane().add( edBox_, BorderLayout.CENTER );
 
         /* Configure and place action buttons. */
         applyAction_ = new AxisAction( "Apply" );
@@ -79,8 +79,8 @@ public class AxisWindow extends JDialog {
         getContentPane().add( toolBar, BorderLayout.NORTH );
 
         /* Place editors. */
-        for ( int i = 0; i < naxis; i++ ) {
-            main.add( editors[ i ] );
+        for ( int i = 0; i < editors.length; i++ ) {
+            edBox_.add( editors[ i ] );
         }
         pack();
     }
@@ -92,6 +92,20 @@ public class AxisWindow extends JDialog {
      */
     public AxisEditor[] getEditors() {
         return editors_;
+    }
+
+    /**
+     * Resets the list of axis editor components contained by this window.
+     *
+     * @param   editors   new editor list
+     */
+    public void setEditors( AxisEditor[] editors ) {
+        edBox_.removeAll();
+        editors_ = editors;
+        for ( int i = 0; i < editors.length; i++ ) {
+            edBox_.add( editors[ i ] );
+        }
+        pack();
     }
 
     /**
