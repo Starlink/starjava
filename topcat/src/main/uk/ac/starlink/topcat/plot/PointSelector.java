@@ -268,6 +268,15 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     public void setLabel( String label ) {
         selectorLabel_ = label;
     }
+
+    /**
+     * Returns the label for this selector.
+     *
+     * @return  selector label
+     */
+    public String getLabel() {
+        return selectorLabel_;
+    }
    
     /**
      * Returns the currently selected table.
