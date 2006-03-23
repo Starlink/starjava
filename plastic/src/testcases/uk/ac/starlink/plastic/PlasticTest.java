@@ -56,6 +56,9 @@ public class PlasticTest extends TestCase {
         Counter c2 = new Counter();
         Counter c3 = new Counter();
         URI id1 = PlasticUtils.registerRMI( c1 );
+        assertEquals( intMap( new URI[] { id1 }, new int[] { 0 } ),
+                      hub.request( id, CALC, calcArgs( PLUS, 0 ) ) );
+
         URI id2 = PlasticUtils.registerXMLRPC( c2 );
         assertEquals( intMap( new URI[] { id1, id2 }, new int[] { 10, 10 } ),
                       hub.request( id, CALC, calcArgs( PLUS, 10 ) ) );
@@ -112,9 +115,11 @@ public class PlasticTest extends TestCase {
 
         assertEquals(
             objMap( new URI[] { id1 }, new String[] { "counter" } ),
-            hub.request( id, PlasticUtils
-                            .createURI( "ivo://votech.org/info/getName" ),
-                         new ArrayList() )
+            hub.requestToSubset( id,
+                                 PlasticUtils
+                                .createURI( "ivo://votech.org/info/getName" ),
+                                 new ArrayList(),
+                                 Arrays.asList( new URI[] { id1 } ) )
         );
     }
 
