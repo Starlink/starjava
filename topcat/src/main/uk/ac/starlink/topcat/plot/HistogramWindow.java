@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -41,8 +42,14 @@ public class HistogramWindow extends GraphicsWindow {
     private final ToggleButtonModel cumulativeModel_;
     private final JCheckBox offsetSelector_;
     private final RoundingSpinner binSizer_;
+    private final RoundingSpinner.RoundingSpinnerModel linearBinModel_;
+    private final RoundingSpinner.RoundingSpinnerModel logBinModel_;
 
-    private double binWidth_;
+    private int autoYMax_;
+    private int autoYMaxCumulative_;
+    private double autoLinearBinWidth_;
+    private double autoLogBinWidth_;
+
     private static final int DEFAULT_BINS = 20;
 
     /** Description of vertical plot axis. */
@@ -61,23 +68,28 @@ public class HistogramWindow extends GraphicsWindow {
         /* Create the histogram plot itself.  Being a histogram, there's
          * no point zooming in such a way that the Y axis goes below zero,
          * so block that. */
-        plot_ = new Histogram( new PtPlotSurface( this ) {
+        PlotSurface surf = new PtPlotSurface() {
             void _setYRange( double min, double max ) {
                 super._setYRange( Math.max( getMinYValue(), min ), max );
             }
-        } );
-
-        /* Hack - this repaint shouldn't be required, but for some
-         * reason a mouse click which doesn't cause any point to
-         * be selected or deselected causes the screen to go blank;
-         * I don't know where the event responsible is coming from,
-         * though it's connected with zooming. Anyway, a repaint
-         * here fixes it. */
-        plot_.getSurface().getComponent().addMouseListener( new MouseAdapter() {
-            public void mouseClicked( MouseEvent evt ) {
-                plot_.repaint();
+        };
+        plot_ = new Histogram( surf ) {
+            protected void requestZoom( double[][] bounds ) {
+                double[] xbounds = bounds[ 0 ];
+                if ( xbounds != null ) {
+                    getAxisWindow().getEditors()[ 0 ].clearBounds();
+                    getViewRanges()[ 0 ].setBounds( xbounds );
+                }
+                double[] ybounds = bounds[ 1 ];
+                if ( ybounds != null && ybounds[ 1 ] > 0.0 ) {
+                    getAxisWindow().getEditors()[ 1 ].clearBounds();
+                    getViewRanges()[ 1 ]
+                       .setBounds( Math.max( 0.0, ybounds[ 0 ] ),
+                                   ybounds[ 1 ] );
+                }
+                replot();
             }
-        } );
+        };
 
         /* Place the histogram plot. */
         getMainArea().add( plot_, BorderLayout.CENTER );
@@ -103,18 +115,21 @@ public class HistogramWindow extends GraphicsWindow {
         yLogModel_.addActionListener( getReplotListener() );
 
         /* Model for selecting a cumulative rather than conventional plot. */
-        cumulativeModel_ = new ToggleButtonModel( "Cumulative Plot",
-                                                  ResourceIcon.CUMULATIVE,
-                                                  "Plot cumulative bars " +
-                                                  "rather than counts" );
+        cumulativeModel_ =
+            new ToggleButtonModel( "Cumulative Plot", ResourceIcon.CUMULATIVE,
+                                   "Plot cumulative bars rather than counts" );
         cumulativeModel_.addActionListener( getReplotListener() );
 
         /* Bin size and offset selector box. */
         binSizer_ = new RoundingSpinner();
+        linearBinModel_ = new RoundingSpinner.RoundingSpinnerModel( binSizer_ );
+        logBinModel_ = new RoundingSpinner.RoundingSpinnerModel( binSizer_ );
+        binSizer_.setModel( linearBinModel_ );
         getLogModels()[ 0 ].addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 boolean isLog = getLogModels()[ 0 ].isSelected();
                 binSizer_.setLogarithmic( isLog );
+                binSizer_.setModel( isLog ? logBinModel_ : linearBinModel_ );
                 offsetSelector_.setEnabled( ! isLog );
             }
         } );
@@ -237,7 +252,7 @@ public class HistogramWindow extends GraphicsWindow {
         return new DefaultPointSelector( new String[] { "X" }, toggleSets ) {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor countEd = new AxisEditor( "Count" );
-                countEd.setAxis( COUNT_INFO, Double.NaN, Double.NaN );
+                countEd.setAxis( COUNT_INFO );
                 return new AxisEditor[] {
                     super.createAxisEditors()[ 0 ],
                     countEd,
@@ -247,42 +262,11 @@ public class HistogramWindow extends GraphicsWindow {
     }
 
     protected void doReplot( PlotState pstate, Points points ) {
+
+        /* Send the plot component the most up to date plotting state. */
         HistogramPlotState state = (HistogramPlotState) pstate;
-        HistogramPlotState lastState = (HistogramPlotState) plot_.getState();
         plot_.setPoints( points );
         plot_.setState( state );
-        if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
-
-            /* Calculate bin width here if it needs to be done.  We can't
-             * do it when the plot state is initialised, since at that
-             * point we don't have the Points data, and that is needed
-             * to work out the range of the data and hence how wide the 
-             * bins are going to be. */
-            if ( state.getValid() ) {
-                double bw = autoBinWidth( state, points );
-                state.setBinWidth( bw );
-                setBinWidth( bw );
-            }
-
-            /* Rescale if axes have changed. */
-            plot_.rescale();
-        }
-
-        /* If the bin width has changed, modify the Y axis by a multiplier.
-         * This isn't essential, but it means that the Y axis range covers
-         * approximately the same data points rather than creeping up/down
-         * with a change in the bin width. */
-        else if ( ! state.getCumulative() &&
-                  ( state.getBinWidth() != lastState.getBinWidth() ) ) { 
-
-            /* Only attempt it if the Y axis range has not been fixed by the
-             * user though. */
-            double[] yRange = state.getRanges()[ 1 ];
-            if ( Double.isNaN( yRange[ 0 ] ) && Double.isNaN( yRange[ 1 ] ) ) {
-                plot_.scaleYFactor( state.getBinWidth()
-                                  / lastState.getBinWidth() );
-            }
-        }
 
         /* Schedule a repaint. */
         plot_.repaint();
@@ -315,23 +299,26 @@ public class HistogramWindow extends GraphicsWindow {
 
     protected PlotState createPlotState() {
         HistogramPlotState state = new HistogramPlotState();
-        double bw = getBinWidth();
-        if ( bw > 0 ) {
-            state.setBinWidth( bw );
-        }
-        state.setZeroMid( offsetSelector_.isSelected() );
         return state;
     }
 
     public PlotState getPlotState() {
         HistogramPlotState state = (HistogramPlotState) super.getPlotState();
         boolean valid = state != null && state.getValid();
-
-        /* The state obtained from the superclass implementation has
-         * purely 1-d attributes, since the histogram data model 1-d plot.
-         * However the plot itself is on a 2-d plotting surface, 
-         * so modify some of the state to contain axis information here. */
         if ( valid ) {
+
+            /* Fill in histogram-specific items. */
+            double bw = binSizer_.getNumericValue();
+            if ( bw > 0 ) {
+                state.setBinWidth( bw );
+            }
+            state.setZeroMid( offsetSelector_.isSelected() );
+            state.setCumulative( cumulativeModel_.isSelected() );
+
+            /* The state obtained from the superclass implementation has
+             * purely 1-d attributes, since the histogram data model 1-d plot.
+             * However the plot itself is on a 2-d plotting surface, 
+             * so modify some of the state to contain axis information here. */
             state.setAxes( new ValueInfo[] {
                 state.getAxes()[ 0 ],
                 COUNT_INFO
@@ -344,8 +331,22 @@ public class HistogramWindow extends GraphicsWindow {
                 state.getFlipFlags()[ 0 ],
                 false
             } );
-            Class clazz = state.getAxes()[ 0 ].getContentClass();
-            state.setCumulative( cumulativeModel_.isSelected() );
+
+            /* Calculate the Y data range based on the autosized range
+             * calculated last time calculateMaxCount was called and on
+             * the current state (bin width and cumuluative flag). */
+            double yMax = cumulativeModel_.isSelected()
+                ? autoYMaxCumulative_
+                : ( state.getLogFlags()[ 0 ]
+                        ? autoYMax_ * Math.log( bw )
+                                    / Math.log( autoLogBinWidth_ )
+                        : autoYMax_ * bw / autoLinearBinWidth_ );
+            Range yRange = new Range( 0.0, yMax );
+            yRange.limit( getViewRanges()[ 1 ] );
+            state.setRanges( new double[][] {
+                state.getRanges()[ 0 ],
+                yRange.getFiniteBounds( yLogModel_.isSelected() )
+            } );
         }
 
         /* Configure some actions to be enabled/disabled according to 
@@ -358,22 +359,109 @@ public class HistogramWindow extends GraphicsWindow {
         return state;
     }
 
-    /**
-     * Sets the bin width explicitly.
-     *
-     * @param  bw  new bin width value
-     */
-    private void setBinWidth( double bw ) {
-        binSizer_.setNumericValue( bw );
+    public Range[] calculateRanges( PointSelection pointSelection,
+                                    Points points ) {
+        Range xRange = super.calculateRanges( pointSelection, points )[ 0 ];
+        boolean xlog = getLogModels()[ 0 ].isSelected();
+        double[] xBounds = xRange.getFiniteBounds( xlog );
+        calculateMaxCount( pointSelection, points, xBounds, true );
+        return new Range[] { xRange };
     }
 
     /**
-     * Returns the currently set bin width.
+     * Calculates the data range on the Y axis.  Being a histogram, this
+     * isn't determined by the data alone it's also a function of certain
+     * plot state values such as bin size.
+     * This method stores its results in instance variables for later use.
      *
-     * @return  bin width
+     * @param  pointSelection  point selection
+     * @param  points  points data
+     * @param  xBounds   bounds on the X axis for assessment
+     * @param  autoWidth  true iff you want the bin width to be (re)calculated
+     *         automatically by this routine
      */
-    private double getBinWidth() {
-        return binSizer_.getNumericValue();
+    private void calculateMaxCount( PointSelection pointSelection,
+                                    Points points, double[] xBounds,
+                                    boolean autoWidth ) {
+
+        /* Get and possibly store the bin size. */
+        if ( autoWidth ||
+             ! ( linearBinModel_.getValue() instanceof Number ) ||
+             ! ( logBinModel_.getValue() instanceof Number ) ) {
+            double[] multBounds = new Range( xBounds ).getFiniteBounds( true );
+            double factor =
+                Math.exp( Math.log( multBounds[ 1 ] / multBounds[ 0 ] )
+                          / DEFAULT_BINS );
+            double bwLog = Rounder.LOG.round( factor );
+            logBinModel_.setValue( new Double( bwLog ) );
+
+            double gap = ( xBounds[ 1 ] - xBounds[ 0 ] ) / DEFAULT_BINS;
+            assert gap > 0.0;
+            Class clazz = getPointSelectors().getMainSelector().getData()
+                         .getColumnInfo( 0 ).getContentClass();
+            double bwLinear = Rounder.LINEAR.round( gap );
+            if ( clazz == Byte.class ||
+                 clazz == Short.class ||
+                 clazz == Integer.class ||
+                 clazz == Long.class ) {
+                gap = Math.ceil( gap );
+            }
+            linearBinModel_.setValue( new Double( bwLinear ) );
+        }
+        double bwLog = ((Number) logBinModel_.getValue()).doubleValue();
+        double bwLinear = ((Number) linearBinModel_.getValue()).doubleValue();
+
+        /* Acquire an empty binned data object. */
+        RowSubset[] rsets = pointSelection.getSubsets();
+        int nset = rsets.length;
+        boolean zeromid = offsetSelector_.isSelected();
+        MapBinnedData binned = getLogModels()[ 0 ].isSelected()
+            ? MapBinnedData.createLogBinnedData( nset, bwLog )
+            : MapBinnedData.createLinearBinnedData( nset, bwLinear, zeromid );
+        MapBinnedData.BinMapper mapper = binned.getMapper();
+        double xlo = mapper.getBounds( mapper.getKey( xBounds[ 0 ] ) )[ 0 ];
+        double xhi = mapper.getBounds( mapper.getKey( xBounds[ 1 ] ) )[ 1 ];
+
+        /* Populate it. */
+        int np = points.getCount();
+        double[] coords = new double[ 1 ];
+        boolean[] setFlags = new boolean[ nset ];
+        for ( int ip = 0; ip < np; ip++ ) {
+            long lp = (long) ip;
+            points.getCoords( ip, coords );
+            double x = coords[ 0 ];
+            if ( x >= xlo && x <= xhi ) {
+                for ( int is = 0; is < nset; is++ ) {
+                    setFlags[ is ] = rsets[ is ].isIncluded( lp );
+                }
+                binned.submitDatum( x, setFlags );
+            }
+        }
+
+        /* Find the highest bin count. */
+        int[] ymaxes = new int[ nset ];
+        int[] ytots = new int[ nset ];
+        for ( Iterator binIt = binned.getBinIterator( false );
+              binIt.hasNext(); ) {
+            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+            for ( int is = 0; is < nset; is++ ) {
+                int n = bin.getCount( is );
+                ytots[ is ] += n;
+                ymaxes[ is ] = Math.max( ymaxes[ is ], n );
+            }
+        }
+        int yMax = 0;
+        int yMaxTot = 0;
+        for ( int is = 0; is < nset; is++ ) {
+            yMax = Math.max( yMax, ymaxes[ is ] );
+            yMaxTot = Math.max( yMaxTot, ytots[ is ] );
+        }
+
+        /* Store results for later calculations. */
+        autoYMax_ = yMax;
+        autoLinearBinWidth_ = bwLinear;
+        autoLogBinWidth_ = bwLog;
+        autoYMaxCumulative_ = yMaxTot;
     }
 
     /**
@@ -391,89 +479,7 @@ public class HistogramWindow extends GraphicsWindow {
     }
 
     /**
-     * Calculates a sensible bin width for a given plot state and point set.
-     * The returned value is additive for linear X axis and multiplicative
-     * for logarithmic.
-     *
-     * @param  state   plot state
-     * @param  points  point set
-     * @return   reasonable bin width
-     */
-    private static double autoBinWidth( PlotState state, Points points ) {
-        double[] range = getXRange( state, points );
-        if ( state.getLogFlags()[ 0 ] ) {
-            double factor = Math.exp( Math.log( range[ 1 ] / range[ 0 ] ) 
-                                      / DEFAULT_BINS );
-            return Rounder.LOG.round( factor );
-        }
-        else {
-            double gap = ( range[ 1 ] - range[ 0 ] ) / DEFAULT_BINS;
-            assert gap >= 0.0;
-            if ( gap == 0.0 ) {
-                return 1.0;
-            }
-            if ( gap < 1.0 ) {
-                Class clazz = state.getAxes()[ 0 ].getContentClass();
-                if ( clazz == Byte.class ||
-                     clazz == Short.class ||
-                     clazz == Integer.class ||
-                     clazz == Long.class ) {
-                    return 1.0;
-                }
-            }
-            return Rounder.LINEAR.round( gap );
-        }
-    }
-
-    /**
-     * Calculates the full range of the data along the X axis.
-     *
-     * @param   state  plot state
-     * @param   points   data points
-     * @return  (lo,hi) bounds of data
-     */
-    public static double[] getXRange( PlotState state, Points points ) {
-        boolean xlog = state.getLogFlags()[ 0 ];
-        double xlo = Double.POSITIVE_INFINITY;
-        double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-
-        int nok = 0;
-        int np = points.getCount();
-        RowSubset[] rsets = state.getPointSelection().getSubsets();
-        int nset = rsets.length;
-        double[] coords = new double[ 1 ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            boolean use = false;
-            for ( int is = 0; is < nset; is++ ) {
-                if ( rsets[ is ].isIncluded( lp ) ) {
-                    use = true;
-                    break;
-                }
-            }
-            if ( use ) {
-                points.getCoords( ip, coords );
-                double xp = coords[ 0 ];
-                if ( ! Double.isNaN( xp ) && ! Double.isInfinite( xp ) &&
-                     ( ! xlog || xp > 0.0 ) ) {
-                    nok++;
-                    if ( xp < xlo ) {
-                        xlo = xp;
-                    }
-                    if ( xp > xhi ) {
-                        xhi = xp;
-                    }
-                } 
-            }
-        }
-        return nok > 0 ? new double[] { xlo, xhi }
-                       : ( xlog ? new double[] { 0., 1. }
-                                : new double[] { 1., 2. } );
-    }
-
-    /**
-     * Actions for rescaling the plot in X and/or Y directions to fit the
-     * data.
+     * Action class for rescaling one or both axes.
      */
     private class RescaleAction extends BasicAction {
         final boolean scaleX_;
@@ -484,11 +490,11 @@ public class HistogramWindow extends GraphicsWindow {
          *
          * @param  name  action name
          * @param  icon  action icon
-         * @param  shortdesc  short description (tooltips)
-         * @param  scaleX   whether to rescale in X direction
-         * @param  scaleY   whether to rescale in Y direction
+         * @param  shortdesc  action short description (tooltips)
+         * @param  scaleX  true for rescaling on X axis
+         * @param  scaleY  true for rescaling on Y axis
          */
-        RescaleAction( String name, Icon icon, String shortdesc,
+        RescaleAction( String name, Icon icon, String shortdesc, 
                        boolean scaleX, boolean scaleY ) {
             super( name, icon, shortdesc );
             scaleX_ = scaleX;
@@ -496,16 +502,35 @@ public class HistogramWindow extends GraphicsWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            AxisEditor[] axeds = getAxisWindow().getEditors();
-            if ( scaleX_ ) {
-                axeds[ 0 ].setRange( Double.NaN, Double.NaN );
+            PlotState state = getPlotState();
+            PointSelection pointSelection = state.getPointSelection();
+            Points points = getPoints();
+            if ( state.getValid() && points != null ) {
+
+                /* Do X scaling if required. */
+                double[] xBounds;
+                if ( scaleX_ ) {
+                    Range xRange = HistogramWindow.super
+                        .calculateRanges( pointSelection, points )[ 0 ];
+                    getDataRanges()[ 0 ] = xRange;
+                    getViewRanges()[ 0 ].clear();
+                    getAxisWindow().getEditors()[ 0 ].clearBounds();
+                    xBounds =
+                        xRange.getFiniteBounds( state.getLogFlags()[ 0 ] );
+                }
+                else {
+                    xBounds = state.getRanges()[ 0 ];
+                }
+
+                /* Do Y scaling if required. */
+                if ( scaleY_ ) {
+                    calculateMaxCount( pointSelection, points, xBounds,
+                                       scaleX_ );
+                    getViewRanges()[ 1 ].clear();
+                    getAxisWindow().getEditors()[ 1 ].clearBounds();
+                }
+                replot();
             }
-            if ( scaleY_ ) {
-                axeds[ 1 ].setRange( Double.NaN, Double.NaN );
-            }
-            plot_.rescale( scaleX_, scaleY_ );
-            forceReplot();
         }
     }
-
 }

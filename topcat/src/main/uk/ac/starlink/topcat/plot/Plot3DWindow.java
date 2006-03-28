@@ -106,15 +106,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                                                + " position" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setRotation( INITIAL_ROTATION );
-                forceReplot();
-            }
-        };
-        Action rescaleAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
-                                                "Rescale the plot to show " +
-                                                "all points" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                plot_.rescale();
-                forceReplot();
+                replot();
             }
         };
 
@@ -136,7 +128,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
-        plotMenu.add( rescaleAction );
+        plotMenu.add( getRescaleAction() );
         plotMenu.add( reorientAction );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
@@ -176,7 +168,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         getJMenuBar().add( styleMenu );
 
         /* Add actions to the toolbar. */
-        getToolBar().add( rescaleAction );
+        getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( reorientAction );
         getToolBar().add( getGridModel().createToolbarButton() );
@@ -214,12 +206,6 @@ public abstract class Plot3DWindow extends GraphicsWindow
     public PlotState getPlotState() {
         Plot3DState state = (Plot3DState) super.getPlotState();
 
-        /* Reset the view angle if the axes have changed.  This is probably
-         * what you want, but might not be? */
-        if ( ! state.sameAxes( plot_.getState() ) ) {
-            // setRotation( INITIAL_ROTATION );
-        }
-
         /* Configure the state with this window's current viewing angles. */
         state.setRotation( rotation_ );
         state.setRotating( isRotating_ );
@@ -255,14 +241,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
     protected void doReplot( PlotState state, Points points ) {
         blobPanel_.setActive( false );
-        PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( (Plot3DState) state );
-        if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
-            if ( state.getValid() ) {
-                plot_.rescale();
-            }
-        }
         plot_.repaint();
     }
 

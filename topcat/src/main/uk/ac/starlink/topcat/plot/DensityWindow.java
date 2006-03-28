@@ -101,16 +101,25 @@ public class DensityWindow extends GraphicsWindow {
         };
 
         /* Construct a plotting surface to receive the graphics. */
-        final PlotSurface surface = new PtPlotSurface( this );
+        final PlotSurface surface = new PtPlotSurface();
+        ((PtPlotSurface) surface)._tickLength = 0;
         ((PtPlotSurface) surface).setPadPixels( 0 );
 
-        /* No grid.  There are currently problems with displaying it
-         * over the top of the plot. */
+        /* Grid looks a bit messy, so set it off by default. */
         getGridModel().setSelected( false );
 
         /* Construct and populate the plot panel with the 2d histogram
          * itself and a transparent layer for doodling blobs on. */
         plot_ = new DensityPlot( surface ) {
+            protected void requestZoom( double[][] bounds ) {
+                for ( int idim = 0; idim < 2; idim ++ ) {
+                    if ( bounds[ idim ] != null ) {
+                        getAxisWindow().getEditors()[ idim ].clearBounds();
+                        getViewRanges()[ idim ].setBounds( bounds[ idim ] );
+                    }
+                }
+                replot();
+            }
             protected void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
             }
@@ -152,17 +161,6 @@ public class DensityWindow extends GraphicsWindow {
         getStatusBox().add( plotStatus_ );
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
         getStatusBox().add( posStatus );
-
-        /* Action for resizing the plot. */
-        Action resizeAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
-                                               "Rescale the plot to show " +
-                                               "all data" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                getAxisWindow().clearRanges();
-                plot_.rescale();
-                forceReplot();
-            }
-        };
 
         /* Action for rgb/greyscale toggle. */
         rgbModel_ = new ToggleButtonModel( "Colour", ResourceIcon.COLOR,
@@ -255,8 +253,9 @@ public class DensityWindow extends GraphicsWindow {
         /* General plot operation menu. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
-        plotMenu.add( resizeAction );
+        plotMenu.add( getRescaleAction() );
         plotMenu.add( getAxisEditAction() );
+        plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -296,8 +295,9 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Add actions to the toolbar. */
         getToolBar().add( fitsAction_ );
-        getToolBar().add( resizeAction );
+        getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
+        getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( zLogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
@@ -356,13 +356,6 @@ public class DensityWindow extends GraphicsWindow {
         PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( state );
-
-        /* If the axes are different from the last time we plotted, 
-         * rescale so that all the points are visible. */
-        if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
-            plotStatus_.setValues( null );
-            plot_.rescale();
-        }
 
         /* Schedule for repainting so changes can take effect. */
         plot_.repaint();

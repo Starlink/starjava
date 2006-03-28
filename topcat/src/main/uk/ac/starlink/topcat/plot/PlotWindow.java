@@ -100,7 +100,16 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Construct the plot component.  Provide an implementation of the
          * hook reportStats() method to accept useful information generated
          * during the component paint so it can be displayed in the GUI. */
-        plot_ = new ScatterPlot( new PtPlotSurface( this ) ) {
+        plot_ = new ScatterPlot( new PtPlotSurface() ) {
+            protected void requestZoom( double[][] bounds ) {
+                for ( int idim = 0; idim < 2; idim++ ) {
+                    if ( bounds[ idim ] != null ) {
+                        getAxisWindow().getEditors()[ idim ].clearBounds();
+                        getViewRanges()[ idim ].setBounds( bounds[ idim ] );
+                    }
+                }
+                replot();
+            }
             protected void reportStats( SetId[] setIds, XYStats[] stats,
                                         int nPoint, int nIncluded,
                                         int nVisible ) {
@@ -140,18 +149,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         PlotSurface surface = plot_.getSurface();
         surface.getComponent().addMouseListener( new PointClickListener() );
 
-        /* Hack - this repaint shouldn't be required, but for some
-         * reason a mouse click which doesn't cause any point to
-         * be selected or deselected causes the screen to go blank;
-         * I don't know where the event responsible is coming from,
-         * though it's connected with zooming. Anyway, a repaint 
-         * here fixes it. */
-        surface.getComponent().addMouseListener( new MouseAdapter() {
-            public void mouseClicked( MouseEvent evt ) {
-               plot_.repaint();
-            }
-        } );
-
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
 
@@ -173,21 +170,10 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         getStatusBox().add( posStatus );
         getStatusBox().add( Box.createHorizontalGlue() );
 
-        /* Action for resizing the plot. */
-        Action resizeAction = new BasicAction( "Rescale", ResourceIcon.RESIZE,
-                                               "Rescale the plot to show " +
-                                               "all points" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                getAxisWindow().clearRanges();
-                plot_.rescale();
-                forceReplot();
-            }
-        };
-
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
-        plotMenu.add( resizeAction );
+        plotMenu.add( getRescaleAction() );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
@@ -242,7 +228,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         getJMenuBar().add( styleMenu );
 
         /* Add actions to the toolbar. */
-        getToolBar().add( resizeAction );
+        getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( getReplotAction() );
@@ -271,21 +257,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         blobPanel_.setActive( false );
 
         /* Send the plot component the most up to date plotting state. */
-        PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( state );
-
-        /* If the axes are different from the last time we plotted,
-         * fix it so that all the points are included. */
-        /* This has the effect of rescaling even if the axes are just
-         * flipped, which probably isn't what the user wants to see,
-         * but implementation details mean that it's not easy to get
-         * away without doing this, so if you want to change that
-         * make sure you check it still works properly afterwards. */
-        if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
-            plotStatus_.setValues( null );
-            plot_.rescale();
-        }
 
         /* Schedule for repainting so the changes can take effect. */
         plot_.repaint();

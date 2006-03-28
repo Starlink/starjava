@@ -64,7 +64,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * which schedules a replot to occur later on the event dispatch thread. 
  * When the replot is executed, the {@link #getPlotState} method is 
  * called which goes through all the controls and assembles a 
- * {@link PlotState} object (of a class which is probably speicific to
+ * {@link PlotState} object (of a class which is probably specific to
  * the window implementation).  <em>Only if</em> this PlotState differs
  * from the last gathered PlotState will any actual plotting action take
  * place.  This means that we don't worry about triggering loads of
@@ -72,8 +72,9 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * between one and the next, they're cheap.  If the state does change
  * materially, then a new plot is required.  The work done for plotting
  * depends on the details of how the PlotState has changed - in some cases
- * new data will be acquired (<code>readPoints</code> is called - possibly
- * expensive), but if the data is the same as before, the plot just
+ * new data will be acquired (<code>PointSelection.readPoints</code> 
+ * is called - possibly expensive),
+ * but if the data is the same as before, the plot just
  * needs to be redrawn (usually quite fast, since the various plotting
  * classes are written as efficiently as possible).
  * It is therefore very important for performance reasons that you can
@@ -89,8 +90,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    26 Oct 2005
  */
-public abstract class GraphicsWindow extends AuxWindow
-                                     implements SurfaceListener {
+public abstract class GraphicsWindow extends AuxWindow {
 
     private final int ndim_;
     private final PointSelectorSet pointSelectors_;
@@ -98,6 +98,7 @@ public abstract class GraphicsWindow extends AuxWindow
     private final ReplotListener replotListener_;
     private final Action replotAction_;
     private final Action axisEditAction_;
+    private final Action rescaleAction_;
     private final String[] axisNames_;
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
@@ -106,11 +107,15 @@ public abstract class GraphicsWindow extends AuxWindow
 
     private StyleSet styleSet_;
     private Points points_;
+    private PointSelection lastPointSelection_;
     private PlotState lastState_;
     private Box statusBox_;
     private boolean initialised_;
     private int guidePointCount_;
     private AxisWindow axisWindow_;
+    private Range[] dataRanges_;
+    private Range[] viewRanges_;
+    private boolean forceReread_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -199,6 +204,9 @@ public abstract class GraphicsWindow extends AuxWindow
         replotAction_ =
             new GraphicsAction( "Replot", ResourceIcon.REDO,
                                 "Redraw the plot" );
+        rescaleAction_ =
+            new GraphicsAction( "Rescale", ResourceIcon.RESIZE,
+                                "Rescale the plot to show all points" );
 
         /* Action for showing grid. */
         gridModel_ = new ToggleButtonModel( "Show Grid", ResourceIcon.GRID_ON,
@@ -245,18 +253,18 @@ public abstract class GraphicsWindow extends AuxWindow
         pointSelectors_.addNewSelector( mainSel );
         pointSelectors_.revalidate();
 
-        /* Construct an axis configuration window. */
-        ActionListener replotForcer = new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                scheduleReplot( true, false );
-            }
-        };
+        /* Add axis editors and corresponding data and view range arrays. */
         AxisEditor[] axeds = mainSel.createAxisEditors();
-        for ( int i = 0; i < axeds.length; i++ ) {
-            axeds[ i ].addActionListener( replotForcer );
+        int nax = axeds.length;
+        dataRanges_ = new Range[ nax ];
+        viewRanges_ = new Range[ nax ];
+        for ( int i = 0; i < nax; i++ ) {
+            viewRanges_[ i ] = new Range();
+            axeds[ i ].addMaintainedRange( viewRanges_[ i ] );
+            axeds[ i ].addActionListener( replotListener_ );
         }
         axisWindow_ = new AxisWindow( this, axeds );
-        axisWindow_.addActionListener( replotForcer );
+        axisWindow_.addActionListener( replotListener_ );
 
         /* Set a suitable default style set. */
         long npoint = 0;
@@ -315,6 +323,36 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
+     * Returns the most recently calculated data range objects.
+     * These were calculated by invocation of {@link #calculateRanges},
+     * which probably occurred during the last data read or rescale
+     * operation.  They describe the natural ranges of the data,
+     * which typically means that they defibe an N-dimensional region
+     * into which all the current data points fall.
+     * 
+     * @return  array of data ranges, one for each axis
+     */
+    public Range[] getDataRanges() {
+        return dataRanges_;
+    }
+
+    /**
+     * Returns an array of ranges which may be set to determine the
+     * actual range of visible data displayed by this plot.  The 
+     * dimensions should generally match those returned by 
+     * {@link #getDataRanges}.  The actual range of visible data will
+     * generally be got by combining the data range with the visible
+     * range on each axis.  Elements of the returned array may have
+     * their states altered, but should not be replaced, since 
+     * these elements are kept up to date by the editors in the axis window.
+     *
+     * @return   array of visible ranges, one for each axis
+     */
+    public Range[] getViewRanges() {
+        return viewRanges_;
+    }
+
+    /**
      * Returns an array of button models representing the inversion state
      * for each axis.  Selected state for each model indicates that that
      * axis has been flipped.
@@ -334,6 +372,15 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public ToggleButtonModel[] getLogModels() {
         return logModels_;
+    }
+
+    /**
+     * Returns the most recently read Points object.
+     *
+     * @return  points object
+     */
+    public Points getPoints() {
+        return points_;
     }
 
     /**
@@ -361,7 +408,11 @@ public abstract class GraphicsWindow extends AuxWindow
     protected abstract JComponent getPlot();
 
     /**
-     * Performs an actual plot.
+     * Performs an actual plot.  Concrete subclasses should implement this
+     * to paint the component according to the given <code>state</code>
+     * and <code>points</code>.  
+     * Probably a {@link javax.swing.Component#repaint()} will be required
+     * at the end.
      *
      * @param  state  plot state determining details of plot configuration
      * @param  points  data to plot
@@ -428,6 +479,11 @@ public abstract class GraphicsWindow extends AuxWindow
      * Returns an object which characterises the choices the user has
      * made in the GUI to indicate the plot that s/he wants to see.
      *
+     * <p>The <code>GraphicsWindow</code> implementation of this method
+     * as well as populating the state with standard information
+     * also calls {@link PointSelection#readPoints}
+     * and {@link #calculateRanges} if necessary.
+     *
      * @return  snapshot of the currently-selected plot request
      */
     public PlotState getPlotState() {
@@ -455,24 +511,67 @@ public abstract class GraphicsWindow extends AuxWindow
         state.setLogFlags( logFlags );
         state.setFlipFlags( flipFlags );
 
-        /* Set items configured in the axis editor window. */
+        /* Set grid status. */
+        state.setGrid( gridModel_.isSelected() );
+
+        /* Set point selection, reading the points data if necessary
+         * (that is if the point selection has changed since last time
+         * it was read). */
+        PointSelection pointSelection = pointSelectors_.getPointSelection();
+        state.setPointSelection( pointSelection );
+        boolean sameData = pointSelection.sameData( lastPointSelection_ );
+        if ( ( ! sameData ) || forceReread_ ) {
+            forceReread_ = false;
+            try {
+
+                /* Read the data if required. */
+                points_ = pointSelection.readPoints();
+
+                /* Calculate new data ranges corresponding to the new data. */
+                dataRanges_ = calculateRanges( pointSelection, points_ );
+
+                /* If we're looking at what is effectively a new graph,
+                 * reset the viewing limits to null, so the visible range
+                 * will be defined only by the data. */
+                if ( ! sameData ) {
+                    for ( int i = 0; i < viewRanges_.length; i++ ) {
+                        viewRanges_[ i ].clear();
+                    }
+                }
+            }
+
+            /* In case of trouble inform the user. */
+            catch ( IOException e ) {
+                ErrorDialog.showError( GraphicsWindow.this,
+                                       "Error reading table data", e );
+                points_ = null;
+                state.setValid( false );
+                return state;
+            }
+
+            /* Remember point selection for comparison next time. */
+            lastPointSelection_ = pointSelection;
+        }
+
+        /* Set axis labels configured in the axis editor window. */
         AxisEditor[] eds = axisWindow_.getEditors();
         int nax = eds.length;
         String[] labels = new String[ nax ];
-        double[][] ranges = new double[ nax ][];
         for ( int i = 0; i < eds.length; i++ ) {
             AxisEditor ed = eds[ i ];
             labels[ i ] = ed.getLabel();
-            ranges[ i ] = ed.getRange();
         }
         state.setAxisLabels( labels );
-        state.setRanges( ranges );
 
-        /* Set point selection. */
-        state.setPointSelection( pointSelectors_.getPointSelection() );
-
-        /* Set grid status. */
-        state.setGrid( gridModel_.isSelected() );
+        /* Set visible ranges, based on data range and ranges explicitly
+         * selected by the user. */
+        double[][] bounds = new double[ dataRanges_.length ][];
+        for ( int i = 0; i < dataRanges_.length; i++ ) {
+            Range range = new Range( dataRanges_[ i ] );
+            range.limit( viewRanges_[ i ] );
+            bounds[ i ] = range.getFiniteBounds( logFlags[ i ] );
+        }
+        state.setRanges( bounds );
 
         /* Return the configured state for use. */
         state.setValid( true );
@@ -499,6 +598,16 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
+     * Returns an action which will recalculate data ranges, clear 
+     * view ranges, and replot the data.
+     *
+     * @return  rescale action
+     */
+    public Action getRescaleAction() {
+        return rescaleAction_;
+    }
+
+    /**
      * Returns an action which can be used to configure axes manually.
      *
      * @return   axis configuration action
@@ -520,91 +629,47 @@ public abstract class GraphicsWindow extends AuxWindow
     /**
      * Redraws the plot if any of the characteristics indicated by the
      * currently-requested plot state have changed since the last time
-     * it was done.  
-     * This method schedules a replot on the event dispatch thread,
+     * it was done.  If no changes have been made, no work is done, in
+     * which case it will be cheap to call.
+     *
+     * <p>This method schedules a replot on the event dispatch thread,
      * so it may be called from any thread.
      */
     public void replot() {
-        scheduleReplot( false, false );
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                performReplot();
+            }
+        } );
     }                              
 
     /**
-     * Redraws the plot unconditionally.
-     * This method schedules a replot on the event dispatch thread,
-     * so it may be called from any thread.
+     * Redraws the plot in-thread, perhaps taking account of whether 
+     * the plot state has changed since last time it was done.
      */
-    public void forceReplot() {
-        scheduleReplot( true, false );
-    }
+    private void performReplot() {
 
-    /**
-     * Schedules a conditional replot on the event dispatch thread,
-     * perhaps taking account of whether the plot state has changed since
-     * the last time it was done.
-     *
-     * @param  forcePlot  if true, do the replot in any case;
-     *                    if false, only do it if the PlotState has changed
-     * @param  forceData  if true, re-acquire data in any case;
-     *                    if false, only do it if the data selection has changed
-     */
-    private void scheduleReplot( final boolean forcePlot,
-                                 final boolean forceData ) {
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                performReplot( forcePlot, forceData );
-            }
-        } );
-    }
-
-    /**
-     * Redraws the plot, perhaps taking account of whether the plot state
-     * has changed since last time it was done.
-     *
-     * @param  forcePlot  if true, do the replot in any case;
-     *                    if false, only do it if the PlotState has changed
-     * @param  forceData  if true, re-acquire data in any case;
-     *                    if false, only do it if the data selection has changed
-     */
-    private void performReplot( boolean forcePlot, boolean forceData ) {
+        /* If called before this window is ready, do nothing. */
         if ( ! initialised_ ) {
             return;
         }
+
+        /* Interrogate this window for the details of the plot to be done. */
         PlotState state = getPlotState();
 
-        /* Check that two plot state objects obtained at the same time
+        /* Check that two plot state objects obtained one after another
          * satisfy the equals() relationship.  This is not required for 
          * correctness, but it is important for performance.  If you're
          * getting an assertion error here, find out why the two 
          * PlotStates are unequal and fix it (probably by providing 
          * suitable equals() implementations for plotstate constituent
-         * objects). */
+         * objects).  getPlotState() itself ought to be cheap, so this 
+         * assertion should not take much time. */
         assert state.equals( getPlotState() ) : state.compare( getPlotState() );
 
-        PlotState lastState = lastState_;
-        if ( forcePlot || ! state.equals( lastState ) ) {
-
-            /* If the data points have changed since last time, re-acquire
-             * them from the table.  This step is potentially time-consuming,
-             * and should possibly be out of the event dispatch thread,
-             * but up to a million rows it seems to be fast enough for
-             * most tables.  Doing it like that would complicate the
-             * programming (and UI) significantly, so for now leave it
-             * until it appears to be a problem. */
-            if ( forceData || ! state.sameData( lastState ) ) {
-                if ( state.getValid() ) { 
-                    try {
-                        points_ = readPoints( state );
-                    }
-                    catch ( IOException e ) {
-                        logger_.log( Level.SEVERE,
-                                     "Error reading table data", e );
-                        return;
-                    }
-                }
-                else {
-                    points_ = null;
-                }
-            }
+        /* Only if the current plot state materially differs from its 
+         * value last time we did this, do the actual drawing. */
+        if ( ! state.equals( lastState_ ) ) {
             doReplot( state, points_ );
             lastState_ = state;
         }
@@ -687,18 +752,63 @@ public abstract class GraphicsWindow extends AuxWindow
     }
 
     /**
-     * Acquires and caches the numeric data required for a given plot state.
-     * This is done so that reading one or more columns of the table,
-     * which might be a bit time-consuming, doesn't have to get done
-     * every time a replot is done.  However, this method probably will
-     * be called in the event dispatch thread, so it's still somewhat
-     * worrying.
+     * Calculates data ranges for a given data set.
+     * The returned Range array is the one which will be returned from
+     * future calls of {@link #getDataRanges}.
+     * Subclasses may override this method to alter its behaviour.
      *
-     * @param  state  plot state
-     * @return points  object containing data values for <tt>state</tt>
+     * @param  pointSelection  point selection for the plot
+     * @param  points  point data for the plot
      */
-    private Points readPoints( PlotState state ) throws IOException {
-        return state.getPointSelection().readPoints();
+    public Range[] calculateRanges( PointSelection pointSelection,
+                                    Points points ) {
+        int ndim = points.getNdim();
+        Range[] ranges = new Range[ ndim ];
+        for ( int idim = 0; idim < ndim; idim++ ) {
+            ranges[ idim ] = new Range();
+        }
+
+        RowSubset[] sets = pointSelection.getSubsets();
+        int nset = sets.length;
+        int npoint = points.getCount();
+        double[] coords = new double[ ndim ];
+        for ( int ip = 0; ip < npoint; ip++ ) {
+            points.getCoords( ip, coords );
+            boolean isValid = true;
+            for ( int idim = 0; idim < ndim && isValid; idim++ ) {
+                isValid = isValid && ( ! Double.isNaN( coords[ idim ] ) &&
+                                       ! Double.isInfinite( coords[ idim ] ) );
+            }
+            if ( isValid ) {
+                boolean isUsed = false;
+                for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
+                    isUsed = isUsed || sets[ iset ].isIncluded( ip );
+                }
+                if ( isUsed ) {
+                    for ( int idim = 0; idim < ndim; idim++ ) {
+                        ranges[ idim ].submit( coords[ idim ] );
+                    }
+                }
+            }
+        }
+        return ranges;
+    }
+
+    /**
+     * Rescales the data acoording to the most recently read data and current
+     * point selection.  The data ranges are recalculated and the view
+     * ranges are cleared.
+     */
+    private void rescale() {
+        PlotState state = getPlotState();
+        Points points = getPoints();
+        if ( state.getValid() && points != null ) {
+            getAxisWindow().clearRanges();
+            dataRanges_ = calculateRanges( state.getPointSelection(), points ); 
+            for ( int i = 0; i < viewRanges_.length; i++ ) {
+                viewRanges_[ i ].clear();
+            }
+        }
     }
 
     /**
@@ -790,35 +900,6 @@ public abstract class GraphicsWindow extends AuxWindow
      */
     public int getColumnIndex( TableColumn tcol ) {
         return tcol.getModelIndex();
-    }
-
-    /**
-     * SurfaceListener implementation.
-     *
-     * <p>This method is triggered when the PlotSurface decides it wants to
-     * change its geometry, probably as a result of some mouse gesture by
-     * the user.  In other words, information about the geometry of the
-     * plot is held both by the plot itself and by the PlotState.  This is
-     * really a bad way to do it, and makes it practically impossible for
-     * the window to work properly - the historical reason for this bad
-     * design is that this class used to be based heavily on PtPlotBox
-     * which provides zooming for free, but I'd have saved myself trouble
-     * in the long run if I'd done the zooming by hand here.  
-     * Really I should remove any responsibility
-     * for doing this from the plot surface (PtPlotSurface) and make sure
-     * that only the GraphicsWindow does it.  The main consequences of this
-     * problem at the moment are:
-     * <ol>
-     * <li>If you've set the axis limits using the AxisWindow and then
-     *     zoom in by dragging the mouse, the effect will be to rescale
-     *     to full data range
-     * <li>Changing the flip/log axis flags has the effect of rescaling to
-     *     full data range (as well)
-     * </ol>
-     */
-    public void surfaceChanged() {
-        axisWindow_.clearRanges();
-        forceReplot();
     }
 
     public void dispose() {
@@ -956,10 +1037,18 @@ public abstract class GraphicsWindow extends AuxWindow
         }
         public void actionPerformed( ActionEvent evt ) {
             if ( this == replotAction_ ) {
-                scheduleReplot( true, true );
+
+                /* Force a re-read of the data. */
+                forceReread_ = true;
+                lastState_ = null;
+                replot();
             }
             else if ( this == axisEditAction_ ) {
                 axisWindow_.show();
+            }
+            else if ( this == rescaleAction_ ) {
+                rescale();
+                replot();
             }
         }
     }
