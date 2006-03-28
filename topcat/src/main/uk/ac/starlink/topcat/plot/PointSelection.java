@@ -114,7 +114,7 @@ public class PointSelection {
      *
      * @return   points list
      */
-    public Points readPoints() {
+    public Points readPoints() throws IOException {
         int npoint = 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             npoint += Tables.checkedLongToInt( tcModels_[ itab ]
@@ -123,9 +123,10 @@ public class PointSelection {
         ValueStorePoints points = new ValueStorePoints( ndim_, npoint );
         int ipoint = 0;
         double[] coords = new double[ ndim_ ];
-        try {
-            for ( int itab = 0; itab < nTable_; itab++ ) {
-                RowSequence rseq = dataTables_[ itab ].getRowSequence();
+        for ( int itab = 0; itab < nTable_; itab++ ) {
+            RowSequence rseq = null;
+            try {
+                rseq = dataTables_[ itab ].getRowSequence();
                 while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
                     for ( int idim = 0; idim < ndim_; idim++ ) {
@@ -133,12 +134,12 @@ public class PointSelection {
                     }
                     points.putCoords( ipoint++, coords );
                 }
-                rseq.close();
             }
-        }
-        catch ( IOException e ) {
-            logger_.log( Level.SEVERE, "Data read error", e );
-            return new EmptyPoints();
+            finally {
+                if ( rseq != null ) {
+                    rseq.close();
+                }
+            }
         }
         assert ipoint == npoint;
         return points;
