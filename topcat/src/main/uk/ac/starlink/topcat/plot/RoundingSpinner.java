@@ -4,6 +4,7 @@ import javax.swing.AbstractSpinnerModel;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
 
 /**
  * JSpinner subclass which goes up or down using round numbers.
@@ -60,6 +61,20 @@ public class RoundingSpinner extends JSpinner {
     }
 
     /**
+     * Sets the model for this spinner.
+     *
+     * @param  model  new model
+     * @throws  ClassCastException if <code>model</code> is not an instance
+     *          of <code>RoundingSpinnerModel</code>
+     */
+    public void setModel( SpinnerModel model ) {
+        super.setModel( (RoundingSpinnerModel) model );
+
+        /* This appears to be necessary to update the visual components. */
+        setValue( model.getValue() );
+    }
+
+    /**
      * Returns the rounder used by this spinner.
      *
      * @return  rounder
@@ -71,11 +86,16 @@ public class RoundingSpinner extends JSpinner {
     /**
      * Spinner model used for a rounding spinner.
      */
-    private static class RoundingSpinnerModel extends AbstractSpinnerModel {
+    public static class RoundingSpinnerModel extends AbstractSpinnerModel {
 
         private final RoundingSpinner spinner_;
         private double value_;
 
+        /**
+         * Constructor.
+         *
+         * @param  spinner  the spinner in which this model will be used
+         */
         RoundingSpinnerModel( RoundingSpinner spinner ) {
             spinner_ = spinner;
         }
