@@ -91,15 +91,15 @@ public abstract class ZoomRegion {
 
     /**
      * Callback which will be invoked when a zoom invoked on this region
-     * has been completed successfully.  The parameter is a two-element
-     * array giving X (lower, upper) bounds followed by Y (lower, upper) 
-     * bounds.  Either of the X or Y bound arrays may be null to indicate
-     * no zooming in that direction. 
-     * The units are dimensionless: a range of (0,1) indicates the same
-     * range as is currently contained by the display region.
+     * has been completed successfully.  Elements of the parameter array
+     * are two-element arrays giving (lower, upper) bounds in one or
+     * more dimensions, according to the type of region.
+     * The units should normally be dimensionless: a range of (0,1) 
+     * indicates the same range as is currently contained by the 
+     * display region.
      * Bounds may be larger or smaller than the (1,0) interval.
      *
-     * @param   bounds   2x2 array of zoom bounds { {xlo, xhi}, {ylo, yhi} }
+     * @param   bounds   array of (lower, upper) zoom bounds
      */
     public abstract void zoomed( double[][] bounds );
 }
