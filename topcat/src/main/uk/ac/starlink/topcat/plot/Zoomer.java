@@ -72,8 +72,7 @@ public class Zoomer extends MouseInputAdapter {
                 ZoomRegion region = (ZoomRegion) it.next();
                 Point point = evt.getPoint();
                 if ( region.getTarget() != null &&
-                     region.getTarget().contains( point ) &&
-                     region.getDisplay() != null ) {
+                     region.getTarget().contains( point ) ) {
                     drag_ = region.createDrag( (Component) evt.getSource(),
                                                point );
                     dragRegion_ = region;
