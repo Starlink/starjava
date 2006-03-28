@@ -4,12 +4,23 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 
@@ -23,6 +34,8 @@ public class LinesWindow extends GraphicsWindow {
 
     private final LinesPlot plot_;
     private final ToggleButtonModel antialiasModel_;
+    private Range[] yDataRanges_;
+    private final Map yViewRangeMap_;
 
     /**
      * Constructor.
@@ -32,19 +45,56 @@ public class LinesWindow extends GraphicsWindow {
     public LinesWindow( Component parent ) {
         super( "Line Plot", new String[] { "X", "Y" }, parent );
 
-        plot_ = new LinesPlot();
+        yViewRangeMap_ = new HashMap();
+        plot_ = new LinesPlot() {
+            protected void requestZoomX( double x0, double x1 ) {
+                getAxisWindow().getEditors()[ 0 ].clearBounds();
+                getViewRanges()[ 0 ].setBounds( x0, x1 );
+                replot();
+            }
+            protected void requestZoomY( int igraph, double y0, double y1 ) {
+                getAxisWindow().getEditors()[ 1 + igraph ].clearBounds();
+                PointSelector psel = getPointSelectors().getSelector( igraph );
+                if ( yViewRangeMap_.containsKey( psel ) ) {
+                    ((Range) yViewRangeMap_.get( psel )).setBounds( y0, y1 );
+                }
+                replot();
+            }
+        };
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
 
         getMainArea().add( plot_, BorderLayout.CENTER );
+        
+        getPointSelectors().addActionListener( new AxisWindowUpdater() );
 
+        /* Rescaling actions. */
+        Action rescaleActionXY =
+            new RescaleAction( "Rescale", ResourceIcon.RESIZE,
+                               "Rescale all plots to fit all data",
+                               true, true );
+        Action rescaleActionX =
+            new RescaleAction( "Rescale", ResourceIcon.RESIZE_X,
+                               "Rescale the X axis to fit all data",
+                               true, false );
+        Action rescaleActionY =
+            new RescaleAction( "Rescale", ResourceIcon.RESIZE_Y,
+                               "Rescale Y axis on all plots to fit all data",
+                               false, true );
+
+        /* Antialias action. */
         antialiasModel_ = new ToggleButtonModel( "Antialias",
                                                  ResourceIcon.ANTIALIAS,
                                                  "Select whether lines are " +
                                                  "drawn with antialiasing" );
-        antialiasModel_.setSelected( false );
+        antialiasModel_.setSelected( true );
         antialiasModel_.addActionListener( getReplotListener() );
 
+        /* Populate toolbar. */
         getToolBar().add( antialiasModel_.createToolbarButton() );
+        getToolBar().add( rescaleActionXY );
+        getToolBar().add( rescaleActionX );
+        getToolBar().add( rescaleActionY );
+        getToolBar().add( getAxisEditAction() );
         getToolBar().add( getReplotAction() );
 
         /* Add standard help actions. */
@@ -62,9 +112,6 @@ public class LinesWindow extends GraphicsWindow {
         PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( (LinesPlotState) state );
-        if ( ! state.sameAxes( lastState ) || ! state.sameData( lastState ) ) {
-            plot_.rescale();
-        }
         plot_.repaint();
     }
 
@@ -80,11 +127,12 @@ public class LinesWindow extends GraphicsWindow {
 
         PointSelectorSet pointSelectors = getPointSelectors();
         int nsel = pointSelectors.getSelectorCount();
+        AxisEditor[] axEds = getAxisWindow().getEditors();
 
-        /* Configure range and axis information for each plot. */
+        /* Configure Y axis and range information for each plot. */
         ValueInfo[] yAxes = new ValueInfo[ nsel ];
         String[] yAxisLabels = new String[ nsel ];
-        double[][] yRanges = new double[ nsel ][];
+        double[][] yBounds = new double[ nsel ][];
         boolean[] yLogFlags = new boolean[ nsel ];
         boolean[] yFlipFlags = new boolean[ nsel ];
         List pselList = new ArrayList( nsel );
@@ -92,17 +140,26 @@ public class LinesWindow extends GraphicsWindow {
             LinesPointSelector psel =
                 (LinesPointSelector) pointSelectors.getSelector( isel );
             pselList.add( psel );
-            yRanges[ isel ] = new double[] { Double.NaN, Double.NaN };
+            Range yRange;
             if ( psel.isValid() ) {
+                AxisEditor yAxEd = axEds[ 1 + isel ];
                 yAxes[ isel ] = psel.getData().getColumnInfo( 1 );
-                yAxisLabels[ isel ] = yAxes[ isel ].getName();
+                yAxisLabels[ isel ] = yAxEd.getLabel();
                 yLogFlags[ isel ] = psel.getYLogModel().isSelected();
                 yFlipFlags[ isel ] = psel.getYFlipModel().isSelected();
+                yRange = new Range( yDataRanges_[ isel ] );
+                if ( yViewRangeMap_.containsKey( psel ) ) {
+                    yRange.limit( (Range) yViewRangeMap_.get( psel ) );
+                }
             }
+            else {
+                yRange = new Range();
+            }
+            yBounds[ isel ] = yRange.getFiniteBounds( yLogFlags[ isel ] );
         }
         state.setYAxes( yAxes );
         state.setYAxisLabels( yAxisLabels );
-        state.setYRanges( yRanges );
+        state.setYRanges( yBounds );
         state.setYLogFlags( yLogFlags );
         state.setYFlipFlags( yFlipFlags );
 
@@ -207,6 +264,225 @@ public class LinesWindow extends GraphicsWindow {
     }
 
     /**
+     * Returns a 1-element array giving only the X axis range.
+     */
+    public Range[] calculateRanges( PointSelection pointSelection,
+                                    Points points ) {
+        Range[] xyRanges = calculateRanges( pointSelection, points, null );
+        yDataRanges_ = new Range[ xyRanges.length - 1 ];
+        System.arraycopy( xyRanges, 1, yDataRanges_, 0, xyRanges.length - 1 );
+        return new Range[] { xyRanges[ 0 ] };
+    }
+
+    /**
+     * Calculates data ranges along the X and Y axes for a given 
+     * point selection and data object.
+     *
+     * @param  pointSelection  point selection for calculations
+     * @param  ponints  points data
+     * @param  xBounds  (lower,upper) bounds array giving region for range
+     *         determination; may be null for the whole X region
+     */
+    private Range[] calculateRanges( PointSelection pointSelection,
+                                     Points points, double[] xBounds ) {
+
+        /* Set X and Y bounds. */
+        double xlo = xBounds == null ? - Double.MAX_VALUE : xBounds[ 0 ];
+        double xhi = xBounds == null ? + Double.MAX_VALUE : xBounds[ 1 ];
+        double ylo = - Double.MAX_VALUE;
+        double yhi = + Double.MAX_VALUE;
+
+        /* Work out which graph each set belongs to. */
+        PointSelectorSet pointSelectors = getPointSelectors();
+        int ngraph = pointSelectors.getSelectorCount();
+        List pselList = new ArrayList( ngraph );
+        for ( int isel = 0; isel < ngraph; isel++ ) {
+            pselList.add( pointSelectors.getSelector( isel ) );
+        }
+        SetId[] setIds = pointSelection.getSetIds();
+        int nset = setIds.length;
+        int[] graphIndices = new int[ nset ];
+        for ( int iset = 0; iset < nset; iset++ ) {
+            int igraph = pselList.indexOf( setIds[ iset ].getPointSelector() );
+            graphIndices[ iset ] = igraph;
+        }
+
+        /* Set up initial values for extrema. */
+        Range xRange = new Range();
+        Range[] yRanges = new Range[ ngraph ];
+        for ( int i = 0; i < ngraph; i++ ) {
+            yRanges[ i ] = new Range();
+        }
+
+        /* Go through all the data finding extrema. */
+        RowSubset[] sets = pointSelection.getSubsets();
+        int npoint = points.getCount();
+        double[] coords = new double[ 2 ];
+        for ( int ip = 0; ip < npoint; ip++ ) {
+            points.getCoords( ip, coords );
+            double x = coords[ 0 ];
+            double y = coords[ 1 ];
+            if ( x >= xlo && x <= xhi && y >= ylo && y <= yhi ) {
+                boolean isUsed = false;
+                for ( int iset = 0; iset < nset; iset++ ) {
+                    if ( sets[ iset ].isIncluded( ip ) ) {
+                        int igraph = graphIndices[ iset ];
+                        isUsed = true;
+                        yRanges[ igraph ].submit( y );
+                    }
+                }
+                if ( isUsed ) {
+                    xRange.submit( x );
+                }
+            }
+        }
+
+        /* Package and return calculated ranges. */
+        Range[] ranges = new Range[ ngraph + 1 ];
+        ranges[ 0 ] = xRange;
+        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
+            ranges[ igraph + 1 ] = yRanges[ igraph ];
+        }
+        return ranges;
+    }
+
+    /**
+     * Listener which can keep the AxisWindow up to date with the current
+     * state of the plot.  It needs to add and remove AxisEditor components
+     * in tandem with the state of the PointSelectorSet component.
+     */
+    private class AxisWindowUpdater implements ActionListener {
+        int nsel_;
+        AxisEditor xAxEd_;
+        Map yAxEdMap_;
+
+        /**
+         * Check that this object has run through initialisation sequence.
+         */
+        private void ensureInitialised() {
+            if ( xAxEd_ == null ) {
+                assert yAxEdMap_ == null;
+
+                /* Set up the X axis editor. */
+                PointSelector mainSel = getPointSelectors().getMainSelector();
+                AxisEditor[] mainEds = mainSel.createAxisEditors();
+                xAxEd_ = mainEds[ 0 ];
+                xAxEd_.addMaintainedRange( getViewRanges()[ 0 ] );
+                xAxEd_.addActionListener( getReplotListener() );
+
+                /* Set up the main Y axis editor (can't be removed). */
+                AxisEditor yAxEd = mainEds[ 1 ];
+                yAxEd.setTitle( "Y Axis (" +
+                                PointSelectorSet.MAIN_TAB_NAME + ")" );
+                yAxEd.addActionListener( getReplotListener() );
+                Range yRange = new Range();
+                yAxEd.addMaintainedRange( yRange );
+                yViewRangeMap_.put( mainSel, yRange );
+
+                /* Set up a map to keep track of which axis editor corresponds
+                 * to which selector. */
+                yAxEdMap_ = new HashMap();
+                yAxEdMap_.put( mainSel, yAxEd );
+            }
+            assert xAxEd_ != null;
+            assert yAxEdMap_ != null;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            PointSelectorSet pointSelectors = getPointSelectors();
+            int nsel = pointSelectors.getSelectorCount();
+
+            /* Rebuild the axis window if the number of selectors has changed
+             * since last time. */
+            if ( nsel != nsel_ ) {
+                nsel_ = nsel;
+                updateAxisWindow();
+            }
+        }
+
+        /**
+         * Ensures that the axis window's state matches the current state
+         * of the point selector set.
+         */
+        private void updateAxisWindow() {
+            ensureInitialised();
+            PointSelectorSet pointSelectors = getPointSelectors();
+            int nsel = pointSelectors.getSelectorCount();
+
+            /* Build a list of axis editors matching current state. */
+            AxisEditor[] axEds = new AxisEditor[ 1 + nsel ];
+            axEds[ 0 ] = xAxEd_;
+            for ( int isel = 0; isel < nsel; isel++ ) {
+                PointSelector psel = pointSelectors.getSelector( isel );
+                if ( ! yAxEdMap_.containsKey( psel ) ) {
+                    AxisEditor yAxEd = psel.createAxisEditors()[ 1 ];
+                    yAxEd.setTitle( "Y Axis (" + psel.getLabel() + ")" ); 
+                    yAxEd.addActionListener( getReplotListener() );
+                    yAxEdMap_.put( psel, yAxEd );
+                    Range yRange = new Range();
+                    yAxEd.addMaintainedRange( yRange );
+                    yViewRangeMap_.put( psel, yRange );
+                }
+                axEds[ 1 + isel ] = (AxisEditor) yAxEdMap_.get( psel );
+            }
+
+            /* Install it in the axis window. */
+            getAxisWindow().setEditors( axEds );
+        }
+    }
+
+    /**
+     * Action for performing rescaling actions.
+     */
+    public class RescaleAction extends BasicAction {
+        final boolean scaleX_;
+        final boolean scaleY_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  action name
+         * @param  icon  action icon
+         * @param  shortdesc  short description (tooltips)
+         * @param  scaleX   whether to rescale in X direction
+         * @param  scaleY   whether to rescale in Y direction
+         */
+        RescaleAction( String name, Icon icon, String shortdesc,
+                       boolean scaleX, boolean scaleY ) {
+            super( name, icon, shortdesc );
+            scaleX_ = scaleX;
+            scaleY_ = scaleY;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            PlotState state = getPlotState();
+            Points points = getPoints();
+            if ( state.getValid() && points != null ) {
+                double[] xLimits = scaleY_ && ! scaleX_
+                                 ? state.getRanges()[ 0 ]
+                                 : null;
+                Range[] ranges = calculateRanges( state.getPointSelection(),
+                                                  points, xLimits );
+                getAxisWindow().clearRanges();
+                AxisEditor[] axEds = getAxisWindow().getEditors();
+                if ( scaleX_ ) {
+                    getDataRanges()[ 0 ] = ranges[ 0 ];
+                    getViewRanges()[ 0 ].clear();
+                }
+                if ( scaleY_ ) {
+                    System.arraycopy( ranges, 1,
+                                      yDataRanges_, 0, ranges.length - 1 );
+                    for ( Iterator it = yViewRangeMap_.entrySet().iterator();
+                          it.hasNext(); ) {
+                        ((Range) ((Map.Entry) it.next()).getValue()).clear();
+                    }
+                }
+                replot();
+            }
+        }
+    }
+
+    /**
      * Custom point selector for LinesWindow.
      * It features individual log and flip checkboxes for the Y axis;
      * these are supplied externally and may be different for each 
@@ -254,6 +530,26 @@ public class LinesWindow extends GraphicsWindow {
          */
         public ToggleButtonModel getYFlipModel() {
             return yFlipModel_;
+        }
+
+        protected void configureSelectors( TopcatModel tcModel ) {
+            super.configureSelectors( tcModel );
+
+            /* Ensure that the magic 'index' column is included in the
+             * X axis column selector. */
+            if ( tcModel != null ) {
+                getColumnSelector( 0 )
+               .setModel( new ColumnDataComboBoxModel( tcModel, true, true ) );
+            }
+        }
+
+        protected void initialiseSelectors() {
+
+            /* X axis gets magic 'index' column. */
+            getColumnSelector( 0 ).setSelectedIndex( 1 );
+
+            /* Y axis gets first non-index column. */
+            getColumnSelector( 1 ).setSelectedIndex( 1 );
         }
     }
 }
