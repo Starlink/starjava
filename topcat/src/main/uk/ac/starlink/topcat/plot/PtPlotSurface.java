@@ -19,18 +19,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     private PlotState state_;
     private PointSelection psel_;
-    private SurfaceListener surfListener_;
     private int padPixels_ = 10;
 
     /**
-     * Constructs a new surface, registering a listener which will be
-     * notified any time the surface geometry changes (hence the markers
-     * need to be redrawn).
-     *
-     * @param  surfListener listener
+     * Constructs a new surface.
      */
-    public PtPlotSurface( SurfaceListener surfListener ) {
-        surfListener_ = surfListener;
+    public PtPlotSurface() {
         setColor( false );
         _setPadding( 0.0 );
         _expThreshold = 3;
@@ -210,7 +204,6 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         if ( _xMin != oldXMin || _xMax != oldXMax ||
              _yMin != oldYMin || _yMax != oldYMax ) {
             checkInvariants();
-            surfListener_.surfaceChanged();
         }
     }
 
