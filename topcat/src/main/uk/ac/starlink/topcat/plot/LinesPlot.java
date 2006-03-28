@@ -189,6 +189,8 @@ public abstract class LinesPlot extends JComponent {
             Rectangle axisBox = new Rectangle( 0, yPos, xPos, yInc );
             final int ig = igraph;
             final int yp = yPos;
+
+            /* Listen for zoom events in the Y axis region. */
             ZoomRegion yZoom = new AxisZoomRegion( false,
                                                    axisBox, displayBox ) {
                 public void zoomed( double[][] bounds ) {
