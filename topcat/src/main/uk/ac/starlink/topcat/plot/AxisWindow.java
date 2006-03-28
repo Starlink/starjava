@@ -114,7 +114,7 @@ public class AxisWindow extends JDialog {
      */
     public void clearRanges() {
         for ( int i = 0; i < editors_.length; i++ ) {
-            editors_[ i ].setRange( Double.NaN, Double.NaN );
+            editors_[ i ].clearBounds();
         }
     }
 
