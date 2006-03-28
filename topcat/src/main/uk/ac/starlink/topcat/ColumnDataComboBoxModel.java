@@ -47,20 +47,29 @@ public class ColumnDataComboBoxModel
     private final TopcatModel tcModel_;
     private final TableColumnModel colModel_;
     private final boolean hasNone_;
+    private final boolean hasIndex_;
     private List activeColumns_;
     private List modelColumns_;
     private ColumnData selected_;
 
+    private static final ValueInfo INDEX_INFO =
+        new DefaultValueInfo( "index", Long.class, "Row index" );
+
     /**
-     * Constructor.
+     * Constructs a model optionally with a blank entry and an entry for
+     * the magic 'index' column.
      *
      * @param   tcModel   table model containing columns
      * @param   hasNone   true iff you want a null entry in the selector model
+     * @param   hasIndex  true iff you want an index column entry in the
+     *                    selector model
      */
-    public ColumnDataComboBoxModel( TopcatModel tcModel, boolean hasNone ) {
+    public ColumnDataComboBoxModel( TopcatModel tcModel, boolean hasNone,
+                                    boolean hasIndex ) {
         tcModel_ = tcModel;
         colModel_ = tcModel.getColumnModel();
         hasNone_ = hasNone;
+        hasIndex_ = hasIndex;
 
         /* Listen to the table's column model so that we can update the
          * contents of this model.  Do it using a weak reference so that
@@ -76,6 +85,9 @@ public class ColumnDataComboBoxModel
         if ( hasNone_ ) {
             activeColumns_.add( null );
         }
+        if ( hasIndex_ ) {
+            activeColumns_.add( new IndexColumnData( tcModel ) );
+        }
         for ( int i = 0; i < colModel_.getColumnCount(); i++ ) {
             StarTableColumn tcol = (StarTableColumn) colModel_.getColumn( i );
             SelectedColumnData cdata = getColumnData( tcModel, tcol );
@@ -84,6 +96,16 @@ public class ColumnDataComboBoxModel
                 activeColumns_.add( cdata );
             }
         }
+    }
+
+    /**
+     * Constructs a model optionally with a blank entry.
+     *
+     * @param   tcModel   table model containing columns
+     * @param   hasNone   true iff you want a null entry in the selector model
+     */
+    public ColumnDataComboBoxModel( TopcatModel tcModel, boolean hasNone ) {
+        this( tcModel, hasNone, false );
     }
 
     /**
@@ -165,6 +187,9 @@ public class ColumnDataComboBoxModel
             if ( hasNone_ ) {
                 activeColumns_.add( null );
             }
+            if ( hasIndex_ ) {
+                activeColumns_.add( new IndexColumnData( tcModel_ ) );
+            }
             for ( int i = 0; i < colModel_.getColumnCount(); i++ ) {
                 StarTableColumn tcol =
                     (StarTableColumn) colModel_.getColumn( i );
@@ -174,7 +199,13 @@ public class ColumnDataComboBoxModel
                     activeColumns_.add( cdata );
                 }
             }
-            int index0 = hasNone_ ? 1 : 0;
+            int index0 = 0;
+            if ( hasNone_ ) {
+                index0++;
+            }
+            if ( hasIndex_ ) {
+                index0++;
+            }
             int index1 = activeColumns_.size() - 1;
             fireContentsChanged( this, index0, index1 );
         }
@@ -460,6 +491,35 @@ public class ColumnDataComboBoxModel
 
         public boolean equals( Object o ) {
             return o instanceof ConvertedColumnData && super.equals( o );
+        }
+    }
+
+    /**
+     * ColumnData implementation which yields the table row number.
+     */
+    private static class IndexColumnData extends ColumnData {
+        final TopcatModel tcModel_;
+
+        IndexColumnData( TopcatModel tcModel ) {
+            super( INDEX_INFO );
+            tcModel_ = tcModel;
+        }
+
+        public Object readValue( long irow ) {
+            return new Long( irow + 1 );
+        }
+
+        public String toString() {
+            return "index";
+        }
+
+        public boolean equals( Object o ) {
+            return o instanceof IndexColumnData
+                && ((IndexColumnData) o).tcModel_ == this.tcModel_;
+        }
+
+        public int hashCode() {
+            return tcModel_.hashCode();
         }
     }
 }
