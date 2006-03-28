@@ -28,7 +28,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor (Starlink)
  * @since    17 Jun 2004
  */
-public class ScatterPlot extends SurfacePlot {
+public abstract class ScatterPlot extends SurfacePlot {
 
     private Annotations annotations_;
     private Points lastPoints_;
