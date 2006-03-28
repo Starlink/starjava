@@ -68,7 +68,7 @@ public class MapBinnedData implements BinnedData {
     }
 
     public Iterator getBinIterator( boolean includeEmpty ) {
-        final Iterator keyIt = includeEmpty
+        final Iterator keyIt = ( includeEmpty && ! map_.isEmpty() )
                              ? mapper_.keyIterator( map_.firstKey(),
                                                     map_.lastKey() )
                              : map_.keySet().iterator();
@@ -99,6 +99,15 @@ public class MapBinnedData implements BinnedData {
                 keyIt.remove();
             }
         };
+    }
+
+    /**
+     * Returns the BinMapper object used by this BinnedData.
+     *
+     * @return bin mapper
+     */
+    public BinMapper getMapper() {
+        return mapper_;
     }
 
     /**
