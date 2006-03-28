@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -31,6 +34,7 @@ public class AxisEditor extends JPanel {
     protected final JTextField loField_;
     protected final JTextField hiField_;
     private final ActionForwarder actionForwarder_;
+    private final List ranges_;
     private ValueInfo axis_;
 
     /**
@@ -49,6 +53,7 @@ public class AxisEditor extends JPanel {
 
         /* Arrange for actions (data entry) on the fields to be forwarded to
          * interested parties. */
+        ranges_ = new ArrayList();
         actionForwarder_ = new ActionForwarder();
         ActionListener axListener = new AxisListener();
         loField_.addActionListener( axListener );
@@ -86,7 +91,7 @@ public class AxisEditor extends JPanel {
         }
 
         /* Initialise. */
-        setAxis( null, Double.NaN, Double.NaN );
+        setAxis( null );
     }
 
     /**
@@ -98,10 +103,8 @@ public class AxisEditor extends JPanel {
      * properly.
      *
      * @param   axis   metadata of the axis to edit
-     * @param   lo     lower data bound
-     * @param   hi     upper data bound
      */
-    public void setAxis( ValueInfo axis, double lo, double hi ) {
+    public void setAxis( ValueInfo axis ) {
 
         /* Don't trigger actions while updating state. */
         labelField_.removeActionListener( actionForwarder_ );
@@ -124,10 +127,8 @@ public class AxisEditor extends JPanel {
                        ? name + " / " + unit
                        : name;
             labelField_.setText( txt );
-            loField_.setText( ( Double.isNaN( lo ) || Double.isInfinite( lo ) )
-                            ? "" : Double.toString( lo ) );
-            hiField_.setText( ( Double.isNaN( hi ) || Double.isInfinite( hi ) )
-                            ? "" : Double.toString( hi ) );
+            loField_.setText( "" );
+            hiField_.setText( "" );
         }
         axis_ = axis;
 
@@ -152,6 +153,34 @@ public class AxisEditor extends JPanel {
     }
 
     /**
+     * Adds a range which will be modified in accordance with changes of
+     * the state of this editor.  Note the converse does not apply:
+     * changes to <code>range</code> will not be refelected by this 
+     * component.
+     *
+     * @param   range  range to maintain
+     */
+    public void addMaintainedRange( Range range ) {
+        ranges_.add( range );
+    }
+
+    /**
+     * Removes a range previously added by {@link #addMaintainedRange}.
+     * Note that object identity not equality is used for removal.
+     *
+     * @param   range to unmaintain
+     */
+    public void removeMaintainedRange( Range range ) {
+
+        /* Note we want to use == not .equals(), so List.remove() is no good. */
+        for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
+            if ( it.next() == range ) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
      * Returns the currently requested data range.
      * The result is a 2-element array giving lower, then upper bounds
      * in that order.  Either or both elements may be Double.NaN, indicating
@@ -159,7 +188,7 @@ public class AxisEditor extends JPanel {
      *
      * @return  (lo,hi) array
      */
-    public double[] getRange() {
+    public double[] getAxisBounds() {
         double low = getLow();
         double high = getHigh();
         if ( low > high ) {
@@ -173,13 +202,21 @@ public class AxisEditor extends JPanel {
     }
 
     /**
+     * Clears the upper and lower bounds in this editor.
+     */
+    public void clearBounds() {
+        setAxisBounds( Double.NaN, Double.NaN );
+    }
+
+    /**
      * Set the requested lower and upper bounds for the axis being edited.
      * Either or both values may be Double.NaN, indicating no preferred limit.
+     * No listeners are informed.
      *
      * @param   low  lower bound
      * @param   high  upper bound
      */
-    public void setRange( double low, double high ) {
+    private void setAxisBounds( double low, double high ) {
         loField_.removeActionListener( actionForwarder_ );
         hiField_.removeActionListener( actionForwarder_ );
         loField_.setText( Double.isNaN( low ) ? "" : Double.toString( low ) );
@@ -260,7 +297,7 @@ public class AxisEditor extends JPanel {
     }
 
     /**
-     * Listens on field entries, ensuring that this compoenent is in a
+     * Listens on field entries, ensuring that this component is in a
      * consistent state.
      */
     private class AxisListener implements ActionListener {
@@ -275,6 +312,9 @@ public class AxisEditor extends JPanel {
                 if ( getHigh() < getLow() ) {
                     loField_.setText( "" );
                 }
+            }
+            for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
+                ((Range) it.next()).setBounds( getLow(), getHigh() );
             }
         }
     }
