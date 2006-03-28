@@ -121,6 +121,59 @@ public class Plot3D extends JPanel {
             }
             legend_.setStyles( psel.getStyles(), labels );
         }
+
+        /* Adjust internal state according to requested ranges. */
+        if ( state.getValid() ) {
+
+            /* Spherical range setting. */
+            if ( state instanceof SphericalPlotState ) {
+                double rmax = state.getRanges()[ 0 ][ 1 ];
+                loBounds_ = new double[ 3 ];
+                hiBounds_ = new double[ 3 ];
+                Arrays.fill( loBounds_, -rmax );
+                Arrays.fill( hiBounds_, +rmax );
+                loBoundsG_ = (double[]) loBounds_.clone();
+                hiBoundsG_ = (double[]) hiBounds_.clone();
+                final double range2 = rmax * rmax;
+                rangeChecker_ = new RangeChecker() {
+                    boolean inRange( double[] coords ) {
+                        return ( coords[ 0 ] * coords[ 0 ] +
+                                 coords[ 1 ] * coords[ 1 ] +
+                                 coords[ 2 ] * coords[ 2 ] ) <= range2;
+                    }
+                };
+            }
+
+            /* Cartesian range setting. */
+            else {
+                loBounds_ = new double[ 3 ];
+                hiBounds_ = new double[ 3 ];
+                loBoundsG_ = new double[ 3 ];
+                hiBoundsG_ = new double[ 3 ];
+                for ( int i = 0; i < 3; i++ ) {
+                    double lo = state.getRanges()[ i ][ 0 ];
+                    double hi = state.getRanges()[ i ][ 1 ];
+                    loBounds_[ i ] = lo;
+                    hiBounds_[ i ] = hi;
+                    boolean log = state.getLogFlags()[ i ];
+                    boolean flip = state.getFlipFlags()[ i ];
+                    double gLo = log ? Math.log( lo ) : lo;
+                    double gHi = log ? Math.log( hi ) : hi;
+                    loBoundsG_[ i ] = flip ? gHi : gLo;
+                    hiBoundsG_[ i ] = flip ? gLo : gHi;
+                }
+                rangeChecker_ = new RangeChecker() {
+                    boolean inRange( double[] coords ) {
+                        return coords[ 0 ] >= loBounds_[ 0 ]
+                            && coords[ 1 ] >= loBounds_[ 1 ]
+                            && coords[ 2 ] >= loBounds_[ 2 ]
+                            && coords[ 0 ] <= hiBounds_[ 0 ]
+                            && coords[ 1 ] <= hiBounds_[ 1 ]
+                            && coords[ 2 ] <= hiBounds_[ 2 ];
+                    }
+                };
+            }
+        }
     }
 
     /**
@@ -151,190 +204,6 @@ public class Plot3D extends JPanel {
      */
     public void setActivePoints( int[] ips ) {
         annotations_.setActivePoints( ips );
-    }
-
-    /**
-     * Resets the scaling so that all the data points known by this plot
-     * will be visible at all rotations.  This method sets 
-     * loBounds_, hiBounds_, loBoundsG_, hiBoundsG_ and rangeChecker_.
-     */
-    public void rescale() {
-        loBounds_ = null;
-        hiBounds_ = null;
-        loBoundsG_ = null;
-        hiBoundsG_ = null;
-        rangeChecker_ = null;
-        if ( getState() instanceof SphericalPlotState ) {
-            rescaleSpherical();
-        }
-        else {
-            rescaleCartesian();
-        }
-        assert loBounds_ != null;
-        assert hiBounds_ != null;
-        assert loBoundsG_ != null;
-        assert hiBoundsG_ != null;
-        assert rangeChecker_ != null;
-
-        lastVol_ = null;
-        lastTrans_ = null;
-    }
-
-    /**
-     * Rescale the data ranges in a way suitable for a Cartesian plot.
-     */
-    private void rescaleCartesian() {
-        boolean[] logFlags = getState().getLogFlags();
-        double[] loBounds = new double[ 3 ];
-        double[] hiBounds = new double[ 3 ];
-        for ( int i = 0; i < 3; i++ ) {
-            loBounds[ i ] = Double.MAX_VALUE;
-            hiBounds[ i ] = logFlags[ i ] ? Double.MIN_VALUE
-                                          : - Double.MAX_VALUE;
-        }
-        Points points = getPoints();
-        int np = points.getCount();
-        RowSubset[] sets = getPointSelection().getSubsets();
-        int nset = sets.length;
-
-        double[] coords = new double[ 3 ];
-        int nok = 0;
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            boolean use = false;
-            for ( int is = 0; is < nset && ! use; is++ ) {
-                use = use || sets[ is ].isIncluded( lp );
-            }
-            if ( use ) {
-                points.getCoords( ip, coords );
-                if ( ! Double.isNaN( coords[ 0 ] ) &&
-                     ! Double.isNaN( coords[ 1 ] ) &&
-                     ! Double.isNaN( coords[ 2 ] ) &&
-                     ! Double.isInfinite( coords[ 0 ] ) &&
-                     ! Double.isInfinite( coords[ 1 ] ) &&
-                     ! Double.isInfinite( coords[ 2 ] ) &&
-                     ! ( logFlags[ 0 ] && coords[ 0 ] <= 0.0 ) &&
-                     ! ( logFlags[ 1 ] && coords[ 1 ] <= 0.0 ) &&
-                     ! ( logFlags[ 2 ] && coords[ 2 ] <= 0.0 ) ) {
-                    nok++;
-                    for ( int id = 0; id < 3; id++ ) {
-                        loBounds[ id ] = Math.min( loBounds[ id ],
-                                                   coords[ id ] );
-                        hiBounds[ id ] = Math.max( hiBounds[ id ],
-                                                   coords[ id ] );
-                    }
-                }
-            }
-        }
-        for ( int i = 0; i < 3; i++ ) {
-            double[] range = getState().getRanges()[ i ];
-            if ( ! Double.isNaN( range[ 0 ] ) && 
-                 ( ! logFlags[ i ] || range[ 0 ] > 0.0 ) ) {
-                loBounds[ i ] = range[ 0 ];
-            }
-            if ( ! Double.isNaN( range[ 1 ] ) &&
-                 ( ! logFlags[ i ] || range[ 1 ] > 0.0 ) ) {
-                hiBounds[ i ] = range[ 1 ];
-            }
-            if ( nok == 0 ) {
-                loBounds[ i ] = logFlags[ i ] ? 1.0 : 0.0;
-                hiBounds[ i ] = logFlags[ i ] ? 10.0 : 1.0;
-            }
-            else if ( loBounds[ i ] == hiBounds[ i ] ) {
-                loBounds[ i ] = logFlags[ i ] ? loBounds[ i ] / 2.0
-                                              : loBounds[ i ] - 1.0;
-                hiBounds[ i ] = logFlags[ i ] ? hiBounds[ i ] * 2.0
-                                              : hiBounds[ i ] + 1.0;
-            }
-        }
-        loBounds_ = loBounds;
-        hiBounds_ = hiBounds;
-        loBoundsG_ = new double[ 3 ];
-        hiBoundsG_ = new double[ 3 ];
-        for ( int i = 0; i < 3; i++ ) {
-            double lo = loBounds_[ i ];
-            double hi = hiBounds_[ i ];
-            if ( logFlags[ i ] ) {
-                lo = Math.log( lo );
-                hi = Math.log( hi );
-            }
-            boolean flip = getState().getFlipFlags()[ i ];
-            loBoundsG_[ i ] = flip ? hi : lo;
-            hiBoundsG_[ i ] = flip ? lo : hi;
-        }
-
-        final double[] lo = (double[]) loBounds_.clone();
-        final double[] hi = (double[]) hiBounds_.clone();
-        rangeChecker_ = new RangeChecker() {
-            boolean inRange( double[] coords ) {
-                return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
-                    && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
-                    && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
-            }
-        };
-    }
-
-    /**
-     * Rescale the data ranges in a way suitable for a spherical polar plot.
-     * The result is a cube centred at the origin with each side equal
-     * to twice the maximum radius ((x^2 + y^2 + z^2)^0.5).
-     */
-    private void rescaleSpherical() {
-        SphericalPlotState state = (SphericalPlotState) getState();
-        double rangeMax = state.getRanges()[ 0 ][ 1 ];
-        if ( state.getRadialLog() ) {
-            rangeMax = Math.log( rangeMax );
-        }
-        double rmax;
-        if ( Double.isNaN( rangeMax ) || rangeMax <= 0.0 ) {
-            double r2max = 0.0;
-            Points points = getPoints();
-            int np = points.getCount();
-            RowSubset[] sets = getPointSelection().getSubsets();
-            int nset = sets.length;
-
-            /* Calculate the maximum radius of points being plotted. */
-            double[] coords = new double[ 3 ];
-            for ( int ip = 0; ip < np; ip++ ) {
-                long lp = (long) ip;
-                boolean use = false;
-                for ( int is = 0; is < nset && ! use; is++ ) {
-                    use = use || sets[ is ].isIncluded( lp );
-                }
-                if ( use ) {
-                    points.getCoords( ip, coords );
-                    double r2 = coords[ 0 ] * coords[ 0 ]
-                              + coords[ 1 ] * coords[ 1 ]
-                              + coords[ 2 ] * coords[ 2 ];
-                    if ( r2 > r2max && ! Double.isInfinite( r2 ) ) {
-                        r2max = r2;
-                    }
-                }
-            }
-            rmax = r2max > 0.0 ? Math.sqrt( r2max ) : 1.0;
-        }
-        else {
-            rmax = rangeMax;
-        }
-
-        /* Set the bounds arrays accordingly. */
-        double[] loBounds = new double[ 3 ];
-        double[] hiBounds = new double[ 3 ];
-        Arrays.fill( loBounds, -rmax );
-        Arrays.fill( hiBounds, +rmax );
-        loBounds_ = loBounds;
-        hiBounds_ = hiBounds;
-        loBoundsG_ = (double[]) loBounds.clone();
-        hiBoundsG_ = (double[]) hiBounds.clone();
-
-        final double range2 = rmax * rmax;
-        rangeChecker_ = new RangeChecker() {
-            boolean inRange( double[] coords ) {
-                return ( coords[ 0 ] * coords[ 0 ] +
-                         coords[ 1 ] * coords[ 1 ] +
-                         coords[ 2 ] * coords[ 2 ] ) <= range2;
-            }
-        };
     }
 
     /**

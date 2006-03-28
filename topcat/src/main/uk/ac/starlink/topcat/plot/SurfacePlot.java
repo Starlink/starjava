@@ -1,29 +1,32 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
+import java.util.AbstractList;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
- * Abstract superclass for plot components which display on 
+ * Abstract superclass for plot components which display on a
  * {@link PlotSurface}.  Note that the PlotSurface is not specified in
  * the constructor but must be set before any plotting is done.
  * This class mainly handles keeping track of the current state
  * (<code>PlotState</code>, <code>Points</code> and <code>PlotSurface</code>
  * members).  The actual work is done by the <code>paintComponent</code>
- * method of concrete subclasses.
+ * method of concrete subclasses.  It also provides zooming in X, Y and
+ * XY directions.
  *
  * <p>The details of the plot are determined by a {@link PlotState} object
  * which indicates what the plot will look like and a {@link Points}
  * object which provides the data to plot.  Setting these values does
  * not itself trigger a change in the component, they only take effect
  * when {@link #paintComponent} is called (e.g. following a {@link #repaint}
- * call).  The X and Y ranges of the displayed plot are not specified
- * programatically; they may be changed by user interaction.
+ * call).
  * The drawing of axes and other decorations is done by a decoupled
  * {@link PlotSurface} object (bridge pattern).
  *
@@ -35,12 +38,18 @@ public abstract class SurfacePlot extends JPanel implements Printable {
     private Points points_;
     private PlotState state_;
     private PlotSurface surface_;
+    private final SurfaceZoomRegions zoomRegions_;
+    private final Zoomer zoomer_;
 
     /**
      * Constructor.
      */
     protected SurfacePlot() {
         setLayout( new OverlayLayout( this ) );
+        zoomRegions_ = new SurfaceZoomRegions();
+        zoomer_ = new Zoomer();
+        zoomer_.setRegions( zoomRegions_ );
+        zoomer_.setCursorComponent( this );
     }
 
     /**
@@ -52,11 +61,18 @@ public abstract class SurfacePlot extends JPanel implements Printable {
      */
     public void setSurface( PlotSurface surface ) {
         if ( surface_ != null ) {
-            remove( surface_.getComponent() );
+            Component comp = surface_.getComponent();
+            remove( comp );
+            comp.removeMouseListener( zoomer_ );
+            comp.removeMouseMotionListener( zoomer_ );
         }
         surface_ = surface;
         surface_.setState( state_ );
-        add( surface_.getComponent() );
+
+        Component comp = surface_.getComponent();
+        add( comp );
+        comp.addMouseListener( zoomer_ );
+        comp.addMouseMotionListener( zoomer_ );
     }
 
     /**
@@ -120,49 +136,16 @@ public abstract class SurfacePlot extends JPanel implements Printable {
     }
 
     /**
-     * Updates the X and Y ranges of the plotting surface so that all the
-     * data points which are currently selected for plotting will fit in
-     * nicely.
-     */
-    public void rescale() {
-        double[] range = getState().getValid() ? getFullDataRange()
-                                               : null;
-        double xlo, ylo, xhi, yhi;
-        if ( range != null ) {
-            double[][] ranges = state_.getRanges();
-            xlo = ranges[ 0 ][ 0 ];
-            ylo = ranges[ 1 ][ 0 ];
-            xhi = ranges[ 0 ][ 1 ];
-            yhi = ranges[ 1 ][ 1 ];
-            xlo = Double.isNaN( xlo ) ? range[ 0 ] : xlo;
-            ylo = Double.isNaN( ylo ) ? range[ 1 ] : ylo;
-            xhi = Double.isNaN( xhi ) ? range[ 2 ] : xhi;
-            yhi = Double.isNaN( yhi ) ? range[ 3 ] : yhi;
-        }
-        else {
-            boolean xlog = false;
-            boolean ylog = false;
-            if ( state_ != null && state_.getLogFlags() != null ) {
-                xlog = state_.getLogFlags()[ 0 ];
-                ylog = state_.getLogFlags().length > 1 &&
-                       state_.getLogFlags()[ 1 ];
-            }
-            xlo = xlog ? 0.1 : 0.;
-            xhi = 1.;
-            ylo = ylog ? 0.1 : 0.;
-            yhi = 1.;
-        }
-        surface_.setDataRange( xlo, ylo, xhi, yhi );
-    }
-
-    /**
-     * Works out the range of coordinates to accommodate all the data
-     * points owned by this plot.  If no range can be determined, 
-     * null may be returned.
+     * Invoked when the user indicates by mouse gestures that a zoomed
+     * view is wanted.  The elements of the <code>bounds</code> array 
+     * are 2-element <code>double[]</code> arrays giving (lower, upper) 
+     * bounds of the range along each axis which is required.
+     * A null element indicates that no zooming along that axis is required.
+     * Boundary values are in data coordinates.
      *
-     * @return   4-element array (xlo,ylo,xhi,yhi)
+     * @param   bounds  zoom request details
      */
-    public abstract double[] getFullDataRange();
+    protected abstract void requestZoom( double[][] bounds );
 
     /**
      * Implements the {@link java.awt.print.Printable} interface.
@@ -205,6 +188,143 @@ public abstract class SurfacePlot extends JPanel implements Printable {
 
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
+        if ( state_.getValid() ) {
+            double[][] bounds = state_.getRanges();
+            surface_.setDataRange( bounds[ 0 ][ 0 ], bounds[ 1 ][ 0 ],
+                                   bounds[ 0 ][ 1 ], bounds[ 1 ][ 1 ] );
+        }
         g.clearRect( getX(), getY(), getWidth(), getHeight() );
+
+        zoomRegions_.configure( surface_.getClip().getBounds() );
+    }
+
+    /**
+     * List implementation containing as elements the zoom regions appropriate
+     * for this plot.
+     */
+    private class SurfaceZoomRegions extends AbstractList {
+
+        private boolean ok_;
+        private final Rectangle display_;
+        private final Rectangle xTarget_;
+        private final Rectangle yTarget_;
+        private final ZoomRegion[] regions_;
+
+        /**
+         * Constructor.
+         */
+        SurfaceZoomRegions() {
+            display_ = new Rectangle();
+            xTarget_ = new Rectangle();
+            yTarget_ = new Rectangle();
+            regions_ = new ZoomRegion[] {
+
+                /* Region for X/Y zooming on the main display surface. */
+                new XYZoomRegion( display_ ) {
+                    public void zoomed( double[][] bounds ) {
+                        double x0 = vToX( bounds[ 0 ][ 0 ] );
+                        double x1 = vToX( bounds[ 0 ][ 1 ] );
+                        double y0 = vToY( bounds[ 1 ][ 0 ] );
+                        double y1 = vToY( bounds[ 1 ][ 1 ] );
+                        boolean xflip = state_.getFlipFlags()[ 0 ];
+                        boolean yflip = state_.getFlipFlags()[ 1 ];
+                        requestZoom( new double[][] {
+                            xflip ? new double[] { x1, x0 }
+                                  : new double[] { x0, x1 },
+                            yflip ? new double[] { y0, y1 }
+                                  : new double[] { y1, y0 },
+                        } );
+                    }
+                },
+
+                /* Region for X zooming below the X axis. */
+                new AxisZoomRegion( true, xTarget_, display_ ) {
+                    public void zoomed( double[][] bounds ) {
+                        double x0 = vToX( bounds[ 0 ][ 0 ] );
+                        double x1 = vToX( bounds[ 0 ][ 1 ] );
+                        boolean xflip = state_.getFlipFlags()[ 0 ];
+                        requestZoom( new double[][] { 
+                            xflip ? new double[] { x1, x0 }
+                                  : new double[] { x0, x1 },
+                            null,
+                        } );
+                    }
+                },
+
+                /* Region for Y zooming to the left of the Y axis. */
+                new AxisZoomRegion( false, yTarget_, display_ ) {
+                    public void zoomed( double[][] bounds ) {
+                        double y0 = vToY( bounds[ 0 ][ 0 ] );
+                        double y1 = vToY( bounds[ 0 ][ 1 ] );
+                        boolean yflip = state_.getFlipFlags()[ 1 ];
+                        requestZoom( new double[][] {
+                            null,
+                            yflip ? new double[] { y0, y1 }
+                                  : new double[] { y1, y0 },
+                        } );
+                    }
+                },
+            };
+        }
+
+        public int size() {
+            return ok_ ? regions_.length : 0;
+        }
+
+        public Object get( int index ) {
+            return ok_ ? regions_[ index ] : null;
+        }
+
+        /**
+         * Configures this list appropriately for a given display region.
+         *
+         * @param   display  rectangle giving the part of the component on
+         *          which the data is actually plotted (between the axes)
+         */
+        public void configure( Rectangle display ) {
+            if ( display != null ) {
+                ok_ = true;
+
+                display_.x = display.x;
+                display_.y = display.y;
+                display_.width = display.width;
+                display_.height = display.height;
+
+                xTarget_.x = display.x;
+                xTarget_.y = display.y + display.height;
+                xTarget_.width = display.width;
+                xTarget_.height = getHeight() - display_.y - display_.height;
+
+                yTarget_.x = 0;
+                yTarget_.y = display.y;
+                yTarget_.width = display.x;
+                yTarget_.height = display.height;
+            }
+            else {
+                ok_ = false;
+            }
+        }
+
+        /**
+         * Converts a dimensionless X value to a value in X data coordinates.
+         *
+         * @param   v  dimensionless value along the X axis
+         * @return  value in X data coordinates
+         */
+        private double vToX( double v ) {
+            int i = (int) Math.round( display_.x + v * display_.width );
+            return surface_.graphicsToData( i, display_.y, false )[ 0 ];
+        }
+
+        /**
+         * Converts a dimensionless Y value to a value in Y data coordinates.
+         *
+         * @param  v  dimensionless value along the Y axis
+         * @return  value in Y data coordinates
+         */
+        private double vToY( double v ) {
+            int i = (int) Math.round( display_.y + v * display_.height );
+            return surface_.graphicsToData( display_.x, i, false )[ 1 ];
+        }
     }
 }

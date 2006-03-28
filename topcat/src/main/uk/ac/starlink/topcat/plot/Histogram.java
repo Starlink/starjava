@@ -13,7 +13,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor
  * @since    11 Nov 2005
  */
-public class Histogram extends SurfacePlot {
+public abstract class Histogram extends SurfacePlot {
 
     private BinnedData binned_;
     private Points lastPoints_;
@@ -44,44 +44,6 @@ public class Histogram extends SurfacePlot {
             binned_ = null;
             lastPointSelection_ = state.getPointSelection();
         }
-    }
-
-    public double[] getFullDataRange() {
-        HistogramPlotState state = (HistogramPlotState) getState();
-        boolean xlog = state.getLogFlags()[ 0 ];
-        boolean cumulative = state.getCumulative();
-        double xlo = Double.POSITIVE_INFINITY;
-        double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-        int nset = getPointSelection().getSubsets().length;
-        int[] yhis = new int[ nset ];
-
-        boolean someData = false;
-        for ( Iterator it = getBinnedData().getBinIterator( false );
-              it.hasNext(); ) {
-            BinnedData.Bin bin = (BinnedData.Bin) it.next();
-            boolean included = false;
-            for ( int iset = 0; iset < nset; iset++ ) {
-                int count = bin.getCount( iset );
-                if ( count > 0 ) {
-                    included = true;
-                    yhis[ iset ] = cumulative ? yhis[ iset ] + count
-                                              : Math.max( yhis[ iset ], count );
-                }
-            }
-            if ( included ) {
-                someData = true;
-                xlo = Math.min( xlo, bin.getLowBound() );
-                xhi = Math.max( xhi, bin.getHighBound() );
-            }
-        }
-
-        int yhi = 0;
-        for ( int iset = 0; iset < nset; iset++ ) {
-            yhi = Math.max( yhi, yhis[ iset ] );
-        }
-
-        return someData ? new double[] { xlo, 0.0, xhi, (double) yhi }
-                        : null;
     }
 
     /**
@@ -255,94 +217,6 @@ public class Histogram extends SurfacePlot {
             }
         }
         return mask;
-    }
-
-    private double[] getVisibleYRange() {
-        HistogramPlotState state = (HistogramPlotState) getState();
-        boolean xflip = state.getFlipFlags()[ 0 ];
-        boolean cumulative = state.getCumulative();
-        double[] bounds = getSurfaceBounds();
-        double xbot = bounds[ 0 ];
-        double xtop = bounds[ 2 ];
-        int nset = getPointSelection().getSubsets().length;
-        boolean someData = false;
-        double[] ybots = new double[ nset ];
-        double[] ytops = new double[ nset ];
-        long[] counts = new long[ nset ];
-        for ( int iset = 0; iset < nset; iset++ ) {
-            ybots[ iset ] = Double.MAX_VALUE;
-            ytops[ iset ] = 0.0;
-        }
-        for ( Iterator it = getBinnedData().getBinIterator( false );
-              it.hasNext(); ) {
-            BinnedData.Bin bin = (BinnedData.Bin) it.next();
-            double xlo = bin.getLowBound();
-            double xhi = bin.getHighBound();
-            if ( xlo >= xbot && xhi <= xtop ) {
-                for ( int iset = 0; iset < nset; iset++ ) {
-                    int count = bin.getCount( iset );
-                    counts[ iset ] = cumulative ? counts[ iset ] + count
-                                                : count;
-                    if ( counts[ iset ] > 0 ) {
-                        someData = true;
-                        ytops[ iset ] = Math.max( ytops[ iset ],
-                                                  counts[ iset ] );
-                        ybots[ iset ] = Math.min( ybots[ iset ],
-                                                  counts[ iset ] );
-                    }
-                }
-            }
-        }
-        if ( someData ) {
-            double ybot = Double.MAX_VALUE;
-            double ytop = 0.0;
-            for ( int iset = 0; iset < nset; iset++ ) {
-                ybot = Math.min( ybot, ybots[ iset ] );
-                ytop = Math.max( ytop, ytops[ iset ] );
-            }
-            return new double[] { ybot, ytop };
-        }
-        else {
-            return new double[] { Double.NaN, Double.NaN };
-        }
-    }
-
-    /**
-     * Requests a rescale in the X and/or Y direction to fit the current data.
-     *
-     * @param   scaleX   whether to scale in X direction
-     * @param   scaleY   whether to scale in Y direction
-     */
-    public void rescale( boolean scaleX, boolean scaleY ) {
-        if ( scaleX && scaleY ) {
-            rescale();
-        }
-        else if ( scaleX ) {
-            double[] xrange =
-                HistogramWindow.getXRange( getState(), getPoints() );
-            getSurface().setDataRange( xrange[ 0 ], Double.NaN,
-                                       xrange[ 1 ], Double.NaN );
-        }
-        else if ( scaleY ) {
-            double[] yrange = getVisibleYRange();
-            getSurface().setDataRange( Double.NaN, 0.0,
-                                       Double.NaN, yrange[ 1 ] );
-        }
-        else {
-            assert false : "Not much of a rescale";
-        }
-    }
-
-    public void scaleYFactor( double factor ) {
-        double[] bounds = getSurfaceBounds();
-        if ( ! getState().getLogFlags()[ 1 ] ) {
-            getSurface().setDataRange( Double.NaN, bounds[ 1 ] * factor,
-                                       Double.NaN, bounds[ 3 ] * factor );
-        }
-        else {
-            getSurface().setDataRange( Double.NaN, bounds[ 1 ],
-                                       Double.NaN, bounds[ 3 ] + factor );
-        }
     }
 
     /**

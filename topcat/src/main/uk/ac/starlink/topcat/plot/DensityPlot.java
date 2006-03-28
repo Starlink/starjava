@@ -29,7 +29,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor
  * @since    29 Nov 2005
  */
-public class DensityPlot extends SurfacePlot {
+public abstract class DensityPlot extends SurfacePlot {
 
     private BinGrid[] grids_;
     private double[] gridLoBounds_;
@@ -51,17 +51,8 @@ public class DensityPlot extends SurfacePlot {
         super();
         setPreferredSize( new Dimension( 400, 400 ) );
         surface.getComponent().setOpaque( false );
-
-        /* I'd like to add these components in the opposite order, so that
-         * the grid lines are drawn over the top of the plot.  However, 
-         * it doesn't work, because the surface only works out its
-         * dimensions during its paintComponent method, and if that isn't
-         * called first then the DensityDataPanel draws itself using
-         * the wrong geometry. */
-        // setSurface( surface );
-        // add( new DensityDataPanel() );
-        add( new DensityDataPanel() );
         setSurface( surface );
+        add( new DensityDataPanel() );
     }
 
     public void setState( PlotState state ) {
@@ -80,59 +71,6 @@ public class DensityPlot extends SurfacePlot {
             image_ = null;
         }
         super.setPoints( points );
-    }
-
-    public double[] getFullDataRange() {
-        boolean xlog = getState().getLogFlags()[ 0 ];
-        boolean ylog = getState().getLogFlags()[ 1 ];
-        double xlo = Double.POSITIVE_INFINITY;
-        double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-        double ylo = Double.POSITIVE_INFINITY;
-        double yhi = ylog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-
-        int nok = 0;
-        Points points = getPoints();
-        if ( points != null ) {
-            RowSubset[] rsets = getPointSelection().getSubsets();
-            int nrset = rsets.length;
-            int np = points.getCount();
-            double[] coords = new double[ 2 ];
-            for ( int ip = 0; ip < np; ip++ ) {
-
-                /* First see if this point will be plotted. */
-                boolean use = false;
-                long lp = (long) ip;
-                for ( int is = 0; ! use && is < nrset; is++ ) {
-                    use = use || rsets[ is ].isIncluded( lp );
-                }
-                if ( use ) {
-                    points.getCoords( ip, coords );
-                    double xp = coords[ 0 ];
-                    double yp = coords[ 1 ];
-                    if ( ! Double.isNaN( xp ) &&
-                         ! Double.isNaN( yp ) &&
-                         ! Double.isInfinite( xp ) &&
-                         ! Double.isInfinite( yp ) &&
-                         ( ! xlog || xp > 0.0 ) &&
-                         ( ! ylog || yp > 0.0 ) ) {
-                        nok++;
-                        if ( xp < xlo ) {
-                            xlo = xp;
-                        }
-                        if ( xp > xhi ) {
-                            xhi = xp;
-                        }
-                        if ( yp < ylo ) {
-                            ylo = yp;
-                        }
-                        if ( yp > yhi ) {
-                            yhi = yp;
-                        }
-                    }
-                }
-            }
-        }
-        return nok == 0 ? null : new double[] { xlo, ylo, xhi, yhi };
     }
 
     /**
