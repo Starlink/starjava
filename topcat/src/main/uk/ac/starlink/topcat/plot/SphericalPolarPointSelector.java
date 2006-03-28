@@ -129,8 +129,8 @@ public class SphericalPolarPointSelector extends PointSelector {
          * Override the default implementation of setAxis so that only
          * the upper bound can be set - the lower bound is always zero. */
         final AxisEditor ed = new AxisEditor( "Radial" ) {
-            public void setAxis( ValueInfo axis, double lo, double hi ) {
-                super.setAxis( axis, lo, hi );
+            public void setAxis( ValueInfo axis ) {
+                super.setAxis( axis );
                 loField_.setText( "" );
                 loField_.setEnabled( false );
             }
@@ -138,8 +138,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         rSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
-                ed.setAxis( cdata == null ? null : cdata.getColumnInfo(),
-                            Double.NaN, Double.NaN );
+                ed.setAxis( cdata == null ? null : cdata.getColumnInfo() );
             }
         } );
         return new AxisEditor[] { ed };

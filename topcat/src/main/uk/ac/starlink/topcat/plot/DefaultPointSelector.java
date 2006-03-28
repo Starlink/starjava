@@ -135,8 +135,8 @@ public class DefaultPointSelector extends PointSelector {
             csel.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     ColumnData cdata = (ColumnData) csel.getSelectedItem();
-                    axed.setAxis( cdata == null ? null : cdata.getColumnInfo(),
-                                  Double.NaN, Double.NaN );
+                    axed.setAxis( cdata == null ? null
+                                                : cdata.getColumnInfo() );
                 }
             } );
             eds[ i ] = axed;
