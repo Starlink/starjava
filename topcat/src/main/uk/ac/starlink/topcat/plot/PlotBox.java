@@ -294,9 +294,9 @@ class PlotBox extends JPanel implements Printable {
 
         // Create a right-justified layout with spacing of 2 pixels.
         setLayout(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-        addMouseListener(new ZoomListener());
+//      addMouseListener(new ZoomListener());
 //      addKeyListener(new CommandListener());
-        addMouseMotionListener(new DragListener());
+//      addMouseMotionListener(new DragListener());
         // This is something we want to do only once...
         _measureFonts();
         // Request the focus so that key events are heard.
@@ -1839,7 +1839,7 @@ class PlotBox extends JPanel implements Printable {
         }
 
         // NOTE: subjective tick length.
-        int tickLength = 5;
+        int tickLength = _tickLength;
         int xCoord1 = _ulx+tickLength;
         int xCoord2 = _lrx-tickLength;
 
@@ -2536,6 +2536,9 @@ class PlotBox extends JPanel implements Printable {
 
     /** @serial Indicator whether to use _colors. */
     protected boolean _usecolor = true;
+
+    /** Length of tickmarks. */
+    protected int _tickLength = 5;
 
     // Default _colors, by data set.
     // There are 11 colors so that combined with the
