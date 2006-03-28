@@ -172,20 +172,6 @@ public class LinesPlotState extends PlotState {
         return graphIndices_;
     }
 
-    public boolean sameAxes( PlotState o ) {
-        if ( super.sameAxes( o ) && o instanceof LinesPlotState ) {
-            LinesPlotState other = (LinesPlotState) o;
-            return Arrays.equals( yAxes_, other.yAxes_ )
-                && equalRanges( yRanges_, other.yRanges_ )
-                && Arrays.equals( graphIndices_, other.graphIndices_ )
-                && Arrays.equals( yLogFlags_, other.yLogFlags_ )
-                && Arrays.equals( yFlipFlags_, other.yFlipFlags_ );
-        }
-        else {
-            return false;
-        }
-    }
-
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof LinesPlotState ) {
             LinesPlotState other = (LinesPlotState) o;

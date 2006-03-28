@@ -6,6 +6,9 @@ import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Characterises the details of how a plot is to be done.
+ * An instance of this class contains all the information which a 
+ * plot component needs to draw a plot, apart from the Points data itself.
+ * There are specific subclasses for the various different plot types.
  *
  * @author   Mark Taylor (Starlink)
  * @since    21 Jun 2004
@@ -141,12 +144,8 @@ public class PlotState {
     /**
      * Sets data ranges for each axis.
      * <code>ranges</code> is an N-element array of 2-element double arrays.
-     * Each of its elements gives (low,high) limits for the data to be 
-     * considered.  Either or both elements may be NaN.
-     * A non-NaN value is considered as a request to fix the lower/upper
-     * limit of the indicated axis to the value given.  A NaN value
-     * normally means that the limit should be determined dynamically
-     * (by assessing the range of the available data points).
+     * Each of its elements gives (low,high) limits for one dimension 
+     * of the region to be displayed.
      *
      * @param   ranges   array of (low,high) fixed range limits
      */
@@ -202,37 +201,6 @@ public class PlotState {
         return pointSelection_;
     }
 
-    /**
-     * Indicates whether the data required to plot this state differs 
-     * from the data required to plot another.  Only if this method
-     * returns true can two PlotStates be used with the same Points object.
-     *
-     * @param   state for comparison
-     * @return  true if <code>other</code> can be used with the same Points
-     */
-    public boolean sameData( PlotState other ) {
-        return other != null
-            && ( pointSelection_ == null 
-                    ? other.pointSelection_ == null
-                    : pointSelection_.sameData( other.pointSelection_ ) );
-    }
-
-    /**
-     * Indicates whether the axes of this plot state are the same as
-     * those for <code>other</code>, that is whether the same data
-     * range is covered.
-     *
-     * @param  other  comparison object
-     * @return   true  if the axes match
-     */
-    public boolean sameAxes( PlotState other ) {
-        return other != null
-            && Arrays.equals( axes_, other.axes_ )
-            && Arrays.equals( logFlags_, other.logFlags_ )
-            && Arrays.equals( flipFlags_, other.flipFlags_ )
-            && equalRanges( ranges_, other.ranges_ );
-    }
-
     public boolean equals( Object otherObject ) {
         if ( ! ( otherObject instanceof PlotState ) ) {
             return false;
@@ -251,6 +219,15 @@ public class PlotState {
                     : pointSelection_.equals( other.pointSelection_ ) );
     }
 
+    /**
+     * Returns a string giving a list of items in which this state differs
+     * from a given state <code>o</code>.  This method is used only for
+     * debugging purposes, and may not be fully implemented at any given
+     * time.
+     *
+     * @param  o  state for comparison with this one
+     * @return   text summary of differences
+     */
     String compare( PlotState o ) {
         StringBuffer sbuf = new StringBuffer( "Mismatches:" );
         sbuf.append( valid_ == o.valid_ ? "" : " valid" );

@@ -77,16 +77,6 @@ public class HistogramPlotState extends PlotState {
         return cumulative_;
     }
 
-    public boolean sameAxes( PlotState other ) {
-        if ( other instanceof HistogramPlotState ) {
-            return super.sameAxes( other ) 
-                && this.cumulative_ == ((HistogramPlotState) other).cumulative_;
-        } 
-        else {
-            return false;
-        }
-    }
-
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof HistogramPlotState ) {
             HistogramPlotState other = (HistogramPlotState) o;
