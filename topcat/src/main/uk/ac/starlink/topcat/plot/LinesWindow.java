@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -14,8 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
@@ -23,6 +27,8 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * GraphicsWindow which draws a stack of line graphs.
@@ -36,6 +42,15 @@ public class LinesWindow extends GraphicsWindow {
     private final ToggleButtonModel antialiasModel_;
     private Range[] yDataRanges_;
     private final Map yViewRangeMap_;
+
+    private StyleSet styles_;
+
+    private final static Color[] COLORS;
+    static {
+        COLORS = new Color[ Styles.COLORS.length + 1 ];
+        COLORS[ 0 ] = Color.BLACK;
+        System.arraycopy( Styles.COLORS, 0, COLORS, 1, Styles.COLORS.length );
+    }
 
     /**
      * Constructor.
@@ -67,6 +82,14 @@ public class LinesWindow extends GraphicsWindow {
         
         getPointSelectors().addActionListener( new AxisWindowUpdater() );
 
+        /* Add a status line reporting on cursor position. */
+        JComponent posLabel = plot_.createPositionLabel();
+        posLabel.setMaximumSize( new Dimension( Integer.MAX_VALUE,
+                                                posLabel.getMaximumSize()
+                                                        .height ) );
+        getStatusBox().add( posLabel );
+        getStatusBox().add( Box.createHorizontalGlue() );
+
         /* Rescaling actions. */
         Action rescaleActionXY =
             new RescaleAction( "Rescale", ResourceIcon.RESIZE,
@@ -89,13 +112,23 @@ public class LinesWindow extends GraphicsWindow {
         antialiasModel_.setSelected( true );
         antialiasModel_.addActionListener( getReplotListener() );
 
+        /* Construct a new menu for general plot operations. */
+        JMenu plotMenu = new JMenu( "Plot" );
+        plotMenu.setMnemonic( KeyEvent.VK_P );
+        plotMenu.add( rescaleActionXY );
+        plotMenu.add( rescaleActionX );
+        plotMenu.add( rescaleActionY );
+        plotMenu.add( getReplotAction() );
+        getJMenuBar().add( plotMenu );
+
         /* Populate toolbar. */
-        getToolBar().add( antialiasModel_.createToolbarButton() );
         getToolBar().add( rescaleActionXY );
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getReplotAction() );
+        getToolBar().add( antialiasModel_.createToolbarButton() );
+        getToolBar().addSeparator();
 
         /* Add standard help actions. */
         addHelp( "LinesWindow" );
@@ -131,6 +164,7 @@ public class LinesWindow extends GraphicsWindow {
 
         /* Configure Y axis and range information for each plot. */
         ValueInfo[] yAxes = new ValueInfo[ nsel ];
+        ValueConverter[] yConverters = new ValueConverter[ nsel ];
         String[] yAxisLabels = new String[ nsel ];
         double[][] yBounds = new double[ nsel ][];
         boolean[] yLogFlags = new boolean[ nsel ];
@@ -143,7 +177,12 @@ public class LinesWindow extends GraphicsWindow {
             Range yRange;
             if ( psel.isValid() ) {
                 AxisEditor yAxEd = axEds[ 1 + isel ];
-                yAxes[ isel ] = psel.getData().getColumnInfo( 1 );
+                ColumnInfo cinfo = psel.getData().getColumnInfo( 1 );
+                yAxes[ isel ] = cinfo;
+                yConverters[ isel ] =
+                    (ValueConverter)
+                    cinfo.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
+                                            ValueConverter.class );
                 yAxisLabels[ isel ] = yAxEd.getLabel();
                 yLogFlags[ isel ] = psel.getYLogModel().isSelected();
                 yFlipFlags[ isel ] = psel.getYFlipModel().isSelected();
@@ -158,6 +197,7 @@ public class LinesWindow extends GraphicsWindow {
             yBounds[ isel ] = yRange.getFiniteBounds( yLogFlags[ isel ] );
         }
         state.setYAxes( yAxes );
+        state.setYConverters( yConverters );
         state.setYAxisLabels( yAxisLabels );
         state.setYRanges( yBounds );
         state.setYLogFlags( yLogFlags );
@@ -195,9 +235,7 @@ public class LinesWindow extends GraphicsWindow {
         logModel.addActionListener( getReplotListener() );
         flipModel.addActionListener( getReplotListener() );
         LinesPointSelector newSelector =
-            new LinesPointSelector( logModel, flipModel );
-        newSelector.setStyles( new PoolStyleSet( getDefaultStyles( 0 ),
-                                                 new BitSet() ) );
+            new LinesPointSelector( getStyles(), logModel, flipModel );
 
         /* Work out if there is a default X axis we should initialise the
          * new selector with.  We'll do this if all the existing valid
@@ -246,21 +284,27 @@ public class LinesWindow extends GraphicsWindow {
         return new LinesStyleEditor();
     }
 
+    public void setStyles( StyleSet styles ) {
+        styles_ = styles;
+    }
+
+    public MutableStyleSet getStyles() {
+        if ( styles_ == null ) {
+            styles_ = getDefaultStyles( 0 );
+        }
+
+        /* Note that, unlike the default GraphicsWindow behaviour, we 
+         * return a styleset which is independent each time here rather
+         * than one which keeps track of which styles have been dispensed.
+         * That's because in a lines plot, it makes sense to use the
+         * same style for different data sets (as they're not plotted
+         * over each other). */
+        return new PoolStyleSet( styles_, new BitSet() );
+    }
+
     public StyleSet getDefaultStyles( int npoint ) {
-        final MarkStyle lineStyle = 
-            (MarkStyle) MarkStyles.points( null ).getStyle( 0 );
-        lineStyle.setColor( Color.BLACK );
-        boolean many = npoint > 2000;
-        lineStyle.setLine( many ? null : MarkStyle.DOT_TO_DOT );
-        lineStyle.setHidePoints( ! many );
-        return new StyleSet() {
-            public String getName() {
-                return "Lines";
-            }
-            public Style getStyle( int index ) {
-                return lineStyle;
-            }
-        };
+        return npoint < 2000 ? MarkStyles.lines( "lines", COLORS )
+                             : MarkStyles.points( "points", COLORS );
     }
 
     /**
@@ -496,12 +540,14 @@ public class LinesWindow extends GraphicsWindow {
         /**
          * Constructor.
          *
+         * @param  styles      initial style set
          * @param  yLogModel   toggler for Y axis log scaling
          * @param  yFlipModel  toggler for Y axis inverted sense
          */
-        LinesPointSelector( ToggleButtonModel yLogModel,
+        LinesPointSelector( MutableStyleSet styles,
+                            ToggleButtonModel yLogModel,
                             ToggleButtonModel yFlipModel ) {
-            super( new String[] { "X", "Y" },
+            super( styles, new String[] { "X", "Y" },
                    new DefaultPointSelector.ToggleSet[] {
                        new DefaultPointSelector.ToggleSet(
                            "Log", new ToggleButtonModel[] { null,
