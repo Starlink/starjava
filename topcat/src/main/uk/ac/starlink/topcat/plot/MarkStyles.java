@@ -21,12 +21,24 @@ public class MarkStyles {
      * @return  style set providing coloured pixels
      */
     public static StyleSet points( final String name ) {
+        return points( name, Styles.COLORS );
+    }
+
+    /**
+     * Returns a style set which gives pixels using a given sequence of colours.
+     *
+     * @param   name  set name
+     * @param   colors  colour sequence
+     * @return  style set providing coloured pixels
+     */
+    public static StyleSet points( final String name, final Color[] colors ) {
         return new StyleSet() {
             public String getName() {
                 return name;
             }
             public Style getStyle( int index ) {
-                return MarkShape.POINT.getStyle( Styles.getColor( index ), 1 );
+                Color color = colors[ Math.abs( index ) % colors.length ];
+                return MarkShape.POINT.getStyle( color, 1 );
             }
         };
     }
@@ -170,6 +182,40 @@ public class MarkStyles {
                     icon.paintIcon( c, g, x, y );
                     x += separation + icon.getIconWidth();
                 }
+            }
+        };
+    }
+
+    /**
+     * Returns a style set which draws lines using a default 
+     * sequence of colours.
+     *
+     * @param   name  set name
+     * @return  style set providing coloured lines
+     */
+    public static StyleSet lines( final String name ) {
+        return lines( name, Styles.COLORS );
+    }
+
+    /**
+     * Returns a style set which draws lines using a given sequence of colours.
+     *
+     * @param   name  set name
+     * @param   colors  colour sequence
+     * @return  style set providing coloured lines
+     */
+    public static StyleSet lines( final String name, final Color[] colors ) {
+        return new StyleSet() {
+            public String getName() {
+                return name;
+            }
+            public Style getStyle( int index ) {
+                Color color = colors[ Math.abs( index ) % colors.length ];
+                MarkStyle style =
+                    (MarkStyle) MarkShape.POINT.getStyle( color, 1 );
+                style.setLine( MarkStyle.DOT_TO_DOT );
+                style.setHidePoints( true );
+                return style;
             }
         };
     }
