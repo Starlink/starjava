@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -10,7 +11,11 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
 
@@ -25,6 +30,7 @@ public abstract class LinesPlot extends JComponent {
     private LinesPlotState state_;
     private Points points_;
     private Zoomer zoomer_;
+    private PlotSurface[] surfaces_;
 
     /** Gives the fractional gap between data extrema and edge of plot. */
     private double padRatio_ = 0.02;
@@ -287,6 +293,9 @@ public abstract class LinesPlot extends JComponent {
                 }
             }
         }
+
+        /* Store graph set. */
+        surfaces_ = graphs;
     }
 
     /**
@@ -309,6 +318,16 @@ public abstract class LinesPlot extends JComponent {
     protected abstract void requestZoomY( int igraph,
                                           double y0, double y1 );
 
+    /**
+     * Returns a component which will display the current position of
+     * the mouse pointer when it is in this component.
+     *
+     * @return   position display component
+     */
+    public JComponent createPositionLabel() {
+        return new LinesPositionLabel();
+    }
+
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
         if ( isOpaque() ) {
@@ -317,5 +336,110 @@ public abstract class LinesPlot extends JComponent {
             g1.fillRect( 0, 0, getWidth(), getHeight() );
         }
         drawData( g, this );
+    }
+
+    /**
+     * Component which can display the current coordinates of the cursor
+     * in this plot.
+     *
+     * @see  PositionLabel
+     */
+    private class LinesPositionLabel extends JLabel
+                                     implements MouseMotionListener {
+        private int isurf_;
+        private PlotSurface surface_;
+        private PositionReporter reporter_;
+
+        /**
+         * Constructor.
+         */
+        LinesPositionLabel() {
+            setFont( new Font( "Monospaced", getFont().getStyle(),
+                               getFont().getSize() ) );
+            setBorder( BorderFactory.createEtchedBorder() );
+            LinesPlot.this.addMouseMotionListener( this );
+            reportPosition( null );
+        }
+
+        public void mouseMoved( MouseEvent evt ) {
+            reportPosition( evt.getPoint() );
+        }
+
+        public void mouseDragged( MouseEvent evt ) {
+            reportPosition( evt.getPoint() );
+        }
+
+        /**
+         * Reports the position at a given point by drawing as the text
+         * content of this label.
+         *
+         * @param   p  position
+         */
+        void reportPosition( Point p ) {
+            PositionReporter reporter = getReporter( p );
+            StringBuffer sbuf = new StringBuffer( "Position: " );
+            if ( reporter != null ) {
+                String[] fc = reporter.formatPosition( p.x, p.y );
+                if ( fc != null ) {
+                    sbuf.append( '(' )
+                        .append( fc[ 0 ] )
+                        .append( ", " )
+                        .append( fc[ 1 ] )
+                        .append( ')' );
+                }
+            }
+            setText( sbuf.toString() );
+        }
+
+        /**
+         * Returns a reporter object which corresponds to the given position.
+         *
+         * @param   p  point at which reporting is required
+         * @return  position reporter which knows about coordinates
+         *          at <code>p</code> (may be null if invalid position)
+         */
+        private PositionReporter getReporter( Point p ) {
+
+            /* No point, no reporter. */
+            if ( p == null ) {
+                return null;
+            }
+
+            /* If the reporter required is the same as for the last call
+             * to this method, and if that reporter is still valid for
+             * this plot, return the same one. */
+            else if ( isurf_ < surfaces_.length &&
+                      surface_ == surfaces_[ isurf_ ] &&
+                      surface_.getClip().contains( p ) ) {
+                return reporter_;
+            }
+
+            /* Otherwise, create a new suitable reporter if necessary. */
+            else {
+
+                /* Search through the plot surfaces corresponding to the
+                 * graphs plotted last time we did a paint. */
+                for ( int isurf = 0; isurf < surfaces_.length; isurf++ ) {
+                    PlotSurface surf = surfaces_[ isurf ];
+                    if ( surf.getClip().contains( p ) ) {
+
+                        /* If the point is within one, construct a new 
+                         * suitable reporter, save it and enough information
+                         * to be able to tell whether it's still valid later,
+                         * and return it. */
+                        isurf_ = isurf;
+                        surface_ = surf;
+                        reporter_ = new PositionReporter( surf ) {
+                            protected void reportPosition( String[] coords ) {
+                            }
+                        };
+                        return reporter_;
+                    }
+                }
+
+                /* Point not in any of the known graphs - return null. */
+                return null;
+            }
+        }
     }
 }
