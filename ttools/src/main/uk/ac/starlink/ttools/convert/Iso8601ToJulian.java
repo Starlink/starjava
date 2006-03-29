@@ -103,6 +103,21 @@ public class Iso8601ToJulian implements ValueConverter {
         }
     }
 
+    public Object unconvert( Object out ) {
+        if ( out instanceof Number ) {
+            double julian = ((Number) out).doubleValue();
+            if ( Double.isNaN( julian ) || Double.isInfinite( julian ) ) {
+                return null;
+            }
+            else {
+                return mjdToIso( julianToMjd( julian ) );
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
     public String toString() {
         return "ISO-8601->Julian Year";
     }
@@ -210,6 +225,16 @@ public class Iso8601ToJulian implements ValueConverter {
      */
     private static String mjdToIso( double mjd ) {
         return formatMjd( mjd, getKit().isoDateTimeFormat_ );
+    }
+
+    /**
+     * Converts a Julian Epoch to Modified Julian Date.
+     *
+     * @param  julianEpoch  Julian epoch
+     * @return   modified Julian date
+     */
+    public static double julianToMjd( double julianEpoch ) {
+        return pal_.Epj2d( julianEpoch );
     }
 
     /**

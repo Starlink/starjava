@@ -60,6 +60,23 @@ public class SexagesimalToDegrees implements ValueConverter {
         }
     }
 
+    public Object unconvert( Object out ) {
+        if ( out instanceof Number ) {
+            double deg = ((Number) out).doubleValue();
+            if ( Double.isNaN( deg ) || Double.isInfinite( deg ) ) {
+                return null;
+            }
+            else {
+                double rad = Math.toRadians( deg );
+                return hours_ ? Coords.radiansToHms( rad, 3 )
+                              : Coords.radiansToDms( rad, 2 );
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
     public String toString() {
         return hours_ ? "HMS->degrees"
                       : "DMS->degrees";

@@ -37,4 +37,14 @@ public interface ValueConverter {
      * @return   corresponding object of output type
      */
     Object convert( Object in );
+
+    /**
+     * Performs a reverse conversion, from the output type to the input type.
+     * In general if the conversion cannot be done, a null value should
+     * be returned rather than throwing an unchecked exception.
+     *
+     * @param  out  object of output type
+     * @return  corresponding object of input type
+     */
+    Object unconvert( Object out );
 }
