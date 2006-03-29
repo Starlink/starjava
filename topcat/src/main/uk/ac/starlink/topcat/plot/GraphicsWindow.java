@@ -411,7 +411,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * Performs an actual plot.  Concrete subclasses should implement this
      * to paint the component according to the given <code>state</code>
      * and <code>points</code>.  
-     * Probably a {@link javax.swing.Component#repaint()} will be required
+     * Probably a {@link java.awt.Component#repaint()} will be required
      * at the end.
      *
      * @param  state  plot state determining details of plot configuration
