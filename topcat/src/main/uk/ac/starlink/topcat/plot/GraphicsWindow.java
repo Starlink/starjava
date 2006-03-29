@@ -53,6 +53,8 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -521,12 +523,19 @@ public abstract class GraphicsWindow extends AuxWindow {
         ColumnInfo[] axinfos = new ColumnInfo[ ndim_ ];
         boolean[] flipFlags = new boolean[ ndim_ ];
         boolean[] logFlags = new boolean[ ndim_ ];
+        ValueConverter[] converters = new ValueConverter[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            axinfos[ i ] = mainData.getColumnInfo( i );
+            ColumnInfo cinfo = mainData.getColumnInfo( i );
+            axinfos[ i ] = cinfo;
+            converters[ i ] =
+                (ValueConverter)
+                cinfo.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
+                                        ValueConverter.class );
             flipFlags[ i ] = flipModels_[ i ].isSelected();
             logFlags[ i ] = logModels_[ i ].isSelected();
         }
         state.setAxes( axinfos );
+        state.setConverters( converters );
         state.setLogFlags( logFlags );
         state.setFlipFlags( flipFlags );
 
