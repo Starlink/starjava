@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.util.Arrays;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * Characterises the details of how a plot is to be done.
@@ -17,6 +18,7 @@ public class PlotState {
 
     private boolean valid_;
     private SimpleValueInfo[] axes_;
+    private ValueConverter[] converters_;
     private boolean[] logFlags_;
     private boolean[] flipFlags_;
     private boolean grid_;
@@ -184,6 +186,28 @@ public class PlotState {
     }
 
     /**
+     * Sets an array of numeric converter objects, one for each axis.
+     * The {@link uk.ac.starlink.ttools.convert.ValueConverter#unconvert}
+     * method of these should convert a numeric value back to the
+     * formatted (text) version of a value on the corresponding axis.
+     * Any of the elements may be null if the value is numeric anyway.
+     *
+     * @param  converters  numeric converter array, one for each axis
+     */
+    public void setConverters( ValueConverter[] converters ) {
+        converters_ = converters;
+    }
+
+    /**
+     * Returns the array of numeric converter objects, one for each axis.
+     *
+     * @return  numeric converter array
+     */
+    public ValueConverter[] getConverters() {
+        return converters_;
+    }
+
+    /**
      * Sets the point selection object for this state.
      *
      * @param   pointSelection  data selection object
@@ -213,6 +237,7 @@ public class PlotState {
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ )
             && Arrays.equals( axisLabels_, other.axisLabels_ )
+            && Arrays.equals( converters_, other.converters_ )
             && equalRanges( ranges_, other.ranges_ )
             && ( pointSelection_ == null 
                     ? other.pointSelection_ == null
@@ -238,6 +263,8 @@ public class PlotState {
         sbuf.append( Arrays.equals( flipFlags_, o.flipFlags_  ) ? "" :" flip ");
         sbuf.append( Arrays.equals( axisLabels_, o.axisLabels_ )
                      ? "" : " axisLabels" );
+        sbuf.append( Arrays.equals( converters_, o.converters_ ) 
+                     ? "" : " converters" );
         sbuf.append( equalRanges( ranges_, o.ranges_ ) ? "" : " ranges" );
         sbuf.append( ( pointSelection_ == null 
                            ? o.pointSelection_ == null
@@ -263,6 +290,10 @@ public class PlotState {
         for ( int i = 0; i < axisLabels_.length; i++ ) {
             code = 23 * code + ( axisLabels_[ i ] == null
                                ? 0 : axisLabels_[ i ].hashCode() );
+        }
+        for ( int i = 0; i < converters_.length; i++ ) {
+            code = 23 * code + ( converters_[ i ] == null
+                               ? 0 : converters_[ i ].hashCode() );
         }
         for ( int i = 0; i < ranges_.length; i++ ) {
             code = 23 * code

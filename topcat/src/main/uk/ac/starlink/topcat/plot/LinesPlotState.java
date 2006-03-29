@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.util.Arrays;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * PlotState subclass for use with stacked line plots.
@@ -17,6 +18,7 @@ public class LinesPlotState extends PlotState {
     private double[][] yRanges_;
     private boolean[] yLogFlags_ = new boolean[ 0 ];
     private boolean[] yFlipFlags_ = new boolean [ 0 ];
+    private ValueConverter[] yConverters_;
     private int[] graphIndices_;
 
     /**
@@ -152,6 +154,30 @@ public class LinesPlotState extends PlotState {
     }
 
     /**
+     * Sets an array of numeric converter objects, one for the Y axis of
+     * each graph.
+     * The {@link uk.ac.starlink.ttools.convert.ValueConverter#unconvert}
+     * method of these should convert a numeric value back to the
+     * formatted (text) version of a value on the corresponding axis.
+     * Any of the elements may be null if the value is numeric anyway.
+     *
+     * @param  yConverters  Y numeric converter array, one for each graph
+     */ 
+    public void setYConverters( ValueConverter[] yConverters ) {
+        yConverters_ = yConverters;
+    }
+
+    /**
+     * Returns the array of numeric converter objects, one for the Y axis of
+     * each graph.
+     *
+     * @return  Y numeric converter array, one for each graph
+     */
+    public ValueConverter[] getYConverters() {
+        return yConverters_;
+    }
+
+    /**
      * Sets the mapping of subsets to graph indices.
      * This defines which graph each subset will be displayed in.
      * The <i>i</i>'th element of the array gives the index of the 
@@ -183,7 +209,8 @@ public class LinesPlotState extends PlotState {
                 && equalRanges( yRanges_, other.yRanges_ )
                 && Arrays.equals( graphIndices_, other.graphIndices_ )
                 && Arrays.equals( yLogFlags_, other.yLogFlags_ )
-                && Arrays.equals( yFlipFlags_, other.yFlipFlags_ );
+                && Arrays.equals( yFlipFlags_, other.yFlipFlags_ )
+                && Arrays.equals( yConverters_, other.yConverters_ );
         }
         else {
             return false;
@@ -206,6 +233,8 @@ public class LinesPlotState extends PlotState {
                          ? "" : " yLogFlags" );
             sbuf.append( Arrays.equals( yFlipFlags_, other.yFlipFlags_ )
                          ? "" : " yFlipFlags" );
+            sbuf.append( Arrays.equals( yConverters_, other.yConverters_ )
+                         ? "" : " yConverters" );
         }
         return sbuf.toString();
     }
@@ -234,6 +263,10 @@ public class LinesPlotState extends PlotState {
         }
         for ( int i = 0; i < yFlipFlags_.length; i++ ) {
             code = 23 * code + ( yFlipFlags_[ i ] ? 1 : 2 );
+        }
+        for ( int i = 0; i < yConverters_.length; i++ ) {
+            code = 23 * code + ( yConverters_[ i ] == null
+                               ? 0 : yConverters_[ i ].hashCode() );
         }
         return code;
     }
