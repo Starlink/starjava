@@ -45,7 +45,7 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     protected PointSelector createPointSelector() {
-        return new SphericalPolarPointSelector( logToggler_ );
+        return new SphericalPolarPointSelector( getStyles(), logToggler_ );
     }
 
     /**

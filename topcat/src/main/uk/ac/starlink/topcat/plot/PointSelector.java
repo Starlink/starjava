@@ -73,9 +73,12 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
 
     /**
      * Constructor.
+     *
+     * @param  styles  initial style set
      */
-    public PointSelector() {
+    public PointSelector( MutableStyleSet styles ) {
         super( new BorderLayout() );
+        styles_ = styles;
 
         /* Set up a map of labels for the subsets controlled by this selector.
          * Its keys are Integers (giving the subset index) and its values

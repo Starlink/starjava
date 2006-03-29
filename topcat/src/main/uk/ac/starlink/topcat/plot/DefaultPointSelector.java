@@ -36,13 +36,15 @@ public class DefaultPointSelector extends PointSelector {
     /**
      * Constructor.
      *
+     * @param   styles   initial style set
      * @param   axisNames  labels for the columns to choose
      * @param   toggleSets toggle sets to associate with each axis;
      *                     <code>toggleSets</code> itself or any of
      *                     its elements may be null
      */
-    public DefaultPointSelector( String[] axisNames, ToggleSet[] toggleSets ) {
-        super();
+    public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
+                                 ToggleSet[] toggleSets ) {
+        super( styles );
         ndim_ = axisNames.length;
         axisNames_ = (String[]) axisNames.clone();
         

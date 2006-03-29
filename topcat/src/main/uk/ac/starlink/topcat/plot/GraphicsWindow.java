@@ -106,6 +106,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final JMenu exportMenu_;
 
     private StyleSet styleSet_;
+    private BitSet usedStyles_;
     private Points points_;
     private PointSelection lastPointSelection_;
     private PlotState lastState_;
@@ -162,7 +163,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
 
         /* Set up point selector component. */
-        pointSelectors_ = new PointSelectorSet( styleSet_ ) {
+        pointSelectors_ = new PointSelectorSet() {
             protected PointSelector createSelector() {
                 return GraphicsWindow.this.createPointSelector();
             }
@@ -431,7 +432,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 new DefaultPointSelector.ToggleSet( "Log", logModels_ ),
                 new DefaultPointSelector.ToggleSet( "Flip", flipModels_ ),
             };
-        return new DefaultPointSelector( axisNames_, toggleSets );
+        return new DefaultPointSelector( getStyles(), axisNames_, toggleSets );
     };
 
     /**
@@ -457,7 +458,24 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param   styleSet  new style set
      */
     public void setStyles( StyleSet styleSet ) {
-        pointSelectors_.setStyles( styleSet );
+        styleSet_ = styleSet;
+        usedStyles_ = new BitSet();
+        int nsel = pointSelectors_.getSelectorCount();
+        for ( int isel = 0; isel < nsel; isel++ ) {
+            pointSelectors_.getSelector( isel ).setStyles( getStyles() );
+        }
+    }
+
+    /**
+     * Returns a style set suitable for use with a new PointSelector.
+     * Note this is not the same object as was set by {@link #setStyles},
+     * but it is based on it - it will dispense styles from the same set,
+     * but avoid styles already dispensed to other selectors.
+     *
+     * @return   style set suitable for a new selector
+     */
+    public MutableStyleSet getStyles() {
+        return new PoolStyleSet( styleSet_, usedStyles_ );
     }
 
     /**

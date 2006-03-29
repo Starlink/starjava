@@ -249,7 +249,8 @@ public class HistogramWindow extends GraphicsWindow {
          * respectively).  So we need to make sure the AxisEditor array
          * supplied by the PointSelector is 2 long - one for the data
          * axis and one for the counts axis (screen Y axis). */
-        return new DefaultPointSelector( new String[] { "X" }, toggleSets ) {
+        return new DefaultPointSelector( getStyles(), new String[] { "X" },
+                                         toggleSets ) {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor countEd = new AxisEditor( "Count" );
                 countEd.setAxis( COUNT_INFO );
