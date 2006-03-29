@@ -21,6 +21,7 @@ import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -481,7 +482,11 @@ public class ColumnDataComboBoxModel
         ConvertedColumnData( TopcatModel tcModel, StarTableColumn tcol,
                              ValueConverter conv ) {
             super( tcModel, tcol );
-            setColumnInfo( new ColumnInfo( conv.getOutputInfo() ) );
+            ColumnInfo cinfo = new ColumnInfo( conv.getOutputInfo() );
+            cinfo.setAuxDatum( new DescribedValue( TopcatUtils
+                                                  .NUMERIC_CONVERTER_INFO,
+                                                   conv ) );
+            setColumnInfo( cinfo );
             conv_ = conv;
         }
 
