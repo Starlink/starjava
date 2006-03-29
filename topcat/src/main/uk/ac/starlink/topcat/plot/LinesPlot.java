@@ -18,6 +18,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * Component which paints a stack of line plots.
@@ -42,6 +44,7 @@ public abstract class LinesPlot extends JComponent {
         zoomer_ = new Zoomer();
         addMouseListener( zoomer_ );
         addMouseMotionListener( zoomer_ );
+        surfaces_ = new PlotSurface[ 0 ];
     }
 
     /**
@@ -427,9 +430,11 @@ public abstract class LinesPlot extends JComponent {
                          * suitable reporter, save it and enough information
                          * to be able to tell whether it's still valid later,
                          * and return it. */
+                        ValueConverter xConv = state_.getConverters()[ 0 ];
+                        ValueConverter yConv = state_.getYConverters()[ isurf ];
                         isurf_ = isurf;
                         surface_ = surf;
-                        reporter_ = new PositionReporter( surf ) {
+                        reporter_ = new PositionReporter( surf, xConv, yConv ) {
                             protected void reportPosition( String[] coords ) {
                             }
                         };
