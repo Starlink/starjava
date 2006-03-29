@@ -99,17 +99,20 @@ public abstract class AxisZoomRegion extends ZoomRegion {
                                    : null;
                 }
                 else {
-                    int dist = isX_ ? Math.abs( end.x - start_.x )
-                                    : Math.abs( end.y - start_.y );
-                    double range = ( 2 * dist + BOX ) / (double) BOX;
-                    double centre = isX_
-                        ? ( start_.x - target.x ) / (double) target.width
-                        : ( start_.y - target.y ) / (double) target.height;
-                    double v0 = centre - range * 0.5;
-                    double v1 = centre + range * 0.5;
-                    return range > 0 && v0 != v1 
-                         ? new double[][] { { v0, v1 } }
-                         : null;
+                    int dist = isX_ ? start_.x - end.x
+                                    : start_.y - end.y;
+                    if ( dist > 0 ) {
+                        double range = ( 2 * dist + BOX ) / (double) BOX;
+                        double centre = isX_
+                            ? ( start_.x - target.x ) / (double) target.width
+                            : ( start_.y - target.y ) / (double) target.height;
+                        double v0 = centre - range * 0.5;
+                        double v1 = centre + range * 0.5;
+                        return new double[][] { { v0, v1 } };
+                    }
+                    else {
+                        return null;
+                    }
                 }
             }
             else {

@@ -98,19 +98,24 @@ public abstract class XYZoomRegion extends ZoomRegion {
                          : null;
                 }
                 else {
-                    int dx = Math.abs( end.x - start_.x );
-                    int dy = Math.abs( end.y - start_.y );
-                    double xrange = ( 2 * dx + BOX ) / (double) BOX;
-                    double yrange = ( 2 * dy + BOX ) / (double) BOX;
-                    double cx = ( start_.x - zone.x ) / (double) zone.width;
-                    double cy = ( start_.y - zone.y ) / (double) zone.height;
-                    double x0 = cx - xrange * 0.5;
-                    double y0 = cy - yrange * 0.5;
-                    double x1 = cx + xrange * 0.5;
-                    double y1 = cy + yrange * 0.5;
-                    return x1 > x0 && y1 > y0 
-                         ? new double[][] { { x0, x1 }, { y0, y1 } }
-                         : null;
+                    int dx = start_.x - end.x;
+                    int dy = start_.y - end.y;
+                    if ( dx >= 0 && dy > 0 || dx > 0 && dy >= 0 ) {
+                        double xrange = ( 2 * dx + BOX ) / (double) BOX;
+                        double yrange = ( 2 * dy + BOX ) / (double) BOX;
+                        double cx =
+                            ( start_.x - zone.x ) / (double) zone.width;
+                        double cy =
+                            ( start_.y - zone.y ) / (double) zone.height;
+                        double x0 = cx - xrange * 0.5;
+                        double y0 = cy - yrange * 0.5;
+                        double x1 = cx + xrange * 0.5;
+                        double y1 = cy + yrange * 0.5;
+                        return new double[][] { { x0, x1 }, { y0, y1 } };
+                    }
+                    else {
+                        return null;
+                    }
                 }
             }
             else {
