@@ -2,7 +2,10 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.text.DecimalFormat;
+import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**
  * MouseMotionListener which acts on mouse movement events to provide
@@ -19,6 +22,9 @@ public abstract class PositionReporter implements MouseMotionListener {
     private final DecimalFormat sciFormat_ = new DecimalFormat( "0.#E0" );
     private final DecimalFormat dpFormat_ = new DecimalFormat( ".0" );
     private final PlotSurface surface_;
+    private final ValueConverter xConv_;
+    private final ValueConverter yConv_;
+    private final Map convMap_;
 
     /**
      * Constructs a new position reporter for a given plot surface.
@@ -26,7 +32,26 @@ public abstract class PositionReporter implements MouseMotionListener {
      * @param   surface  plotting surface
      */
     public PositionReporter( PlotSurface surface ) {
+        this( surface, null, null );
+    }
+
+    /**
+     * Constructs a new position reporter for a given plot surface
+     * using supplied value converter objects for the X and Y axes.
+     * The <code>unconvert</code> methods of said converters should 
+     * provide the formatting (number -> formatted string) behaviour
+     * for each axis.
+     *
+     * @param   surface  plotting surface
+     * @param   xConv  value converter for X axis (or null)
+     * @param   yConv  value converter for Y axis (or null)
+     */
+    public PositionReporter( PlotSurface surface, ValueConverter xConv,
+                             ValueConverter yConv ) {
         surface_ = surface;
+        xConv_ = xConv;
+        yConv_ = yConv;
+        convMap_ = new HashMap();
     }
 
     /**
@@ -116,8 +141,8 @@ public abstract class PositionReporter implements MouseMotionListener {
         }
 
         /* Calculate and return formatted values of the submitted values.  */
-        return new String[] { formatValue( dx, Math.abs( ex - dx ) ),
-                              formatValue( dy, Math.abs( ey - dy ) ) };
+        return new String[] { formatValue( dx, Math.abs( ex - dx ), xConv_ ),
+                              formatValue( dy, Math.abs( ey - dy ), yConv_ ) };
     }
 
     /**
@@ -125,7 +150,7 @@ public abstract class PositionReporter implements MouseMotionListener {
      * precision to which it should be displayed.
      * The idea is that calling this routine with arguments 
      * (v1,e), (v1+e,e) and (v1-e,e) should all give results which are
-     * different but as similar as possible (typically just differeing
+     * different but as similar as possible (typically just differing
      * by one character = one significant figure).
      *
      * @param   value  value to format
@@ -176,5 +201,118 @@ public abstract class PositionReporter implements MouseMotionListener {
                 return dpFormat_.format( value );
             }
         }
+    }
+
+    /**
+     * Formats a string, optionally using a supplied 
+     * <code>ValueConverter</code> object.
+     * Works as {@link #formatValue(double,double)} but if <code>conv</code>
+     * is non-null its <code>unconvert</code> method will be used to
+     * perform the formatting.  It is assumed that <code>conv</code>
+     * has an output type which is numeric.
+     *
+     * @param  value  value to format
+     * @param  precision of <code>value</code>
+     * @param  conv  value converter
+     */
+    private String formatValue( double value, double precision,
+                                ValueConverter conv ) {
+        if ( conv == null ) {
+            return formatValue( value, precision );
+        }
+
+        /* Maintain a record of the conversions done for each converter,
+         * and make sure the length of the formatted string never decreases.
+         * The point of this is to prevent ugly jiggling of the length of
+         * the string in the readout - this should cause the string length
+         * to settle down to a fixed value. */
+        if ( ! convMap_.containsKey( conv ) ) {
+            convMap_.put( conv, new Integer( 0 ) );
+        }
+        int itrunc = ((Integer) convMap_.get( conv )).intValue();
+
+        /* Format the given values and ones (precision) either side. */
+        Object om = conv.unconvert( new Double( value - precision ) );
+        Object o0 = conv.unconvert( new Double( value ) );
+        Object op = conv.unconvert( new Double( value + precision ) );
+        String fm = om == null ? "" : om.toString();
+        String f0 = o0 == null ? "" : o0.toString();
+        String fp = op == null ? "" : op.toString();
+        int lm = fm.length();
+        int l0 = f0.length();
+        int lp = fp.length();
+
+        /* Work out how far through the string we have to go to find a 
+         * difference between them. */
+        boolean diffm = false;
+        boolean diffp = false;
+        for ( int i = 0; i < l0; i++ ) {
+            char c0 = i < l0 ? f0.charAt( i ) : ' ';
+            char cm = i < lm ? fm.charAt( i ) : ' ';
+            char cp = i < lp ? fm.charAt( i ) : ' ';
+            diffm = diffm || cm != c0;
+            diffp = diffp || cp != c0;
+            if ( diffm && diffp ) {
+
+                /* Found it - try to truncate to near this length. */
+                if ( i + 1 > itrunc ) {
+                    itrunc = i + 1;
+                    convMap_.put( conv, new Integer( i + 1 ) );
+                }
+                return truncate( f0, itrunc );
+            }
+        }
+
+        /* Keep truncation map updated. */
+        if ( f0.length() > itrunc ) {
+            convMap_.put( conv, new Integer( f0.length() ) );
+        }
+
+        /* No truncation - return the whole string. */
+        return f0;
+    }
+
+    /**
+     * Truncates a formatted value string in a sensitive fashion.
+     * Basically it carries on until the next non-numeric character
+     * and truncates there, or truncates at the requested position if
+     * there is no later non-numeric character.
+     * This is a bit ad hoc, but should do the right thing for the
+     * currently important formatted types (sexagesimal, ISO-8601).
+     *
+     * @param  full  full formatted value string
+     * @return  iafter   earliest point at which truncation is permitted
+     */
+    private static String truncate( String full, int iafter ) {
+
+        /* Check for the next non-numeric character after the given point
+         * and truncate there. */
+        for ( int i = iafter; i < full.length(); i++ ) {
+            char c = full.charAt( i );
+            if ( c < '0' || c > '9' ) {
+                return full.substring( 0, i );
+            }
+        }
+
+        /* No non-numerics after the suggested point.
+         * Work backwards to try to find a decimal point. */
+        for ( int i = iafter - 1; i >= 0; i-- ) {
+            char c = full.charAt( i );
+
+            /* If we find a decimal point, feturn the string truncated at
+             * the requested place. */
+            if ( c == '.' ) {
+                return full.substring( 0, iafter );
+            }
+
+            /* If we find a non-numeric, better return the whole thing to
+             * be safe. */
+            else if ( c < '0' || c > '9' ) {
+                return full;
+            }
+        }
+
+        /* Numbers all the way back to the start.  Return the whole thing. */
+        return full;
     }
 }
