@@ -8,6 +8,8 @@ import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -134,7 +136,16 @@ public class SphericalPolarPointSelector extends PointSelector {
                 loField_.setText( "" );
                 loField_.setEnabled( false );
             }
+            protected double getHigh() {
+                double hi = super.getHigh();
+                return logToggler_.isSelected() ? Math.log( hi ) : hi;
+            }
         };
+        logToggler_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                ed.clearBounds();
+            }
+        } );
         rSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
