@@ -259,7 +259,7 @@ public class AxisEditor extends JPanel {
      *
      * @return   lower bound, may be NaN
      */
-    private double getLow() {
+    protected double getLow() {
         String txt = loField_.getText();
         if ( txt == null || txt.trim().length() == 0 ) {
             return Double.NaN;
@@ -280,7 +280,7 @@ public class AxisEditor extends JPanel {
      *
      * @return  upper bound, may be NaN
      */
-    private double getHigh() {
+    protected double getHigh() {
         String txt = hiField_.getText();
         if ( txt == null || txt.trim().length() == 0 ) {
             return Double.NaN;
@@ -293,6 +293,16 @@ public class AxisEditor extends JPanel {
                 hiField_.setText( "" );
                 return Double.NaN;
             }
+        }
+    }
+
+    /**
+     * Updates all of the Ranges currently maintained by this editor
+     * according to its current state.
+     */
+    public void updateRanges() {
+        for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
+            ((Range) it.next()).setBounds( getLow(), getHigh() );
         }
     }
 
@@ -313,9 +323,7 @@ public class AxisEditor extends JPanel {
                     loField_.setText( "" );
                 }
             }
-            for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
-                ((Range) it.next()).setBounds( getLow(), getHigh() );
-            }
+            updateRanges();
         }
     }
 }
