@@ -61,7 +61,7 @@ public abstract class PositionReporter implements MouseMotionListener {
      * @return  2-element (x,y) array giving formatted data space coords,
      *          or null
      */
-    private String[] formatPosition( int px, int py ) {
+    public String[] formatPosition( int px, int py ) {
 
         /* Convert to numeric data space coordinates. */
         double[] dpos = surface_.graphicsToData( px, py, true );
