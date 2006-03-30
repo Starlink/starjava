@@ -14,6 +14,7 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.Arrays;
+import java.util.BitSet;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -36,9 +37,6 @@ public abstract class LinesPlot extends JComponent {
     private PlotSurface[] surfaces_;
     private int[] sequence_;
 
-    /** Gives the fractional gap between data extrema and edge of plot. */
-    private double padRatio_ = 0.02;
-
     /**
      * Constructor.
      */
@@ -60,15 +58,6 @@ public abstract class LinesPlot extends JComponent {
             sequence_ = sortX( points );
         }
         points_ = points;
-    }
-
-    /**
-     * Returns the data set for this point.
-     *
-     * @return  data points
-     */
-    public Points getPoints() {
-        return points_;
     }
 
     /**
@@ -99,7 +88,7 @@ public abstract class LinesPlot extends JComponent {
     private void drawData( Graphics g, Component c ) {
 
         /* Acquire state. */
-        Points points = getPoints();
+        Points points = points_;
         LinesPlotState state = getState();
         if ( points == null || state == null || ! state.getValid() ) {
             return;
@@ -303,8 +292,109 @@ public abstract class LinesPlot extends JComponent {
             }
         }
 
+        /* Mark active points. */
+        MarkStyle target = MarkStyle.targetStyle();
+        Graphics targetGraphics = g.create();
+        targetGraphics.setXORMode( Color.WHITE );
+        int[] activePoints = state.getActivePoints();
+        for ( int i = 0; i < activePoints.length; i++ ) {
+            int ip = activePoints[ i ];
+            PlotSurface surface = null;
+            for ( int iset = 0; iset < nset && surface == null; iset++ ) {
+                if ( sets[ iset ].isIncluded( ip ) ) {
+                    surface = graphs[ graphIndices[ iset ] ];
+                }
+            }
+            if ( surface != null ) {
+                points.getCoords( ip, coords );
+                Point point =
+                    surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
+                if ( point != null ) {
+                    target.drawMarker( targetGraphics, point.x, point.y );
+                }
+            }
+        }
+
         /* Store graph set. */
         surfaces_ = graphs;
+    }
+
+    /**
+     * Returns a bit vector indicating which points are in the X range
+     * currently visible within this plot.
+     *
+     * @return   bit vector with true marking point indices in visible X range
+     */
+    public BitSet getPointsInRange() {
+        double xlo = state_.getRanges()[ 0 ][ 0 ];
+        double xhi = state_.getRanges()[ 0 ][ 1 ];
+        Points points = points_;
+        int npoint = points.getCount();
+        RowSubset[] sets = state_.getPointSelection().getSubsets();
+        int nset = sets.length;
+        BitSet inRange = new BitSet();
+        double[] coords = new double[ 2 ];
+        for ( int ip = 0; ip < npoint; ip++ ) {
+            long lp = (long) ip;
+            boolean use = false;
+            for ( int is = 0; is < nset && ! use; is++ ) {
+                use = use || sets[ is ].isIncluded( lp );
+            }
+            if ( use ) {
+                points.getCoords( ip, coords );
+                double x = coords[ 0 ];
+                if ( x >= xlo && x <= xhi ) {
+                    inRange.set( ip );
+                }
+            }
+        }
+        return inRange;
+    }
+
+    /**
+     * Returns an iterator over the points which are visible in this plot.
+     *
+     * @return  point iterator
+     */
+    public PointIterator getPlottedPointIterator() {
+        final Points points = points_;
+        final int npoint = points.getCount();
+        final RowSubset[] sets = state_.getPointSelection().getSubsets();
+        final int nset = sets.length;
+        final PlotSurface[] setSurfaces = new PlotSurface[ nset ];
+        int[] graphIndices = state_.getGraphIndices();
+        for ( int iset = 0; iset < nset; iset++ ) {
+            setSurfaces[ iset ] = surfaces_[ graphIndices[ iset ] ];
+        }
+        return new PointIterator() {
+            int ip = -1;
+            int[] point = new int[ 3 ];
+            double[] coords = new double[ 2 ];
+            protected int[] nextPoint() {
+                while ( ++ip < npoint ) {
+                    long lp = (long) ip;
+                    PlotSurface surface = null;
+                    for ( int is = 0; is < nset && surface == null; is++ ) {
+                        if ( sets[ is ].isIncluded( lp ) ) {
+                            surface = setSurfaces[ is ];
+                        }
+                    }
+                    if ( surface != null ) {
+                        points.getCoords( ip, coords );
+                        double x = coords[ 0 ];
+                        double y = coords[ 1 ];
+                        Point p = surface.dataToGraphics( x, y, true );
+                        if ( p != null ) {
+                            point[ 0 ] = ip;
+                            point[ 1 ] = p.x;
+                            point[ 2 ] = p.y;
+                        }
+                        return point;
+                    }
+                }
+                return null;
+            }
+        };
     }
 
     /**
