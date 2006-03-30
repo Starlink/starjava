@@ -101,9 +101,9 @@ public class DensityWindow extends GraphicsWindow {
         };
 
         /* Construct a plotting surface to receive the graphics. */
+        setPadRatio( 0 );
         final PlotSurface surface = new PtPlotSurface();
         ((PtPlotSurface) surface)._tickLength = 0;
-        ((PtPlotSurface) surface).setPadPixels( 0 );
 
         /* Grid looks a bit messy, so set it off by default. */
         getGridModel().setSelected( false );
