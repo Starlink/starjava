@@ -150,6 +150,80 @@ public class ColumnDataComboBoxModel
         }
     }
 
+    /**
+     * Attempts to locate and return a member of this model which matches
+     * the given <code>info</code>.  Exactly how the matching is done is
+     * not defined - presumably grubbing about with UCDs or column names etc.
+     *
+     * @param  info  metadata item to match
+     * @return   object suitable for selection in this model which matches
+     *           <code>info</code>, or null if nothing suitable can be found
+     */
+    public ColumnData getColumnData( ValueInfo info ) {
+        int bestScore = 0;
+        ColumnData bestData = null;
+        for ( int i = 0; i < getSize(); i++ ) {
+            Object item = getElementAt( i );
+            if ( item instanceof ColumnData ) {
+                ColumnData cdata = (ColumnData) item;
+                int score = match( info, cdata.getColumnInfo() );
+                if ( score > bestScore ) {
+                    bestScore = score;
+                    bestData = cdata;
+                }
+            }
+        }
+        return bestData;
+    }
+
+    /**
+     * Attempts to determine whether two ValueInfo objects appear to be
+     * referring to the same physical quantity.  The higher the returned
+     * value, the better the match.  Zero is returned for no discernible
+     * match at all.
+     *
+     * @param   targetInfo   metadata object we want to be like
+     * @param   testInfo     metadata object to assess
+     * @return  integer indicating match quality
+     */
+    private int match( ValueInfo targetInfo, ValueInfo testInfo ) {
+        int score = 0;
+
+        String targetName = targetInfo.getName();
+        String testName = testInfo.getName();
+        if ( targetName != null && testName != null ) {
+            targetName = targetName.toLowerCase();
+            testName = testName.toLowerCase();
+            if ( testName.equals( targetName ) ) {
+                score += 5;
+            }
+            else if ( testName.startsWith( targetName ) ) {
+                score += 2;
+            }
+        }
+
+        String targetUcd = targetInfo.getUCD();
+        String testUcd = testInfo.getUCD();
+        if ( targetUcd != null && testUcd != null ) {
+            targetUcd = targetUcd.replace( '_', '.' ).toLowerCase();
+            testUcd = testUcd.replace( '_', '.' ).toLowerCase();
+            if ( testUcd.equals( targetUcd ) ) {
+                score += 100;
+            }
+            else {
+                String[] targetWords = targetUcd.split( "\\." );
+                String[] testWords = testUcd.split( "\\." );
+                int nword = Math.min( targetWords.length, testWords.length );
+                for ( int i = 0; i < nword; i++ ) {
+                    if ( targetWords[ i ].equals( testWords[ i ] ) ) {
+                        score += 10;
+                    }
+                }
+            }
+        }
+        return score;
+    }
+
     /*
      * Implementation of the TableColumnModelListener interface.
      * These methods watch for changes in the TableColumnModel and 
