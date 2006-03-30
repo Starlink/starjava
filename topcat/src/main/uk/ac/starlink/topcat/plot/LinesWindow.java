@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -20,12 +22,15 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatEvent;
+import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
@@ -36,14 +41,15 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
  * @author   Mark Taylor
  * @since    3 Mar 2006
  */
-public class LinesWindow extends GraphicsWindow {
+public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
     private final LinesPlot plot_;
     private final ToggleButtonModel antialiasModel_;
-    private Range[] yDataRanges_;
     private final Map yViewRangeMap_;
 
+    private Range[] yDataRanges_;
     private StyleSet styles_;
+    private int[] activePoints_;
 
     private final static Color[] COLORS;
     static {
@@ -60,6 +66,7 @@ public class LinesWindow extends GraphicsWindow {
     public LinesWindow( Component parent ) {
         super( "Line Plot", new String[] { "X", "Y" }, parent );
 
+        activePoints_ = new int[ 0 ];
         yViewRangeMap_ = new HashMap();
         plot_ = new LinesPlot() {
             protected void requestZoomX( double x0, double x1 ) {
@@ -90,6 +97,10 @@ public class LinesWindow extends GraphicsWindow {
         getStatusBox().add( posLabel );
         getStatusBox().add( Box.createHorizontalGlue() );
 
+        /* Arrange for clicking on a given point to cause row activation. */
+        plot_.addMouseListener( new PointClickListener() );
+        getPointSelectors().addTopcatListener( this );
+
         /* Rescaling actions. */
         Action rescaleActionXY =
             new RescaleAction( "Rescale", ResourceIcon.RESIZE,
@@ -112,6 +123,18 @@ public class LinesWindow extends GraphicsWindow {
         antialiasModel_.setSelected( true );
         antialiasModel_.addActionListener( getReplotListener() );
 
+        /* Point selection action. */
+        Action fromXRangeAction = new BasicAction( "New subset from X range",
+                                                   ResourceIcon.XRANGE_SUBSET,
+                                                   "Define a new subset " +
+                                                   "for each plotted table " +
+                                                   "containing only points " +
+                                                   "in the visible X range" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                addNewSubsets( plot_.getPointsInRange() );
+            }
+        };
+
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -121,6 +144,12 @@ public class LinesWindow extends GraphicsWindow {
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
+        /* Construct a new menu for subset operations. */
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.setMnemonic( KeyEvent.VK_S );
+        subsetMenu.add( fromXRangeAction );
+        getJMenuBar().add( subsetMenu );
+
         /* Populate toolbar. */
         getToolBar().add( rescaleActionXY );
         getToolBar().add( rescaleActionX );
@@ -128,6 +157,7 @@ public class LinesWindow extends GraphicsWindow {
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
+        getToolBar().add( fromXRangeAction );
         getToolBar().addSeparator();
 
         /* Add standard help actions. */
@@ -216,6 +246,9 @@ public class LinesWindow extends GraphicsWindow {
 
         /* Antialiasing. */
         state.setAntialias( antialiasModel_.isSelected() );
+
+        /* Active points. */
+        state.setActivePoints( activePoints_ );
 
         /* Return state. */
         return state;
@@ -385,9 +418,31 @@ public class LinesWindow extends GraphicsWindow {
         Range[] ranges = new Range[ ngraph + 1 ];
         ranges[ 0 ] = xRange;
         for ( int igraph = 0; igraph < ngraph; igraph++ ) {
+            yRanges[ igraph ].pad( 0.025 );
             ranges[ igraph + 1 ] = yRanges[ igraph ];
         }
         return ranges;
+    }
+
+    /*
+     * TopcatListener implementation.
+     */
+    public void modelChanged( TopcatEvent evt ) {
+        if ( evt.getCode() == TopcatEvent.ROW ) {
+            Object datum = evt.getDatum();
+            if ( datum instanceof Long ) {
+                TopcatModel tcModel = evt.getModel();
+                PointSelection psel = plot_.getState().getPointSelection();
+                long lrow = ((Long) datum).longValue();
+                long[] lps = psel.getPointsForRow( tcModel, lrow );
+                int[] ips = new int[ lps.length ];
+                for ( int i = 0; i < lps.length; i++ ) {
+                    ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
+                }
+                activePoints_ = ips;
+                replot();
+            }
+        }
     }
 
     /**
@@ -472,6 +527,27 @@ public class LinesWindow extends GraphicsWindow {
 
             /* Install it in the axis window. */
             getAxisWindow().setEditors( axEds );
+        }
+    }
+
+    /**
+     * Handles mouse clicks to select points.
+     */
+    private class PointClickListener extends MouseAdapter {
+        public void mouseClicked( MouseEvent evt ) {
+            if ( evt.getButton() == MouseEvent.BUTTON1 ) {
+                int ip = plot_.getPlottedPointIterator()
+                              .getClosestPoint( evt.getPoint(), 4 );
+                if ( ip >= 0 ) {
+                    PointSelection psel = plot_.getState().getPointSelection();
+                    psel.getPointTable( ip )
+                        .highlightRow( psel.getPointRow( ip ) );
+                }
+                else {
+                    activePoints_ = new int[ 0 ];
+                    replot();
+                }
+            }
         }
     }
 
