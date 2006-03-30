@@ -20,6 +20,7 @@ public class LinesPlotState extends PlotState {
     private boolean[] yFlipFlags_ = new boolean [ 0 ];
     private ValueConverter[] yConverters_;
     private int[] graphIndices_;
+    private int[] activePoints_;
 
     /**
      * Constructs a new state.
@@ -178,6 +179,26 @@ public class LinesPlotState extends PlotState {
     }
 
     /**
+     * Sets an array of point indices which are to be highlighted as
+     * active points in the plot.
+     *
+     * @param  activePoints  active point indices
+     */
+    public void setActivePoints( int[] activePoints ) {
+        activePoints_ = activePoints;
+    }
+
+    /**
+     * Returns the array of point indices which are to be highlighted as
+     * active points in the plot.
+     *
+     * @return  active points
+     */
+    public int[] getActivePoints() {
+        return activePoints_;
+    }
+
+    /**
      * Sets the mapping of subsets to graph indices.
      * This defines which graph each subset will be displayed in.
      * The <i>i</i>'th element of the array gives the index of the 
@@ -210,7 +231,8 @@ public class LinesPlotState extends PlotState {
                 && Arrays.equals( graphIndices_, other.graphIndices_ )
                 && Arrays.equals( yLogFlags_, other.yLogFlags_ )
                 && Arrays.equals( yFlipFlags_, other.yFlipFlags_ )
-                && Arrays.equals( yConverters_, other.yConverters_ );
+                && Arrays.equals( yConverters_, other.yConverters_ )
+                && Arrays.equals( activePoints_, other.activePoints_ );
         }
         else {
             return false;
@@ -235,6 +257,8 @@ public class LinesPlotState extends PlotState {
                          ? "" : " yFlipFlags" );
             sbuf.append( Arrays.equals( yConverters_, other.yConverters_ )
                          ? "" : " yConverters" );
+            sbuf.append( Arrays.equals( activePoints_, other.activePoints_ )
+                         ? "" : " activePoints" );
         }
         return sbuf.toString();
     }
@@ -267,6 +291,9 @@ public class LinesPlotState extends PlotState {
         for ( int i = 0; i < yConverters_.length; i++ ) {
             code = 23 * code + ( yConverters_[ i ] == null
                                ? 0 : yConverters_[ i ].hashCode() );
+        }
+        for ( int i = 0; i < activePoints_.length; i++ ) {
+            code = 23 * code + activePoints_[ i ];
         }
         return code;
     }
