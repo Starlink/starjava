@@ -13,6 +13,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -33,6 +34,7 @@ public abstract class LinesPlot extends JComponent {
     private Points points_;
     private Zoomer zoomer_;
     private PlotSurface[] surfaces_;
+    private int[] sequence_;
 
     /** Gives the fractional gap between data extrema and edge of plot. */
     private double padRatio_ = 0.02;
@@ -54,6 +56,9 @@ public abstract class LinesPlot extends JComponent {
      * @param   points  data points
      */
     public void setPoints( Points points ) {
+        if ( points != points_ ) {
+            sequence_ = sortX( points );
+        }
         points_ = points;
     }
 
@@ -270,7 +275,8 @@ public abstract class LinesPlot extends JComponent {
             boolean notFirst = false;
             int lastxp = 0;
             int lastyp = 0;
-            for ( int ip = 0; ip < npoint; ip++ ) {
+            for ( int ix = 0; ix < npoint; ix++ ) {
+                int ip = sequence_ == null ? ix : sequence_[ ix ];
                 if ( rset.isIncluded( (long) ip ) ) {
                     points.getCoords( ip, coords );
                     double x = coords[ 0 ];
@@ -339,6 +345,77 @@ public abstract class LinesPlot extends JComponent {
             g1.fillRect( 0, 0, getWidth(), getHeight() );
         }
         drawData( g, this );
+    }
+
+    /**
+     * Returns an array giving the order in which the elements of the
+     * Points structure should be processed.  This is numerically
+     * increasing order of the X coordinate.
+     * A null return indicates that the natural ordering may be used.
+     *
+     * @param   points   points data
+     * @return  array of indices of ordered elements of <code>points</code>
+     */
+    private int[] sortX( Points points ) {
+        int npoint = points.getCount();
+        double[] coords = new double[ 2 ];
+
+        /* As an optimisation, check if the points are sorted by X already.
+         * This will often be the case and we can save ourselves construction
+         * and disposal of a potentially large array in this case. */
+        boolean sorted = true;
+        double last = Double.NaN;
+        for ( int i = 0; i < npoint && sorted; i++ ) {
+            points.getCoords( i, coords );
+            if ( coords[ 0 ] < last ) {
+                sorted = false;
+            }
+            last = coords[ 0 ];
+        }
+        if ( sorted ) {
+            return null;
+        }
+
+        /* Set up a sortable item class. */
+        class Item implements Comparable {
+            final int index_;
+            final double x_;
+            Item( int index, double x ) {
+                index_ = index;
+                x_ = x;
+            }
+            public int compareTo( Object o ) {
+                Item other = (Item) o;
+                if ( this.x_ > other.x_ ) {
+                    return +1;
+                }
+                else if ( this.x_ < other.x_ ) {
+                    return -1;
+                }
+                else {
+                    return 0;
+                }
+            }
+        }
+
+        /* Construct and populate an array representing the points data. */
+        Item[] items = new Item[ npoint ];
+        for ( int i = 0; i < npoint; i++ ) {
+            points.getCoords( i, coords );
+            items[ i ] = new Item( i, coords[ 0 ] );
+        }
+
+        /* Sort the array. */
+        Arrays.sort( items );
+
+        /* Extract the sorted indices into a usable form. */
+        int[] indices = new int[ npoint ];
+        for ( int i = 0; i < npoint; i++ ) {
+            indices[ i ] = items[ i ].index_;
+        }
+
+        /* Return the result. */
+        return indices;
     }
 
     /**
