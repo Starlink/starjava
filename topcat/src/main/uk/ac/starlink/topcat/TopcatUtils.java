@@ -78,6 +78,15 @@ public class TopcatUtils {
                               "on row activation" );
 
     /**
+     * Data identifier for epoch-type data.
+     */
+    public final static ValueInfo TIME_INFO =
+        new DefaultValueInfo( "time", Number.class, "Epoch" );
+    static {
+        ((DefaultValueInfo) TIME_INFO).setUCD( "TIME" );
+    }
+
+    /**
      * Returns the 'base description' of a column info.  This is the same
      * as the description, except for synthetic columns, where it
      * doesn't contain a respresentation of the algebraic expression.
