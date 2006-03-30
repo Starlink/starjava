@@ -71,68 +71,6 @@ public abstract class ScatterPlot extends SurfacePlot {
     }
 
     /**
-     * Works out the range of coordinates to accommodate all the data
-     * points owned by this plot.
-     *
-     * @return   4-element array (xlo,ylo,xhi,yhi)
-     */
-    public double[] getFullDataRange() {
-        boolean xlog = getState().getLogFlags()[ 0 ];
-        boolean ylog = getState().getLogFlags()[ 1 ];
-        double xlo = Double.POSITIVE_INFINITY;
-        double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-        double ylo = Double.POSITIVE_INFINITY;
-        double yhi = ylog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
-
-        /* Go through all points getting max/min values. */
-        int nok = 0;
-        Points points = getPoints();
-        if ( points != null ) {
-            RowSubset[] rsets = getPointSelection().getSubsets();
-            int nrset = rsets.length;
-            int np = points.getCount();
-            double[] coords = new double[ 2 ];
-            for ( int ip = 0; ip < np; ip++ ) {
-
-                /* First see if this point will be plotted. */
-                boolean use = false;
-                long lp = (long) ip;
-                for ( int is = 0; ! use && is < nrset; is++ ) {
-                    use = use || rsets[ is ].isIncluded( lp );
-                }
-                if ( use ) {
-                    points.getCoords( ip, coords );
-                    double xp = coords[ 0 ];
-                    double yp = coords[ 1 ];
-                    if ( ! Double.isNaN( xp ) && 
-                         ! Double.isNaN( yp ) &&
-                         ! Double.isInfinite( xp ) && 
-                         ! Double.isInfinite( yp ) &&
-                         ( ! xlog || xp > 0.0 ) &&
-                         ( ! ylog || yp > 0.0 ) ) {
-                        nok++;
-                        if ( xp < xlo ) {
-                            xlo = xp;
-                        }
-                        if ( xp > xhi ) {
-                            xhi = xp;
-                        }
-                        if ( yp < ylo ) {
-                            ylo = yp;
-                        }
-                        if ( yp > yhi ) {
-                            yhi = yp;
-                        }
-                    }
-                }
-            }
-        }
-
-        /* Return result. */
-        return nok == 0 ? null : new double[] { xlo, ylo, xhi, yhi };
-    }
-
-    /**
      * Plots the points of this scatter plot onto a given graphics context
      * using its current plotting surface to define the mapping of data
      * to graphics space.
