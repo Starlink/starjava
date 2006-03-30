@@ -84,8 +84,11 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     public LinesWindow( Component parent ) {
         super( "Line Plot", new String[] { "X", "Y" }, parent );
 
+        /* Set some initial values. */
         activePoints_ = new int[ 0 ];
         yViewRangeMap_ = new HashMap();
+
+        /* Construct a plot component to hold the plotted graphs. */
         plot_ = new LinesPlot() {
             protected void requestZoomX( double x0, double x1 ) {
                 getAxisWindow().getEditors()[ 0 ].clearBounds();
@@ -103,8 +106,12 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         };
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
 
+        /* Add it to the display. */
         getMainArea().add( plot_, BorderLayout.CENTER );
         
+        /* The axis window has to be kept up to date with the point selectors,
+         * since the number of axis editor components it contains is the
+         * same as the number of point selectors. */
         getPointSelectors().addActionListener( new AxisWindowUpdater() );
 
         /* Add a status line reporting on cursor position. */
@@ -231,6 +238,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             return state;
         }
 
+        /* Acquire some values. */
         PointSelectorSet pointSelectors = getPointSelectors();
         int nsel = pointSelectors.getSelectorCount();
         AxisEditor[] axEds = getAxisWindow().getEditors();
