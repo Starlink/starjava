@@ -119,6 +119,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private Range[] dataRanges_;
     private Range[] viewRanges_;
     private boolean forceReread_;
+    private double padRatio_ = 0.02;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -306,6 +307,28 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     public void setGuidePointCount( int npoint ) {
         guidePointCount_ = npoint;
+    }
+
+    /**
+     * Sets the ratio by which the data ranges calculated by the
+     * GraphicsWindow implementation of {@link #calculateRanges} are
+     * padded.
+     *
+     * @param  pad  padding ratio (typically a few percent)
+     */
+    public void setPadRatio( double pad ) {
+        padRatio_ = pad;
+    }
+
+    /**
+     * Returns the ratio by which the data ranges calculated by the
+     * GraphicsWindow implememetation of {@link #calculateRanges} are
+     * padded.
+     *
+     * @return  padding ratio (by default a few percent)
+     */
+    public double getPadRatio() {
+        return padRatio_;
     }
 
     /**
@@ -790,12 +813,15 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     public Range[] calculateRanges( PointSelection pointSelection,
                                     Points points ) {
+
+        /* Set up blank range objects. */
         int ndim = points.getNdim();
         Range[] ranges = new Range[ ndim ];
         for ( int idim = 0; idim < ndim; idim++ ) {
             ranges[ idim ] = new Range();
         }
 
+        /* Submit each data point which will be plotted to the ranges. */
         RowSubset[] sets = pointSelection.getSubsets();
         int nset = sets.length;
         int npoint = points.getCount();
@@ -819,6 +845,13 @@ public abstract class GraphicsWindow extends AuxWindow {
                 }
             }
         }
+
+        /* Add some padding at each end. */
+        for ( int idim = 0; idim < ndim; idim++ ) {
+            ranges[ idim ].pad( getPadRatio() );
+        }
+
+        /* Return the range array. */
         return ranges;
     }
 
