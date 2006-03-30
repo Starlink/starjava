@@ -53,12 +53,28 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private StyleSet styles_;
     private int[] activePoints_;
 
-    private final static Color[] COLORS;
+    private static final Color[] COLORS;
     static {
         COLORS = new Color[ Styles.COLORS.length + 1 ];
         COLORS[ 0 ] = Color.BLACK;
         System.arraycopy( Styles.COLORS, 0, COLORS, 1, Styles.COLORS.length );
     }
+    private static final StyleSet LINES;
+    private static final StyleSet POINTS;
+    private static final StyleSet[] STYLE_SETS = new StyleSet[] {
+        LINES = MarkStyles.lines( "Black/Coloured Lines", COLORS ),
+        MarkStyles.lines( "Lines" ),
+        MarkStyles.dashedLines( "Dashed Lines" ),
+        POINTS = MarkStyles.points( "Black/Coloured Points", COLORS ),
+        MarkStyles.points( "Points" ),
+        MarkStyles.spots( "Dots", 1 ),
+        MarkStyles.spots( "Spots", 2 ),
+        MarkStyles.openShapes( "Small Coloured Outlines", 3, null ),
+        MarkStyles.openShapes( "Medium Coloured Outlines", 4, null ),
+        MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
+        MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
+
+    };
 
     /**
      * Constructor.
@@ -157,6 +173,25 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         subsetMenu.add( fromXRangeAction );
         getJMenuBar().add( subsetMenu );
+
+        /* Construct a menu for line style set selection. */
+        JMenu styleMenu = new JMenu( "Line Style" );
+        styleMenu.setMnemonic( KeyEvent.VK_L );
+        for ( int i = 0; i < STYLE_SETS.length; i++ ) {
+            final StyleSet styleSet = STYLE_SETS[ i ];
+            String name = styleSet.getName();
+            Icon icon = MarkStyles.getIcon( styleSet );
+            Action stylesAct = new BasicAction( name, icon,
+                                                "Set line plotting style to " 
+                                                + name ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setStyles( styleSet );
+                    replot();
+                }
+            };
+            styleMenu.add( stylesAct );
+        }
+        getJMenuBar().add( styleMenu );
 
         /* Populate toolbar. */
         getToolBar().add( rescaleActionXY );
@@ -327,6 +362,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
     public void setStyles( StyleSet styles ) {
         styles_ = styles;
+        super.setStyles( styles );
     }
 
     public MutableStyleSet getStyles() {
@@ -344,8 +380,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
-        return npoint < 2000 ? MarkStyles.lines( "lines", COLORS )
-                             : MarkStyles.points( "points", COLORS );
+        return npoint < 2000 ? LINES : POINTS;
     }
 
     /**
