@@ -12,7 +12,15 @@ public class Range {
 
     private double lo_ = Double.NaN;
     private double hi_ = Double.NaN;
-    private double loPositive_ = Double.NaN;
+    private double loPos_ = Double.NaN;
+    private double hiPos_ = Double.NaN;
+
+    /***************************** NOTE *********************************
+     * NOTE: when reading and, especially, altering this code bear in 
+     * mind that any comparison expression involving a NaN evaluates false,
+     * so for instance ( ! ( a < b ) ) is NOT the same as ( a >= b ) for
+     * floating point variables a, b.
+     ********************************************************************/
 
     /**
      * Constructs an unbounded range.
@@ -51,7 +59,8 @@ public class Range {
     public Range( Range range ) {
         lo_ = range.lo_;
         hi_ = range.hi_;
-        loPositive_ = range.loPositive_;
+        loPos_ = range.loPos_;
+        hiPos_ = range.hiPos_;
     }
 
     /**
@@ -62,14 +71,19 @@ public class Range {
      */
     public void submit( double datum ) {
         if ( ! Double.isNaN( datum ) && ! Double.isInfinite( datum ) ) {
-            if ( ! ( lo_ < datum ) ) {
+            if ( ! ( lo_ <= datum ) ) {
                lo_ = datum;
             }
-            if ( ! ( hi_ > datum ) ) {
+            if ( ! ( hi_ >= datum ) ) {
                 hi_ = datum;
             }
-            if ( datum > 0.0 && ! ( loPositive_ < datum ) ) {
-                loPositive_ = datum;
+            if ( datum > 0.0 ) {
+                if ( ! ( loPos_ <= datum ) ) {
+                    loPos_ = datum;
+                }
+                if ( ! ( hiPos_ >= datum ) ) {
+                    hiPos_ = datum;
+                }
             }
         }
     }
@@ -101,12 +115,15 @@ public class Range {
             clear();
             if ( ! Double.isInfinite( lo ) ) {
                 lo_ = lo;
-                if ( lo > 0.0 ) {
-                    loPositive_ = lo;
+                if ( ! ( lo <= 0.0 ) ) {
+                    loPos_ = lo;
                 }
             }
             if ( ! Double.isInfinite( hi ) ) {
                 hi_ = hi;
+                if ( ! ( hi <= 0.0 ) ) {
+                    hiPos_ = hi;
+                }
             }
         }
     }
@@ -133,17 +150,17 @@ public class Range {
      */
     public double[] getFiniteBounds( boolean positive ) {
         if ( positive ) {
-            if ( loPositive_ < hi_ ) {
-                return new double[] { loPositive_, hi_ };
+            if ( loPos_ < hiPos_ ) {
+                return new double[] { loPos_, hiPos_ };
             }
-            else if ( loPositive_ == hi_ ) {
-                return new double[] { hi_ * 0.9, hi_ * 1.1 };
+            else if ( loPos_ == hiPos_ ) {
+                return new double[] { hiPos_ * 0.9, hiPos_ * 1.1 };
             }
-            else if ( hi_ > 1.0 ) {
-                return new double[] { 0.1, hi_ };
+            else if ( hiPos_ > 1.0 ) {
+                return new double[] { 0.1, hiPos_ };
             }
-            else if ( hi_ > 0.0 ) {
-                return new double[] { hi_ * 0.001, hi_ };
+            else if ( hiPos_ > 0.0 ) {
+                return new double[] { hiPos_ * 0.001, hiPos_ };
             }
             else {
                 return new double[] { 1.0, 10.0 };
@@ -163,12 +180,29 @@ public class Range {
     }
 
     /**
+     * Adds padding to either end of this range.
+     *
+     * @param  ratio  padding ratio (should normally be greater than 0)
+     */
+    public void pad( double ratio ) {
+        if ( lo_ < hi_ ) {
+            lo_ -= ( hi_ - lo_ ) * ratio;
+            hi_ += ( hi_ - lo_ ) * ratio;
+        }
+        if ( loPos_ < hiPos_ ) {
+            loPos_ /= Math.exp( Math.log( hiPos_ / loPos_ ) * ratio );
+            hiPos_ *= Math.exp( Math.log( hiPos_ / loPos_ ) * ratio );
+        }
+    }
+
+    /**
      * Unsets the lower and upper bounds for this range.
      */
     public void clear() {
         lo_ = Double.NaN;
         hi_ = Double.NaN;
-        loPositive_ = Double.NaN;
+        loPos_ = Double.NaN;
+        hiPos_ = Double.NaN;
     }
 
     /**
@@ -186,12 +220,15 @@ public class Range {
         }
         if ( ! Double.isNaN( lo ) && ! Double.isInfinite( lo ) ) {
             lo_ = lo;
-            if ( lo > 0.0 ) {
-                loPositive_ = lo;
+            if ( ! ( lo <= 0.0 ) ) {
+                loPos_ = lo;
             }
         }
 	if ( ! Double.isNaN( hi ) && ! Double.isInfinite( hi ) && hi >= lo_ ) {
             hi_ = hi;
+            if ( ! ( hi <= 0.0 ) ) {
+                hiPos_ = hi;
+            }
         }
     }
 
