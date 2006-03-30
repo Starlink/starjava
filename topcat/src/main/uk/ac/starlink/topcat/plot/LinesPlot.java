@@ -36,6 +36,7 @@ public abstract class LinesPlot extends JComponent {
     private Zoomer zoomer_;
     private PlotSurface[] surfaces_;
     private int[] sequence_;
+    private Rectangle plotRegion_;
 
     /**
      * Constructor.
@@ -317,6 +318,11 @@ public abstract class LinesPlot extends JComponent {
 
         /* Store graph set. */
         surfaces_ = graphs;
+        plotRegion_ = graphs.length > 0 ? graphs[ 0 ].getClip().getBounds()
+                                        : new Rectangle();
+        for ( int i = 0; i < graphs.length; i++ ) {
+            plotRegion_.add( graphs[ i ].getClip().getBounds() );
+        }
     }
 
     /**
@@ -395,6 +401,17 @@ public abstract class LinesPlot extends JComponent {
                 return null;
             }
         };
+    }
+
+    /**
+     * Returns the rectangle which is the union of all the graph regions,
+     * that is the region between the axes, for the last time a plot was
+     * drawn.
+     *
+     * @return   plot region rectangle
+     */
+    public Rectangle getPlotRegion() {
+        return plotRegion_;
     }
 
     /**
