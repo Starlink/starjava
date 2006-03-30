@@ -18,9 +18,11 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -143,6 +145,12 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( rescaleActionY );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
+
+        /* Construct a new menu for rendering operations. */
+        JMenu renderMenu = new JMenu( "Rendering" );
+        renderMenu.setMnemonic( KeyEvent.VK_R );
+        renderMenu.add( antialiasModel_.createMenuItem() );
+        getJMenuBar().add( renderMenu );
 
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
@@ -667,11 +675,27 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         protected void initialiseSelectors() {
 
-            /* X axis gets magic 'index' column. */
-            getColumnSelector( 0 ).setSelectedIndex( 1 );
+            /* If we can find an epoch-type column, use that for the X axis,
+             * otherwise just use the magic 'index' column. */
+            ComboBoxModel xModel = getColumnSelector( 0 ).getModel();
+            ColumnData timeCol = xModel instanceof ColumnDataComboBoxModel
+                ? ((ColumnDataComboBoxModel) xModel)
+                 .getColumnData( TopcatUtils.TIME_INFO )
+                : null;
+            xModel.setSelectedItem( timeCol == null ? xModel.getElementAt( 1 )
+                                                    : timeCol );
 
-            /* Y axis gets first non-index column. */
-            getColumnSelector( 1 ).setSelectedIndex( 1 );
+            /* Y axis gets first non-null column which isn't the one we've
+             * used for X. */
+            ComboBoxModel yModel = getColumnSelector( 1 ).getModel();
+            for ( int i = 0; i < yModel.getSize(); i++ ) {
+                Object item = yModel.getElementAt( i );
+                if ( item != null &&
+                     ! item.equals( xModel.getSelectedItem() ) ) {
+                    yModel.setSelectedItem( item );
+                    break;
+                }
+            }
         }
     }
 }
