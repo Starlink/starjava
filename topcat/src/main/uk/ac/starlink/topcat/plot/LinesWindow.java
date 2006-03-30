@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -18,10 +21,14 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.MouseInputAdapter;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
@@ -47,6 +54,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
     private final LinesPlot plot_;
     private final ToggleButtonModel antialiasModel_;
+    private final ToggleButtonModel vlineModel_;
     private final Map yViewRangeMap_;
 
     private Range[] yDataRanges_;
@@ -160,6 +168,13 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             }
         };
 
+        /* Vertical crosshair toggle action. */
+        vlineModel_ = new ToggleButtonModel( "Show vertical crosshair",
+                                             ResourceIcon.Y_CURSOR,
+                                             "Display a vertical line " +
+                                             "which follows the mouse" );
+        new CrosshairListener( plot_, vlineModel_ );
+
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -167,6 +182,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
         plotMenu.add( getReplotAction() );
+        plotMenu.add( vlineModel_.createMenuItem() );
         getJMenuBar().add( plotMenu );
 
         /* Construct a new menu for rendering operations. */
@@ -208,6 +224,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( getReplotAction() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
         getToolBar().add( fromXRangeAction );
+        getToolBar().add( vlineModel_.createToolbarButton() );
         getToolBar().addSeparator();
 
         /* Add standard help actions. */
@@ -597,6 +614,96 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 else {
                     activePoints_ = new int[ 0 ];
                     replot();
+                }
+            }
+        }
+    }
+
+    /**
+     * Mouse listener which moves a vertical crosshair around on the
+     * plotting surface(s).
+     */
+    private static class CrosshairListener extends MouseInputAdapter
+                                           implements ChangeListener {
+        final LinesPlot linesPlot_;
+        final ButtonModel switchModel_;
+        final Rectangle vLine_;
+        Graphics g_;
+        boolean visible_;
+        boolean on_;
+
+        /**
+         * Constructs a new CrosshairListener and starts it listening to
+         * a supplied plot component and switch model in the appropriate ways.
+         * No other installation into other components is required.
+         *
+         * @param  linesPlot  plot component
+         * @param  switchModel   button model which determines when this
+         *         listener is working and when it's inactive
+         */
+        CrosshairListener( LinesPlot linesPlot, ButtonModel switchModel ) {
+            linesPlot_ = linesPlot;
+            switchModel_ = switchModel;
+            vLine_ = new Rectangle();
+            vLine_.width = 1;
+            switchModel.addChangeListener( this );
+        }
+
+        public void mouseEntered( MouseEvent evt ) {
+            if ( on_ ) {
+                g_ = linesPlot_.getGraphics();
+                g_.setXORMode( Color.YELLOW );
+            }
+            redraw( evt.getPoint() );
+        }
+
+        public void mouseExited( MouseEvent evt ) {
+            redraw( null );
+        }
+
+        public void mouseMoved( MouseEvent evt ) {
+            redraw( evt.getPoint() );
+        }
+
+        public void stateChanged( ChangeEvent evt ) {
+            boolean on = switchModel_.isSelected();
+            if ( on != on_ ) {
+                on_ = on;
+                if ( on_ ) {
+                    g_ = linesPlot_.getGraphics();
+                    g_.setXORMode( Color.YELLOW );
+                    linesPlot_.addMouseListener( this );
+                    linesPlot_.addMouseMotionListener( this );
+                }
+                else {
+                    redraw( null );
+                    g_.dispose();
+                    linesPlot_.removeMouseListener( this );
+                    linesPlot_.removeMouseListener( this );
+                }
+            }
+        }
+
+        /**
+         * Possibly undraws the crosshair at its last position, 
+         * and then possibly draws it at the supplied one.
+         *
+         * @param  p  position of the current crosshair, or null to undraw
+         */
+        private void redraw( Point p ) {
+            if ( visible_ ) {
+                g_.fillRect( vLine_.x, vLine_.y, vLine_.width, vLine_.height );
+                visible_ = false;
+            }
+            if ( p != null && on_ ) {
+                Rectangle zone = linesPlot_.getPlotRegion();
+                if ( zone.contains( p ) ) {
+                    vLine_.x = p.x;
+                    vLine_.y = zone.y;
+                    vLine_.height = zone.height;
+                    g_.fillRect( vLine_.x, vLine_.y,
+                                 vLine_.width, vLine_.height );
+                    visible_ = true;
                 }
             }
         }
