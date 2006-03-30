@@ -174,6 +174,9 @@ public class AxisWindow extends JDialog {
 
         public void actionPerformed( ActionEvent evt ) {
             if ( this == okAction_ || this == applyAction_ ) {
+                for ( int i = 0; i < editors_.length; i++ ) {
+                    editors_[ i ].updateRanges();
+                }
                 forwarder_.actionPerformed( evt );
             }
             if ( this == okAction_ || this == cancelAction_ ) {
