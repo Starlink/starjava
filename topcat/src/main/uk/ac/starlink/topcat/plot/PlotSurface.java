@@ -75,17 +75,7 @@ public interface PlotSurface {
 
     /**
      * Requests a range of data space values to be visible on
-     * this plotting surface.  The requested values are a hint which 
-     * may (though probably shouldn't) be ignored, and in particular
-     * may be overridden by other considerations at a later date,
-     * for instance some sort of zoom action initiated by the user and
-     * detected by the graphical component.
-     *
-     * <p>If any of the coordinates is NaN, then the hint is to leave the
-     * corresponding axis alone.  Hence 
-     * <code>setDataRange(0 Double.NaN,10.,Double.NaN)</code>
-     * should rescale the X axis to the range 0-10, and leave the Y axis
-     * as it is.
+     * this plotting surface.
      * 
      * @param  xlo  (approximate) lower bound of X coordinate
      * @param  ylo  (approximate) lower bound of Y coordinate
