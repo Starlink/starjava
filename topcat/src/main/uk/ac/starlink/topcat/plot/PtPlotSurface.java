@@ -19,7 +19,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     private PlotState state_;
     private PointSelection psel_;
-    private int padPixels_ = 10;
+    private static final int padPixels_ = 0;
 
     /**
      * Constructs a new surface.
@@ -173,26 +173,6 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
     public void paintSurface( Graphics g ) {
         paintComponent( g );
-    }
-
-    /**
-     * Sets the number of pixels padding around the requested bounds on 
-     * each edge.
-     *
-     * @param  pad  padding
-     */
-    public void setPadPixels( int pad ) {
-        padPixels_ = pad;
-    }
-
-    /**
-     * Gets the number of pixels padding around the requested bounds on
-     * each edge.
-     *
-     * @return  padding
-     */
-    public int getPadPixels() {
-        return padPixels_;
     }
 
     protected void _zoom( int x, int y ) {
