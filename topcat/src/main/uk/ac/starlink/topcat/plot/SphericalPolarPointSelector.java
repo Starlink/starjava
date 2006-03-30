@@ -145,9 +145,18 @@ public class SphericalPolarPointSelector extends PointSelector {
         };
         logToggler_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
+
+                /* For some reason the visible range isn't getting set from
+                 * the value filled in the editor axis when the log toggle
+                 * changes.  I can't work out why.  Until I manage to fix it,
+                 * better to cear the editor bounds so they don't say the
+                 * wrong thing. */
+                // ed.updateRanges();
+                // actionForwarder_.stateChanged( evt );
                 ed.clearBounds();
             }
         } );
+        
         rSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
