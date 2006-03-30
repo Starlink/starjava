@@ -159,7 +159,7 @@ public class MarkStyles {
      */
     public static Icon getIcon( final StyleSet styleSet ) {
         final int nmark = 5;
-        final int separation = 0;
+        final int separation = 5;
         int w = separation * ( nmark - 1 ); 
         int h = 0;
         for ( int i = 0; i < nmark; i++ ) {
@@ -215,6 +215,28 @@ public class MarkStyles {
                     (MarkStyle) MarkShape.POINT.getStyle( color, 1 );
                 style.setLine( MarkStyle.DOT_TO_DOT );
                 style.setHidePoints( true );
+                return style;
+            }
+        };
+    }
+
+    /** 
+     * Returns a style set which draws black lines with variable dash patterns.
+     *
+     * @param  name  set name
+     */
+    public static StyleSet dashedLines( final String name ) {
+        final float[][] dashes = Styles.DASHES;
+        return new StyleSet() {
+            public String getName() {
+                return name;
+            }
+            public Style getStyle( int index ) {
+                MarkStyle style =
+                    (MarkStyle) MarkShape.POINT.getStyle( Color.BLACK, 1 );
+                style.setLine( MarkStyle.DOT_TO_DOT );
+                style.setHidePoints( true );
+                style.setDash( dashes[ Math.abs( index ) % dashes.length ] );
                 return style;
             }
         };
