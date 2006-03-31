@@ -1,7 +1,11 @@
 package uk.ac.starlink.topcat.plot;
 
 import Acme.JPM.Encoders.GifEncoder;
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
@@ -913,10 +917,23 @@ public abstract class GraphicsWindow extends AuxWindow {
         int w = plot.getWidth();
         int h = plot.getHeight();
 
-        /* Draw it onto a new BufferedImage. */
+        /* Create a BufferedImage to draw it onto. */
         BufferedImage image =
             new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
-        plot.paint( image.getGraphics() );
+
+        /* Set the background to transparent white. */
+        Graphics2D g = image.createGraphics();
+        Color fcol = g.getColor();
+        Composite composite = g.getComposite();
+        g.setColor( new Color( 0x00ffffff, true ) );
+        g.setComposite( AlphaComposite.Src );
+        g.fillRect( 0, 0, w, h );
+        g.setColor( fcol );
+        g.setComposite( composite );
+
+        /* Draw the component onto the image. */
+        plot.paint( g );
+        g.dispose();
 
         /* Count the number of colours represented in the resulting image. */
         Set colors = new HashSet();
