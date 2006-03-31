@@ -37,6 +37,7 @@ public abstract class LinesPlot extends JComponent {
     private PlotSurface[] surfaces_;
     private int[] sequence_;
     private Rectangle plotRegion_;
+    private int[][] work_;
 
     /**
      * Constructor.
@@ -46,6 +47,7 @@ public abstract class LinesPlot extends JComponent {
         addMouseListener( zoomer_ );
         addMouseMotionListener( zoomer_ );
         surfaces_ = new PlotSurface[ 0 ];
+        work_ = new int[ 2 ][ 10240 ];
     }
 
     /**
@@ -95,21 +97,15 @@ public abstract class LinesPlot extends JComponent {
             return;
         }
         int npoint = points.getCount();
-
         boolean xLogFlag = state.getLogFlags()[ 0 ];
         boolean xFlipFlag = state.getFlipFlags()[ 0 ];
         boolean[] yLogFlags = state.getYLogFlags();
         final boolean[] yFlipFlags = state.getYFlipFlags();
-
-        /* Adjust data ranges as requested. */
         ValueInfo xInfo = state.getAxes()[ 0 ];
         ValueInfo[] yInfos = state.getYAxes();
         int ngraph = yInfos.length;
-        double[] xRange = (double[]) state.getRanges()[ 0 ].clone();
-        double[][] yRanges = new double[ ngraph ][];
-        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
-            yRanges[ igraph ] = (double[]) state.getYRanges()[ igraph ].clone();
-        }
+        double[] xRange = state.getRanges()[ 0 ];
+        double[][] yRanges = state.getYRanges();
 
         /* Get component dimensions. */
         FontMetrics fm = g.getFontMetrics();
@@ -173,28 +169,37 @@ public abstract class LinesPlot extends JComponent {
         /* Position each graph and draw the axes. */
         zoomer_.getRegions().clear();
         for ( int igraph = 0; igraph < ngraph; igraph++ ) {
-            Graphics g1 = g.create();
             final GraphSurface graph = graphs[ igraph ];
             Rectangle displayBox = new Rectangle( xPos, yPos, xInc, yInc );
             graph.setBounds( displayBox );
+
+            /* Paint graph background and outline. */
+            Graphics g1 = g.create();
             graph.paintSurface( g1 );
             g1.setColor( Color.WHITE );
             g1.fillRect( xPos, yPos, xInc, yInc );
             g1.setColor( Color.BLACK );
             g1.drawRect( xPos, yPos, xInc, yInc );
+
+            /* Draw the X axis. */
             Graphics gx = g1.create();
             gx.translate( xPos, yPos + yInc );
             xAxis.setDrawText( igraph == 0 );
             xAxis.annotateAxis( gx );
+            gx.dispose();
+
+            /* Draw the Y axis. */
             Graphics2D gy = (Graphics2D) g1.create();
             gy.translate( xPos, yPos + yInc );
             gy.rotate( - Math.PI * 0.5 );
             yAxes[ igraph ].annotateAxis( gy );
+            gy.dispose();
+            g1.dispose();
+
+            /* Set up and install a zoom region for Y zoom events. */
             Rectangle axisBox = new Rectangle( 0, yPos, xPos, yInc );
             final int ig = igraph;
             final int yp = yPos;
-
-            /* Listen for zoom events in the Y axis region. */
             ZoomRegion yZoom = new AxisZoomRegion( false,
                                                    axisBox, displayBox ) {
                 public void zoomed( double[][] bounds ) {
@@ -214,7 +219,7 @@ public abstract class LinesPlot extends JComponent {
             yPos -= yInc;
         }
 
-        /* Listen for zoom events in the X axis region. */
+        /* Set up and install a zoom region for X zoom events. */
         Rectangle xTarget =
             new Rectangle( xPos, height - border.bottom, xInc, border.bottom );
         Rectangle xDisplay =
@@ -241,62 +246,39 @@ public abstract class LinesPlot extends JComponent {
         for ( int iset = 0; iset < nset; iset++ ) {
             MarkStyle style = (MarkStyle) styles[ iset ];
             GraphSurface graph = graphs[ graphIndices[ iset ] ];
-            Graphics lineGraphics = null;
-            if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
-                lineGraphics = g.create();
-                style.configureForLine( lineGraphics,
-                                        BasicStroke.CAP_BUTT,
-                                        BasicStroke.JOIN_MITER );
-                lineGraphics.setClip( graph.getClip() );
-                if ( lineGraphics instanceof Graphics2D ) {
-                    ((Graphics2D) lineGraphics)
-                   .setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                      state.getAntialias()
-                                         ? RenderingHints.VALUE_ANTIALIAS_ON
-                                         : RenderingHints.VALUE_ANTIALIAS_OFF );
-                }
-            }
-            Graphics pointGraphics = null;
-            if ( ! style.getHidePoints() ) {
-                pointGraphics = g.create();
-                pointGraphics.setClip( graph.getClip() );
-            }
-            RowSubset rset = sets[ iset ];
-            boolean notFirst = false;
-            int lastxp = 0;
-            int lastyp = 0;
-            for ( int ix = 0; ix < npoint; ix++ ) {
-                int ip = sequence_ == null ? ix : sequence_[ ix ];
-                if ( rset.isIncluded( (long) ip ) ) {
-                    points.getCoords( ip, coords );
-                    double x = coords[ 0 ];
-                    double y = coords[ 1 ];
-                    Point point = graph.dataToGraphics( x, y, false );
-                    if ( point != null ) {
-                        int xp = point.x;
-                        int yp = point.y;
-                        if ( pointGraphics != null ) {
-                            style.drawMarker( pointGraphics, xp, yp );
+            boolean noLines = style.getLine() != MarkStyle.DOT_TO_DOT;
+            Rectangle graphClip = graph.getClip().getBounds();
+            if ( g.hitClip( graphClip.x, graphClip.y,
+                            graphClip.width, graphClip.height ) ) {
+                Graphics g1 = g.create();
+                g1.clipRect( graphClip.x, graphClip.y,
+                             graphClip.width, graphClip.height );
+                PointPlotter plotter =
+                    new PointPlotter( g1, style, state.getAntialias(),
+                                      work_[ 0 ], work_[ 1 ] );
+                RowSubset rset = sets[ iset ];
+                for ( int ix = 0; ix < npoint; ix++ ) {
+                    int ip = sequence_ == null ? ix : sequence_[ ix ];
+                    if ( rset.isIncluded( (long) ip ) ) {
+                        points.getCoords( ip, coords );
+                        Point point =
+                            graph.dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                  noLines );
+                        if ( point != null ) {
+                            plotter.point( point );
                         }
-                        if ( notFirst ) {
-                            if ( lineGraphics != null ) {
-                                lineGraphics.drawLine( lastxp, lastyp, xp, yp );
-                            }
-                        }
-                        else {
-                            notFirst = true;
-                        }
-                        lastxp = xp;
-                        lastyp = yp;
                     }
                 }
+                plotter.flush();
+                plotter.dispose();
+                g1.dispose();
             }
         }
 
         /* Mark active points. */
         MarkStyle target = MarkStyle.targetStyle();
         Graphics targetGraphics = g.create();
-        targetGraphics.setXORMode( Color.WHITE );
+        targetGraphics.setColor( Color.BLACK );
         int[] activePoints = state.getActivePoints();
         for ( int i = 0; i < activePoints.length; i++ ) {
             int ip = activePoints[ i ];
@@ -523,6 +505,160 @@ public abstract class LinesPlot extends JComponent {
 
         /* Return the result. */
         return indices;
+    }
+
+    /**
+     * Object which can accept points to plot and draw them onto the
+     * graphics context in a suitable way.
+     */
+    private static class PointPlotter {
+        private final MarkStyle style_;
+        private final Graphics pointGraphics_;
+        private final Graphics lineGraphics_;
+        private final Rectangle pointBounds_;
+        private final int huge_;
+        private int xLo_;
+        private int xHi_;
+        private Point lastPoint_;
+        private boolean lastInclude_;
+        private int[] xWork_;
+        private int[] yWork_;
+        private int nWork_;
+        private int iLine_;
+
+        /**
+         * Constructor.
+         *
+         * @param  g  base graphics context - the clip is used to optimise
+         *            what gets plotted
+         * @param  style  the mark/line plotting style for points
+         * @param  antialiasLines  true iff you want lines antialiased
+         * @param  work1  workspace array
+         * @param  work2  workspace array
+         */
+        PointPlotter( Graphics g, MarkStyle style, boolean antialiasLines,
+                      int[] work1, int[] work2 ) {
+            style_ = style;
+            xWork_ = work1;
+            yWork_ = work2;
+            nWork_ = Math.min( xWork_.length, yWork_.length );
+
+            /* Set up a graphics context for plotting points.
+             * Null if no points are to be plotted. */
+            pointGraphics_ = style.getHidePoints() ? null : g.create();
+
+            /* Set up a graphics context for drawing lines.
+             * Null if no lines are to be drawn. */
+            if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
+                lineGraphics_ = g.create();
+                style.configureForLine( lineGraphics_, BasicStroke.CAP_BUTT,
+                                        BasicStroke.JOIN_ROUND );
+                if ( lineGraphics_ instanceof Graphics2D ) {
+                    ((Graphics2D) lineGraphics_).setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        antialiasLines ? RenderingHints.VALUE_ANTIALIAS_ON
+                                       : RenderingHints.VALUE_ANTIALIAS_OFF );
+                }
+            }
+            else {
+                lineGraphics_ = null;
+            }
+
+            /* Prepare clipping information. */
+            Rectangle gClip = g.getClipBounds();
+            int maxr = style.getMaximumRadius();
+            pointBounds_ = new Rectangle( gClip.x - maxr, gClip.y - maxr,
+                                          gClip.width + maxr * 2,
+                                          gClip.height + maxr * 2 );
+            xLo_ = gClip.x;
+            xHi_ = gClip.x + gClip.width;
+            huge_ = Math.max( gClip.height, gClip.width ) * 100;
+        }
+
+        /**
+         * Adds a point to the sequence to be plotted.
+         *
+         * @param  point  point to plot
+         */
+        void point( Point point ) {
+            if ( ! point.equals( lastPoint_ ) ) {
+                if ( pointGraphics_ != null &&
+                     pointBounds_.contains( point ) ) {
+                    style_.drawMarker( pointGraphics_, point.x, point.y );
+                }
+                if ( lineGraphics_ != null ) {
+                    boolean include = point.x >= xLo_ && point.x <= xHi_;
+                    if ( include && ! lastInclude_ && lastPoint_ != null ) {
+                        addLineVertex( lastPoint_.x, lastPoint_.y );
+                    }
+                    if ( include || lastInclude_ ) {
+                        addLineVertex( point.x, point.y );
+                    }
+                    lastInclude_ = include;
+                }
+                assert lastPoint_ != point
+                    : "PlotSurface keeps returning same mutable Point object?";
+                lastPoint_ = point;
+            }
+        }
+
+        /**
+         * Adds a vertex to the list which will have lines drawn between
+         * them.
+         *
+         * @param   x  X graphics coordinate
+         * @param   y  Y graphics coordinate
+         */
+        private void addLineVertex( int x, int y ) {
+
+            /* If we've filled up the points buffer, flush it. */
+            if ( iLine_ >= nWork_ ) {
+                flush();
+            }
+
+            /* If an attempt is made to draw to a line which is monstrously
+             * far off the graphics clip, it can lead to problems (e.g. 
+             * the display system attempting to locate so much memory that
+             * the kernel kills the JVM).  In this case, approximate the
+             * point to somewhere far away in roughly the right direction.
+             * This isn't likely to happen very often in any case. */
+            x = Math.max( -huge_, Math.min( huge_, x ) );
+            y = Math.max( -huge_, Math.min( huge_, y ) );
+
+            /* Store the point for later plotting. */
+            xWork_[ iLine_ ] = x;
+            yWork_[ iLine_ ] = y;
+            iLine_++;
+        }
+
+        /**
+         * Ensures that all points have been drawn.  
+         * Since points are plotted in bursts for reasons of aesthetics and
+         * efficiency, this must be called after all {@link #point} calls
+         * to ensure that the drawing has actuall been done.
+         */
+        void flush() {
+            if ( iLine_ > 1 ) {
+                lineGraphics_.drawPolyline( xWork_, yWork_, iLine_ );
+                xWork_[ 0 ] = xWork_[ iLine_ - 1 ];
+                yWork_[ 0 ] = yWork_[ iLine_ - 1 ];
+                iLine_ = 1;
+            }
+        }
+
+        /**
+         * Should be called to release resources when this plotter is no
+         * longer required.  Calls {@link #flush}.
+         */
+        void dispose() {
+            flush();
+            if ( pointGraphics_ != null ) {
+                pointGraphics_.dispose();
+            }
+            if ( lineGraphics_ != null ) {
+                lineGraphics_.dispose();
+            }
+        }
     }
 
     /**
