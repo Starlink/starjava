@@ -29,6 +29,14 @@ public interface PlotSurface {
      * will be returned in place of any result which would
      * give a point lying outside the visible plotting area.
      *
+     * <p>The sense of the returned coordinates should be correct.
+     * That is, an effort should be made to ensure that integer overflows
+     * in floating point arithmetic don't lead to the wrong sign in
+     * graphics coordinates when (x,y) is a long way off the plotting surface.
+     * Use Integer.MAX_VALUE and Integer.MIN_VALUE if necessary.
+     * This is only likely to be an issue when <code>insideOnly</code> 
+     * is false.
+     *
      * @param  x  data space X coordinate
      * @param  y  data space Y coordinate
      * @param  insideOnly  true to restrict non-null results to those

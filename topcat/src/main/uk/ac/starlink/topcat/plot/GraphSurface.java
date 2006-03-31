@@ -26,6 +26,7 @@ public class GraphSurface implements PlotSurface {
     private double xhi_;
     private double ylo_;
     private double yhi_;
+    private double huge_;
     private boolean labelX_;
     private boolean labelY_;
     private boolean xLog_;
@@ -98,9 +99,15 @@ public class GraphSurface implements PlotSurface {
             if ( ! yFlip_ ) {
                 ry = 1.0 - ry;
             }
-            return new Point(
-                bounds_.x + (int) ( rx * bounds_.width ),
-                bounds_.y + (int) ( ry * bounds_.height ) );
+            double dx = rx * bounds_.width;
+            double dy = ry * bounds_.height;
+            if ( ! insideOnly ) {
+                dx = Math.max( Integer.MIN_VALUE,
+                               Math.min( Integer.MAX_VALUE, dx ) );
+                dy = Math.max( Integer.MIN_VALUE,
+                               Math.min( Integer.MAX_VALUE, dy ) );
+            }
+            return new Point( bounds_.x + (int) dx, bounds_.y + (int) dy );
         }
     }
 

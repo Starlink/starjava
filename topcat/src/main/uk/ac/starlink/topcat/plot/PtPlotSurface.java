@@ -130,9 +130,15 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         }
         if ( ! insideOnly || ( dx >= _xMin && dx <= _xMax &&
                                dy >= _yMin && dy <= _yMax ) ) {
-            int px = _ulx + (int) ( ( dx - _xMin ) * _xscale );
-            int py = _lry - (int) ( ( dy - _yMin ) * _yscale );
-            return new Point( px, py );
+            double px = _ulx + ( ( dx - _xMin ) * _xscale );
+            double py = _lry - ( ( dy - _yMin ) * _yscale );
+            if ( ! insideOnly ) {
+                px = Math.max( Integer.MIN_VALUE,
+                               Math.min( Integer.MAX_VALUE, px ) );
+                py = Math.max( Integer.MIN_VALUE,
+                               Math.min( Integer.MAX_VALUE, py ) );
+            }
+            return new Point( (int) px, (int) py );
         }
         else {
             return null;
