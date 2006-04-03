@@ -376,8 +376,8 @@ public abstract class LinesPlot extends JComponent {
                             point[ 0 ] = ip;
                             point[ 1 ] = p.x;
                             point[ 2 ] = p.y;
+                            return point;
                         }
-                        return point;
                     }
                 }
                 return null;
