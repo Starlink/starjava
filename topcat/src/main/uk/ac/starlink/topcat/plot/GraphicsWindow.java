@@ -582,9 +582,6 @@ public abstract class GraphicsWindow extends AuxWindow {
                 /* Read the data if required. */
                 points_ = pointSelection.readPoints();
 
-                /* Calculate new data ranges corresponding to the new data. */
-                dataRanges_ = calculateRanges( pointSelection, points_ );
-
                 /* If we're looking at what is effectively a new graph,
                  * reset the viewing limits to null, so the visible range
                  * will be defined only by the data. */
@@ -593,6 +590,9 @@ public abstract class GraphicsWindow extends AuxWindow {
                         viewRanges_[ i ].clear();
                     }
                 }
+
+                /* Calculate new data ranges corresponding to the new data. */
+                dataRanges_ = calculateRanges( pointSelection, points_ );
             }
 
             /* In case of trouble inform the user. */
