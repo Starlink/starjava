@@ -171,7 +171,7 @@ public class Range {
                 return new double[] { lo_, hi_ };
             }
             else if ( lo_ == hi_ ) {
-                return new double[] { hi_ * 0.9, hi_ * 1.1 };
+                return new double[] { hi_ - 1.0, hi_ + 1.0 };
             }
             else {
                 return new double[] { 0.0, 1.0 };
