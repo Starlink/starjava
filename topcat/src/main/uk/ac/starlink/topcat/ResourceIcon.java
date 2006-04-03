@@ -127,7 +127,6 @@ public class ResourceIcon implements Icon {
         UP_TRIM = makeIcon( "arrow_n.gif" ),
         DOWN_TRIM = makeIcon( "arrow_s.gif" ),
         EQUATION = makeIcon( "xeq.gif" ),
-        PLOT_LINES = makeIcon( "lines.gif" ),
         EXPLODE = makeIcon( "explode.gif" ),
         ADDSKY = makeIcon( "addsky1.gif" ),
         COLOR_LOG = makeIcon( "logred2.gif" ),
