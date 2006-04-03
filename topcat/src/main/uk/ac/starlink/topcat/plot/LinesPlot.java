@@ -474,15 +474,28 @@ public abstract class LinesPlot extends JComponent {
                 x_ = x;
             }
             public int compareTo( Object o ) {
-                Item other = (Item) o;
-                if ( this.x_ > other.x_ ) {
+                double x1 = this.x_;
+                double x2 = ((Item) o).x_;
+                if ( x1 > x2 ) {
                     return +1;
                 }
-                else if ( this.x_ < other.x_ ) {
+                else if ( x1 < x2 ) {
+                    return -1;
+                }
+                else if ( x1 == x2 ) {
+                    return 0;
+                }
+                else if ( Double.isNaN( x1 ) && Double.isNaN( x2 ) ) {
+                    return 0;
+                }
+                else if ( Double.isNaN( x1 ) ) {
+                    return +1;
+                }
+                else if ( Double.isNaN( x2 ) ) {
                     return -1;
                 }
                 else {
-                    return 0;
+                    throw new AssertionError( x1 + " cmp " + x2 + "??" );
                 }
             }
         }
