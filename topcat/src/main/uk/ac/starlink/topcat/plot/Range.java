@@ -180,6 +180,15 @@ public class Range {
     }
 
     /**
+     * Returns true if no data about this range has been set.
+     *
+     * @return   true for clear range
+     */
+    public boolean isClear() {
+        return Double.isNaN( lo_ ) && Double.isNaN( hi_ );
+    }
+
+    /**
      * Adds padding to either end of this range.
      *
      * @param  ratio  padding ratio (should normally be greater than 0)
