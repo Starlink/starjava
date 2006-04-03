@@ -459,10 +459,10 @@ public class HistogramWindow extends GraphicsWindow {
         }
 
         /* Store results for later calculations. */
-        autoYMax_ = yMax;
+        autoYMax_ = yMax + (int) ( yMax * getPadRatio() );
         autoLinearBinWidth_ = bwLinear;
         autoLogBinWidth_ = bwLog;
-        autoYMaxCumulative_ = yMaxTot;
+        autoYMaxCumulative_ = yMaxTot + (int) ( yMaxTot * getPadRatio() );
     }
 
     /**
