@@ -470,6 +470,7 @@ class IpacReader implements RowSequence {
         else if ( type.equals( "date" ) ) {
             info.setContentClass( String.class );
             info.setUnitString( "iso-8601" );
+            info.setUCD( "TIME" );
             info.setNullable( hasBlank );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {

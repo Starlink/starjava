@@ -427,6 +427,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
                     };
                     if ( maybeDate_[ icol ] ) {
                         colinfo.setUnitString( "iso-8601" );
+                        colinfo.setUCD( "TIME" );
                     }
                     else if ( maybeHms_[ icol ] ) {
                         colinfo.setUnitString( "hms" );
