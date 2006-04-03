@@ -405,7 +405,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
-        return npoint < 2000 ? LINES : POINTS;
+        return npoint < 20000 ? LINES : POINTS;
     }
 
     /**
@@ -413,7 +413,10 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      */
     public Range[] calculateRanges( PointSelection pointSelection,
                                     Points points ) {
-        Range[] xyRanges = calculateRanges( pointSelection, points, null );
+        Range xRange = getViewRanges()[ 0 ];
+        double[] xBounds = xRange.isClear() ? null
+                                            : xRange.getFiniteBounds( false );
+        Range[] xyRanges = calculateRanges( pointSelection, points, xBounds );
         yDataRanges_ = new Range[ xyRanges.length - 1 ];
         System.arraycopy( xyRanges, 1, yDataRanges_, 0, xyRanges.length - 1 );
         return new Range[] { xyRanges[ 0 ] };
