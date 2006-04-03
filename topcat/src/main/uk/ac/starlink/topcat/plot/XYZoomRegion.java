@@ -30,7 +30,13 @@ public abstract class XYZoomRegion extends ZoomRegion {
     public XYZoomRegion( Rectangle display ) {
         setDisplay( display );
         setTarget( display );
-        setCursor( Cursor.getPredefinedCursor( Cursor.SE_RESIZE_CURSOR ) );
+
+        /* I'm in two minds about whether to change the cursor for this 
+         * region.  Probably not, since the mouse may be doing other things
+         * here (e.g. point selection) and it could be confusing. */
+        if ( false ) {
+            setCursor( Cursor.getPredefinedCursor( Cursor.SE_RESIZE_CURSOR ) );
+        }
     }
 
     public ZoomDrag createDrag( Component comp, Point start ) {
