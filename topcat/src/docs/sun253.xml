@@ -59,10 +59,12 @@
   <!ENTITY FIG.Cartesian3DWindow '&figs;Cartesian3DWindow.gif'>
   <!ENTITY FIG.SphereWindow '&figs;SphereWindow.gif'>
   <!ENTITY FIG.DensityWindow '&figs;DensityWindow.gif'>
+  <!ENTITY FIG.LinesWindow '&figs;LinesWindow.gif'>
   <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.gif'>
   <!ENTITY FIG.MarkStyleEditorNoLines '&figs;MarkStyleEditorNoLines.gif'>
   <!ENTITY FIG.BarStyleEditor '&figs;BarStyleEditor.gif'>
   <!ENTITY FIG.DensityStyleEditor '&figs;DensityStyleEditor.gif'>
+  <!ENTITY FIG.LinesStyleEditor '&figs;LinesStyleEditor.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -282,7 +284,8 @@ open up new windows.  These fall into a few groups:
 <dd><p>Display various aspects of information about the table's data and
     metadata.</p></dd>
 
-<dt>&IMG.HISTOGRAM; &IMG.PLOT; &IMG.PLOT3D; &IMG.SPHERE; &IMG.DENSITY;</dt>
+<dt>&IMG.HISTOGRAM; &IMG.PLOT; &IMG.PLOT3D; &IMG.SPHERE; &IMG.STACK;
+    &IMG.DENSITY;</dt>
 <dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
 
 <dt>&IMG.CONCAT; &IMG.MATCH1; &IMG.MATCH2;</dt>
@@ -3613,6 +3616,10 @@ functions.  They are grouped as follows:
         polar axes, with or without a radial coordinate.
         </p></dd>
 
+    <dt>&IMG.STACK; <ref id="LinesWindow">Stacked Line Plot</ref></dt>
+    <dd><p>Displays a window for plotting multiple stacked line plots 
+        against a single X coordinate</p></dd>
+
     <dt>&IMG.DENSITY; <ref id="DensityWindow">Density Map</ref></dt>
     <dd><p>Displays a window for plotting 2-d density maps 
         (image-like histograms on a 2-d grid of bins).
@@ -4481,6 +4488,20 @@ in the first subsection below; the specific windows themselves
 are described in the subsequent subsections.
 </p>
 
+<p>These visualisation windows are
+fairly sophisticated, and the plots can exported to GIF or EPS files
+for later presentation (see <ref id="exportGraphics"/>).
+However, at least at present, TOPCAT does
+not claim to be a full end-to-end system for generating publication
+quality graphics, and hence lacks facilities for detailed configuration of
+axis labelling, legend display, font control, data annotation and so on.
+You may well find that you can use it to generate publication
+quality graphics, but if you need features which are not currently
+provided you may find it best to use TOPCAT to investigate your 
+data and decide exactly what data you want to present, and then export
+the data in a form which can be used by a more output-oriented package.
+</p>
+
 <subsubsect>
 <subhead><title>Common Features</title></subhead>
 
@@ -4618,7 +4639,7 @@ window.  Here is dataset selector for the 2d scatter plot:
 </subsubsubsect>
 
 <subsubsubsect id="axisConfig">
-<subhead><title>Axis Configuration</title></subhead>
+<subhead><title>Axis Configuration and Zooming</title></subhead>
 
 <p>In general terms the axes on which the graphics are plotted are
 defined by the datasets you have selected.
@@ -4628,25 +4649,45 @@ so that all the data from the chosen datasets can be seen.
 However, these things can be adjusted manually.
 </p>
 
-<p>Two features are available directly from the window for configuring
-axis range:
+<p>The following features are available directly from the window for 
+configuring axis range:
 <dl>
-<dt>Zoom</dt>
-<dd><p>In the 2d windows 
+<dt>X-Y Zoom</dt>
+<dd><p>In some of the windows 
     (<ref id="PlotWindow">2d scatter plot</ref>,
      <ref id="HistogramWindow">histogram</ref> and 
      <ref id="DensityWindow">density map</ref>), 
-    you can change the axis ranges by zooming in or out
-    with the mouse.  To zoom in, place the mouse at the top left of the
+    you can change both axis ranges by zooming in or out
+    with the mouse on the plot surface itself. 
+    To zoom in, place the mouse at the top left of the
     region you want to examine, press the button, drag it to the
     bottom right corner, and release the button.  To zoom out, drag
     up and left instead.
+    A box is drawn as you drag so you can see what you're doing.
+    </p></dd>
+
+<dt>Axis Zoom</dt>
+<dd><p>In some of the windows
+    (<ref id="PlotWindow">2d scatter plot</ref>,
+     <ref id="HistogramWindow">histogram</ref>,
+     <ref id="DensityWindow">density map</ref>,
+     <ref id="LinesWindow">stacked lines</ref>)
+    you can modify the range on each axis independently by dragging the
+    mouse over where the axis is drawn.  The 'active region' for dragging
+    is just below the X axis and just to the left of the Y axis, in the
+    region where the numeric and text labels are written.
+    When the pointer is in one of these regions, the mouse cursor
+    symbol changes to indicate that zooming can be done.
+    As for the X-Y Zoom, drag left-to-right or up-to-down
+    to zoom in and right-to-left or down-to-up to zoom out.
     </p></dd>
 
 <dt>&IMG.RESIZE; Rescale</dt>
 <dd><p>If you find you're zoomed to a region you don't want to be in,
     you can use the Rescale toolbar button to return to the default 
     scale (full coverage).
+    Some windows may have per-axis rescale buttons too 
+    (&IMG.RESIZE_X;, &IMG.RESIZE_Y;).
     </p></dd>
 </dl>
 </p>
@@ -4681,7 +4722,8 @@ which will pop up a dialogue like the following:
     </p></dd>
 </dl>
 Both values are reset if the plot's axis is changed (a new column or
-expression is selected for the Main dataset).
+expression is selected for the Main dataset), or if the range is 
+reset in some other way (e.g. by zooming).
 </p>
 
 </subsubsubsect>
@@ -4711,9 +4753,9 @@ mouse - see <ref id="axisConfig"/>)
 so that only the points you want to identify are visible,
 and then click the 
 <label>New Subset From Visible</label> 
-(&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;) toolbar button.
-This defines a subset consisting of all the points that are visible
-on the current plot.
+(&IMG.VISIBLE_SUBSET;, &IMG.RANGE_SUBSET; or &IMG.XRANGE_SUBSET;) 
+toolbar button.  This defines a subset consisting of all the 
+points that are visible on the current plot.
 This is only useful if the group you are interested in
 corresponds to a rectangular region in the plotting space.
 </p>
@@ -4755,6 +4797,62 @@ the new subset will be created and the points in it will be
 shown straight away on the plot using a new symbol.  
 As usual, you can toggle whether the points in this subset are displayed
 using the <label>Row Subsets</label> box at the bottom of the Plot Window.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="exportGraphics">
+<subhead><title>Exporting Graphics</title></subhead>
+
+<p>All the graphics windows have the following export options:
+<dl>
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dt>&IMG.PRINT; Export as Encapsulated PostScript</dt>
+</dl>
+These can be used to export the currently visible plot to an external 
+graphics format for later use.
+</p>
+
+<p>Exporting to GIF is pretty straightforward.
+</p>
+
+<p>When exporting to Encapsulated PostScript (EPS) there are a few
+things to consider:
+<dl>
+<dt>Positional Quantisation</dt>
+<dd><p>The output file will render text, lines and
+    markers properly, with smooth edges rather than steps where pixel
+    boundaries would be on the screen.  However, the <em>positional</em>
+    resolution is the same as it would be on the screen, so if you
+    have a 400-pixel high plot for instance, there are only 400 possible
+    Y coordinates at which a marker can be plotted.  In general this 
+    is not obvious by looking at the output plot, but you may find it
+    helpful to increase the size of the plot on the screen by resizing 
+    the window before performing an export to EPS.  This reduces the
+    effect of the positional quantisation, but note it will also have
+    the effect of making the text labels proportionally smaller to the
+    graphics.
+    </p></dd>
+
+<dt>File Size</dt>
+<dd><p>In some cases (scatter plots with many thousands of points)
+    output EPS files can get very large; the size scales
+    with the number of points drawn, currently with a factor of a few
+    hundred bytes per point.  There may be some improvement to
+    this in future releases.
+    </p></dd>
+
+<dt>Transparency</dt>
+<dd><p>For technical reasons (the PostScript language has no facilities
+    for rendering transparent colours) transparent markers cannot easily
+    be rendered when a plot is exported to PostScript.  In some cases
+    they are all drawn opaque, and in some cases they are pixellised 
+    instead of drawn using vector graphics, in which case transparency
+    can be done.  Try it and see; if the points come out opaque instead
+    of transparent you may need to export to GIF instead.
+    Better workarounds may be provided in future releases.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsubsect>
@@ -5205,6 +5303,227 @@ the window will disappear and any changes you made will be discarded.
 <label>Marker Style</label> menu in the plot window.
 Here you can select a standard group of styles (e.g. all open 2-pixel 
 markers with different colours and shapes) for the plotted sets.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="LinesWindow">
+<subhead><title>Stacked Line Plot</title></subhead>
+
+<figure>
+<caption><px>Stacked Lines Window</px></caption>
+<figureimage src="&FIG.LinesWindow;"/>
+</figure>
+
+<p>The stacked line plot window allows you to plot one or more ordinate (Y)
+quantities against a monotonic abscissa (X) quantity.  
+For clarity, the different plots are displayed on vertically 
+displaced graphs which share the same X axis.
+You can display this window using the <label>Lines</label> (&IMG.STACK;)
+button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
+</p>
+
+<p>The display initially holds a single X-Y graph, usually with lines
+connecting adjacent points.  The points will be reordered before drawing
+if necessary so that the line is displayed as a function of X, rather
+than of an invisible third independent variable
+(in the <ref id="PlotWindow">Scatter Plot</ref> this isn't done which
+can lead to lines being scribbled all over the plot).
+If one of the columns in the table appears to represent a time value,
+this will be selected as the default X axis.  Otherwise, the 
+'magic' <label>index</label> variable will be used, which represents
+the row number.  Of course, these can be changed from their default
+values using the selectors in the usual way.
+</p>
+
+<p>To add a new graph with a different Y axis, use the
+<label>Add Dataset</label> (&IMG.ADD;) button in the 
+<ref id="PointSelector">dataset selectors</ref> panel at the bottom
+of the window.
+This has a slightly different effect from what it does in the other
+plot windows, in that it inserts a new plotting region with its own 
+Y axis at the top of the plot on which the specified data is drawn, 
+rather than only causing a new set of points to be plotted on the 
+existing plot region.
+Thus all the datasets appear in their own graphs with their own Y axes
+(though if you have multiple row subsets plotted for the same 
+dataset they will appear on the same part of the plot as usual).
+To remove one of the graphs, select its tab and use the
+<label>Remove Dataset</label> (&IMG.SUBTRACT;) button as usual.
+</p>
+
+<p><label>Zooming</label> can only be done on one axis at a time
+rather than dragging out an X-Y region on the plot surface, since 
+there isn't a single Y axis to zoom on.
+To zoom the X axis in/out, position the mouse just below the X axis
+at the bottom of the plot and drag right/left.
+To zoom one of the Y axes in or out, position the mouse just to the
+left of the Y axis you're interested in and drag down/up.
+To set the ranges manually, use the <label>Configure Axes</label>
+(&IMG.AXIS_EDIT;) button as usual, but note that there is one
+label/range setting box for each of the Y axes.
+These things work largely as described in <ref id="axisConfig"/>,
+as long as you bear in mind that the range of each of the Y axes
+is treated independently of the others.
+</p>
+
+<p>Clicking on any of the points will <label>activate</label> it -
+see <ref id="activation"/>.
+</p>
+
+<p>The following buttons are available on the toolbar:
+<dl>
+
+<dt>&IMG.PRINT; Export as EPS</dt>
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size
+    of the output GIF.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales all the plots so that all points in the plotted datasets 
+    can be seen.  The X axis and all the Y axes are rescaled to fit the data.
+    </p></dd>
+
+<dt>&IMG.RESIZE_X; Rescale X Axis</dt>
+<dd><p>Rescales the X axis only.  The X axis is rescaled to cover the 
+    lowest and highest values on any of the plotted datasets, but the
+    Y ranges are left as they are.
+    </p></dd>
+
+<dt>&IMG.RESIZE_Y; Rescale Y Axes</dt>
+<dd><p>Rescales the Y axes only.  Each of the plotted Y axes are 
+    independently rescaled so that they cover the lowest and highest 
+    values within the currently visible X range.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of the range
+    and label for the X axis and each of the Y axes - 
+    see <ref id="axisConfig"/>. 
+    </p></dd>
+
+<dt>&IMG.REDO;</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to 
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.ANTIALIAS; Antialias</dt>
+<dd><p>Toggles whether lines are drawn with antialiasing. 
+    Antialiasing means smoothing lines so that they appear less pixelised,
+    and generally improves the aesthetic appearance of the plot,
+    but in some circumstances it might look better not antialiased.
+    The state of this button does not affect images exported to postscript.
+    </p></dd>
+
+<dt>&IMG.XRANGE_SUBSET; Subset From X Range</dt>
+<dd><p>Defines a new <label>Row Subset</label> in each of the plotted
+    tables consisting of only the points in the currently visible range
+    on the horizontal axis.  Points will be included even if they are
+    outside the current ranges of the Y axes.
+    </p></dd>
+
+<dt>&IMG.Y_CURSOR; Show Vertical Crosshair</dt>
+<dd><p>Toggles whether a vertical line follows the mouse when it is
+    positioned over the plot.  This can be useful to compare features
+    in different graphs at the same X coordinate position.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>You can determine how the data are plotted using lines and/or markers
+as described in the following subsection.
+</p>
+
+<subsubsubsect id="LinesStyleEditor">
+<subhead><title>Lines Style Editor</title></subhead>
+
+<p>The default plotting style for the stacked lines plot is a simple
+black line for each graph.  Since the plots typically do not overlap 
+each other, this is in many cases suitable as it stands.  However,
+you can configure the plotting style so that the points are plotted
+with markers as well as or instead of lines, and change the colours, 
+marker shapes, line styles etc.  The style for each row subset is
+displayed in a button to the right of its name in the bottom right
+of the plotting window.  If you click this button the following 
+dialogue will pop up which entables you to configure the plotting style.
+</p>
+
+<figure>
+<caption><px>Stacked Line Plot Style Editor</px></caption>
+<figureimage src="&FIG.LinesStyleEditor;"/>
+</figure>
+
+<p>The <label>Display</label> box defines how the markers plotted for
+each data point will appear:
+<dl>
+<dt>Colour</dt>
+<dd><p>Choose the colour in which the lines and/or markers will be plotted.
+    </p></dd>
+
+<dt>Line/Markers</dt>
+<dd><p>Select from the radio buttons whether you want just lines between
+    the data points, or markers at each point, or both.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Line</label> box defines how the lines joining the points
+will look.  These controls will only be active if the Display selection
+is <label>Line</label> or <label>Both</label>.
+<dl>
+<dt>Thickness</dt>
+<dd><p>Determines line thickness.
+    </p></dd>
+
+<dt>Dash</dt>
+<dd><p>Determines line dash pattern.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Markers</label> box defines how markers at the data points
+will look.  These controls will only be active if the Display selection
+is <label>Markers</label> or <label>Both</label>.
+<dl>
+<dt>Size</dt>
+<dd><p>Determines the size of the markers in pixels.  If a size of zero
+    is chosen then the shape doesn't matter, the points will be plotted
+    as single pixels.
+    </p></dd>
+
+<dt>Shape</dt>
+<dd><p>Determines the shape of the markers from a selection such as 
+    open or filled circles, squares, crosses etc.
+    </p></dd>
+</dl>
+</p>
+
+<p>Any changes you make in this window are reflected in the plot straight
+away.  If you click the <label>OK</label> button at the bottom, the window
+will disappear and the changes remain.  If you click <label>Cancel</label>
+the window will disappear and any changes you made will be discarded.
+</p>
+
+<p>You can also change all the plotting styles at once by using the
+<label>Line Style</label> menu in the stacked lines plot window.
+Here you can select a standard group of styles 
+(e.g. dashed lines, coloured lines) for the plotted sets.
 </p>
 
 </subsubsubsect>
@@ -8442,10 +8761,15 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Added <ref id="exportGraphics">Exporting Graphics</ref>
+        section to manual.</li>
     <li>Added IPAC table format input handler.</li>
     <li>Plastic interop.</li>
     <li>Improved JDBC login (fixed bugs and 'single sign on')</li>
     <li>Added offset selector to histogram window.</li>
+    <li>Fixed bug which was sometimes including extra points in subsets got
+        from blob drawing or axis restriction in 2D scatter plot.</li>
+    <li>New <ref id="LinesWindow">Stacked Line Plot</ref> window.</li>
     </ul>
     </p></dd>
 
