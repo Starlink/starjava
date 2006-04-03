@@ -628,6 +628,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         final LinesPlot linesPlot_;
         final ButtonModel switchModel_;
         final Rectangle vLine_;
+        final Color lineColor_;
         Graphics g_;
         boolean visible_;
         boolean on_;
@@ -647,12 +648,13 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             vLine_ = new Rectangle();
             vLine_.width = 1;
             switchModel.addChangeListener( this );
+            lineColor_ = new Color( ~ ( new Color( 0x008000 ).getRGB() ) );
         }
 
         public void mouseEntered( MouseEvent evt ) {
             if ( on_ ) {
                 g_ = linesPlot_.getGraphics();
-                g_.setXORMode( Color.YELLOW );
+                g_.setXORMode( lineColor_ );
             }
             redraw( evt.getPoint() );
         }
@@ -666,12 +668,16 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         }
 
         public void stateChanged( ChangeEvent evt ) {
+            updateState();
+        }
+
+        public void updateState() {
             boolean on = switchModel_.isSelected();
             if ( on != on_ ) {
                 on_ = on;
                 if ( on_ ) {
                     g_ = linesPlot_.getGraphics();
-                    g_.setXORMode( Color.YELLOW );
+                    g_.setXORMode( lineColor_ );
                     linesPlot_.addMouseListener( this );
                     linesPlot_.addMouseMotionListener( this );
                 }
