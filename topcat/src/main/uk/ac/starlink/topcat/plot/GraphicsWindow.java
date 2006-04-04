@@ -5,14 +5,19 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -923,16 +928,11 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Set the background to transparent white. */
         Graphics2D g = image.createGraphics();
-        Color fcol = g.getColor();
-        Composite composite = g.getComposite();
-        g.setColor( new Color( 0x00ffffff, true ) );
-        g.setComposite( AlphaComposite.Src );
-        g.fillRect( 0, 0, w, h );
-        g.setColor( fcol );
-        g.setComposite( composite );
+        g.setBackground( new Color( 0x00ffffff, true ) );
+        g.clearRect( 0, 0, w, h );
 
         /* Draw the component onto the image. */
-        plot.paint( g );
+        plot.print( g );
         g.dispose();
 
         /* Count the number of colours represented in the resulting image. */
@@ -947,8 +947,30 @@ public abstract class GraphicsWindow extends AuxWindow {
          * instead.  This is necessary since the GIF encoder we're using
          * here just gives up if there are too many. */
         if ( colors.size() > 254 ) {
-            image = new BufferedImage( w, h, BufferedImage.TYPE_BYTE_INDEXED );
-            plot.paint( image.getGraphics() );
+
+            /* Create an image with a suitable colour model. */
+            IndexColorModel gifColorModel = getGifColorModel();
+            image = new BufferedImage( w, h, BufferedImage.TYPE_BYTE_INDEXED,
+                                       gifColorModel );
+
+            /* Zero all pixels to the transparent colour. */
+            WritableRaster raster = image.getRaster();
+            int itrans = gifColorModel.getTransparentPixel();
+            if ( itrans >= 0 ) {
+                byte[] pixValue = new byte[] { (byte) itrans };
+                for ( int ix = 0; ix < w; ix++ ) {
+                    for ( int iy = 0; iy < h; iy++ ) {
+                        raster.setDataElements( ix, iy, pixValue );
+                    }
+                }
+            }
+
+            /* Draw the plot on it. */
+            Graphics2D gifG = image.createGraphics();
+            gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
+                                   RenderingHints.VALUE_DITHER_DISABLE );
+            plot.print( gifG );
+            gifG.dispose();
         }
 
         /* Write the image as a gif down the provided stream. */
@@ -1001,6 +1023,53 @@ public abstract class GraphicsWindow extends AuxWindow {
 //      super.finalize();
 //      logger_.fine( "Finalize " + this.getClass().getName() );
 //  }
+
+    /**
+     * Returns a colour model suitable for use with GIF images.
+     * It has a selection of RGB colours and one transparent colour.
+     *
+     * @return  standard GIF indexed colour model
+     */
+    protected IndexColorModel getGifColorModel() {
+
+        /* Acquire a standard general-purpose 256-entry indexed colour model. */
+        IndexColorModel rgbModel =
+            (IndexColorModel)
+            new BufferedImage( 1, 1, BufferedImage.TYPE_BYTE_INDEXED )
+           .getColorModel();
+
+        /* Get r/g/b entries from it. */
+        byte[][] rgbs = new byte[ 3 ][ 256 ];
+        rgbModel.getReds( rgbs[ 0 ] );
+        rgbModel.getGreens( rgbs[ 1 ] );
+        rgbModel.getBlues( rgbs[ 2 ] );
+
+        /* Set one entry transparent. */
+        int itrans = 254;
+        rgbs[ 0 ][ itrans ] = (byte) 255;
+        rgbs[ 1 ][ itrans ] = (byte) 255;
+        rgbs[ 2 ][ itrans ] = (byte) 255;
+        IndexColorModel gifModel =
+            new IndexColorModel( 8, 256, rgbs[ 0 ], rgbs[ 1 ], rgbs[ 2 ],
+                                 itrans );
+
+        /* Return the  model. */
+        return gifModel;
+    }
+
+    /**
+     * Determines whether the given graphics context represents a 
+     * vector graphics type environment (such as PostScript).
+     *
+     * @param  g  graphics context to test
+     * @return  true iff <code>g</code> is PostScript-like
+     */
+    public static boolean isVector( Graphics g ) {
+        return ( g instanceof EpsGraphics2D )
+            || ( g instanceof Graphics2D
+                 && ((Graphics2D) g).getDeviceConfiguration().getDevice()
+                                    .getType() == GraphicsDevice.TYPE_PRINTER );
+    }
 
     /**
      * Actions for exporting the plot to a file.
