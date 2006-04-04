@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -50,6 +51,7 @@ public abstract class SurfacePlot extends JPanel implements Printable {
         zoomer_ = new Zoomer();
         zoomer_.setRegions( zoomRegions_ );
         zoomer_.setCursorComponent( this );
+        setOpaque( false );
     }
 
     /**
@@ -193,8 +195,12 @@ public abstract class SurfacePlot extends JPanel implements Printable {
             surface_.setDataRange( bounds[ 0 ][ 0 ], bounds[ 1 ][ 0 ],
                                    bounds[ 0 ][ 1 ], bounds[ 1 ][ 1 ] );
         }
-        g.clearRect( getX(), getY(), getWidth(), getHeight() );
-
+        if ( isOpaque() ) {
+            Color color = g.getColor();
+            g.setColor( getBackground() );
+            g.fillRect( 0, 0, getWidth(), getHeight() );
+            g.setColor( color );
+        }
         zoomRegions_.configure( surface_.getClip().getBounds() );
     }
 
