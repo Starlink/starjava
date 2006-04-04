@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -74,10 +76,12 @@ public abstract class ScatterPlot extends SurfacePlot {
      * Plots the points of this scatter plot onto a given graphics context
      * using its current plotting surface to define the mapping of data
      * to graphics space.
+     * The <code>pixels</code> parameter determines how the data are drawn.
+     * Note that in order to render transparency, it is necessary to
+     * set <code>pixels=true</code>.
      *
      * @param  graphics  graphics context
-     * @param  pixels    true if the graphics context is pixel-like, 
-     *                   false if it's vector-like
+     * @param  pixels    true for pixel-like drawing, false for vector-like
      */
     private void drawData( Graphics graphics, boolean pixels ) {
         Points points = getPoints();
@@ -283,7 +287,8 @@ public abstract class ScatterPlot extends SurfacePlot {
 
     /**
      * Plots markers representing the data points using vector graphics
-     * (graphics.draw* methods).
+     * (graphics.draw* methods).  This fails to render any transparency
+     * of the markers.
      *
      * @param   g   graphics context
      * @param   points  data points object
@@ -469,6 +474,7 @@ public abstract class ScatterPlot extends SurfacePlot {
         assert colorModel.equals( ColorModel.getRGBdefault() );
         assert ! colorModel.isAlphaPremultiplied();
         int[] rgbBuf = new int[ xdim * ydim ];
+        Arrays.fill( rgbBuf, 0x00ffffff );
 
         /* By using the bit set for iteration we skip consideration of any
          * pixels which have never been touched, which may well be a large
@@ -642,6 +648,12 @@ public abstract class ScatterPlot extends SurfacePlot {
          * blit it to the screen on subsequent paint requests.
          */
         protected void paintComponent( Graphics g ) {
+            if ( isOpaque() ) {
+                Color color = g.getColor();
+                g.setColor( getBackground() );
+                g.fillRect( 0, 0, getWidth(), getHeight() );
+                g.setColor( color );
+            }
  
             /* If the plotting requirements have changed since last time
              * we painted, we can use the cached image. */
@@ -664,14 +676,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                 image_ = createImage( width, height );
                 Graphics ig = image_.getGraphics();
 
-                /* Unfortunately, accelerated-graphics-capable contexts
-                 * are unable to handle transparency very well.  This means
-                 * that the plotting surface will not show up behind the
-                 * plotted points in the cached image buffer, even though
-                 * this component is supposed to be transparent. 
-                 * So we fudge it by calling the plotting surface's 
-                 * <tt>paintSurface</tt> method (introduced for this purpose)
-                 * here.  This is not incredibly tidy. */
+                /* Draw the surface (axis labels etc). */
                 getSurface().paintSurface( ig );
 
                 /* Plot the actual points into the cached buffer. */
@@ -694,44 +699,106 @@ public abstract class ScatterPlot extends SurfacePlot {
         }
 
         /**
-         * The normal implementation for this method calls 
-         * <tt>paintComponent</tt> somewhere along the way.
+         * The normal implementation for this method just calls 
+         * <tt>paintComponent</tt>.
          * However, if we are painting the component 
          * for some reason other than posting it
          * on the screen, we don't want to use the cached-image approach
          * used in <tt>paintComponent</tt>, since it might be a 
          * non-pixelised graphics context (e.g. postscript).
-         * So for <tt>printComponent</tt>, just invoke <tt>drawData</tt>
-         * straightforwardly.
-         *
-         * <p>A more respectable way to do this might be to test the
-         * <tt>Graphics2D.getDeviceConfiguration().getDevice().getType()</tt>
-         * value in <tt>paintComponent</tt> - however, for at least one
-         * known printer-type graphics context 
-         * (<tt>org.jibble.epsgraphics.EpsGraphics2D</tt>) this returns
-         * the wrong value (TYPE_IMAGE_BUFFER not TYPE_PRINTER).
+         * So for <tt>printComponent</tt>, we invoke <tt>drawData</tt>
+         * directly in an appropriate manner.
          */
         protected void printComponent( Graphics g ) {
             if ( getPoints() != null && getState() != null ) {
-                boolean usePixels = false;
 
-            // this doesn't work properly - the background is black
-            //  /* If there are any transparent styles involved, we will
-            //   * need to plot using pixels, since printer graphics contexts
-            //   * usually can't handle transparency 
-            //   * (well, PostScript can't). */
-            //  Style[] styles = getPointSelection().getStyles();
-            //  for ( int is = 0; is < styles.length; is++ ) {
-            //      if ( ((MarkStyle) styles[ is ]).getOpaqueLimit() != 1 ) {
-            //          usePixels = true;
-            //      }
-            //  }
-            //  if ( usePixels = true ) {
-            //      logger_.warning( "Using bitmapped postscript output, " +
-            //                       "necessary to retain pixel transparency" );
-            //  }
+                /* Find out if we've got a vector-like graphics context. */
+                boolean isVector = GraphicsWindow.isVector( g );
 
-                drawData( g, usePixels );
+                /* Work out if there is any transparent rendering. */
+                boolean hasTransparent = false;
+                Style[] styles = getPointSelection().getStyles();
+                for ( int is = 0; is < styles.length; is++ ) {
+                    if ( ((MarkStyle) styles[ is ]).getOpaqueLimit() != 1 ) {
+                        hasTransparent = true;
+                    }
+                }
+
+                /* If we have transparent pixels then we can't use vector
+                 * graphics to plot the data.  Moreover, some graphics
+                 * contexts (e.g.  PostScript based ones) are incapable 
+                 * of handling transparency, so we don't want to draw a
+                 * semi-transparent image directly on to the given 
+                 * graphics context.
+                 * We therefore render into a new BufferedImage with a
+                 * white background and then draw that image on to
+                 * the given context.  We can still use the base context to
+                 * draw the axes etc, which is necessary to get nicely
+                 * drawn characters if the context is vector-like. */
+                if ( hasTransparent || ! isVector ) {
+
+                    /* Note what we're doing. */
+                    if ( isVector ) {
+                        logger_.warning( "Using bitmapped postscript output, " +
+                                         "necessary to retain pixel " +
+                                         "transparency" );
+                    }
+                    
+                    /* Create an image for rendering into. */
+                    int w = getWidth();
+                    int h = getHeight();
+                    BufferedImage im =
+                        new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB );
+
+                    /* Give it a transparent white background. */
+                    Graphics2D gim = im.createGraphics();
+                    Color imColor = gim.getColor();
+                    Composite imComposite = gim.getComposite();
+                    gim.setColor( new Color( 0x00ffffff, true ) );
+                    gim.setComposite( AlphaComposite.Src );
+                    gim.fillRect( 0, 0, w, h );
+                    gim.setComposite( imComposite );
+                    gim.setColor( imColor );
+
+                    /* Draw the axes onto it - only the grid will be retained,
+                     * the numeric and text labels will be clipped (use the
+                     * vector ones instead). */
+                    getSurface().paintSurface( gim );
+
+                    /* Draw the data onto it. */
+                    drawData( gim, true );
+                    gim.dispose();
+
+                    /* Identify the region of the pixellised image which is
+                     * to be used.  We extend the clip by 2 pixels in each
+                     * direction.  The reason for this is that the same line
+                     * which fills the region (0,1) on a pixel image fills
+                     * the region (-0.5,0.5) on vector-type context
+                     * (something like that anyway), so clipping the exact
+                     * paintable clip on the plotting surface gives you 
+                     * ugly half-pixel breaks in lines.  So we take it one
+                     * pixel out to get the image border and a further one
+                     * to cover the remains of that border in the vector
+                     * context.  That gives you the right look using the
+                     * org.jibble.epsgraphics.EpsGraphics2D context anyway.
+                     * I'm not sure if having to do this is a bug in the
+                     * Jibble renderer. */
+                    Rectangle clip = getSurface().getClip().getBounds();
+                    int cx = clip.x - 2;
+                    int cy = clip.y - 2;
+                    int cw = clip.width + 4;
+                    int ch = clip.height + 4;
+                    BufferedImage clipIm = im.getSubimage( cx, cy, cw, ch );
+                    g.drawImage( clipIm, cx, cy, null );
+                }
+
+                /* If there's no problems with transparency and we have a
+                 * vector context, draw using vector graphics. */
+                else {
+                    drawData( g, false );
+                }
+
+                /* Finally add any annotations. */
                 drawAnnotations( g );
             }
         }
