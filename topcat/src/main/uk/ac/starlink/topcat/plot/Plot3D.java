@@ -73,7 +73,7 @@ public class Plot3D extends JPanel {
         add( plotArea_, BorderLayout.CENTER );
         legend_ = new Legend();
         add( legend_, BorderLayout.EAST );
-        setOpaque( true );
+        setOpaque( false );
         annotations_ = new Annotations();
     }
 
@@ -257,21 +257,32 @@ public class Plot3D extends JPanel {
         MarkStyle[] plotStyles =
             (MarkStyle[]) plotStyleList.toArray( new MarkStyle[ 0 ] );
 
-        /* Create the plot volume.  The implementation we use depends on
-         * whether any transparency has to be rendered; if it doesn't
-         * we can get away with a simpler algorithm. */
+        /* See if all the markers are opaque; if they are we can use a 
+         * simpler rendering algorithm. */
         boolean allOpaque = true;
         for ( int is = 0; is < nset && allOpaque; is++ ) {
             allOpaque = allOpaque && plotStyles[ is ].getOpaqueLimit() == 1;
         }
-        PlotVolume vol = allOpaque
-            ? (PlotVolume)
-              new ZBufferPlotVolume( c, g, plotStyles, padFactor, padBorders,
-                                     getZBufferWorkspace() )
-            : (PlotVolume)
-              new PackedSortPlotVolume( c, g, plotStyles, padFactor, padBorders,
-                                        points.getCount() + 2, -1.0, 2.0,
-                                        getPackedSortWorkspace() );
+
+        /* Decide what rendering algorithm we're going to have to use, and
+         * create a PlotVolume object accordingly. */
+        PlotVolume vol;
+        if ( GraphicsWindow.isVector( g ) ) {
+            if ( ! allOpaque ) {
+                logger_.warning( "Can't render transparency in PostScript" );
+            }
+            vol = new SortPlotVolume( c, g, plotStyles, padFactor, padBorders );
+        }
+        else if ( allOpaque ) {
+            vol = new ZBufferPlotVolume( c, g, plotStyles, padFactor,
+                                         padBorders, getZBufferWorkspace() );
+        }
+        else {
+            vol = new PackedSortPlotVolume( c, g, plotStyles, padFactor,
+                                            padBorders, points.getCount() + 2,
+                                            -1.0, 2.0,
+                                            getPackedSortWorkspace() );
+        }
 
         /* Set its fog factor appropriately for depth rendering as requested. */
         vol.getFogger().setFogginess( state_.getFogginess() );
