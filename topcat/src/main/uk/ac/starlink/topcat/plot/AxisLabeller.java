@@ -155,7 +155,7 @@ public class AxisLabeller {
      *
      * @param   g   graphics context
      * @param   y0  y coordinate of one end of the lines
-     * @parm    y1  y coordinate of the other end of the lines
+     * @param   y1  y coordinate of the other end of the lines
      */
     public void drawGridLines( Graphics g, int y0, int y1 ) {
         for ( int i = 0; i < tickLabels_.length; i++ ) {
