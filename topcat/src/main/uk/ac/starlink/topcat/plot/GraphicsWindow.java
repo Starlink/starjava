@@ -967,6 +967,9 @@ public abstract class GraphicsWindow extends AuxWindow {
 
             /* Draw the plot on it. */
             Graphics2D gifG = image.createGraphics();
+
+            /* Set dithering false.  But it still seems to dither on a
+             * drawImage!  Can't get to the bottom of it. */
             gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
                                    RenderingHints.VALUE_DITHER_DISABLE );
             plot.print( gifG );
