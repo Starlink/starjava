@@ -168,9 +168,9 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     }
 
     public Shape getClip() {
-        int width = _lrx - _ulx;
-        int height = _lry - _uly;
-        return new Rectangle( _ulx, _uly, width, height );
+        int width = _lrx - _ulx - 1;
+        int height = _lry - _uly - 1;
+        return new Rectangle( _ulx + 1, _uly + 1, width, height );
     }
 
     public JComponent getComponent() {
