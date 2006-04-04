@@ -429,9 +429,10 @@ public abstract class LinesPlot extends JComponent {
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
         if ( isOpaque() ) {
-            Graphics g1 = g.create();
-            g1.setColor( getBackground() );
-            g1.fillRect( 0, 0, getWidth(), getHeight() );
+            Color color = g.getColor();
+            g.setColor( getBackground() );
+            g.fillRect( 0, 0, getWidth(), getHeight() );
+            g.setColor( color );
         }
         drawData( g, this );
     }
