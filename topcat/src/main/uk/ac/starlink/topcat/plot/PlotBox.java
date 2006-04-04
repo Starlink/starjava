@@ -290,7 +290,7 @@ class PlotBox extends JPanel implements Printable {
         // However, we assume that the user will set the background.
         // NOTE: A component is transparent by default (?).
         // setOpaque(false);
-        setOpaque(true);
+        setOpaque(false);
 
         // Create a right-justified layout with spacing of 2 pixels.
         setLayout(new FlowLayout(FlowLayout.RIGHT, 2, 2));
@@ -827,7 +827,12 @@ class PlotBox extends JPanel implements Printable {
      *  @param graphics The graphics context.
      */
     public void paintComponent(Graphics graphics) {
-        super.paintComponent(graphics);
+        if (isOpaque()) {
+            Color color = graphics.getColor();
+            graphics.setColor(getBackground());
+            graphics.fillRect(0, 0, getWidth(), getHeight());
+            graphics.setColor(color );
+        }
         _drawPlot(graphics, true);
         // Acquire the focus so that key bindings work.
         // NOTE: no longer needed?
@@ -1829,10 +1834,10 @@ class PlotBox extends JPanel implements Printable {
         // Always use a white background because the dataset colors
         // were designed for a white background.
         if (graphics != null) {
-            if ( isOpaque() ) {
+      //    if ( isOpaque() ) {
                 graphics.setColor(Color.white);
                 graphics.fillRect(_ulx, _uly, width, height);
-            }
+      //    }
 
             graphics.setColor(_foreground);
             graphics.drawRect(_ulx, _uly, width, height);
