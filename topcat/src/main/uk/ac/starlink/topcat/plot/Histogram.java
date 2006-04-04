@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.BitSet;
@@ -276,6 +277,12 @@ public abstract class Histogram extends SurfacePlot {
             setOpaque( false );
         }
         protected void paintComponent( Graphics g ) {
+            if ( isOpaque() ) {
+                Color color = g.getColor();
+                g.setColor( getBackground() );
+                g.fillRect( 0, 0, getWidth(), getHeight() );
+                g.setColor( color );
+            }
             drawData( g );
         }
     }
