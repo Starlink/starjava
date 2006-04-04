@@ -50,9 +50,9 @@ public abstract class DensityPlot extends SurfacePlot {
     public DensityPlot( PlotSurface surface ) {
         super();
         setPreferredSize( new Dimension( 400, 400 ) );
+        add( new DensityDataPanel() );
         surface.getComponent().setOpaque( false );
         setSurface( surface );
-        add( new DensityDataPanel() );
     }
 
     public void setState( PlotState state ) {
@@ -490,9 +490,26 @@ public abstract class DensityPlot extends SurfacePlot {
         DensityDataPanel() {
             setOpaque( false );
         }
+
         protected void paintComponent( Graphics g ) {
             super.paintComponent( g );
             drawData( (Graphics2D) g );
+        }
+
+        protected void printComponent( Graphics g ) {
+
+            /* Tweak so that exact positioning of lines between pixel and
+             * graphics plotting doesn't look wrong.  Possibly this is only
+             * required for (a bug in) org.jibble.epsgraphics.EpsGraphics2D? */
+            if ( GraphicsWindow.isVector( g ) ) {
+                Rectangle clip = getSurface().getClip().getBounds();
+                int cx = clip.x - 2;
+                int cy = clip.y - 2;
+                int cw = clip.width + 4;
+                int ch = clip.height + 4;
+                g.clearRect( cx, cy, cw, ch );
+            }
+            super.printComponent( g );
         }
     }
 }
