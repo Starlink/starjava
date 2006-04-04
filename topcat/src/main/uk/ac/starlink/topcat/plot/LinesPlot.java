@@ -97,6 +97,7 @@ public abstract class LinesPlot extends JComponent {
             return;
         }
         int npoint = points.getCount();
+        boolean grid = state.getGrid();
         boolean xLogFlag = state.getLogFlags()[ 0 ];
         boolean xFlipFlag = state.getFlipFlags()[ 0 ];
         boolean[] yLogFlags = state.getYLogFlags();
@@ -174,17 +175,24 @@ public abstract class LinesPlot extends JComponent {
             graph.setBounds( displayBox );
 
             /* Paint graph background and outline. */
+            Color textColor = Color.BLACK;
+            Color gridColor = Color.LIGHT_GRAY;
             Graphics g1 = g.create();
             graph.paintSurface( g1 );
             g1.setColor( Color.WHITE );
             g1.fillRect( xPos, yPos, xInc, yInc );
-            g1.setColor( Color.BLACK );
+            g1.setColor( textColor );
             g1.drawRect( xPos, yPos, xInc, yInc );
 
             /* Draw the X axis. */
             Graphics gx = g1.create();
             gx.translate( xPos, yPos + yInc );
             xAxis.setDrawText( igraph == 0 );
+            if ( grid ) {
+                gx.setColor( gridColor );
+                xAxis.drawGridLines( gx, 0, -yInc );
+            }
+            gx.setColor( textColor );
             xAxis.annotateAxis( gx );
             gx.dispose();
 
@@ -192,6 +200,11 @@ public abstract class LinesPlot extends JComponent {
             Graphics2D gy = (Graphics2D) g1.create();
             gy.translate( xPos, yPos + yInc );
             gy.rotate( - Math.PI * 0.5 );
+            if ( grid ) {
+                gy.setColor( gridColor );
+                yAxes[ igraph ].drawGridLines( gy, 0, xInc );
+            }
+            gy.setColor( textColor );
             yAxes[ igraph ].annotateAxis( gy );
             gy.dispose();
             g1.dispose();

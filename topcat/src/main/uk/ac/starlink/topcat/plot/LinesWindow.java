@@ -113,6 +113,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             }
         };
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
+        getGridModel().setSelected( false );
 
         /* Add it to the display. */
         getMainArea().add( plot_, BorderLayout.CENTER );
@@ -181,6 +182,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( rescaleActionXY );
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
+        plotMenu.add( getAxisEditAction() );
+        plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         plotMenu.add( vlineModel_.createMenuItem() );
         getJMenuBar().add( plotMenu );
@@ -221,6 +224,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
         getToolBar().add( getAxisEditAction() );
+        getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
         getToolBar().add( fromXRangeAction );

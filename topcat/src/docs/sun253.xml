@@ -5410,6 +5410,10 @@ see <ref id="activation"/>.
     see <ref id="axisConfig"/>. 
     </p></dd>
 
+<dt>&IMG.GRID_ON; Grid</dt>
+<dd><p>Toggles whether grid lines are drawn over the plots or not.
+    </p></dd>
+
 <dt>&IMG.REDO;</dt>
 <dd><p>Redraws the current plot.  It is usually not necessary to 
     use this button, since if you change any of the plot characteristics
@@ -8770,6 +8774,9 @@ introduced since the last version:
     <li>Fixed bug which was sometimes including extra points in subsets got
         from blob drawing or axis restriction in 2D scatter plot.</li>
     <li>New <ref id="LinesWindow">Stacked Line Plot</ref> window.</li>
+    <li>Improved image export (GIF and EPS) from graphics windows - 
+        now generally gets transparency right, doesn't leave grey bits 
+        around the edges.</li>
     </ul>
     </p></dd>
 

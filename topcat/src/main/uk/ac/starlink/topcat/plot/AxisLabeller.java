@@ -147,6 +147,24 @@ public class AxisLabeller {
     }
 
     /**
+     * Draws grid lines on a given graphics context.
+     * The lines will be drawn vertically, the axis being considered 
+     * horizontal and starting at the origin.  The vertical extent of the
+     * grid lines is given by two values <code>y0</code> and <code>y1</code>.
+     * It is the caller's responsibility to set colours and so on.
+     *
+     * @param   g   graphics context
+     * @param   y0  y coordinate of one end of the lines
+     * @parm    y1  y coordinate of the other end of the lines
+     */
+    public void drawGridLines( Graphics g, int y0, int y1 ) {
+        for ( int i = 0; i < tickLabels_.length; i++ ) {
+            int tpos = tickLabels_[ i ].pos_;
+            g.drawLine( tpos, y0, tpos, y1 );
+        }
+    }
+
+    /**
      * Sets the tick mark style to one of the predefined settings.
      * Currently the values {@link #X} and {@link #Y} are available.
      *
