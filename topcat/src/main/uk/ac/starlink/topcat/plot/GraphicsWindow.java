@@ -30,9 +30,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.Action;
+import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
+import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
 import javax.swing.ListModel;
@@ -40,6 +42,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -115,6 +118,8 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
     private final JMenu exportMenu_;
+    private final JProgressBar progBar_;
+    private final BoundedRangeModel noProgress_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -129,6 +134,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private Range[] viewRanges_;
     private boolean forceReread_;
     private double padRatio_ = 0.02;
+    private PointsReader pointsReader_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -189,6 +195,10 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Ensure that changes to the point selection trigger a replot. */
         pointSelectors_.addActionListener( replotListener_ );
+
+        /* Add a progress bar. */
+        progBar_ = placeProgressBar();
+        noProgress_ = new DefaultBoundedRangeModel();
 
          /* Actions for exporting the plot. */
         Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
@@ -582,32 +592,31 @@ public abstract class GraphicsWindow extends AuxWindow {
         boolean sameData = pointSelection.sameData( lastPointSelection_ );
         if ( ( ! sameData ) || forceReread_ ) {
             forceReread_ = false;
-            try {
 
-                /* Read the data if required. */
-                points_ = pointSelection.readPoints();
-
-                /* If we're looking at what is effectively a new graph,
-                 * reset the viewing limits to null, so the visible range
-                 * will be defined only by the data. */
-                if ( ! sameData ) {
-                    for ( int i = 0; i < viewRanges_.length; i++ ) {
-                        viewRanges_[ i ].clear();
-                    }
+            /* If we're looking at what is effectively a new graph,
+             * reset the viewing limits to null, so the visible range
+             * will be defined only by the data. */
+            if ( ! sameData ) {
+                for ( int i = 0; i < viewRanges_.length; i++ ) {
+                    viewRanges_[ i ].clear();
                 }
-
-                /* Calculate new data ranges corresponding to the new data. */
-                dataRanges_ = calculateRanges( pointSelection, points_ );
             }
 
-            /* In case of trouble inform the user. */
-            catch ( IOException e ) {
-                ErrorDialog.showError( GraphicsWindow.this,
-                                       "Error reading table data", e );
-                points_ = null;
-                state.setValid( false );
-                return state;
+            /* If we're already doing an asynchronous data read, cancel it. */
+            if ( pointsReader_ != null ) {
+                PointsReader pr = pointsReader_;
+                pointsReader_ = null;
+                pr.interrupt();
             }
+            assert pointsReader_ == null;
+
+            /* Start an asynchronous data read to get the new dataset. */
+            pointsReader_ = new PointsReader( pointSelection );
+            pointsReader_.start();
+
+            /* In the mean time, install a blank dataset. */
+            points_ = pointSelection.getEmptyPoints();
+            dataRanges_ = calculateRanges( pointSelection, points_ );
 
             /* Remember point selection for comparison next time. */
             lastPointSelection_ = pointSelection;
@@ -1008,6 +1017,13 @@ public abstract class GraphicsWindow extends AuxWindow {
     public void dispose() {
         super.dispose();
 
+        /* Interrupt any active asynchronous data reads. */
+        if ( pointsReader_ != null ) {
+            PointsReader pr = pointsReader_;
+            pointsReader_ = null;
+            pr.interrupt();
+        }
+
         /* Configure all the point selectors to use a new, dummy TopcatModel
          * instead of the one they were using before.  The main purpose of 
          * this is to give the selectors a chance to unregister themselves
@@ -1175,6 +1191,116 @@ public abstract class GraphicsWindow extends AuxWindow {
                 throw new IOException( "No handler for format " + formatName_ +
                                        " (surprising - thought there was)" );
             }
+        }
+    }
+
+    /**
+     * Thread class which will read the data into a Points object.
+     */
+    private class PointsReader extends Thread {
+        final PointSelection pointSelection_;
+
+        /**
+         * Constructs a new reader ready to read data as defined by 
+         * a given point selection object.
+         *
+         * @param  pointSelection  point selection
+         */
+        PointsReader( PointSelection pointSelection ) {
+            super( "Point Reader" );
+            pointSelection_ = pointSelection;
+        }
+
+        /**
+         * Determines whether this thread is still active - that is whether
+         * it is currently installed as this window's reader.  If it is not,
+         * then no modifications to the state or GUI of this window should
+         * be performed.  This method should be checked every time an
+         * action is about to be performed on the event dispatch thread.
+         * Its return value will only be changed by events on the event
+         * dispatch thread.
+         *
+         * @return   true  iff this reader is installed
+         */
+        private boolean isActive() {
+            return PointsReader.this == pointsReader_;
+        }
+
+        public void run() {
+            if ( ! isActive() ) {
+                return;
+            }
+
+            /* Construct and install a new progress bar model which will
+             * be associated with this read. */
+            final BoundedRangeModel progModel = new DefaultBoundedRangeModel();
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( isActive() ) {
+                        progBar_.setModel( progModel );
+                    }
+                }
+            } );
+
+            /* Perform the read. */
+            Points points = null;
+            Throwable error = null;
+            boolean success = false;
+            try {
+                points = pointSelection_.readPoints( progModel );
+                error = null;
+                success = true;
+            }
+
+            /* In the case of a thread interruption, just bail out. */
+            catch ( InterruptedException e ) {
+                return;
+            }
+            catch ( Throwable e ) {
+                points = null;
+                error = e;
+                success = false;
+            }
+            if ( ! isActive() ) {
+                return;
+            }
+
+            /* Schedule an action to notify the Graphics window of the newly
+             * arrived data, or failure to obtain it. */
+            final Points points1 = points;
+            final Throwable error1 = error;
+            final boolean success1 = success;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( ! isActive() ) {
+                        return;
+                    }
+
+                    /* Success: install the new data points object,
+                     * update range information, and schedule a replot. */
+                    if ( success1 ) {
+                        points_ = points1;
+                        dataRanges_ = calculateRanges( pointSelection_,
+                                                       points1 );
+                        replot();
+                    }
+
+                    /* In case of failure, inform the user. */
+                    else {
+                        if ( error1 instanceof OutOfMemoryError ) {
+                            TopcatUtils.memoryError();
+                        }
+                        else {
+                            ErrorDialog.showError( GraphicsWindow.this,
+                                                   "Read Error", error1 );
+                        }
+                    }
+
+                    /* Uninstall this reader and its associated progress bar. */
+                    progBar_.setModel( noProgress_ );
+                    pointsReader_ = null;
+                }
+            } );
         }
     }
 
