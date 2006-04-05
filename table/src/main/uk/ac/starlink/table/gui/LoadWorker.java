@@ -76,15 +76,15 @@ public abstract class LoadWorker {
         eater_.loadStarted( id_ );
         new Thread( "Table Loader (" + id_ + ")" ) {
             public void run() {
-                IOException error = null;
+                Throwable error = null;
                 StarTable table = null;
                 try {
                     table = attemptLoad();
                 }
-                catch ( IOException e ) {
+                catch ( Throwable e ) {
                     error = e;
                 }
-                final IOException error1 = error;
+                final Throwable error1 = error;
                 final StarTable table1 = table;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
