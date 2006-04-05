@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BoundedRangeModel;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -110,17 +111,30 @@ public class PointSelection {
      * Reads a data points list for this selection.  The data are actually
      * read from the table objects in this call, so it may be time-consuming.
      * So, don't call it if you already have the data it would return
-     * (see {@link #sameData}).
+     * (see {@link #sameData}).  If a progress bar model is supplied it
+     * will be updated as the read progresses.
      *
+     * <p>This method checks for interruption status on its calling thread.
+     * If an interruption is made, it will cease calculating and throw
+     * an InterruptedException.
+     *
+     * @param    progress bar model to be updated as read is done
      * @return   points list
+     * @throws   InterruptedException  if the calling thread is interrupted
      */
-    public Points readPoints() throws IOException {
+    public Points readPoints( BoundedRangeModel progress )
+            throws IOException, InterruptedException {
         int npoint = 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             npoint += Tables.checkedLongToInt( tcModels_[ itab ]
                                               .getDataModel().getRowCount() );
         }
         ValueStorePoints points = new ValueStorePoints( ndim_, npoint );
+        if ( progress != null ) {
+            progress.setMinimum( 0 );
+            progress.setMaximum( npoint );
+        }
+        int step = Math.max( npoint / 100, 1000 );
         int ipoint = 0;
         double[] coords = new double[ ndim_ ];
         for ( int itab = 0; itab < nTable_; itab++ ) {
@@ -133,6 +147,12 @@ public class PointSelection {
                         coords[ idim ] = doubleValue( row[ idim ] );
                     }
                     points.putCoords( ipoint++, coords );
+                    if ( ipoint % step == 0 && progress != null ) {
+                        progress.setValue( ipoint );
+                    }
+                    if ( Thread.interrupted() ) {
+                        throw new InterruptedException();
+                    }
                 }
             }
             finally {
@@ -143,6 +163,16 @@ public class PointSelection {
         }
         assert ipoint == npoint;
         return points;
+    }
+
+    /**
+     * Returns a dummy Points object compatible with this selection.
+     * It contains no data.
+     *
+     * @return   points object with <code>getCount()==0</code>
+     */
+    public Points getEmptyPoints() {
+        return new EmptyPoints();
     }
 
     /**
