@@ -3059,6 +3059,93 @@ databases known to work.
 
 </subsect>
 
+<subsect id="largeTables">
+<subhead><title>Tips for Large Tables</title></subhead>
+
+<p>Considerable effort has gone into making TOPCAT capable of
+dealing with large datasets.  In particular it does not in general
+have to read entire files into memory in order to do its work, 
+so it's not restricted to using files which fit into the java virtual
+machine's 'heap memory' or into the physical memory of the machine.
+As a rule of thumb, the program will work with tables up to about a 
+million rows at a reasonable speed; the number of columns is less of
+an issue (though see below concerning performance).
+However, the way you invoke the program affects how well it can cope 
+with large tables; you may in some circumstances get a message that 
+TOPCAT has run out of memory (either a popup or a terse "OutOfMemoryError" 
+report on the console), and there are some things you can do about this:
+</p>
+
+<p>
+<dl>
+<dt>Use the -disk flag</dt>
+<dd><p>By default, TOPCAT reads the data from tables in most file formats 
+    (everything except FITS binary tables) into memory when it loads them.
+    By specifying the <code>-disk</code> flag on the command line,
+    you can tell it to use temporary files for storing this data instead.
+    This makes it much less likely to run out of memory.
+    You can achieve the same effect by adding the line 
+    <code>startable.storage=disk</code> in the 
+    <code>.starjava.properties</code> in your home directory.
+    This is the best thing to do if you're seeing an out of memory
+    error when loading tables.
+    See <ref id="topcatArgs"/>, <ref id="jvmProperties"/>.
+    </p></dd>
+
+<dt>Increase Java's heap memory</dt>
+<dd><p>When a Java program runs, it has a fixed maximum amount of memory
+    that it will use; Java does not really make use of virtual memory.
+    The default maximum is typically 64Mb.  You can increase this by
+    using the <code>-Xmx</code> flag, followed by the maximum heap memory,
+    for instance "<code>topcat -Xmx256M</code>" or 
+    "<code>java -Xmx256M -jar topcat-full.jar</code>".
+    Don't forget the "<code>M</code>" to indicate megabytes.
+    It's generally reasonable to increase this value up to nearly the
+    amount of free physical memory in your machine if you need to
+    (taking account of the needs of other processes running at the same time)
+    but attempting any more will usually result in abysmal performance.
+    See <ref id="jvmMemory"/>.
+    </p></dd>
+
+<dt>Use FITS files</dt>
+<dd><p>Because of the way that FITS files are organised, TOPCAT is able to 
+    load tables which are stored as uncompressed FITS binary tables
+    on disk almost instantly regardless of their size 
+    (in this case loading just reads the metadata, and any data elements
+    are only read if and when they are required).
+    So if you have a large file stored in VOTable or ASCII-based form
+    which you use often and takes a long time to load, you may wish
+    to convert it to FITS format once for subsequent use.
+    You can do this either by loading it into TOPCAT once and saving it
+    as FITS, or using the separate command-line package 
+    <webref url="http://www.starlink.ac.uk/stilts/sun252/tcopy.html"
+            >STILTS</webref>.
+    Note that the "fits-plus" variant which TOPCAT uses by default retains
+    all the metadata that would be stored in a corresponding VOTable,
+    so you won't normally lose information by doing this 
+    (see <ref id="outFits"/>).
+    As well as speeding things up, using FITS files will 
+    also reduce the need to use <code>-disk</code> or
+    <code>-Xmx</code> flags as above.
+    </p></dd>
+</dl>
+</p>
+
+<p>As far as performance goes, the memory size of the machine you're
+using does make a difference.  If the size of the dataset you're dealing
+with (this is the size of the FITS HDU if it's in FITS format but may 
+be greater or less than the file size for other formats) will
+fit into unused physical memory then general everything will run very quickly
+because the operating system can cache the data in memory; if it's
+larger than physical memory then the data has to keep being re-read
+from disk and most operations will be much slower.
+Using column-based storage to improve matters is a project which may
+be pursued in future releases.
+</p>
+
+</subsect>
+    
+
 <subsect id="invokeExamples">
 <subhead><title>Examples</title></subhead>
 
@@ -8780,6 +8867,9 @@ introduced since the last version:
     <li>Improved image export (GIF and EPS) from graphics windows - 
         now generally gets transparency right, doesn't leave grey bits 
         around the edges.</li>
+    <li>Added new section <ref id="largeTables">Tips for Large Tables</ref>.
+        Also improved handling of out-of-memory errors - now you get a 
+        popup window rather than just a message on the console (usually).</li>
     </ul>
     </p></dd>
 
