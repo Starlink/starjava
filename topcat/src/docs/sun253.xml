@@ -8870,6 +8870,7 @@ introduced since the last version:
     <li>Added new section <ref id="largeTables">Tips for Large Tables</ref>.
         Also improved handling of out-of-memory errors - now you get a 
         popup window rather than just a message on the console (usually).</li>
+    <li>Asynchronous data reads in GraphicsWindow.</li>
     </ul>
     </p></dd>
 
