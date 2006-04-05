@@ -31,8 +31,9 @@ import java.io.PipedOutputStream;
  * </pre>
  * Other uses will look pretty similar, but just override <tt>doReading</tt>
  * in different ways.  Note that any exceptions thrown by <tt>doReading</tt>
- * are caught and eventually thrown in the caller thread by
- * <tt>finishReading</tt>.
+ * are caught and eventually thrown in the reader thread by
+ * <tt>finishReading</tt>.  The same exception may also be thrown by 
+ * the <code>write</code> method of the writer thread.
  * <p>
  * This class serves two purposes.  Firstly it copes with IOExceptions 
  * encountered during the read, and makes sure they get thrown at the
@@ -53,15 +54,42 @@ import java.io.PipedOutputStream;
  */
 public abstract class PipeReaderThread extends Thread {
 
-    private final FastPipedInputStream pipeIn = new FastPipedInputStream();
-    private final OutputStream pipeOut = new FastPipedOutputStream( pipeIn );
-    private IOException caught;
+    private final FastPipedInputStream pipeIn;
+    private final OutputStream pipeOut;
+    private Throwable caught;
 
     /**
      * Constructs a new reader thread.
      */
     public PipeReaderThread() throws IOException {
         super( "Stream reader" );
+
+        /* Set up the reader stream. */
+        pipeIn = new FastPipedInputStream();
+
+        /* Set up the writer stream.  If there is an error at the read end,
+         * arrange that any writes to this stream will throw the same 
+         * exception. */
+        pipeOut = new FastPipedOutputStream( pipeIn ) {
+            public void write( byte[] b, int off, int len ) throws IOException {
+                if ( caught == null ) {
+                    super.write( b, off, len );
+                }
+                else if ( caught instanceof IOException ) {
+                    throw (IOException) caught;
+                }
+                else if ( caught instanceof RuntimeException ) {
+                    throw (RuntimeException) caught;
+                }
+                else if ( caught instanceof Error ) {
+                    throw (Error) caught;
+                }
+                else {
+                    throw (IOException) new IOException( caught.getMessage() )
+                                       .initCause( caught );
+                }
+            }
+        };
     }
 
     /**
@@ -87,11 +115,25 @@ public abstract class PipeReaderThread extends Thread {
      * catching and saving IOExceptions.
      */
     public void run() {
+        InputStream in = null;
         try {
-            doReading( getInputStream() );
+            in = getInputStream();
+            doReading( in );
         }
-        catch ( IOException e ) {
+        catch ( Throwable e ) {
             caught = e;
+        }
+        finally {
+            if ( in != null ) {
+                try {
+                    in.close();
+                }
+                catch ( IOException e ) {
+                    if ( caught == null ) {
+                        caught = e;
+                    }
+                }
+            }
         }
     }
 
@@ -126,8 +168,18 @@ public abstract class PipeReaderThread extends Thread {
                     new IOException( "Thread trouble joining stream reader" );
             }
         }
-        if ( caught != null ) {
-            throw caught;
+        if ( caught instanceof IOException ) {
+            throw (IOException) caught;
+        }
+        else if ( caught instanceof RuntimeException ) {
+            throw (RuntimeException) caught;
+        }
+        else if ( caught instanceof Error ) {
+            throw (Error) caught;
+        }
+        else if ( caught != null ) {
+            throw (IOException) new IOException( caught.getMessage() )
+                               .initCause( caught );
         }
     }
 }
