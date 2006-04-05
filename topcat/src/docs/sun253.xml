@@ -4813,7 +4813,8 @@ These can be used to export the currently visible plot to an external
 graphics format for later use.
 </p>
 
-<p>Exporting to GIF is pretty straightforward.
+<p>Exporting to GIF is pretty straightforward - what you see is what
+you get.
 </p>
 
 <p>When exporting to Encapsulated PostScript (EPS) there are a few
@@ -4834,23 +4835,25 @@ things to consider:
     graphics.
     </p></dd>
 
-<dt>File Size</dt>
-<dd><p>In some cases (scatter plots with many thousands of points)
-    output EPS files can get very large; the size scales
-    with the number of points drawn, currently with a factor of a few
-    hundred bytes per point.  There may be some improvement to
-    this in future releases.
-    </p></dd>
-
 <dt>Transparency</dt>
-<dd><p>For technical reasons (the PostScript language has no facilities
-    for rendering transparent colours) transparent markers cannot easily
+<dd><p>For technical reasons transparent markers cannot easily
     be rendered when a plot is exported to PostScript.  In some cases
-    they are all drawn opaque, and in some cases they are pixellised 
-    instead of drawn using vector graphics, in which case transparency
-    can be done.  Try it and see; if the points come out opaque instead
+    the plot is done using a bitmap in the PostScript output to permit
+    transparency and in some cases the points are just plotted opaque.
+    Try it and see; if the points come out opaque instead
     of transparent you may need to export to GIF instead.
     Better workarounds may be provided in future releases.
+    </p></dd>
+
+<dt>File Size</dt>
+<dd><p>In some cases (2D and 3D scatter plots with many thousands of points)
+    output EPS files can get extremely large; the size scales
+    with the number of points drawn, currently with a factor of a few
+    hundred bytes per point.  In some cases you can work round this by
+    plotting some points as transparent so that the plot is rendered
+    as a bitmap (see the discussion of transparency above) which 
+    scales as the number of pixels rather than the number of points.
+    There may be some improvement to this in future releases.
     </p></dd>
 </dl>
 </p>
