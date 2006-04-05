@@ -126,6 +126,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private Points points_;
     private PointSelection lastPointSelection_;
     private PlotState lastState_;
+    private Points lastPoints_;
     private Box statusBox_;
     private boolean initialised_;
     private int guidePointCount_;
@@ -736,11 +737,16 @@ public abstract class GraphicsWindow extends AuxWindow {
          * assertion should not take much time. */
         assert state.equals( getPlotState() ) : state.compare( getPlotState() );
 
-        /* Only if the current plot state materially differs from its 
-         * value last time we did this, do the actual drawing. */
-        if ( ! state.equals( lastState_ ) ) {
+        /* Only if the plot will differ from last time we did it, do we
+         * do the actual drawing.  This can be true in one of two ways:
+         * either the PlotState differs (as the result of the controls
+         * in this window having changed) or the Points object differs
+         * (the asynchronous data read might have completed since last
+         * time). */
+        if ( ! state.equals( lastState_ ) || points_ != lastPoints_ ) {
             doReplot( state, points_ );
             lastState_ = state;
+            lastPoints_ = points_;
         }
     }
 
