@@ -340,6 +340,9 @@ public class Driver {
                 StarTable startab = tabfact.makeStarTable( name, hand );
                 addTableLater( tabfact.randomTable( startab ), name );
             }
+            catch ( OutOfMemoryError e ) {
+                TopcatUtils.memoryError();
+            }
             catch ( final Throwable e ) {
                 System.err.println( e.getMessage() );
                 SwingUtilities.invokeLater( new Runnable() {

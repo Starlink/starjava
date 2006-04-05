@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -261,6 +262,29 @@ public class TopcatUtils {
             };
         }
         return about_;
+    }
+
+    /**
+     * Alerts the user that the system has run out of memory, and provides
+     * the option of some useful tips.
+     */
+    public static void memoryError() {
+        ControlWindow control = ControlWindow.getInstance();
+        String nullOpt = "OK";
+        String helpOpt = "Help!";
+        String[] options = new String[] { nullOpt, helpOpt };
+        String msg = "Out of memory";
+        String title = "Out Of Memory";
+        int iopt = JOptionPane.showOptionDialog( control, msg, title,
+                                                 JOptionPane.DEFAULT_OPTION,
+                                                 JOptionPane.ERROR_MESSAGE,
+                                                 null, options, helpOpt );
+        if ( iopt > 0 && iopt < options.length &&
+             helpOpt.equals( options[ iopt ] ) ) {
+            HelpWindow helpWin = HelpWindow.getInstance( control );
+            helpWin.makeVisible();
+            helpWin.setID( "largeTables" );
+        }
     }
 
     /**

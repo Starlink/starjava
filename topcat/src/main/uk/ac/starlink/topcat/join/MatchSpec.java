@@ -10,6 +10,7 @@ import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -74,7 +75,12 @@ public abstract class MatchSpec extends JPanel {
      * @param  parent  window controlling the invocation
      */
     public void matchFailure( Throwable th, Component parent ) {
-        ErrorDialog.showError( parent, "Match Error", th );
+        if ( th instanceof OutOfMemoryError ) {
+            TopcatUtils.memoryError();
+        }
+        else {
+            ErrorDialog.showError( parent, "Match Error", th );
+        }
     }
 
     /**

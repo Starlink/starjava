@@ -188,6 +188,15 @@ public abstract class LoadQueryWindow extends QueryWindow {
                 }
             }
         }
+
+        protected void processError( Throwable th ) {
+            if ( th instanceof OutOfMemoryError ) {
+                TopcatUtils.memoryError();
+            }
+            else {
+                super.processError( th );
+            }
+        }
     }
 
 }
