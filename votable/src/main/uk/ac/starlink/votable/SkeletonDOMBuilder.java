@@ -193,7 +193,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                                     new InlineFITSStreamHandler( extnum ) );
                         }
                     }
-                    catch ( IOException e ) {
+                    catch ( Throwable e ) {
                         throw (SAXException) 
                               new SAXParseException( e.getMessage(),
                                                      getLocator() )
