@@ -107,8 +107,20 @@ public abstract class BasicTableConsumer implements TableConsumer {
     public synchronized void loadFailed( Throwable th ) {
         if ( isLoading() ) {
             cancel();
-            ErrorDialog.showError( parent_, "Load Error", th,
-                                   "Can't load table " + id_ );
+            processError( th );
         }
+    }
+
+    /**
+     * Disposes of a throwable which has resulted from a failed load.
+     * The error should normally be delivered to the user in some way.
+     * The <code>BasicTableConsumer</code> implementation displays
+     * the message in a modal dialogue.
+     *
+     * @param  th  error
+     */
+    protected void processError( Throwable th ) {
+        ErrorDialog.showError( parent_, "Load Error", th,
+                               "Can't load table " + id_ );
     }
 }
