@@ -530,7 +530,8 @@ public class DensityWindow extends GraphicsWindow {
         hdr.addValue( "CTYPE1", name1, axes[ 0 ].getDescription() );
         hdr.addValue( "CTYPE2", name2, axes[ 1 ].getDescription() );
         if ( ngrid > 1 ) {
-            hdr.addValue( "CTYPE3", "Channel index",
+            /* Note "RGB" is a special value recognised by Aladin for CTYPE3. */
+            hdr.addValue( "CTYPE3", "RGB",
                           "Separate histograms stored in different planes" );
         }
         hdr.addValue( "BUNIT", "COUNTS", "Number of points per pixel (bin)" );
