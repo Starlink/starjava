@@ -8910,6 +8910,15 @@ introduced since the last version:
         amongst others is normally provided.
         </p></dd>
 
+    <dt>String-typed coordinate columns</dt>
+    <dd><p>If suitably identified (e.g. by UCD or units), string-valued
+        columns which represent data in certain well-known forms,
+        currently sexagesimal angles and ISO-8601-format dates, 
+        can now be treated directly as numeric values in column selector
+        boxes such as the ones in the plotting windows, rather than 
+        having to define a new column using a string-&gt;numeric converter.
+        </p></dd>
+
     <dt>Bug fixes and minor alterations</dt>
     <dd><p>
         <ul>
@@ -8925,8 +8934,8 @@ introduced since the last version:
             and it now no longer asks for an SQL username/password twice.</li>
         <li>Work around intermittent bug when loading small files from
             MySpace.</li>
-        <li>RGB density maps are now exported to FITS in more Aladin-friendly
-            format (<code>CTYPE3=RGB"</code>).</li>
+        <li>Density maps are now exported into FITS format with better 
+            WCS headers where appropriate.</li>
         <li>The SDSS JPEG cutout activation action URL has been updated 
             from DR2 to DR4.</li>
         <li>A bug which caused the first row in a table to be included
