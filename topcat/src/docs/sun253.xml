@@ -4596,7 +4596,10 @@ to fulfil their different functions, but they share a common way of
 doing things.  Each window contains a number of controls including
 toolbar buttons, menu items, column selectors and others.
 In general any change that you make to any of the controls will 
-cause the plot to be redrawn immediately to take account of the change.
+cause the plot to be redrawn to take account of that change.
+If this requires a read or re-read of the data, a progress 
+bar at the bottom of the window may show this progressing - 
+except for very large tables it is usually pretty fast.
 </p>
 
 <p>Each of the graphics windows is displayed by clicking its
