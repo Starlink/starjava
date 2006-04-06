@@ -66,11 +66,7 @@ public class AxisLabeller {
             labels = new TickLabel[ nTick ];
             Rectangle lastBounds = null;
             for ( int iTick = 0; iTick < nTick; iTick++ ) {
-                double tick = axer.getTick( iTick );
-                double frac = log ? Math.log( tick / lo ) / Math.log( hi / lo )
-                                  : ( tick - lo ) / ( hi - lo );
-                int pos = (int) Math.round( npix * ( flip ? ( 1. - frac )
-                                                          : frac ) );
+                int pos = getTickPosition( axer.getTick( iTick ) );
                 String text = axer.getLabel( iTick );
                 labels[ iTick ] = new TickLabel( pos, text );
 
@@ -165,6 +161,27 @@ public class AxisLabeller {
     }
 
     /**
+     * Draws a single grid line on a given graphics context.
+     * The line will be drawn vertically, the axis being considered
+     * horizontal and starting at the origin.  The vertical extent of the
+     * grid line is given by two values <code>y0</code> and <code>y1</code>.
+     * The horizontal position is given by the <code>value</code>.
+     * If the line is out of range, no action is taken.
+     * It is the caller's responsibility to set colours and so on.
+     *
+     * @param   g   graphics context
+     * @param   y0  y coordinate of one end of the lines
+     * @param   y1  y coordinate of the other end of the lines
+     * @param   value  x position of the line in data coordinates
+     */
+    public void drawGridLine( Graphics g, int y0, int y1, double value ) {
+        if ( value >= lo_ && value <= hi_ ) {
+            int tpos = getTickPosition( value );
+            g.drawLine( tpos, y0, tpos, y1 );
+        }
+    }
+
+    /**
      * Sets the tick mark style to one of the predefined settings.
      * Currently the values {@link #X} and {@link #Y} are available.
      *
@@ -182,6 +199,20 @@ public class AxisLabeller {
      */
     public void setDrawText( boolean drawText ) {
         drawText_ = drawText;
+    }
+
+    /**
+     * Returns the position on the axis in graphics coordinates offset from
+     * the origin at which a tickmark with a given numerical value will
+     * appear.
+     *
+     * @param  tick  numeric value associated with tickmark
+     * @return   graphical coordinate for tickmark position
+     */
+    private int getTickPosition( double tick ) {
+        double frac = log_ ? Math.log( tick / lo_ ) / Math.log( hi_ / lo_ )
+                           : ( tick - lo_ ) / ( hi_ - lo_ );
+        return (int) Math.round( npix_ * ( flip_ ? ( 1. - frac ) : frac ) );
     }
 
     /**
