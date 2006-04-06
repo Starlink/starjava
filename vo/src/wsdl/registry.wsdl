@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<wsdl:definitions xmlns:s1="http://www.ivoa.net/xml/VOResource/v0.10" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:s6="http://www.ivoa.net/xml/ConeSearch/v0.3" xmlns:s3="http://www.ivoa.net/xml/VODataService/v0.5" xmlns:s2="http://www.ivoa.net/xml/VORegistry/v0.3" xmlns:s5="http://www.ivoa.net/xml/OpenSkyNode/v0.1" xmlns:s4="http://www.ivoa.net/xml/SIA/v0.7" xmlns:s7="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://www.us-vo.org" xmlns:s8="http://purl.org/dc/elements/1.1/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://www.us-vo.org" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+<wsdl:definitions xmlns:s1="http://www.ivoa.net/xml/VOResource/v0.10" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:s6="http://www.ivoa.net/xml/OpenSkyNode/v0.1" xmlns:s3="http://www.ivoa.net/xml/VORegistry/v0.3" xmlns:s2="http://www.ivoa.net/xml/VODataService/v0.5" xmlns:s5="http://www.ivoa.net/xml/ConeSearch/v0.3" xmlns:s4="http://www.ivoa.net/xml/SIA/v0.7" xmlns:s7="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://www.us-vo.org" xmlns:s8="http://purl.org/dc/elements/1.1/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://www.us-vo.org" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <wsdl:types>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.us-vo.org">
       <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
@@ -78,6 +78,20 @@
         <s:complexType>
           <s:sequence>
             <s:element minOccurs="0" maxOccurs="1" name="QueryVOResourceResult" type="s1:ArrayOfResource" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryFullVOResource">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="predicate" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="QueryFullVOResourceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QueryFullVOResourceResult" type="s1:ArrayOfResource" />
           </s:sequence>
         </s:complexType>
       </s:element>
@@ -291,10 +305,10 @@
     </s:schema>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/VOResource/v0.10">
       <s:import namespace="http://www.us-vo.org" />
-      <s:import namespace="http://www.ivoa.net/xml/VORegistry/v0.3" />
       <s:import namespace="http://www.ivoa.net/xml/VODataService/v0.5" />
-      <s:import namespace="http://www.ivoa.net/xml/OpenSkyNode/v0.1" />
+      <s:import namespace="http://www.ivoa.net/xml/VORegistry/v0.3" />
       <s:import namespace="http://www.ivoa.net/xml/ConeSearch/v0.3" />
+      <s:import namespace="http://www.ivoa.net/xml/OpenSkyNode/v0.1" />
       <s:import namespace="http://www.ivoa.net/xml/SIA/v0.7" />
       <s:complexType name="ArrayOfResource">
         <s:sequence>
@@ -429,6 +443,20 @@
           <s:enumeration value="deleted" />
         </s:restriction>
       </s:simpleType>
+      <s:complexType name="AccessURL">
+        <s:simpleContent>
+          <s:extension base="s:anyURI">
+            <s:attribute name="use" type="s1:AccessURLUse" />
+          </s:extension>
+        </s:simpleContent>
+      </s:complexType>
+      <s:simpleType name="AccessURLUse">
+        <s:restriction base="s:string">
+          <s:enumeration value="full" />
+          <s:enumeration value="base" />
+          <s:enumeration value="dir" />
+        </s:restriction>
+      </s:simpleType>
       <s:complexType name="Organisation">
         <s:complexContent mixed="false">
           <s:extension base="s1:Resource">
@@ -453,20 +481,6 @@
           <s:element minOccurs="0" maxOccurs="1" name="accessURL" type="s1:AccessURL" />
         </s:sequence>
       </s:complexType>
-      <s:complexType name="AccessURL">
-        <s:simpleContent>
-          <s:extension base="s:anyURI">
-            <s:attribute name="use" type="s1:AccessURLUse" />
-          </s:extension>
-        </s:simpleContent>
-      </s:complexType>
-      <s:simpleType name="AccessURLUse">
-        <s:restriction base="s:string">
-          <s:enumeration value="full" />
-          <s:enumeration value="base" />
-          <s:enumeration value="dir" />
-        </s:restriction>
-      </s:simpleType>
       <s:complexType name="WebBrowser">
         <s:complexContent mixed="false">
           <s:extension base="s1:Interface" />
@@ -477,32 +491,135 @@
         <s:attribute name="standardURL" type="s:anyURI" />
       </s:complexType>
     </s:schema>
-    <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/VORegistry/v0.3">
-      <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
-      <s:complexType name="Authority">
-        <s:complexContent mixed="false">
-          <s:extension base="s1:Resource">
-            <s:sequence>
-              <s:element minOccurs="0" maxOccurs="1" name="managingOrg" type="s1:ResourceName" />
-            </s:sequence>
-          </s:extension>
-        </s:complexContent>
-      </s:complexType>
-      <s:complexType name="Registry">
-        <s:complexContent mixed="false">
-          <s:extension base="s1:Service">
-            <s:sequence>
-              <s:element minOccurs="0" maxOccurs="unbounded" name="managedAuthority" type="s:string" />
-            </s:sequence>
-          </s:extension>
-        </s:complexContent>
-      </s:complexType>
-    </s:schema>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/VODataService/v0.5">
       <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
       <s:import namespace="http://www.ivoa.net/xml/SIA/v0.7" />
-      <s:import namespace="http://www.ivoa.net/xml/ConeSearch/v0.3" />
       <s:import namespace="http://www.ivoa.net/xml/OpenSkyNode/v0.1" />
+      <s:import namespace="http://www.ivoa.net/xml/ConeSearch/v0.3" />
+      <s:complexType name="DataCollection">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Resource">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="unbounded" name="facility" type="s1:ResourceName" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="instrument" type="s1:ResourceName" />
+              <s:element minOccurs="0" maxOccurs="1" name="coverage" type="s2:Coverage" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="format" type="s2:Format" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="rights" type="s2:Rights" />
+              <s:element minOccurs="0" maxOccurs="1" name="accessURL" type="s1:AccessURL" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Coverage">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="spatial" type="s2:Spatial" />
+          <s:element minOccurs="0" maxOccurs="1" name="spectral" type="s2:Spectral" />
+          <s:element minOccurs="0" maxOccurs="1" name="temporal" type="s2:Temporal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Spatial">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="region" type="s2:Region" />
+          <s:element minOccurs="0" maxOccurs="1" name="resolution" type="s:float" />
+          <s:element minOccurs="0" maxOccurs="1" name="regionOfRegard" type="s:float" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Region" abstract="true" />
+      <s:complexType name="AllSky">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Region" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="CircleRegion">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Region">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="coordFrame" type="s2:CoordFrame" />
+              <s:element minOccurs="0" maxOccurs="1" name="center" type="s2:Position" />
+              <s:element minOccurs="1" maxOccurs="1" name="radius" type="s:float" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:simpleType name="CoordFrame">
+        <s:restriction base="s:string">
+          <s:enumeration value="ICRS" />
+          <s:enumeration value="FK5" />
+          <s:enumeration value="FK4" />
+          <s:enumeration value="ECL" />
+          <s:enumeration value="GAL" />
+          <s:enumeration value="SGAL" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="Position">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="long" type="s:double" />
+          <s:element minOccurs="1" maxOccurs="1" name="lat" type="s:double" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="CoordRange">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Region">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="coordFrame" type="s2:CoordFrame" />
+              <s:element minOccurs="0" maxOccurs="1" name="long" type="s2:AngleRange" />
+              <s:element minOccurs="0" maxOccurs="1" name="lat" type="s2:AngleRange" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="AngleRange">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="min" type="s:double" />
+          <s:element minOccurs="1" maxOccurs="1" name="max" type="s:double" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Spectral">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="waveband" type="s2:Waveband" />
+          <s:element minOccurs="0" maxOccurs="1" name="range" type="s2:WavelengthRange" />
+          <s:element minOccurs="0" maxOccurs="1" name="resolution" type="s:float" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="Waveband">
+        <s:restriction base="s:string">
+          <s:enumeration value="Radio" />
+          <s:enumeration value="Millimeter" />
+          <s:enumeration value="Infrared" />
+          <s:enumeration value="Optical" />
+          <s:enumeration value="UV" />
+          <s:enumeration value="EUV" />
+          <s:enumeration value="X-ray" />
+          <s:enumeration value="Gamma-ray" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="WavelengthRange">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="min" type="s:float" />
+          <s:element minOccurs="1" maxOccurs="1" name="max" type="s:float" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Temporal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="startTime" type="s:date" />
+          <s:element minOccurs="0" maxOccurs="1" name="endTime" type="s:date" />
+          <s:element minOccurs="0" maxOccurs="1" name="resolution" type="s:float" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Format">
+        <s:simpleContent>
+          <s:extension base="s:string">
+            <s:attribute default="false" name="isMIMEType" type="s:boolean" />
+          </s:extension>
+        </s:simpleContent>
+      </s:complexType>
+      <s:simpleType name="Rights">
+        <s:restriction base="s:string">
+          <s:enumeration value="public" />
+          <s:enumeration value="secure" />
+          <s:enumeration value="proprietary" />
+        </s:restriction>
+      </s:simpleType>
       <s:complexType name="WebService">
         <s:complexContent mixed="false">
           <s:extension base="s1:Interface" />
@@ -518,9 +635,9 @@
           <s:extension base="s1:Interface">
             <s:sequence>
               <s:element minOccurs="0" maxOccurs="1" name="resultType" type="s:string" />
-              <s:element minOccurs="0" maxOccurs="unbounded" name="param" type="s3:Param" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="param" type="s2:Param" />
             </s:sequence>
-            <s:attribute name="qtype" type="s3:HTTPQueryType" />
+            <s:attribute name="qtype" type="s2:HTTPQueryType" />
           </s:extension>
         </s:complexContent>
       </s:complexType>
@@ -528,14 +645,14 @@
         <s:sequence>
           <s:element minOccurs="0" maxOccurs="1" name="name" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="1" name="dataType" type="s3:DataType" />
+          <s:element minOccurs="0" maxOccurs="1" name="dataType" type="s2:DataType" />
           <s:element minOccurs="0" maxOccurs="1" name="unit" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="ucd" type="s:string" />
         </s:sequence>
       </s:complexType>
       <s:complexType name="DataType">
         <s:simpleContent>
-          <s:extension base="s3:ScalarDataType">
+          <s:extension base="s2:ScalarDataType">
             <s:attribute default="1" name="arraysize" type="s:token" />
           </s:extension>
         </s:simpleContent>
@@ -568,112 +685,16 @@
             <s:sequence>
               <s:element minOccurs="0" maxOccurs="unbounded" name="facility" type="s1:ResourceName" />
               <s:element minOccurs="0" maxOccurs="unbounded" name="instrument" type="s1:ResourceName" />
-              <s:element minOccurs="0" maxOccurs="1" name="coverage" type="s3:Coverage" />
+              <s:element minOccurs="0" maxOccurs="1" name="coverage" type="s2:Coverage" />
             </s:sequence>
           </s:extension>
         </s:complexContent>
-      </s:complexType>
-      <s:complexType name="Coverage">
-        <s:sequence>
-          <s:element minOccurs="0" maxOccurs="1" name="spatial" type="s3:Spatial" />
-          <s:element minOccurs="0" maxOccurs="1" name="spectral" type="s3:Spectral" />
-          <s:element minOccurs="0" maxOccurs="1" name="temporal" type="s3:Temporal" />
-        </s:sequence>
-      </s:complexType>
-      <s:complexType name="Spatial">
-        <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="region" type="s3:Region" />
-          <s:element minOccurs="0" maxOccurs="1" name="resolution" type="s:float" />
-          <s:element minOccurs="0" maxOccurs="1" name="regionOfRegard" type="s:float" />
-        </s:sequence>
-      </s:complexType>
-      <s:complexType name="Region" abstract="true" />
-      <s:complexType name="CoordRange">
-        <s:complexContent mixed="false">
-          <s:extension base="s3:Region">
-            <s:sequence>
-              <s:element minOccurs="1" maxOccurs="1" name="coordFrame" type="s3:CoordFrame" />
-              <s:element minOccurs="0" maxOccurs="1" name="long" type="s3:AngleRange" />
-              <s:element minOccurs="0" maxOccurs="1" name="lat" type="s3:AngleRange" />
-            </s:sequence>
-          </s:extension>
-        </s:complexContent>
-      </s:complexType>
-      <s:simpleType name="CoordFrame">
-        <s:restriction base="s:string">
-          <s:enumeration value="ICRS" />
-          <s:enumeration value="FK5" />
-          <s:enumeration value="FK4" />
-          <s:enumeration value="ECL" />
-          <s:enumeration value="GAL" />
-          <s:enumeration value="SGAL" />
-        </s:restriction>
-      </s:simpleType>
-      <s:complexType name="AngleRange">
-        <s:sequence>
-          <s:element minOccurs="1" maxOccurs="1" name="min" type="s:double" />
-          <s:element minOccurs="1" maxOccurs="1" name="max" type="s:double" />
-        </s:sequence>
-      </s:complexType>
-      <s:complexType name="AllSky">
-        <s:complexContent mixed="false">
-          <s:extension base="s3:Region" />
-        </s:complexContent>
-      </s:complexType>
-      <s:complexType name="CircleRegion">
-        <s:complexContent mixed="false">
-          <s:extension base="s3:Region">
-            <s:sequence>
-              <s:element minOccurs="1" maxOccurs="1" name="coordFrame" type="s3:CoordFrame" />
-              <s:element minOccurs="0" maxOccurs="1" name="center" type="s3:Position" />
-              <s:element minOccurs="1" maxOccurs="1" name="radius" type="s:float" />
-            </s:sequence>
-          </s:extension>
-        </s:complexContent>
-      </s:complexType>
-      <s:complexType name="Position">
-        <s:sequence>
-          <s:element minOccurs="1" maxOccurs="1" name="long" type="s:double" />
-          <s:element minOccurs="1" maxOccurs="1" name="lat" type="s:double" />
-        </s:sequence>
-      </s:complexType>
-      <s:complexType name="Spectral">
-        <s:sequence>
-          <s:element minOccurs="0" maxOccurs="unbounded" name="waveband" type="s3:Waveband" />
-          <s:element minOccurs="0" maxOccurs="1" name="range" type="s3:WavelengthRange" />
-          <s:element minOccurs="0" maxOccurs="1" name="resolution" type="s:float" />
-        </s:sequence>
-      </s:complexType>
-      <s:simpleType name="Waveband">
-        <s:restriction base="s:string">
-          <s:enumeration value="Radio" />
-          <s:enumeration value="Millimeter" />
-          <s:enumeration value="Infrared" />
-          <s:enumeration value="Optical" />
-          <s:enumeration value="UV" />
-          <s:enumeration value="EUV" />
-          <s:enumeration value="X-ray" />
-          <s:enumeration value="Gamma-ray" />
-        </s:restriction>
-      </s:simpleType>
-      <s:complexType name="WavelengthRange">
-        <s:sequence>
-          <s:element minOccurs="1" maxOccurs="1" name="min" type="s:float" />
-          <s:element minOccurs="1" maxOccurs="1" name="max" type="s:float" />
-        </s:sequence>
-      </s:complexType>
-      <s:complexType name="Temporal">
-        <s:sequence>
-          <s:element minOccurs="0" maxOccurs="1" name="startTime" type="s:date" />
-          <s:element minOccurs="0" maxOccurs="1" name="endTime" type="s:date" />
-          <s:element minOccurs="0" maxOccurs="1" name="resolution" type="s:float" />
-        </s:sequence>
       </s:complexType>
       <s:complexType name="TabularSkyService">
         <s:complexContent mixed="false">
-          <s:extension base="s3:SkyService">
+          <s:extension base="s2:SkyService">
             <s:sequence>
-              <s:element minOccurs="0" maxOccurs="unbounded" name="table" type="s3:Table" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="table" type="s2:Table" />
             </s:sequence>
           </s:extension>
         </s:complexContent>
@@ -682,45 +703,38 @@
         <s:sequence>
           <s:element minOccurs="0" maxOccurs="1" name="name" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
-          <s:element minOccurs="0" maxOccurs="unbounded" name="column" type="s3:Param" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="column" type="s2:Param" />
         </s:sequence>
         <s:attribute name="role" type="s:string" />
       </s:complexType>
-      <s:complexType name="DataCollection">
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/VORegistry/v0.3">
+      <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
+      <s:complexType name="Authority">
         <s:complexContent mixed="false">
           <s:extension base="s1:Resource">
             <s:sequence>
-              <s:element minOccurs="0" maxOccurs="unbounded" name="facility" type="s1:ResourceName" />
-              <s:element minOccurs="0" maxOccurs="unbounded" name="instrument" type="s1:ResourceName" />
-              <s:element minOccurs="0" maxOccurs="1" name="coverage" type="s3:Coverage" />
-              <s:element minOccurs="0" maxOccurs="unbounded" name="format" type="s3:Format" />
-              <s:element minOccurs="0" maxOccurs="unbounded" name="rights" type="s3:Rights" />
-              <s:element minOccurs="0" maxOccurs="1" name="accessURL" type="s1:AccessURL" />
+              <s:element minOccurs="0" maxOccurs="1" name="managingOrg" type="s1:ResourceName" />
             </s:sequence>
           </s:extension>
         </s:complexContent>
       </s:complexType>
-      <s:complexType name="Format">
-        <s:simpleContent>
-          <s:extension base="s:string">
-            <s:attribute default="false" name="isMIMEType" type="s:boolean" />
+      <s:complexType name="Registry">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Service">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="unbounded" name="managedAuthority" type="s:string" />
+            </s:sequence>
           </s:extension>
-        </s:simpleContent>
+        </s:complexContent>
       </s:complexType>
-      <s:simpleType name="Rights">
-        <s:restriction base="s:string">
-          <s:enumeration value="public" />
-          <s:enumeration value="secure" />
-          <s:enumeration value="proprietary" />
-        </s:restriction>
-      </s:simpleType>
     </s:schema>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/SIA/v0.7">
       <s:import namespace="http://www.ivoa.net/xml/VODataService/v0.5" />
       <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
       <s:complexType name="SimpleImageAccess">
         <s:complexContent mixed="false">
-          <s:extension base="s3:TabularSkyService">
+          <s:extension base="s2:TabularSkyService">
             <s:sequence>
               <s:element minOccurs="0" maxOccurs="1" name="capability" type="s4:SIACapability" />
             </s:sequence>
@@ -767,6 +781,35 @@
         </s:sequence>
       </s:complexType>
     </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/ConeSearch/v0.3">
+      <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
+      <s:import namespace="http://www.ivoa.net/xml/VODataService/v0.5" />
+      <s:complexType name="CSCapRestriction" abstract="true">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Capability" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ConeSearchCapability">
+        <s:complexContent mixed="false">
+          <s:extension base="s5:CSCapRestriction">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="maxSR" type="s:float" />
+              <s:element minOccurs="1" maxOccurs="1" name="maxRecords" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="verbosity" type="s:boolean" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ConeSearch">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:TabularSkyService">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="capability" type="s5:ConeSearchCapability" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+    </s:schema>
     <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/OpenSkyNode/v0.1">
       <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
       <s:import namespace="http://www.ivoa.net/xml/VODataService/v0.5" />
@@ -777,7 +820,7 @@
       </s:complexType>
       <s:complexType name="OSNCapability">
         <s:complexContent mixed="false">
-          <s:extension base="s5:OSNCapRestriction">
+          <s:extension base="s6:OSNCapRestriction">
             <s:sequence>
               <s:element minOccurs="0" maxOccurs="1" name="Compliance" type="s:string" />
               <s:element minOccurs="1" maxOccurs="1" name="Latitude" type="s:double" />
@@ -791,38 +834,9 @@
       </s:complexType>
       <s:complexType name="OpenSkyNode">
         <s:complexContent mixed="false">
-          <s:extension base="s3:TabularSkyService">
+          <s:extension base="s2:TabularSkyService">
             <s:sequence>
-              <s:element minOccurs="0" maxOccurs="1" name="capability" type="s5:OSNCapability" />
-            </s:sequence>
-          </s:extension>
-        </s:complexContent>
-      </s:complexType>
-    </s:schema>
-    <s:schema elementFormDefault="qualified" targetNamespace="http://www.ivoa.net/xml/ConeSearch/v0.3">
-      <s:import namespace="http://www.ivoa.net/xml/VOResource/v0.10" />
-      <s:import namespace="http://www.ivoa.net/xml/VODataService/v0.5" />
-      <s:complexType name="CSCapRestriction" abstract="true">
-        <s:complexContent mixed="false">
-          <s:extension base="s1:Capability" />
-        </s:complexContent>
-      </s:complexType>
-      <s:complexType name="ConeSearchCapability">
-        <s:complexContent mixed="false">
-          <s:extension base="s6:CSCapRestriction">
-            <s:sequence>
-              <s:element minOccurs="1" maxOccurs="1" name="maxSR" type="s:float" />
-              <s:element minOccurs="1" maxOccurs="1" name="maxRecords" type="s:int" />
-              <s:element minOccurs="1" maxOccurs="1" name="verbosity" type="s:boolean" />
-            </s:sequence>
-          </s:extension>
-        </s:complexContent>
-      </s:complexType>
-      <s:complexType name="ConeSearch">
-        <s:complexContent mixed="false">
-          <s:extension base="s3:TabularSkyService">
-            <s:sequence>
-              <s:element minOccurs="0" maxOccurs="1" name="capability" type="s6:ConeSearchCapability" />
+              <s:element minOccurs="0" maxOccurs="1" name="capability" type="s6:OSNCapability" />
             </s:sequence>
           </s:extension>
         </s:complexContent>
@@ -902,6 +916,12 @@
   <wsdl:message name="QueryVOResourceSoapOut">
     <wsdl:part name="parameters" element="tns:QueryVOResourceResponse" />
   </wsdl:message>
+  <wsdl:message name="QueryFullVOResourceSoapIn">
+    <wsdl:part name="parameters" element="tns:QueryFullVOResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryFullVOResourceSoapOut">
+    <wsdl:part name="parameters" element="tns:QueryFullVOResourceResponse" />
+  </wsdl:message>
   <wsdl:message name="QueryOAIDCSoapIn">
     <wsdl:part name="parameters" element="tns:QueryOAIDC" />
   </wsdl:message>
@@ -946,6 +966,12 @@
   <wsdl:message name="QueryVOResourceHttpGetOut">
     <wsdl:part name="Body" element="tns:ArrayOfResource" />
   </wsdl:message>
+  <wsdl:message name="QueryFullVOResourceHttpGetIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryFullVOResourceHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
   <wsdl:message name="QueryOAIDCHttpGetIn">
     <wsdl:part name="predicate" type="s:string" />
   </wsdl:message>
@@ -987,6 +1013,12 @@
     <wsdl:part name="predicate" type="s:string" />
   </wsdl:message>
   <wsdl:message name="QueryVOResourceHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfResource" />
+  </wsdl:message>
+  <wsdl:message name="QueryFullVOResourceHttpPostIn">
+    <wsdl:part name="predicate" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="QueryFullVOResourceHttpPostOut">
     <wsdl:part name="Body" element="tns:ArrayOfResource" />
   </wsdl:message>
   <wsdl:message name="QueryOAIDCHttpPostIn">
@@ -1035,6 +1067,12 @@
       <wsdl:input message="tns:QueryVOResourceSoapIn" />
       <wsdl:output message="tns:QueryVOResourceSoapOut" />
     </wsdl:operation>
+    <wsdl:operation name="QueryFullVOResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns VOResources with status=1 and 3: Input WHERE predicate for SQL Query like e.g. 
+ maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
+      <wsdl:input message="tns:QueryFullVOResourceSoapIn" />
+      <wsdl:output message="tns:QueryFullVOResourceSoapOut" />
+    </wsdl:operation>
     <wsdl:operation name="QueryOAIDC">
       <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
@@ -1081,6 +1119,12 @@
       <wsdl:input message="tns:QueryVOResourceHttpGetIn" />
       <wsdl:output message="tns:QueryVOResourceHttpGetOut" />
     </wsdl:operation>
+    <wsdl:operation name="QueryFullVOResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns VOResources with status=1 and 3: Input WHERE predicate for SQL Query like e.g. 
+ maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
+      <wsdl:input message="tns:QueryFullVOResourceHttpGetIn" />
+      <wsdl:output message="tns:QueryFullVOResourceHttpGetOut" />
+    </wsdl:operation>
     <wsdl:operation name="QueryOAIDC">
       <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
@@ -1126,6 +1170,12 @@
  maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
       <wsdl:input message="tns:QueryVOResourceHttpPostIn" />
       <wsdl:output message="tns:QueryVOResourceHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="QueryFullVOResource">
+      <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns VOResources with status=1 and 3: Input WHERE predicate for SQL Query like e.g. 
+ maxSearchRadius &gt; 1 and ResourceType like 'CONE'</documentation>
+      <wsdl:input message="tns:QueryFullVOResourceHttpPostIn" />
+      <wsdl:output message="tns:QueryFullVOResourceHttpPostOut" />
     </wsdl:operation>
     <wsdl:operation name="QueryOAIDC">
       <documentation xmlns="http://schemas.xmlsoap.org/wsdl/">Returns OAI_DC: Input WHERE predicate for SQL Query like e.g. 
@@ -1178,6 +1228,15 @@
     </wsdl:operation>
     <wsdl:operation name="QueryVOResource">
       <soap:operation soapAction="http://www.us-vo.org/QueryVOResource" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryFullVOResource">
+      <soap:operation soapAction="http://www.us-vo.org/QueryFullVOResource" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -1260,6 +1319,15 @@
         <mime:mimeXml part="Body" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="QueryFullVOResource">
+      <http:operation location="/QueryFullVOResource" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="QueryOAIDC">
       <http:operation location="/QueryOAIDC" />
       <wsdl:input>
@@ -1328,6 +1396,15 @@
     </wsdl:operation>
     <wsdl:operation name="QueryVOResource">
       <http:operation location="/QueryVOResource" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="QueryFullVOResource">
+      <http:operation location="/QueryFullVOResource" />
       <wsdl:input>
         <mime:content type="application/x-www-form-urlencoded" />
       </wsdl:input>
