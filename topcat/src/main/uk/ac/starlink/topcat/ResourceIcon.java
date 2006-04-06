@@ -117,6 +117,7 @@ public class ResourceIcon implements Icon {
         GRID_ON = makeIcon( "gridon.gif" ),
         GRID_OFF = makeIcon( "gridoff.gif" ),
         Y_CURSOR = makeIcon( "vline0.gif" ),
+        Y0_LINE = makeIcon( "y0line1.gif" ),
         TO_COLUMN = makeIcon( "Column.gif" ),
         COUNT = makeIcon( "ab3.gif" ),
         INVERT = makeIcon( "invert3.gif" ),

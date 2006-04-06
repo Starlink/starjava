@@ -18,6 +18,7 @@ public class LinesPlotState extends PlotState {
     private double[][] yRanges_;
     private boolean[] yLogFlags_ = new boolean[ 0 ];
     private boolean[] yFlipFlags_ = new boolean [ 0 ];
+    private boolean yZeroFlag_;
     private ValueConverter[] yConverters_;
     private int[] graphIndices_;
     private int[] activePoints_;
@@ -155,6 +156,24 @@ public class LinesPlotState extends PlotState {
     }
 
     /**
+     * Sets whether a line should be drawn at y=0 on all the graphs.
+     *
+     * @param  yZeroFlag  true to draw y=0 lines
+     */
+    public void setYZeroFlag( boolean yZeroFlag ) {
+        yZeroFlag_ = yZeroFlag;
+    }
+
+    /**
+     * Returns whether a line should be drawn at y=0 on all the graphs.
+     *
+     * @return  true to draw y=0 lines
+     */
+    public boolean getYZeroFlag() {
+        return yZeroFlag_;
+    }
+
+    /**
      * Sets an array of numeric converter objects, one for the Y axis of
      * each graph.
      * The {@link uk.ac.starlink.ttools.convert.ValueConverter#unconvert}
@@ -231,6 +250,7 @@ public class LinesPlotState extends PlotState {
                 && Arrays.equals( graphIndices_, other.graphIndices_ )
                 && Arrays.equals( yLogFlags_, other.yLogFlags_ )
                 && Arrays.equals( yFlipFlags_, other.yFlipFlags_ )
+                && yZeroFlag_ == other.yZeroFlag_
                 && Arrays.equals( yConverters_, other.yConverters_ )
                 && Arrays.equals( activePoints_, other.activePoints_ );
         }
@@ -292,6 +312,7 @@ public class LinesPlotState extends PlotState {
             code = 23 * code + ( yConverters_[ i ] == null
                                ? 0 : yConverters_[ i ].hashCode() );
         }
+        code = 23 * code + ( yZeroFlag_ ? 7 : 13 );
         for ( int i = 0; i < activePoints_.length; i++ ) {
             code = 23 * code + activePoints_[ i ];
         }

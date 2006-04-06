@@ -174,15 +174,13 @@ public abstract class LinesPlot extends JComponent {
             Rectangle displayBox = new Rectangle( xPos, yPos, xInc, yInc );
             graph.setBounds( displayBox );
 
-            /* Paint graph background and outline. */
+            /* Paint graph background. */
             Color textColor = Color.BLACK;
             Color gridColor = Color.LIGHT_GRAY;
             Graphics g1 = g.create();
             graph.paintSurface( g1 );
             g1.setColor( Color.WHITE );
             g1.fillRect( xPos, yPos, xInc, yInc );
-            g1.setColor( textColor );
-            g1.drawRect( xPos, yPos, xInc, yInc );
 
             /* Draw the X axis. */
             Graphics gx = g1.create();
@@ -200,13 +198,28 @@ public abstract class LinesPlot extends JComponent {
             Graphics2D gy = (Graphics2D) g1.create();
             gy.translate( xPos, yPos + yInc );
             gy.rotate( - Math.PI * 0.5 );
+
+            /* Draw Y grid lines if required. */
             if ( grid ) {
                 gy.setColor( gridColor );
                 yAxes[ igraph ].drawGridLines( gy, 0, xInc );
             }
+
+            /* Draw a single y=0 grid line if required. */
+            if ( state.getYZeroFlag() && yRanges[ igraph ][ 0 ] < 0.0
+                                      && yRanges[ igraph ][ 1 ] > 0.0 ) {
+                gy.setColor( gridColor );
+                yAxes[ igraph ].drawGridLine( gy, 0, xInc, 0.0 );
+            }
+
+            /* Annotate the Y axis. */
             gy.setColor( textColor );
             yAxes[ igraph ].annotateAxis( gy );
             gy.dispose();
+
+            /* Draw outline. */
+            g1.setColor( textColor );
+            g1.drawRect( xPos, yPos, xInc, yInc );
             g1.dispose();
 
             /* Set up and install a zoom region for Y zoom events. */

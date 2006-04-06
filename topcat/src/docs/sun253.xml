@@ -5502,8 +5502,16 @@ see <ref id="activation"/>.
     see <ref id="axisConfig"/>. 
     </p></dd>
 
-<dt>&IMG.GRID_ON; Grid</dt>
-<dd><p>Toggles whether grid lines are drawn over the plots or not.
+<dt>&IMG.GRID_ON; Full Grid</dt>
+<dd><p>Toggles whether X and Y grid lines are drawn over the plots or not.
+    If this is selected, the single y=0 grid line (see next item)
+    will automatically be deselected.
+    </p></dd>
+
+<dt>&IMG.Y0_LINES; y=0 Grid Lines</dt>
+<dd><p>Toggles whether a single horizontal line at y=0 is drawn.
+    If this is selected, the full grid (see previous item)
+    will automatically be deselected.
     </p></dd>
 
 <dt>&IMG.REDO;</dt>

@@ -55,6 +55,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private final LinesPlot plot_;
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel vlineModel_;
+    private final ToggleButtonModel zeroLineModel_;
     private final Map yViewRangeMap_;
 
     private Range[] yDataRanges_;
@@ -81,7 +82,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.openShapes( "Medium Coloured Outlines", 4, null ),
         MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
         MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
-
     };
 
     /**
@@ -113,7 +113,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             }
         };
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
-        getGridModel().setSelected( false );
 
         /* Add it to the display. */
         getMainArea().add( plot_, BorderLayout.CENTER );
@@ -122,6 +121,33 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
          * since the number of axis editor components it contains is the
          * same as the number of point selectors. */
         getPointSelectors().addActionListener( new AxisWindowUpdater() );
+
+        /* Add a new grid option - display only a single grid line at y=0
+         * (requested by Silvia Dalla).  Ensure that this is exclusive with
+         * the normal grid toggle. */
+        final ToggleButtonModel gridModel = getGridModel();
+        gridModel.setSelected( false );
+        gridModel.setText( "Full Grid" );
+        gridModel.setDescription( "Draw all X and Y grid lines" );
+        zeroLineModel_ = new ToggleButtonModel( "y=0 Grid Lines",
+                                                ResourceIcon.Y0_LINE,
+                                                "Draw grid line only at y=0" );
+        zeroLineModel_.addActionListener( getReplotListener() );
+        ActionListener gridListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( zeroLineModel_.isSelected() && gridModel.isSelected() ) {
+                    if ( evt.getSource() == zeroLineModel_ ) {
+                        gridModel.setSelected( false );
+                    }
+                    else {
+                        assert evt.getSource() == gridModel;
+                        zeroLineModel_.setSelected( false );
+                    }
+                }
+            }
+        };
+        gridModel.addActionListener( gridListener );
+        zeroLineModel_.addActionListener( gridListener );
 
         /* Add a status line reporting on cursor position. */
         JComponent posLabel = plot_.createPositionLabel();
@@ -184,6 +210,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( rescaleActionY );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
+        plotMenu.add( zeroLineModel_.createMenuItem() );
         plotMenu.add( getReplotAction() );
         plotMenu.add( vlineModel_.createMenuItem() );
         getJMenuBar().add( plotMenu );
@@ -225,6 +252,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( rescaleActionY );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( zeroLineModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
         getToolBar().add( fromXRangeAction );
@@ -318,6 +346,9 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         /* Antialiasing. */
         state.setAntialias( antialiasModel_.isSelected() );
+
+        /* Y=0 lines. */
+        state.setYZeroFlag( zeroLineModel_.isSelected() );
 
         /* Active points. */
         state.setActivePoints( activePoints_ );
