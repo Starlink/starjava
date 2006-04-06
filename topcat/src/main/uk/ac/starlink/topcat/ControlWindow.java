@@ -159,7 +159,7 @@ public class ControlWindow extends AuxWindow
      * Constructs a new window.
      */
     private ControlWindow() {
-        super( "Starlink TOPCAT", null );
+        super( "TOPCAT", null );
 
         /* Configure table factory. */
         tabfact_.getJDBCHandler()
