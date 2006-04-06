@@ -1,5 +1,6 @@
 package uk.ac.starlink.astrogrid;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -44,6 +45,11 @@ public class AcrDataSource extends DataSource {
         String url = (String) connection_
                              .execute( "astrogrid.myspace.getReadContentURL",
                                        new Object[] { uri_ } );
-        return new URL( url ).openStream();
+
+        /* Wrap the URL stream in a BufferedInputStream.  This is to work
+         * around persistent problems with markSupported() returning the
+         * wrong value somewhere along the line.  See comments in 
+         * DataSource source code. */
+        return new BufferedInputStream( new URL( url ).openStream() );
     }
 }
