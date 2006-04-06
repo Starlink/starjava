@@ -81,14 +81,14 @@
 <author id="mbt" 
         email="m.b.taylor@bristol.ac.uk"
         webpage="http://www.star.bristol.ac.uk/~mbt/"
-        affiliation="Starlink, University of Bristol"
+        affiliation="University of Bristol"
         >Mark Taylor</author>
 </authorlist>
 
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>3 February 2006</docdate>
+<docdate>7 April 2006</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -96,7 +96,6 @@
 <contact>Author email:
          <webref url="mailto:m.b.taylor@bristol.ac.uk"
                  >m.b.taylor@bristol.ac.uk</webref></contact>
-<contact>Starlink: <webref url="http://www.starlink.ac.uk/"/></contact>
 </contactlist>
 
 </docinfo>
@@ -131,7 +130,7 @@ can be written out in a wide range of output formats.
 
 <px>TOPCAT is written in pure Java and is available under the 
 GNU General Public Licence.  Its underlying table processing facilities
-are provided by the Starlink Tables Infrastructure Library.
+are provided by STIL, the Starlink Tables Infrastructure Library.
 </px>
 
 </abstract>
@@ -8057,7 +8056,7 @@ data developed within the UK
 <webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
 <dl>
 <dt>Author</dt>
-<dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
+<dd><p>Mark Taylor (Bristol University)</p></dd>
 
 <dt>Email</dt>
 <dd><p><webref url="mailto:m.b.taylor@bristol.ac.uk"
@@ -8088,22 +8087,23 @@ are welcomed.
 </dl>
 </p>
 
-<p>The Starlink project under which TOPCAT and friends have been 
-developed has been shut down as of July 2005.
-At the time of writing, this means that there is currently no
-provision for continued support and development of the software.
-The author is currently pursuing possibilities for further funding,
-but it's not yet clear whether or how these will work out.
-Probably at least a minimal level of support will continue to be
-available, one way or another. 
-The email address above may or may not continue to be active; 
-check the 
-<webref url="http://www.starlink.ac.uk/topcat/" plaintextref="yes"
-        >TOPCAT</webref> web page for news in the future.
+<p>See the TOPCAT web page, <webref url="http://www.starlink.ac.uk/topcat/"/>
+for the latest news and releases.
 </p>
 
 <subsect>
 <subhead><title>Acknowledgements</title></subhead>
+
+<p>TOPCAT was initially (2003-2005) developed under the UK 
+<webref url="http://www.starlink.ac.uk/">Starlink</webref> project
+(1980-2005, R.I.P.).  From July 2005 until June 2006, it is supported
+by a grant from the UK's Particle Physics and Astronomy Research Council.
+Its author will be funded from July 2006 until (at least) June 2007 by the
+European <webref url="http://eurovotech.org/">VOTech project</webref> 
+within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
+and it is expected that support and development of the software will
+continue over that time.
+</p>
 
 <p>Inspiration for many of TOPCAT's features has been taken from the
 following pre-existing tools:
@@ -8163,6 +8163,7 @@ comments (apologies for any missed out):
 <li>Anita Richards (Jodrell Bank)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
+<li>Aaron Robotham (Bristol)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
 <li>James Price (Bristol)</li>
@@ -8731,10 +8732,11 @@ introduced since the last version:
     <dd><p> In addition to the 2-d scatter plot from previous versions,
         the following visualisation windows are now available:
         <ul>
-        <li>Histogram (1-d)</li>
-        <li>3-d Cartesian scatter plot</li>
-        <li>3-d Spherical scatter plot (with optional radial dimension)</li>
-        <li>2-d Density map (2-d histogram)</li>
+        <li><ref id="HistogramWindow">Histogram</ref> (1-d)</li>
+        <li><ref id="Cartesian3DWindow">3-d Cartesian scatter plot</ref></li>
+        <li><ref id="SphereWindow">3-d Spherical scatter plot</ref>
+            (with optional radial dimension)</li>
+        <li><ref id="DensityWindow">2-d Density map</ref> (2-d histogram)</li>
         </ul>
         The new 3-d functionality does <em>not</em> require you to install
         Java3D or any other third-party 3D toolkit to work (nor does it
@@ -8792,7 +8794,8 @@ introduced since the last version:
 
     <dt>Manual axis configuration</dt>
     <dd><p>As well as zooming in and out using the mouse, you can now 
-        set the axis limits by typing them into a dialogue box.
+        set the axis limits by typing them into an
+        <ref id="axisConfig">axis dialogue box</ref>.
         You can also set the text which will form the axis annotation
         on the plot.
         </p></dd>
@@ -8840,7 +8843,7 @@ introduced since the last version:
         to save an altered copy of a FITS file under the same name.
         </li>
     <li>The manual has been reorganised somewhat, and a new
-        <label>Quick Start</label> section added.
+        <ref id="quick" plaintextref="yes">Quick Start</ref> section added.
         </li>
     <li>There is an experimental implementation of the Aladin 
         interoperability interface.  This hasn't really been tested however,
@@ -8852,25 +8855,77 @@ introduced since the last version:
     </ul>
 </p></dd>
 
-<dt>Next Version</dt>
-<dd><p>
+<dt>Version 2.1 (7 April 2006)</dt>
+<dd><p>A number of graphical and other improvements have been made
+    at this release.
+    <dl>
+
+    <dt>Stacked Line Plot</dt>
+    <dd><p>A new 
+        <ref id="LinesWindow" plaintextref="yes">Stacked Line Plot</ref>
+        visualisation window has been added.  This is especially 
+        suitable for use with time series data.
+        </p></dd>
+
+    <dt>Asynchronous data reading in graphics windows</dt>
+    <dd><p>All the graphics windows now read data for plotting asynchronously.
+        What this means is that when you change the plot in a way which 
+        requires the data to be read or re-read then the GUI will not
+        lock up and you can do other things, including changing the
+        plot in other ways before it has completed drawing.  A scrollbar
+        at the bottom of the window indicates progress.  This is only 
+        noticeable for large (slow to read) files.
+        </p></dd>
+
+    <dt>Axis Zooming</dt>
+    <dd><p>The existing Histogram, 2-D Scatter Plot and Density Map windows,
+        as well as the new Stacked Line Plot, now allow you to do a 1-d zoom 
+        by dragging the mouse near the axis, as well as the 2-d zoom by
+        dragging on the plot surface.
+        </p></dd>
+
+    <dt>Memory Errors</dt>
+    <dd><p>When the JVM runs out of memory, it now attempts to post a 
+        popup window explaining this rather than just writing 
+        a terse message to the console.  This popup also gives you the
+        opportunity to view a new section added to the documentation:
+        <ref id="largeTables" plaintextref="yes">Tips for Large Tables</ref>.
+        </p></dd>
+
+    <dt>IPAC Data Format</dt>
+    <dd><p>Data files in the <ref id="inIpac">IPAC</ref> format
+        defined by the CalTech's Infrared Processing and Analysis Center
+        can now be read.  This is how data from the Spitzer satellite 
+        amongst others is normally provided.
+        </p></dd>
+
+    <dt>Bug fixes and minor alterations</dt>
+    <dd><p>
+        <ul>
+        <li>Export of GIF and Encapsulated PostScript images from the
+            graphics windows has been improved - unwanted grey backgrounds
+            round the edges are now rendered transparent in GIFs and 
+            white in EPS.  A section on 
+            <ref id="exportGraphics" plaintextref="yes">Exporting
+            Graphics</ref> has also been added to the manual.</li>
+        <li>A number of graphical anomalies such as the plot bounds being reset
+            when an axis Flip button was toggled have been ironed out.</li>
+        <li>The JDBC behaviour has been improved: some bugs have been fixed
+            and it now no longer asks for an SQL username/password twice.</li>
+        <li>Work around intermittent bug when loading small files from
+            MySpace.</li>
+        <li>RGB density maps are now exported to FITS in more Aladin-friendly
+            format (<code>CTYPE3=RGB"</code>).</li>
+        <li>The SDSS JPEG cutout activation action URL has been updated 
+            from DR2 to DR4.</li>
+        <li>A bug which caused the first row in a table to be included
+            erroneously in graphical subset selections has been fixed.</li>
+        <li>Added an offset selector toggle button to the Histogram window.</li>
+        </ul>
+    </p></dd>
+    </dl>
     <ul>
-    <li>Added <ref id="exportGraphics">Exporting Graphics</ref>
-        section to manual.</li>
-    <li>Added IPAC table format input handler.</li>
     <li>Plastic interop.</li>
-    <li>Improved JDBC login (fixed bugs and 'single sign on')</li>
-    <li>Added offset selector to histogram window.</li>
-    <li>Fixed bug which was sometimes including extra points in subsets got
-        from blob drawing or axis restriction in 2D scatter plot.</li>
-    <li>New <ref id="LinesWindow">Stacked Line Plot</ref> window.</li>
-    <li>Improved image export (GIF and EPS) from graphics windows - 
-        now generally gets transparency right, doesn't leave grey bits 
-        around the edges.</li>
-    <li>Added new section <ref id="largeTables">Tips for Large Tables</ref>.
-        Also improved handling of out-of-memory errors - now you get a 
-        popup window rather than just a message on the console (usually).</li>
-    <li>Asynchronous data reads in GraphicsWindow.</li>
     </ul>
     </p></dd>
 
