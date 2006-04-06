@@ -15,9 +15,13 @@ import uk.ac.starlink.util.CgiQuery;
  */
 public class Sdss {
 
-    /** Base URL for SkyServer JPEG retrieval service. */
-    public static final String SDSS_BASE_URL = 
+    /** Base URL for SkyServer JPEG retrieval service, DR2. */
+    public static final String SDSS_DR2_BASE_URL = 
         "http://skyservice.pha.jhu.edu/dr2/ImgCutout/getjpeg.aspx";
+
+    /** Base URL for SkyServer JPEG retrieval service. */
+    public static final String SDSS_BASE_URL =
+        "http://casjobs.sdss.org/ImgCutoutDR4/getjpeg.aspx";
 
     /**
      * Private constructor prevents instantiation.
