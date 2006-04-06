@@ -8875,9 +8875,9 @@ introduced since the last version:
         What this means is that when you change the plot in a way which 
         requires the data to be read or re-read then the GUI will not
         lock up and you can do other things, including changing the
-        plot in other ways before it has completed drawing.  A scrollbar
-        at the bottom of the window indicates progress.  This is only 
-        noticeable for large (slow to read) files.
+        plot in other ways before it has completed drawing.  
+        A progress bar at the bottom of the window indicates progress.
+        This is only noticeable for large (slow to read) files.
         </p></dd>
 
     <dt>Axis Zooming</dt>
