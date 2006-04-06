@@ -5508,7 +5508,7 @@ see <ref id="activation"/>.
     will automatically be deselected.
     </p></dd>
 
-<dt>&IMG.Y0_LINES; y=0 Grid Lines</dt>
+<dt>&IMG.Y0_LINE; y=0 Grid Lines</dt>
 <dd><p>Toggles whether a single horizontal line at y=0 is drawn.
     If this is selected, the full grid (see previous item)
     will automatically be deselected.
