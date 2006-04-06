@@ -1,11 +1,15 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Point;
@@ -14,6 +18,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.GregorianCalendar;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -61,9 +66,7 @@ public class AuxWindow extends JFrame {
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
-    private static final Icon LOGO =
-        new ImageIcon( ResourceIcon.STAR_LOGO.getImage()
-                      .getScaledInstance( -1, 34, Image.SCALE_SMOOTH ) );
+    private static final Icon LOGO = getBadge();
 
     /**
      * Constructs an AuxWindow.
@@ -187,10 +190,13 @@ public class AuxWindow extends JFrame {
         /* Add a close button. */
         toolBar.add( closeIsExit ? exitAct : closeAct );
 
-        /* Add logo. */
-        toolBar.add( Box.createHorizontalGlue() );
-        toolBar.addSeparator();
-        toolBar.add( new JLabel( LOGO ) );
+        /* Add logo and padding. */
+        if ( LOGO != null &&
+             LOGO.getIconWidth() > 0 && LOGO.getIconHeight() > 0 ) {
+            toolBar.add( Box.createHorizontalGlue() );
+            toolBar.addSeparator();
+            toolBar.add( new JLabel( LOGO ) );
+        }
         toolBar.addSeparator();
     }
 
@@ -438,6 +444,60 @@ public class AuxWindow extends JFrame {
                 }
             }
         }
+    }
+
+    /**
+     * Returns an Icon suitable for labelling all the windows in this
+     * application.
+     *
+     * @return  badge icon, or null if there is none
+     */
+    private static Icon getBadge() {
+
+        /* Get the Starlink logo and scale it to the right size. */
+        final Icon starlinkIcon = 
+            new ImageIcon( ResourceIcon.STAR_LOGO.getImage()
+                          .getScaledInstance( -1, 34, Image.SCALE_SMOOTH ) );
+
+        /* Get a fade factor. */
+        long fadeStart =
+            new GregorianCalendar( 2006, GregorianCalendar.APRIL, 1 )
+           .getTimeInMillis();
+        long fadeEnd =
+            new GregorianCalendar( 2006, GregorianCalendar.SEPTEMBER, 1 )
+           .getTimeInMillis();
+        long now = new GregorianCalendar().getTimeInMillis();
+        double fade =
+            (double) ( now - fadeStart ) / (double) ( fadeEnd - fadeStart );
+
+        /* Calculate corresponding rendering constants. */
+        final float alpha = 1f - Math.max( 0f, Math.min( 1f, (float) fade ) );
+        final boolean visible = alpha > 0f;
+        final Composite fadeComposite = visible
+            ? AlphaComposite.getInstance( AlphaComposite.SRC_OVER, alpha )
+            : null;
+
+        /* Construct and return an icon based on the Starlink logo but
+         * appropriately faded. */
+        return new Icon() {
+            public int getIconHeight() {
+                return visible ? starlinkIcon.getIconHeight() : 0;
+            }
+            public int getIconWidth() {
+                return visible ? starlinkIcon.getIconWidth() : 0;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                if ( visible ) {
+                    if ( g instanceof Graphics2D ) {
+                        Graphics2D g2 = (Graphics2D) g;
+                        Composite origComposite = g2.getComposite();
+                        g2.setComposite( fadeComposite );
+                        starlinkIcon.paintIcon( c, g2, x, y );
+                        g2.setComposite( origComposite );
+                    }
+                }
+            }
+        };
     }
 
     /**
