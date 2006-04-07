@@ -34,9 +34,14 @@ public class PlasticUtils {
     /** Location in the user's home directory of the PLASTIC rendezvous file. */
     public static final String PLASTIC_FILE = ".plastic";
 
+    /** Version of PLASTIC interface implemented. */
+    public static final String PLASTIC_VERSION =
+        PlasticListener.CURRENT_VERSION;
+
     /** Prefix for XML-RPC "perform" method. */
-    // public static final String XMLRPC_PREFIX = null;
-    public static final String XMLRPC_PREFIX = "plastic.client";
+    public static final String XMLRPC_PREFIX = 
+        Double.parseDouble( PLASTIC_VERSION ) > 0.399 ? null
+                                                      : "plastic.client";
 
     /**
      * Private sole constructor blocks instantiation.

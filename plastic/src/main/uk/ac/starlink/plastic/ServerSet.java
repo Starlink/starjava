@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import net.ladypleaser.rmilite.Client;
 import net.ladypleaser.rmilite.Server;
 import org.apache.xmlrpc.WebServer;
+import org.votech.plastic.PlasticListener;
 import org.votech.plastic.PlasticHubListener;
 
 /**
@@ -180,7 +181,8 @@ class ServerSet {
      */
     private void storeConfig( File configFile ) throws IOException {
         Properties props = new Properties();
-        props.setProperty( PlasticHubListener.PLASTIC_VERSION_KEY, "0.2" );
+        props.setProperty( PlasticHubListener.PLASTIC_VERSION_KEY,
+                           PlasticListener.CURRENT_VERSION );
         props.setProperty( PlasticHubListener.PLASTIC_RMI_PORT_KEY,
                            Integer.toString( rmiPort_ ) );
         props.setProperty( PlasticHubListener.PLASTIC_XMLRPC_URL_KEY, 
