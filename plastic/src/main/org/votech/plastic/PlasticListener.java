@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 
-/**
+/***
  * The interface that java-rmi Plastic-compatible applications should support.
  * 
  * @see <a href="http://plastic.sourceforge.net/">http://plastic.sourceforge.net</a>
@@ -14,12 +14,12 @@ import java.util.List;
  * @since 1.3
  */
 public interface PlasticListener {
-    /**
+    /***
      * The current version of Plastic defined by this interface.
      */
-    String CURRENT_VERSION = "0.2";
+    String CURRENT_VERSION = "0.4";
 
-    /**
+    /***
      * Request that the application perform an action based on a message.
      * 
      * @param sender the ID of the originating application.
