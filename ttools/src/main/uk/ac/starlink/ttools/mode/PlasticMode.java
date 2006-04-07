@@ -12,7 +12,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.PlasticUtils;
@@ -39,9 +41,10 @@ import uk.ac.starlink.votable.VOTableWriter;
 public class PlasticMode implements ProcessingMode {
 
     private final Parameter transportParam_;
+    private final Parameter clientParam_;
 
-    private final static String TRANSPORT_STRING;
-    private final static String TRANSPORT_FILE;
+    final static String TRANSPORT_STRING;
+    final static String TRANSPORT_FILE;
     private final static String[] TRANSPORTS = new String[] {
         TRANSPORT_STRING = "string",
         TRANSPORT_FILE = "file",
@@ -90,11 +93,25 @@ public class PlasticMode implements ProcessingMode {
         } );
         transportParam_.setNullPermitted( true );
         transportParam_.setPrompt( "PLASTIC transport mechanism" );
+
+        clientParam_ = new Parameter( "client" );
+        clientParam_.setDescription( new String[] {
+            "Gives the name of a PLASTIC listener application which is to",
+            "receive the broadcast table.",
+            "If a non-null value is given, then only the first registered",
+            "application which reports its application name as that value",
+            "will receive the message.  If no value is supplied, the",
+            "broadcast will be to all listening applications.",
+        } );
+        clientParam_.setNullPermitted( true );
+        clientParam_.setPrompt( "Recipient application" );
+        clientParam_.setUsage( "<app-name>" );
     }
 
     public Parameter[] getAssociatedParameters() {
         return new Parameter[] {
             transportParam_,
+            clientParam_,
         };
     }
 
@@ -115,6 +132,9 @@ public class PlasticMode implements ProcessingMode {
             throw new ParameterValueException( transportParam_,
                                                "Unknown transport type" );
         }
+
+        final String client = clientParam_.stringValue( env );
+
         final PlasticHubListener hub;
         final URI plasticId;
         try {
@@ -129,7 +149,8 @@ public class PlasticMode implements ProcessingMode {
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 try {
-                    broadcast( table, msg, hub, plasticId, policy, out );
+                    broadcast( table, msg, hub, plasticId, policy,
+                               client, out );
                 }
                 finally {
                     hub.unregister( plasticId );
@@ -148,13 +169,39 @@ public class PlasticMode implements ProcessingMode {
      * @param   hub    plastic hub object
      * @param   plasticId  plastic identifier for this client
      * @param   policy  storage policy
+     * @param   client  application name of sole target for broadcast,
+     *                  or null for all
      * @param   out    output stream to the environment (may be null)
      */
     public static void broadcast( StarTable table, URI msg,
                                   PlasticHubListener hub, URI plasticId,
-                                  StoragePolicy policy, PrintStream out )
+                                  StoragePolicy policy, String client,
+                                  PrintStream out )
             throws IOException {
         long nrow = table.getRowCount();
+
+        /* Determine the list of clients for receipt of the message. */
+        URI clientId = null;
+        if ( client != null && client.trim().length() > 0 ) {
+            Map nameResponses = hub.request( plasticId, MSG_NAME,
+                                             new ArrayList() );
+            for ( Iterator it = nameResponses.entrySet().iterator();
+                  clientId == null && it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                URI id = (URI) entry.getKey();
+                String appName = (String) entry.getValue();
+                if ( appName != null && appName.equalsIgnoreCase( client ) ) {
+                    clientId = id;
+                }
+            }
+        }
+        if ( client != null && clientId == null ) {
+            throw new IOException( "No PLASTIC listener by the name of "
+                                 + client );
+        }
+        List clientList = clientId == null
+                        ? null
+                        : Collections.singletonList( clientId );
 
         /* If we've been instructed to use the inline votable load, or
          * if the table looks short, then write the VOTable into a string
@@ -170,8 +217,14 @@ public class PlasticMode implements ProcessingMode {
                 bstrm.close();
                 String vot = bstrm.toString();
                 bstrm = null;
-                hub.requestAsynch( plasticId, MSG_BYTEXT,
-                                   Arrays.asList( new Object[] { vot } ) );
+                List args = Collections.singletonList( vot );
+                if ( clientList == null ) {
+                    hub.requestAsynch( plasticId, MSG_BYTEXT, args );
+                }
+                else {
+                    hub.requestToSubsetAsynch( plasticId, MSG_BYTEXT, args,
+                                               clientList );
+                }
                 return;
             }
             catch ( OutOfMemoryError e ) {
@@ -200,9 +253,11 @@ public class PlasticMode implements ProcessingMode {
             /* Hub communication is synchronous; we want to wait until all
              * clients have responded so we can delete the temporary file
              * afterwards. */
-            Map loadResponses = 
-                hub.request( plasticId, MSG_BYURL,
-                             Arrays.asList( new Object[]{ tmpfile.toURL() } ) );
+            List args = Collections.singletonList( tmpfile.toURL() );
+            Map loadResponses = clientList == null
+                              ? hub.request( plasticId, MSG_BYURL, args )
+                              : hub.requestToSubset( plasticId, MSG_BYURL, args,
+                                                     clientList );
             tmpfile.delete();
 
             /* If requested, get and output the names of the listeners which
