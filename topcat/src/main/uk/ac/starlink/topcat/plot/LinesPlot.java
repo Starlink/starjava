@@ -371,6 +371,9 @@ public abstract class LinesPlot extends JComponent {
      * @return  point iterator
      */
     public PointIterator getPlottedPointIterator() {
+        if ( ! state_.getValid() ) {
+            return null;
+        }
         final Points points = points_;
         final int npoint = points.getCount();
         final RowSubset[] sets = state_.getPointSelection().getSubsets();
@@ -764,7 +767,7 @@ public abstract class LinesPlot extends JComponent {
         private PositionReporter getReporter( Point p ) {
 
             /* No point, no reporter. */
-            if ( p == null ) {
+            if ( p == null || ! state_.getValid() ) {
                 return null;
             }
 

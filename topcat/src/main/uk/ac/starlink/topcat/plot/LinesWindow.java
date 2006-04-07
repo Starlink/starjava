@@ -642,16 +642,19 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private class PointClickListener extends MouseAdapter {
         public void mouseClicked( MouseEvent evt ) {
             if ( evt.getButton() == MouseEvent.BUTTON1 ) {
-                int ip = plot_.getPlottedPointIterator()
-                              .getClosestPoint( evt.getPoint(), 4 );
-                if ( ip >= 0 ) {
-                    PointSelection psel = plot_.getState().getPointSelection();
-                    psel.getPointTable( ip )
-                        .highlightRow( psel.getPointRow( ip ) );
-                }
-                else {
-                    activePoints_ = new int[ 0 ];
-                    replot();
+                PointIterator pit = plot_.getPlottedPointIterator();
+                if ( pit != null ) {
+                    int ip = pit.getClosestPoint( evt.getPoint(), 4 );
+                    if ( ip >= 0 ) {
+                        PointSelection psel = 
+                            plot_.getState().getPointSelection();
+                        psel.getPointTable( ip )
+                            .highlightRow( psel.getPointRow( ip ) );
+                    }
+                    else {
+                        activePoints_ = new int[ 0 ];
+                        replot();
+                    }
                 }
             }
         }
