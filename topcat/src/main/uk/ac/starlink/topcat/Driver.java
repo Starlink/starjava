@@ -13,6 +13,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -185,8 +186,8 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-version] [-verbose] [-demo]"
-                  + " [-disk] [-noserv]\n" 
+              pre + " [-help] [-version] [-verbose] [-demo] [-disk]\n"
+            + pad + " [-hub] [-[no]plastic] [-[no]soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
@@ -198,8 +199,9 @@ public class Driver {
         List loaderList = new ArrayList();
         boolean demo = false;
         int verbosity = 0;
-        boolean soapServe = true;
+        boolean soapServe = false;
         boolean plasticServe = true;
+        boolean plasticHub = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -227,6 +229,26 @@ public class Driver {
             else if ( arg.equals( "-disk" ) ) {
                 it.remove();
                 tabfact.setStoragePolicy( StoragePolicy.PREFER_DISK );
+            }
+            else if ( arg.equals( "-hub" ) ) {
+                it.remove();
+                plasticHub = true;
+            }
+            else if ( arg.equals( "-plastic" ) ) {
+                it.remove();
+                plasticServe = true;
+            }
+            else if ( arg.equals( "-noplastic" ) ) {
+                it.remove();
+                plasticServe = false;
+            }
+            else if ( arg.equals( "-soap" ) ) {
+                it.remove();
+                soapServe = true;
+            }
+            else if ( arg.equals( "-nosoap" ) ) {
+                it.remove();
+                soapServe = false;
             }
             else if ( arg.startsWith( "-noserv" ) ) {
                 it.remove();
@@ -386,6 +408,14 @@ public class Driver {
             }
             catch ( Throwable e ) {
                 logger.warning( "No SOAP server: " + e );
+            }
+        }
+        if ( plasticHub ) {
+            try {
+                PlasticHub.startHub( null );
+            }
+            catch ( IOException e ) {
+                logger.warning( "Can't start PLASTIC hub: " + e );
             }
         }
         if ( plasticServe ) {
@@ -558,12 +588,18 @@ public class Driver {
 
         /* General flags. */
         buf.append( p1 + "General flags:" )
-           .append( p2 + "-help      print this message and exit" )
-           .append( p2 + "-version   print component versions etc and exit" )
-           .append( p2 + "-verbose   increase verbosity of reports to console" )
-           .append( p2 + "-demo      start with demo data" )
-           .append( p2 + "-disk      use disk backing store for large tables" ) 
-           .append( p2 + "-noserv    don't start SOAP services" );
+           .append( p2 + "-help        print this message and exit" )
+           .append( p2 + "-version     print component versions etc and exit" )
+           .append( p2 + "-verbose     increase verbosity of "
+                                       + "reports to console" )
+           .append( p2 + "-demo        start with demo data" )
+           .append( p2 + "-disk        use disk backing store for "
+                                       + "large tables" ) 
+           .append( p2 + "-hub         run internal PLASTIC hub" )
+           .append( p2 + "-[no]plastic do [not] connect to running " 
+                                       + "PLASTIC hub" )
+           .append( p2 + "-[no]soap    do [not] start SOAP services" )
+           .append( p2 + "-noserv      don't run any services" );
 
         /* Load dialogues. */
         buf.append( p1 + "Optional load dialogue flags:" )
