@@ -1,20 +1,29 @@
 package uk.ac.starlink.ttools.mode;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
+import java.net.URI;
 import java.rmi.RemoteException;
 import java.util.Iterator;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.xml.rpc.ParameterMode;
 import javax.xml.rpc.ServiceException;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.encoding.XMLType;
+import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.soap.util.RemoteUtilities;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.votable.soap.VOTableSerialization;
 
 /**
@@ -22,15 +31,15 @@ import uk.ac.starlink.votable.soap.VOTableSerialization;
  * If a TOPCAT server is currently running, a remote display message
  * will be sent.  Otherwise, a new TOPCAT server will be started and
  * a remote message will be sent to that.
- * At time of writing the message transport uses AXIS 1.1 which puts
- * everything into a DOM at at least one end, which means it doesn't
- * work well for large tables, but with a better SOAP implementation
- * (AXIS 1.2?) it would sort itself out.
  *
  * @author   Mark Taylor (Starlink)
  * @since    24 Mar 2005
  */
 public class TopcatMode implements ProcessingMode, TableConsumer {
+
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.tttools.mode" );
+    private StoragePolicy policy_;
 
     /**
      * Fail with an undeclared throwable at load time if this class isn't
@@ -55,45 +64,90 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
        .append( "for display.\n" )
        .append( "The latter mode only works if the TOPCAT classes are\n" )
        .append( "on the class path.\n" )
-       .append( "There are currently limits to the size of table\n" )
-       .append( "that can be transmitted to the application in this way -\n" )
-       .append( "it is hoped that this can be improved in a future\n" )
-       .append( "release.\n" )
+       .append( "A variety of mechanisms (e.g. PLASTIC and SOAP) are\n" )
+       .append( "attempted to transfer the table, depending on what\n" )
+       .append( "running instances of TOPCAT can be found.\n" )
+       .append( "Depending on the transport mechanism used,\n" )
+       .append( "there may be limits to the size of table\n" )
+       .append( "that can be transmitted to the application in this way.\n" )
        .toString();
     }
 
     public TableConsumer createConsumer( Environment env ) {
+        policy_ = TableEnvironment.getStoragePolicy( env );
         return this;
     }
 
     public void consume( StarTable table ) throws IOException {
-        try {
+        String srcName = table.getName();
+        if ( srcName == null || srcName.trim().length() == 0 ) {
+            srcName = "(stilts)";
+        }
+
+        boolean done = false;
+        if ( ! done ) {
             try {
-                remoteDisplay( table );
+                logger_.info( "Trying PLASTIC ..." );
+                plasticDisplay( table, srcName );
+                logger_.info( "... sent via PLASTIC" );
+                done = true;
             }
-            catch ( ConnectException e ) {
-                startServer();
-                remoteDisplay( table );
+            catch ( IOException e ) {
+                logger_.info( "... PLASTIC broadcast failed " + e );
             }
         }
-        catch ( ServiceException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
+
+        if ( ! done ) {
+            try {
+                logger_.info( "Trying SOAP ..." );
+                soapDisplay( table, srcName );
+                logger_.info( "... sent via SOAP" );
+                done = true;
+            }
+            catch ( ConnectException e ) {
+                logger_.info( "... SOAP connection failed " + e );
+            }
+            catch ( ServiceException e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
+            catch ( Throwable e ) {
+                logger_.info( "... SOAP connection failed " + e );
+            }
+        }
+
+        if ( ! done ) {
+            logger_.info( "Trying local JVM using reflection ..." );
+            table = Tables.randomTable( table );
+            internalDisplay( table, srcName );
+            logger_.info( "... loaded in local JVM" );
+            done = true;
         }
     }
 
     /**
-     * Attempts to display a table in a running TOPCAT server.
+     * Attempts to display a table in a TOPCAT which is registered with
+     * a running PLASTIC hub.
      *
      * @param  table  table to display
+     * @param  srcName   label for the table's source
      */
-    private void remoteDisplay( StarTable table )
-            throws ConnectException, ServiceException, IOException {
+    private void plasticDisplay( StarTable table, String srcName ) 
+            throws IOException {
+        PlasticHubListener hub = PlasticUtils.getLocalHub();
+        URI plasticId = hub.registerNoCallBack( "stilts" );
+        PlasticMode.broadcast( table, PlasticMode.MSG_BYURL, hub, plasticId,
+                               policy_, "topcat", null );
+    }
 
-        String srcName = table.getName();
-        if ( srcName == null || srcName.trim().length() == 0 ) {
-            srcName = "(streamed)";
-        }
+    /**
+     * Attempts to display a table in a running TOPCAT SOAP server.
+     *
+     * @param  table  table to display
+     * @param  srcName   label for the table's source
+     */
+    private void soapDisplay( StarTable table, String srcName )
+            throws ConnectException, ServiceException, IOException {
 
         Object[] tcServ = RemoteUtilities.readContactFile( "topcat" );
         if ( tcServ == null ) {
@@ -135,22 +189,43 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
     }
 
     /**
-     * Starts up a TOPCAT server.
+     * Starts up a new TOPCAT instance and displays the given table in it.
+     *
+     * @param  table  randomTable to display, must have random access
+     * @param  srcName   label for the table's source
      */
-    private void startServer() throws IOException {
+    private void internalDisplay( StarTable randomTable, final String srcName )
+            throws IOException {
+        TopcatLoader loader;
         try {
-            Class clazz = Class.forName( "uk.ac.starlink.topcat.Driver" );
-            final Method main =
-                clazz.getMethod( "main", new Class[] { String[].class } );
-            main.invoke( null, new Object[] { new String[ 0 ] } );
+            loader = new TopcatLoader( randomTable, srcName, false );
         }
-        catch ( ClassNotFoundException e ) {
-            throw (IOException) new IOException( "TOPCAT not available" )
-                               .initCause( e );
+        catch ( Throwable e ) {
+            throw (IOException)
+                  new IOException( "TOPCAT classes not available" )
+                 .initCause( e );
         }
-        catch ( Exception e ) {
-            throw (IOException) new IOException( "Can't start TOPCAT" )
-                               .initCause( e );
+        try {
+            synchronized ( loader ) {
+                SwingUtilities.invokeLater( loader );
+                while ( ! loader.finished_ ) {
+                    loader.wait();
+                }
+            }
+            if ( ! loader.success_.booleanValue() ) {
+                Throwable error = loader.error_;
+                if ( error instanceof IOException ) {
+                    throw (IOException) error;
+                }
+                else {
+                    throw (IOException)
+                          new IOException( "TOPCAT start/load failed" )
+                             .initCause( error );
+                }
+            }
+        }
+        catch ( InterruptedException e ) {
+            logger_.info( "Interrupted waiting for table load" );
         }
     }
 
@@ -161,5 +236,87 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
     private static void checkRequisites() {
         RemoteUtilities.class.getName();
         org.apache.axis.encoding.Target.class.getName();
+    }
+
+    /**
+     * Class that uses reflection to start up TOPCAT and load a table into it.
+     * The run() method does the load.
+     */
+    static class TopcatLoader implements Runnable {
+        private static Class driverClazz_;
+        private static Class controlClazz_;
+        private static Method main_;
+        private static Method getControlWindow_;
+        private static Method addTable_;
+        private static Method setStandalone_;
+
+        private final Object[] addTableArgs_;
+        private Throwable error_;
+        private Boolean success_;
+        private boolean finished_;
+        
+        /**
+         * Constructs a new loader which can load one table.
+         *
+         * @param  randomTable  table, must have random access
+         * @param  srcName    table source name
+         * @param  display  whether to select the new table in TOPCAT
+         */
+        public TopcatLoader( StarTable randomTable, String srcName,
+                             boolean display )
+                throws ClassNotFoundException, NoSuchMethodException {
+            reflect();
+            addTableArgs_ = new Object[] { randomTable, srcName,
+                                           Boolean.valueOf( display ) };
+        }
+
+        /**
+         * Starts up TOPCAT, loads the table, updates state, and then
+         * does a notify.
+         */
+        public synchronized void run() {
+            try {
+                setStandalone_.invoke( null, new Object[] { Boolean.TRUE } );
+                main_.invoke( null,
+                              new Object[] { new String[] { "-plastic" } } );
+                Object controlWindow =
+                    getControlWindow_.invoke( null, new Object[ 0 ] );
+                addTable_.invoke( controlWindow, addTableArgs_ );
+                success_ = Boolean.TRUE;
+            }
+            catch ( InvocationTargetException e ) {
+                error_ = e.getCause();
+                success_ = Boolean.FALSE; 
+            }
+            catch ( Throwable e ) {
+                error_ = e;
+                success_ = Boolean.FALSE;
+            }
+            finished_ = true;
+            notifyAll();
+        }
+
+        /**
+         * Performs all the required reflection.  This method is designed
+         * to be called from test cases.
+         */
+        public static void reflect()
+                throws ClassNotFoundException, NoSuchMethodException {
+            driverClazz_ = Class.forName( "uk.ac.starlink.topcat.Driver" );
+            controlClazz_ =
+                Class.forName( "uk.ac.starlink.topcat.ControlWindow" );
+            main_ = driverClazz_
+                   .getMethod( "main", new Class[] { String[].class } );
+            setStandalone_ = 
+                driverClazz_.getMethod( "setStandalone",
+                                        new Class[] { boolean.class } );
+            addTable_ =
+                controlClazz_.getMethod( "addTable",
+                                         new Class[] { StarTable.class,
+                                                       String.class,
+                                                       boolean.class } );
+            getControlWindow_ =
+                controlClazz_.getMethod( "getInstance", new Class[ 0 ] );
+        }
     }
 }
