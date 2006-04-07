@@ -157,6 +157,34 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
         return new ArrayList( agentMap_.keySet() );
     }
 
+    public String getName( URI id ) {
+        Agent agent = (Agent) agentMap_.get( id );
+        return agent == null ? null : agent.getName();
+    }
+
+    public List getUnderstoodMessages( URI id ) {
+        Agent agent = (Agent) agentMap_.get( id );
+        return agent == null 
+             ? null
+             : Arrays.asList( agent.getSupportedMessages() );
+    }
+
+    public List getMessageRegisteredIds( URI message ) {
+        List supporters = new ArrayList();
+        for ( Iterator it = agentMap_.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            URI id = (URI) entry.getKey();
+            Agent agent = (Agent) entry.getValue();
+            URI[] messages = agent.getSupportedMessages();
+	    if ( messages == null ||
+                 messages.length == 0 ||
+                 Arrays.asList( messages ).contains( message ) ) {
+                 supporters.add( id );
+            }
+        }
+        return supporters;
+    }
+
     public Object execute( String method, Vector params )
             throws IOException, URISyntaxException {
 
@@ -246,6 +274,14 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
                                        List recipientIds ) {
         requestAsynchTo( sender, message, args,
                          getSelectedAgents( recipientIds ) );
+    }
+
+    public URI registerPolling( String name, List supportedMessages ) {
+        throw new UnsupportedOperationException( "Polling not supported" );
+    }
+
+    public List pollForMessages( URI id ) {
+        throw new UnsupportedOperationException( "Polling not supported" );
     }
 
     /**
