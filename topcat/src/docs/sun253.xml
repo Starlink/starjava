@@ -2323,7 +2323,7 @@ available within TOPCAT from the
 <subhead><title>Tool Interoperability</title></subhead>
 
 <p>TOPCAT makes use of a tool interoperability protocol called
-PLASTIC (PLatform for AStronomical InterConnectivity).
+PLASTIC (PLatform for AStronomical InterConnection).
 This can be used to exchange messages between TOPCAT and other
 PLASTIC-aware tools such as 
 <webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
@@ -2356,6 +2356,13 @@ can send messages to other applications which cause them to do
 things, and on the other hand TOPCAT can receive and act on such
 messages sent by other applications.
 These are described separately in the subsections below.
+</p>
+
+<p>The PLASTIC protocol itself is still under development and may 
+undergo changes in the future.  It is therefore possible that 
+there may be version compatibility issues which arise between TOPCAT
+and other PLASTIC-compliant tools and services, so these facilities
+should probably be regarded as experimental at present.
 </p>
 
 <subsect>
@@ -2632,12 +2639,27 @@ The meaning of the flags is as follows:
     information about this.
     </p></dd>
 
+<dt>-[no]plastic</dt>
+<dd><p>Controls whether TOPCAT will attempt to connect to a running
+    PLASTIC hub on startup.  Currently, the default is that it does
+    connect if a hub is running.  See <ref id="interop"/>.
+    </p></dd>
+
+<dt>-hub</dt>
+<dd><p>Causes TOPCAT to run an internal PLASTIC hub.  This feature is
+    experimental.
+    </p></dd>
+
+<dt>-[no]soap</dt>
+<dd><p>Controls whether TOPCAT will start up a SOAP server which can 
+    accept requests using the SOAP protocol to display tables from 
+    other applications.  Currently, the default is that it does not
+    start a server.  This option may be withdrawn in future releases.
+    </p></dd>
+
 <dt>-noserv</dt>
-<dd><p>By default, if the relevant classes are available, TOPCAT 
-    starts up an AXIS server which can accept 
-    requests using the SOAP protocol to display tables from other
-    applications.  Specifying the <code>-noserv</code> flag prevents
-    the server being started (and may save a bit of time on startup).
+<dd><p>Prevents TOPCAT from running any services.  Currently the services
+    which it may run are SOAP and PLASTIC (see above).
     </p></dd>
 
 </dl>
@@ -8062,9 +8084,7 @@ in the <ref id="MethodWindow">Available Functions Window</ref>.
 <subhead><title>Release Notes</title></subhead>
 
 <p>This is TOPCAT, Tool for OPerations on Catalogues And Tables.
-It is a general purpose viewer and editor for astronomical tabular
-data developed within the UK
-<webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
+It is a general purpose viewer and editor for astronomical tabular data.
 <dl>
 <dt>Author</dt>
 <dd><p>Mark Taylor (Bristol University)</p></dd>
@@ -8895,12 +8915,10 @@ introduced since the last version:
         dragging on the plot surface.
         </p></dd>
 
-    <dt>Memory Errors</dt>
-    <dd><p>When the JVM runs out of memory, it now attempts to post a 
-        popup window explaining this rather than just writing 
-        a terse message to the console.  This popup also gives you the
-        opportunity to view a new section added to the documentation:
-        <ref id="largeTables" plaintextref="yes">Tips for Large Tables</ref>.
+    <dt>PLASTIC Tool Interoperability</dt>
+    <dd><p>TOPCAT now sends and services messages using the 
+        PLatform for AStronomical Tool InterConnection protocol.
+        See <ref id="interop"/>.
         </p></dd>
 
     <dt>IPAC Data Format</dt>
@@ -8918,6 +8936,29 @@ introduced since the last version:
         boxes such as the ones in the plotting windows, rather than 
         having to define a new column using a string-&gt;numeric converter.
         </p></dd>
+
+    <dt>Memory Error Reporting</dt>
+    <dd><p>When the JVM runs out of memory, it now attempts to post a 
+        popup window explaining this rather than just writing 
+        a terse message to the console.  This popup also gives you the
+        opportunity to view a new section added to the documentation:
+        <ref id="largeTables" plaintextref="yes">Tips for Large Tables</ref>.
+        </p></dd>
+
+    <dt>SOAP Service deprecated</dt>
+    <dd><p>TOPCAT no longer by default runs a SOAP server for accepting tables.
+        You can choose to run it by specifying the <code>-soap</code>
+        flag on the command line.  This facility may be withdrawn in 
+        future versions, in view of the fact that the PLASTIC service
+        can provide similar functionality.
+        </p></dd>
+
+<!--
+ !  <dt>Logo fade</dt>
+ !  <dd><p>The Starlink logo at the top of every window is set to fade
+ !      out gradually over the period 1-APR-2006 to 1-SEP-2006.
+ !      </p></dd>
+ !-->
 
     <dt>Bug fixes and minor alterations</dt>
     <dd><p>
@@ -8944,9 +8985,6 @@ introduced since the last version:
         </ul>
     </p></dd>
     </dl>
-    <ul>
-    <li>Plastic interop.</li>
-    </ul>
     </p></dd>
 
 </dl>
