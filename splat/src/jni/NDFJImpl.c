@@ -241,17 +241,23 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetType
     if ( status == SAI__OK ) {
         if ( strncmp( "_DOUBLE", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_DOUBLE;
-        } else if ( strncmp( "_REAL", type, NDF__SZTYP ) == 0 ) {
+        } 
+        else if ( strncmp( "_REAL", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_FLOAT;
-        } else if ( strncmp( "_INTEGER", type, NDF__SZTYP ) == 0 ) {
+        } 
+        else if ( strncmp( "_INTEGER", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_INTEGER;
-        } else if ( strncmp( "_WORD", type, NDF__SZTYP ) == 0 ) {
+        } 
+        else if ( strncmp( "_WORD", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_SHORT;
-        } else if ( strncmp( "_UWORD", type, NDF__SZTYP ) == 0 ) {
+        } 
+        else if ( strncmp( "_UWORD", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_INTEGER;  /* to preserve range, no unsigned in Java */
-        } else if ( strncmp( "_BYTE", type, NDF__SZTYP ) == 0 ) {
+        } 
+        else if ( strncmp( "_BYTE", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_BYTE;
-        } else if ( strncmp( "_UBYTE", type, NDF__SZTYP ) == 0 ) {
+        } 
+        else if ( strncmp( "_UBYTE", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_SHORT;    /* to preserve range, no unsigned in Java */
         }
     }
@@ -439,8 +445,8 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstA
     ndfState( indf, "WCS", &exists, &status );
     if ( exists ) {
         ndfGtwcs( indf, &iwcs, &status );
-    } else {
-
+    } 
+    else {
         /*  Need to check for a WCS system in the FITS headers */
         ndfXstat( indf, "FITS", &exists, &status );
         if ( exists ) {
@@ -453,13 +459,12 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstA
         /*  If FITS WCS found then merge these to produce an overall
          *  WCS system
          */
-        if ( exists ) {
-            joinWCS( ndfwcs, iwcs );
+        if ( exists && joinWCS( ndfwcs, iwcs ) ) {
             astAnnul( iwcs );
             iwcs = ndfwcs;
-        } else {
-
-            /*  no FITS, so use plain NDF coordinates */
+        } 
+        else {
+            /*  no FITS, or has bad WCS, so use plain NDF coordinates */
             iwcs = ndfwcs;
         }
     }
@@ -538,8 +543,8 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
     ndfState( indf, "WCS", &exists, &status );
     if ( exists ) {
         ndfGtwcs( indf, &iwcs, &status );
-    } else {
-
+    } 
+    else {
         /*  Need to check for a WCS system in the FITS headers */
         ndfXstat( indf, "FITS", &exists, &status );
         if ( exists ) {
@@ -552,13 +557,12 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
         /*  If FITS WCS found then merge these to produce an overall
          *  WCS system
          */
-        if ( exists ) {
-            joinWCS( ndfwcs, iwcs );
+        if ( exists && joinWCS( ndfwcs, iwcs ) ) {
             astAnnul( iwcs );
             iwcs = ndfwcs;
-        } else {
-
-            /*  no FITS, so use plain NDF coordinates */
+        } 
+        else {
+            /*  no FITS, or bad WCS, so use plain NDF coordinates */
             iwcs = ndfwcs;
         }
     }
@@ -1035,12 +1039,14 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSet1DDouble
    /*  Map the requested NDF data component */
    if ( strcmp( comp, "error" ) == 0 ) {
        ndfState( indf, "variance", &state, &status );
-   } else {
+   } 
+   else {
        ndfState( indf, comp, &state, &status );
    }
    if ( state == 1 ) {
       ndfMap( indf, comp, "_DOUBLE", "UPDATE", vpntr, &outel, &status );
-   } else {
+   } 
+   else {
       ndfMap( indf, comp, "_DOUBLE", "WRITE/BAD", vpntr, &outel, &status );
    }
    outpntr = vpntr[0];
@@ -1063,7 +1069,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSet1DDouble
    /*  Release the mapped NDF component */
    if ( strcmp( comp, "error" ) == 0 ) {
        ndfUnmap( indf, "variance", &status );
-   } else {
+   } 
+   else {
        ndfUnmap( indf, comp, &status );
 
    }
@@ -1166,7 +1173,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nAccessFitsHead
 {
     /*  Local variables */
     char *mapped;            /* Pointer to mapped FITS headers */
-    HDSLoc *loc;             /* HDS locator to FITS block */
+    HDSLoc *loc = NULL;      /* HDS locator to FITS block */
     int exists;              /* Whether FITS component exists */
     int indf;                /* NDF identifier */
     int status;              /* NDF library status */
@@ -1345,7 +1352,7 @@ JNIEXPORT
     /*  Local variables */
     char *card;              /* Current card */
     char *ptr;               /* Pointer to mapped data */
-    HDSLoc *loc;             /* Locator to extension */
+    HDSLoc *loc = NULL;      /* Locator to extension */
     int dim[1];              /* Dimensions of FITS block */
     int i;                   /* Loop variable */
     int indf;                /* NDF identifier */
@@ -1465,7 +1472,7 @@ JNIEXPORT
 static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
 {
    /*  Local variables */
-   HDSLoc *loc;
+   HDSLoc *loc = NULL;
    char *pntr;
    char card[81];
    size_t ncard;
@@ -1481,8 +1488,8 @@ static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
       datAnnul( &loc, status );
       *iwcs = NULL;
       return 0;
-   } else {
-
+   } 
+   else {
       /* Read the FITS headers through an AstFitsChan */
       fitschan = astFitsChan( NULL, NULL, "" );
       for ( i = 0 ; i < ncard; i++, pntr += 80 ) {
@@ -1501,7 +1508,8 @@ static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
                 */
                astClearStatus;
             }
-         } else {
+         } 
+         else {
             break;
          }
       }
@@ -1544,39 +1552,40 @@ static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
  */
 static int joinWCS( AstFrameSet *wcsone, AstFrameSet *wcstwo )
 {
-  /*  Local variables */
-  AstUnitMap *unit;
-  int nframe;
-  int naxes;
-  int icurr;
+    /*  Local variables */
+    AstUnitMap *unit;
+    int nframe;
+    int naxes;
+    int icurr;
+    
+    /*  Note the number of frames in the first FrameSet */
+    nframe = astGetI( wcsone, "nframe" );
+    
+    /*  Get the number of axis in the base frames. */
+    naxes = astGetI( wcsone, "nin" );
+    
+    /*  Create a UnitMap to join the base frames */
+    unit = astUnitMap( naxes, "" );
+    
+    /*  Add the second FrameSet into the first using the UnitMap to join
+     *  them. Messing about as astAddFrame makes assumption about
+     *  current Frame.
+     */
+    icurr = astGetI( wcstwo, "current" );
+    astSetI( wcstwo, "current", astGetI( wcstwo, "base" ) );
+    astAddFrame( wcsone, AST__BASE, unit, wcstwo );
+    unit = (AstUnitMap *) astAnnul( unit );
+    astSetI( wcstwo, "current", icurr );
 
-  /*  Note the number of frames in the first FrameSet */
-  nframe = astGetI( wcsone, "nframe" );
+    /*  Remove the redundant "base" frame */
+    astRemoveFrame( wcsone, nframe + astGetI( wcstwo, "base" ) );
 
-  /*  Get the number of axis in the base frames. */
-  naxes = astGetI( wcsone, "nin" );
-
-  /*  Create a UnitMap to join the base frames */
-  unit = astUnitMap( naxes, "" );
-
-  /*  Add the second FrameSet into the first using the UnitMap to join
-   *  them. Messing about as astAddFrame makes assumption about
-   *  current Frame.
-   */
-  icurr = astGetI( wcstwo, "current" );
-  astSetI( wcstwo, "current", astGetI( wcstwo, "base" ) );
-  astAddFrame( wcsone, AST__BASE, unit, wcstwo );
-  unit = (AstUnitMap *) astAnnul( unit );
-  astSetI( wcstwo, "current", icurr );
-
-  /*  Remove the redundant "base" frame */
-  astRemoveFrame( wcsone, nframe + astGetI( wcstwo, "base" ) );
-
-  /*  If an error occurred, just clear it */
-  if ( !astOK ) {
-    astClearStatus;
-    return 0;
-  } else {
-    return 1;
-  }
+    /*  If an error occurred, just clear it */
+    if ( !astOK ) {
+        astClearStatus;
+        return 0;
+    } 
+    else {
+        return 1;
+    }
 }
