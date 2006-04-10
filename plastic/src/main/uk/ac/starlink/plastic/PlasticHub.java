@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
+import javax.swing.JFrame;
+import javax.swing.ListModel;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.votech.plastic.PlasticHubListener;
 import org.votech.plastic.PlasticListener;
@@ -41,6 +43,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     private int nReg_;
     private int nReq_;
     private boolean verbose_;
+    private ApplicationListModel listModel_;
 
     private static final String HUB_ID_KEY = "hub.id";
     static final URI HUB_STOPPING =
@@ -124,6 +127,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
                 out( "Unregister: " + agent );
                 out();
             }
+            if ( listModel_ != null ) {
+                listModel_.unregister( id );
+            }
             requestAsynch( hubId_, APP_UNREG,
                            Arrays.asList( new Object[] { id } ) );
             agentMap_.remove( id );
@@ -148,6 +154,11 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
                 }
             }
             out();
+        }
+        if ( listModel_ != null ) {
+            listModel_.register( agent.getId(), agent.getName(),
+                                 Arrays.asList( agent
+                                               .getSupportedMessages() ) );
         }
         requestAsynch( hubId_, APP_REG,
                        Arrays.asList( new Object[] { id } ) );
@@ -282,6 +293,37 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
 
     public List pollForMessages( URI id ) {
         throw new UnsupportedOperationException( "Polling not supported" );
+    }
+
+    /**
+     * Returns a ListModel which represents the listener applications
+     * currently registered with this hub.  The model will be updated
+     * as applications register and unregister themselves.
+     *
+     * @return  list model reflecting hub state
+     */
+    public synchronized ListModel getApplicationListModel() {
+
+        /* Construct the model lazily so that we don't start firing off
+         * Swing events if nobody is going to be using them. */
+        if ( listModel_ == null ) {
+
+            /* Prepare an intial list of applications. */
+            List appList = new ArrayList();
+            for ( Iterator it = agentMap_.entrySet().iterator();
+                  it.hasNext(); ) {
+                Agent agent = (Agent) ((Map.Entry) it.next()).getValue();
+                List msgList = Arrays.asList( agent.getSupportedMessages() );
+                appList.add( new ApplicationItem( agent.getId(),
+                                                  agent.getName(), msgList ) );
+            }
+            ApplicationItem[] apps =
+                (ApplicationItem[]) appList.toArray( new ApplicationItem[ 0 ] );
+
+            /* Construct a model based on these. */
+            listModel_ = new ApplicationListModel( apps );
+        }
+        return listModel_;
     }
 
     /**
@@ -496,6 +538,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             }
             catch ( Exception e ) {
             }
+            if ( listModel_ != null ) {
+                listModel_.clear();
+            }
             if ( verbose_ ) {
                 out( "Hub stopped." );
             }
@@ -608,7 +653,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      *
      * @param   out  logging output stream (may be null for no logging)
      */
-    public static PlasticHubListener startHub( PrintStream out ) 
+    public static PlasticHub startHub( PrintStream out ) 
             throws IOException, RemoteException {
         return startHub( out, new File( System.getProperty( "user.home" ),
                                         PLASTIC_CONFIG_FILENAME ) );
@@ -627,8 +672,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      *          if null no file is written
      * @param   out  logging output stream (may be null for no logging)
      */
-    public static PlasticHubListener startHub( PrintStream out,
-                                               File configFile )
+    public static PlasticHub startHub( PrintStream out, File configFile )
             throws RemoteException, IOException {
         final ServerSet servers = new ServerSet( configFile );
         final PlasticHub hub = new PlasticHub( servers );
@@ -660,15 +704,21 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             throws RemoteException, IOException {
         String usage = "\nUsage: " + PlasticHub.class.getName()
                      + " [-verbose]"
+                     + " [-gui]"
                      + "\n";
         PrintStream out = null;
 
         List argList = new ArrayList( Arrays.asList( args ) );
+        boolean gui = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-verbose" ) ) {
-                out = System.out;
                 it.remove();
+                out = System.out;
+            }
+            else if ( arg.equals( "-gui" ) ) {
+                it.remove();
+                gui = true;
             }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
@@ -679,7 +729,15 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             System.err.println( usage );
             System.exit( 1 );
         }
-        startHub( out, new File( System.getProperty( "user.home" ),
-                                 PlasticHubListener.PLASTIC_CONFIG_FILENAME ) );
+        PlasticHub hub = 
+            startHub( out, new File( System.getProperty( "user.home" ),
+                      PlasticHubListener.PLASTIC_CONFIG_FILENAME ) );
+        if ( gui ) {
+            JFrame window = new ListWindow( hub.getApplicationListModel() );
+            window.setTitle( "PlasticHub" );
+            window.pack();
+            window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+            window.setVisible( true );
+        }
     }
 }
