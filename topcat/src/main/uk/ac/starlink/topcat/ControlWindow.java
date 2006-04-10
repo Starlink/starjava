@@ -421,17 +421,22 @@ public class ControlWindow extends AuxWindow
         getJMenuBar().add( winMenu );
 
         /* Add a menu for tool interop. */
-        JMenu interopMenu = new JMenu( "Interop" );
-        interopMenu.setMnemonic( KeyEvent.VK_I );
-        interopMenu.add( getPlasticServer().getRegisterAction( true ) );
-        interopMenu.add( getPlasticServer().getRegisterAction( false ) );
-        interopMenu.add( getPlasticServer().getHubStartAction( true ) );
-        interopMenu.add( getPlasticServer().getHubStartAction( false ) );
-        interopMenu.addSeparator();
-        interopMenu.add( broadcastAct_ );
-        interopMenu.addSeparator();
-        interopMenu.add( interophelpAct );
-        getJMenuBar().add( interopMenu );
+        try {
+            JMenu interopMenu = new JMenu( "Interop" );
+            interopMenu.setMnemonic( KeyEvent.VK_I );
+            interopMenu.add( getPlasticServer().getRegisterAction( true ) );
+            interopMenu.add( getPlasticServer().getRegisterAction( false ) );
+            interopMenu.add( getPlasticServer().getHubStartAction( true ) );
+            interopMenu.add( getPlasticServer().getHubStartAction( false ) );
+            interopMenu.addSeparator();
+            interopMenu.add( broadcastAct_ );
+            interopMenu.addSeparator();
+            interopMenu.add( interophelpAct );
+            getJMenuBar().add( interopMenu );
+        }
+        catch ( SecurityException e ) {
+            logger_.warning( "Security manager denies use of PLASTIC" );
+        }
 
         /* Mark this window as top-level. */
         setCloseIsExit();
