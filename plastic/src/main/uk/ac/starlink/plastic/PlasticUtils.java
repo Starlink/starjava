@@ -11,6 +11,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.rmi.NotBoundException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
@@ -335,6 +337,31 @@ public class PlasticUtils {
             "-verbose",
         };
         Runtime.getRuntime().exec( args );
+    }
+
+    /**
+     * Returns an array of ApplicationItem objects representing the 
+     * applications currently registered with a given hub.
+     * 
+     * @param   hub  the hub
+     * @return   apps registered with <code>hub</code>
+     */
+    public static ApplicationItem[]
+                  getRegisteredApplications( PlasticHubListener hub ) {
+        List ids = hub.getRegisteredIds();
+        List apps = new ArrayList();
+        for ( Iterator it = hub.getRegisteredIds().iterator(); it.hasNext(); ) {
+            String idString = it.next().toString();
+            try {
+                URI id = new URI( idString );
+                String name = hub.getName( id );
+                List msgs = hub.getUnderstoodMessages( id );
+                apps.add( new ApplicationItem( id, name, msgs ) );
+            }
+            catch ( URISyntaxException e ) {
+            }
+        }
+        return (ApplicationItem[]) apps.toArray( new ApplicationItem[ 0 ] );
     }
 
     /**
