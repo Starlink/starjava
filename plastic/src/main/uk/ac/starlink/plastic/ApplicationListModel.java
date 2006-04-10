@@ -103,7 +103,7 @@ public class ApplicationListModel extends AbstractListModel {
             public void run() {
                 int nItem = appList_.size();
                 appList_.clear();
-                fireIntervalRemoved( this, 0, nItem - 1 )
+                fireIntervalRemoved( this, 0, nItem - 1 );
             }
         } );
     }
