@@ -1279,7 +1279,8 @@
     </xslt>
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
-          fork="yes">
+          fork="yes"
+          maxmemory="128M">
       <classpath>
         <fileset dir="${src.docs}" includes="*.jar"/>
       </classpath>
