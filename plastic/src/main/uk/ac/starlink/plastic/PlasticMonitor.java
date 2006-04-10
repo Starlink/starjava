@@ -12,10 +12,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import javax.swing.JFrame;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClient;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
+import org.votech.plastic.PlasticHubListener;
 
 /**
  * Watches and reports on messages sent over a PLASTIC message bus.
@@ -33,6 +35,8 @@ public class PlasticMonitor implements PlasticApplication {
     private final String name_;
     private final PrintStream out_;
     private boolean stopped_;
+    private ApplicationListModel appListModel_;
+    private PlasticHubListener hub_;
 
     /**
      * Constructor.
@@ -65,11 +69,52 @@ public class PlasticMonitor implements PlasticApplication {
         }
         if ( PlasticHub.HUB_STOPPING.equals( message ) ) {
             stopped_ = true;
+            if ( appListModel_ != null ) {
+                appListModel_.clear();
+            }
             synchronized ( this ) {
                 notifyAll();
             }
         }
+        if ( appListModel_ != null ) {
+            if ( PlasticHub.APP_REG.equals( message ) && 
+                 args.size() > 0 ) {
+                try {
+                    URI id = new URI( args.get( 0 ).toString() );
+                    appListModel_.register( id, hub_.getName( id ), 
+                                            hub_.getUnderstoodMessages( id ) );
+                }
+                catch ( URISyntaxException e ) {
+                }
+            }
+            else if ( PlasticHub.APP_UNREG.equals( message ) ) {
+                try {
+                    URI id = new URI( args.get( 0 ).toString() );
+                    appListModel_.unregister( id );
+                }
+                catch ( URISyntaxException e ) {
+                }
+            }
+        }
         return null;
+    }
+
+    /**
+     * Sets the hub this monitor is listening to.
+     *
+     * @param  hub  hub
+     */
+    public void setHub( PlasticHubListener hub ) {
+        hub_ = hub;
+    }
+
+    /**
+     * Sets a list model this monitor should keep up to date.
+     *
+     * @param   listModel  model of registered applications
+     */
+    public void setListModel( ApplicationListModel listModel ) {
+        appListModel_ = listModel;
     }
 
     /**
@@ -123,12 +168,15 @@ public class PlasticMonitor implements PlasticApplication {
     public static void main( String[] args ) throws IOException {
         String usage = "\nUsage: " + PlasticMonitor.class.getName() 
                      + " [-xmlrpc|-rmi]"
+                     + " [-gui]"
+                     + " [-verbose]"
                      + "\n";
-        PlasticMonitor mon = new PlasticMonitor( "monitor", System.out );
 
         /* Process flags. */
         List argv = new ArrayList( Arrays.asList( args ) );
         String mode = "rmi";
+        boolean gui = false;
+        boolean verbose = false;
         for ( Iterator it = argv.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( "-xmlrpc".equals( arg ) ) {
@@ -138,6 +186,14 @@ public class PlasticMonitor implements PlasticApplication {
             else if ( "-rmi".equals( arg ) ) {
                 it.remove();
                 mode = "rmi";
+            }
+            else if ( "-gui".equals( arg ) ) {
+                it.remove();
+                gui = true;
+            }
+            else if ( "-verbose".equals( arg ) ) {
+                it.remove();
+                verbose = true;
             }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
@@ -149,7 +205,26 @@ public class PlasticMonitor implements PlasticApplication {
             System.exit( 1 );
         }
 
-        System.out.println( "Connnecting in " + mode + " mode..." );
+        PrintStream out = verbose ? System.out : null;
+        PlasticMonitor mon = new PlasticMonitor( "monitor", out );
+       
+        if ( gui ) {
+            PlasticHubListener hub = PlasticUtils.getLocalHub();
+            ApplicationItem[] regApps =
+                PlasticUtils.getRegisteredApplications( hub );
+            ApplicationListModel appsList = new ApplicationListModel( regApps );
+            mon.setListModel( appsList );
+            mon.setHub( hub );
+            JFrame window = new ListWindow( appsList );
+            window.setTitle( "PlasticMonitor" );
+            window.pack();
+            window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+            window.setVisible( true );
+        }
+
+        if ( out != null ) {
+            out.println( "Connnecting in " + mode + " mode..." );
+        }
         if ( "rmi".equals( mode ) ) {
             PlasticUtils.registerRMI( mon );
         }
@@ -159,7 +234,9 @@ public class PlasticMonitor implements PlasticApplication {
         else {
             assert false;
         }
-        System.out.println( "...connected." );
+        if ( out != null ) {
+            out.println( "...connected." );
+        }
 
         /* Wait on the monitor.  If it receives a HUB_STOPPING message
          * it will be notified and execution of this method can complete. */
@@ -169,8 +246,10 @@ public class PlasticMonitor implements PlasticApplication {
                     mon.wait();
                 }
             }
-            System.out.println( "Hub stopped." );
-            return;
+            if ( out != null ) {
+                out.println( "Hub stopped." );
+            }
+            System.exit( 0 );
         }
         catch ( InterruptedException e ) {
             System.out.println( "Interrupted." );
