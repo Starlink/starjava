@@ -26,6 +26,8 @@ import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.MathMap;
+import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.splat.ast.ASTFITSChan;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
@@ -363,8 +365,6 @@ public class FITSSpecDataImpl
                 }
             }
         }
-        
-
     }
 
     /**
@@ -686,28 +686,36 @@ public class FITSSpecDataImpl
         //  Access the FITS header block (TODO: merge with primary?).
         Header header = hdurefs[hdunum].getHeader();
 
-        //  Create a AST FITS channel to read the headers.
-        ASTFITSChan chan = new ASTFITSChan();
+        //  Check for known non-standard formats (far too many of those it
+        //  seems). 
+        astref = checkForNonStandardFormat( header );
 
-        //  Loop over all cards pushing these into the channel.
-        Cursor iter = header.iterator();
-        while ( iter.hasNext() ) {
-            chan.add( ((HeaderCard) iter.next()).toString() );
-        }
-        chan.rewind();
-
-        //  Now get the ASTFrameSet.
-        try {
-            astref = chan.read();
-        }
-        catch (AstException e) {
-            e.printStackTrace();
-            astref = null;
-        }
+        //  If not non-standard then proceed with simple AST method.
         if ( astref == null ) {
-            //  Read failed for some reason, most likely no coordinates (other
-            //  than the pixel one) are defined. Just create a dummy frameset.
-            astref = dummyAstSet();
+            //  Create a AST FITS channel to read the headers.
+            ASTFITSChan chan = new ASTFITSChan();
+
+            //  Loop over all cards pushing these into the channel.
+            Cursor iter = header.iterator();
+            while ( iter.hasNext() ) {
+                chan.add( ((HeaderCard) iter.next()).toString() );
+            }
+            chan.rewind();
+            
+            //  Now get the ASTFrameSet.
+            try {
+                astref = chan.read();
+            }
+            catch (AstException e) {
+                e.printStackTrace();
+                astref = null;
+            }
+            if ( astref == null ) {
+                //  Read failed for some reason, most likely no coordinates
+                //  (other than the pixel one) are defined. Just create a
+                //  dummy frameset.
+                astref = dummyAstSet();
+            }
         }
 
         //  Try to repair any dodgy units strings.
@@ -716,6 +724,45 @@ public class FITSSpecDataImpl
             astref.setUnit( 1, UnitUtilities.fixUpUnits( unit ) );
         }
         return astref;
+    }
+
+    /**
+     *  Check for known non-standard formats (far too many of those it
+     *  seems). For now we recognise SDSS, which uses a log(wavelength) 
+     *  scale.
+     */
+    protected FrameSet checkForNonStandardFormat( Header header )
+    {
+        HeaderCard testCard = header.findCard( "TELESCOP" );
+        if ( testCard != null ) {
+            if ( testCard.getValue().startsWith( "SDSS" ) ) {
+
+                //  SDSS format, in fact these may just need CTYPE1=WAVE-LOG
+                //  but that didn't seem to work (presumably conflict with
+                //  another header).
+                HeaderCard c0 = header.findCard( "COEFF0" );
+                HeaderCard c1 = header.findCard( "COEFF1" );
+                if ( c0 != null && c1 != null ) {
+                    String c0s = c0.getValue();
+                    String c1s = c1.getValue();
+
+                    //  Formulae are w = 10**(c0+c1*i)
+                    //               i = (log(w)-c0)/c1
+                    String fwd[] = {
+                        "w = 10**(" + c0s + " + ( i * " + c1s + " ) )" };
+                    String inv[] = {
+                        "i = ( log10( w ) - " + c0s + ")/" + c1s };
+                    
+                    MathMap sdssMap = new MathMap( 1, 1, fwd, inv );
+                    Frame frame = new Frame( 1 );
+                    FrameSet frameset = new FrameSet( new Frame( 1 ) );
+                    SpecFrame specFrame = new SpecFrame();
+                    frameset.addFrame( 1, sdssMap, new SpecFrame() );
+                    return frameset;
+                }
+            }        
+        }
+        return null;
     }
 
     /**

@@ -96,6 +96,8 @@
 
       - Spectra can now be transformed to and from different data units
         (Jy to W/m^2/Hz or erg/cm^2/s/Angstrom etc.).
+ 
+      - The SDSS spectral wavelength calibration is now understood.
 
       - The system look and feel is now the platform default. Mac OS X tweaks
         are enabled on that platform.
