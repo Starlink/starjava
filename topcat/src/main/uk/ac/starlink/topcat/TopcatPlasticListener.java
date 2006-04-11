@@ -21,11 +21,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
@@ -43,17 +45,17 @@ public class TopcatPlasticListener extends HubManager {
     private final ControlWindow controlWindow_;
     private final Map idMap_;
 
-    private static final URI VOT_LOAD;
-    private static final URI VOT_LOADURL;
-    private static final URI VOT_SHOWOBJECTS;
-    private static final URI INFO_GETICON;
+    public static final URI VOT_LOAD;
+    public static final URI VOT_LOADURL;
+    public static final URI VOT_SHOWOBJECTS;
+    public static final URI INFO_GETICON;
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
         VOT_LOAD = createURI( "ivo://votech.org/votable/load" ),
         VOT_LOADURL = createURI( "ivo://votech.org/votable/loadFromURL" ),
         VOT_SHOWOBJECTS = createURI( "ivo://votech.org/votable/showObjects" ),
         INFO_GETICON = createURI( "ivo://votech.org/info/getIconURL" ),
     };
-    private static final URI SKY_POINTAT =
+    public static final URI SKY_POINTAT =
         createURI( "ivo://votech.org/sky/pointAtCoords" );
  
     /**
@@ -117,21 +119,45 @@ public class TopcatPlasticListener extends HubManager {
     }
 
     /**
+     * Returns a ComboBoxModel which selects applications registered with
+     * this hub manager; only those which support a given message are
+     * included.
+     *
+     * @param   messageId  message which must be supported
+     * @return   selection model
+     */
+    public ComboBoxModel createPlasticComboBoxModel( URI messageId ) {
+        return new SelectivePlasticListModel( getApplicationListModel(),
+                                              messageId );
+    }
+
+    /**
      * Broadcasts a table to other PLASTIC listeners.
      *
      * @param  tcModel   the table model to broadcast
      */
     public void broadcastTable( TopcatModel tcModel ) throws IOException {
+        sendTable( tcModel, null );
+    }
+
+    /**
+     * Sends a table to a specific list of PLASTIC listeners.
+     *
+     * @param  tcModel   the table model to broadcast
+     * @param  recipients  listeners to receive it; null means do a broadcast
+     */
+    public void sendTable( TopcatModel tcModel, final URI[] recipients )
+            throws IOException {
 
         /* Get the hub and ID. */
         register();
-        PlasticHubListener hub = getHub();
-        URI plasticId = getRegisteredId();
+        final PlasticHubListener hub = getHub();
+        final URI plasticId = getRegisteredId();
 
         /* Write the data as a VOTable to a temporary file preparatory to
          * broadcast. */
-        File tmpfile = File.createTempFile( "plastic", ".vot" );
-        String tmpUrl = tmpfile.toURL().toString();
+        final File tmpfile = File.createTempFile( "plastic", ".vot" );
+        final String tmpUrl = tmpfile.toURL().toString();
         tmpfile.deleteOnExit();
         OutputStream ostrm =
             new BufferedOutputStream( new FileOutputStream( tmpfile ) );
@@ -152,14 +178,21 @@ public class TopcatPlasticListener extends HubManager {
         int[] rowMap = tcModel.getViewModel().getRowMap();
         idMap_.put( tmpUrl, new TableWithRows( tcModel, rowMap ) );
 
-        /* Do the broadcast, syncrhronously so that we don't delete the 
-         * temporary file too early. */
-        Map responses =
-            hub.request( plasticId, VOT_LOADURL,
-                         Arrays.asList( new Object[] { tmpUrl } ) );
+        /* Do the broadcast, synchronously so that we don't delete the 
+         * temporary file too early, but in another thread so that we
+         * don't block the GUI. */
+        new Thread( "PLASTIC table broadcast" ) {
+            public void run() {
+                List argList = Collections.singletonList( tmpUrl );
+                Map responses = recipients == null 
+                    ? hub.request( plasticId, VOT_LOADURL, argList )
+                    : hub.requestToSubset( plasticId, VOT_LOADURL, argList,
+                                           Arrays.asList( recipients ) );
 
-        /* Delete the temp file. */
-        tmpfile.delete();
+                /* Delete the temp file. */
+                tmpfile.delete();
+            }
+        }.start();
     }
 
     /**
@@ -170,6 +203,19 @@ public class TopcatPlasticListener extends HubManager {
      * @param   rset   row subset within tcModel
      */
     public void broadcastSubset( TopcatModel tcModel, RowSubset rset )
+            throws IOException {
+        sendSubset( tcModel, rset, null );
+    }
+
+    /**
+     * Sends a row subset to a specific list of PLASTIC listeners.
+     *
+     * @param   tcModel  topcat model
+     * @param   rset   row subset within tcModel
+     * @param  recipients  listeners to receive it; null means do a broadcast
+     */
+    public void sendSubset( TopcatModel tcModel, RowSubset rset, 
+                            final URI[] recipients )
             throws IOException {
 
         /* Get the hub and ID. */
@@ -212,9 +258,16 @@ public class TopcatPlasticListener extends HubManager {
                 }
 
                 /* Send the request. */
-                hub.requestAsynch( plasticId, VOT_SHOWOBJECTS,
-                                   Arrays.asList( new Object[] { tableId,
-                                                                 rowList } ) );
+                List argList =
+                    Arrays.asList( new Object[] { tableId, rowList } );
+                if ( recipients == null ) {
+                    hub.requestAsynch( plasticId, VOT_SHOWOBJECTS, argList );
+                }
+                else {
+                    hub.requestToSubsetAsynch( plasticId, VOT_SHOWOBJECTS,
+                                               argList,
+                                               Arrays.asList( recipients ) );
+                }
                 done = true;
             }
         }
@@ -233,9 +286,16 @@ public class TopcatPlasticListener extends HubManager {
                         rowList.add( new Long( (long) i ) );
                     }
                 }
-                hub.requestAsynch( plasticId, VOT_SHOWOBJECTS,
-                                   Arrays.asList( new Object[] { url.toString(),
-                                                                 rowList } ) );
+                List argList =
+                    Arrays.asList( new Object[] { url.toString(), rowList } );
+                if ( recipients == null ) {
+                    hub.requestAsynch( plasticId, VOT_SHOWOBJECTS, argList );
+                }
+                else {
+                    hub.requestToSubsetAsynch( plasticId, VOT_SHOWOBJECTS,
+                                               argList, 
+                                               Arrays.asList( recipients ) );
+                }
             }
         }
     }
@@ -246,18 +306,23 @@ public class TopcatPlasticListener extends HubManager {
      *
      * @param  ra2000  right ascension J2000.0 in degrees
      * @param  dec2000 declination J2000.0 in degrees
-     * @return  list of applications that the position was (successfully?)
-     *          broadcast to
+     * @param  array of plastic IDs for target applications;
+     *         if null, broadcast will be to all
      */
-    public Collection pointAt( double ra2000, double dec2000 )
+    public void pointAt( double ra2000, double dec2000, URI[] recipients )
             throws IOException {
         register();
         PlasticHubListener hub = getHub();
         URI plasticId = getRegisteredId();
         List args = Arrays.asList( new Object[] { new Double( ra2000 ),
                                                   new Double( dec2000 ) } );
-        Map results = hub.request( plasticId, SKY_POINTAT, args );
-        return results.keySet();
+        if ( recipients == null ) {
+            hub.requestAsynch( plasticId, SKY_POINTAT, args );
+        }
+        else {
+            hub.requestToSubsetAsynch( plasticId, SKY_POINTAT, args,
+                                       Arrays.asList( recipients ) );
+        }
     }
 
     /**
@@ -353,29 +418,57 @@ public class TopcatPlasticListener extends HubManager {
                 }
             }
 
-            /* Get a unique name for the new subset. */
-            int ipset = 0;
+            /* See if this is identical to an existing subset.  If so, don't
+             * create a new one.  It's arguable whether this is the behaviour
+             * that you want, but at least until we have some way to delete
+             * subsets it's probably best to do it like this to cut down on
+             * subset proliferation. */
+            RowSubset matching = null;
             for ( Iterator it = tcModel.getSubsets().iterator();
-                  it.hasNext(); ) {
-                String setName = ((RowSubset) it.next()).getName();
-                if ( setName.startsWith( "plastic-" ) ) {
-                    ipset = 1 + Math.max( ipset,
-                                          Integer
-                                         .parseInt( setName.substring( 8 ) ) );
+                  matching == null && it.hasNext(); ) {
+                RowSubset rset = (RowSubset) it.next();
+                int nrow = Tables.checkedLongToInt( tcModel.getDataModel()
+                                                           .getRowCount() );
+                if ( matches( mask, rset, nrow ) ) {
+                    matching = rset;
                 }
             }
-            String setName = "plastic-" + ipset;
 
-            /* Construct, add and apply the new subset. */
-            final RowSubset rset =
-                new BitsRowSubset( "plastic-" + ipset, mask );
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    tcModel.addSubset( rset );
-                    tcModel.applySubset( rset );
+            /* If we've found an existing set with the same content, 
+             * apply that one. */
+            if ( matching != null ) {
+                final RowSubset rset = matching;
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        tcModel.applySubset( rset );
+                    }
+                } );
+            }
+
+            /* Otherwise make sure we have a unique name for the new subset. */
+            else {
+                int ipset = 0;
+                for ( Iterator it = tcModel.getSubsets().iterator();
+                      it.hasNext(); ) {
+                    String setName = ((RowSubset) it.next()).getName();
+                    if ( setName.startsWith( "plastic-" ) ) {
+                        ipset = Math.max( ipset,
+                                   Integer.parseInt( setName.substring( 8 ) ) );
+                    }
                 }
-            } );
+                String setName = "plastic-" + ipset;
 
+                /* Then construct, add and apply the new subset. */
+                final RowSubset rset =
+                    new BitsRowSubset( "plastic-" + ipset, mask );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        tcModel.addSubset( rset );
+                        tcModel.applySubset( rset );
+                    }
+                } );
+            }
+    
             /* Success return. */
             return true;
         }
@@ -424,5 +517,23 @@ public class TopcatPlasticListener extends HubManager {
             tcModelRef_ = new WeakReference( tcModel );
             rowMap_ = rowMap;
         }
+    }
+
+    /**
+     * Determines whether a BitSet contains the same information as a
+     * RowSubset.
+     *
+     * @param  mask  bit set
+     * @param  rset  row subset
+     * @param  nrow  number of rows over which they are required to match
+     * @return  true iff they represent the same data
+     */
+    private static boolean matches( BitSet mask, RowSubset rset, int nrow ) {
+        for ( int i = 0; i < nrow; i++ ) {
+            if ( mask.get( i ) != rset.isIncluded( (long) i ) ) {
+                return false;
+            }
+        }
+        return true;
     }
 }
