@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +38,13 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.PlasticSendMenu;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -221,7 +224,7 @@ public class DensityWindow extends GraphicsWindow {
                                                 + "via PLASTIC" ) {
             public void actionPerformed( ActionEvent evt ) {
                 try {
-                    broadcastFits();
+                    sendFits( null );
                 }
                 catch ( IOException e ) {
                     ErrorDialog.showError( DensityWindow.this, "PLASTIC Error",
@@ -229,10 +232,24 @@ public class DensityWindow extends GraphicsWindow {
                 }
             }
         };
+        TopcatPlasticListener pserv =
+            ControlWindow.getInstance().getPlasticServer();
+        JMenu sendMenu = new PlasticSendMenu( "Send Image to ...",
+                                              ResourceIcon.SEND,
+                                              "Send image as FITS to a single "
+                                            + "application using PLASTIC",
+                                              ControlWindow.getInstance()
+                                                           .getPlasticServer(),
+                                              MSG_LOADIMG ) {
+            protected void send( ApplicationItem app ) throws IOException {
+                sendFits( new URI[] { app.getId() } );
+            }
+        };
 
         getExportMenu().add( fitsAction_ );
         getExportMenu().add( jpegAction );
         getExportMenu().add( broadcastAction );
+        getExportMenu().add( sendMenu );
 
         /* Cut level adjuster widgets. */
         cutter_ = new CutChooser(); 
@@ -375,8 +392,11 @@ public class DensityWindow extends GraphicsWindow {
     /**
      * Broadcasts the currently plotted image as a FITS file to PLASTIC
      * listeners.
+     *
+     * @param  recipients  list of targets PLASTIC ids for this message;
+     *         if null broadcast to all
      */
-    private void broadcastFits() throws IOException {
+    private void sendFits( final URI[] recipients ) throws IOException {
 
         /* Get the hub and ID. */
         TopcatPlasticListener pserv =
@@ -413,9 +433,11 @@ public class DensityWindow extends GraphicsWindow {
          * the GUI. */
         new Thread( "FITS broadcast" ) {
             public void run() {
-                Map responses =
-                    hub.request( plasticId, MSG_LOADIMG,
-                                 Arrays.asList( new Object[] { tmpUrl } ) );
+                List argList = Collections.singletonList( tmpUrl );
+                Map responses = recipients == null
+                    ? hub.request( plasticId, MSG_LOADIMG, argList )
+                    : hub.requestToSubset( plasticId, MSG_LOADIMG, argList,
+                                           Arrays.asList( recipients ) );
                 tmpfile.delete();
             }
         }.start();

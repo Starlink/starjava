@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -43,6 +45,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Action countAct;
     private final Action invertAct;
     private final Action broadcastAct;
+    private final JMenu sendMenu;
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
@@ -121,6 +124,23 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                          "Select rows in other registered " +
                                          "applications via PLASTIC" );
 
+        /* Menu for sending subset via PLASTIC. */
+        final TopcatPlasticListener pserv =
+            ControlWindow.getInstance().getPlasticServer();
+        sendMenu = new PlasticSendMenu( "Send Subset to ...", ResourceIcon.SEND,
+                                        "Send subset to a single application" +
+                                        "using PLASTIC", pserv,
+                                        TopcatPlasticListener
+                                       .VOT_SHOWOBJECTS ) {
+            protected void send( ApplicationItem app ) throws IOException {
+                int irow = jtab.getSelectedRow();
+                if ( irow >= 0 ) {
+                    pserv.sendSubset( tcModel, getSubset( irow ),
+                                      new URI[] { app.getId() } );
+                }
+            }
+        };
+
         /* Add a selection listener to ensure that the right actions 
          * are enabled/disabled. */
         ListSelectionListener selList = new ListSelectionListener() {
@@ -130,6 +150,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 tocolAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
                 broadcastAct.setEnabled( hasUniqueSelection );
+                sendMenu.setEnabled( hasUniqueSelection );
             }
         };
         final ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -184,6 +205,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
         interopMenu.add( broadcastAct );
+        interopMenu.add( sendMenu );
         getJMenuBar().add( interopMenu );
 
         /* Add standard help actions. */
