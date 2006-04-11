@@ -22,6 +22,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -34,6 +35,7 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
+import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
@@ -403,6 +405,7 @@ public class ActivationQueryWindow extends QueryWindow {
     private class PlasticPointAtActivatorFactory extends ActivatorFactory {
         ColumnSelector raSelector_;
         ColumnSelector decSelector_;
+        JComboBox appSelector_;
 
         PlasticPointAtActivatorFactory() {
             super( "Broadcast Coordinates" );
@@ -410,13 +413,21 @@ public class ActivationQueryWindow extends QueryWindow {
                 tcModel_.getColumnSelectorModel( Tables.RA_INFO ), false );
             decSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.DEC_INFO ), false );
+            TopcatPlasticListener pserv =
+                ControlWindow.getInstance().getPlasticServer();
+            ComboBoxModel appModel =
+                ControlWindow.getInstance().getPlasticServer()
+               .createPlasticComboBoxModel( TopcatPlasticListener.SKY_POINTAT );
+            appSelector_ = new JComboBox( appModel );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "RA Column", raSelector_ );
             stack.addLine( "Dec Column", decSelector_ );
+            stack.addLine( "Target Application", appSelector_ );
             queryPanel_.add( stack );
             JLabel[] labels = stack.getLabels();
             enablables_ = new Component[] {
-                raSelector_, decSelector_, labels[ 0 ], labels[ 1 ],
+                raSelector_, decSelector_, appSelector_,
+                labels[ 0 ], labels[ 1 ], labels[ 2 ],
             };
         }
 
@@ -430,6 +441,10 @@ public class ActivationQueryWindow extends QueryWindow {
                                                JOptionPane.ERROR_MESSAGE );
                 return null;
             }
+            Object app = appSelector_.getSelectedItem();
+            final URI[] recipients = app instanceof ApplicationItem
+                        ? new URI[] { ((ApplicationItem) app).getId() }
+                        : null;
             final TopcatPlasticListener pserv =
                 ControlWindow.getInstance().getPlasticServer();
             return new Activator() {
@@ -451,12 +466,11 @@ public class ActivationQueryWindow extends QueryWindow {
                             ra = Math.toDegrees( ra );
                             dec = Math.toDegrees( dec );
                             try {
-                                Collection dests = pserv.pointAt( ra, dec );
-                                return "(" + ra + ", " + dec + ") -> "
-                                     + dests;
+                                pserv.pointAt( ra, dec, recipients );
+                                return "(" + ra + ", " + dec + ")";
                             }
                             catch ( IOException e ) {
-                                return "Error transmitting position " + e;
+                                return "point failed";
                             }
                         }
                         else {
