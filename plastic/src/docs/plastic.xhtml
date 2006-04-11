@@ -28,16 +28,24 @@
 <a href="http://plastic.sourceforge.net/">PLASTIC</a> protocol.
 It contains a hub implementation, utility classes which make it
 painless to invoke or serve PLASTIC requests via either RMI or XML-RPC,
-and some command-line tools useful for debugging and monitoring purposes.
-Since PLASTIC is already pretty painless to use from Java via RMI-lite, 
-the main useful purpose of this package is its hub implementation.
+some command-line tools useful for debugging and monitoring purposes,
+and a few other components, such as a <code>ListModel</code>
+implementation which reflects the PlasticListeners currently registered
+with the hub.
 </p>
 
 <p>The package is fairly lightweight, and has no external dependencies
 other than the RMI-lite and XML-RPC implementations.
 </p>
 
-<p>This software is experimental, and hasn't been tested to destruction.
+<p><strong>Note:</strong>
+This software is experimental, and hasn't been tested to destruction.
+The hub implementation may or may not match the current or any other
+version of the PLASTIC standard.
+Currently, the PLASTIC hub implementation recommended to the PLASTIC
+community is the one provided in the AstroGrid ACR
+(see <a href="http://software.astrogrid.org/"
+        >http://software.astrogrid.org</a>).
 </p>
 
 <hr/>
@@ -50,13 +58,18 @@ be found in their javadoc entries.
 </p>
 
 <h3>PlasticHub</h3>
-<p>Hub implementation, optionally with logging to standard output.
+<p>Hub implementation with optional logging to standard output
+and/or graphical display.
 </p>
 <usage class="uk.ac.starlink.plastic.PlasticHub"/>
 
 <h3>PlasticMonitor</h3>
-<p>Monitors traffic passing through the hub, writing 
-(barely) human-readable messages to standard output.
+<p>Registers with the hub and monitors traffic.
+Can log (barely) human-readable messages to standard output describing
+PLASTIC traffic and/or display a graphical indication of currently
+registered applications.
+Can connect to the hub using either RMI or XML-RPC protocols
+(the latter is only really useful for testing the XML-RPC mode of a hub).
 </p>
 <usage class="uk.ac.starlink.plastic.PlasticMonitor"/>
 
