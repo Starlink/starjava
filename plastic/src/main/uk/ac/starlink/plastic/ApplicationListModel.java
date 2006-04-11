@@ -21,10 +21,10 @@ import javax.swing.SwingUtilities;
  * @author   Mark Taylor
  * @since    10 Apr 2006
  */
-public class ApplicationListModel extends AbstractListModel {
+class ApplicationListModel extends AbstractListModel {
 
-    private final List appList_;
-    private final Map nameMap_;
+    private List appList_;
+    private Map nameMap_;
 
     /**
      * Constructs a new model with no entries.
@@ -39,12 +39,24 @@ public class ApplicationListModel extends AbstractListModel {
      * @param  items  initial population of registered applications
      */
     public ApplicationListModel( ApplicationItem[] items ) {
+        setItems( items );
+    }
+
+    /**
+     * Sets the contents of this list explicitly.  
+     * This notifies listeners directly, so after construction
+     * it should only be called from the event dispatch thread.
+     *
+     * @param  items  new list contents
+     */
+    public void setItems( ApplicationItem[] items ) {
         nameMap_ = new HashMap();
         appList_ = items == null ? new ArrayList()
                                  : new ArrayList( Arrays.asList( items ) );
         for ( Iterator it = appList_.iterator(); it.hasNext(); ) {
             retag( (ApplicationItem) it.next() );
         }
+        fireContentsChanged( this, -1, -1 );
     }
 
     /**
@@ -61,13 +73,17 @@ public class ApplicationListModel extends AbstractListModel {
         final ApplicationItem item =
             new ApplicationItem( id, name, supportedMessages );
         retag( item );
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                appList_.add( item );
-                int index = appList_.size() - 1;
-                fireIntervalAdded( this, index, index );
-            }
-        } );
+        if ( ! appList_.contains( item ) ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( ! appList_.contains( item ) ) {
+                        appList_.add( item );
+                        int index = appList_.size() - 1;
+                        fireIntervalAdded( this, index, index );
+                    }
+                }
+            } );
+        }
     }
 
     /**
