@@ -104,7 +104,7 @@ public class PlasticMonitor implements PlasticApplication {
      *
      * @param  hub  hub
      */
-    public void setHub( PlasticHubListener hub ) {
+    private void setHub( PlasticHubListener hub ) {
         hub_ = hub;
     }
 
@@ -113,7 +113,7 @@ public class PlasticMonitor implements PlasticApplication {
      *
      * @param   listModel  model of registered applications
      */
-    public void setListModel( ApplicationListModel listModel ) {
+    private void setListModel( ApplicationListModel listModel ) {
         appListModel_ = listModel;
     }
 
