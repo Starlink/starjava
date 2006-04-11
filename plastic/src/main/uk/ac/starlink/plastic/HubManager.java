@@ -7,15 +7,20 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
+import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import org.votech.plastic.PlasticHubListener;
 import org.votech.plastic.PlasticListener;
 
@@ -39,6 +44,8 @@ import org.votech.plastic.PlasticListener;
  * <li>ivo://votech.org/info/getName</li>
  * <li>ivo://votech.org/test/echo</li>
  * <li>ivo://votech.org/hub/HubStopping</li>
+ * <li>ivo://votech.org/hub/event/ApplicationRegistered</li>
+ * <li>ivo://votech.org/hub/event/ApplicationUnregistered</li>
  * </ul>
  *
  * <p>Actions are also provided for registering/unregistering and starting
@@ -54,6 +61,7 @@ public abstract class HubManager implements PlasticListener {
     private final JToggleButton.ToggleButtonModel registerToggle_;
     private URI plasticId_;
     private PlasticHubListener hub_;
+    private ApplicationListModel appListModel_;
 
     private static final URI GET_NAME;
     private static final URI ECHO;
@@ -62,6 +70,8 @@ public abstract class HubManager implements PlasticListener {
         GET_NAME = createURI( "ivo://votech.org/info/getName" ),
         ECHO = createURI( "ivo://votech.org/test/echo" ),
         HUB_STOPPING = createURI( "ivo://votech.org/hub/event/HubStopping" ),
+        PlasticHub.APP_REG,
+        PlasticHub.APP_UNREG,
     };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.plastic" );
@@ -165,7 +175,8 @@ public abstract class HubManager implements PlasticListener {
                     doRegister = false;
                 }
                 catch ( Throwable e ) {
-                    hub_ = null;
+                    setHub( null );
+                    assert hub_ == null;
                     plasticId_ = null;
                     doRegister = true;
                 }
@@ -178,15 +189,17 @@ public abstract class HubManager implements PlasticListener {
             assert plasticId_ == null;
             try {
                 PlasticHubListener hub = PlasticUtils.getLocalHub();
-                List supported = new ArrayList();
+                Collection supported = new HashSet();
                 if ( supportedMessages_.length > 0 ) {
                     supported.addAll( Arrays.asList( supportedMessages_ ) );
                     supported.addAll( Arrays
                                      .asList( INTERNAL_SUPPORTED_MESSAGES ) );
                 }
-                URI id = hub.registerRMI( applicationName_, supported, this );
+                URI id = hub.registerRMI( applicationName_,
+                                          new ArrayList( supported ), this );
                 synchronized ( this ) {
-                    hub_ = hub;
+                    setHub( hub );
+                    assert hub_ == hub;
                     plasticId_ = id;
                 }
                 updateState( true );
@@ -219,7 +232,8 @@ public abstract class HubManager implements PlasticListener {
                 id = plasticId_;
                 hub = hub_;
                 plasticId_ = null;
-                hub_ = null;
+                setHub( null );
+                assert hub_ == null;
             }
             else {
                 doUnregister = false;
@@ -345,6 +359,50 @@ public abstract class HubManager implements PlasticListener {
     }
 
     /**
+     * Returns a ListModel which keeps track of the currently registered
+     * applications.  Elements of the returned model are instances of
+     * {@link ApplicationItem}.
+     *
+     * @return  list model of registered applications
+     */
+    public synchronized ListModel getApplicationListModel() {
+        if ( appListModel_ == null ) {
+            final ApplicationListModel model = new ApplicationListModel();
+            final boolean[] done = new boolean[ 1 ];
+            if ( hub_ != null ) {
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        model.setItems( PlasticUtils
+                                       .getRegisteredApplications( hub_ ) );
+                    }
+                } );
+            }
+            appListModel_ = model;
+        }
+        return appListModel_;
+    }
+
+    /**
+     * Sets the current value of this manager's hub.
+     *
+     * @param  hub  new hub; may be null
+     */
+    private void setHub( final PlasticHubListener hub ) {
+        hub_ = hub;
+        final ApplicationListModel model = appListModel_;
+        if ( model != null ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    ApplicationItem[] apps = hub == null
+                        ? new ApplicationItem[ 0 ]
+                        : PlasticUtils.getRegisteredApplications( hub );
+                    model.setItems( apps );
+                }
+            } );
+        }
+    }
+
+    /**
      * Implements the PlasticListener interface.
      */
     public Object perform( URI sender, URI message, List args ) {
@@ -352,9 +410,26 @@ public abstract class HubManager implements PlasticListener {
         if ( HUB_STOPPING.equals( message ) ) {
             synchronized ( this ) {
                 plasticId_ = null;
-                hub_ = null;
+                setHub( null );
             }
             updateState( false );
+        }
+        else if ( PlasticHub.APP_REG.equals( message ) ) {
+            try {
+                URI id = createURI( args.get( 0 ).toString() );
+                appListModel_.register( id, hub_.getName( id ),
+                                        hub_.getUnderstoodMessages( id ) );
+            }
+            catch ( Exception e ) {
+            }
+        }
+        else if ( PlasticHub.APP_UNREG.equals( message ) ) {
+            try {
+                URI id = createURI( args.get( 0 ).toString() );
+                appListModel_.unregister( id );
+            }
+            catch ( Exception e ) {
+            }
         }
         if ( supportedMessages_.length == 0 ||
              Arrays.asList( supportedMessages_ ).contains( message ) ) {
@@ -366,14 +441,15 @@ public abstract class HubManager implements PlasticListener {
                 return e;
             }
         }
-        else if ( HUB_STOPPING.equals( message ) ) {
-            return null;
-        }
         else if ( ECHO.equals( message ) ) {
             return args.size() > 0 ? args.get( 0 ) : null;
         }
         else if ( GET_NAME.equals( message ) ) {
             return applicationName_;
+        }
+        else if ( Arrays.asList( INTERNAL_SUPPORTED_MESSAGES )
+                        .contains( message ) ) {
+            return null;
         }
         else {
             throw new UnsupportedOperationException( "Unsupported message" 
