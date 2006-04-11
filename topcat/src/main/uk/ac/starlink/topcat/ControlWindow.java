@@ -24,6 +24,7 @@ import java.io.PrintStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -42,6 +43,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -67,6 +69,9 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
+import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.plastic.ApplicationItem;
+import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -149,6 +154,7 @@ public class ControlWindow extends AuxWindow
     private final Action removeAct_;
     private final Action concatAct_;
     private final Action logAct_;
+    private final JMenu sendMenu_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
     private final ModelViewAction[] viewActs_;
@@ -305,6 +311,19 @@ public class ControlWindow extends AuxWindow
                                  "Show help on PLASTIC with details of "
                                + "supported messages" );
 
+        final TopcatPlasticListener plasticker = getPlasticServer();
+        sendMenu_ = new PlasticSendMenu( "Send Table to ...", ResourceIcon.SEND,
+                                         "Send table to a single application " +
+                                         "using PLASTIC",
+                                         plasticker,
+                                         TopcatPlasticListener.VOT_LOADURL ) {
+            protected void send( ApplicationItem app ) throws IOException {
+                TopcatModel tcModel = getCurrentModel();
+                assert tcModel != null : "Action should be disabled!";
+                plasticker.sendTable( tcModel, new URI[] { app.getId() } );
+            }
+        };
+
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
         MouseListener pasteLoader = new PasteLoader( this ) {
@@ -421,22 +440,25 @@ public class ControlWindow extends AuxWindow
         getJMenuBar().add( winMenu );
 
         /* Add a menu for tool interop. */
+        JMenu interopMenu = new JMenu( "Interop" );
+        interopMenu.setMnemonic( KeyEvent.VK_I );
         try {
-            JMenu interopMenu = new JMenu( "Interop" );
-            interopMenu.setMnemonic( KeyEvent.VK_I );
-            interopMenu.add( getPlasticServer().getRegisterAction( true ) );
-            interopMenu.add( getPlasticServer().getRegisterAction( false ) );
-            interopMenu.add( getPlasticServer().getHubStartAction( true ) );
-            interopMenu.add( getPlasticServer().getHubStartAction( false ) );
+            interopMenu.add( plasticker.getRegisterAction( true ) );
+            interopMenu.add( plasticker.getRegisterAction( false ) );
+            interopMenu.add( plasticker.getHubStartAction( true ) );
+            interopMenu.add( plasticker.getHubStartAction( false ) );
+            interopMenu.add( new HubWatchAction( plasticker ) );
             interopMenu.addSeparator();
             interopMenu.add( broadcastAct_ );
+            interopMenu.add( sendMenu_ );
             interopMenu.addSeparator();
             interopMenu.add( interophelpAct );
-            getJMenuBar().add( interopMenu );
         }
         catch ( SecurityException e ) {
+            interopMenu.setEnabled( false );
             logger_.warning( "Security manager denies use of PLASTIC" );
         }
+        getJMenuBar().add( interopMenu );
 
         /* Mark this window as top-level. */
         setCloseIsExit();
@@ -738,6 +760,7 @@ public class ControlWindow extends AuxWindow
         writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
         broadcastAct_.setEnabled( hasModel );
+        sendMenu_.setEnabled( hasModel );
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
         subsetSelector_.setEnabled( hasModel );
@@ -906,6 +929,32 @@ public class ControlWindow extends AuxWindow
                 matchWin = new MatchWindow( ControlWindow.this, nTable );
             }
             matchWin.makeVisible();
+        }
+    }
+
+    /**
+     * Action which displays a window giving some information about 
+     * the state of the PLASTIC hub.
+     */
+    private class HubWatchAction extends BasicAction {
+        private final HubManager hubManager_;
+        private JFrame hubWindow_;
+
+        HubWatchAction( HubManager hubManager ) {
+            super( "Show Registered Applications", null,
+                   "Display applications registered with the PLASTIC hub" );
+            hubManager_ = hubManager;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( hubWindow_ == null ) {
+                hubWindow_ = new PlasticListWindow( hubManager_
+                                                   .getApplicationListModel() );
+                hubWindow_.setTitle( "PLASTIC apps" );
+                AuxWindow.positionAfter( ControlWindow.this, hubWindow_ );
+                hubWindow_.pack();
+            }
+            hubWindow_.setVisible( true );
         }
     }
 
@@ -1234,7 +1283,7 @@ public class ControlWindow extends AuxWindow
                 TopcatPlasticListener pserv = getPlasticServer();
                 try {
                     pserv.register();
-                    pserv.broadcastTable( tcModel );
+                    pserv.broadcastTable( tcModel );  // sic
                 }
                 catch ( IOException e ) {
                     ErrorDialog.showError( ControlWindow.this, "PLASTIC Error",
