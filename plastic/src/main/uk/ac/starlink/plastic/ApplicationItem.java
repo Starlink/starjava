@@ -7,9 +7,8 @@ import java.util.List;
 
 /**
  * Represents an application which has been registered with a PLASTIC hub.
- * Instances of this class are used to populate a {@link ApplicationListModel}.
- * They are just designed to hold information, you can't actually invoke
- * their methods.
+ * Instances of this class are just designed to hold information, 
+ * you can't actually invoke their methods.
  *
  * @author   Mark Taylor
  * @since    10 Apr 2006
@@ -85,5 +84,17 @@ public class ApplicationItem {
 
     public String toString() {
         return getTag();
+    }
+
+    /**
+     * Equality is assessed only on the value of the ID attribute.
+     */
+    public boolean equals( Object other ) {
+        return other instanceof ApplicationItem 
+            && ((ApplicationItem) other).id_.equals( id_ );
+    }
+
+    public int hashCode() {
+        return id_.hashCode();
     }
 }
