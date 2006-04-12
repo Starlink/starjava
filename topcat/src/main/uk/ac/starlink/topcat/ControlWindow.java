@@ -385,6 +385,7 @@ public class ControlWindow extends AuxWindow
         fileMenu.insert( dupAct_, fileMenuPos++ );
         fileMenu.insert( tableTransmitter_.getBroadcastAction(),
                          fileMenuPos++ );
+        fileMenu.insert( tableTransmitter_.createSendMenu(), fileMenuPos++ );
         if ( MirageHandler.isMirageAvailable() ) {
             fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
