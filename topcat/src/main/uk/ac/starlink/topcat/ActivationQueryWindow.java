@@ -400,7 +400,7 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
-     * Factory implementation for broadcasting a PointAt message over PLASTIC.
+     * Factory implementation for transmitting a PointAt message over PLASTIC.
      */
     private class PlasticPointAtActivatorFactory extends ActivatorFactory {
         ColumnSelector raSelector_;
@@ -408,7 +408,7 @@ public class ActivationQueryWindow extends QueryWindow {
         JComboBox appSelector_;
 
         PlasticPointAtActivatorFactory() {
-            super( "Broadcast Coordinates" );
+            super( "Transmit Coordinates" );
             raSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.RA_INFO ), false );
             decSelector_ = new ColumnSelector(
