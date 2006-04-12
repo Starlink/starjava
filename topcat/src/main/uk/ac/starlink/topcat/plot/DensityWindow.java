@@ -294,6 +294,13 @@ public class DensityWindow extends GraphicsWindow {
         subsetMenu.add( fromVisibleAction );
         getJMenuBar().add( subsetMenu );
 
+        /* PLASTIC interoperability menu. */
+        JMenu interopMenu = new JMenu( "Interop" );
+        interopMenu.setMnemonic( KeyEvent.VK_I );
+        interopMenu.add( imageTransmitter.getBroadcastAction() );
+        interopMenu.add( imageTransmitter.createSendMenu() );
+        getJMenuBar().add( interopMenu );
+
         /* Add actions to the toolbar. */
         getToolBar().add( fitsAction_ );
         getToolBar().add( getRescaleAction() );
