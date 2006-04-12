@@ -231,6 +231,7 @@ public class DensityWindow extends GraphicsWindow {
         /* Update export menu. */
         getExportMenu().add( fitsAction_ );
         getExportMenu().add( jpegAction );
+        getExportMenu().addSeparator();
         getExportMenu().add( imageTransmitter.getBroadcastAction() );
         getExportMenu().add( imageTransmitter.createSendMenu() );
 
