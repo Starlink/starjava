@@ -88,7 +88,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>7 April 2006</docdate>
+<docdate>13 April 2006</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -2323,7 +2323,8 @@ available within TOPCAT from the
 <subhead><title>Tool Interoperability</title></subhead>
 
 <p>TOPCAT makes use of a tool interoperability protocol called
-PLASTIC (PLatform for AStronomical InterConnection).
+<webref url="http://plastic.sourceforge.net/">PLASTIC</webref> 
+(PLatform for AStronomical InterConnection).
 This can be used to exchange messages between TOPCAT and other
 PLASTIC-aware tools such as 
 <webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
@@ -2344,11 +2345,11 @@ externally and then connect to it using that menu.
 Other tools will have their own policy for connecting to the hub,
 but in general it's best to start a hub first before starting up
 the tools which you want to talk to it.
-Currently, the usual way to run a hub is to start up the AstroGrid 
+Currently, the usual way to run a hub is to start up the 
+<label>AstroGrid Workbench</label> which provides a hub service.
+You can run Workbench using Java WebStart from
 <webref url="http://software.astrogrid.org/userdocs/workbench.html"
-        plaintextref="yes">Workbench</webref> 
-which has a hub that forms part of it.
-You can run Workbench using Java WebStart from the link above.
+            >http://software.astrogrid.org/userdocs/workbench.html</webref>.
 </p>
 
 <p>The interoperability has two aspects to it: on the one hand TOPCAT
@@ -2356,6 +2357,8 @@ can send messages to other applications which cause them to do
 things, and on the other hand TOPCAT can receive and act on such
 messages sent by other applications.
 These are described separately in the subsections below.
+There is also a section on the <code>Interop</code> menu in the 
+Control Window used to control hub operations.
 </p>
 
 <p>The PLASTIC protocol itself is still under development and may 
@@ -2365,32 +2368,122 @@ and other PLASTIC-compliant tools and services, so these facilities
 should probably be regarded as experimental at present.
 </p>
 
-<subsect>
-<subhead><title>Messages Sent</title></subhead>
+<subsect id="plasticControl">
+<subhead><title>PLASTIC control</title></subhead>
 
-<p>This section describes the messages which TOPCAT can send to other 
+<p>You can view and control operations relating to the PLASTIC hub
+from the <label>Interop</label> menu in the 
+<ref id="ControlWindow">Control Window</ref>.
+It contains the following options:
+<dl>
+<dt>Register with PLASTIC</dt>
+<dd><p>Attempts to locate a running PLASTIC hub and register with it.
+    </p></dd>
+
+<dt>Unregister with PLASTIC</dt>
+<dd><p>If currently registered with a PLASTIC hub, unregisters with it.
+    </p></dd>
+
+<dt>Start internal PLASTIC hub</dt>
+<dd><p>Starts a PLASTIC hub as part of the process within which TOPCAT is
+    running.  This will only work if a hub is not already running.
+    The hub will terminate when TOPCAT exits.
+    </p></dd>
+
+<dt>Start external PLASTIC hub</dt>
+<dd><p>Starts a PLASTIC hub as a separate process.  This will only work if
+    a hub is not already running.
+    The hub will continue running until it is explicitly terminated
+    (e.g. using a <code>kill</code> command).
+    Because this has some system-dependent features, it's not guaranteed to
+    work, especially in non-Unix environments.
+    </p></dd>
+
+<dt>Show registered applications</dt>
+<dd><p>Pops up a small window which displays what applications are currently
+    registered with any PLASTIC hub with which TOPCAT is registered.
+    This will be kept up to date as applications register and unregister.
+    </p></dd>
+
+<dt>&IMG.BROADCAST; Broadcast Table</dt>
+<dd><p>Broadcasts the currently selected table to all listening applications
+    using PLASTIC.</p></dd>
+
+<dt>&IMG.SEND; Send Table to ...</dt>
+<dd><p>Sends the currently selected table to a selected listening application
+    using PLASTIC.  Select the desired recipient application from the
+    submenu.</p></dd>
+
+</dl>
+</p>
+
+<p>The <label>Interop</label> menu may be replaced by a PLASTIC window
+in a future release.
+</p>
+
+</subsect>
+
+<subsect>
+<subhead><title>Messages Transmitted</title></subhead>
+
+<p>This section describes the messages which TOPCAT can transmit to other 
 tools which understand the PLASTIC protocol, and how to cause them
 to be sent.
+</p>
+
+<p>In most cases you can choose two ways to transmit a PLASTIC message
+within TOPCAT:
+<dl>
+<dt>&IMG.BROADCAST; Broadcast</dt>
+<dd><p>Broadcasts the message to all other applications currently registered
+    with the hub which understand that message.
+    </p></dd>
+<dt>&IMG.SEND; Send</dt>
+<dd><p>Sends the message to a single application which you select.
+    The suitable applications (ones which are registered with the hub 
+    and claim to understand that message) are listed and you can choose one.
+    </p></dd>
+</dl>
+Examining the list of applications in the <label>Send</label> 
+menu gives you an indication of which ones a <label>Broadcast</label> 
+would broadcast to.  
+Note however that just because an application appears in this 
+list doesn't necessarily mean it will do
+something substantial with the message, for instance some applications
+register with the hub just to monitor traffic.
+In general the <label>Broadcast</label> and <label>Send</label> 
+actions will be disabled (greyed-out) if TOPCAT is
+not registered with a hub, or if there are no applications listening
+which claim to support the relevant message.
+</p>
+
+<p>Below is a list of places you can cause TOPCAT to transmit PLASTIC messages.
 The PLASTIC message IDs are listed along with the descriptions;
 unless you are a tool developer you can probably ignore these.
 
 <dl>
-<dt>Broadcast Table</dt>
-<dd><p>The <label>Broadcast Table</label> (&IMG.BROADCAST;) option on the
-    <label>Interop</label> menu in the Control Window will cause the
-    currently selected table to be sent to listening applications.
-    They are invited to load the table in its current form.
+<dt>Transmit Table</dt>
+<dd><p>The <ref id="ControlWindow">Control Window</ref>'s 
+    <label>Interop</label> menu provides
+    <label>Broadcast Table</label> and <label>Send Table</label>
+    options which cause the currently selected table to be transmitted
+    to other listening applications.  
+    They are invited to load the table in its current 
+    ("<ref id="apparent">apparent</ref>") form.
     </p>
     <p>Message ID: <code>ivo://votech.org/votable/load</code>
                 or <code>ivo://votech.org/votable/loadFromURL</code>
     </p></dd>
 
-<dt>Broadcast Subset</dt>
-<dd><p>The <label>Broadcast Subset</label> (&IMG.BROADCAST;) button 
-    in the <ref id="SubsetWindow" plaintextref="yes">Subset Window</ref>
-    causes the selected subset to be sent to listening applications
-    (only available if one of the subsets is currently selected).
-    They are invited to highlight the rows corresponding to that subset.
+<dt>Transmit Subset</dt>
+<dd><p>The <ref id="SubsetWindow" plaintextref="yes">Subset Window</ref>'s
+    <label>Interop</label> menu
+    contains <label>Broadcast Subset</label> and <label>Send Subset</label>
+    options.
+    These cause the selected subset to be sent to other listening applications
+    (these actions are only available when one of the subsets is currently
+    selected).
+    Applications are invited to highlight the rows corresponding to that subset.
     Note this will only have an effect if the other application(s) are
     displaying the table that this subset relates to.  This will be
     the case in one of two situations:
@@ -2402,11 +2495,11 @@ unless you are a tool developer you can probably ignore these.
     <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
 
-<dt>Broadcast Coordinates</dt>
+<dt>Transmit Coordinates</dt>
 <dd><p>One of the
     <ref id="activation" plaintextref="yes">Activation Actions</ref>
-    you can choose is <label>Broadcast Coordinates</label>.
-    If this is chosen, then every time you select a row 
+    you can choose is <label>Transmit Coordinates</label>.
+    If this is chosen, then every time you activate a row 
     (e.g. by clicking on the corresponding point in a plot),
     other applications are invited to highlight this point in some way,
     for instance by positioning the cursor on it.
@@ -2414,13 +2507,14 @@ unless you are a tool developer you can probably ignore these.
     <p>Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
     </p></dd>
 
-<dt>Broadcast Image</dt>
+<dt>Transmit Image</dt>
 <dd><p>The <ref id="DensityWindow" plaintextref="yes">Density Plot</ref> 
     produces a 2-d histogram which is actually an image.
-    The <label>Broadcast Image</label> (&IMG.BROADCAST;) option in the
-    <label>Export</label> menu allows you to send this (as a FITS image)
-    to other applications which can display it in some way.
-    This is a useful supplement to the factilities of the Density Plot
+    Its <label>Interop</label> menu provides
+    <label>Broadcast Image</label> and <label>Send Image</label> options
+    which will send this (as a FITS image) to other applications 
+    which can display it in some way.
+    This is a useful supplement to the facilities of the Density Plot
     window, since it doesn't have very sophisticated image display
     features (variable colour maps, contour plots etc).
     </p>
@@ -2451,12 +2545,14 @@ unless you are a tool developer you can probably ignore these.
 
 <dt>New Subset</dt>
 <dd><p>If TOPCAT already has loaded the table identified by the request,
-    it will add a new <ref id="subsets">Row Subset</ref> with a name
-    like "plastic-1" to the list of subsets for that table, and will
-    set it as the currently selected one.  This has the effect of 
+    it will select the received <ref id="subsets">Row Subset</ref>
+    as the currently selected one.  This has the effect of 
     setting it as the only displayed subset in any open plot windows,
     as well as changing the current state of the 
     <ref id="apparent" plaintextref="yes">Apparent Table</ref>.
+    Unless the received subset is exactly the same as one already defined
+    for that table, a new subset with a name like "plastic-1" will be
+    added to the table's list of subsets for this purpose.
     </p>
     <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
@@ -2467,8 +2563,10 @@ unless you are a tool developer you can probably ignore these.
 <ul>
 <li><code>ivo://votech.org/test/echo</code></li>
 <li><code>ivo://votech.org/info/getName</code></li>
-<li><code>ivo://votech.org/hub/event/HubStopping</code></li>
 <li><code>ivo://votech.org/info/getIconURL</code></li>
+<li><code>ivo://votech.org/hub/event/ApplicationRegistered</code></li>
+<li><code>ivo://votech.org/hub/event/ApplicationUnregistered</code></li>
+<li><code>ivo://votech.org/hub/event/HubStopping</code></li>
 </ul>
 </p>
 
@@ -3666,6 +3764,18 @@ functions.  They are grouped as follows:
         row order becomes the natural order of the new one.
         </p></dd>
 
+    <dt>&IMG.BROADCAST; Broadcast Table</dt>
+    <dd><p>Broadcasts the current <label>Apparent Table</label> to any
+        applications registered using the PLASTIC protocol.
+        See <ref id="interop"/>.
+        </p></dd>
+
+    <dt>&IMG.SEND; Send Table</dt>
+    <dd><p>Sends the current <label>Apparent Table</label> to a single
+        selected application registered using the PLASTIC protocol.
+        See <ref id="interop"/>.
+        </p></dd>
+
     </dl>
     </p></dd>
 
@@ -3820,6 +3930,22 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     </p></dd>
 
 </dl>
+</p>
+
+<p>The <label>Views</label> menu contains actions for launching the
+windows which give certain views of the table metadata.
+These are all provided as toolbar buttons as well.
+</p>
+
+<p>The <label>Graphics</label> menu contains actions for launching the
+windows which give various plotting and visualisation options.
+These are all provided as toolbar buttons as well.
+</p>
+
+<p>The <label>Interop</label> menu
+contains options concerned with
+interoperating with other tools using the PLASTIC protocol.
+It is described in <ref id="plasticControl"/>.
 </p>
 
 <p>The <label>Windows</label> menu contains actions for controlling which
@@ -4442,6 +4568,17 @@ can be edited by double-clicking on them in the normal way.
 <dd><p>Counts how many rows are in each subset and displays this in the
     <label>Size</label> column.  
     This forces a count or recount to fill in or update these values.
+    </p></dd>
+
+<dt>&IMG.BROADCAST; Broadcast Subset</dt>
+<dd><p>Causes the selected subset to be broadcast using PLASTIC to other
+    listening applications.  Any other listening application which is
+    displaying the same table is then invited to highlight the selection
+    of rows corresonding to the selected subset.
+    This option and the corresponding <label>Send Subset to ...</label>
+    option are also available from the <label>Interop</label> menu.
+    See <ref id="interop"/> for more information about PLASTIC tool
+    interoperability.
     </p></dd>
 
 </dl>
@@ -6062,6 +6199,17 @@ be improved in future releases.
 </dl>
 </p>
 
+<p>The <label>Export</label> provides a number of ways to export the
+displayed image for external viewing or analysis.
+As well as options to export as GIF, JPEG, EPS and FITS,
+there is also the option to transmit the FITS image to one or
+all applications listening using the PLASTIC tool interoperability 
+protocol which will receive images.
+In this way you can transmit the image directly to PLASTIC-aware
+image manipulation tools such as Aladin.
+See <ref id="interop"/> for more information about PLASTIC.
+</p>
+
 <p>How to set the colour channel corresponding to each dataset is
 explained in the following subsection.
 </p>
@@ -7390,6 +7538,9 @@ in the control window will indicate the action you have configured.
     <ul>
     <li>SuperCOSMOS All-Sky Blue</li>
     <li>SuperCOSMOS All-Sky Red</li>
+    <li>2MASS Quick-Look J-band</li>
+    <li>2MASS Quick-Look H-band</li>
+    <li>2MASS Quick-Look K-band</li>
     <li>SDSS Colour Images (note does not provide all-sky coverage)</li>
     </ul>
     When you activate the row, the program will attempt to contact the
@@ -7426,6 +7577,21 @@ in the control window will indicate the action you have configured.
     which you would like to use for display, and activating a row
     will try to pop up a browser window to display it.
     See <ref id="documentViewers"/> for more information about browsers.
+    </p></dd>
+
+<dt>Transmit Coordinates</dt>
+<dd><p>This option causes the sky position of an activated row 
+    to be transmitted to 
+    one or more other applications using the PLASTIC 
+    message <code>ivo://votech.org/sky/pointAtCoords</code>.
+    This will only work if TOPCAT is registered with a PLASTIC hub, and
+    so are one or more other applications which understand that message.
+    An example might be a sky viewing application such as Aladin which 
+    can point to a particular region of sky whenever you activate a point.
+    You need to specify the columns which represent (J2000) 
+    Right Ascension and Declination, and optionally a particular listener
+    to receive the messages (otherwise all registered ones will).
+    See <ref id="interop"/> for more explanation about PLASTIC.
     </p></dd>
 
 <dt>Execute Custom Code</dt>
@@ -8984,6 +9150,38 @@ introduced since the last version:
         <li>Added an offset selector toggle button to the Histogram window.</li>
         </ul>
     </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Version 2.1-1 (13 April 2006)</dt>
+<dd><p>
+    <dl>
+    <dt>PLASTIC</dt>
+    <dd><p>There are some improvements to the PLASTIC functionality and
+        documentation.
+        <ul>
+        <li>In addition to <label>Broadcast</label> actions for the various
+            PLASTIC messages transmission types, there are now corresponding
+            <label>Send</label> actions which allow you to direct the message
+            to only a single selected listener application.
+            These actions are now enabled/disabled according to whether 
+            any suitable PLASTIC listeners are registered.</li>
+        <li>You can now pop up a little window from the
+            <label>Control Window</label>'s <label>Interop</label> window 
+            which displays the currently registered PLASTIC listeners.
+            The functionality of this window may be extended in future
+            releases.</li>
+        <li>When TOPCAT receives a <code>showObjects</code> message, 
+            it now checks if a matching subset exists rather than always 
+            creating and adding a new one.  If it does, it just sets current
+            the existing one.  This can cut down (a bit) on proliferation 
+            of Row Subsets.</li>
+        <li>The <ref id="interop">PLASTIC section</ref> of the manual has
+            been improved.</li>
+        <li>Some of the screenshots have been updated to include 
+            PLASTIC-related features.</li>
+        </ul>
+        </p></dd>
     </dl>
     </p></dd>
 
