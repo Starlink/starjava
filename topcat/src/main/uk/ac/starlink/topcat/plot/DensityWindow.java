@@ -44,7 +44,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
-import uk.ac.starlink.topcat.PlasticSendMenu;
+import uk.ac.starlink.topcat.PlasticTransmitter;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -52,6 +52,7 @@ import uk.ac.starlink.topcat.TopcatPlasticListener;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -217,39 +218,21 @@ public class DensityWindow extends GraphicsWindow {
         /* Action for exporting image as JPEG. */
         Action jpegAction = new ImageIOExportAction( "JPEG", jpegFilter_ );
 
-        /* Action for broadcasting image via PLASTIC. */
-        Action broadcastAction = new BasicAction( "Broadcast Image",
-                                                  ResourceIcon.BROADCAST,
-                                                  "Broadcast image as FITS "
-                                                + "via PLASTIC" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                try {
-                    sendFits( null );
-                }
-                catch ( IOException e ) {
-                    ErrorDialog.showError( DensityWindow.this, "PLASTIC Error",
-                                           e );
-                }
-            }
-        };
-        TopcatPlasticListener pserv =
-            ControlWindow.getInstance().getPlasticServer();
-        JMenu sendMenu = new PlasticSendMenu( "Send Image to ...",
-                                              ResourceIcon.SEND,
-                                              "Send image as FITS to a single "
-                                            + "application using PLASTIC",
-                                              ControlWindow.getInstance()
-                                                           .getPlasticServer(),
-                                              MSG_LOADIMG ) {
-            protected void send( ApplicationItem app ) throws IOException {
-                sendFits( new URI[] { app.getId() } );
+        /* PLASTIC transmitter for transmitting image as FITS. */
+        PlasticTransmitter imageTransmitter =
+                new PlasticTransmitter( ControlWindow.getInstance()
+                                                     .getPlasticServer(),
+                                        MSG_LOADIMG, "FITS image" ) {
+            protected void transmit( ApplicationItem app ) throws IOException {
+                transmitFits( app == null ? null : new URI[] { app.getId() } );
             }
         };
 
+        /* Update export menu. */
         getExportMenu().add( fitsAction_ );
         getExportMenu().add( jpegAction );
-        getExportMenu().add( broadcastAction );
-        getExportMenu().add( sendMenu );
+        getExportMenu().add( imageTransmitter.getBroadcastAction() );
+        getExportMenu().add( imageTransmitter.createSendMenu() );
 
         /* Cut level adjuster widgets. */
         cutter_ = new CutChooser(); 
@@ -390,13 +373,13 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     /**
-     * Broadcasts the currently plotted image as a FITS file to PLASTIC
+     * Transmits the currently plotted image as a FITS file to PLASTIC
      * listeners.
      *
      * @param  recipients  list of targets PLASTIC ids for this message;
      *         if null broadcast to all
      */
-    private void sendFits( final URI[] recipients ) throws IOException {
+    private void transmitFits( final URI[] recipients ) throws IOException {
 
         /* Get the hub and ID. */
         TopcatPlasticListener pserv =
@@ -408,7 +391,7 @@ public class DensityWindow extends GraphicsWindow {
         /* Write the data as a FITS image to a temporary file preparatory
          * to broadcast. */
         final File tmpfile = File.createTempFile( "plastic", ".fits" );
-        final String tmpUrl = tmpfile.toURL().toString();
+        final String tmpUrl = URLUtils.makeFileURL( tmpfile ).toString();
         tmpfile.deleteOnExit();
         OutputStream ostrm = 
             new BufferedOutputStream( new FileOutputStream( tmpfile ) );

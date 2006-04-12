@@ -25,10 +25,12 @@ import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -132,12 +134,26 @@ public class TopcatPlasticListener extends HubManager {
     }
 
     /**
-     * Broadcasts a table to other PLASTIC listeners.
+     * Returns a new PlasticTransmitter which will transmit tables to
+     * one or more listeners.
      *
-     * @param  tcModel   the table model to broadcast
+     * @param  control  ControlWindow which supplies the currently selected
+     *                  table ({@link ControlWindow#getCurrentModel})
+     * @return  new table transmitter
      */
-    public void broadcastTable( TopcatModel tcModel ) throws IOException {
-        sendTable( tcModel, null );
+    public PlasticTransmitter createTableTransmitter( final 
+                                                      ControlWindow control ) {
+        return new PlasticTransmitter( this, VOT_LOADURL, "table" ) {
+            protected void transmit( ApplicationItem app ) throws IOException {
+                TopcatModel tcModel = control.getCurrentModel();
+                if ( tcModel != null ) {
+                    URI[] recipients = app == null
+                                     ? null
+                                     : new URI[] { app.getId() };
+                    transmitTable( tcModel, recipients );
+                }
+            }
+        };
     }
 
     /**
@@ -146,7 +162,7 @@ public class TopcatPlasticListener extends HubManager {
      * @param  tcModel   the table model to broadcast
      * @param  recipients  listeners to receive it; null means do a broadcast
      */
-    public void sendTable( TopcatModel tcModel, final URI[] recipients )
+    private void transmitTable( TopcatModel tcModel, final URI[] recipients )
             throws IOException {
 
         /* Get the hub and ID. */
@@ -157,7 +173,7 @@ public class TopcatPlasticListener extends HubManager {
         /* Write the data as a VOTable to a temporary file preparatory to
          * broadcast. */
         final File tmpfile = File.createTempFile( "plastic", ".vot" );
-        final String tmpUrl = tmpfile.toURL().toString();
+        final String tmpUrl = URLUtils.makeFileURL( tmpfile ).toString();
         tmpfile.deleteOnExit();
         OutputStream ostrm =
             new BufferedOutputStream( new FileOutputStream( tmpfile ) );
@@ -196,26 +212,38 @@ public class TopcatPlasticListener extends HubManager {
     }
 
     /**
-     * Sends a given subset to plastic listeners.  It is broadcast using
-     * the <code>ivo://votech.org/votable/showObjects</code> message.
+     * Returns a new PlasticTransmitter which will transmit subsets to
+     * one or more listeners.
      *
-     * @param   tcModel  topcat model
-     * @param   rset   row subset within tcModel
+     * @param  subSelector  SubsetWindow which supplies the currently selected
+     *         subset ({@link SubsetWindow#getSelectedSubset})
      */
-    public void broadcastSubset( TopcatModel tcModel, RowSubset rset )
-            throws IOException {
-        sendSubset( tcModel, rset, null );
+    public PlasticTransmitter
+           createSubsetTransmitter( final TopcatModel tcModel,
+                                    final SubsetWindow subSelector ) {
+        return new PlasticTransmitter( this, VOT_SHOWOBJECTS, "subset" ) {
+            protected void transmit( ApplicationItem app ) throws IOException {
+                RowSubset rset = subSelector.getSelectedSubset();
+                if ( rset != null ) {
+                    URI[] recipients = app == null
+                                     ? null
+                                     : new URI[] { app.getId() };
+                    transmitSubset( tcModel, rset, recipients );
+                }
+            }
+        };
     }
 
     /**
      * Sends a row subset to a specific list of PLASTIC listeners.
+     * It uses the <code>ivo://votech.org/votable/showObjects</code> message.
      *
      * @param   tcModel  topcat model
      * @param   rset   row subset within tcModel
      * @param  recipients  listeners to receive it; null means do a broadcast
      */
-    public void sendSubset( TopcatModel tcModel, RowSubset rset, 
-                            final URI[] recipients )
+    private void transmitSubset( TopcatModel tcModel, RowSubset rset, 
+                                 final URI[] recipients )
             throws IOException {
 
         /* Get the hub and ID. */
@@ -275,7 +303,8 @@ public class TopcatPlasticListener extends HubManager {
         /* If that didn't result in any sends, try using the basic URL of
          * the table. */
         if ( ! done ) {
-            URL url = tcModel.getDataModel().getBaseTable().getURL();
+            URL url = URLUtils.fixURL( tcModel.getDataModel()
+                                              .getBaseTable().getURL() );
             if ( url != null ) {
                 List rowList = new ArrayList();
                 int nrow =

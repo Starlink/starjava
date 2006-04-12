@@ -44,8 +44,6 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Action tocolAct;
     private final Action countAct;
     private final Action invertAct;
-    private final Action broadcastAct;
-    private final JMenu sendMenu;
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
@@ -118,28 +116,17 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                       "Create new subset complementary to " +
                                       "selected subset" );
 
-        /* Action for broadcasting subset via PLASTIC. */
-        broadcastAct = new SubsetAction( "Broadcast subset",
-                                         ResourceIcon.BROADCAST,
-                                         "Select rows in other registered " +
-                                         "applications via PLASTIC" );
-
-        /* Menu for sending subset via PLASTIC. */
-        final TopcatPlasticListener pserv =
-            ControlWindow.getInstance().getPlasticServer();
-        sendMenu = new PlasticSendMenu( "Send Subset to ...", ResourceIcon.SEND,
-                                        "Send subset to a single application" +
-                                        "using PLASTIC", pserv,
-                                        TopcatPlasticListener
-                                       .VOT_SHOWOBJECTS ) {
-            protected void send( ApplicationItem app ) throws IOException {
-                int irow = jtab.getSelectedRow();
-                if ( irow >= 0 ) {
-                    pserv.sendSubset( tcModel, getSubset( irow ),
-                                      new URI[] { app.getId() } );
-                }
-            }
-        };
+        /* Transmitter for broadcasting subset via PLASTIC. */
+        final PlasticTransmitter subsetTransmitter = 
+            ControlWindow.getInstance().getPlasticServer()
+                         .createSubsetTransmitter( tcModel, this );
+        subsetTransmitter.getBroadcastAction()
+                         .putValue( Action.SHORT_DESCRIPTION,
+                                    "Select rows in other registered " +
+                                    "applications using PLASTIC" );
+        JMenu sendMenu = subsetTransmitter.createSendMenu();
+        sendMenu.setToolTipText( "Select rows in a single other registered " +
+                                 "application using PLASTIC" );
 
         /* Add a selection listener to ensure that the right actions 
          * are enabled/disabled. */
@@ -149,8 +136,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 boolean hasUniqueSelection = nsel == 1;
                 tocolAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
-                broadcastAct.setEnabled( hasUniqueSelection );
-                sendMenu.setEnabled( hasUniqueSelection );
+                subsetTransmitter.setEnabled( hasUniqueSelection );
             }
         };
         final ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -184,7 +170,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().add( invertAct );
         getToolBar().add( tocolAct );
         getToolBar().add( countAct );
-        getToolBar().add( broadcastAct );
+        getToolBar().add( subsetTransmitter.getBroadcastAction() );
         getToolBar().addSeparator();
 
         /* Subsets menu. */
@@ -204,7 +190,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         /* Interop menu. */
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
-        interopMenu.add( broadcastAct );
+        interopMenu.add( subsetTransmitter.getBroadcastAction() );
         interopMenu.add( sendMenu );
         getJMenuBar().add( interopMenu );
 
@@ -320,6 +306,16 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     }
 
     /**
+     * Returns the currently selected subset, if any.
+     *
+     * @return  current uniquely selected subset, or null
+     */
+    public RowSubset getSelectedSubset() {
+        int irow = jtab.getSelectedRow();
+        return irow >= 0 ? getSubset( irow ) : null;
+    }
+
+    /**
      * Returns the subset ID string for the subset at a given position
      * in the subsets list (row in the presentation table).
      *
@@ -416,22 +412,6 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             else if ( this == invertAct ) {
                 int irow = jtab.getSelectedRow();
                 subsets.add( new InverseRowSubset( getSubset( irow ) ) );
-            }
-
-            else if ( this == broadcastAct ) {
-                TopcatPlasticListener pserv =
-                    ControlWindow.getInstance().getPlasticServer();
-                int irow = jtab.getSelectedRow();
-                if ( irow >= 0 ) {
-                    try {
-                        pserv.register();
-                        pserv.broadcastSubset( tcModel, getSubset( irow ) );
-                    }
-                    catch ( IOException e ) {
-                        ErrorDialog.showError( SubsetWindow.this,
-                                               "PLASTIC Error", e );
-                    }
-                }
             }
 
             else {

@@ -133,7 +133,6 @@ public class ControlWindow extends AuxWindow
     private LoadQueryWindow loadWindow_;
     private ConcatWindow concatWindow_;
     private ExtApp extApp_;
-    private TopcatPlasticListener plasticServer_;
 
     private final JTextField idField_ = new JTextField();
     private final JLabel indexLabel_ = new JLabel();
@@ -145,16 +144,16 @@ public class ControlWindow extends AuxWindow
     private final JComboBox sortSelector_ = new JComboBox();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JButton activatorButton_ = new JButton();
+    private final TopcatPlasticListener plasticServer_;
+    private final PlasticTransmitter tableTransmitter_;
 
     private final Action readAct_;
     private final Action writeAct_;
     private final Action dupAct_;
-    private final Action broadcastAct_;
     private final Action mirageAct_;
     private final Action removeAct_;
     private final Action concatAct_;
     private final Action logAct_;
-    private final JMenu sendMenu_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
     private final ModelViewAction[] viewActs_;
@@ -218,6 +217,10 @@ public class ControlWindow extends AuxWindow
         tablesList_.setDragEnabled( true );
         tablesList_.setTransferHandler( bothTransferHandler_ );
 
+        /* Plastic transmitter. */
+        plasticServer_ = new TopcatPlasticListener( this );
+        tableTransmitter_ = plasticServer_.createTableTransmitter( this );
+
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
                                         "Forget about the current table" );
@@ -233,11 +236,7 @@ public class ControlWindow extends AuxWindow
 
         dupAct_ = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
                                     "Create a duplicate of the current table" );
-        broadcastAct_ = new ExportAction( "Broadcast Table",
-                                          ResourceIcon.BROADCAST,
-                                          "Broadcast table to all applications "
-                                        + "listening with the PLASTIC " 
-                                        + "protocol" );
+
         mirageAct_ = new ExportAction( "Export To Mirage", null,
                                "Launch Mirage to display the current table" );
         mirageAct_.setEnabled( MirageHandler.isMirageAvailable() );
@@ -310,19 +309,6 @@ public class ControlWindow extends AuxWindow
         interophelpAct.putValue( Action.SHORT_DESCRIPTION,
                                  "Show help on PLASTIC with details of "
                                + "supported messages" );
-
-        final TopcatPlasticListener plasticker = getPlasticServer();
-        sendMenu_ = new PlasticSendMenu( "Send Table to ...", ResourceIcon.SEND,
-                                         "Send table to a single application " +
-                                         "using PLASTIC",
-                                         plasticker,
-                                         TopcatPlasticListener.VOT_LOADURL ) {
-            protected void send( ApplicationItem app ) throws IOException {
-                TopcatModel tcModel = getCurrentModel();
-                assert tcModel != null : "Action should be disabled!";
-                plasticker.sendTable( tcModel, new URI[] { app.getId() } );
-            }
-        };
 
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
@@ -397,7 +383,8 @@ public class ControlWindow extends AuxWindow
         fileMenu.insertSeparator( fileMenuPos++ );
         fileMenu.insert( writeAct_, fileMenuPos++ );
         fileMenu.insert( dupAct_, fileMenuPos++ );
-        fileMenu.insert( broadcastAct_, fileMenuPos++ );
+        fileMenu.insert( tableTransmitter_.getBroadcastAction(),
+                         fileMenuPos++ );
         if ( MirageHandler.isMirageAvailable() ) {
             fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
@@ -443,14 +430,14 @@ public class ControlWindow extends AuxWindow
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
         try {
-            interopMenu.add( plasticker.getRegisterAction( true ) );
-            interopMenu.add( plasticker.getRegisterAction( false ) );
-            interopMenu.add( plasticker.getHubStartAction( true ) );
-            interopMenu.add( plasticker.getHubStartAction( false ) );
-            interopMenu.add( new HubWatchAction( plasticker ) );
+            interopMenu.add( plasticServer_.getRegisterAction( true ) );
+            interopMenu.add( plasticServer_.getRegisterAction( false ) );
+            interopMenu.add( plasticServer_.getHubStartAction( true ) );
+            interopMenu.add( plasticServer_.getHubStartAction( false ) );
+            interopMenu.add( new HubWatchAction( plasticServer_ ) );
             interopMenu.addSeparator();
-            interopMenu.add( broadcastAct_ );
-            interopMenu.add( sendMenu_ );
+            interopMenu.add( tableTransmitter_.getBroadcastAction() );
+            interopMenu.add( tableTransmitter_.createSendMenu() );
             interopMenu.addSeparator();
             interopMenu.add( interophelpAct );
         }
@@ -510,9 +497,6 @@ public class ControlWindow extends AuxWindow
      * @return  plastic server  
      */
     public TopcatPlasticListener getPlasticServer() {
-        if ( plasticServer_ == null ) {
-            plasticServer_ = new TopcatPlasticListener( this );
-        }
         return plasticServer_;
     }
 
@@ -562,7 +546,7 @@ public class ControlWindow extends AuxWindow
      *
      * @return  selected model
      */
-    private TopcatModel getCurrentModel() {
+    public TopcatModel getCurrentModel() {
         return (TopcatModel) tablesList_.getSelectedValue();
     }
 
@@ -759,8 +743,7 @@ public class ControlWindow extends AuxWindow
          * are up to date. */
         writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
-        broadcastAct_.setEnabled( hasModel );
-        sendMenu_.setEnabled( hasModel );
+        tableTransmitter_.setEnabled( hasModel );
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
         subsetSelector_.setEnabled( hasModel );
@@ -1278,17 +1261,6 @@ public class ControlWindow extends AuxWindow
             StarTable table = tcModel.getApparentStarTable();
             if ( this == dupAct_ ) {
                 addTable( table, "Copy of " + tcModel.getID(), true );
-            }
-            else if ( this == broadcastAct_ ) {
-                TopcatPlasticListener pserv = getPlasticServer();
-                try {
-                    pserv.register();
-                    pserv.broadcastTable( tcModel );  // sic
-                }
-                catch ( IOException e ) {
-                    ErrorDialog.showError( ControlWindow.this, "PLASTIC Error",
-                                           e );
-                }
             }
             else if ( this == mirageAct_ ) {
                 assert MirageHandler.isMirageAvailable();
