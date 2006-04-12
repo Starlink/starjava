@@ -65,6 +65,7 @@ public abstract class PlasticTransmitter implements ListDataListener {
         broadcastAct_.putValue( Action.SHORT_DESCRIPTION,
                                 "Transmit " + sendType + " to all applications "
                               + "listening with the PLASTIC protocol" );
+        enabled_ = true;
         menuList_ = new ArrayList();
         updateState();
     }
@@ -110,6 +111,9 @@ public abstract class PlasticTransmitter implements ListDataListener {
      */
     public JMenu createSendMenu() {
         JMenu menu = new JMenu( "Send " + sendType_ + " to ..." );
+        for ( Iterator it = sendActList_.iterator(); it.hasNext(); ) {
+            menu.add( (Action) it.next() );
+        }
         menu.setToolTipText( "Transmit " + sendType_ + " to a single " +
                              "application using PLASTIC" );
         menu.setIcon( ResourceIcon.SEND );
