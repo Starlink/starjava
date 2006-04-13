@@ -16,6 +16,7 @@ public class Plot3DState extends PlotState {
     private double[] rotation_;
     private double fogginess_;
     private boolean isRotating_;
+    private double zoomScale_;
 
     /**
      * Sets the rotation matrix.
@@ -78,13 +79,33 @@ public class Plot3DState extends PlotState {
         return isRotating_;
     }
 
+    /**
+     * Returns the zoom level.  
+     * Unity is normal size, and a larger number means more magnification.
+     *
+     * @param zoomScale  zoom level
+     */
+    public void setZoomScale( double zoomScale ) {
+        zoomScale_ = zoomScale;
+    }
+
+    /**
+     * Sets the zoom level.
+     *
+     * @return  zoom level
+     */
+    public double getZoomScale() {
+        return zoomScale_;
+    }
+
     public boolean equals( Object otherObject ) {
         if ( otherObject instanceof Plot3DState &&
              super.equals( otherObject ) ) {
             Plot3DState other = (Plot3DState) otherObject;
             return Arrays.equals( rotation_, other.rotation_ )
                 && fogginess_ == other.fogginess_
-                && isRotating_ == other.isRotating_;
+                && isRotating_ == other.isRotating_
+                && zoomScale_ == other.zoomScale_;
         }
         return false;
     }
@@ -96,6 +117,7 @@ public class Plot3DState extends PlotState {
         }
         code = 23 * code + Float.floatToIntBits( (float) fogginess_ );
         code = 23 * code + ( isRotating_ ? 0 : 1 );
+        code = 23 * code + Float.floatToIntBits( (float) zoomScale_ );
         return code;
     }
 }
