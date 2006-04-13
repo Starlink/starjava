@@ -131,7 +131,9 @@ public abstract class LoadQueryWindow extends QueryWindow {
      * perform some tidy up.
      */
     public void dispose() {
-        tableConsumer_.cancel();
+        if ( tableConsumer_ != null ) {
+            tableConsumer_.cancel();
+        }
         tableConsumer_ = null;
         chooser_.setTableConsumer( null );
         super.dispose();
