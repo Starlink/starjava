@@ -661,7 +661,9 @@ public class Driver {
            .append( p2 )
            .append( "startable.writers       custom table output handlers" )
            .append( p2 )
-           .append( "startable.storage       default storage policy" );
+           .append( "startable.storage       default storage policy" )
+           .append( p2 )
+           .append( "myspace.cache           MySpace performance workaround" );
 
         /* Return. */
         return "\n" + buf.toString() + "\n";
