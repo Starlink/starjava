@@ -3028,6 +3028,16 @@ The following ones have special significance within TOPCAT:
     at your own risk if you like.
     </p></dd>
 
+<dt><code>myspace.cache</code></dt>
+<dd><p>If set to "true", this will prevent directories in the MySpace file
+    browser from being read more than once.  This is a workaround for
+    MySpace performance problems at time of writing (April 2006);
+    setting it true may lead to out of date file listings in MySpace,
+    but it may be much faster.  This behaviour may be withdrawn in
+    future versions if MySpace performance improves. 
+    Currently defaults to "false".
+    </p></dd>
+
 </dl>
 </p>
 
@@ -4930,6 +4940,15 @@ configuring axis range:
     to zoom in and right-to-left or down-to-up to zoom out.
     </p></dd>
 
+<dt>Centre Zoom</dt>
+<dd><p>The <ref id="SphereWindow">spherical plot</ref> allows you to zoom
+    in on the central part of the window.  The 'active region' for
+    dragging is to the right of the plot, where the legend is shown.
+    When the pointer is in this region, the mouse cursor symbol changes
+    to indicate that zooming can be done.
+    Drag down to zoom in and up to zoom out.
+    </p></dd>
+
 <dt>&IMG.RESIZE; Rescale</dt>
 <dd><p>If you find you're zoomed to a region you don't want to be in,
     you can use the Rescale toolbar button to return to the default 
@@ -4992,10 +5011,11 @@ This is easily accomplished by creating a new
 and the graphics windows provide ways of doing this.
 </p>
 
-<p>In the 2-d plots 
+<p>In some of the plots 
 (<ref id="HistogramWindow">Histogram</ref>
- <ref id="PlotWindow">2d Scatter plot</ref> and
- <ref id="DensityWindow">Density map</ref>)
+ <ref id="PlotWindow">2d Scatter plot</ref>
+ <ref id="DensityWindow">Density map</ref> and
+ <ref id="SphereWindow">Spherical plot</ref>)
 you can set the axis ranges (either manually or by zooming with the
 mouse - see <ref id="axisConfig"/>) 
 so that only the points you want to identify are visible,
@@ -6050,6 +6070,19 @@ coordinate.
 <p>Rotation, subset creation, fogging, marker customisation and toolbar
 actions are all as for the Cartesian 3D plot window - 
 see <ref id="Cartesian3DWindow"/>.
+</p>
+
+<p><label>Zooming</label> is also possible.  You can zoom in around the
+centre of the plot so that the viewing window only covers the middle.
+This resembles the <label>Axis Zoom</label> in some of the 2-d plots,
+but in this case the active region is to the right of the plot where
+the legends appear.  Drag the mouse down to zoom in or up to zoom
+out on this part of the window.
+When zoomed you can use the 
+<label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button
+to define a new <label>Row Subset</label> consisting only of the
+points which are currently visible.
+See <ref id="plotSubsets"/> for more explanation.
 </p>
 
 </subsubsect>
@@ -9156,6 +9189,10 @@ introduced since the last version:
 <dt>Version 2.1-1 (13 April 2006)</dt>
 <dd><p>
     <dl>
+    <dt>Sphere Zoom</dt>
+    <dd><p>You can now zoom in the <ref id="SphereWindow">Spherical Plot</ref>.
+        </p></dd>
+
     <dt>PLASTIC</dt>
     <dd><p>There are some improvements to the PLASTIC functionality and
         documentation.
@@ -9180,7 +9217,16 @@ introduced since the last version:
             been improved.</li>
         <li>Some of the screenshots have been updated to include 
             PLASTIC-related features.</li>
+        <li>URLs using the <code>file:</code> scheme sent by TOPCAT in 
+            PLASTIC messages now correctly conform to RFC 1738.</li>
         </ul>
+        </p></dd>
+
+    <dt>MySpace</dt>
+    <dd><p>A workaround has been introduced for MySpace browsing
+        performance problems.
+        Run with <code>-Dmyspace.cache=true</code> to speed it up at the
+        expense of accuracy.
         </p></dd>
     </dl>
     </p></dd>
