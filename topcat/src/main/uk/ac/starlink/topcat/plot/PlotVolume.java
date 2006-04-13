@@ -120,7 +120,9 @@ public abstract class PlotVolume {
      * @return  graphics space X coordinate
      */
     public int projectX( double x ) {
-        return xoff_ + (int) Math.round( x * scale_ );
+        double dx = xoff_ + Math.round( x * scale_ );
+        return (int) Math.max( (double) Integer.MIN_VALUE,
+                               Math.min( (double) Integer.MAX_VALUE, dx ) );
     }
 
     /**
@@ -131,7 +133,9 @@ public abstract class PlotVolume {
      * @return  graphics space Y coordinate
      */
     public int projectY( double y ) {
-        return yoff_ - (int) Math.round( y * scale_ );
+        double dy = yoff_ - Math.round( y * scale_ );
+        return (int) Math.max( (double) Integer.MIN_VALUE,
+                               Math.min( (double) Integer.MAX_VALUE, dy ) );
     }
 
     /**
