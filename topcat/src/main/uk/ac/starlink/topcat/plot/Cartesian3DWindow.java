@@ -16,7 +16,7 @@ public class Cartesian3DWindow extends Plot3DWindow {
      * @param   parent  parent component (may be used for postioning)
      */
     public Cartesian3DWindow( Component parent ) {
-        super( "3D", new String[] { "X", "Y", "Z" }, parent );
+        super( "3D", new String[] { "X", "Y", "Z" }, parent, false );
 
         addHelp( "Cartesian3DWindow" );
     }
