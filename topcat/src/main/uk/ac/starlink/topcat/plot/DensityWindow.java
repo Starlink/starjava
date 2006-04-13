@@ -557,29 +557,32 @@ public class DensityWindow extends GraphicsWindow {
         hdr.addValue( "CRVAL1", 0.0, "Reference pixel X position" );
         hdr.addValue( "CRVAL2", 0.0, "Reference pixel Y position" );
 
-        Point origin = surface.dataToGraphics( 0.0, 0.0, false );
-        hdr.addValue( "CRPIX1",
-                      ( origin.x - x0 ) / (double) psize,
-                      "Reference pixel X index" );
-        hdr.addValue( "CRPIX2",
-                      ( y0 + bbox.height - origin.y ) / (double) psize,
-                      "Reference pixel Y index" );
+        Point origin =
+            surface.dataToGraphics( log1 ? 1.0 : 0.0, log2 ? 1.0 : 0.0, false );
+        if ( origin != null ) {
+            hdr.addValue( "CRPIX1",
+                          ( origin.x - x0 ) / (double) psize,
+                          "Reference pixel X index" );
+            hdr.addValue( "CRPIX2",
+                          ( y0 + bbox.height - origin.y ) / (double) psize,
+                          "Reference pixel Y index" );
 
-        if ( ngrid > 1 ) {
-            hdr.addValue( "CRVAL3", 0.0,
-                          "Reference pixel plane index position" );
-            hdr.addValue( "CRPIX3", 0.0, "Reference pixel plane index" );
-        }
+            if ( ngrid > 1 ) {
+                hdr.addValue( "CRVAL3", 0.0,
+                              "Reference pixel plane index position" );
+                hdr.addValue( "CRPIX3", 0.0, "Reference pixel plane index" );
+            }
 
-        hdr.addValue( "CDELT1", log1 ? Maths.log10( p1[ 0 ] / p0[ 0 ] )
-                                     : ( p1[ 0 ] - p0[ 0 ] ),
-                                "X extent of reference pixel" );
-        hdr.addValue( "CDELT2", log2 ? Maths.log10( p0[ 1 ] / p1[ 1 ] )
-                                     : ( p0[ 1 ] - p1[ 1 ] ),
-                                "Y extent of reference pixel" );
-        if ( ngrid > 1 ) {
-            hdr.addValue( "CDELT3", 1.0,
-                          "Plane index extent of reference pixel" );
+            hdr.addValue( "CDELT1", log1 ? Maths.log10( p1[ 0 ] / p0[ 0 ] )
+                                         : ( p1[ 0 ] - p0[ 0 ] ),
+                                    "X extent of reference pixel" );
+            hdr.addValue( "CDELT2", log2 ? Maths.log10( p0[ 1 ] / p1[ 1 ] )
+                                         : ( p0[ 1 ] - p1[ 1 ] ),
+                                    "Y extent of reference pixel" );
+            if ( ngrid > 1 ) {
+                hdr.addValue( "CDELT3", 1.0,
+                              "Plane index extent of reference pixel" );
+            }
         }
         hdr.addValue( "ORIGIN", "TOPCAT " + TopcatUtils.getVersion() + 
                       " (" + getClass().getName() + ")", null );
