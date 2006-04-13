@@ -5890,7 +5890,8 @@ see <ref id="activation"/>.
 <dt>&IMG.XYZ; Reorient</dt>
 <dd><p>Reorients the axes of the current plot to their default position.
     This can be useful if you've lost track of where you've rotated
-    the plot to with the mouse.
+    the plot to with the mouse.  This also resets the zoom level to 
+    normal if you've changed it.
     </p></dd>
 
 <dt>&IMG.GRID_ON; Grid</dt>
