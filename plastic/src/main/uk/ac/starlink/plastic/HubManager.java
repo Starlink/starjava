@@ -113,12 +113,16 @@ public abstract class HubManager implements PlasticListener {
             }
         } );
         updateState( false );
-        Runtime.getRuntime()
-               .addShutdownHook( new Thread( "PLASTIC hub unregister" ) {
-            public void run() {
-                unregister();
-            }
-        } );
+        try {
+            Runtime.getRuntime()
+                   .addShutdownHook( new Thread( "PLASTIC hub unregister" ) {
+                public void run() {
+                    unregister();
+                }
+            } );
+        }
+        catch ( SecurityException e ) {
+        }
     }
 
     /**
