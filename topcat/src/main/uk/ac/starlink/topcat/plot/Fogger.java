@@ -34,7 +34,7 @@ public class Fogger {
      */
     public Fogger( double scale ) {
         scale_ = scale;
-        int ifog = 0xe0;
+        int ifog = 0xff;
         float ffog = ifog / 255f;
         iFogRgb_ = new int[] { ifog, ifog, ifog };
         fFogRgb_ = new float[] { ffog, ffog, ffog };
