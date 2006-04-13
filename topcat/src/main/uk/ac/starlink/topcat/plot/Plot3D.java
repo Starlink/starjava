@@ -8,10 +8,12 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -28,7 +30,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
-public class Plot3D extends JPanel {
+public abstract class Plot3D extends JPanel {
 
     private Annotations annotations_;
     private Points points_;
@@ -43,8 +45,11 @@ public class Plot3D extends JPanel {
     private double[][][] sphereGrid_;
     private int plotTime_;
     private Object plotvolWorkspace_;
+    private int[] padBorders_;
+    private double zmax_;
     private final Plot3DDataPanel plotArea_;
     private final Legend legend_;
+    private final CentreZoomRegion centreZoom_;
 
     private static final double SQRT3 = Math.sqrt( 3.0 );
     private static final int SPHERE_PAD = 8;
@@ -62,7 +67,7 @@ public class Plot3D extends JPanel {
     /**
      * Constructor.
      */
-    public Plot3D() {
+    public Plot3D( boolean zoom ) {
         super( new BorderLayout() );
         plotArea_ = new Plot3DDataPanel();
         plotArea_.setBackground( Color.white );
@@ -75,7 +80,52 @@ public class Plot3D extends JPanel {
         add( legend_, BorderLayout.EAST );
         setOpaque( false );
         annotations_ = new Annotations();
+
+        if ( zoom ) {
+            centreZoom_ = new CentreZoomRegion( false ) {
+                public Rectangle getDisplay() {
+                    Rectangle display = new Rectangle( plotArea_.getBounds() );
+                    display.x += padBorders_[ 0 ];
+                    display.y += padBorders_[ 3 ];
+                    display.width -= padBorders_[ 0 ] + padBorders_[ 1 ];
+                    display.height -= padBorders_[ 2 ] + padBorders_[ 3 ];
+                    return display;
+                }
+                public Rectangle getTarget() {
+                    Rectangle display = plotArea_.getBounds();
+                    Rectangle bounds = Plot3D.this.getBounds();
+                    int x = display.x + display.width;
+                    int width = bounds.width - x;
+                    int y = display.y;
+                    int height = display.height;
+                    return new Rectangle( x, y, width, height );
+                }
+                public void zoomed( double[][] bounds ) {
+                    requestZoom( state_.getZoomScale() / bounds[ 0 ][ 0 ] );
+                }
+            };
+            Zoomer zoomer = new Zoomer() {
+                public void mousePressed( java.awt.event.MouseEvent evt ) {
+                    super.mousePressed( evt );
+                }
+            };
+            zoomer.setRegions( Collections.singletonList( centreZoom_ ) );
+            zoomer.setCursorComponent( this );
+            this.addMouseListener( zoomer );
+            this.addMouseMotionListener( zoomer );
+        }
+        else {
+            centreZoom_ = null;
+        }
     }
+
+    /**
+     * Callback invoked when a zoom request has been completed.
+     *
+     * @param  scale  change in zoom level (relative) - 1 means no change,
+     *         greater than one is zoom in, less is zoom out
+     */
+    protected abstract void requestZoom( double scale );
 
     /**
      * Sets the data set for this plot.  These are the points which will
@@ -207,6 +257,15 @@ public class Plot3D extends JPanel {
     }
 
     /**
+     * Returns the bounds of the actual plotting area (excluding legend etc).
+     *
+     * @return  plot area bounds
+     */
+    public Rectangle getPlotBounds() {
+        return plotArea_.getBounds();
+    }
+
+    /**
      * Performs the painting - this method does the actual work.
      */
     private void drawData( Graphics g, Component c ) {
@@ -217,6 +276,7 @@ public class Plot3D extends JPanel {
         if ( points == null || state == null || ! state.getValid() ) {
             return;
         }
+        double zoom = state.getZoomScale();
         RowSubset[] sets = getPointSelection().getSubsets();
         Style[] styles = getPointSelection().getStyles();
         int nset = sets.length;
@@ -224,24 +284,25 @@ public class Plot3D extends JPanel {
         /* Set up a transformer to do the mapping from data space to
          * normalised 3-d view space. */
         Transformer3D trans = 
-            new Transformer3D( state.getRotation(), loBoundsG_, hiBoundsG_ );
+            new Transformer3D( state.getRotation(), loBoundsG_, hiBoundsG_,
+                               state.getZoomScale() );
 
         /* Work out padding factors for the plot volume. */
         double padFactor;
-        int[] padBorders;
         if ( state instanceof SphericalPlotState ) {
             padFactor = 1.0;
-            padBorders = new int[ 4 ];
-            Arrays.fill( padBorders, SPHERE_PAD );
+            padBorders_ = new int[ 4 ];
+            Arrays.fill( padBorders_, SPHERE_PAD );
 
             /* Make room for an axis if we need one. */
-            if ( ((SphericalPlotState) state).getRadialInfo() != null ) {
-                padBorders[ annotateAtSide() ? 0 : 2 ] 
+            if ( ((SphericalPlotState) state).getRadialInfo() != null 
+                 && zoom == 1.0 ) {
+                padBorders_[ annotateAtSide() ? 0 : 2 ] 
                    += g.getFontMetrics().getHeight() * 2 + SPHERE_PAD;
             }
         }
         else {
-            padBorders = new int[] { 2, 2, 2, 2 };
+            padBorders_ = new int[] { 2, 2, 2, 2 };
 
             /* Since the cube may get rotated, we need to make sure that
              * its longest diagonal can be accommodated normal to the 
@@ -271,15 +332,16 @@ public class Plot3D extends JPanel {
             if ( ! allOpaque ) {
                 logger_.warning( "Can't render transparency in PostScript" );
             }
-            vol = new SortPlotVolume( c, g, plotStyles, padFactor, padBorders );
+            vol = new SortPlotVolume( c, g, plotStyles, padFactor,
+                                      padBorders_ );
         }
         else if ( allOpaque ) {
             vol = new ZBufferPlotVolume( c, g, plotStyles, padFactor,
-                                         padBorders, getZBufferWorkspace() );
+                                         padBorders_, getZBufferWorkspace() );
         }
         else {
             vol = new PackedSortPlotVolume( c, g, plotStyles, padFactor,
-                                            padBorders, points.getCount() + 2,
+                                            padBorders_, points.getCount() + 2,
                                             -1.0, 2.0,
                                             getPackedSortWorkspace() );
         }
@@ -287,9 +349,17 @@ public class Plot3D extends JPanel {
         /* Set its fog factor appropriately for depth rendering as requested. */
         vol.getFogger().setFogginess( state_.getFogginess() );
 
+        /* If we're zoomed on a spherical plot and the points are only
+         * on the surface of the sphere, then we don't want to see the
+         * points on the far surface. */
+        boolean frontOnly =
+            zoom > 2 &&
+            state instanceof SphericalPlotState &&
+            ((SphericalPlotState) state).getRadialInfo() == null;
+
         /* Plot back part of bounding box. */
         boolean grid = state.getGrid();
-        if ( grid ) {
+        if ( grid && ! frontOnly ) {
             plotAxes( g, trans, vol, false );
         }
 
@@ -304,6 +374,18 @@ public class Plot3D extends JPanel {
         boolean isRotating = state.getRotating();
         int step = isRotating ? Math.max( plotTime_ / 100, 1 )
                               : 1;
+
+        /* If we're only looking at the front surface of a sphere and we're
+         * zoomed we can arrange a limit on the Z coordinate to filter points.
+         * This is partly optimisation (not plotting points that aren't
+         * seen because they are off screen laterally) and partly so we
+         * don't see points on the far surface (zmax=0.5).  
+         * By my quick trig the limit for optimisation ought to be 
+         * Math.sqrt(0.5)*(1-Math.sqrt(1-0.25/(zoom*zoom)),
+         * but that gives a region that's too small so I must have gone wrong.
+         * There's something about aspect ratio to take into account too.
+         * So, leave it as 0.5 for now, which is correct but not optimal. */
+        zmax_ = frontOnly ? 0.5 : Double.MAX_VALUE;
 
         /* Submit each point for drawing in the display volume as
          * appropriate. */
@@ -327,12 +409,14 @@ public class Plot3D extends JPanel {
                 if ( ranger.inRange( coords ) && logize( coords, logFlags ) ) {
                     nVisible++;
                     trans.transform( coords );
-                    // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
-                    boolean done = false;
-                    for ( int is = nset - 1; is >= 0 && ! done; is-- ) {
-                        if ( sets[ is ].isIncluded( lp ) ) {
-                            vol.plot( coords, is );
-                            done = true;
+                    if ( coords[ 2 ] < zmax_ ) {
+                        // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
+                        boolean done = false;
+                        for ( int is = nset - 1; is >= 0 && ! done; is-- ) {
+                            if ( sets[ is ].isIncluded( lp ) ) {
+                                vol.plot( coords, is );
+                                done = true;
+                            }
                         }
                     }
                 }
@@ -396,6 +480,7 @@ public class Plot3D extends JPanel {
      */
     private void plotAxes( Graphics g, Transformer3D trans,
                            PlotVolume vol, boolean front ) {
+        Plot3DState state = getState();
         Graphics2D g2 = (Graphics2D) g;
         Object antialias = 
             g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
@@ -403,8 +488,15 @@ public class Plot3D extends JPanel {
                              state_.getAntialias() 
                                  ? RenderingHints.VALUE_ANTIALIAS_ON
                                  : RenderingHints.VALUE_ANTIALIAS_DEFAULT );
-        if ( getState() instanceof SphericalPlotState ) {
-            plotSphericalAxes( g, trans, vol, front );
+        if ( state instanceof SphericalPlotState ) {
+
+            /* Decline to plot axes if there's a large zoom: for one thing
+             * you can't mostly see them and for another there could be
+             * problems with the plotting when the points are
+             * way off screen. */
+            if ( state.getZoomScale() < 100 ) {
+                plotSphericalAxes( g, trans, vol, front );
+            }
         }
         else {
             plotCartesianAxes( g, trans, vol, front );
@@ -787,7 +879,7 @@ public class Plot3D extends JPanel {
         /* Now draw a single horizontal axis to indicate the range of
          * the radial coordinate. */
         SphericalPlotState sstate = ((SphericalPlotState) getState());
-        if ( sstate.getRadialInfo() != null ) {
+        if ( sstate.getRadialInfo() != null && sstate.getZoomScale() == 1.0 ) {
             int scale = vol.getScale();
             boolean log = sstate.getRadialLog();
             double[] d0 = new double[] { 0.0, 0.0, 0.0 };
@@ -984,6 +1076,10 @@ public class Plot3D extends JPanel {
             final RowSubset[] sets = getPointSelection().getSubsets();
             final int nset = sets.length;
             final RangeChecker ranger = rangeChecker_;
+            final int xmin = plotArea_.getX() + 1;
+            final int xmax = plotArea_.getX() + plotArea_.getWidth() - 2;
+            final int ymin = plotArea_.getY() + 1;
+            final int ymax = plotArea_.getY() + plotArea_.getHeight() - 2;
             return new PointIterator() {
                 int ip = -1;
                 int[] point = new int[ 3 ];
@@ -1000,10 +1096,17 @@ public class Plot3D extends JPanel {
                             if ( ranger.inRange( coords ) &&
                                  logize( coords, logFlags ) ) {
                                 trans.transform( coords );
-                                point[ 0 ] = ip;
-                                point[ 1 ] = vol.projectX( coords[ 0 ] );
-                                point[ 2 ] = vol.projectY( coords[ 1 ] );
-                                return point;
+                                int px = vol.projectX( coords[ 0 ] );
+                                int py = vol.projectY( coords[ 1 ] );
+                                double z = coords[ 2 ];
+                                if ( px >= xmin && px <= xmax &&
+                                     py >= ymin && py <= ymax &&
+                                     z <= zmax_ ) {
+                                    point[ 0 ] = ip;
+                                    point[ 1 ] = px;
+                                    point[ 2 ] = py;
+                                    return point;
+                                }
                             }
                         }
                     }
@@ -1165,6 +1268,7 @@ public class Plot3D extends JPanel {
         final double[] loBounds_;
         final double[] factors_;
         final double[] rot_;
+        final double zoom_;
 
         /**
          * Constructs a transformer.  A cuboid of interest in data space
@@ -1177,12 +1281,14 @@ public class Plot3D extends JPanel {
          * @param    rotation  9-element unitary rotation matrix
          * @param    loBounds  lower bounds of cuboid of interest (xlo,ylo,zlo)
          * @param    hiBounds  upper bounds of cuboid of interest (xhi,yhi,zhi)
+         * @param    zoom      zoom factor to apply to X-Y values
          */
         Transformer3D( double[] rotation, double[] loBounds,
-                       double[] hiBounds ) {
+                       double[] hiBounds, double zoom ) {
             rot_ = (double[]) rotation.clone();
             loBounds_ = new double[ 3 ];
             factors_ = new double[ 3 ];
+            zoom_ = zoom;
             for ( int i = 0; i < 3; i++ ) {
                 double lo = loBounds[ i ];
                 double hi = hiBounds[ i ];
@@ -1216,6 +1322,10 @@ public class Plot3D extends JPanel {
             coords[ 0 ] = rot_[ 0 ] * x + rot_[ 1 ] * y + rot_[ 2 ] * z;
             coords[ 1 ] = rot_[ 3 ] * x + rot_[ 4 ] * y + rot_[ 5 ] * z;
             coords[ 2 ] = rot_[ 6 ] * x + rot_[ 7 ] * y + rot_[ 8 ] * z;
+
+            /* Zoom. */
+            coords[ 0 ] *= zoom_;
+            coords[ 1 ] *= zoom_;
 
             /* Shift the origin so the unit sphere is centred at (.5,.5,.5). */
             for ( int i = 0; i < 3; i++ ) {
