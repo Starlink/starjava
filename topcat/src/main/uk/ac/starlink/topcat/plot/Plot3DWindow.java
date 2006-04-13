@@ -38,9 +38,11 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private final ToggleButtonModel antialiasModel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
+    private final Action fromVisibleAction_;
     private final CountsLabel plotStatus_;
     private double[] rotation_;
     private boolean isRotating_;
+    private double zoom_ = 1.0;
 
     private static final double[] INITIAL_ROTATION = 
         rotateXY( rotateXY( new double[] { 1, 0, 0, 0, 1, 0, 0, 0, -1 },
@@ -56,14 +58,18 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * @param   parent   parent window - may be used for positioning
      */
     public Plot3DWindow( String viewName, String[] axisNames,
-                         Component parent ) {
+                         Component parent, boolean zoom ) {
         super( viewName, axisNames, parent );
 
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */
-        plot_ = new Plot3D() {
+        plot_ = new Plot3D( zoom ) {
             protected void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
+            }
+            protected void requestZoom( double zoom ) {
+                zoom_ = Math.max( 1.0, zoom );
+                replot();
             }
         };
         JPanel plotPanel = new JPanel();
@@ -106,7 +112,19 @@ public abstract class Plot3DWindow extends GraphicsWindow
                                                + " position" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setRotation( INITIAL_ROTATION );
+                zoom_ = 1.0;
                 replot();
+            }
+        };
+
+        /* Action for selecting subset from visible points. */
+        fromVisibleAction_ = new BasicAction( "New subset from visible",
+                                              ResourceIcon.VISIBLE_SUBSET,
+                                              "Define a new row subset " +
+                                              "containing only currently " +
+                                              "visible points" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                addNewSubsets( plot_.getPlottedPointIterator().getAllPoints() );
             }
         };
 
@@ -146,6 +164,10 @@ public abstract class Plot3DWindow extends GraphicsWindow
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         subsetMenu.add( blobAction_ );
+        if ( zoom ) {
+            subsetMenu.add( fromVisibleAction_ );
+        }
+        getJMenuBar().add( subsetMenu );
 
         /* Construct a new menu for marker style set selection. */
         JMenu styleMenu = new JMenu( "Marker Style" );
@@ -175,6 +197,9 @@ public abstract class Plot3DWindow extends GraphicsWindow
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
+        if ( zoom ) {
+            getToolBar().add( fromVisibleAction_ );
+        }
         getToolBar().addSeparator();
 
         /* Set initial rotation. */
@@ -206,9 +231,11 @@ public abstract class Plot3DWindow extends GraphicsWindow
     public PlotState getPlotState() {
         Plot3DState state = (Plot3DState) super.getPlotState();
 
-        /* Configure the state with this window's current viewing angles. */
+        /* Configure the state with this window's current viewing angles
+         * and zoom state. */
         state.setRotation( rotation_ );
         state.setRotating( isRotating_ );
+        state.setZoomScale( zoom_ );
 
         /* Configure rendering options. */
         state.setFogginess( fogModel_.isSelected() ? 2.0 : 0.0 );
@@ -333,8 +360,16 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
         private Point posBase_;
         private double[] rotBase_;
+        private boolean relevant_;
+
+        public void mousePressed( MouseEvent evt ) {
+            relevant_ = plot_.getPlotBounds().contains( evt.getPoint() );
+        }
 
         public void mouseDragged( MouseEvent evt ) {
+            if ( ! relevant_ ) {
+                return;
+            }
             isRotating_ = true;
             Point pos = evt.getPoint(); 
             if ( posBase_ == null ) {
@@ -348,8 +383,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
                  * (these directions are relative to the current orientation
                  * of the view). */
                 double scale = Math.min( plot_.getWidth(), plot_.getHeight() );
-                double xf = - ( pos.x - posBase_.x ) / scale;
-                double yf = - ( pos.y - posBase_.y ) / scale;
+                double xf = - ( pos.x - posBase_.x ) / scale / zoom_;
+                double yf = - ( pos.y - posBase_.y ) / scale / zoom_;
 
                 /* Turn these into angles.  Phi and Psi are the rotation
                  * angles around the screen vertical and horizontal axes
