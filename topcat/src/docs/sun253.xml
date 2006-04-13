@@ -9205,7 +9205,7 @@ introduced since the last version:
             These actions are now enabled/disabled according to whether 
             any suitable PLASTIC listeners are registered.</li>
         <li>You can now pop up a little window from the
-            <label>Control Window</label>'s <label>Interop</label> window 
+            <label>Control Window</label>'s <label>Interop</label> menu
             which displays the currently registered PLASTIC listeners.
             The functionality of this window may be extended in future
             releases.</li>
