@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import uk.ac.starlink.connect.AuthKey;
@@ -24,7 +25,18 @@ import uk.ac.starlink.connect.Connector;
  */
 public class AcrConnector implements Connector {
 
+    /**
+     * Boolean-valued property which determines whether MySpace directories
+     * are to be cached.  Setting this true will probably lead to 
+     * incorrect behaviour (directories not being updated with new files)
+     * but may be worthwhile as a workaround for the atrocious performance
+     * exhibited by MySpace at time of writing (April 2006).
+     */
+    public static final String CACHE_PROPERTY = "myspace.cache";
+
     private static Icon icon_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.astrogrid" );
 
     public String getName() {
         return "MySpace";
@@ -52,7 +64,33 @@ public class AcrConnector implements Connector {
     }
 
     public Connection logIn( Map authValues ) throws IOException {
-        return new AcrConnection( this );
+        AcrConnection connection = new AcrConnection( this );
+        boolean cache = getCacheDirectories();
+        if ( cache ) {
+            logger_.warning( "Caching MySpace directories - better performance "
+                           + "but may give out of date information" );
+        }
+        connection.setCacheDirectories( cache );
+        return connection;
+    }
+
+    /**
+     * Determines whether directories should be cached by default in
+     * connections produced by this connector.
+     * Result is based on the (boolean) value of the 
+     * {@link #CACHE_PROPERTY} property.
+     * If the property is unset, it will return false.
+     *
+     * @return  true  iff directories should be cached by default
+     */
+    public static boolean getCacheDirectories() {
+        try {
+            return Boolean.valueOf( System.getProperty( CACHE_PROPERTY ) )
+                          .booleanValue();
+        }
+        catch ( Throwable e ) {
+            return false;
+        }
     }
 
     /**

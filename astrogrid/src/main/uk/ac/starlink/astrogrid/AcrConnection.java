@@ -33,6 +33,7 @@ class AcrConnection extends Connection {
 
     private final AcrBranch root_;
     private final XmlRpcClient client_;
+    private boolean cacheDirectories_;
 
     /** Location in the user's home directory of the ACR rendezvous file. */
     public static String ACR_FILE = ".astrogrid-desktop";
@@ -82,6 +83,14 @@ class AcrConnection extends Connection {
     public void logOut() {
         /* Perform no action - a logout here doesn't want to cause a logout
          * for the ACR server itself. */
+    }
+
+    public boolean getCacheDirectories() {
+        return cacheDirectories_;
+    }
+
+    public void setCacheDirectories( boolean cache ) {
+        cacheDirectories_ = cache;
     }
 
     /**

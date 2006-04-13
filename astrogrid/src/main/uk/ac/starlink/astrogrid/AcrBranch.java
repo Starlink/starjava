@@ -24,6 +24,8 @@ class AcrBranch extends AcrNode implements Branch {
 
     private static final Logger logger_ =
             Logger.getLogger( "uk.ac.starlink.astrogrid" );
+    private final AcrConnection connection_;
+    private Node[] children_;
 
     /**
      * Constructor.
@@ -36,9 +38,22 @@ class AcrBranch extends AcrNode implements Branch {
     public AcrBranch( AcrConnection connection, String uri, String name,
                       AcrBranch parent ) {
         super( connection, uri, name, parent );
+        connection_ = connection;
     }
 
     public Node[] getChildren() {
+        if ( connection_.getCacheDirectories() ) {
+            if ( children_ == null ) {
+                children_ = readChildren();
+            }
+            return children_;
+        }
+        else {
+            return readChildren();
+        }
+    }
+
+    private Node[] readChildren() {
         try {
             return getAcrChildNodes();
         }
