@@ -47,7 +47,10 @@ public class ZBufferPlotVolume extends PlotVolume {
 
         /* Work out the dimensions of the pixel grid that we're going
          * to need. */
-        int ppad = 6;
+        int ppad = 2;
+        for ( int i = 0; i < styles.length; i++ ) {
+            ppad = Math.max( ppad, 2 + 2 * styles[ i ].getMaximumRadius() );
+        }
         xdim_ = c.getWidth() + 2 * ppad;
         ydim_ = c.getHeight() + 2 * ppad;
         xoff_ = - ppad;
