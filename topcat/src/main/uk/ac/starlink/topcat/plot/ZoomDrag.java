@@ -29,6 +29,8 @@ public interface ZoomDrag {
      * display region.
      * Bounds may be larger or smaller than the (1,0) interval.
      *
+     * <p>A null return indicates that no legal zoom is represented.
+     *
      * @param   p  current point
      * @return  bounds defined by a drag ending at point <code>p</code>
      */
