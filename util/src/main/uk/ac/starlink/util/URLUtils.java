@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provides convenience methods for resolving URLs.
@@ -51,6 +53,8 @@ public class URLUtils {
             defaultContext = null;
         }
     }
+    private static final Pattern FILE_URL_REGEX =
+        Pattern.compile( "(file:)(/*)(.*)" );
 
     /**
      * Obtains a URL from a string.  If the String has the form of a URL,
@@ -201,6 +205,65 @@ public class URLUtils {
                                                 + " was malformed");
             newEx.initCause(e);
             throw newEx;
+        }
+    }
+
+    /**
+     * Constructs a legal URL for a given File.
+     * Unlike java, this gives you a URL which conforms to RFC1738 and
+     * looks like "<code>file://localhost/abs-path</code>" rather than 
+     * "<code>file:abs-or-rel-path</code>".
+     *
+     * @param   file   file
+     * @return   URL
+     * @see   RFC 1738
+     */
+    public static URL makeFileURL( File file ) {
+        try {
+            return fixURL( file.toURI().toURL() );
+        }
+        catch ( MalformedURLException e ) {
+            throw new AssertionError();
+        }
+    }
+
+    /**
+     * Fixes file: URLs which don't have enough slashes in them.
+     * Java generates invalid URLs of the form 
+     * "<code>file:abs-or-rel-path</code>"
+     * when it should generate "<code>file://localhost/abs-path</code>".
+     *
+     * @param   url  input URL
+     * @return  fixed URL
+     * @see   RFC 1738
+     */
+    public static URL fixURL( URL url ) {
+        Matcher matcher = FILE_URL_REGEX.matcher( url.toString() );
+        if ( matcher.matches() ) {
+            String scheme = matcher.group( 1 );
+            String slashes = matcher.group( 2 );
+            String path = matcher.group( 3 );
+            assert "file:".equals( scheme );
+            try {
+                switch ( slashes.length() ) {
+                    case 0:
+                        return fixURL( new File( path ).getAbsoluteFile()
+                                                       .toURI().toURL() );
+                    case 1:
+                        return new URL( scheme + "//localhost" 
+                                               + slashes + path );
+                    case 2:
+                        return url;
+                    default:
+                        return url;
+                }
+            }
+            catch ( MalformedURLException e ) {
+                throw new AssertionError( e );
+            }
+        }
+        else {
+            return url;
         }
     }
 }

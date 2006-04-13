@@ -132,6 +132,17 @@ public class URLUtilsTest extends junit.framework.TestCase {
             }
         }
     }
+
+    public void testFileUrl() throws MalformedURLException {
+        assertEquals( new URL( "file://localhost/etc/motd" ),
+                  URLUtils.fixURL( new URL( "file:/etc/motd" ) ) );
+        assertEquals( new URL( "file://localhost/etc/motd" ),
+                  URLUtils.fixURL( new URL( "file://localhost/etc/motd" ) ) );
+        assertEquals( new URL( "file://localhost/etc/motd" ),
+                      URLUtils.makeFileURL( new File( "/etc/motd" ) ) );
+        assertEquals( new URL( "ftp://rtfm.mit.edu/pub/" ),
+                      URLUtils.fixURL( new URL( "ftp://rtfm.mit.edu/pub/" ) ) );
+    }
 }
 
             
