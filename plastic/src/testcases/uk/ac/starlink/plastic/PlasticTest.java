@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.votech.plastic.PlasticHubListener;
@@ -51,19 +53,34 @@ public class PlasticTest extends TestCase {
 
     private void exerciseHub( PlasticHubListener hub, URI id ) 
             throws IOException, InterruptedException {
+
+        /* Get a list of applications which is listening to all messages.
+         * This may be non-empty if the hub already exists with some 
+         * monitoring listeners registered.  We will need this to elimintate
+         * some returned messages from the hub later. */
+        List monitors =
+            hub.getMessageRegisteredIds( PlasticUtils
+                                        .createURI( "not-a-real-message" ) );
+
         assertTrue( configFile.exists() );
         Counter c1 = new Counter();
         Counter c2 = new Counter();
         Counter c3 = new Counter();
         URI id1 = PlasticUtils.registerRMI( c1 );
-        assertEquals( intMap( new URI[] { id1 }, new int[] { 0 } ),
-                      hub.request( id, CALC, calcArgs( PLUS, 0 ) ) );
+        assertEquals(
+            intMap( new URI[] { id1 }, new int[] { 0 } ),
+            removeMonitors( hub.request( id, CALC, calcArgs( PLUS, 0 ) ),
+                            monitors ) );
 
         URI id2 = PlasticUtils.registerXMLRPC( c2 );
-        assertEquals( intMap( new URI[] { id1, id2 }, new int[] { 10, 10 } ),
-                      hub.request( id, CALC, calcArgs( PLUS, 10 ) ) );
-        assertEquals( intMap( new URI[] { id1, id2 }, new int[] { 5, 5 } ),
-                      hub.request( id, CALC, calcArgs( MINUS, 5 ) ) );
+        assertEquals(
+            intMap( new URI[] { id1, id2 }, new int[] { 10, 10 } ),
+            removeMonitors( hub.request( id, CALC, calcArgs( PLUS, 10 ) ),
+                            monitors ) );
+        assertEquals(
+            intMap( new URI[] { id1, id2 }, new int[] { 5, 5 } ),
+            removeMonitors( hub.request( id, CALC, calcArgs( MINUS, 5 ) ),
+                            monitors ) );
         assertEquals( 5, c1.sum_ );
         assertEquals( 5, c2.sum_ );
 
@@ -139,6 +156,13 @@ public class PlasticTest extends TestCase {
         Map map = new HashMap();
         for ( int i = 0; i < ids.length; i++ ) {
             map.put( ids[ i ], values[ i ] );
+        }
+        return map;
+    }
+
+    private Map removeMonitors( Map map, Collection monitors ) {
+        for ( Iterator it = monitors.iterator(); it.hasNext(); ) {
+            map.remove( (URI) it.next() );
         }
         return map;
     }
