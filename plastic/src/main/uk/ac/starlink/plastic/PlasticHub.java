@@ -697,6 +697,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      * <dt>-verbose</dt>
      * <dd>Causes verbose messages to be written to standard output 
      *     logging hub operations.</dd>
+     * <dt>-gui</dt>
+     * <dd>Pops up a graphical window which monitors applications currently
+     *     registered.  The hub will terminate if this window is closed.</dd>
      * <dt>-help</dt>
      * <dd>Prints a help message and exits.</dd>
      * </dl>
