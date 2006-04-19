@@ -372,6 +372,21 @@ public class TableViewerWindow extends AuxWindow
             popper.add( searchAct );
         }
 
+        /* Action to explode column. */
+        if ( ! rowHead &&
+             colInfo.isArray() &&
+             ColumnInfoWindow.getElementCount( colInfo ) > 0 ) {
+            Action explodeAct =
+                new BasicAction( "Explode Column", ResourceIcon.EXPLODE,
+                                 "Replace N-element array column " +
+                                 "with N scalar columns" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        tcModel.explodeColumn( tcol );
+                    }
+                }; 
+             popper.add( explodeAct );
+        }
+
         return popper;
     }
 
