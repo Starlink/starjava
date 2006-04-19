@@ -4178,6 +4178,17 @@ way to do some things with the column in question:
     the string "XYZ".
     </p></dd>
 
+<dt>&IMG.EXPLODE; Explode Array Column</dt>
+<dd><p>For columns which have an array value with a fixed number of elements,
+    selecting this option will hide the original column and replace it
+    by a set of scalar columns, one for each of its elements.
+    For instance if a column PMAG contains a 5-element vector of type
+    <code>float[]</code> representing magnitudes in 5 different bands,
+    selecting this option will hide PMAG and insert 5 new
+    <code>Float</code>-type columns PMAG_1...PMAG_5 in its place, 
+    each containing one of the magnitudes.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -9230,6 +9241,13 @@ introduced since the last version:
         expense of accuracy.
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Added explode columns option to Data Window popup menu.</li>
+    </ul>
     </p></dd>
 
 </dl>
