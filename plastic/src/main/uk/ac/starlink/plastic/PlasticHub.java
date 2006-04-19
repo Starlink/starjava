@@ -567,6 +567,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      * @param  ID which differs from previous ones returned by this method
      */
     static URI createId( Object obj, String text, int iseq ) {
+        text = text.replaceAll( "[^A-Za-z0-9_]+", "_" );
         try {
             return new URI( "plastic://" + obj.getClass().getName() + "/" + 
                             Integer.toHexString( System
