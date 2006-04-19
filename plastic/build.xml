@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="PLASTIC"/>
   <property name="name" value="plastic"/>
-  <property name="version" value="0.3"/>
+  <property name="version" value="0.2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.plastic"/>
@@ -813,7 +813,7 @@
    !-->
   <target name="www"
           depends="dist"
-          description="Prepare files for distribution web page">
+          description="-> Prepare files for distribution web page">
     <mkdir dir="${dist.www}"/>
 
     <copy todir="${dist.www}">
