@@ -30,7 +30,6 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.ShapeIterator;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -496,7 +495,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @return   fixed number of scalar elements described by <tt>info</tt>,
      *           or a non-positive number if it's not suitable
      */
-    private int getElementCount( ValueInfo info ) {
+    public static int getElementCount( ValueInfo info ) {
         if ( info.isArray() ) {
             int[] shape = info.getShape();
             int nel = 1;
@@ -512,48 +511,6 @@ public class ColumnInfoWindow extends AuxWindow {
             return nel;
         }
         return 0; 
-    }
-
-    /**
-     * Replaces an N-element array-valued column in the table with 
-     * N scalar-valued columns.  More precisely, it adds N new columns
-     * after the original and then hides the original.
-     */
-    private void explodeColumn( StarTableColumn tcol ) {
-        ColumnInfo baseInfo = tcol.getColumnInfo();
-        int insertPos = columnList.getModelIndex( columnList.indexOf( tcol ) );
-        String baseName = baseInfo.getName();
-        String baseDesc = baseInfo.getDescription();
-        String baseExpr = baseInfo.getAuxDatum( TopcatUtils.COLID_INFO )
-                                  .getValue().toString();
-        ColumnInfo elInfo = new ColumnInfo( baseInfo );
-        elInfo.setShape( null );
-        int ipos = 0;
-        for ( Iterator it = new ShapeIterator( baseInfo.getShape() );
-              it.hasNext(); ipos++ ) {
-            int[] pos = (int[]) it.next();
-            StringBuffer postxt = new StringBuffer();
-            for ( int i = 0; i < pos.length; i++ ) {
-                postxt.append( '_' );
-                postxt.append( Integer.toString( pos[ i ] + 1 ) );
-            }
-            ColumnInfo colInfo = new ColumnInfo( elInfo );
-            colInfo.setName( baseName + postxt.toString() );
-            colInfo.setDescription( "Element " + ( ipos + 1 ) + " of " +
-                                    baseName );
-            String colExpr = baseExpr + '[' + ipos + ']';
-            try {
-                SyntheticColumn elcol =
-                    new SyntheticColumn( colInfo, dataModel, null,
-                                         colExpr, null );
-                tcModel.appendColumn( elcol, ++insertPos );
-            }
-            catch ( CompilationException e ) {
-                throw (AssertionError) new AssertionError( e.getMessage() )
-                                      .initCause( e );
-            }
-        }
-        columnModel.removeColumn( tcol );
     }
 
     /**
@@ -700,7 +657,7 @@ public class ColumnInfoWindow extends AuxWindow {
                                                null, 
                                                new String[] { yesOpt, noOpt },
                                                yesOpt ) == 0 ) {
-                            explodeColumn( tcol );
+                            tcModel.explodeColumn( tcol );
                         }
                     }
                 }
