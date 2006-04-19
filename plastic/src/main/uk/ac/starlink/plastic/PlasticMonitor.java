@@ -163,6 +163,12 @@ public class PlasticMonitor implements PlasticApplication {
      * <dd>Use Java-RMI for communications (default)</dd>
      * <dt>-xmlrpc</dt>
      * <dd>Use XML-RPC for communications</dd>
+     * <dt>-gui</dt>
+     * <dd>Pops up a window monitoring currently registered applications</dd>
+     * <dt>-verbose</dt>
+     * <dd>Writes a log to standard output of all PLASTIC traffic</dd>
+     * <dt>-name name</dt>
+     * <dd>Supply application name which monitor will register under</dd>
      * </dl>
      */
     public static void main( String[] args ) throws IOException {
@@ -170,6 +176,7 @@ public class PlasticMonitor implements PlasticApplication {
                      + " [-xmlrpc|-rmi]"
                      + " [-gui]"
                      + " [-verbose]"
+                     + " [-name name]"
                      + "\n";
 
         /* Process flags. */
@@ -177,6 +184,7 @@ public class PlasticMonitor implements PlasticApplication {
         String mode = "rmi";
         boolean gui = false;
         boolean verbose = false;
+        String name = "monitor";
         for ( Iterator it = argv.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( "-xmlrpc".equals( arg ) ) {
@@ -195,6 +203,11 @@ public class PlasticMonitor implements PlasticApplication {
                 it.remove();
                 verbose = true;
             }
+            else if ( "-name".equals( arg ) && it.hasNext() ) {
+                it.remove();
+                name = (String) it.next();
+                it.remove();
+            }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
                 return;
@@ -206,7 +219,7 @@ public class PlasticMonitor implements PlasticApplication {
         }
 
         PrintStream out = verbose ? System.out : null;
-        PlasticMonitor mon = new PlasticMonitor( "monitor", out );
+        PlasticMonitor mon = new PlasticMonitor( name, out );
        
         if ( gui ) {
             PlasticHubListener hub = PlasticUtils.getLocalHub();
