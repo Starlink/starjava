@@ -117,9 +117,11 @@ class ApplicationListModel extends AbstractListModel {
     public void clear() {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                int nItem = appList_.size();
-                appList_.clear();
-                fireIntervalRemoved( this, 0, nItem - 1 );
+                if ( ! appList_.isEmpty() ) {
+                    int nItem = appList_.size();
+                    appList_.clear();
+                    fireIntervalRemoved( this, 0, nItem - 1 );
+                }
             }
         } );
     }
