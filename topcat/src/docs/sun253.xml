@@ -9247,6 +9247,12 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Added explode columns option to Data Window popup menu.</li>
+    <li>Fix bug present since v2.0 which was sometimes drawing wrong numeric
+        labels near zero in 2D plots.  
+        A side effect is that exponential multipliers will more often be
+        used on axis labels (as in versions prior to v2.0).
+        Hopefully somewhat improved axis labelling will be present in
+        future versions.</li>
     </ul>
     </p></dd>
 
