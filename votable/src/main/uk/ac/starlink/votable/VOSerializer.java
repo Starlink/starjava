@@ -173,7 +173,7 @@ public abstract class VOSerializer {
                     writer.write( "<LINK"
                         + formatAttribute( "title", pinfo.getName() )
                         + formatAttribute( "href", param.getValue().toString() )
-                        + ">" );
+                        + "/>" );
                     writer.newLine();
                 }
 
