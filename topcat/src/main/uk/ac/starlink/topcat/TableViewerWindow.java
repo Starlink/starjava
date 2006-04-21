@@ -536,12 +536,16 @@ public class TableViewerWindow extends AuxWindow
         }
         else if ( code == TopcatEvent.COLUMN ) {
             Object datum = evt.getDatum();
-            if ( datum instanceof StarTableColumn ) {
-                int viewCol = ((StarTableColumn) datum).getModelIndex();
-                scrollToColumn( viewCol );
+            assert datum instanceof StarTableColumn;
+            int viewCol = -1;
+            int ncol = columnModel.getColumnCount();
+            for ( int icol = 0; icol < ncol && viewCol < 0; icol++ ) {
+                if ( columnModel.getColumn( icol ) == datum ) {
+                    viewCol = icol;
+                }
             }
-            else {
-                assert false;
+            if ( viewCol >= 0 ) {
+                scrollToColumn( viewCol );
             }
         }
     }

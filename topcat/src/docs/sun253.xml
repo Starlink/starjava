@@ -9256,6 +9256,8 @@ introduced since the last version:
     <li>Fixed bug which was writing unclosed LINK elements in VOTables.</li>
     <li>Fixed some NullPointerException bugs in column selection and 
         2D plot.</li>
+    <li>Fixed bug in scrolling to correct column in Data Window when column
+        is selected in Columns Window.</li>
     </ul>
     </p></dd>
 
