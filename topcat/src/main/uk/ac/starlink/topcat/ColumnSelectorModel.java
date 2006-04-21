@@ -277,10 +277,12 @@ public class ColumnSelectorModel {
         if ( ucd != null ) {
             for ( int i = 0; i < model.getSize() && selected == null; i++ ) {
                 ColumnData cdata = (ColumnData) model.getElementAt( i );
-                ColumnInfo info = cdata.getColumnInfo();
-                if ( info.getUCD() != null && 
-                     info.getUCD().indexOf( ucd ) >= 0 ) {
-                    selected = cdata;
+                if ( cdata != null ) {
+                    ColumnInfo info = cdata.getColumnInfo();
+                    if ( info.getUCD() != null && 
+                         info.getUCD().indexOf( ucd ) >= 0 ) {
+                        selected = cdata;
+                    }
                 }
             }
         }
@@ -288,10 +290,13 @@ public class ColumnSelectorModel {
         if ( name != null ) {
             for ( int i = 0; i < model.getSize() && selected == null; i++ ) {
                 ColumnData cdata = (ColumnData) model.getElementAt( i );
-                ColumnInfo info = cdata.getColumnInfo();
-                String cname = info.getName();
-                if ( cname != null && cname.toLowerCase().startsWith( name ) ) {
-                    selected = cdata;
+                if ( cdata != null ) {
+                    ColumnInfo info = cdata.getColumnInfo();
+                    String cname = info.getName();
+                    if ( cname != null &&
+                         cname.toLowerCase().startsWith( name ) ) {
+                        selected = cdata;
+                    }
                 }
             }
         }

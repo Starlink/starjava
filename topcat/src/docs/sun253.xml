@@ -9243,8 +9243,8 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
-<dd><p>
+<dt>Version 2.1-2</dt>
+<dd><p>This is mainly a bug fix release.
     <ul>
     <li>Added explode columns option to Data Window popup menu.</li>
     <li>Fix bug present since v2.0 which was sometimes drawing wrong numeric
@@ -9253,6 +9253,9 @@ introduced since the last version:
         used on axis labels (as in versions prior to v2.0).
         Hopefully somewhat improved axis labelling will be present in
         future versions.</li>
+    <li>Fixed bug which was writing unclosed LINK elements in VOTables.</li>
+    <li>Fixed some NullPointerException bugs in column selection and 
+        2D plot.</li>
     </ul>
     </p></dd>
 

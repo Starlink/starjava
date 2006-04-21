@@ -87,7 +87,8 @@ public abstract class ScatterPlot extends SurfacePlot {
         Points points = getPoints();
         PlotState state = getState();
         PlotSurface surface = getSurface();
-        if ( points == null || state == null || surface == null ) {
+        if ( points == null || state == null || surface == null ||
+             ! state.getValid() ) {
             return;
         }
 
