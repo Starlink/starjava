@@ -696,7 +696,9 @@ public abstract class ScatterPlot extends SurfacePlot {
              * the graphics context we are being asked to paint into. */
             boolean done = g.drawImage( image_, 0, 0, null );
             assert done;
-            drawAnnotations( g );
+            if ( getState().getValid() ) {
+                drawAnnotations( g );
+            }
         }
 
         /**
