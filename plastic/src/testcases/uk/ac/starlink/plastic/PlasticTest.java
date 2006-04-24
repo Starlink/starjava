@@ -6,7 +6,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,19 +70,28 @@ public class PlasticTest extends TestCase {
         Counter c3 = new Counter();
         URI id1 = PlasticUtils.registerRMI( c1 );
         assertEquals(
+            Collections.singletonList( id1 ),
+            removeMonitorsList( hub.getMessageRegisteredIds( CALC ),
+                                monitors ) );
+        assertEquals(
             intMap( new URI[] { id1 }, new int[] { 0 } ),
-            removeMonitors( hub.request( id, CALC, calcArgs( PLUS, 0 ) ),
-                            monitors ) );
+            removeMonitorsMap( hub.request( id, CALC, calcArgs( PLUS, 0 ) ),
+                               monitors ) );
 
         URI id2 = PlasticUtils.registerXMLRPC( c2 );
         assertEquals(
+            new HashSet( Arrays.asList( new URI[] { id1, id2 } ) ),
+            new HashSet( removeMonitorsList( hub
+                                            .getMessageRegisteredIds( CALC ),
+                                             monitors ) ) );
+        assertEquals(
             intMap( new URI[] { id1, id2 }, new int[] { 10, 10 } ),
-            removeMonitors( hub.request( id, CALC, calcArgs( PLUS, 10 ) ),
-                            monitors ) );
+            removeMonitorsMap( hub.request( id, CALC, calcArgs( PLUS, 10 ) ),
+                               monitors ) );
         assertEquals(
             intMap( new URI[] { id1, id2 }, new int[] { 5, 5 } ),
-            removeMonitors( hub.request( id, CALC, calcArgs( MINUS, 5 ) ),
-                            monitors ) );
+            removeMonitorsMap( hub.request( id, CALC, calcArgs( MINUS, 5 ) ),
+                               monitors ) );
         assertEquals( 5, c1.sum_ );
         assertEquals( 5, c2.sum_ );
 
@@ -160,11 +171,16 @@ public class PlasticTest extends TestCase {
         return map;
     }
 
-    private Map removeMonitors( Map map, Collection monitors ) {
+    private Map removeMonitorsMap( Map map, Collection monitors ) {
         for ( Iterator it = monitors.iterator(); it.hasNext(); ) {
             map.remove( (URI) it.next() );
         }
         return map;
+    }
+
+    private List removeMonitorsList( List list, Collection monitors ) {
+        list.removeAll( monitors );
+        return list;
     }
 
     private class Counter implements PlasticApplication {
