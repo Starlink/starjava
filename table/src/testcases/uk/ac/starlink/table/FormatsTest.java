@@ -205,6 +205,7 @@ public class FormatsTest extends TestCase {
             "text",
             "ascii",
             "csv",
+            "csv-noheader",
             "html",
             "html-element",
             "latex",

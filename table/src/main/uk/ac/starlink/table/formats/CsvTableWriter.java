@@ -7,6 +7,7 @@ import java.io.Writer;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
 
@@ -23,6 +24,24 @@ public class CsvTableWriter extends StreamStarTableWriter {
     private final static int MAX_CHARS = 10240;
 
     private boolean writeHeader_ = true;
+
+    /**
+     * Constructs a default CSV table writer.
+     * This doesn't write a header.
+     */
+    public CsvTableWriter() {
+        this( true );
+    }
+
+    /**
+     * Constructs a CSV table writer which optionally writes headers.
+     *
+     * @param  writeHeader  true iff you want the first output line to contain
+     *         column names
+     */
+    public CsvTableWriter( boolean writeHeader ) {
+        setWriteHeader( writeHeader );
+    }
 
     /**
      * Indicate whether an initial row containing column names should be
@@ -46,10 +65,10 @@ public class CsvTableWriter extends StreamStarTableWriter {
     }
 
     /**
-     * Returns "CSV".
+     * Returns "CSV" or "CSV-noheader".
      */
     public String getFormatName() {
-        return "CSV";
+        return writeHeader_ ? "CSV" : "CSV-noheader";
     }
 
     /**
@@ -166,5 +185,17 @@ public class CsvTableWriter extends StreamStarTableWriter {
                 out.write( '"' );
             }
         }
+    }
+
+    /**
+     * Returns a selection of useful CsvTableWriters.
+     *
+     * @return   array containing one writer with headers and one without
+     */
+    public static StarTableWriter[] getStarTableWriters() {
+        return new StarTableWriter[] {
+            new CsvTableWriter( true ),
+            new CsvTableWriter( false ),
+        };
     }
 }
