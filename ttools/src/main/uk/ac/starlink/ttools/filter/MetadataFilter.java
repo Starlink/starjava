@@ -139,6 +139,7 @@ public class MetadataFilter extends BasicFilter {
      * Constructs a MapGroup containing column metadata of a given table.
      *
      * @param  table  the table for which to extract metadata
+     * @return  mapgroup containing column metadata
      */
     private static MapGroup metadataMapGroup( StarTable table ) {
 
