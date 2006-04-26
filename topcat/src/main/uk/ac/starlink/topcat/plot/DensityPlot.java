@@ -84,7 +84,7 @@ public abstract class DensityPlot extends SurfacePlot {
         g2 = (Graphics2D) g2.create();
         final int[] loCuts;
         final int[] hiCuts;
-        if ( state.getValid() ) {
+        if ( state != null && state.getValid() ) {
             int psize = state.getPixelSize();
             BufferedImage im = getImage( plotZone, state );
             BufferedImageOp scaleOp = 

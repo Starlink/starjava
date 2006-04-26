@@ -190,7 +190,7 @@ public abstract class SurfacePlot extends JPanel implements Printable {
 
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
-        if ( state_.getValid() ) {
+        if ( state_ != null && state_.getValid() ) {
             double[][] bounds = state_.getRanges();
             surface_.setDataRange( bounds[ 0 ][ 0 ], bounds[ 1 ][ 0 ],
                                    bounds[ 0 ][ 1 ], bounds[ 1 ][ 1 ] );

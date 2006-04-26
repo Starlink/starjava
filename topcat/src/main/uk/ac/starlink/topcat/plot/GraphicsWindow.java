@@ -263,6 +263,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         if ( ! initialised_ ) {
             init();
             initialised_ = true;
+            replot();
         }
     }
     

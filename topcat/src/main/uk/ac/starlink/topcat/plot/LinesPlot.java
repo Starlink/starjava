@@ -767,7 +767,7 @@ public abstract class LinesPlot extends JComponent {
         private PositionReporter getReporter( Point p ) {
 
             /* No point, no reporter. */
-            if ( p == null || ! state_.getValid() ) {
+            if ( p == null || state_ == null || ! state_.getValid() ) {
                 return null;
             }
 
