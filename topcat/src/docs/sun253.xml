@@ -1255,7 +1255,21 @@ designed to be read by humans.  No reader exists for this format.
 format, described in more detail in <ref id="inCsv"/>.
 This can be useful for importing into certain external applications,
 such as some spreadsheets or databases.
-The first row written contains the column names.
+</p>
+
+<p>There are two variants:
+<dl>
+
+<dt>CSV</dt>
+<dd><p>The first line is a header which contains the column names.
+    </p></dd>
+
+<dt>CSV-noheader</dt>
+<dd><p>No header line is emitted, all lines represent data rows.
+    </p></dd>
+
+</dl>
+
 </p>
 
 </subsubsect>
@@ -9258,6 +9272,13 @@ introduced since the last version:
         2D plot.</li>
     <li>Fixed bug in scrolling to correct column in Data Window when column
         is selected in Columns Window.</li>
+    </ul>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Added new <code>csv-noheader</code> output format.</li>
     </ul>
     </p></dd>
 
