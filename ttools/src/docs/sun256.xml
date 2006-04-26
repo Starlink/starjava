@@ -969,7 +969,11 @@ Matching is case-insensitive.
     out)</p></dd>
 
 <dt><code>csv</code></dt>
-<dd><p>Comma-Separated Value format</p></dd>
+<dd><p>Comma-Separated Value format.  
+    The first line is a header which contains the column names.</p></dd>
+
+<dt><code>csv-noheader</code></dt>
+<dd><p>Comma-Separated Value format with no header line.</p></dd>
 
 <dt><code>html</code></dt>
 <dd><p>Standalone HTML document containing a <code>TABLE</code> element</p></dd>
@@ -3250,6 +3254,8 @@ but my thanks are especially due to the following:
 <li>Added "<code>meta</code> filter.</li>
 <li>Experimental facilities for automatically generating a CEA application
     description file.</li>
+<li>Added "<code>csv-noheader</code>" output format.</li>
+<li>Added "<code>colmeta</code>" filter.</li>
 </ul>
 </p></dd>
 

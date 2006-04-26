@@ -1,14 +1,17 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
+import java.util.Arrays;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.convert.SkyUnits;
+import uk.ac.starlink.ttools.filter.ArgException;
 
 public class TablePipeTest extends TableTestCase {
 
@@ -159,6 +162,31 @@ public class TablePipeTest extends TableTestCase {
 
     public void testCache() throws Exception {
         assertSameData( inTable_, apply( "cache" ) );
+    }
+
+    public void testColmeta() throws Exception {
+        assertArrayEquals(
+            new String[] { "Name", "Class" },
+            getColNames( apply( "colmeta c; meta" ) ) );
+        assertArrayEquals(
+            new String[] { "Name", "Class", "UCD", "UCD_desc" },
+            getColNames( apply( "colmeta -ucd TIME_EPOCH a; meta" ) ) );
+        assertArrayEquals(
+            new String[] { "Name", "Class", "Units", "Description" },
+            getColNames( apply( "colmeta  -units m -desc 'some numbers' c;"
+                              + "meta" ) ) );
+        assertArrayEquals(
+            new String[] { "x", "b", "c", "x" },
+            getColNames( apply( "colmeta -name rename_a a;" +
+                                "colmeta -name rename_d d;" +
+                                "colmeta -name x rename_*;" ) ) );
+        try {
+            apply( "colmeta -do_what a" );
+            fail();
+        }
+        catch ( TaskException e ) {
+            assert e.getCause() instanceof ArgException;
+        }
     }
 
     public void testMeta() throws Exception {
