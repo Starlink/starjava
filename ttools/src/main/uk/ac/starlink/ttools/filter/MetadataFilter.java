@@ -26,35 +26,44 @@ public class MetadataFilter extends BasicFilter {
     /*
      * Metadata for column metadata items.
      */
-    private static final ValueInfo NAME_INFO =
-        new DefaultValueInfo( "Name", String.class, "Column name" );
-    private static final ValueInfo CLASS_INFO =
-        new DefaultValueInfo( "Class", String.class,
-                              "Data type of objects in column" );
-    private static final ValueInfo SHAPE_INFO =
-        new DefaultValueInfo( "Shape", int[].class,
-                              "Shape of array values" );
-    private static final ValueInfo UNIT_INFO =
-        new DefaultValueInfo( "Units", String.class,
-                              "Unit string" );
-    private static final ValueInfo DESCRIPTION_INFO =
-        new DefaultValueInfo( "Description", String.class,
-                              "Description of data in the column" );
-    private static final ValueInfo UCD_INFO =
-        new DefaultValueInfo( "UCD", String.class,
-                              "Unified Content Descriptor" );
-    private static final ValueInfo UCDDESC_INFO =
-        new DefaultValueInfo( "UCD_desc", String.class,
-                              "Textual description of UCD" );
-    private static final List KEY_ORDER = Arrays.asList( new ValueInfo[] {
+    public static final ValueInfo INDEX_INFO;
+    public static final ValueInfo NAME_INFO;
+    public static final ValueInfo CLASS_INFO;
+    public static final ValueInfo SHAPE_INFO;
+    public static final ValueInfo UNIT_INFO;
+    public static final ValueInfo DESCRIPTION_INFO;
+    public static final ValueInfo UCD_INFO;
+    public static final ValueInfo UCDDESC_INFO;
+
+    /** All known metadata items. */
+    public static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
+        INDEX_INFO = new DefaultValueInfo( "Index", Integer.class,
+                                           "Position of column in table" ),
+        NAME_INFO = new DefaultValueInfo( "Name", String.class,
+                                          "Column name" ),
+        CLASS_INFO = new DefaultValueInfo( "Class", String.class,
+                                           "Data type of objects in column" ),
+        SHAPE_INFO = new DefaultValueInfo( "Shape", int[].class,
+                                           "Shape of array values" ),
+        UNIT_INFO = new DefaultValueInfo( "Units", String.class,
+                                          "Unit string" ),
+        DESCRIPTION_INFO = new DefaultValueInfo( "Description", String.class,
+                                        "Description of data in the column" ),
+        UCD_INFO = new DefaultValueInfo( "UCD", String.class,
+                                         "Unified Content Descriptor" ),
+        UCDDESC_INFO = new DefaultValueInfo( "UCD_desc", String.class,
+                                             "Textual description of UCD" ),
+    };
+
+    /** Metadata items listed by default. */
+    private static final ValueInfo[] DEFAULT_INFOS =new ValueInfo[] {
         NAME_INFO,
         CLASS_INFO,
         SHAPE_INFO,
         UNIT_INFO,
         DESCRIPTION_INFO,
         UCD_INFO,
-        UCDDESC_INFO,
-    } );
+    };
 
     /**
      * Constructor.
@@ -68,13 +77,14 @@ public class MetadataFilter extends BasicFilter {
             "Provides information about the metadata for each column.",
             "This filter turns the table sideways, so that each row",
             "of the output corresponds to a column of the input.",
-            "The columns of the output give column Name, Units, UCD,",
-            "Datatype, Description and other metadata relating to the",
-            "columns of the input table.",
-            "If one or more <code>&lt;item&gt;</code> headings are given,",
-            "only the named items will be listed in the output table;",
-            "if no items are listed, columns for all available metadata",
-            "will be output.",
+            "The columns of the output table contain metadata items",
+            "such as column name, units, UCD etc corresponding to each",
+            "column of the input table.",
+            "</p><p>By default the output table contains columns for the",
+            "items " + listInfos( DEFAULT_INFOS ) + ".",
+            "The output may be customised however by supplying one or more",
+            "<code>&lt;item&gt;</code> headings.  These may be selected",
+            "from the list " + listInfos( KNOWN_INFOS ) + ".",
             "</p><p>Any table parameters of the input table are propagated",
             "to the output one.",
         };
@@ -105,6 +115,27 @@ public class MetadataFilter extends BasicFilter {
     }
 
     /**
+     * Returns an string listing the supplied array of metadata objects.
+     * The returned string should be suitable for inserting into XML text.
+     *
+     * @param  infos  array of infos 
+     * @return  string listing <code>infos</code> by name
+     */
+    public static String listInfos( ValueInfo[] infos ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < infos.length; i++ ) {
+            if ( i > 0 && i == infos.length - 1 ) {
+                sbuf.append( " and " );
+            }
+            else if ( i > 0 ) {
+                sbuf.append( ", " );
+            }
+            sbuf.append( infos[ i ].getName() );
+        }
+        return sbuf.toString();
+    }
+
+    /**
      * Constructs a MapGroup containing column metadata of a given table.
      *
      * @param  table  the table for which to extract metadata
@@ -114,7 +145,7 @@ public class MetadataFilter extends BasicFilter {
         /* Initialise table with a sensible key order for standard metadata
          * items. */
         MapGroup group = new MapGroup();
-        group.setKeyOrder( KEY_ORDER );
+        group.setKeyOrder( Arrays.asList( DEFAULT_INFOS ) );
 
         /* Count columns in the original table. */
         int ncol = table.getColumnCount();
