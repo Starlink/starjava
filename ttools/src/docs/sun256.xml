@@ -3247,6 +3247,9 @@ but my thanks are especially due to the following:
 <li>Added input handler for IPAC Table Format.</li>
 <li>Added "<code>plastic</code> output mode.</li>
 <li><code>topcat</code> output mode now attempts to use PLASTIC.</li>
+<li>Added "<code>meta</code> filter.</li>
+<li>Experimental facilities for automatically generating a CEA application
+    description file.</li>
 </ul>
 </p></dd>
 

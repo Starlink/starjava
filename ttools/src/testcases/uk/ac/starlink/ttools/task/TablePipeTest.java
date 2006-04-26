@@ -161,6 +161,18 @@ public class TablePipeTest extends TableTestCase {
         assertSameData( inTable_, apply( "cache" ) );
     }
 
+    public void testMeta() throws Exception {
+        assertArrayEquals(
+            new String[] { "Name", "Class" },
+            getColNames( apply( "meta" ) ) );
+        assertArrayEquals(
+            new String[] { "Name", "Class", "Units", },
+            getColNames( apply( "addcol -units feet bf b; meta" ) ) );
+        assertArrayEquals(
+            new String[] { "colour", "Name", "smell", "taste", },
+            getColNames( apply( "meta colour name smell taste" ) ) );
+    }
+
     public void testDelcols() throws Exception {
         assertArrayEquals(
             new String[] { "a", "b", "c", },
