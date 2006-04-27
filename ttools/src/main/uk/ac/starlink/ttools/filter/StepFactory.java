@@ -51,6 +51,7 @@ public class StepFactory {
         filterFactory_.register( "sequential", pkg + "SequentialFilter" );
         filterFactory_.register( "sort", pkg + "SortFilter" );
         filterFactory_.register( "sorthead", pkg + "SortHeadFilter" );
+        filterFactory_.register( "stats", pkg + "StatsFilter" );
         filterFactory_.register( "tablename", pkg + "NameFilter" );
         filterFactory_.register( "tail", pkg + "TailFilter" );
     }
