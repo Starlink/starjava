@@ -416,6 +416,49 @@ public class TablePipeTest extends TableTestCase {
         }
     }
 
+    public void testStats() throws Exception {
+        assertArrayEquals(
+            new Object[] { "a", "b", "c", "d", },
+            getColData( apply( "stats name mean variance" ), 0 ) );
+        assertArrayEquals(
+            new double[] { 2.5, 20.0, 0.5, Double.NaN, },
+            unbox( getColData( apply( "stats name mean variance" ), 1 ) ) );
+        assertArrayEquals(
+            new double[] { 1.25, 200/3., Double.NaN, Double.NaN },
+            unbox( getColData( apply( "stats name mean variance" ), 2 ) ),
+            1e-6 );
+        assertArrayEquals(
+            unbox( getColData( apply( "stats stdev" ), 0 ) ),
+            unbox( getColData( apply( "stats variance;"
+                                    + "replacecol variance sqrt(variance)" ),
+                               0 ) ) );
+        assertArrayEquals(
+            new long[] { 4L, 3L, 4L, 3L },
+            unbox( getColData( apply( "stats ngood" ), 0 ) ) );
+        assertArrayEquals(
+            new long[] { 0L, 1L, 0L, 1L },
+            unbox( getColData( apply( "stats nbad" ), 0 ) ) );
+        assertArrayEquals(
+            new Object[] { new Integer( 1 ), new Double( 10. ), null, null, },
+            getColData( apply( "stats minimum" ), 0 ) );
+        assertArrayEquals(
+            new Object[] { new Integer( 4 ), new Double( 30. ), null, null, },
+            getColData( apply( "stats maximum" ), 0 ) );
+        assertArrayEquals(
+            new double[] { 10., 60., 2., Double.NaN, },
+            unbox( getColData( apply( "stats sum" ), 0 ) ) );
+        assertArrayEquals(
+            new Object[] { new Long( 1 ), new Long( 1 ), null, null, },
+            getColData( apply( "stats minpos" ), 0 ) );
+        assertArrayEquals(
+            new Object[] { new Long( 4 ), new Long( 3 ), null, null, },
+            getColData( apply( "stats maxpos" ), 0 ) );
+        assertArrayEquals(
+            new String[] { "Name", "Mean", "StDev", "Minimum",
+                           "Maximum", "NGood", },
+            getColNames( apply( "stats" ) ) );
+    }
+
     public void testTail() throws Exception {
         assertSameData( inTable_, apply( "tail 4" ) );
         assertSameData( inTable_, apply( "tail 10000000" ) );
