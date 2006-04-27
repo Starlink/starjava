@@ -433,6 +433,19 @@ public class TablePipeTest extends TableTestCase {
                                     + "replacecol variance sqrt(variance)" ),
                                0 ) ) );
         assertArrayEquals(
+            new double[] { -0.237960, -0.159546, Double.NaN, Double.NaN, },
+            unbox( getColData( apply( "replacecol a sqrt(a);"
+                                    + "replacecol b sqrt(b);" 
+                                    + "stats skew" ),
+                               0 ) ),
+            1e-5 );
+        assertArrayEquals(
+            new double[] { -1.307984, -1.5, Double.NaN, Double.NaN, },
+            unbox( getColData( apply( "replacecol a sqrt(a);"
+                                    + "replacecol b sqrt(b);"
+                                    + "stats kurtosis" ), 0 ) ),
+            1e-5 );
+        assertArrayEquals(
             new long[] { 4L, 3L, 4L, 3L },
             unbox( getColData( apply( "stats ngood" ), 0 ) ) );
         assertArrayEquals(
