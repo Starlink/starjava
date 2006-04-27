@@ -11,6 +11,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.MapGroup;
@@ -57,6 +58,7 @@ public class MetadataFilter extends BasicFilter {
 
     /** Metadata items listed by default. */
     private static final ValueInfo[] DEFAULT_INFOS =new ValueInfo[] {
+        INDEX_INFO,
         NAME_INFO,
         CLASS_INFO,
         SHAPE_INFO,
@@ -81,10 +83,15 @@ public class MetadataFilter extends BasicFilter {
             "such as column name, units, UCD etc corresponding to each",
             "column of the input table.",
             "</p><p>By default the output table contains columns for the",
-            "items " + listInfos( DEFAULT_INFOS ) + ".",
+            "items " + listInfos( DEFAULT_INFOS ) + ",",
+            "as well as any table-specific column metadata items that",
+            "the table contains.",
             "The output may be customised however by supplying one or more",
             "<code>&lt;item&gt;</code> headings.  These may be selected",
-            "from the list " + listInfos( KNOWN_INFOS ) + ".",
+            "from the list " + listInfos( KNOWN_INFOS ) + ",",
+            "as well as any table-specific metadata.  It is not an error",
+            "to specify an item for which no metadata exists in any of",
+            "the columns.",
             "</p><p>Any table parameters of the input table are propagated",
             "to the output one.",
         };
@@ -105,9 +112,9 @@ public class MetadataFilter extends BasicFilter {
         }
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {
-                AbstractStarTable table = 
-                    new ValueInfoMapGroupTable( metadataMapGroup( base ),
-                                                items );
+                MapGroup group = metadataMapGroup( base );
+                group.setKnownKeys( Arrays.asList( getKeys( group, items ) ) );
+                AbstractStarTable table = new ValueInfoMapGroupTable( group );
                 table.setParameters( base.getParameters() );
                 return table;
             }
@@ -180,6 +187,7 @@ public class MetadataFilter extends BasicFilter {
             Map map = new HashMap();
 
             /* Add standard metadata items. */
+            map.put( INDEX_INFO, new Integer( icol + 1 ) );
             map.put( NAME_INFO, info.getName() );
             map.put( CLASS_INFO,
                      DefaultValueInfo.formatClass( info.getContentClass() ) );
@@ -212,5 +220,68 @@ public class MetadataFilter extends BasicFilter {
 
         /* Return the group. */
         return group;
+    }
+
+    /**
+     * Returns a list of keys corresponding to a requested list of item names
+     * for a ValueInfo-keyed MapGroup.
+     *
+     * @param   group  map group containing column metadata
+     * @param   itemNames  names of metadata items for display;
+     *          may be null for default items
+     * @return  array of ValueInfo keys corresponding to <code>itemNames</code>
+     */
+    private static ValueInfo[] getKeys( MapGroup group, String[] itemNames ) {
+        Map[] maps = (Map[]) group.getMaps().toArray( new Map[ 0 ] );
+        ValueInfo[] keys;
+
+        /* For a null list of names, ascertain the columns from the non-empty
+         * known keys of the map group. */
+        if ( itemNames == null ) {
+            List keyList = new ArrayList();
+            for ( Iterator it = group.getKnownKeys().iterator();
+                  it.hasNext(); ) {
+                ValueInfo info = (ValueInfo) it.next();
+                boolean hasSome = false;
+                for ( int imap = 0; ! hasSome && imap < maps.length;
+                      imap++ ) {
+                    hasSome =
+                        hasSome ||
+                        ( ! Tables.isBlank( maps[ imap ].get( info ) ) );
+                }
+                if ( hasSome ) {
+                    keyList.add( info );
+                }
+            }
+            keys = (ValueInfo[]) keyList.toArray( new ValueInfo[ 0 ] );
+        }
+
+        /* For a non-null list of names, construct the list of columns
+         * accordingly. */
+        else {
+            keys = new ValueInfo[ itemNames.length ];
+            for ( int i = 0; i < itemNames.length; i++ ) {
+                String item = itemNames[ i ];
+                ValueInfo itemInfo = null;
+
+                /* Try to find a ValueInfo in the group keys which corresponds
+                 * to the given item name. */
+                for ( Iterator it = group.getKnownKeys().iterator();
+                      it.hasNext() && itemInfo == null; ) {
+                    ValueInfo info = (ValueInfo) it.next();
+                    if ( info.getName().equalsIgnoreCase( item ) ) {
+                        itemInfo = info;
+                    }
+                }
+
+                /* If there isn't one, fake an empty column with the right
+                 * name. */
+                if ( itemInfo == null ) {
+                    itemInfo = new DefaultValueInfo( item, String.class );
+                }
+                keys[ i ] = itemInfo;
+            }
+        }
+        return keys;
     }
 }
