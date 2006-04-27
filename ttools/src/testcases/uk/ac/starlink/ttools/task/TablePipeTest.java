@@ -166,13 +166,13 @@ public class TablePipeTest extends TableTestCase {
 
     public void testColmeta() throws Exception {
         assertArrayEquals(
-            new String[] { "Name", "Class" },
+            new String[] { "Index", "Name", "Class" },
             getColNames( apply( "colmeta c; meta" ) ) );
         assertArrayEquals(
-            new String[] { "Name", "Class", "UCD", "UCD_desc" },
+            new String[] { "Index", "Name", "Class", "UCD", "UCD_desc" },
             getColNames( apply( "colmeta -ucd TIME_EPOCH a; meta" ) ) );
         assertArrayEquals(
-            new String[] { "Name", "Class", "Units", "Description" },
+            new String[] { "Index", "Name", "Class", "Units", "Description" },
             getColNames( apply( "colmeta  -units m -desc 'some numbers' c;"
                               + "meta" ) ) );
         assertArrayEquals(
@@ -191,10 +191,10 @@ public class TablePipeTest extends TableTestCase {
 
     public void testMeta() throws Exception {
         assertArrayEquals(
-            new String[] { "Name", "Class" },
+            new String[] { "Index", "Name", "Class" },
             getColNames( apply( "meta" ) ) );
         assertArrayEquals(
-            new String[] { "Name", "Class", "Units", },
+            new String[] { "Index", "Name", "Class", "Units", },
             getColNames( apply( "addcol -units feet bf b; meta" ) ) );
         assertArrayEquals(
             new String[] { "colour", "Name", "smell", "taste", },
