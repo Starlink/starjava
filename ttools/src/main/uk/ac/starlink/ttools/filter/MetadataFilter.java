@@ -113,6 +113,7 @@ public class MetadataFilter extends BasicFilter {
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {
                 MapGroup group = metadataMapGroup( base );
+                group.setKeyOrder( Arrays.asList( DEFAULT_INFOS ) );
                 group.setKnownKeys( Arrays.asList( getKeys( group, items ) ) );
                 AbstractStarTable table = new ValueInfoMapGroupTable( group );
                 table.setParameters( base.getParameters() );
@@ -148,12 +149,11 @@ public class MetadataFilter extends BasicFilter {
      * @param  table  the table for which to extract metadata
      * @return  mapgroup containing column metadata
      */
-    private static MapGroup metadataMapGroup( StarTable table ) {
+    public static MapGroup metadataMapGroup( StarTable table ) {
 
         /* Initialise table with a sensible key order for standard metadata
          * items. */
         MapGroup group = new MapGroup();
-        group.setKeyOrder( Arrays.asList( DEFAULT_INFOS ) );
 
         /* Count columns in the original table. */
         int ncol = table.getColumnCount();
