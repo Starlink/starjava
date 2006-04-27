@@ -197,6 +197,7 @@ public class StatsFilter extends BasicFilter {
                 Map map = (Map) group.getMaps().get( icol );
                 map.put( NGOOD_INFO, new Long( count ) );
                 map.put( NBAD_INFO, new Long( nrow - count ) );
+                map.put( SUM_INFO, new Double( sum ) );
                 if ( isFinite( mean ) ) {
                     map.put( MEAN_INFO, new Double( mean ) );
                 }
