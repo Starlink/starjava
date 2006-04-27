@@ -110,7 +110,12 @@ public class TableTestCase extends TestCase {
 
     public static Object unbox( Object[] oArray ) {
         int nel = oArray.length;
-        Class clazz = oArray[ 0 ].getClass();
+        Class clazz = null;
+        for ( int i = 0; i < oArray.length && clazz == null; i++ ) {
+            if ( oArray[ 0 ] != null ) {
+                clazz = oArray[ 0 ].getClass();
+            }
+        }
         if ( clazz == Double.class ) {
             double[] pArray = new double[ nel ];
             for ( int i = 0; i < nel; i++ ) {
@@ -136,8 +141,15 @@ public class TableTestCase extends TestCase {
             }
             return pArray;
         }
+        else if ( clazz == Long.class ) {
+            long[] pArray = new long[ nel ];
+            for ( int i = 0; i < nel; i++ ) {
+                pArray[ i ] = ((Long) oArray[ i ]).longValue();
+            }
+            return pArray;
+        }
         else {
-            throw new IllegalArgumentException( "Can't unbox" );
+            throw new IllegalArgumentException( "Can't unbox " + clazz );
         }
     }
 }
