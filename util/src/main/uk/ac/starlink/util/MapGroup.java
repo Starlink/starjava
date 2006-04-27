@@ -30,6 +30,7 @@ public class MapGroup {
     private final List maps = new ArrayList();
     private List ordering;
     private Comparator keyComparator;
+    private List knownKeys;
 
     /**
      * Constructs a new <tt>MapGroup</tt>.
@@ -155,22 +156,39 @@ public class MapGroup {
     }
 
     /**
+     * Sets the list of known keys.  This list, if not null, 
+     * will be returned by subsequent calls of {@link #getKnownKeys}.
+     *
+     * @param  keys  collection of keys
+     */
+    public void setKnownKeys( List keys ) {
+        knownKeys = new ArrayList( keys );
+    }
+
+    /**
      * Returns a list of all the keys which appear in any of the metadata sets.
      * The order is determined by the most recent call of
      * {@link #setKeyOrder}.  If it has never been called they will
      * be returned in an arbitrary order.
+     * If {@link #setKnownKeys} has been called with a non-null argument,
+     * that list will be returned instead.
      *
      * @return  the list of map keys
      */
     public List getKnownKeys() {
-        Set keyset= new HashSet();
-        for ( Iterator it = maps.iterator(); it.hasNext(); ) {
-            Map map = (Map) it.next();
-            keyset.addAll( map.keySet() );
+        if ( knownKeys != null ) {
+            return knownKeys;
         }
-        List keylist = new ArrayList( keyset );
-        Collections.sort( keylist, keyComparator );
-        return keylist;
+        else {
+            Set keyset= new HashSet();
+            for ( Iterator it = maps.iterator(); it.hasNext(); ) {
+                Map map = (Map) it.next();
+                keyset.addAll( map.keySet() );
+            }
+            List keylist = new ArrayList( keyset );
+            Collections.sort( keylist, keyComparator );
+            return keylist;
+        }
     }
 
 }
