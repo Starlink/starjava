@@ -45,6 +45,20 @@ public abstract class UnivariateStats {
     public abstract double getSum2();
 
     /**
+     * Returns the sum of cubes of values accumulated.
+     *
+     * @return  sum of cubed values
+     */
+    public abstract double getSum3();
+
+    /**
+     * Returns the sum of fourth powers of values accumulated.
+     *
+     * @return  sum of fourth powers
+     */
+    public abstract double getSum4();
+
+    /**
      * Returns the numeric minimum value submitted.
      *
      * @return  minimum
@@ -117,6 +131,14 @@ public abstract class UnivariateStats {
             return Double.NaN;
         }
 
+        public double getSum3() {
+            return Double.NaN;
+        }
+
+        public double getSum4() {
+            return Double.NaN;
+        }
+
         public Number getMinimum() {
             return null;
         }
@@ -162,6 +184,14 @@ public abstract class UnivariateStats {
             return Double.NaN;
         }
 
+        public double getSum3() {
+            return Double.NaN;
+        }
+
+        public double getSum4() {
+            return Double.NaN;
+        }
+
         public Number getMinimum() {
             return null;
         }
@@ -185,8 +215,10 @@ public abstract class UnivariateStats {
     private static class NumberStats extends UnivariateStats {
         private long iDatum_;
         private long nGood_;
-        private double sum_;
+        private double sum1_;
         private double sum2_;
+        private double sum3_;
+        private double sum4_;
         private double dmin_ = Double.NaN;
         private double dmax_ = Double.NaN;
         private Number min_;
@@ -200,8 +232,14 @@ public abstract class UnivariateStats {
                 double dval = val.doubleValue();
                 if ( ! Double.isNaN( dval ) ) {
                     nGood_++;
-                    sum_ += dval;
-                    sum2_ += dval * dval;
+                    double s1 = dval;
+                    double s2 = dval * s1;
+                    double s3 = dval * s2;
+                    double s4 = dval * s3;
+                    sum1_ += s1;
+                    sum2_ += s2;
+                    sum3_ += s3;
+                    sum4_ += s4;
                     if ( ! ( dval >= dmin_ ) ) {  // note NaN handling
                         dmin_ = dval;
                         min_ = val;
@@ -222,11 +260,19 @@ public abstract class UnivariateStats {
         }
 
         public double getSum() {
-            return sum_;
+            return sum1_;
         }
 
         public double getSum2() {
             return sum2_;
+        }
+
+        public double getSum3() {
+            return sum3_;
+        }
+
+        public double getSum4() {
+            return sum4_;
         }
 
         public Number getMinimum() {

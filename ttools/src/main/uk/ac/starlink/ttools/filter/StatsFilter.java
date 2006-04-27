@@ -32,11 +32,14 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo MEAN_INFO;
     private static final ValueInfo STDEV_INFO;
     private static final ValueInfo VARIANCE_INFO;
+    private static final ValueInfo SKEW_INFO;
+    private static final ValueInfo KURT_INFO;
     private static final ValueInfo MIN_INFO;
     private static final ValueInfo MAX_INFO;
     private static final ValueInfo SUM_INFO;
     private static final ValueInfo MINPOS_INFO;
     private static final ValueInfo MAXPOS_INFO;
+//  private static final ValueInfo CARDINALITY_INFO;
 
     /** All known statistical quantities. */
     private static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
@@ -50,6 +53,10 @@ public class StatsFilter extends BasicFilter {
                                            "Standard deviation" ),
         VARIANCE_INFO = new DefaultValueInfo( "Variance", Double.class,
                                               "Variance" ),
+        SKEW_INFO = new DefaultValueInfo( "Skew", Double.class,
+                                          "Gamma 1 skewness measure" ),
+        KURT_INFO = new DefaultValueInfo( "Kurtosis", Double.class,
+                                          "Gamma 2 peakedness measure" ),
         MIN_INFO = new DefaultValueInfo( "Minimum", Number.class,
                                          "Numeric minimum" ),
         MAX_INFO = new DefaultValueInfo( "Maximum", Number.class,
@@ -60,6 +67,8 @@ public class StatsFilter extends BasicFilter {
                                             "Row index of numeric minimum" ),
         MAXPOS_INFO = new DefaultValueInfo( "MaxPos", Long.class,
                                             "Row index of numeric maximum" ),
+//      CARDINALITY_INFO = new DefaultValueInfo( "Cardinality", Integer.class,
+//                                  "Number of distinct values in column" ),
     };
 
     /** All known per-column quantities (statistical and metadata). */
@@ -186,10 +195,27 @@ public class StatsFilter extends BasicFilter {
                 UnivariateStats stats = colStats[ icol ];
                 long count = stats.getCount();
                 double dcount = (double) count;
-                double sum = stats.getSum();
+                double sum0 = dcount;
+                double sum1 = stats.getSum();
                 double sum2 = stats.getSum2();
-                double mean = sum / dcount;
-                double variance = ( sum2 - sum * sum / dcount ) / dcount;
+                double sum3 = stats.getSum3();
+                double sum4 = stats.getSum4();
+                double mean = sum1 / dcount;
+                double nvar = ( sum2 - sum1 * sum1 / dcount );
+                double variance = nvar / dcount;
+              
+                double skew = Math.sqrt( dcount ) / Math.pow( nvar, 1.5 )
+                            * ( + 1 * sum3
+                                - 3 * mean * sum2
+                                + 3 * mean * mean * sum1
+                                - 1 * mean * mean * mean * sum0 );
+                double kurtosis = ( dcount / ( nvar * nvar ) )
+                                * ( + 1 * sum4 
+                                    - 4 * mean * sum3 
+                                    + 6 * mean * mean * sum2
+                                    - 4 * mean * mean * mean * sum1
+                                    + 1 * mean * mean * mean * mean * sum0 )
+                                - 3.0;
                 Number min = stats.getMinimum();
                 Number max = stats.getMaximum();
 
@@ -197,13 +223,15 @@ public class StatsFilter extends BasicFilter {
                 Map map = (Map) group.getMaps().get( icol );
                 map.put( NGOOD_INFO, new Long( count ) );
                 map.put( NBAD_INFO, new Long( nrow - count ) );
-                map.put( SUM_INFO, new Double( sum ) );
+                map.put( SUM_INFO, new Double( sum1 ) );
                 if ( isFinite( mean ) ) {
                     map.put( MEAN_INFO, new Double( mean ) );
                 }
                 if ( isFinite( variance ) ) {
-                    map.put( VARIANCE_INFO, new Double( variance ) );
                     map.put( STDEV_INFO, new Double( Math.sqrt( variance ) ) );
+                    map.put( VARIANCE_INFO, new Double( variance ) );
+                    map.put( SKEW_INFO, new Double( skew ) );
+                    map.put( KURT_INFO, new Double( kurtosis ) );
                 }
                 if ( min instanceof Number &&
                      isFinite( ((Number) min).doubleValue() ) ) {
