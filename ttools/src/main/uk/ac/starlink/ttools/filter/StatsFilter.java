@@ -4,15 +4,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RandomStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.MapGroup;
 
@@ -39,7 +42,7 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo SUM_INFO;
     private static final ValueInfo MINPOS_INFO;
     private static final ValueInfo MAXPOS_INFO;
-//  private static final ValueInfo CARDINALITY_INFO;
+    private static final ValueInfo CARDINALITY_INFO;
 
     /** All known statistical quantities. */
     private static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
@@ -67,8 +70,8 @@ public class StatsFilter extends BasicFilter {
                                             "Row index of numeric minimum" ),
         MAXPOS_INFO = new DefaultValueInfo( "MaxPos", Long.class,
                                             "Row index of numeric maximum" ),
-//      CARDINALITY_INFO = new DefaultValueInfo( "Cardinality", Integer.class,
-//                                  "Number of distinct values in column" ),
+        CARDINALITY_INFO = new DefaultValueInfo( "Cardinality", Integer.class,
+                                    "Number of distinct values in column" ),
     };
 
     /** All known per-column quantities (statistical and metadata). */
@@ -89,6 +92,9 @@ public class StatsFilter extends BasicFilter {
         MAX_INFO,
         NGOOD_INFO,
     };
+
+    /** Maximum value for cardinality counters. */
+    private static final int MAX_CARDINALITY = 100;
 
     /**
      * Constructor.
@@ -163,12 +169,21 @@ public class StatsFilter extends BasicFilter {
     private static MapGroup statsMapGroup( StarTable table, ValueInfo[] infos )
             throws IOException {
 
+        /* Work out if we need to calculate cardinalities. */
+        boolean card = Arrays.asList( infos ).contains( CARDINALITY_INFO );
+
         /* Prepare statistical accumulators for each column of the table. */
         int ncol = table.getColumnCount();
         UnivariateStats[] colStats = new UnivariateStats[ ncol ];
+        CardinalityChecker[] cardCheckers =
+            card ? new CardinalityChecker[ ncol ] : null;
         for ( int icol = 0; icol < ncol; icol++ ) {
             Class clazz = table.getColumnInfo( icol ).getContentClass();
             colStats[ icol ] = UnivariateStats.createStats( clazz );
+            if ( card ) {
+                cardCheckers[ icol ] =
+                    new CardinalityChecker( MAX_CARDINALITY );
+            }
         }
 
         /* Populate them with the the data read from the table. */
@@ -179,6 +194,9 @@ public class StatsFilter extends BasicFilter {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     colStats[ icol ].acceptDatum( row[ icol ] );
+                    if ( card ) {
+                        cardCheckers[ icol ].acceptDatum( row[ icol ] );
+                    }
                 }
                 nrow++;
             }
@@ -219,7 +237,8 @@ public class StatsFilter extends BasicFilter {
                 Number min = stats.getMinimum();
                 Number max = stats.getMaximum();
 
-                /* Add the the column's info->values map. */
+                /* Add statistical quantities to the column's
+                 * info->values map. */
                 Map map = (Map) group.getMaps().get( icol );
                 map.put( NGOOD_INFO, new Long( count ) );
                 map.put( NBAD_INFO, new Long( nrow - count ) );
@@ -243,6 +262,12 @@ public class StatsFilter extends BasicFilter {
                     map.put( MAX_INFO, max );
                     map.put( MAXPOS_INFO, new Long( stats.getMaxPos() + 1 ) );
                 }
+                if ( card ) {
+                    int ncard = cardCheckers[ icol ].getCardinality();
+                    if ( ncard > 0 ) {
+                        map.put( CARDINALITY_INFO, new Integer( ncard ) );
+                    }
+                }
             }
             return group;
         }
@@ -260,5 +285,55 @@ public class StatsFilter extends BasicFilter {
     private final static boolean isFinite( double val ) {
         return val > - Double.MAX_VALUE
             && val < + Double.MAX_VALUE;
+    }
+
+    /**
+     * Counts distinct values which appear in a column.
+     * The cardinality is the number of distinct values. 
+     * Null isn't counted.
+     */
+    private static class CardinalityChecker {
+
+        final int maxCard_;
+        Set items_ = new HashSet();
+
+        /**
+         * Constructor.
+         *
+         * @param   maxCard  maximum cardinality that this object will count;
+         *          for reasons of performance (memory use) it will give up
+         *          counting if there appear to be more values than this
+         */
+        CardinalityChecker( int maxCard ) {
+            maxCard_ = maxCard;
+        }
+
+        /**
+         * Submits a value for counting.
+         *
+         * @param  obj  value
+         */
+        void acceptDatum( Object obj ) {
+            if ( ! Tables.isBlank( obj ) ) {
+                if ( items_ != null ) {
+                    items_.add( obj );
+                }
+                if ( items_.size() > maxCard_ ) {
+                    items_ = null;
+                }
+            }
+        }
+
+        /**
+         * Returns the cardinality of the data items submitted.
+         * If the cardinality is greater than <code>maxCard</code>,
+         * -1 will be returned.
+         *
+         * @return   cardinality, or -1
+         */
+        int getCardinality() {
+            return items_ == null ? -1
+                                  : items_.size();
+        }
     }
 }
