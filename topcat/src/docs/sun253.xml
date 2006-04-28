@@ -4695,6 +4695,14 @@ You can reveal these by using the <label>Display</label> menu:
 <dd><p>The variance of the good cells.
     </p></dd>
 
+<dt>Skew</dt>
+<dd><p>Gamma 1 measure of skewness of the value distribution.
+    </p></dd>
+
+<dt>Kurtosis</dt>
+<dd><p>Gamma 2 measure of peakedness of the value distribution.
+    </p></dd>
+
 <dt>Row of min.</dt>
 <dd><p>The index of the row in the main table at which the minimum value
     occurred.
@@ -9279,6 +9287,8 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Added new <code>csv-noheader</code> output format.</li>
+    <li>Added skew and kurtosis calculations to 
+        <ref id="StatsWindow">Statistics Window</ref>.</li>
     </ul>
     </p></dd>
 

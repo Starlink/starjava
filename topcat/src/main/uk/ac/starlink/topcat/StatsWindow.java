@@ -403,6 +403,30 @@ public class StatsWindow extends AuxWindow {
             }
         } );
 
+        /* Skew. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Skew", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ]
+                     ? new Float( lastCalc.skews[ jcol ] )
+                     : null;
+            }
+        } );
+
+        /* Kurtosis. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Kurtosis", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ]
+                     ? new Float( lastCalc.kurts[ jcol ] )
+                     : null;
+            }
+        } );
+
         /* Minimum. */
         metas.add( new MetaColumn( "Minimum", Object.class ) {
             public Object getValue( int irow ) {
@@ -527,8 +551,12 @@ public class StatsWindow extends AuxWindow {
         double[] means;
         double[] sdevs;
         double[] vars;
+        double[] skews;
+        double[] kurts;
         double[] sums;
         double[] sum2s;
+        double[] sum3s;
+        double[] sum4s;
         int[] cards;
 
         /**
@@ -610,8 +638,12 @@ public class StatsWindow extends AuxWindow {
             means = new double[ ncol ];
             sdevs = new double[ ncol ];
             vars = new double[ ncol ];
+            skews = new double[ ncol ];
+            kurts = new double[ ncol ];
             sums = new double[ ncol ];
             sum2s = new double[ ncol ];
+            sum3s = new double[ ncol ];
+            sum4s = new double[ ncol ];
             cards = new int[ ncol ];
 
             boolean[] badcompars = new boolean[ ncol ];
@@ -697,8 +729,14 @@ public class StatsWindow extends AuxWindow {
                                         maxs[ icol ] = val;
                                         imaxs[ icol ] = lrow1;
                                     }
-                                    sums[ icol ] += dval;
-                                    sum2s[ icol ] += dval * dval;
+                                    double s1 = dval;
+                                    double s2 = dval * s1;
+                                    double s3 = dval * s2;
+                                    double s4 = dval * s3;
+                                    sums[ icol ] += s1;
+                                    sum2s[ icol ] += s2;
+                                    sum3s[ icol ] += s3;
+                                    sum4s[ icol ] += s4;
                                 }
                             }
                             else if ( isComparable[ icol ] ) {
@@ -795,11 +833,30 @@ public class StatsWindow extends AuxWindow {
                 nbads[ icol ] = ngoodrow - ngood;
                 if ( ngood > 0 ) {
                     if ( isNumber[ icol ] ) {
-                        double mean = sums[ icol ] / ngood;
+                        double dcount = (double) ngood;
+                        double sum0 = dcount;
+                        double sum1 = sums[ icol ];
+                        double sum2 = sum2s[ icol ];
+                        double sum3 = sum3s[ icol ];
+                        double sum4 = sum4s[ icol ];
+                        double mean = sum1 / dcount;
+                        double nvar = ( sum2 - sum1 * sum1 / dcount );
                         means[ icol ] = mean;
-                        double var = sum2s[ icol ] / ngood - mean * mean;
-                        vars[ icol ] = var;
-                        sdevs[ icol ] = Math.sqrt( var );
+                        vars[ icol ] = nvar / dcount;
+                        sdevs[ icol ] = Math.sqrt( vars[ icol ] );
+                        skews[ icol ] =
+                            Math.sqrt( dcount ) / Math.pow( nvar, 1.5 ) *
+                            ( + 1 * sum3 
+                              - 3 * mean * sum2 
+                              + 3 * mean * mean * sum1
+                              - 1 * mean * mean * mean * sum0 );
+                        kurts[ icol ] =
+                            dcount / ( nvar * nvar ) *
+                            ( + 1 * sum4
+                              - 4 * mean * sum3
+                              + 6 * mean * mean * sum2
+                              - 4 * mean * mean * mean * sum1
+                              + 1 * mean * mean * mean * mean * sum0 ) - 3.0;
                     }
                     else if ( isBoolean[ icol ] ) {
                         means[ icol ] = (double) ntrues[ icol ] / ngood;
@@ -820,6 +877,8 @@ public class StatsWindow extends AuxWindow {
                     means[ icol ] = Double.NaN;
                     sdevs[ icol ] = Double.NaN;
                     vars[ icol ] = Double.NaN;
+                    skews[ icol ] = Double.NaN;
+                    kurts[ icol ] = Double.NaN;
                 }
                 if ( badcompars[ icol ] ) {
                     mins[ icol ] = null;
