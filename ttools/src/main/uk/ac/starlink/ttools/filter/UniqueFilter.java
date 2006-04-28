@@ -32,7 +32,7 @@ public class UniqueFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws IOException {
+    public ProcessingStep createStep( Iterator argIt ) {
         String testIds = null;
         if ( argIt.hasNext() ) {
             testIds = (String) argIt.next();
