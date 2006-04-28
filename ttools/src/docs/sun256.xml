@@ -3257,6 +3257,7 @@ but my thanks are especially due to the following:
 <li>Added "<code>csv-noheader</code>" output format.</li>
 <li>Added "<code>colmeta</code>" filter.</li>
 <li>Added "<code>stats</code>" filter.</li>
+<li>Added "<code>uniq</code>" filter.</li>
 </ul>
 </p></dd>
 
