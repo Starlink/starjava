@@ -50,15 +50,15 @@ public class StatsFilter extends BasicFilter {
                                            "Number of non-blank cells" ),
         NBAD_INFO = new DefaultValueInfo( "NBad", Number.class,
                                           "Number of blank cells" ),
-        MEAN_INFO = new DefaultValueInfo( "Mean", Double.class, 
+        MEAN_INFO = new DefaultValueInfo( "Mean", Float.class, 
                                           "Average" ),
-        STDEV_INFO = new DefaultValueInfo( "StDev", Double.class,
+        STDEV_INFO = new DefaultValueInfo( "StDev", Float.class,
                                            "Standard deviation" ),
-        VARIANCE_INFO = new DefaultValueInfo( "Variance", Double.class,
+        VARIANCE_INFO = new DefaultValueInfo( "Variance", Float.class,
                                               "Variance" ),
-        SKEW_INFO = new DefaultValueInfo( "Skew", Double.class,
+        SKEW_INFO = new DefaultValueInfo( "Skew", Float.class,
                                           "Gamma 1 skewness measure" ),
-        KURT_INFO = new DefaultValueInfo( "Kurtosis", Double.class,
+        KURT_INFO = new DefaultValueInfo( "Kurtosis", Float.class,
                                           "Gamma 2 peakedness measure" ),
         MIN_INFO = new DefaultValueInfo( "Minimum", Number.class,
                                          "Numeric minimum" ),
@@ -244,13 +244,14 @@ public class StatsFilter extends BasicFilter {
                 map.put( NBAD_INFO, new Long( nrow - count ) );
                 map.put( SUM_INFO, new Double( sum1 ) );
                 if ( isFinite( mean ) ) {
-                    map.put( MEAN_INFO, new Double( mean ) );
+                    map.put( MEAN_INFO, new Float( (float) mean ) );
                 }
                 if ( isFinite( variance ) ) {
-                    map.put( STDEV_INFO, new Double( Math.sqrt( variance ) ) );
-                    map.put( VARIANCE_INFO, new Double( variance ) );
-                    map.put( SKEW_INFO, new Double( skew ) );
-                    map.put( KURT_INFO, new Double( kurtosis ) );
+                    map.put( STDEV_INFO,
+                             new Float( (float) Math.sqrt( variance ) ) );
+                    map.put( VARIANCE_INFO, new Float( (float) variance ) );
+                    map.put( SKEW_INFO, new Float( (float) skew ) );
+                    map.put( KURT_INFO, new Float( (float) kurtosis ) );
                 }
                 if ( min instanceof Number &&
                      isFinite( ((Number) min).doubleValue() ) ) {
