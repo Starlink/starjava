@@ -421,26 +421,26 @@ public class TablePipeTest extends TableTestCase {
             new Object[] { "a", "b", "c", "d", },
             getColData( apply( "stats name mean variance" ), 0 ) );
         assertArrayEquals(
-            new double[] { 2.5, 20.0, 0.5, Double.NaN, },
+            new float[] { 2.5f, 20.0f, 0.5f, Float.NaN, },
             unbox( getColData( apply( "stats name mean variance" ), 1 ) ) );
         assertArrayEquals(
-            new double[] { 1.25, 200/3., Double.NaN, Double.NaN },
+            new float[] { 1.25f, (float)(200/3.), Float.NaN, Float.NaN },
             unbox( getColData( apply( "stats name mean variance" ), 2 ) ),
             1e-6 );
         assertArrayEquals(
             unbox( getColData( apply( "stats stdev" ), 0 ) ),
             unbox( getColData( apply( "stats variance;"
-                                    + "replacecol variance sqrt(variance)" ),
+                               + "replacecol variance (float)sqrt(variance)" ),
                                0 ) ) );
         assertArrayEquals(
-            new double[] { -0.237960, -0.159546, Double.NaN, Double.NaN, },
+            new float[] { -0.237960f, -0.159546f, Float.NaN, Float.NaN, },
             unbox( getColData( apply( "replacecol a sqrt(a);"
                                     + "replacecol b sqrt(b);" 
                                     + "stats skew" ),
                                0 ) ),
             1e-5 );
         assertArrayEquals(
-            new double[] { -1.307984, -1.5, Double.NaN, Double.NaN, },
+            new float[] { -1.307984f, -1.5f, Float.NaN, Float.NaN, },
             unbox( getColData( apply( "replacecol a sqrt(a);"
                                     + "replacecol b sqrt(b);"
                                     + "stats kurtosis" ), 0 ) ),
