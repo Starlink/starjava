@@ -467,6 +467,9 @@ public class TablePipeTest extends TableTestCase {
             new Object[] { new Long( 4 ), new Long( 3 ), null, null, },
             getColData( apply( "stats maxpos" ), 0 ) );
         assertArrayEquals(
+            new int[] { 4, 3, 2, 3 },
+            unbox( getColData( apply( "stats cardinality" ), 0 ) ) );
+        assertArrayEquals(
             new String[] { "Name", "Mean", "StDev", "Minimum",
                            "Maximum", "NGood", },
             getColNames( apply( "stats" ) ) );
