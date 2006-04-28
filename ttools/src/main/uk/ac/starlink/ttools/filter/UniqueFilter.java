@@ -74,6 +74,7 @@ public class UniqueFilter extends BasicFilter {
             final RowSequence rseq = super.getRowSequence();
             final int ncol = getColumnCount();
             return new RowSequence() {
+                boolean started_;
                 final Object[] lastRow_ = new Object[ ncol ];
                 { Arrays.fill( lastRow_, new Object() ); }
 
@@ -91,15 +92,26 @@ public class UniqueFilter extends BasicFilter {
                     if ( ! same ) {
                         System.arraycopy( row, 0, lastRow_, 0, ncol );
                     }
+                    started_ = true;
                     return ! same;
                 }
 
                 public Object[] getRow() {
-                    return (Object[]) lastRow_.clone();
+                    if ( started_ ) {
+                        return (Object[]) lastRow_.clone();
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
                 }
 
                 public Object getCell( int icol ) {
-                    return lastRow_[ icol ];
+                    if ( started_ ) {
+                        return lastRow_[ icol ];
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
                 }
 
                 public void close() throws IOException { 
