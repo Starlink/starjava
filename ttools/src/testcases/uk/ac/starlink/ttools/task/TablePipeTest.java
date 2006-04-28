@@ -479,4 +479,23 @@ public class TablePipeTest extends TableTestCase {
                            getColData( apply( "tail 2" ), 3 ) );
     }
 
+    public void testUniq() throws Exception {
+        assertEquals( 4L, Tables.randomTable( apply( "uniq" ) )
+                         .getRowCount() );
+        assertEquals( 2L, Tables.randomTable( apply( "uniq c" ) )
+                         .getRowCount() );
+        assertArrayEquals(
+            new int[] { 1, 1, 1, 1, },
+            unbox( getColData( apply( "uniq -count" ), 0 ) ) );
+        assertArrayEquals(
+            new int[] { 2, 2 },
+            unbox( getColData( apply( "uniq -count c" ), 0 ) ) );
+        assertArrayEquals(
+            new String[] { "a", "b", "c", "d", },
+            getColNames( apply( "uniq" ) ) );
+        assertArrayEquals(
+            new String[] { "Count", "a", "b", "c", "d" },
+            getColNames( apply( "uniq -count" ) ) );
+    }
+
 }

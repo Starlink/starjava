@@ -3,9 +3,12 @@ package uk.ac.starlink.ttools.filter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.ColumnIdentifier;
 
@@ -17,8 +20,12 @@ import uk.ac.starlink.ttools.ColumnIdentifier;
  */
 public class UniqueFilter extends BasicFilter {
 
+    private static final ValueInfo COUNT_INFO =
+        new DefaultValueInfo( "Count", Integer.class,
+                              "Number of duplicate rows" );
+
     public UniqueFilter() {
-        super( "uniq", "[<colid-list>]" );
+        super( "uniq", "[-count] [<colid-list>]" );
     }
 
     protected String[] getDescriptionLines() {
@@ -29,19 +36,34 @@ public class UniqueFilter extends BasicFilter {
             "If the <code>&lt;colid-list&gt;</code> parameter is given",
             "then only the values in the specified columns must be equal",
             "in order for the row to be removed.",
+            "</p><p>",
+            "If the <code>-count</code> flag is given, then an additional",
+            "column with the name " + COUNT_INFO.getName() + " will be",
+            "prepended to the table giving a count of the number of duplicated",
+            "input rows represented by each output row.  A unique row",
+            "has a " + COUNT_INFO.getName() + " value of 1.",
         };
     }
 
     public ProcessingStep createStep( Iterator argIt ) {
         String testIds = null;
-        if ( argIt.hasNext() ) {
-            testIds = (String) argIt.next();
-            argIt.remove();
+        boolean count = false;
+        while ( argIt.hasNext() && testIds == null ) {
+            String arg = (String) argIt.next();
+            if ( arg.equals( "-count" ) ) {
+                argIt.remove();
+                count = true;
+            }
+            else {
+                argIt.remove();
+                testIds = arg;
+            }
         }
         final String tids = testIds;
+        final boolean doCount = count;
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
-                return new UniqueTable( base, tids );
+                return new UniqueTable( base, tids, doCount );
             }
         };
     }
@@ -49,8 +71,10 @@ public class UniqueFilter extends BasicFilter {
     private static class UniqueTable extends WrapperStarTable {
 
         final boolean[] testFlags_;
+        final boolean doCount_;
 
-        UniqueTable( StarTable base, String testIds ) throws IOException {
+        UniqueTable( StarTable base, String testIds, boolean doCount )
+                throws IOException {
             super( base );
             if ( testIds == null ) {
                 testFlags_ = new boolean[ base.getColumnCount() ];
@@ -60,10 +84,21 @@ public class UniqueFilter extends BasicFilter {
                 testFlags_ = new ColumnIdentifier( base )
                             .getColumnFlags( testIds );
             }
+            doCount_ = doCount;
         }
 
         public boolean isRandom() {
             return false;
+        }
+
+        public int getColumnCount() {
+            return super.getColumnCount() + ( doCount_ ? 1 : 0 );
+        }
+
+        public ColumnInfo getColumnInfo( int icol ) {
+            return ( icol == 0 && doCount_ )
+                 ? new ColumnInfo( COUNT_INFO )
+                 : super.getColumnInfo( icol - ( doCount_ ? 1 : 0 ) );
         }
 
         public long getRowCount() {
@@ -72,33 +107,49 @@ public class UniqueFilter extends BasicFilter {
 
         public RowSequence getRowSequence() throws IOException {
             final RowSequence rseq = super.getRowSequence();
-            final int ncol = getColumnCount();
+            final int ncol = super.getColumnCount();
             return new RowSequence() {
-                boolean started_;
-                final Object[] lastRow_ = new Object[ ncol ];
-                { Arrays.fill( lastRow_, new Object() ); }
+                Object[] lastRow_;
+                Object[] nextRow_;
+
+                /* Constructor. */ {
+                    if ( rseq.next() ) {
+                        nextRow_ = (Object[]) rseq.getRow().clone();
+                    }
+                }
 
                 public boolean next() throws IOException {
+                    if ( nextRow_ == null ) {
+                        return false;
+                    }
+                    int dupCount = 1;
                     boolean same = true;
                     Object[] row = null;
                     while ( same && rseq.next() ) {
                         row = rseq.getRow();
                         for ( int icol = 0; same && icol < ncol; icol++ ) {
                             same = same &&
-                               ( ( ! testFlags_[ icol ] ) ||
-                                 equalValues( row[ icol ], lastRow_[ icol ] ) );
+                                ( ( ! testFlags_[ icol ] ) ||
+                                  equalValues( row[ icol ],
+                                               nextRow_[ icol ] ) );
+                        }
+                        if ( same ) {
+                            dupCount++;
                         }
                     }
-                    if ( ! same ) {
-                        System.arraycopy( row, 0, lastRow_, 0, ncol );
+                    lastRow_ = new Object[ ncol + ( doCount_ ? 1 : 0 ) ];
+                    System.arraycopy( nextRow_, 0,
+                                      lastRow_, ( doCount_ ? 1 : 0 ), ncol );
+                    if ( doCount_ ) {
+                        lastRow_[ 0 ] = new Integer( dupCount );
                     }
-                    started_ = true;
-                    return ! same;
+                    nextRow_ = same ? null : (Object[]) row.clone();
+                    return true;
                 }
 
                 public Object[] getRow() {
-                    if ( started_ ) {
-                        return (Object[]) lastRow_.clone();
+                    if ( lastRow_ != null ) {
+                        return lastRow_;
                     }
                     else {
                         throw new IllegalStateException();
@@ -106,7 +157,7 @@ public class UniqueFilter extends BasicFilter {
                 }
 
                 public Object getCell( int icol ) {
-                    if ( started_ ) {
+                    if ( lastRow_ != null ) {
                         return lastRow_[ icol ];
                     }
                     else {
