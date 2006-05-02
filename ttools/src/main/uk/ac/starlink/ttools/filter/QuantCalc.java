@@ -90,37 +90,6 @@ public abstract class QuantCalc {
     }
 
     /**
-     * Converts a numeric value to a Number object.
-     *
-     * @param  value  numeric value
-     * @param  clazz  Number subclass to return
-     * @return  instance of <code>clazz</code> with value <code>value</code>
-     */
-    private static Number toNumber( double value, Class clazz ) {
-        if ( clazz == Byte.class ) {
-            return new Byte( (byte) value );
-        }
-        else if ( clazz == Short.class ) {
-            return new Short( (short) value );
-        }
-        else if ( clazz == Integer.class ) {
-            return new Integer( (int) value );
-        }
-        else if ( clazz == Long.class ) {
-            return new Long( (long) value );
-        }
-        else if ( clazz == Float.class ) {
-            return new Float( (float) value );
-        }
-        else if ( clazz == Double.class ) {
-            return new Double( (double) value );
-        }
-        else {
-            return null;
-        }
-    }
-
-    /**
      * QuantCalc implementation which uses an ArrayList of Number objects
      * to keep track of the accumulated data.  Not very efficient on
      * memory.
@@ -196,7 +165,24 @@ public abstract class QuantCalc {
             }
             float quantile = array_[ Math.min( (int) ( quant * irow_ ),
                                                irow_ - 1 ) ]; 
-            return toNumber( (double) quantile, clazz_ );
+            if ( clazz_ == Float.class || clazz_ == Double.class ) {
+                return new Float( quantile );
+            }
+            else if ( clazz_ == Byte.class ) {
+                return new Byte( (byte) quantile );
+            }
+            else if ( clazz_ == Short.class ) {
+                return new Short( (short) quantile );
+            }
+            else if ( clazz_ == Integer.class ) {
+                return new Integer( (int) quantile );
+            }
+            else if ( clazz_ == Long.class ) {
+                return new Long( (long) quantile );
+            }
+            else {
+                return null;
+            }
         }
     }
 
