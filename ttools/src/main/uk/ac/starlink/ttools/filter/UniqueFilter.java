@@ -21,7 +21,7 @@ import uk.ac.starlink.ttools.ColumnIdentifier;
 public class UniqueFilter extends BasicFilter {
 
     private static final ValueInfo COUNT_INFO =
-        new DefaultValueInfo( "Count", Integer.class,
+        new DefaultValueInfo( "DupCount", Integer.class,
                               "Number of duplicate rows" );
 
     public UniqueFilter() {
