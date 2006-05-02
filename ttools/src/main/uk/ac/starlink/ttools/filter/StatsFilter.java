@@ -133,6 +133,12 @@ public class StatsFilter extends BasicFilter {
             "Q.5 is an alias for Median, and Q.25 for Quartile1.",
             "</p><p>Any parameters of the input table are propagated",
             "to the output one.",
+            "</p><p>Note that quantile calculations (including median and",
+            "quartiles) can be expensive on memory.  If you want to calculate",
+            "quantiles for large tables, it may be wise to reduce the",
+            "number of columns to only those you need the quantiles for",
+            "earlier in the pipeline.",
+            "No interpolation is performed when calculating quantiles.",
         };
     }
 
@@ -221,7 +227,7 @@ public class StatsFilter extends BasicFilter {
                     new CardinalityChecker( MAX_CARDINALITY );
             }
             if ( doQuant && Number.class.isAssignableFrom( clazz ) ) {
-                quantCalcs[ icol ] = QuantCalc.createInstance( nrow, clazz );
+                quantCalcs[ icol ] = QuantCalc.createInstance( clazz, nrow );
             }
         }
 
