@@ -481,14 +481,15 @@ public class TablePipeTest extends TableTestCase {
             new int[] { 4, 3, 2, 3 },
             unbox( getColData( apply( "stats cardinality" ), 0 ) ) );
 
+        // n.b. the Floats here could/should be Doubles.
         assertArrayEquals(
-            new Object[] { new Integer( 1 ), new Double( 10. ), null, null, },
+            new Object[] { new Integer( 1 ), new Float( 10. ), null, null, },
             getColData( apply( "stats q.01 median q.99" ), 0 ) );
         assertArrayEquals(
-            new Object[] { new Integer( 3 ), new Double( 20. ), null, null, },
+            new Object[] { new Integer( 3 ), new Float( 20. ), null, null, },
             getColData( apply( "stats q.01 median q.99" ), 1 ) );
         assertArrayEquals(
-            new Object[] { new Integer( 4 ), new Double( 30. ), null, null, },
+            new Object[] { new Integer( 4 ), new Float( 30. ), null, null, },
             getColData( apply( "stats q.01 median q.99" ), 2 ) );
 
         assertArrayEquals(
@@ -519,7 +520,7 @@ public class TablePipeTest extends TableTestCase {
             new String[] { "a", "b", "c", "d", },
             getColNames( apply( "uniq" ) ) );
         assertArrayEquals(
-            new String[] { "Count", "a", "b", "c", "d" },
+            new String[] { "DupCount", "a", "b", "c", "d" },
             getColNames( apply( "uniq -count" ) ) );
     }
 
