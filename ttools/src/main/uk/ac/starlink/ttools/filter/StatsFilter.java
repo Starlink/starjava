@@ -206,11 +206,6 @@ public class StatsFilter extends BasicFilter {
             : null;
 
         long nrow = table.getRowCount();
-//      if ( doQuant && nrow < 0 ) {
-//          table = Tables.randomTable( table );
-//          nrow = table.getRowCount();
-//      }
-//      assert nrow >= 0;
 
         /* Prepare statistical accumulators for each column of the table. */
         int ncol = table.getColumnCount();
