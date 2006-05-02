@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -27,6 +29,9 @@ import uk.ac.starlink.util.MapGroup;
  */
 public class StatsFilter extends BasicFilter {
 
+    /** Maximum value for cardinality counters. */
+    private static final int MAX_CARDINALITY = 100;
+
     /*
      * Metadata for calculated quantities.
      */
@@ -43,6 +48,10 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo MINPOS_INFO;
     private static final ValueInfo MAXPOS_INFO;
     private static final ValueInfo CARDINALITY_INFO;
+    private static final ValueInfo MEDIAN_INFO;
+    private static final ValueInfo Q1_INFO;
+    private static final ValueInfo Q2_INFO;
+    private static final ValueInfo Q3_INFO;
 
     /** All known statistical quantities. */
     private static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
@@ -71,7 +80,13 @@ public class StatsFilter extends BasicFilter {
         MAXPOS_INFO = new DefaultValueInfo( "MaxPos", Long.class,
                                             "Row index of numeric maximum" ),
         CARDINALITY_INFO = new DefaultValueInfo( "Cardinality", Integer.class,
-                                    "Number of distinct values in column" ),
+                           "Number of distinct values in column; " +
+                           "values >" + MAX_CARDINALITY + " ignored" ),
+        MEDIAN_INFO = new QuantileInfo( 0.5, "Median",
+                                        "Middle value in sequence" ),
+        Q1_INFO = new QuantileInfo( 0.25, "Quartile1", "First quartile" ),
+        Q2_INFO = new QuantileInfo( 0.50, "Quartile2", "Second quartile" ),
+        Q3_INFO = new QuantileInfo( 0.75, "Quartile3", "Third quartile" ),
     };
 
     /** All known per-column quantities (statistical and metadata). */
@@ -93,9 +108,6 @@ public class StatsFilter extends BasicFilter {
         NGOOD_INFO,
     };
 
-    /** Maximum value for cardinality counters. */
-    private static final int MAX_CARDINALITY = 100;
-
     /**
      * Constructor.
      */
@@ -115,7 +127,10 @@ public class StatsFilter extends BasicFilter {
             "items " + MetadataFilter.listInfos( DEFAULT_INFOS ) + ".",
             "The output may be customised however by supplying one or more",
             "<code>&lt;item&gt;</code> headings.  These may be selected",
-            "from the list " + MetadataFilter.listInfos( KNOWN_INFOS ) + ".",
+            "from the list " + MetadataFilter.listInfos( KNOWN_INFOS ) + ",",
+            "or have the form \"Q.<i>nn</i>\" to represent the quantile",
+            "corresponding to the proportion 0.<i>nn</i>; for instance",
+            "Q.5 is an alias for Median, and Q.25 for Quartile1.",
             "</p><p>Any parameters of the input table are propagated",
             "to the output one.",
         };
@@ -137,10 +152,16 @@ public class StatsFilter extends BasicFilter {
                 if ( infoMap.containsKey( lname ) ) {
                     infoList.add( (ValueInfo) infoMap.get( lname ) );
                 }
+                else if ( name.matches( "^[qQ]\\.[0-9]+$" ) ) {
+                    double quant = Double.parseDouble( name.substring( 1 ) );
+                    assert quant >= 0.0 && quant <= 1.0;
+                    infoList.add( new QuantileInfo( quant ) );
+                }
                 else {
                     throw new ArgException( "Unknown quantity " + name + "; " 
                         + "must be one of " 
-                        + MetadataFilter.listInfos( ALL_KNOWN_INFOS ) );
+                        + MetadataFilter.listInfos( ALL_KNOWN_INFOS )
+                        + ", or Q.nn" );
                 }
             }
             colInfos = (ValueInfo[]) infoList.toArray( new ValueInfo[ 0 ] );
@@ -170,35 +191,62 @@ public class StatsFilter extends BasicFilter {
             throws IOException {
 
         /* Work out if we need to calculate cardinalities. */
-        boolean card = Arrays.asList( infos ).contains( CARDINALITY_INFO );
+        boolean doCard = Arrays.asList( infos ).contains( CARDINALITY_INFO );
+
+        /* Work out if we need to calculate quantiles. */
+        List quantInfoList = new ArrayList();
+        for ( int i = 0; i < infos.length; i++ ) {
+            if ( infos[ i ] instanceof QuantileInfo ) {
+                quantInfoList.add( infos[ i ] );
+            }
+        }
+        boolean doQuant = ! quantInfoList.isEmpty();
+        QuantileInfo[] quantInfos = doQuant
+            ? (QuantileInfo[]) quantInfoList.toArray( new QuantileInfo[ 0 ] )
+            : null;
+
+        long nrow = table.getRowCount();
+//      if ( doQuant && nrow < 0 ) {
+//          table = Tables.randomTable( table );
+//          nrow = table.getRowCount();
+//      }
+//      assert nrow >= 0;
 
         /* Prepare statistical accumulators for each column of the table. */
         int ncol = table.getColumnCount();
         UnivariateStats[] colStats = new UnivariateStats[ ncol ];
         CardinalityChecker[] cardCheckers =
-            card ? new CardinalityChecker[ ncol ] : null;
+            doCard ? new CardinalityChecker[ ncol ] : null;
+        QuantCalc[] quantCalcs = new QuantCalc[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             Class clazz = table.getColumnInfo( icol ).getContentClass();
             colStats[ icol ] = UnivariateStats.createStats( clazz );
-            if ( card ) {
+            if ( doCard ) {
                 cardCheckers[ icol ] =
                     new CardinalityChecker( MAX_CARDINALITY );
+            }
+            if ( doQuant && Number.class.isAssignableFrom( clazz ) ) {
+                quantCalcs[ icol ] = QuantCalc.createInstance( nrow, clazz );
             }
         }
 
         /* Populate them with the the data read from the table. */
         RowSequence rseq = table.getRowSequence();
-        long nrow = 0L;
+        long irow = 0L;
         try {
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    colStats[ icol ].acceptDatum( row[ icol ] );
-                    if ( card ) {
-                        cardCheckers[ icol ].acceptDatum( row[ icol ] );
+                    Object datum = row[ icol ];
+                    colStats[ icol ].acceptDatum( datum );
+                    if ( doCard ) {
+                        cardCheckers[ icol ].acceptDatum( datum );
+                    }
+                    if ( quantCalcs[ icol ] != null ) {
+                        quantCalcs[ icol ].acceptDatum( datum );
                     }
                 }
-                nrow++;
+                irow++;
             }
 
             /* Get a MapGroup representing column metadata (the option is 
@@ -241,7 +289,7 @@ public class StatsFilter extends BasicFilter {
                  * info->values map. */
                 Map map = (Map) group.getMaps().get( icol );
                 map.put( NGOOD_INFO, new Long( count ) );
-                map.put( NBAD_INFO, new Long( nrow - count ) );
+                map.put( NBAD_INFO, new Long( irow - count ) );
                 map.put( SUM_INFO, new Double( sum1 ) );
                 if ( isFinite( mean ) ) {
                     map.put( MEAN_INFO, new Float( (float) mean ) );
@@ -263,10 +311,19 @@ public class StatsFilter extends BasicFilter {
                     map.put( MAX_INFO, max );
                     map.put( MAXPOS_INFO, new Long( stats.getMaxPos() + 1 ) );
                 }
-                if ( card ) {
+                if ( doCard ) {
                     int ncard = cardCheckers[ icol ].getCardinality();
                     if ( ncard > 0 ) {
                         map.put( CARDINALITY_INFO, new Integer( ncard ) );
+                    }
+                }
+                if ( quantCalcs[ icol ] != null ) {
+                    quantCalcs[ icol ].ready();
+                    for ( int iq = 0; iq < quantInfos.length; iq++ ) {
+                        QuantileInfo quantInfo = quantInfos[ iq ];
+                        Number quantile = quantCalcs[ icol ]
+                                         .getQuantile( quantInfo.getQuant() );
+                        map.put( quantInfo, quantile );
                     }
                 }
             }
@@ -286,6 +343,68 @@ public class StatsFilter extends BasicFilter {
     private final static boolean isFinite( double val ) {
         return val > - Double.MAX_VALUE
             && val < + Double.MAX_VALUE;
+    }
+
+    /**
+     * Metadata item corresponding to a quantile.
+     */
+    private static class QuantileInfo extends DefaultValueInfo {
+        private final double quant_;
+
+        /**
+         * Constructs a quantile info with automatically generated
+         * name and description.
+         *
+         * @param  quant  the proportion through the data for this quantile
+         */
+        QuantileInfo( double quant ) {
+            super( "Q_" + quant, Number.class );
+            if ( quant < 0.0 || quant > 1.0 ) {
+                throw new IllegalArgumentException( quant + 
+                                                    " not in range 0-1" );
+            }
+            quant_ = quant;
+
+            /* Adjust the name and description to look as sensible as
+             * possible. */
+            String qv = Float.toString( (float) quant );
+            Matcher matcher = Pattern.compile( "^0?.([0-9]+)$" ).matcher( qv );
+            if ( matcher.matches() ) {
+                qv = matcher.group( 1 );
+                while ( qv.length() < 2 ) {
+                    qv += '0';
+                }
+            }
+            setName( "Q_" + qv );
+            if ( qv.length() == 2 ) {
+                setDescription( "Percentile " + qv );
+            }
+            else {
+                setDescription( "Quantile corresponding to " + quant );
+            }
+        }
+
+        /**
+         * Constructs a quantile info with a given name and description.
+         *
+         * @param  name  name
+         * @param  description  description
+         */
+        QuantileInfo( double quant, String name, String description ) {
+            this( quant );
+            setName( name );
+            setDescription( description );
+        }
+
+        /**
+         * Returns the proportion through the data which this quantile
+         * describes.
+         *
+         * @return   quant
+         */
+        public double getQuant() {
+            return quant_;
+        }
     }
 
     /**

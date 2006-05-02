@@ -469,6 +469,17 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals(
             new int[] { 4, 3, 2, 3 },
             unbox( getColData( apply( "stats cardinality" ), 0 ) ) );
+
+        assertArrayEquals(
+            new Object[] { new Integer( 1 ), new Double( 10. ), null, null, },
+            getColData( apply( "stats q.01 median q.99" ), 0 ) );
+        assertArrayEquals(
+            new Object[] { new Integer( 3 ), new Double( 20. ), null, null, },
+            getColData( apply( "stats q.01 median q.99" ), 1 ) );
+        assertArrayEquals(
+            new Object[] { new Integer( 4 ), new Double( 30. ), null, null, },
+            getColData( apply( "stats q.01 median q.99" ), 2 ) );
+
         assertArrayEquals(
             new String[] { "Name", "Mean", "StDev", "Minimum",
                            "Maximum", "NGood", },
