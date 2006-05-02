@@ -32,6 +32,7 @@ public class StepFactory {
         String pkg = "uk.ac.starlink.ttools.filter.";
         filterFactory_.register( "addcol", pkg + "AddColumnFilter" );
         filterFactory_.register( "addskycoords", pkg + "AddSkyCoordsFilter" );
+        filterFactory_.register( "assert", pkg + "AssertFilter" );
         filterFactory_.register( "badval", pkg + "BadValueFilter" );
         filterFactory_.register( "cache", pkg + "CacheFilter" );
         filterFactory_.register( "check", pkg + "CheckFilter" );

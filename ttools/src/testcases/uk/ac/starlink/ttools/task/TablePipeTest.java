@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.convert.SkyUnits;
 import uk.ac.starlink.ttools.filter.ArgException;
+import uk.ac.starlink.ttools.filter.AssertException;
 
 public class TablePipeTest extends TableTestCase {
 
@@ -142,6 +143,16 @@ public class TablePipeTest extends TableTestCase {
             new Object[] { "+45:00:00.00", "-30:00:00.00", "+23:00:00.00", },
             getColData( xTable3, 3 ) );
 
+    }
+
+    public void testAssert() throws Exception {
+        apply( "select index<4; assert '((int) a+b) % 11 == 0'" );
+        try {
+            apply( "select index<4; assert '((int) a+b) % 12 == 0'" );
+            fail();
+        }
+        catch ( AssertException e ) {
+        }
     }
 
     public void testBadval() throws Exception {

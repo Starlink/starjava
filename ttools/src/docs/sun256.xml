@@ -3258,6 +3258,8 @@ but my thanks are especially due to the following:
 <li>Added "<code>colmeta</code>" filter.</li>
 <li>Added "<code>stats</code>" filter.</li>
 <li>Added "<code>uniq</code>" filter.</li>
+<li>Added "<code>assert</code> filter.</li>
+<li>Added "<code>discard</code> mode.</li>
 </ul>
 </p></dd>
 
