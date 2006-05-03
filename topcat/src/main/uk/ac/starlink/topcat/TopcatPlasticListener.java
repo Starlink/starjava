@@ -272,7 +272,7 @@ public class TopcatPlasticListener extends HubManager {
                                         tcModel.getDataModel().getRowCount() );
                     for ( int i = 0; i < nrow; i++ ) {
                         if ( rset.isIncluded( i ) ) {
-                            rowList.add( new Long( (long) i ) );
+                            rowList.add( new Integer( i ) );
                         }
                     }
                 }
@@ -280,7 +280,7 @@ public class TopcatPlasticListener extends HubManager {
                     int nrow = rowMap.length;
                     for ( int i = 0; i < nrow; i++ ) {
                         if ( rset.isIncluded( rowMap[ i ] ) ) {
-                            rowList.add( new Long( (long) i ) );
+                            rowList.add( new Integer( i ) );
                         }
                     }
                 }
@@ -312,7 +312,7 @@ public class TopcatPlasticListener extends HubManager {
                                     tcModel.getDataModel().getRowCount() );
                 for ( int i = 0; i < nrow; i++ ) {
                     if ( rset.isIncluded( i ) ) {
-                        rowList.add( new Long( (long) i ) );
+                        rowList.add( new Integer( i ) );
                     }
                 }
                 List argList =
