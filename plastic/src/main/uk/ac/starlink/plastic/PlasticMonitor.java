@@ -96,7 +96,7 @@ public class PlasticMonitor implements PlasticApplication {
                 }
             }
         }
-        return null;
+        return Boolean.FALSE;
     }
 
     /**
