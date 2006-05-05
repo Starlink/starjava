@@ -9,6 +9,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import uk.ac.starlink.plastic.ApplicationItem;
+import uk.ac.starlink.plastic.HubManager;
 
 /**
  * Implements a ListModel based on an existing ListModel which is taken to
@@ -30,22 +31,32 @@ public class SelectivePlasticListModel
     private final ListModel base_;
     private final URI messageId_;
     private List appList_;
-    private boolean includeAll_ = true;
+    private boolean includeAll_;
+    private HubManager excludeApp_;
     private Object selected_;
     public static final String ALL_LISTENERS = "All Listeners";
 
     /**
-     * Constructs a new list model for applications which support a given
-     * message ID.
+     * Constructs a new list model specifying whether certain particular
+     * options are included.
      *
      * @param   base  base list model; should contain 
      *          {@link uk.ac.starlink.plastic.ApplicationItem}s
      * @param   messageId  PLASTIC message id to be supported by all the
      *          apps in this list
+     * @param   includeAll  true iff the list should include an 
+     *          "All Listeners" option
+     * @param   excludeApp  plastic listener manager whose ID will be 
+     *          excluded from the list (typically represents the 
+     *          sender application)
      */
-    public SelectivePlasticListModel( ListModel base, URI messageId ) {
+    public SelectivePlasticListModel( ListModel base, URI messageId,
+                                      boolean includeAll,
+                                      HubManager excludeApp ) {
         base_ = base;
         messageId_ = messageId;
+        includeAll_ = includeAll;
+        excludeApp_ = excludeApp;
         appList_ = new ArrayList();
         updateItems();
         base_.addListDataListener( this );
@@ -65,15 +76,21 @@ public class SelectivePlasticListModel
             list.add( ALL_LISTENERS );
         }
 
+        /* Get an application ID to ignore maybe. */
+        URI excludeId = excludeApp_ == null ? null
+                                            : excludeApp_.getRegisteredId();
+
         /* Go through the base list assembling a list of acceptable items. */
         for ( int i = 0; i < base_.getSize(); i++ ) {
             Object obj = base_.getElementAt( i );
             if ( obj instanceof ApplicationItem ) {
                 ApplicationItem app = (ApplicationItem) obj;
-                List msgList = app.getSupportedMessages();
-                if ( msgList == null || msgList.size() == 0 ||
-                     msgList.contains( messageId_ ) ) {
-                    list.add( app );
+                if ( excludeId == null || ! excludeId.equals( app.getId() ) ) {
+                    List msgList = app.getSupportedMessages();
+                    if ( msgList == null || msgList.size() == 0 ||
+                         msgList.contains( messageId_ ) ) {
+                        list.add( app );
+                    }
                 }
             }
         }
