@@ -266,4 +266,38 @@ public class URLUtils {
             return url;
         }
     }
+
+    /**
+     * Attempts to determine whether two URLs refer to the same resource.
+     * Not likely to be foolproof, but slightly smarter than using 
+     * <code>equals</code>.
+     *
+     * @param  url1  first URL
+     * @param  url2  second URL
+     * @return   true if <code>url1</code> and <code>url2</code> appear to
+     *           refer to the same resource
+     */
+    public static boolean sameResource( URL url1, URL url2 ) {
+        if ( url1 == null && url2 == null ) {
+            return true;
+        }
+        else if ( url1 == null || url2 == null ) {
+            return false;
+        }
+        else if ( url1.equals( url2 ) ) {
+            return true;
+        }
+        else if ( url1.getProtocol().equals( "file" ) &&
+                  url2.getProtocol().equals( "file" ) ) {
+            String[] strings = { url1.toString(), url2.toString() };
+            for ( int i = 0; i < 2; i++ ) {
+                strings[ i ] =
+                    strings[ i ].replaceFirst( "^file:/*(localhost)?/*", "" );
+            }
+            return strings[ 0 ].equals( strings[ 1 ] );
+        }
+        else {
+            return false;
+        }
+    }
 }
