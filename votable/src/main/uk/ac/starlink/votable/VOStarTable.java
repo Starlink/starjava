@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -55,15 +56,15 @@ public class VOStarTable extends AbstractStarTable {
     private ColumnInfo[] colinfos;
     private boolean doneParams;
 
-    /* Table parameters. */
-    private final static ValueInfo ucdInfo = new DefaultValueInfo(
-        "UCD", String.class, "Table UCD" );
-
     /* Public column auxiliary metadata definitions. */
 
     /** ValueInfo for VOTable <tt>ID</tt> attribute. */
     public final static ValueInfo ID_INFO = new DefaultValueInfo(
         "VOTable ID", String.class, "VOTable ID attribute" );
+
+    /** ValueInfo for VOTable <tt>ucd</tt> attribute. */
+    public final static ValueInfo UCD_INFO = new DefaultValueInfo(
+        "UCD", String.class, "Table UCD" );
 
     /** ValueInfo for VOTable <tt>utype</tt> attribute. */
     public final static ValueInfo UTYPE_INFO = new DefaultValueInfo(
@@ -232,7 +233,7 @@ public class VOStarTable extends AbstractStarTable {
             /* UCD attribute. */
             if ( votable.hasAttribute( "ucd" ) ) {
                 DescribedValue dval =
-                    new DescribedValue( ucdInfo, 
+                    new DescribedValue( UCD_INFO, 
                                         votable.getAttribute( "ucd" ) );
                 params.add( dval );
             }
@@ -245,49 +246,45 @@ public class VOStarTable extends AbstractStarTable {
                 params.add( dval );
             }
 
-            /* Parameter-like elements in parent. */
-            VOElement parent = votable.getParent();
-            if ( parent != null && parent.getTagName().equals( "RESOURCE" ) ) {
+            /* Track back through ancestor elements to pick up parameter-
+             * like elements in this TABLE element and any ancestor 
+             * RESOURCE elements. */
+            List pelList = new ArrayList();
+            for ( VOElement ancestor = votable; ancestor != null;
+                  ancestor = ancestor.getParent() ) {
+                addParamElements( ancestor, pelList );
+            }
 
-                /* PARAM elements. */
-                VOElement[] paramels = parent.getChildrenByName( "PARAM" );
-                for ( int i = 0; i < paramels.length; i++ ) {
-                    ParamElement pel = (ParamElement) paramels[ i ];
-                    DescribedValue dval = 
-                        new DescribedValue( getValueInfo( pel ),
-                                            pel.getObject() );
-                    params.add( dval );
+            /* Convert these elements into DescribedValue metadata objects. */
+            for ( Iterator it = pelList.iterator(); it.hasNext(); ) {
+                VOElement el = (VOElement) it.next();
+                String tag = el.getTagName();
+                if ( el instanceof ParamElement ) {
+                    ParamElement pel = (ParamElement) el;
+                    params.add( new DescribedValue( getValueInfo( pel ),
+                                                    pel.getObject() ) );
+                   
                 }
-
-                /* LINK elements. */
-                VOElement[] linkels = parent.getChildrenByName( "LINK" );
-                for ( int i = 0; i < linkels.length; i++ ) {
-                    params.add( getDescribedValue( (LinkElement) 
-                                                   linkels[ i ] ) );
+                else if ( el instanceof LinkElement ) {
+                    LinkElement lel = (LinkElement) el;
+                    params.add( getDescribedValue( lel ) );
                 }
-
-                /* INFO elements. */
-                VOElement[] infoels = parent.getChildrenByName( "INFO" );
-                for ( int i = 0; i < infoels.length; i++ ) {
-                    VOElement iel = infoels[ i ];
-                    String content = DOMUtils.getTextContent( iel );
+                else if ( "INFO".equals( tag ) ) {
+                    String content = DOMUtils.getTextContent( el );
                     String descrip =
-                         content != null && content.trim().length() > 0
-                               ? content : null;
-                    ValueInfo info = new DefaultValueInfo( iel.getHandle(), 
+                        ( content != null && content.trim().length() > 0 )
+                            ? content
+                            : null;
+                    ValueInfo info = new DefaultValueInfo( el.getHandle(),
                                                            String.class,
                                                            descrip );
                     DescribedValue dval =
-                        new DescribedValue( info, iel.getAttribute( "value" ) );
+                        new DescribedValue( info, el.getAttribute( "value" ) );
                     params.add( dval );
                 }
-            }
-
-            /* Parameter-like children. */
-            ParamElement[] pels = votable.getParams();
-            for ( int i = 0; i < pels.length; i++ ) {
-                params.add( new DescribedValue( getValueInfo( pels[ i ] ),
-                                                pels[ i ].getObject() ) );
+                else {
+                    assert false : el;
+                }
             }
 
             /* Append this list to the superclass list. */
@@ -378,6 +375,48 @@ public class VOStarTable extends AbstractStarTable {
         else {
             return ( sysid == null ? "" : sysid )
                  + "#" + index;
+        }
+    }
+
+    /**
+     * Adds parameter-like children of a given element to a given list.
+     * Recurses into GRUOP elements, but not into any other elements 
+     * such as TABLE or RESOURCE.
+     *
+     * <p>Element types added to the list are
+     * PARAM (including referents of PARAMrefs), LINK and INFO.
+     *
+     * @param  parent   element whose children are to be considered
+     * @param  pelList  list to which parameter-like elements will be added
+     */
+    private static void addParamElements( VOElement parent, List pelList ) {
+        VOElement[] children = parent.getChildren();
+        for ( int i = 0; i < children.length; i++ ) { 
+            VOElement child = children[ i ];
+            if ( child instanceof ParamElement ) {
+                if ( ! pelList.contains( child ) ) {
+                    pelList.add( child );
+                }
+            }
+            else if ( child instanceof ParamRefElement ) {
+                ParamElement pel = ((ParamRefElement) child).getParam();
+                if ( ! pelList.contains( pel ) ) {
+                    pelList.add( pel );
+                }
+            }
+            else if ( child instanceof LinkElement ) {
+                if ( ! pelList.contains( child ) ) {
+                    pelList.add( child );
+                }
+            }
+            else if ( "INFO".equals( child.getTagName() ) ) {
+                if ( ! pelList.contains( child ) ) {
+                    pelList.add( child );
+                }
+            }
+            else if ( child instanceof GroupElement ) {
+                addParamElements( child, pelList );
+            }
         }
     }
 
