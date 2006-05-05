@@ -158,7 +158,7 @@ public class VOTableWriter implements StarTableWriter {
         /* First Treat the case where we write data inline. */
         if ( inline || file == null ) {
             if ( ! inline ) {
-                assert file != null;
+                assert file == null;
                 logger.warning( "Writing VOTable inline - can't do href "
                               + "when no filename is supplied" );
             }
