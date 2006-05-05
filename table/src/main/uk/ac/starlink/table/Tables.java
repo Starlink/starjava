@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
@@ -379,6 +380,35 @@ public class Tables {
             labels.add( sbuf.toString() );
         }
         return (String[]) labels.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Returns the value from a list of {@link DescribedValue} objects
+     * which corresponds to a given info key.
+     * If the key is not represented in the list, or if its value is null,
+     * then null is returned.
+     *
+     * @param   dvals  list of DescribedValue objects
+     * @param   info   key giving the value you want
+     * @return  matching value  
+     */
+    public static Object getValue( Collection dvals, ValueInfo info ) {
+        String iname = info.getName();
+        Class iclazz = info.getContentClass();
+        if ( iname != null && iclazz != null ) {
+            for ( Iterator it = dvals.iterator(); it.hasNext(); ) {
+                Object obj = it.next();
+                if ( obj instanceof DescribedValue ) {
+                    DescribedValue dval = (DescribedValue) obj;
+                    ValueInfo dinfo = dval.getInfo();
+                    if ( iname.equals( dinfo.getName() ) &&
+                         iclazz.equals( dinfo.getContentClass() ) ) {
+                        return dval.getValue();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
