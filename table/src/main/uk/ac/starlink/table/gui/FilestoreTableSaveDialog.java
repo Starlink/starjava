@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.connect.Branch;
+import uk.ac.starlink.connect.FileNode;
 import uk.ac.starlink.connect.FilestoreChooser;
 import uk.ac.starlink.connect.Leaf;
 import uk.ac.starlink.connect.Node;
@@ -185,22 +186,59 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
                 worker_ = new SaveWorker( progBar_, table_, leaf.toString() ) {
                     protected void attemptSave( StarTable table )
                             throws IOException {
-                        OutputStream stream = leaf.getOutputStream();
-                        String format = (String) formatModel_.getSelectedItem();
-                        StarTableWriter handler = 
-                            sto_.getHandler( format, leaf.getName() );
-                        sto_.writeStarTable( table, stream, handler );
+                        FilestoreTableSaveDialog
+                       .attemptSave( table, sto_, leaf,
+                                     (String) formatModel_.getSelectedItem() );
                     }
                     protected void done( boolean success ) {
                         worker_ = null;
                         if ( success ) {
                             dispose();
                         }
+                        chooser_.setEnabled( true );
                     }
                 };
                 chooser_.setEnabled( false );
                 worker_.invoke();
             }
+        }
+    }
+
+    /**
+     * Does the work of saving a table.
+     *
+     * @param   table   table to write
+     * @param   sto     outputter
+     * @param   leaf    destination leaf for output
+     * @param   format  format of the output
+     */
+    private static void attemptSave( StarTable table, StarTableOutput sto,
+                                     Leaf leaf, String format )
+            throws IOException {
+
+        /* If we can write to a location it may be better - at least in the
+         * case of VOTable it means that the handler can write either in
+         * href or inline mode, whereas otherwise inline mode is forced.
+         * So attempt to get a reliable location string.  This will generally
+         * be either a filename or a URL which is in some sense writable. */
+        String loc;
+        if ( leaf instanceof FileNode ) {
+            loc = ((FileNode) leaf).getFile().toString();
+        }
+        else {
+            loc = null;
+        }
+
+        /* If we have a location, use that. */
+        if ( loc != null ) {
+            sto.writeStarTable( table, loc, format );
+        }
+
+        /* Otherwise acquire a stream from the leaf and just dump to that. */
+        else {
+            OutputStream stream = leaf.getOutputStream();
+            StarTableWriter handler = sto.getHandler( format, leaf.getName() );
+            sto.writeStarTable( table, stream, handler );
         }
     }
 
