@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -36,8 +38,12 @@ import uk.ac.starlink.util.Base64OutputStream;
  * @author   Mark Taylor (Starlink)
  */
 public abstract class VOSerializer {
-    final StarTable table;
-    private final DataFormat format;
+    private final StarTable table_;
+    private final DataFormat format_;
+    private final List paramList_;
+    private final String ucd_;
+    private final String utype_;
+    private final String description_;
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -48,8 +54,46 @@ public abstract class VOSerializer {
      * @param  format  the data format being used
      */
     private VOSerializer( StarTable table, DataFormat format ) {
-        this.table = table;
-        this.format = format;
+        table_ = table;
+        format_ = format;
+
+        /* Doctor the table's parameter list.  Take out items which are
+         * output specially so that only the others get output as PARAM
+         * elements. */
+        paramList_ = new ArrayList();
+        String description = null;
+        String ucd = null;
+        String utype = null;
+        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
+            Object obj = it.next();
+            if ( obj instanceof DescribedValue ) {
+                DescribedValue dval = (DescribedValue) obj;
+                ValueInfo pinfo = dval.getInfo();
+                String pname = pinfo.getName();
+                Class pclazz = pinfo.getContentClass();
+                Object value = dval.getValue();
+                if ( pname != null && pclazz != null ) {
+                    if ( pname.equalsIgnoreCase( "description" ) &&
+                         pclazz == String.class ) {
+                        description = (String) value;
+                    }
+                    else if ( pname.equals( VOStarTable.UCD_INFO.getName() )
+                           && pclazz == String.class ) {
+                        ucd = (String) value;
+                    }
+                    else if ( pname.equals( VOStarTable.UTYPE_INFO.getName() ) 
+                           && pclazz == String.class ) {
+                        utype = (String) value;
+                    }
+                    else {
+                        paramList_.add( dval );
+                    }
+                }
+            }
+        }
+        description_ = description;
+        ucd_ = ucd;
+        utype_ = utype;
     }
 
     /**
@@ -58,7 +102,7 @@ public abstract class VOSerializer {
      * @return   output format
      */
     public DataFormat getFormat() {
-        return format;
+        return format_;
     }
 
     /**
@@ -67,7 +111,7 @@ public abstract class VOSerializer {
      * @return  table to write
      */
     public StarTable getTable() {
-        return table;
+        return table_;
     }
 
     /**
@@ -138,57 +182,52 @@ public abstract class VOSerializer {
      * @param   writer  destination stream
      */
     public void writeParams( BufferedWriter writer ) throws IOException {
-        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
+        for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
             DescribedValue param = (DescribedValue) it.next();
             ValueInfo pinfo = param.getInfo();
 
-            /* Output the characteristics of this param unless it's called
-             * 'description' in which case it gets treated specially. */
-            if ( ! pinfo.getName().equalsIgnoreCase( "description" ) ) {
+            /* Try to write it as a typed PARAM element. */
+            Encoder encoder = Encoder.getEncoder( pinfo );
+            if ( encoder != null ) {
+                String valtext = encoder.encodeAsText( param.getValue() );
+                String content = encoder.getFieldContent();
 
-                /* Try to write it as a typed PARAM element. */
-                Encoder encoder = Encoder.getEncoder( pinfo );
-                if ( encoder != null ) {
-                    String valtext = encoder.encodeAsText( param.getValue() );
-                    String content = encoder.getFieldContent();
-
-                    writer.write( "<PARAM" );
-                    writer.write( formatAttributes( encoder
-                                                   .getFieldAttributes() ) );
-                    writer.write( formatAttribute( "value", valtext ) );
-                    if ( content.length() > 0 ) {
-                        writer.write( ">" );
-                        writer.write( content );
-                        writer.newLine();
-                        writer.write( "</PARAM>" );
-                    }
-                    else {
-                        writer.write( "/>" );
-                    }
+                writer.write( "<PARAM" );
+                writer.write( formatAttributes( encoder
+                                               .getFieldAttributes() ) );
+                writer.write( formatAttribute( "value", valtext ) );
+                if ( content.length() > 0 ) {
+                    writer.write( ">" );
+                    writer.write( content );
                     writer.newLine();
+                    writer.write( "</PARAM>" );
                 }
-
-                /* If it's a URL write it as a LINK. */
-                else if ( param.getValue() instanceof URL ) {
-                    writer.write( "<LINK"
-                        + formatAttribute( "title", pinfo.getName() )
-                        + formatAttribute( "href", param.getValue().toString() )
-                        + "/>" );
-                    writer.newLine();
-                }
-
-                /* If it's of a funny type, just try to write it as an INFO. */
                 else {
-                    Object value = param.getValue();
-                    writer.write( "<INFO" );
-                    writer.write( formatAttribute( "name", pinfo.getName() ) );
-                    if ( value != null ) {
-                        writer.write( formatAttribute( "value", 
-                                                       value.toString() ) );
-                    }
                     writer.write( "/>" );
-                    writer.newLine();
                 }
+                writer.newLine();
+            }
+
+            /* If it's a URL write it as a LINK. */
+            else if ( param.getValue() instanceof URL ) {
+                writer.write( "<LINK"
+                    + formatAttribute( "title", pinfo.getName() )
+                    + formatAttribute( "href", param.getValue().toString() )
+                    + "/>" );
+                writer.newLine();
+            }
+
+            /* If it's of a funny type, just try to write it as an INFO. */
+            else {
+                Object value = param.getValue();
+                writer.write( "<INFO" );
+                writer.write( formatAttribute( "name", pinfo.getName() ) );
+                if ( value != null ) {
+                    writer.write( formatAttribute( "value", 
+                                                   value.toString() ) );
+                }
+                writer.write( "/>" );
+                writer.newLine();
             }
         }
     }
@@ -201,22 +240,10 @@ public abstract class VOSerializer {
      * @param   writer  destination stream
      */
     public void writeDescription( BufferedWriter writer ) throws IOException {
-        String description = null;
-        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
-            DescribedValue dval = (DescribedValue) it.next();
-            if ( dval.getInfo().getName().equalsIgnoreCase( "description" ) ) {
-                Object value = dval.getValue();
-                if ( value instanceof String && 
-                     ((String) value).trim().length() > 0 ) {
-                    description = (String) value;
-                    break;
-                }
-            }
-        }
-        if ( description != null ) {
+        if ( description_ != null && description_.trim().length() > 0 ) {
             writer.write( "<DESCRIPTION>" );
             writer.newLine();
-            writer.write( formatText( description.trim() ) );
+            writer.write( formatText( description_.trim() ) );
             writer.newLine();
             writer.write( "</DESCRIPTION>" );
             writer.newLine();
@@ -235,16 +262,26 @@ public abstract class VOSerializer {
         writer.write( "<TABLE" );
 
         /* Write table name if we have one. */
-        String tname = table.getName();
+        String tname = getTable().getName();
         if ( tname != null && tname.trim().length() > 0 ) {
             writer.write( formatAttribute( "name", tname.trim() ) );
         }
 
         /* Write the number of rows if we know it. */
-        long nrow = table.getRowCount();
+        long nrow = getTable().getRowCount();
         if ( nrow > 0 ) {
             writer.write( formatAttribute( "nrows", Long.toString( nrow ) ) );
         }
+
+        /* Write UCD and utype information if we have it. */
+        if ( ucd_ != null ) {
+            writer.write( formatAttribute( "ucd", ucd_ ) );
+        }
+        if ( utype_ != null ) {
+            writer.write( formatAttribute( "utype", utype_ ) );
+        }
+
+        /* Close TABLE element start tag. */
         writer.write( ">" );
         writer.newLine();
 
@@ -537,7 +574,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, table, writer );
+            outputFields( encoders, getTable(), writer );
         }
      
         public void writeInlineDataElement( BufferedWriter writer )
@@ -547,7 +584,7 @@ public abstract class VOSerializer {
             writer.write( "<TABLEDATA>" );
             writer.newLine();
             int ncol = encoders.length;
-            RowSequence rseq = table.getRowSequence();
+            RowSequence rseq = getTable().getRowSequence();
             try {
                 while ( rseq.next() ) {
                     writer.write( "  <TR>" );
@@ -683,12 +720,12 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, table, writer );
+            outputFields( encoders, getTable(), writer );
         }
 
         public void streamData( DataOutput out ) throws IOException {
             int ncol = encoders.length;
-            RowSequence rseq = table.getRowSequence();
+            RowSequence rseq = getTable().getRowSequence();
             try {
                 while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
@@ -720,7 +757,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            int ncol = table.getColumnCount();
+            int ncol = getTable().getColumnCount();
             for ( int icol = 0; icol < ncol; icol++ ) {
 
                 /* Get information about how this column is going to be 
@@ -734,7 +771,7 @@ public abstract class VOSerializer {
 
                     /* Get the basic information for this column. */
                     Encoder encoder =
-                        Encoder.getEncoder( table.getColumnInfo( icol ) );
+                        Encoder.getEncoder( getTable().getColumnInfo( icol ) );
                     String content = encoder.getFieldContent();
                     Map atts = encoder.getFieldAttributes();
 
@@ -783,7 +820,7 @@ public abstract class VOSerializer {
                 }
                 else {
                     writer.write( "<!-- Omitted column " + 
-                                  table.getColumnInfo( icol ) + " -->" );
+                                  getTable().getColumnInfo( icol ) + " -->" );
                     writer.newLine();
                 }
             }
