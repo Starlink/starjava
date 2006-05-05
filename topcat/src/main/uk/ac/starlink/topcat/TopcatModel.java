@@ -77,6 +77,7 @@ public class TopcatModel {
     private String location_;
     private String label_;
     private Activator activator_;
+    private long lastHighlight_ = -1L;
 
     private ActivationQueryWindow activationWindow_;
     private SaveQueryWindow saveWindow_;
@@ -539,13 +540,16 @@ public class TopcatModel {
      *
      * @param  lrow  index of the row to activate
      */
-    public void highlightRow( long lrow ) {
-        fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-        if ( activator_ != null ) {
-            String msg = activator_.activateRow( lrow );
-            if ( msg != null && msg.trim().length() > 0 ) {
-                System.out.println( msg );
+    public void highlightRow( final long lrow ) {
+        if ( lrow != lastHighlight_ ) {
+            fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
+            if ( activator_ != null ) {
+                String msg = activator_.activateRow( lrow );
+                if ( msg != null && msg.trim().length() > 0 ) {
+                    System.out.println( msg );
+                }
             }
+            lastHighlight_ = lrow;
         }
     }
 
