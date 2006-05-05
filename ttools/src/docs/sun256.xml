@@ -3260,6 +3260,11 @@ but my thanks are especially due to the following:
 <li>Added "<code>uniq</code>" filter.</li>
 <li>Added "<code>assert</code> filter.</li>
 <li>Added "<code>discard</code> mode.</li>
+<li>Improved, though still imperfect, retention of table-wide
+    metadata in VOTables.</li>
+<li>Fixed erroneous reports about unknown <code>ucd</code> and 
+    <code>utype</code> attributes of TABLE element in 
+    <code>votlint</code>.</li>
 </ul>
 </p></dd>
 
