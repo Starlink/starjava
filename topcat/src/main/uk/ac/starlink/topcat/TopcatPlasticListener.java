@@ -46,15 +46,19 @@ public class TopcatPlasticListener extends HubManager {
 
     private final ControlWindow controlWindow_;
     private final Map idMap_;
+    private final Map highlightMap_;
 
     public static final URI VOT_LOAD;
     public static final URI VOT_LOADURL;
     public static final URI VOT_SHOWOBJECTS;
+    public static final URI VOT_HIGHLIGHTOBJECT;
     public static final URI INFO_GETICON;
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
         VOT_LOAD = createURI( "ivo://votech.org/votable/load" ),
         VOT_LOADURL = createURI( "ivo://votech.org/votable/loadFromURL" ),
         VOT_SHOWOBJECTS = createURI( "ivo://votech.org/votable/showObjects" ),
+        VOT_HIGHLIGHTOBJECT =
+            createURI( "ivo://votech.org/votable/highlightObject" ),
         INFO_GETICON = createURI( "ivo://votech.org/info/getIconURL" ),
     };
     public static final URI SKY_POINTAT =
@@ -71,6 +75,7 @@ public class TopcatPlasticListener extends HubManager {
         super( "topcat", SUPPORTED_MESSAGES );
         controlWindow_ = controlWindow;
         idMap_ = Collections.synchronizedMap( new HashMap() );
+        highlightMap_ = new HashMap();
     }
 
     /**
@@ -109,6 +114,14 @@ public class TopcatPlasticListener extends HubManager {
             return Boolean.valueOf( showObjects( sender, tableId, objList ) );
         }
 
+        /* Highlight a single row. */
+        else if ( VOT_HIGHLIGHTOBJECT.equals( message ) && args.size() >= 2 &&
+                  args.get( 1 ) instanceof Number ) {
+            String tableId = args.get( 0 ).toString();
+            int irow = ((Number) args.get( 1 )).intValue();
+            return Boolean.valueOf( highlightObject( sender, tableId, irow ) );
+        }
+
         /* Get TOPCAT icon. */
         else if ( INFO_GETICON.equals( message ) ) {
             return "http://www.starlink.ac.uk/topcat/tc3.gif";
@@ -123,14 +136,14 @@ public class TopcatPlasticListener extends HubManager {
     /**
      * Returns a ComboBoxModel which selects applications registered with
      * this hub manager; only those which support a given message are
-     * included.
+     * included.  This listener is excluded.
      *
      * @param   messageId  message which must be supported
      * @return   selection model
      */
     public ComboBoxModel createPlasticComboBoxModel( URI messageId ) {
         return new SelectivePlasticListModel( getApplicationListModel(),
-                                              messageId );
+                                              messageId, true, this );
     }
 
     /**
@@ -329,6 +342,88 @@ public class TopcatPlasticListener extends HubManager {
         }
     }
 
+    /** 
+     * Transmits a request for listening applications to highlight a given
+     * table row.
+     *
+     * @param   tcModel   topcat model of table to broadcast
+     * @param   lrow      row index within tcModel
+     * @param  array of plastic IDs for target applications;
+     *         if null, broadcast will be to all
+     * @return  true iff message was broadcast successfully
+     */
+    public boolean highlightRow( TopcatModel tcModel, long lrow, 
+                                 URI[] recipients ) throws IOException {
+
+        /* Get the hub and ID. */
+        register();
+        PlasticHubListener hub = getHub();
+        URI plasticId = getRegisteredId();
+        int irow = Tables.checkedLongToInt( lrow );
+
+        /* See if the table we're broadcasting the row for is any of the
+         * tables we've previously broadcast.  If so, send the row using the
+         * same ID. */
+        boolean done = false;
+        int sendRow = -1;
+        String tableId = null;
+        for ( Iterator it = idMap_.entrySet().iterator();
+              ! done && it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            TableWithRows tr = (TableWithRows) entry.getValue();
+            TopcatModel tcm = (TopcatModel) tr.tcModelRef_.get();
+            if ( tcm != null && tcm == tcModel ) {
+                int[] rowMap = tr.rowMap_;
+                if ( rowMap == null ) {
+                    sendRow = irow;
+                }
+                else {
+                    for ( int j = 0; j < rowMap.length; j++ ) {
+                        if ( irow == rowMap[ j ] ) {
+                            sendRow = j;
+                            break;
+                        }
+                    }
+                }
+                tableId = entry.getKey().toString();
+                done = true;
+            }
+        }
+
+        /* If that didn't result in any sends, try using the basic URL of
+         * the table. */
+        if ( ! done ) {
+            URL url = URLUtils.fixURL( tcModel.getDataModel()
+                                              .getBaseTable().getURL() );
+            if ( url != null ) {
+                sendRow = irow;
+                tableId = url.toString();
+                done = true;
+            }
+        }
+
+        /* Send the message if we've got the arguments. */
+        if ( done && sendRow >= 0 ) {
+            List args = Arrays.asList( new Object[] {
+                tableId,
+                new Integer( sendRow ),
+            } );
+            if ( recipients == null ) {
+                hub.requestAsynch( plasticId, VOT_HIGHLIGHTOBJECT, args );
+            }
+            else {
+                hub.requestToSubsetAsynch( plasticId, VOT_HIGHLIGHTOBJECT, args,
+                                           Arrays.asList( recipients ) );
+            }
+            return true;
+        }
+
+        /* Otherwise return failure status. */
+        else {
+            return false;
+        }
+    }
+
     /**
      * Broadcasts a request for listening applications to point at a given
      * sky position.
@@ -419,6 +514,42 @@ public class TopcatPlasticListener extends HubManager {
                 }
             }
         } );
+    }
+
+    /**
+     * Does the work for the highlight-object message.
+     *
+     * @param   sender  sender ID
+     * @param   tableId  identifier for the table
+     * @param   irow     row index corresponding to the table ID
+     * @return  true  iff the highlight was successful
+     */
+    private boolean highlightObject( URI sender, String tableId, int irow ) {
+
+        /* See if we have the table named in the message. */
+        TableWithRows tr = (TableWithRows) lookupTable( tableId );
+        final TopcatModel tcModel = tr == null
+                                  ? null
+                                  : (TopcatModel) tr.tcModelRef_.get();
+        if ( tcModel != null ) {
+
+            /* Find out what row is named in the message. */
+            long lrow = tr.rowMap_ == null ? (long) irow
+                                           : (long) tr.rowMap_[ irow ];
+
+            /* Call a highlight on this row.  However, if it's the same
+             * as the last-highlighted row for this table, do nothing.
+             * The purpose of this is to avoid the possibility of
+             * eternal PLASTIC ping-pong between two (or more) 
+             * applications.  It doesn't completely work though. */
+            Long lastHigh = (Long) highlightMap_.get( tcModel );
+            if ( lastHigh == null || lastHigh.longValue() != lrow ) {
+                tcModel.highlightRow( lrow );
+            }
+            highlightMap_.put( tcModel, new Long( lrow ) );
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -528,7 +659,8 @@ public class TopcatPlasticListener extends HubManager {
                 TopcatModel tcModel =
                     (TopcatModel) tablesList.getElementAt( i );
                 URL url = tcModel.getDataModel().getBaseTable().getURL();
-                if ( url != null && url.toString().equals( tableId ) ) {
+                if ( URLUtils.sameResource( url,
+                                            URLUtils.makeURL( tableId ) ) ) {
                     return new TableWithRows( tcModel, null );
                 }
             }

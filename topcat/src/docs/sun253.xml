@@ -2509,14 +2509,31 @@ unless you are a tool developer you can probably ignore these.
     <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
 
-<dt>Transmit Coordinates</dt>
+<dt>Transmit Row</dt>
 <dd><p>One of the
     <ref id="activation" plaintextref="yes">Activation Actions</ref>
-    you can choose is <label>Transmit Coordinates</label>.
-    If this is chosen, then every time you activate a row 
-    (e.g. by clicking on the corresponding point in a plot),
-    other applications are invited to highlight this point in some way,
-    for instance by positioning the cursor on it.
+    you can choose is <label>Transmit Row</label>.
+    If this is chosen, then every time you activate a row
+    (e.g. by clicking on the corresponding point in a plot)
+    other applications who are looking at the same table are invited
+    to highlight that row in their copy of the table.
+    As for <label>Transmit Subset</label> above, this will only have an
+    effect if the other application(s) are displaying the same table.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/votable/highlightObject</code>
+    </p></dd>
+
+<dt>Transmit Coordinates</dt>
+<dd><p>Another 
+    <ref id="activation" plaintextref="yes">Activation Action</ref>
+    is <label>Transmit Coordinates</label>.
+    In this case when you activate a row (e.g. by clicking on the 
+    corresponding point in a plot) 
+    other applications are invited to point out the
+    sky position corresponding to the row which is activated,
+    for instance by placing a cursor over it.
+    The table columns which correspond to Right Ascension and Declination
+    must be selected for this to work.
     </p>
     <p>Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
     </p></dd>
@@ -2570,6 +2587,19 @@ unless you are a tool developer you can probably ignore these.
     </p>
     <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
+
+<dt>Highlight Row</dt>
+<dd><p>If TOPCAT already has loaded the table identified by the request,
+    it will <ref id="activation" plaintextref="yes">activate</ref>
+    the requested row.  This will result in the row being marked in any
+    currently visible plots and in the 
+    <ref id="TableViewerWindow">Data Window</ref> if it is visible, 
+    as well as performing any additional actions you have configured
+    in the <ref id="ActivationQueryWindow">Activation Window</ref>.
+    </p>
+    <p>Message ID: <code>ivo://votech.org/votable/highlightObject</code>
+    </p></dd>
+
 </dl>
 </p>
 
@@ -9289,6 +9319,13 @@ introduced since the last version:
     <li>Added new <code>csv-noheader</code> output format.</li>
     <li>Added skew and kurtosis calculations to 
         <ref id="StatsWindow">Statistics Window</ref>.</li>
+    <li>Improved, though still imperfect, retention of table-wide 
+        metadata in VOTables.</li>
+    <li>Implements send and receive of PLASTIC 
+        <code>ivo://votech.org/votable/highlightObject</code> message.</li>
+    <li>Fixed bug in writing <code>votable-fits-href</code> and
+        <code>votable-binary-href</code> format tables from the file 
+        browser.</li>
     </ul>
     </p></dd>
 

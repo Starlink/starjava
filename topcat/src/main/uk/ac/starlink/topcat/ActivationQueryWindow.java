@@ -75,6 +75,7 @@ public class ActivationQueryWindow extends QueryWindow {
             new ImageActivatorFactory(),
             new SpectrumActivatorFactory(),
             new BrowserActivatorFactory(),
+            new PlasticHighlightActivatorFactory(),
             new PlasticPointAtActivatorFactory(),
             new JELActivatorFactory(),
         };
@@ -396,6 +397,60 @@ public class ActivationQueryWindow extends QueryWindow {
 
         Activator makeActivator() {
             return cutter_.makeActivator();
+        }
+    }
+
+    /**
+     * Factory implementation for sending a PLASTIC highlightObject message.
+     */
+    private class PlasticHighlightActivatorFactory extends ActivatorFactory {
+        JComboBox appSelector_;
+
+        PlasticHighlightActivatorFactory() {
+            super( "Transmit Row" );
+            TopcatPlasticListener pserv =
+                ControlWindow.getInstance().getPlasticServer();
+            ComboBoxModel appModel =
+                ControlWindow.getInstance().getPlasticServer()
+               .createPlasticComboBoxModel( TopcatPlasticListener
+                                           .VOT_HIGHLIGHTOBJECT );
+            appSelector_ = new JComboBox( appModel );
+            LabelledComponentStack stack = new LabelledComponentStack();
+            stack.addLine( "Target Application", appSelector_ );
+            queryPanel_.add( stack );
+            JLabel[] labels = stack.getLabels();
+            enablables_ = new Component[] {
+                appSelector_,
+                labels[ 0 ],
+            };
+        }
+
+        Activator makeActivator() {
+            Object app = appSelector_.getSelectedItem();
+            final URI[] recipients = app instanceof ApplicationItem
+                        ? new URI[] { ((ApplicationItem) app).getId() }
+                        : null;
+            final TopcatPlasticListener pserv =
+                ControlWindow.getInstance().getPlasticServer();
+            return new Activator() {
+                public String activateRow( long lrow ) {
+                    try {
+                        if ( pserv.highlightRow( tcModel_, lrow,
+                                                 recipients ) ) {
+                            return tcModel_ + "(" + lrow + ")";
+                        }
+                        else {
+                            return "no send (" + lrow + ")";
+                        }
+                    }
+                    catch ( IOException e ) {
+                        return "send (" + lrow + ") failed - " + e;
+                    }
+                }
+                public String toString() {
+                    return "transmitRow";
+                }
+            };
         }
     }
 
