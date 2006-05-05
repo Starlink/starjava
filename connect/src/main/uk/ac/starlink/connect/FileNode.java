@@ -29,8 +29,9 @@ public abstract class FileNode implements Node {
 
     public Branch getParent() {
         File parent = file_.getParentFile();
-        return parent == null ? null
-                              : new FileBranch( parent );
+        return ( parent != null && parent.isDirectory() )
+             ? new FileBranch( parent )
+             : null;
     }
 
     public File getFile() {
