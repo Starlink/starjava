@@ -157,6 +157,11 @@ public class VOTableWriter implements StarTableWriter {
         /* Now write the DATA element. */
         /* First Treat the case where we write data inline. */
         if ( inline || file == null ) {
+            if ( ! inline ) {
+                assert file != null;
+                logger.warning( "Writing VOTable inline - can't do href "
+                              + "when no filename is supplied" );
+            }
 
             /* For elements which stream data to a Base64 encoding we
              * write the element by hand using some package-private methods.
