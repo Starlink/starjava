@@ -23,6 +23,11 @@ public class OutputModeParameter extends Parameter
     private ProcessingMode mode_;
     private TableConsumer consumer_;
 
+    /**
+     * Constructor.
+     *
+     * @param  name  parameter name
+     */
     public OutputModeParameter( String name ) {
         super( name );
         setPrompt( "Output mode" );
