@@ -44,6 +44,15 @@ public class OutputTableParameter extends Parameter
         setGotValue( true );
     }
 
+    public void setValueFromString( Environment env, String sval ) 
+            throws TaskException {
+        checkGotValue( env );
+        String loc = sval;
+        String fmt = formatParam_.stringValue( env );
+        consumer_ = CopyMode.createConsumer( env, loc, fmt );
+        super.setValueFromString( env, sval );
+    }
+
     /**
      * Returns a TableConsumer which corresponds to the value of this
      * parameter.
@@ -52,11 +61,6 @@ public class OutputTableParameter extends Parameter
      */
     public TableConsumer consumerValue( Environment env ) throws TaskException {
         checkGotValue( env );
-        if ( consumer_ == null ) {
-            String loc = stringValue( env );
-            String fmt = formatParam_.stringValue( env );
-            consumer_ = CopyMode.createConsumer( env, loc, fmt );
-        }
         return consumer_;
     }
 }
