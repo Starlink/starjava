@@ -91,8 +91,11 @@ public class TopcatPlasticListener extends HubManager {
 
         /* Load VOTable passed as text in an argument. */
         if ( VOT_LOAD.equals( message ) &&
-                  checkArgs( args, new Class[] { String.class } ) ) {
-            votableLoad( sender, (String) args.get( 0 ) );
+             checkArgs( args, new Class[] { String.class } ) ) {
+            String text = (String) args.get( 0 );
+            String id = args.size() > 1 ? String.valueOf( args.get( 1 ) )
+                                        : null;
+            votableLoad( sender, text, id );
 	    return Boolean.TRUE;
 	}
 
@@ -455,8 +458,10 @@ public class TopcatPlasticListener extends HubManager {
      * @param  sender  sender ID
      * @param  votText   VOTable text contained in a string, assumed UTF-8
      *                   encoded
+     * @param  votId   identifies the sent VOTable for later use
      */
-    private void votableLoad( URI sender, String votText ) throws IOException {
+    private void votableLoad( URI sender, String votText, String votId )
+            throws IOException {
         final byte[] votBytes;
         try {
             votBytes = votText.getBytes( "UTF-8" );
@@ -473,7 +478,7 @@ public class TopcatPlasticListener extends HubManager {
             }
         };
         loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( datsrc, "votable" ), sender, null );
+                  .makeStarTable( datsrc, "votable" ), sender, votId );
     }
 
     /**
@@ -509,7 +514,7 @@ public class TopcatPlasticListener extends HubManager {
             public void run() {
                 TopcatModel tcModel =
                     controlWindow_.addTable( table, title, true );
-                if ( key != null ) {
+                if ( key != null && key.trim().length() > 0 ) {
                     idMap_.put( key, new TableWithRows( tcModel, null ) );
                 }
             }
