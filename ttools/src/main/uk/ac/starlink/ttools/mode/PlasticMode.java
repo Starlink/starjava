@@ -217,7 +217,7 @@ public class PlasticMode implements ProcessingMode {
                 bstrm.close();
                 String vot = bstrm.toString();
                 bstrm = null;
-                List args = Collections.singletonList( vot );
+                List args = Arrays.asList( new String[] { vot, "" } );
                 if ( clientList == null ) {
                     hub.requestAsynch( plasticId, MSG_BYTEXT, args );
                 }
