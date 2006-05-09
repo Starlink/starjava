@@ -24,6 +24,7 @@ public class ParameterTest extends TestCase {
         "protocol", "database", "newtable",
         "matcher", "values1", "values2", "params",
         "in", "in1", "in2", "expression",
+        "cols", "binsizes",
     } ) );
 
     public ParameterTest( String name ) {
