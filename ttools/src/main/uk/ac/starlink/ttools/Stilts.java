@@ -91,6 +91,7 @@ public class Stilts {
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "tcat", taskPkg + "TableCat" );
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );
+        taskFactory_.register( "tcube", taskPkg + "TableCube" );
         taskFactory_.register( "tmatch2", taskPkg + "TableMatch2" );
         taskFactory_.register( "tpipe", taskPkg + "TablePipe" );
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
