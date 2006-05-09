@@ -531,18 +531,19 @@ public abstract class HubManager implements PlasticListener {
      * Utility method to check the types of a list of arguments.
      * If they look OK, true is returned, otherwise an IOException is thrown.
      * The check is passed if there are the same number of actual arguments
-     * as required types, and each argument is either null or of the
+     * as required types or more (to permit future extension of message
+     * definitions), and each argument is either null or of the
      * class in the correponding position in <code>types</code>, or a
      * subclass of that.
      *
      * @param  args  actual argument list
-     * @param  types  classes you want to see represented in <code>list</code>
+     * @param  types  classes you want to see represented in the initial
+     *                elements of <code>list</code>
      */
     public static boolean checkArgs( List args, Class[] types )
             throws IOException {
-        if ( types.length != args.size() ) {
-            throw new IOException( "Wrong number of arguments in "
-                                 + "PLASTIC message" );
+        if ( args.size() < types.length ) {
+            throw new IOException( "Not enough arguments in PLASTIC message" );
         }
         for ( int i = 0; i < types.length; i++ ) {
             Object arg = args.get( i );
