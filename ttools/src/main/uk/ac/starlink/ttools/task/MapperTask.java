@@ -2,8 +2,8 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -34,21 +34,19 @@ public class MapperTask implements Task {
     private final InputTableParameter[] inTableParams_;
     private final FilterParameter[] inFilterParams_;
     private final FilterParameter outFilterParam_;
-    private final TableConsumerParameter consumerParam_;
+    private final ProcessingMode outMode_;
     private final Parameter[] params_;
-
-    private final static Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
      *
      * @param   mapper   object which defines mapping transformation
-     * @param   useOutModes  true iff you want modes other than 
-     *          {@link uk.ac.starlink.ttools.mode.CopyMode} (writing the
-     *          table out) to be available
+     * @param   outMode  processing mode which determines the destination of
+     *          the processed table
+     * @param   useInFilters  allow specification of filters for input tables
+     * @param   useOutFilters allow specification of filters for output tables
      */
-    public MapperTask( TableMapper mapper, boolean useOutModes,
+    public MapperTask( TableMapper mapper, ProcessingMode outMode,
                        boolean useInFilters, boolean useOutFilters ) {
         mapper_ = mapper;
         nIn_ = mapper.getInCount();
@@ -128,7 +126,7 @@ public class MapperTask implements Task {
         }
 
         /* Processing parameters. */
-        addElements( paramList, mapper.getParameters() );
+        paramList.addAll( Arrays.asList( mapper.getParameters() ) );
 
         /* Output filter. */
         if ( useOutFilters ) {
@@ -147,67 +145,15 @@ public class MapperTask implements Task {
         }
 
         /* Output parameters. */
-        if ( useOutModes ) {
-            OutputModeParameter modeParam = new OutputModeParameter( "omode" );
-            paramList.add( modeParam );
-            addElements( paramList, getAssociatedParameters( modeParam ) );
-            consumerParam_ = modeParam;
-        }
-        else {
-            OutputTableParameter outParam = new OutputTableParameter( "out" );
-            paramList.add( outParam );
-            paramList.add( outParam.getFormatParameter() );
-            consumerParam_ = outParam;
-        }
+        outMode_ = outMode;
+        paramList.addAll( Arrays.asList( outMode.getAssociatedParameters() ) );
+
+        /* Fix output parameter list. */
         params_ = (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
     public Parameter[] getParameters() {
         return params_;
-    }
-
-    /**
-     * Returns a list of parameters associated with an OutputModeParameter.
-     * These serve a documentation purpose only - the purpose is so that
-     * usage messages and other automatically generated documentation 
-     * feature an 'out' and 'ofmt' parameter which is what people who
-     * don't read documentation will be looking for, rather than an
-     * 'omode' parameter which people will look straight through.
-     *
-     * @return   parameters associated with output mode
-     */
-    private Parameter[] getAssociatedParameters( OutputModeParameter modeParam )
-            {
-        String modeName = modeParam.getDefault();
-        ProcessingMode mode;
-        try {
-            mode = (ProcessingMode)
-                   Stilts.getModeFactory().createObject( modeName );
-        }
-        catch ( LoadException e ) {
-            logger_.warning( "Can't load default output mode?? " + e );
-            return new Parameter[ 0 ];
-        }
-        Parameter[] modeParams = mode.getAssociatedParameters();
-        if ( modeParams.length != 2 ||
-             ! ( modeParams[ 0 ] instanceof OutputTableParameter ) ||
-             ! ( modeParams[ 1 ] instanceof OutputFormatParameter ) ) {
-            logger_.warning( "Output mode parameters out of sync?" );
-        }
-        Parameter outParam =
-            new OutputTableParameter( modeParams[ 0 ].getName() );
-        Parameter fmtParam =
-            new OutputFormatParameter( modeParams[ 1 ].getName() );
-        Parameter[] resultParams = new Parameter[] { outParam, fmtParam, };
-        for ( int i = 0; i < resultParams.length; i++ ) {
-            resultParams[ i ].setDescription( new String[] {
-                resultParams[ i ].getDescription(),
-                "This parameter must only be given if",
-                "<code>" + modeParam.getName() + "</code>",
-                "has its default value of \"<code>" + modeName + "</code>\".",
-            } );
-        }
-        return resultParams;
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
@@ -237,9 +183,9 @@ public class MapperTask implements Task {
 
         /* Get the table consumer, which defines the output table's final
          * destination. */
-        final TableConsumer baseConsumer = consumerParam_.consumerValue( env );
+        final TableConsumer baseConsumer = outMode_.createConsumer( env );
 
-        /* Consstruct a consumer which will combine the post-processing
+        /* Construct a consumer which will combine the post-processing
          * and the final disposal. */
         final TableConsumer consumer = new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
@@ -272,6 +218,24 @@ public class MapperTask implements Task {
     }
 
     /**
+     * Returns this task's Mapper object.
+     *
+     * @return  mapper
+     */
+    public TableMapper getMapper() {
+        return mapper_;
+    }
+
+    /**
+     * Returnst this task's output mode.
+     *
+     * @return  output mode
+     */
+    public ProcessingMode getOutputMode() {
+        return outMode_;
+    }
+
+    /**
      * Checks the unused words in the environment in case we can write any
      * useful messages.
      *
@@ -289,18 +253,6 @@ public class MapperTask implements Task {
                         "when omode=out" );
                 }
             }
-        }
-    }
-
-    /**
-     * Convenience method to add parameters to a List.
-     *
-     * @param   list   list to augment
-     * @param   params  array of parameters to add
-     */
-    private static void addElements( List list, Parameter[] params ) {
-        for ( int i = 0; i < params.length; i++ ) {
-            list.add( params[ i ] );
         }
     }
 
