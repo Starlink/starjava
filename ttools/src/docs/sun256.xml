@@ -20,6 +20,7 @@
   <!ENTITY calc-purpose 'Calculator'>
   <!ENTITY tcat-purpose 'Table Concatenater'>
   <!ENTITY tcopy-purpose 'Table Format Converter'>
+  <!ENTITY tcube-purpose 'N-dimensional Histogram Calculator'>
   <!ENTITY tmatch2-purpose 'Pair Crossmatcher'>
   <!ENTITY tpipe-purpose 'Generic Table Pipeline Utility'>
   <!ENTITY votcopy-purpose 'VOTable Encoding Translator'>
@@ -35,6 +36,7 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
+  <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
@@ -148,6 +150,9 @@ table manipulation:
     </li>
 <li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
     &tcopy-purpose;
+    </li>
+<li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
+    &tcube-purpose;
     </li>
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
@@ -330,6 +335,7 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>tcat</code></li>
 <li><code>tcopy</code></li>
+<li><code>tcube</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tpipe</code></li>
 <li><code>votcopy</code></li>
@@ -831,7 +837,8 @@ then you could avoid having to give the <code>-classpath</code> and
 <p>The generic table commands in STILTS 
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
-           <ref id="tcat"><code>tcat</code></ref>
+           <ref id="tcat"><code>tcat</code></ref>,
+           <ref id="tcube"><code>tcube</code></ref>
        and <ref id="tmatch2"><code>tmatch2</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
@@ -2259,6 +2266,75 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
 
 </subsect>
 
+<subsect id="tcube">
+<subhead><title><code>tcube</code>: &tcube-purpose;</title></subhead>
+
+<p><code>tcube</code> constructs an N-dimensional histogram, or density map, 
+from N columns of an input table, and writes it out as an
+N-dimensional data cube.  The parameters you supply define which N
+numeric columns of the input table you want to use and the dimensions 
+(bounds and pixel sizes) of the output grid.  
+Each table row then defines a point in N-dimensional space.  
+The program goes through each row, and if the point that row
+defines falls within the bounds of the output grid you have defined,
+increments the value associated with the corresponding pixel.  
+The resulting N-dimensional array, whose pixel values represent a 
+count of the rows associated with that region of the N-dimensional space,
+is then written out as a FITS file.
+In one dimension, this gives you a normal histogram of a given variable.
+In two dimensions it might typically be used to plot the density on
+the sky of objects from a catalogue.
+</p>
+
+<p>As with some of the other generic table commands,
+you can perform extensive pre-processing on the input table by
+use of the <code>icmd</code> parameter before the actual cube 
+counts are calculated.
+</p>
+
+&tcube-summary;
+
+<subsubsect id="tcubeExamples">
+<subhead><title>Examples</title></subhead>
+
+<p>
+<dl>
+
+<dt><verbatim>
+stilts tcube in=2QZ_6QZ_pubcat.fits out=ccm.fits \
+             cols='Bj_R U_Bj Bj' binsizes='0.05 0.05 0.5' bounds='-2:1 -3:2 :'
+</verbatim></dt>
+<dd><p>Calculates a 3-dimensional colour-colour-magnitude grid from 
+    three existing columns in a table.  The bin (pixel) sizes are specified.
+    The data bounds are specified explicitly for the (first two) 
+    colour dimensions, but for the (third) magnitude dimension it is 
+    determined from the minimum and maximum values the data in 
+    that column of the table.
+    The output is a three-dimensional FITS cube.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcube in=iras_psc.vot out=iras_psc_map.fits \
+             icmd='addskycoords fk5 galactic ra dec glat glon' \
+             cols='glat glon' nbins='400 200'
+</verbatim></dt>
+<dd><p>Calculates a map of object densities in galactic coordinates from
+    a catalogue of IRAS point sources.  The output is a two-dimensional
+    FITS image representing the sky in galactic coordinates.
+    Bounds are determined automatically from the data, and the number of
+    pixels in each dimension (400 in latitude and 200 in longitude) are
+    specified, which means that the pixel sizes don't have to be.
+    Since the input table contains sky positions in equatorial 
+    coordinates rather than galactic ones, the <code>addskycoords</code>
+    filter is used to preprocess the data before the cube generation
+    step (see <ref id="filterSteps"/>).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+</subsect>
 
 <subsect id="tmatch2">
 <subhead><title><code>tmatch2</code>: &tmatch2-purpose;</title></subhead>
@@ -3265,6 +3341,7 @@ but my thanks are especially due to the following:
 <li>Fixed erroneous reports about unknown <code>ucd</code> and 
     <code>utype</code> attributes of TABLE element in 
     <code>votlint</code>.</li>
+<li>New task <code>tcube</code>.</li>
 </ul>
 </p></dd>
 
