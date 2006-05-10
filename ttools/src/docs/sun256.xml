@@ -721,6 +721,15 @@ on the command line is equivalent to having the following in your
     (see <ref id="jelExtend"/>).
     </p></dd>
 
+<dt><code>mark.workaround</code></dt>
+<dd><p>If set to "true", this will work around a bug in the 
+    <code>mark()</code>/<code>reset()</code> methods of some java
+    <code>InputStream</code> classes.  These are rather common,
+    including in Sun's J2SE system libraries.
+    Use this if you are seeing errors that say something like
+    "<code>Resetting to invalid mark</code>".
+    Currently defaults to "false".</p></dd>
+
 <dt><code>startable.readers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format input
     handler classes (see <docxref doc="sun252" loc="pluggableIO"/>).
@@ -746,15 +755,6 @@ on the command line is equivalent to having the following in your
     elements with <code>datatype="char"</code>.
     False by default.
     </p></dd>
-
-<dt><code>mark.workaround</code></dt>
-<dd><p>If set to "true", this will work around a bug in the 
-    <code>mark()</code>/<code>reset()</code> methods of some java
-    <code>InputStream</code> classes.  These are rather common,
-    including in Sun's J2SE system libraries.
-    Use this if you are seeing errors that say something like
-    "<code>Resetting to invalid mark</code>".
-    Currently defaults to "false".</p></dd>
 
 </dl>
 </p>
