@@ -216,7 +216,7 @@ public class URLUtils {
      *
      * @param   file   file
      * @return   URL
-     * @see   RFC 1738
+     * @see   "RFC 1738"
      */
     public static URL makeFileURL( File file ) {
         try {
@@ -235,7 +235,7 @@ public class URLUtils {
      *
      * @param   url  input URL
      * @return  fixed URL
-     * @see   RFC 1738
+     * @see   "RFC 1738"
      */
     public static URL fixURL( URL url ) {
         Matcher matcher = FILE_URL_REGEX.matcher( url.toString() );
