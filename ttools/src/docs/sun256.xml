@@ -3299,52 +3299,102 @@ but my thanks are especially due to the following:
 <dt>Version 1.0-1b (7 October 2005)</dt>
 <dd><p>Fixed jar file manifest bug which prevented working on Java 1.5</p></dd>
 
-<dt>Next version</dt>
-<dd><p>
-<ul>
-<li>Now copes with 'K'-format FITS binary table columns (64-bit integers).</li>
-<li><code>roundDecimal</code> and <code>formatDecimal</code> functions
-    introduced for more control over visual appearance of numeric values.</li>
-<li>Withdrew <code>sortexpr</code> filter - <code>sort</code> has been 
-    rewritten so that it can do all the things that were previously 
-    possible with <code>sort</code> or <code>sortexpr</code>.</li>
-<li>Introduced new <code>sorthead</code> filter, which forms a 
-    (usually) more efficent way of doing what you could previously do
-    by combining a <code>sort</code> and <code>head</code> operation.</li>
-<li>Distinctions between null and false values in boolean columns are
-    handled more carefully for FITS and VOTable files.</li>
-<li>When joining tables, column name comparison to determine whether
-    deduplication is required is now case-insensitive.</li>
-<li>Error message improved when no automatic format detection is attempted
-    for streamed tables.</li>
-<li>Setting <code>istream=true</code> is now less likely to cause a
-    "Can't re-read stream" error.</li>
-<li>Efficiency improvement when writing FITS-plus format (now only requires
-    a maximum of two passes rather than three of the input rows).</li>
-<li>Added <code>check</code> processing filter (for debugging use only).</li>
-<li>Fixed a bug in Cartesian matching which failed to match if the required
-    error in any dimension was zero.</li>
-<li>Added input handler for IPAC Table Format.</li>
-<li>Added "<code>plastic</code> output mode.</li>
-<li><code>topcat</code> output mode now attempts to use PLASTIC.</li>
-<li>Added "<code>meta</code> filter.</li>
-<li>Experimental facilities for automatically generating a CEA application
-    description file.</li>
-<li>Added "<code>csv-noheader</code>" output format.</li>
-<li>Added "<code>colmeta</code>" filter.</li>
-<li>Added "<code>stats</code>" filter.</li>
-<li>Added "<code>uniq</code>" filter.</li>
-<li>Added "<code>assert</code> filter.</li>
-<li>Added "<code>discard</code> mode.</li>
-<li>Improved, though still imperfect, retention of table-wide
-    metadata in VOTables.</li>
-<li>Fixed erroneous reports about unknown <code>ucd</code> and 
-    <code>utype</code> attributes of TABLE element in 
-    <code>votlint</code>.</li>
-<li>New task <code>tcube</code>.</li>
-</ul>
-</p></dd>
+<dt>Version 1.1 (10 May 2006)</dt>
+<dd><p>A number of new features and capabilities have been introduced:
+    <dl>
+    <dt><code>tcube</code> Command</dt>
+    <dd><p>The new <ref id="tcube" plaintextref="yes">tcube</ref> command
+        calculates N-dimensional histograms (density maps) from N columns
+        of an input table and writes the result to a FITS file.</p></dd>
 
+    <dt>Processing Filters</dt>
+    <dd><p>The following new <ref id="filterSteps">filters</ref>
+        have been added:
+        <ul>
+        <li><code>stats</code> filter provides the same information as
+            the old <code>stats</code> output mode, but allows much more
+            flexible use of the results.  It can also calculates many new
+            quantities, including quantiles, skew and kurtosis.</li>
+        <li><code>meta</code> filter provides the same information as
+            the old <code>meta</code> output mode, but allows much more
+            flexible use of the results.</li>
+        <li><code>assert</code> filter provides in-pipeline logical
+            assertions.</li>
+        <li><code>uniq</code> filter collapses multiple adjacent identical 
+            or similar rows.</li>
+        <li><code>sorthead</code> filter provides a (usually) more
+            efficient method of doing what you could previously do 
+            by combining <code>sort</code> and <code>head</code> filters.</li>
+        <li><code>colmeta</code> filter adds/modifies metadata for selected
+            columns.</li>
+        <li><code>check</code> filter checks table in stream - for debugging
+            purposes only.</li>
+        </ul>
+        </p>
+        <p>Additionally usage of the <code>sort</code> filter has been changed
+        so that it can now do everything that <code>sortexpr</code> used to
+        be able to do; <code>sortexpr</code> is now withdrawn.
+        </p></dd>
+
+    <dt>Output Modes</dt>
+    <dd><p>The following new <ref id="outModes">output modes</ref>
+        have been introduced:
+        <ul>
+        <li><code>plastic</code> mode broadcasts the table to
+            one or all registered PLASTIC listeners.</li>
+        <li><code>discard</code> mode throws away the table.</li>
+        </ul>
+        and usage of the following has been modified:
+        <ul>
+        <li><code>topcat</code> mode now attempts to use PLASTIC 
+            (amongst other methods) to contact TOPCAT.</li>
+        <li><code>stats</code> and <code>meta</code> modes are mildly
+            deprecated in favour of the corresponding new filters
+            (see above).</li>
+        </ul>
+        </p></dd>
+
+    <dt>Other new features</dt>
+    <dd><p>
+        <ul>
+        <li>New IPAC table format input handler added.</li>
+        <li>New <code>csv-noheader</code> format variant output handler
+            added.</li>
+        <li><code>roundDecimal</code> and <code>formatDecimal</code>
+            functions introduced for more control over visual appearance
+            of numeric values.</li>
+        <li>Experimental facilities for automatically generating a CEA
+            application description file.</li>
+        </ul>
+        </p></dd>
+
+    <dt>Bug fixes and minor improvements</dt>
+    <dd><p>
+        <ul>
+        <li>Now copes with 'K'-format FITS binary table columns
+           (64-bit integers).</li>
+        <li>Improved, though still imperfect, retention of table-wide
+            metadata in VOTables.</li>
+        <li>Distinctions between null and false values in boolean columns are
+            handled more carefully for FITS and VOTable files.</li>
+        <li>Efficiency improvement when writing FITS-plus format
+            (now only requires a maximum of two passes rather than
+            three of the input rows).</li>
+        <li>Fixed a bug in Cartesian matching which failed to match
+            if the required error in any dimension was zero.</li>
+        <li>Fixed erroneous reports about unknown <code>ucd</code> and 
+            <code>utype</code> attributes of TABLE element in 
+            <code>votlint</code>.</li>
+        <li>When joining tables, column name comparison to determine
+            whether deduplication is required is now case-insensitive.</li>
+        <li>Error message improved when no automatic format detection
+            is attempted for streamed tables.</li>
+        <li>Setting <code>istream=true</code> is now less likely to cause a
+            "Can't re-read stream" error.</li>
+        </ul>
+        </p></dd>
+    </dl>
+</p></dd>
 
 </dl>
 </p>
