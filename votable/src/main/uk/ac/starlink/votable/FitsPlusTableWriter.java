@@ -54,6 +54,10 @@ public class FitsPlusTableWriter extends FitsTableWriter {
         return formatName_;
     }
 
+    public String getMimeType() {
+        return "application/fits";
+    }
+
     /**
      * Returns true if <tt>location</tt> ends with something like ".fit"
      * or ".fits".

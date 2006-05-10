@@ -71,6 +71,12 @@ public class CsvTableWriter extends StreamStarTableWriter {
         return writeHeader_ ? "CSV" : "CSV-noheader";
     }
 
+    public String getMimeType() {
+        return "text/csv; header=\""
+             + ( writeHeader_ ? "present" : "absent" )
+             + "\"";
+    }
+
     /**
      * Returns true for locations ending ".csv" or ".CSV".
      */

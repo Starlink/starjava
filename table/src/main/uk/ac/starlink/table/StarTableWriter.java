@@ -72,7 +72,18 @@ public interface StarTableWriter {
      * Matching against this string may be used by callers to identify
      * or select this writer from a list.
      *
-     * @param   a short string identifying the output format of this writer
+     * @return   a short string identifying the output format of this writer
      */
     String getFormatName();
+
+    /**
+     * Returns a string suitable for use as the value of a MIME 
+     * Content-Type header.  If no suitable MIME type is available
+     * or known, one of "<code>application/octet-stream</code>"
+     * (for binary formats) or "<code>text/plain</code>" for ASCII ones)
+     * is recommended.
+     *
+     * @return   MIME content type
+     */
+    String getMimeType();
 }

@@ -379,6 +379,26 @@ public class VOTableWriter implements StarTableWriter {
         return fname.toString();
     }
 
+    public String getMimeType() {
+        String type = "application/x-votable+xml";
+        String encoding;
+        if ( dataFormat == DataFormat.TABLEDATA ) {
+            encoding = "TABLEDATA";
+        }
+        else if ( dataFormat == DataFormat.BINARY ) {
+            encoding = "BINARY";
+        }
+        else if ( dataFormat == DataFormat.FITS ) {
+            encoding = "FITS";
+        }
+        else {
+            encoding = null;
+        }
+        return "application/x-votable+xml"
+             + ( encoding == null ? ""
+                                  : "; encoding=\"" + encoding + "\"" ); 
+    }
+
     /**
      * Sets the format in which the table data will be output.
      *

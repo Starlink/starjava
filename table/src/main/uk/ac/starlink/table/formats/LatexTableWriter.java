@@ -63,6 +63,10 @@ public class LatexTableWriter extends StreamStarTableWriter {
         return standalone ? "LaTeX-document" : "LaTeX";
     }
 
+    public String getMimeType() {
+        return "text/plain";
+    }
+
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".tex" );
     }

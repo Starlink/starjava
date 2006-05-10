@@ -27,4 +27,8 @@ public class MirageTableWriter extends StreamStarTableWriter {
     public String getFormatName() {
         return "mirage";
     }
+
+    public String getMimeType() {
+        return "text/plain";
+    }
 }

@@ -483,8 +483,12 @@ public class StarTableOutput {
         }
     }
 
-    void transferTable( StarTable table, OutputStream ostrm ) 
-            throws IOException {
-        voWriter.writeStarTable( table, ostrm );
+    /**
+     * Returns a writer suitable for data transfer (drag'n'drop) operations.
+     *
+     * @return  transfer writer
+     */
+    StarTableWriter getTransferWriter() {
+        return voWriter;
     }
 }

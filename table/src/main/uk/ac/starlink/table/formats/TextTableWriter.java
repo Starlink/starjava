@@ -40,6 +40,10 @@ public class TextTableWriter extends StreamStarTableWriter {
         return "text";
     }
 
+    public String getMimeType() {
+        return "text/plain";
+    }
+
     /**
      * Returns true for <tt>location</tt> argument which ends in ".txt"
      * or is equal to "-", indicating standard output.

@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * Implements Transferable based on a StarTable.
  * It can serialise itself in one of the StarTable output formats.
  * Currently, VOTable with BINARY inline data is used
- * (the associated MIME type is "application/xml").
+ * (the associated MIME type is "application/x-votable+xml").
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -34,8 +34,9 @@ class StarTableTransferable implements Transferable {
     public StarTableTransferable( StarTableOutput outputter, StarTable table ) {
         this.outputter = outputter;
         this.table = table;
-        DataFlavor flavor = new DataFlavor( "application/xml",
-                                            "StarTable" );
+        DataFlavor flavor =
+            new DataFlavor( outputter.getTransferWriter().getMimeType(),
+                            "StarTable" );
         flavorList.add( flavor );
     }
 
@@ -64,7 +65,8 @@ class StarTableTransferable implements Transferable {
         new Thread() {
             public void run() {
                 try {
-                    outputter.transferTable( table, ostrm );
+                    outputter.getTransferWriter()
+                             .writeStarTable( table, ostrm );
                 }
                 catch ( IOException e ) {
                     // may well catch an exception if the reader stops reading

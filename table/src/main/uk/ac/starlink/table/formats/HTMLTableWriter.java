@@ -61,6 +61,10 @@ public class HTMLTableWriter extends StreamStarTableWriter {
         return standalone ? "HTML" : "HTML-element";
     }
 
+    public String getMimeType() {
+        return "text/html";
+    }
+
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".html" ) ||
                location.endsWith( ".htm" );
