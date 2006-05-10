@@ -80,7 +80,7 @@ public abstract class Compression {
      */
     public static InputStream decompressStatic( InputStream raw ) 
              throws IOException {
-        if ( ! raw.markSupported() ) {
+        if ( ! raw.markSupported() || DataSource.getMarkWorkaround() ) {
             raw = new BufferedInputStream( raw );
         }
         raw.mark( MAGIC_SIZE );

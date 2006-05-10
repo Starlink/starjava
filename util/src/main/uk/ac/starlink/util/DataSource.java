@@ -55,6 +55,8 @@ public abstract class DataSource {
     private String position;
 
     public static final int DEFAULT_INTRO_LIMIT = 512;
+    public static final String MARK_WORKAROUND_PROPERTY = "mark.workaround";
+    private static Boolean markWorkaround_;
 
     /**
      * Constructs a DataSource with a given size of intro buffer.
@@ -257,7 +259,7 @@ public abstract class DataSource {
         if ( compress == null ) {
 
             /* Ensure we can do mark/reset on this stream. */
-            if ( ! rawStrm.markSupported() ) {
+            if ( ! rawStrm.markSupported() || getMarkWorkaround() ) {
                 rawStrm = new BufferedInputStream( rawStrm );
             }
 
@@ -277,7 +279,7 @@ public abstract class DataSource {
         InputStream introStrm = compress.decompress( rawStrm );
 
         /* Ensure we can do mark/reset on it. */
-        if ( ! introStrm.markSupported() ) {
+        if ( ! introStrm.markSupported() || getMarkWorkaround() ) {
             introStrm = new BufferedInputStream( introStrm );
         }
 
@@ -312,7 +314,23 @@ public abstract class DataSource {
 
         /* Otherwise reset it and store it for later use. */
         else {
-            introStrm.reset();
+            try {
+                introStrm.reset();
+            }
+            catch ( IOException e ) {
+                String msg = new StringBuffer()
+               .append( e.getMessage() )
+               .append( "\n" )
+               .append( "If you have received a " )
+               .append( "\"Resetting to an invalid mark\" error,\n" )
+               .append( "you have probably come across a " )
+               .append( "bug in some library classes (not STILTS ones).\n" )
+               .append( "Try running with -D" )
+               .append( MARK_WORKAROUND_PROPERTY )
+               .append( "=true." )
+               .toString();
+                throw (IOException) new IOException( msg ).initCause( e );
+            }
             strm = introStrm;
         }
     }
@@ -653,6 +671,39 @@ public abstract class DataSource {
             }
         }
         return Compression.decompressStatic( rawStream );
+    }
+
+    /**
+     * Returns true if we are working around potential bugs in InputStream
+     * {@link java.io.InputStream#mark}/{@link java.io.InputStream#reset}
+     * methods (common, including in J2SE classes).
+     * The return value is dependent on the system property named
+     * {@link #MARK_WORKAROUND_PROPERTY}.
+     *
+     * @return   true  iff we are working around mark/reset bugs
+     */
+    public static boolean getMarkWorkaround() {
+        if ( markWorkaround_ == null ) {
+            try {
+                markWorkaround_ =
+                    Boolean.valueOf( System
+                                    .getProperty( MARK_WORKAROUND_PROPERTY ) );
+            }
+            catch ( Throwable e ) {
+                markWorkaround_ = Boolean.FALSE;
+            }
+        }
+        return markWorkaround_.booleanValue();
+    }
+
+    /**
+     * Sets whether we want to work around bugs in InputStream mark/reset
+     * methods.
+     *
+     * @param  workaround   true to employ the workaround
+     */
+    public static void setMarkWorkaround( boolean workaround ) {
+        markWorkaround_ = Boolean.valueOf( workaround );
     }
 
     /**
