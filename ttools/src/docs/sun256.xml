@@ -747,6 +747,15 @@ on the command line is equivalent to having the following in your
     False by default.
     </p></dd>
 
+<dt><code>mark.workaround</code></dt>
+<dd><p>If set to "true", this will work around a bug in the 
+    <code>mark()</code>/<code>reset()</code> methods of some java
+    <code>InputStream</code> classes.  These are rather common,
+    including in Sun's J2SE system libraries.
+    Use this if you are seeing errors that say something like
+    "<code>Resetting to invalid mark</code>".
+    Currently defaults to "false".</p></dd>
+
 </dl>
 </p>
 
@@ -3342,6 +3351,8 @@ but my thanks are especially due to the following:
         <ul>
         <li><code>plastic</code> mode broadcasts the table to
             one or all registered PLASTIC listeners.</li>
+        <li><code>cgi</code> mode writes the table to standard output in a
+            form suitable for output from a CGI script.</li>
         <li><code>discard</code> mode throws away the table.</li>
         </ul>
         and usage of the following has been modified:
@@ -3380,6 +3391,10 @@ but my thanks are especially due to the following:
         <li>Efficiency improvement when writing FITS-plus format
             (now only requires a maximum of two passes rather than
             three of the input rows).</li>
+        <li>Added the <code>mark.workaround</code> 
+            <ref id="sysProperties">system property</ref> which can 
+            optionally work around a bug in some input streams 
+            ("Resetting to invalid mark" errors).</li>
         <li>Fixed a bug in Cartesian matching which failed to match
             if the required error in any dimension was zero.</li>
         <li>Fixed erroneous reports about unknown <code>ucd</code> and 
