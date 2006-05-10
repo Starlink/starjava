@@ -50,6 +50,9 @@ public class AcrDataSource extends DataSource {
          * around persistent problems with markSupported() returning the
          * wrong value somewhere along the line.  See comments in 
          * DataSource source code. */
+        /* Actually, this could probably be removed, since I am now
+         * handling this using the mark.workaround system property.
+         * Again, see DataSource. */
         return new BufferedInputStream( new URL( url ).openStream() );
     }
 }
