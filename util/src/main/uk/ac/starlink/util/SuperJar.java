@@ -68,6 +68,8 @@ public class SuperJar {
      * referenced in their Class-Path manifest entries will be used.
      * The manifest of the first one will be used as the manifest of
      * the output file (though its Class-Path entry will be empty).
+     * Zip files can be used as well, they work the same but have no 
+     * manifest.
      *
      * @param  args  an array of command-line arguments as described above
      */
@@ -184,19 +186,21 @@ public class SuperJar {
         jstrm.close();
 
         /* Recurse. */
-        Attributes atts = manifest.getMainAttributes();
-        String classpath = atts.getValue( Attributes.Name.CLASS_PATH );
-        if ( classpath != null && classpath.trim().length() > 0 ) {
-            File dir = jfile.getParentFile();
-            String[] cpents = classpath.trim().split( " +" );
-            for ( int i = 0; i < cpents.length; i++ ) {
-                File jf = new File( dir, cpents[ i ] );
-                if ( exclude( jf ) ) {
-                    logStrm.println( levelPrefix( level ) 
-                                   + "        Excluding: " + jf );
-                }
-                else {
-                    processJar( jf, level + 1 );
+        if ( manifest != null ) {
+            Attributes atts = manifest.getMainAttributes();
+            String classpath = atts.getValue( Attributes.Name.CLASS_PATH );
+            if ( classpath != null && classpath.trim().length() > 0 ) {
+                File dir = jfile.getParentFile();
+                String[] cpents = classpath.trim().split( " +" );
+                for ( int i = 0; i < cpents.length; i++ ) {
+                    File jf = new File( dir, cpents[ i ] );
+                    if ( exclude( jf ) ) {
+                        logStrm.println( levelPrefix( level ) 
+                                       + "        Excluding: " + jf );
+                    }
+                    else {
+                        processJar( jf, level + 1 );
+                    }
                 }
             }
         }
