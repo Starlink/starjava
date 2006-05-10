@@ -456,6 +456,13 @@
           depends="install"
           description="-> builds a standalone jar file">
 
+    <!-- Build temporary zip file containing things not in the input jars
+     !   which ought to be included in the standalone jars. -->
+    <zip destfile="${dist.lib.pkg}/extras.zip">
+      <fileset dir="${star.bin}" includes="topcat stilts"/>
+      <fileset dir="${star.dir}/source/src/etc" includes="LICENCE.txt"/>
+    </zip>
+
     <!-- Build topcat-lite.jar - minimal standalone which does basic things. -->
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
@@ -475,11 +482,8 @@
       <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="-x"/><arg value="srb.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
+      <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
-    <jar destfile="${dist.lib.pkg}/topcat-lite.jar"
-         update="yes"
-         basedir="${star.bin}"
-         includes="topcat stilts"/>
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
@@ -492,11 +496,10 @@
       <arg value="-x"/><arg value="splat.jar"/>
       <arg value="-x"/><arg value="gsi-classes.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
+      <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
-    <jar destfile="${dist.lib.pkg}/topcat-full.jar"
-         update="yes"
-         basedir="${star.bin}"
-         includes="topcat stilts"/>
+
+    <delete file="${dist.lib.pkg}/extras.zip"/>
 
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
