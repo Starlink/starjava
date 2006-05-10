@@ -179,6 +179,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             }
         }
         matchEngine_ = engine;
+        super.setValueFromString( env, stringVal );
     }
 
     /**
