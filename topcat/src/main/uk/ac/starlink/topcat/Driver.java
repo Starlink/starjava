@@ -663,7 +663,10 @@ public class Driver {
            .append( p2 )
            .append( "startable.storage       default storage policy" )
            .append( p2 )
-           .append( "myspace.cache           MySpace performance workaround" );
+           .append( "mark.workaround         work around mark/reset bug" )
+           .append( p2 )
+           .append( "myspace.cache           MySpace performance workaround" )
+           .append( "" );
 
         /* Return. */
         return "\n" + buf.toString() + "\n";

@@ -3082,6 +3082,15 @@ The following ones have special significance within TOPCAT:
     Currently defaults to "false".
     </p></dd>
 
+<dt><code>mark.workaround</code></dt>
+<dd><p>If set to "true", this will work around a bug in the 
+    <code>mark()</code>/<code>reset()</code> methods of some java 
+    <code>InputStream</code> classes.  These are rather common, 
+    including in Sun's J2SE system libraries.
+    Use this if you are seeing errors that say something like
+    "<code>Resetting to invalid mark</code>".
+    Currently defaults to "false".</p></dd>
+
 </dl>
 </p>
 
@@ -9326,6 +9335,7 @@ introduced since the last version:
     <li>Fixed bug in writing <code>votable-fits-href</code> and
         <code>votable-binary-href</code> format tables from the file 
         browser.</li>
+    <li><code>mark.workaround</code> system property.</li>
     </ul>
     </p></dd>
 
