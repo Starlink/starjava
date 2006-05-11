@@ -552,9 +552,6 @@ XXX delete
 
   </target>
 
-  <taskdef name="jarbundler" 
-           classname="net.sourceforge.jarbundler.JarBundler" />
-
   <!-- Create an MacOS X Java application bundle, using the jarbundler ant
    !   task (see http://jarbundler.sourceforge.net)
    !
