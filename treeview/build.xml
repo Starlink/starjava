@@ -552,36 +552,35 @@ XXX delete
 
   </target>
 
-  <!-- Create an MacOS X Java application bundle, using the osxjarbundler ant
-   !   task built in to Starlink ant (but derived from the task available
-   !   from http://www.loomcom.com/jarbundler/
+  <taskdef name="jarbundler" 
+           classname="net.sourceforge.jarbundler.JarBundler" />
+
+  <!-- Create an MacOS X Java application bundle, using the jarbundler ant
+   !   task (see http://jarbundler.sourceforge.net)
    !
    !   See http://developer.apple.com/documentation/Java/Conceptual/Java14Development/index.html if you're really interested in the gory details.
    !
-   !   The osxjarbundler task will work only on OS X (it checks)
+   !   The jarbundler task will work only on OS X
    !-->
   <target name="build_osxapp"
           depends="build_demo,build-standalone">
     <property name="release.dir" value="release-osx"/>
     <mkdir dir="${release.dir}"/>
-    <delete dir="${release.dir}/${Name}.app"
-            quiet="true"/>   <!--just in case...-->
     <osxjarbundler dir="${release.dir}"
-                mainclass="${package.name}.Driver"
-                name="${Name}"
-                aboutmenuname="${Name}"
-                bundleid="${package.name}"
-                icon="${src.lib}/MacOS/Treeview.icns"
-                infostring="${Name} ${copyright.string}"
-                jvmversion="1.4+"
-                screenmenu="true"
-                version="${version}"
-                jars="${dist.lib.pkg}/treeview-full.jar">
+                   mainclass="${package.name}.Driver"
+                   name="${Name}"
+                   shortname="${Name}"
+                   bundleid="${package.name}"
+                   icon="${src.lib}/MacOS/Treeview.icns"
+                   infostring="${Name} ${copyright.string}"
+                   jvmversion="1.4+"
+                   version="${version}"
+                   jar="${dist.lib.pkg}/treeview-full.jar">
 
       <!-- Copy in the ppc JNI libraries -->
       <resourcefileset dir="${star.dir}/lib"
                        includes="ppc/*.jnilib"/>
-      <javaproperty key="java.library.path"
+      <javaproperty name="java.library.path"
                     value="$APP_PACKAGE/Contents/Resources/ppc"/>
 
       <!-- The first Intel Macs will appear in February/March 2006; at
@@ -591,11 +590,15 @@ XXX delete
       <!-- demo data lives in ${build.etc}/demo (see target build_demo) -->
       <resourcefileset dir="${build.etc}"
                        includes="demo/**"/>
-      <javaproperty key="uk.ac.starlink.treeview.demodir"
+      <javaproperty name="uk.ac.starlink.treeview.demodir"
                     value="$APP_PACKAGE/Contents/Resources/demo"/>
 
-      <javaproperty key="uk.ac.starlink.treeview.cmdname"
+      <javaproperty name="uk.ac.starlink.treeview.cmdname"
                     value="treeview"/>
+
+      <!-- Put the menus in the screen menu bar, rather than an
+           application-specific one -->
+      <javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
     </osxjarbundler>
 
     <!-- Copy the docs into the release directory (anything else?) -->
