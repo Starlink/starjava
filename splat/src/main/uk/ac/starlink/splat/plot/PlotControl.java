@@ -1046,7 +1046,21 @@ public class PlotControl
             try {
                 BufferedOutputStream ostrm =
                     new BufferedOutputStream( new FileOutputStream(fileName) );
-                Rectangle bounds = plot.getBounds();
+                Rectangle bounds;
+
+                // Only print visible portion when axes are limited to the
+                // visible part.
+                if ( plot.isVisibleOnly() ) {
+                    bounds = getViewport().getViewRect();
+                }
+                else {
+                    bounds = plot.getBounds();
+                    //  EPS only likes positive bounds, this seems to work.
+                    if ( bounds.x < 0 ) {
+                        bounds.x = 0;
+                        bounds.y = 0;
+                    }
+                }
                 EpsGraphics2D g2 =
                     new EpsGraphics2D( name, ostrm,
                                        bounds.x, bounds.y,
