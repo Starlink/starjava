@@ -667,21 +667,18 @@
   </target>
 
   <!-- Create an MacOS X Java application bundle, using the osxjarbundler ant
-   !   task built in to Starlink ant (but derived from the task available
-   !   from http://www.loomcom.com/jarbundler/).  Additionally, create
-   !   a .dmg file for distribution.  This last step could be moved into a
-   !   separate target, but since one would rarely be invoked without the
-   !   other, there's little point.
+   !   task built (see http://jarbundler.sourceforge.net).
+   !   Additionally, create a .dmg file for distribution.
+   !   This last step could be moved into a separate target, but since
+   !   one would rarely be invoked without the other, there's little point.
    !
-   !   The osxjarbundler task will work only on OS X (it checks), as will
+   !   The osxjarbundler task will work only on OS X, as will
    !   the hdiutil application.
    !-->
   <target name="build_osxapp"
           depends="build_demo,build-standalone">
     <property name="release.dir" value="release-osx"/>
     <mkdir dir="${release.dir}"/>
-    <delete dir="${release.dir}/${Name}.app"
-            quiet="true"/> <!--just in case...-->
     <!-- 'Infostring' should not contain a version number (as of OS X
      !   10.4 - see docs for CFBundleGetInfoString); 'version' should
      !   be the `marketing version of the bundle' (ie, the release
@@ -689,26 +686,35 @@
      !
      !   Set the jvmversion to be '1.4+', which will work with the
      !   highest version of the JVM available, and TOPCAT can work with
-     !   1.4.x or 1.5.  This might require some use configuration
+     !   1.4.x or 1.5.  This might require some user configuration
      !   to put 1.5 at the top of the list: see the 'Java Preferences'
      !   application
+     !
+     !   Note that jarbundler includes a "stubfile" attribute, which allows
+     !   you to include the JavaApplicationStub from a non-default location.
+     !   This means that this binary could be imported into the repository
+     !   from the file /System/Library/Frameworks/JavaVM.framework/Versions/A/Resources/MacOS/JavaApplicationStub
+     !   on any (?) OS X box, and this task would then be able to create
+     !   the TOPCAT.app directory on any platform.  It wouldn't be able to
+     !   create the .dmg file, but making a .zip file is an acceptable
+     !   alternative.
      !   -->
     <osxjarbundler dir="${release.dir}"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
+                shortname="${Name}"
                 aboutmenuname="${Name}"
                 bundleid="${package.name}"
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
                 infostring="${Name} ${copyright.string}"
                 jvmversion="1.4+"
-                screenmenu="true"
                 version="${version}"
-                jars="${dist.lib.pkg}/topcat-full.jar">
+                jar="${dist.lib.pkg}/topcat-full.jar">
 
       <!-- Copy in the ppc JNI libraries -->
       <resourcefileset dir="${star.dir}/lib"
                        includes="ppc/*.jnilib"/>
-      <javaproperty key="java.library.path"
+      <javaproperty name="java.library.path"
                     value="$APP_PACKAGE/Contents/Resources/ppc"/>
 
       <!-- The first Intel Macs will appear in February/March 2006; at
@@ -718,11 +724,15 @@
       <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->
       <resourcefileset dir="${src.etc}"
                        includes="demo/**"/>
-      <javaproperty key="uk.ac.starlink.topcat.demodir"
+      <javaproperty name="uk.ac.starlink.topcat.demodir"
                     value="$APP_PACKAGE/Contents/Resources/demo"/>
 
-      <javaproperty key="uk.ac.starlink.topcat.cmdname"
+      <javaproperty name="uk.ac.starlink.topcat.cmdname"
                     value="topcat"/>
+      <!-- Put the menus in the screen menu bar, rather than an
+           application-specific one -->
+      <javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
+
     </osxjarbundler>
 
     <!-- Copy the docs into the release directory (anything else?) -->
