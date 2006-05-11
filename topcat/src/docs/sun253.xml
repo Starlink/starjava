@@ -88,7 +88,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>13 April 2006</docdate>
+<docdate>11 May 2006</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -2437,7 +2437,7 @@ in a future release.
 
 </subsect>
 
-<subsect>
+<subsect id="plasticSend">
 <subhead><title>Messages Transmitted</title></subhead>
 
 <p>This section describes the messages which TOPCAT can transmit to other 
@@ -2556,7 +2556,7 @@ unless you are a tool developer you can probably ignore these.
 
 </subsect>
 
-<subsect>
+<subsect id="plasticReceive">
 <subhead><title>Messages Received</title></subhead>
 
 <p>This section describes the messages which TOPCAT will respond to 
@@ -8462,7 +8462,8 @@ comments (apologies for any missed out):
 <li>Mark Allen (Strasbourg)</li>
 <li>Francois Ochsenbein (Strasbourg)</li>
 <li>Mike Watson (Leicester)</li>
-<li>Bob Mann (Edinburgh/Strasbourg)</li>
+<li>Bob Mann (Royal Observatory Edinburgh)</li>
+<li>Richard McMahon (IoA)</li>
 <li>Anita Richards (Jodrell Bank)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
@@ -9322,20 +9323,22 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
-<dd><p>
+<dt>Version 2.1-3 (11 May 2006)</dt>
+<dd><p>Bug fixes and some minor enhancements.
     <ul>
+    <li>Implements send and receive of PLASTIC 
+        <code>ivo://votech.org/votable/highlightObject</code> message,
+        see <ref id="plasticSend"/> and <ref id="plasticReceive"/>.</li>
     <li>Added new <code>csv-noheader</code> output format.</li>
     <li>Added skew and kurtosis calculations to 
         <ref id="StatsWindow">Statistics Window</ref>.</li>
     <li>Improved, though still imperfect, retention of table-wide 
         metadata in VOTables.</li>
-    <li>Implements send and receive of PLASTIC 
-        <code>ivo://votech.org/votable/highlightObject</code> message.</li>
     <li>Fixed bug in writing <code>votable-fits-href</code> and
         <code>votable-binary-href</code> format tables from the file 
         browser.</li>
-    <li><code>mark.workaround</code> system property.</li>
+    <li><code>mark.workaround</code> system property,
+        see <ref id="jvmProperties"/>.</li>
     </ul>
     </p></dd>
 
