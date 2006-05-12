@@ -616,16 +616,15 @@ public class TopcatPlasticListener extends HubManager {
                 for ( Iterator it = tcModel.getSubsets().iterator();
                       it.hasNext(); ) {
                     String setName = ((RowSubset) it.next()).getName();
-                    if ( setName.startsWith( "plastic-" ) ) {
+                    if ( setName.matches( "plastic-([0-9]+)" ) ) {
                         ipset = Math.max( ipset,
                                    Integer.parseInt( setName.substring( 8 ) ) );
                     }
                 }
-                String setName = "plastic-" + ipset;
+                String setName = "plastic-" + ( ipset + 1 );
 
                 /* Then construct, add and apply the new subset. */
-                final RowSubset rset =
-                    new BitsRowSubset( "plastic-" + ipset, mask );
+                final RowSubset rset = new BitsRowSubset( setName, mask );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         tcModel.addSubset( rset );
