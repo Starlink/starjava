@@ -24,6 +24,7 @@
 
 /* Include files. */
 #include <stdlib.h>
+#include <float.h>
 #include "ast.h"
 #include "jni.h"
 #include "err_jniast.h"
