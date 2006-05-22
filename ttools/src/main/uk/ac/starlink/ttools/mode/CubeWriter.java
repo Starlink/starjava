@@ -8,8 +8,12 @@ import java.io.OutputStream;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -32,7 +36,8 @@ public class CubeWriter implements TableConsumer {
     private final double[] loBounds_;
     private final double[] hiBounds_;
     private final String[] colIds_;
-    private final int bitpix_;
+    private final String scaleId_;
+    private final Class outType_;
     private final OutputStreamParameter.Destination dest_;
     private int[] nbins_;
     private double[] binSizes_;
@@ -49,32 +54,51 @@ public class CubeWriter implements TableConsumer {
      * @param   hiBounds   upper bounds for each dimension
      * @param   nbins      number of bins in each dimension
      * @param   binSizes   extent of bins in each dimension
-     * @param   colIds     column ID strings
+     * @param   colIds     column ID strings for axes
+     * @param   scaleId    column ID string for scale column (or null)
      * @param   dest       data output locator
-     * @param   bitpix     number of bits in output integer words;
-     *                     if negative worked out automatically
+     * @param   outType    primitive numeric data type for output data;
+     *                     if null worked out automatically
      */
     public CubeWriter( double[] loBounds, double[] hiBounds, int[] nbins,
-                       double[] binSizes, String[] colIds, 
-                       OutputStreamParameter.Destination dest, int bitpix ) {
+                       double[] binSizes, String[] colIds, String scaleId,
+                       OutputStreamParameter.Destination dest, Class outType ) {
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         nbins_ = nbins;
         binSizes_ = binSizes;
         colIds_ = colIds;
+        scaleId_ = scaleId;
         dest_ = dest;
-        bitpix_ = bitpix;
+        outType_ = outType;
     }
 
-    public void consume( StarTable table ) throws IOException {
+    public void consume( final StarTable inTable ) throws IOException {
 
         /* Permute table columns so that only the selected ones appear in
          * the table we're working with. */
-        table = getPermutedTable( table, colIds_ );
-        int ndim = table.getColumnCount();
-
+        int ndim = colIds_.length;
+        StarTable aTable = getPermutedTable( inTable, colIds_ );
+        StarTable asTable;
+        if ( scaleId_ != null ) {
+            String[] ids = new String[ ndim + 1 ];
+            System.arraycopy( colIds_, 0, ids, 0, ndim );
+            ids[ ndim ] = scaleId_;
+            asTable = getPermutedTable( inTable, ids );
+        }
+        else {
+            ColumnStarTable unitTable = new ColumnStarTable( inTable ) {
+                public long getRowCount() {
+                    return inTable.getRowCount();
+                }
+            };
+            unitTable.addColumn( new UnitColumnData() );
+            asTable =
+                new JoinStarTable( new StarTable[] { aTable, unitTable } );
+        }
+ 
         /* Read data to acquire bounds from the data if necessary. */
-        fixBounds( table, loBounds_, hiBounds_ );
+        fixBounds( aTable, loBounds_, hiBounds_ );
 
         /* Calculate bin sizes from bin counts or vice versa. */
         if ( binSizes_ == null ) {
@@ -96,14 +120,15 @@ public class CubeWriter implements TableConsumer {
         }
 
         /* Populate the cube by reading the table data. */
-        int[] cube = calculateCube( table, loBounds_, nbins_, binSizes_ );
+        double[] cube = calculateCube( asTable, loBounds_, nbins_, binSizes_ );
 
         /* Write the cube to the output stream as FITS. */
         DataOutputStream out = new DataOutputStream(
                                    new BufferedOutputStream(
                                        dest_.createStream() ) );
         try {
-            writeFits( Tables.getColumnInfos( table ), cube, out );
+            writeFits( Tables.getColumnInfos( aTable ),
+                       asTable.getColumnInfo( ndim ), cube, outType_, out );
         }
         finally {
             out.close();
@@ -207,11 +232,12 @@ public class CubeWriter implements TableConsumer {
                      Object cell = row[ idim ];
                      if ( cell instanceof Number ) {
                          double dval = ((Number) cell).doubleValue();
-                         if ( ! Double.isInfinite( dval ) ) {
-                             if ( ! ( bounds[ idim ][ 0 ] <= dval ) ) {
+                         if ( ! Double.isInfinite( dval ) &&
+                              ! Double.isNaN( dval ) ) {
+                             if ( ! ( dval >= bounds[ idim ][ 0 ] ) ) {
                                  bounds[ idim ][ 0 ] = dval;
                              }
-                             if ( ! ( bounds[ idim ][ 1 ] >= dval ) ) {
+                             if ( ! ( dval <= bounds[ idim ][ 1 ] ) ) {
                                  bounds[ idim ][ 1 ] = dval;
                              }
                          }
@@ -227,17 +253,18 @@ public class CubeWriter implements TableConsumer {
 
     /**
      * Accumulates the contents of an N-dimensional histogram representing
-     * data from an N-columned table.
+     * data from an N+1-columned table.  The final column is a scaling
+     * value.
      *
-     * @param   table  table with N columns
+     * @param   table  table with N+1 columns
      * @param   loBounds  N-element array of lower bounds by dimension
      * @param   nbins     N-element array of number of bins by dimension
      * @param   binSizes  N-element array of bin extents by dimension
      */
-    public static int[] calculateCube( StarTable table, double[] loBounds, 
-                                       int[] nbins, double[] binSizes )
+    public static double[] calculateCube( StarTable table, double[] loBounds, 
+                                          int[] nbins, double[] binSizes )
             throws IOException {
-        int ndim = table.getColumnCount();
+        int ndim = table.getColumnCount() - 1;
         double[] hiBounds = new double[ ndim ];
         for ( int idim = 0; idim < ndim; idim++ ) {
             hiBounds[ idim ] = loBounds[ idim ]
@@ -250,7 +277,7 @@ public class CubeWriter implements TableConsumer {
             np *= nbins[ idim ];
         }
         int npix = Tables.checkedLongToInt( np );
-        int[] cube = new int[ npix ];
+        double[] cube = new double[ npix ];
 
         /* Populate it. */
         RowSequence rseq = table.getRowSequence();
@@ -258,7 +285,14 @@ public class CubeWriter implements TableConsumer {
             int[] coords = new int[ ndim ];
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
-                boolean okRow = true;
+
+                /* Get the scaling value. */
+                Object scaleObj = row[ ndim ];
+                double scale = scaleObj instanceof Number 
+                             ? ((Number) scaleObj).doubleValue()
+                             : Double.NaN;
+                boolean okRow = scale != 0.0 && ! Double.isNaN( scale );
+
                 for ( int idim = 0; okRow && idim < ndim; idim++ ) {
                     boolean okCell = false;
                     Object cell = row[ idim ];
@@ -292,7 +326,7 @@ public class CubeWriter implements TableConsumer {
                         ipix += step * coords[ idim ];
                         step *= nbins[ idim ];
                     }
-                    cube[ ipix ]++;
+                    cube[ ipix ] += scale;
                 }
             }
         }
@@ -305,50 +339,72 @@ public class CubeWriter implements TableConsumer {
     /**
      * Writes a column-major array out as a single-HDU FITS file.
      *
-     * @param   infos  metadata objects describing each axis
+     * @param   axInfos  metadata objects describing each axis
+     * @param   binInfo  metadata object describing the bin values
      * @param   cube   data array, in column major order
+     * @param   outType   primitive numeric type to write
      * @param   out    output stream
      */
-    private void writeFits( ValueInfo[] infos, int[] cube,
-                            DataOutputStream out ) throws IOException {
+    private void writeFits( ValueInfo[] axInfos, ValueInfo binInfo,
+                            double[] cube, Class outType, DataOutputStream out )
+            throws IOException {
         int npix = cube.length;
         int ndim = nbins_.length;
 
         /* Get minimum and maximum values. */
-        int max;
-        int min;
+        double min = Double.NaN;
+        double max = Double.NaN;
         if ( npix > 0 ) {
-            min = Integer.MAX_VALUE;
-            max = 0;
             for ( int i = 0; i < npix; i++ ) {
-                int datum = cube[ i ];
-                max = Math.max( max, datum );
-                min = Math.min( min, datum );
-            }
-        }
-        else {
-            min = 0;
-            max = 0;
-        }
-
-        /* Make sure that we know what size of integer to write the result
-         * as. */
-        int bitpix = bitpix_;
-        if ( bitpix < 0 ) {
-            for ( int j = 8; j <= 64; j *= 2 ) {
-                if ( (long) max < ( 1L << ( j - 1 ) ) ) {
-                    bitpix = j;
-                    break;
+                double datum = cube[ i ];
+                if ( ! ( datum >= min ) ) {
+                    min = datum;
+                }
+                if ( ! ( datum <= max ) ) {
+                    max = datum;
                 }
             }
-            assert bitpix > 0;
         }
+        if ( min == Double.NaN ) {
+            assert max == Double.NaN;
+        }
+
+        /* Get a suitable writer for writing the numeric data to FITS. */
+        Class clazz = outType;
+        if ( clazz == null ) {
+            if ( min == Double.NaN ) {
+                clazz = byte.class;
+            }
+            else {
+                Class binType = binInfo.getContentClass();
+                if ( binType == Byte.class ||
+                     binType == Short.class ||
+                     binType == Integer.class ||
+                     binType == Long.class ) {
+                    if ( min >= Byte.MIN_VALUE && max <= Byte.MAX_VALUE ) {
+                        clazz = byte.class;
+                    }
+                    else if ( min >= Short.MIN_VALUE &&
+                              max <= Short.MAX_VALUE ) {
+                        clazz = short.class;
+                    }
+                    else if ( min >= Integer.MIN_VALUE &&
+                              max <= Integer.MAX_VALUE ) {
+                        clazz = int.class;
+                    }
+                }
+            }
+            if ( clazz == null ) {
+                clazz = double.class;
+            }
+        }
+        NumberWriter writer = createNumberWriter( out, clazz );
 
         /* Assemble and write the FITS header. */
         Header hdr = new Header();
         try {
             hdr.addValue( "SIMPLE", true, "" );
-            hdr.addValue( "BITPIX", bitpix, "Data type" );
+            hdr.addValue( "BITPIX", writer.getBitpix(), "Data type" );
             hdr.addValue( "NAXIS", nbins_.length, "Number of axes" );
             for ( int id = 0; id < ndim; id++ ) {
                 hdr.addValue( "NAXIS" + ( id + 1 ), nbins_[ id ],
@@ -362,7 +418,7 @@ public class CubeWriter implements TableConsumer {
             hdr.addValue( "DATAMIN", (double) min, "Minimum value" );
             hdr.addValue( "DATAMAX", (double) max, "Maximum value" );
             for ( int id = 0; id < ndim; id++ ) {
-                ValueInfo info = infos[ id ];
+                ValueInfo info = axInfos[ id ];
                 String units = info.getUnitString();
                 String desc = info.getDescription();
                 hdr.addValue( "CTYPE" + ( id + 1 ), info.getName(),
@@ -390,13 +446,12 @@ public class CubeWriter implements TableConsumer {
         }
 
         /* Write the data. */
-        IntWriter writer = createIntWriter( out, bitpix );
         for ( int ip = 0; ip < npix; ip++ ) {
-            writer.writeInt( cube[ ip ] );
+            writer.writeNumber( cube[ ip ] );
         }
 
         /* Pad to the end of a FITS block. */
-        long nbyte = ( bitpix / 8 ) * (long) npix;
+        long nbyte = ( Math.abs( writer.getBitpix() ) / 8 ) * (long) npix;
         int over = (int) ( nbyte % FitsConstants.FITS_BLOCK );
         if ( over > 0 ) {
             out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
@@ -409,50 +464,103 @@ public class CubeWriter implements TableConsumer {
      * DataOutput object.
      *
      * @param   out  destination stream
-     * @param   bitpix  number of bits per integer value (8, 16, 32 or 64)
+     * @param   clazz  primitive numeric type for output
      */
-    public static IntWriter createIntWriter( final DataOutput out,
-                                             int bitpix ) {
-        switch ( bitpix ) {
-            case 8:
-                return new IntWriter() {
-                    public void writeInt( int value ) throws IOException {
-                        out.writeByte( (byte) value );
-                    }
-                };
-            case 16:
-                return new IntWriter() {
-                    public void writeInt( int value ) throws IOException {
-                        out.writeShort( (short) value );
-                    }
-                };
-            case 32:
-                return new IntWriter() {
-                    public void writeInt( int value ) throws IOException {
-                        out.writeInt( (int) value );
-                    }
-                };
-            case 64:
-                return new IntWriter() {
-                    public void writeInt( int value ) throws IOException {
-                        out.writeLong( (long) value );
-                    }
-                };
-            default:
-                return null;
+    public static NumberWriter createNumberWriter( final DataOutput out,
+                                                   Class clazz ) {
+        if ( clazz == byte.class ) {
+            return new NumberWriter( 8 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeByte( (byte) value );
+                }
+            };
+        }
+        else if ( clazz == short.class ) {
+            return new NumberWriter( 16 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeShort( (short) value );
+                }
+            };
+        }
+        else if ( clazz == int.class ) {
+            return new NumberWriter( 32 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeInt( (int) value );
+                }
+            };
+        }
+        else if ( clazz == long.class ) {
+            return new NumberWriter( 64 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeLong( (long) value );
+                }
+            };
+        }
+        else if ( clazz == float.class ) {
+            return new NumberWriter( -32 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeFloat( (float) value );
+                }
+            };
+        }
+        else if ( clazz == double.class ) {
+            return new NumberWriter( -64 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeDouble( (double) value );
+                }
+            };
+        }
+        else {
+            assert false;
+            return new NumberWriter( 64 ) {
+                public void writeNumber( double value ) throws IOException {
+                    out.writeDouble( (double) value );
+                }
+            };
         }
     }
 
     /**
      * Defines an object which can dispose of integer values.
      */
-    public interface IntWriter {
+    private abstract static class NumberWriter {
+
+        private final int bitpix_;
 
         /**
-         * Accepts an integer.
+         * Constructor.
+         *
+         * @param  bitpix  appropriate value for FITS BITPIX header card.
+         */
+        protected NumberWriter( int bitpix ) {
+            bitpix_ = bitpix;
+        }
+
+        /**
+         * Accepts a double precision value.
          *
          * @param   value  value to use
          */
-        void writeInt( int value ) throws IOException;
+        public abstract void writeNumber( double value ) throws IOException;
+
+        /**
+         * Return the appropriate value for the FITS BITPIX header card.
+         */
+        public int getBitpix() {
+            return bitpix_;
+        }
+    }
+
+    /**
+     * ColumnData implementation that returns 1.
+     */
+    private static class UnitColumnData extends ColumnData {
+        private final Integer unit_ = new Integer( 1 );
+        UnitColumnData() {
+            super( new DefaultValueInfo( "Counts", Integer.class ) );
+        }
+        public Object readValue( long irow ) {
+            return unit_;
+        }
     }
 }
