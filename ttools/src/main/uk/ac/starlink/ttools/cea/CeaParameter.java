@@ -25,7 +25,7 @@ class CeaParameter {
     private boolean isRef_;
     private boolean isMulti_;
     private boolean isNullPermitted_;
-    private String[] options_;
+    private Object[] options_;
 
     /**
      * Constructor.
@@ -149,7 +149,7 @@ class CeaParameter {
      *
      * @param   array of sole permitted values, or null
      */
-    public String[] getOptions() {
+    public Object[] getOptions() {
         return options_;
     }
 }
