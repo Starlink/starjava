@@ -36,7 +36,7 @@ public class ReplaceValueTable extends WrapperStarTable {
      * taking place in zero or more of the base table's columns, 
      * as described by an array of flags.
      *
-     * @param  base  base table
+     * @param  baseTable  base table
      * @param  colFlags  array of flags for each column of the table,
      *         true only for those columns which should be modified
      * @param  oldStr   value to be replaced

@@ -71,7 +71,7 @@ public abstract class JELRowReader extends DVMap {
     private final long HASH_LONG = System.identityHashCode( this );
 
     /**
-     * The string which, when prefixed to a column ideentifier, indicates
+     * The string which, when prefixed to a column identifier, indicates
      * that the null-ness of the column should be queried.
      */
     public static final String NULL_QUERY_PREFIX = "NULL_";

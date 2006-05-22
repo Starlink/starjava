@@ -126,7 +126,7 @@ public abstract class SkySystem {
     /**
      * Returns labels suitable for use as column names in this system.
      *
-     * @param  array of column names
+     * @return  array of column names
      */
     public String[] getCoordinateColumnNames() {
         return new String[] {

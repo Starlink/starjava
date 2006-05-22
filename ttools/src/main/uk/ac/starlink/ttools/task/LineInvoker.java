@@ -467,7 +467,6 @@ public class LineInvoker {
      * contains newlines to keep line lengths down to a reasonable level.
      *
      * @param  env  execution environment
-     * @param  task   task 
      * @param  taskName  task nickname - may be null if heading is not required
      * @param  param   parameter for which usage information is required
      * @return   usage message

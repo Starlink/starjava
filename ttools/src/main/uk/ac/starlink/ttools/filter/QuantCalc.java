@@ -24,7 +24,7 @@ public abstract class QuantCalc {
     /**
      * Constructor.
      *
-     * @param   class of data objects which will be submitted;
+     * @param  clazz  class of data objects which will be submitted;
      *          must be assignable from Number class
      */
     protected QuantCalc( Class clazz ) {
