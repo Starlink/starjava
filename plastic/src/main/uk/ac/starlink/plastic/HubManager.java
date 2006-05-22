@@ -437,8 +437,15 @@ public abstract class HubManager implements PlasticListener {
         }
         if ( supportedMessages_.length == 0 ||
              Arrays.asList( supportedMessages_ ).contains( message ) ) {
+            logger_.info( "Processing supported message: " + message + 
+                          " from " + sender );
+            logger_.config( "Message arguments: "
+                          + PlasticMonitor.stringify( args ) );
             try {
-                return doPerform( sender, message, args );
+                Object ret = doPerform( sender, message, args );
+                logger_.config( "Message return: "
+                              + PlasticMonitor.stringify( ret ) );
+                return ret;
             }
             catch ( IOException e ) {
                 logger_.warning( "PLASTIC message failed: " + e );

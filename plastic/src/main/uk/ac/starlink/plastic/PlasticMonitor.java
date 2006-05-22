@@ -38,6 +38,10 @@ public class PlasticMonitor implements PlasticApplication {
     private ApplicationListModel appListModel_;
     private PlasticHubListener hub_;
 
+    private static int MAX_ARG_COUNT = 64;
+    private static int MAX_ARG_LENG = 256;
+    private static int TRUNC_ARG_LENG = Math.min( 64, MAX_ARG_LENG - 3 );
+
     /**
      * Constructor.
      *
@@ -123,7 +127,7 @@ public class PlasticMonitor implements PlasticApplication {
      * @param  value  object to stringify
      * @return  human-readable version of value
      */
-    private String stringify( Object value ) {
+    public static String stringify( Object value ) {
         if ( value == null ) {
             return "null";
         }
@@ -135,8 +139,13 @@ public class PlasticMonitor implements PlasticApplication {
             StringBuffer sbuf = new StringBuffer();
             sbuf.append( '(' );
             if ( ! set.isEmpty() ) {
+                int iel = 0;
                 for ( Iterator it = set.iterator(); it.hasNext(); ) {
                     sbuf.append( ' ' );
+                    if ( ++iel > MAX_ARG_COUNT ) {
+                        sbuf.append( "..." );
+                        break;
+                    }
                     sbuf.append( stringify( it.next() ) );
                     sbuf.append( it.hasNext() ? ',' : ' ' );
                 }
@@ -146,7 +155,9 @@ public class PlasticMonitor implements PlasticApplication {
         }
         else {
             String s = value == null ? "null" : value.toString();
-            s = s.length() < 40 ? s : ( s.substring( 0, 37 ) + "..." );
+            s = s.length() < MAX_ARG_LENG
+              ? s
+              : ( s.substring( 0, TRUNC_ARG_LENG - 3 ) + "..." );
             s = s.replaceAll( "\n", "\\n" );
             return s;
         }
