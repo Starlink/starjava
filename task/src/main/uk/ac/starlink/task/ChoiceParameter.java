@@ -1,15 +1,16 @@
 package uk.ac.starlink.task;
 
 /**
- * Parameter whose legal value must be one of a disjunction of given 
- * string values.  Matching is case-insensitive.
+ * Parameter whose legal value must be one of a disjunction of given values.
+ * Matching is case-insensitive against the stringified value of the option.
  *
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
 public class ChoiceParameter extends Parameter {
 
-    private final String[] options_;
+    private final Object[] options_;
+    private Object objectValue_;
 
     /**
      * Constructor.
@@ -17,9 +18,9 @@ public class ChoiceParameter extends Parameter {
      * @param   name  parameter name
      * @param   options  legal values of this parameter
      */
-    public ChoiceParameter( String name, String[] options ) {
+    public ChoiceParameter( String name, Object[] options ) {
         super( name );
-        options_ = (String[]) options.clone();
+        options_ = (Object[]) options.clone();
     }
 
     public String getUsage() {
@@ -28,7 +29,7 @@ public class ChoiceParameter extends Parameter {
             if ( i > 0 ) {
                 sbuf.append( '|' );
             }
-            sbuf.append( options_[ i ] );
+            sbuf.append( options_[ i ].toString() );
         }
         return sbuf.toString();
     }
@@ -40,7 +41,8 @@ public class ChoiceParameter extends Parameter {
             return;
         }
         for ( int i = 0; i < options_.length; i++ ) {
-            if ( value.equalsIgnoreCase( options_[ i ] ) ) {
+            if ( value.equalsIgnoreCase( options_[ i ].toString() ) ) {
+                objectValue_ = options_[ i ];
                 super.setValueFromString( env, value );
                 return;
             }
@@ -59,12 +61,24 @@ public class ChoiceParameter extends Parameter {
     }
 
     /**
+     * Returns the value as an object.  It will be identical to one of
+     * the options of this parameter.
+     *
+     * @param  env  execution environment
+     * @return  selected object
+     */
+    public Object objectValue( Environment env ) throws TaskException {
+        checkGotValue( env );
+        return objectValue_;
+    }
+
+    /**
      * Returns a copy of the array of options which is accepted by this
      * parameter.
      *
      * @return  permitted options
      */
-    public String[] getOptions() {
-        return (String[]) options_.clone();
+    public Object[] getOptions() {
+        return (Object[]) options_.clone();
     }
 }
