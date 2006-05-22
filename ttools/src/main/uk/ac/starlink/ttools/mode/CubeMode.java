@@ -29,8 +29,15 @@ public class CubeMode implements ProcessingMode {
     private final WordsParameter binsizeParam_;
     private final WordsParameter nbinParam_;
     private final OutputStreamParameter outParam_;
-    private final Parameter bitpixParam_;
+    private final ChoiceParameter typeParam_;
+    private final Parameter scaleParam_;
     private WordsParameter colsParam_;
+
+    /** Output data types for FITS output. */
+    private static final Class[] OUT_TYPES = new Class[] {
+        byte.class, short.class, int.class, long.class,
+        float.class, double.class,
+    };
 
     /**
      * Constructor.
@@ -93,21 +100,36 @@ public class CubeMode implements ProcessingMode {
         outParam_.setDescription( outParam_.getDescription() + "\n" +
             "The output cube is currently written as a single-HDU FITS file." );
 
-        bitpixParam_ =
-            new ChoiceParameter( "bitpix",
-                                 new String[] { "8", "16", "32", "64", } );
-        bitpixParam_.setUsage( "<nbit>" );
-        bitpixParam_.setNullPermitted( true );
-        bitpixParam_.setDefault( null );
-        bitpixParam_.setPrompt( "Length of output array integers" );
-        bitpixParam_.setDescription( new String[] {
-            "The length in bits of the integer type used for the output",
-            "array.  If no selection is made, the output type will be",
+        typeParam_ = new ChoiceParameter( "otype", OUT_TYPES );
+        typeParam_.setNullPermitted( true );
+        typeParam_.setDefault( null );
+        typeParam_.setPrompt( "Type of output array elements" );
+        typeParam_.setDescription( new String[] {
+            "The type of numeric value which will fill the output array.",
+            "If no selection is made, the output type will be",
             "determined automatically as the shortest type required to hold",
             "all the values in the array.",
-            "Currently, signed integers are always used (no BSCALE/BZERO),",
+            "Currently, integers are always signed (no BSCALE/BZERO),",
             "so for instance the largest value that can be recorded",
             "in 8 bits is 127.",
+        } );
+
+        scaleParam_ = new Parameter( "scale" );
+        scaleParam_.setUsage( "<col-id>" );
+        scaleParam_.setNullPermitted( true );
+        scaleParam_.setDefault( null );
+        scaleParam_.setPrompt( "Value by which to scale counts" );
+        scaleParam_.setDescription( new String[] {
+            "Optionally gives a value by which the count in each bin is",
+            "scaled.",
+            "If this value is <code>null</code> (the default) then for each",
+            "row that falls within the bounds of a pixel, the pixel value",
+            "will be incremented by 1.",
+            "If a column ID is given, then instead of 1 being added,",
+            "the value of that column for the row in question is added.",
+            "The effect of this is that the output image contains the mean",
+            "of the given column for the rows corresponding to each pixel",
+            "rather than just a count of them.",
         } );
     }
 
@@ -124,7 +146,8 @@ public class CubeMode implements ProcessingMode {
             binsizeParam_,
             nbinParam_,
             outParam_,
-            bitpixParam_,
+            typeParam_,
+            scaleParam_,
         };
     }
 
@@ -139,6 +162,9 @@ public class CubeMode implements ProcessingMode {
         boundsParam_.setRequiredWordCount( ndim );
         binsizeParam_.setRequiredWordCount( ndim );
         nbinParam_.setRequiredWordCount( ndim );
+
+        /* Get the scale column ID. */
+        final String scaleId = scaleParam_.stringValue( env );
 
         /* Get the explicitly specified bounds for the output grid. */
         Object[] boundsWords = boundsParam_.parsedWordsValue( env );
@@ -194,12 +220,11 @@ public class CubeMode implements ProcessingMode {
             outParam_.destinationValue( env );
 
         /* Get the output datatype size. */
-        String bitpix = bitpixParam_.stringValue( env );
-        int nbit = bitpix == null ? -1 : Integer.parseInt( bitpix );
+        Class outType = (Class) typeParam_.objectValue( env );
 
         /* Construct and return the consumer itself. */
         return new CubeWriter( loBounds, hiBounds, nbins, binsizes, colIds,
-                               dest, nbit );
+                               scaleId, dest, outType );
     }
 
     /**
