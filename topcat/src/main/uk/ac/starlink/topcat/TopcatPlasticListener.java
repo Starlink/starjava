@@ -612,16 +612,19 @@ public class TopcatPlasticListener extends HubManager {
 
             /* Otherwise make sure we have a unique name for the new subset. */
             else {
+                String basename = getAppName( sender )
+                                 .replaceAll( "\\s+", "_" );
                 int ipset = 0;
                 for ( Iterator it = tcModel.getSubsets().iterator();
                       it.hasNext(); ) {
                     String setName = ((RowSubset) it.next()).getName();
-                    if ( setName.matches( "plastic-([0-9]+)" ) ) {
-                        ipset = Math.max( ipset,
-                                   Integer.parseInt( setName.substring( 8 ) ) );
+                    if ( setName.matches( basename + "-[0-9]+" ) ) {
+                        String digits =
+                            setName.substring( basename.length() + 1 );
+                        ipset = Math.max( ipset, Integer.parseInt( digits ) );
                     }
                 }
-                String setName = "plastic-" + ( ipset + 1 );
+                String setName = basename + '-' + ( ipset + 1 );
 
                 /* Then construct, add and apply the new subset. */
                 final RowSubset rset = new BitsRowSubset( setName, mask );
@@ -670,6 +673,26 @@ public class TopcatPlasticListener extends HubManager {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns the name of a registered application which has a given ID.
+     * If no such application is registered, some general string like
+     * "plastic" is returned.
+     *
+     * @param   id   application ID
+     * @return  application name
+     */
+    private String getAppName( URI id ) {
+        String name = null;
+        ListModel appList = getApplicationListModel();
+        for ( int i = 0; i < appList.getSize(); i++ ) {
+            ApplicationItem app = (ApplicationItem) appList.getElementAt( i );
+            if ( app.getId().equals( id ) ) {
+                return app.getName();
+            }
+        }
+        return "plastic";
     }
     
     /**
