@@ -14,11 +14,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
 import org.apache.xmlrpc.XmlRpcHandler;
@@ -44,6 +46,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     private int nReq_;
     private boolean verbose_;
     private ApplicationListModel listModel_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.plastic" );
 
     private static final String HUB_ID_KEY = "hub.id";
     static final URI HUB_STOPPING =
@@ -86,30 +91,16 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     public URI registerRMI( String name, List supportedMessages,
                             PlasticListener caller ) {
         Agent agent = new RmiAgent( ++nReg_, name,
-                                    (URI[]) supportedMessages
-                                           .toArray( new URI[ 0 ] ),
-                                    caller );
+                                    toUriArray( supportedMessages ), caller );
         register( agent );
         return agent.getId();
     }
 
     public URI registerXMLRPC( String name, List supportedMessages,
                                URL callbackURL ) {
-        URI[] messages = new URI[ supportedMessages.size() ];
-        for ( int i = 0; i < supportedMessages.size(); i++ ) {
-            Object msg = supportedMessages.get( i );
-            if ( msg instanceof URI ) {
-                messages[ i ] = (URI) msg;
-            }
-            else if ( msg instanceof String ) {
-                try {
-                    messages[ i ] = new URI( (String) msg );
-                }
-                catch ( URISyntaxException e ) {
-                }
-            }
-        }
-        Agent agent = new XmlRpcAgent( ++nReg_, name, messages, callbackURL );
+        Agent agent = new XmlRpcAgent( ++nReg_, name, 
+                                       toUriArray( supportedMessages ),
+                                       callbackURL );
         register( agent );
         return agent.getId();
     }
@@ -205,7 +196,46 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
          * defined by the PlasticHubListener interface. */
         List paramList = new ArrayList( params );
         final Object result;
-        if ( "plastic.hub.request".equals( method ) ) {
+        if ( "plastic.hub.getRegisteredIds".equals( method ) ) {
+            result = getRegisteredIds();
+        }
+        else if ( "plastic.hub.getHubId".equals( method ) ) {
+            result = getHubId().toString();
+        }
+        else if ( "plastic.hub.getName".equals( method ) ) {
+            URI id = new URI( (String) paramList.remove( 0 ) );
+            result = getName( id );
+        }
+        else if ( "plastic.hub.getUnderstoodMessages".equals( method ) ) {
+            URI id = new URI( (String) paramList.remove( 0 ) );
+            result = getUnderstoodMessages( id );
+        }
+        else if ( "plastic.hub.getMessageRegisteredIds".equals( method ) ) {
+            URI message = new URI( (String) paramList.remove( 0 ) );
+            result = getMessageRegisteredIds( message );
+        }
+
+        else if ( "plastic.hub.registerXMLRPC".equals( method ) ) {
+            String name = (String) paramList.remove( 0 );
+            List supportedMessages = (List) paramList.remove( 0 );
+            URL callBackUrl = new URL( (String) paramList.remove( 0 ) );
+            result = registerXMLRPC( name, toUriList( supportedMessages ),
+                                     callBackUrl );
+        }
+        else if ( "plastic.hub.registerRMI".equals( method ) ) {
+            throw new IOException( "Can't registerRMI using XML-RPC" );
+        }
+        else if ( "plastic.hub.registerNoCallBack".equals( method ) ) {
+            String name = (String) paramList.remove( 0 );
+            result = registerNoCallBack( name );
+        }
+        else if ( "plastic.hub.unregister".equals( method ) ) {
+            URI id = new URI( (String) paramList.remove( 0 ) );
+            unregister( id );
+            result = null;
+        }
+
+        else if ( "plastic.hub.request".equals( method ) ) {
             URI sender = new URI( (String) paramList.remove( 0 ) );
             URI message = new URI( (String) paramList.remove( 0 ) );
             List args = (List) paramList.remove( 0 );
@@ -223,48 +253,25 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             URI message = new URI( (String) paramList.remove( 0 ) );
             List args = (List) paramList.remove( 0 );
             List recipientIds = (List) paramList.remove( 0 );
-            result = requestToSubset( sender, message, args, recipientIds );
+            result = requestToSubset( sender, message, args,
+                                      toUriList( recipientIds ) );
         }
         else if ( "plastic.hub.requestToSubsetAsynch".equals( method ) ) {
             URI sender = new URI( (String) paramList.remove( 0 ) );
             URI message = new URI( (String) paramList.remove( 0 ) );
             List args = (List) paramList.remove( 0 );
             List recipientIds = (List) paramList.remove( 0 );
-            requestToSubsetAsynch( sender, message, args, recipientIds );
+            requestToSubsetAsynch( sender, message, args,
+                                   toUriList( recipientIds ) );
             result = null;
         }
-        else if ( "plastic.hub.getHubId".equals( method ) ) {
-            result = getHubId().toString();
-        }
-        else if ( "plastic.hub.getRegisteredIds".equals( method ) ) {
-            result = getRegisteredIds();
-        }
-        else if ( "plastic.hub.registerNoCallBack".equals( method ) ) {
-            String name = (String) paramList.remove( 0 );
-            result = registerNoCallBack( name ).toString();
-        }
-        else if ( "plastic.hub.registerXMLRPC".equals( method ) ) {
-            String name = (String) paramList.remove( 0 );
-            List supportedMessages = (List) paramList.remove( 0 );
-            URL callBackUrl = new URL( (String) paramList.remove( 0 ) );
-            result = registerXMLRPC( name, supportedMessages, callBackUrl )
-                    .toString();
-        }
-        else if ( "plastic.hub.unregister".equals( method ) ) {
-            URI id = new URI( (String) paramList.remove( 0 ) );
-            unregister( id );
-            result = null;
-        }
+
         else {
             throw new UnsupportedOperationException( "No method " + method 
                                                    + " on hub" );
         }
-        if ( result instanceof Throwable ) {
-            Throwable e = (Throwable) result;
-            throw (IOException) new IOException( e.getMessage() )
-                 .initCause( e );
-        }
-        return result;
+        Object xResult = XmlRpcAgent.doctorObject( result );
+        return xResult;
     }
 
     public Map request( URI sender, URI message, List args ) {
@@ -645,6 +652,47 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             s = s.replaceAll( "\n", "\\n" );
             return s;
         }
+    }
+
+    /**
+     * Turns a List of URI objects into an array of URI objects.
+     *
+     * @param  list  uri list
+     * @return uri array
+     */
+    private URI[] toUriArray( List list ) {
+        return (URI[]) list.toArray( new URI[ 0 ] );
+    }
+
+    /**
+     * Turns a list of string-or-URI objects into a list of URI objects.
+     *
+     * @param  list  list of objects
+     * @return list of URIs
+     */
+    private List toUriList( List list ) {
+        if ( list == null ) {
+            return null;
+        }
+        List uriList = new ArrayList();
+        for ( Iterator it = list.iterator(); it.hasNext(); ) {
+            Object obj = it.next();
+            if ( obj instanceof URI ) {
+                uriList.add( obj );
+            }
+            else if ( obj instanceof String ) {
+                try {
+                    uriList.add( new URI( (String) obj ) );
+                }
+                catch ( URISyntaxException e ) {
+                    logger_.warning( "Bad URI string: " + obj );
+                }
+            }
+            else {
+               logger_.warning( "Can't make URI from " + obj );
+            }
+        }
+        return uriList;
     }
 
     /**
