@@ -32,24 +32,34 @@ public class PlasticTest extends TestCase {
     }
 
     public void testHub() throws IOException, InterruptedException {
-        PlasticHubListener hub;
-        if ( ! configFile.exists() ) {
-            hub = PlasticHub.startHub( VERBOSE ? System.out : null );
+        PlasticHub jvmHub = configFile.exists()
+            ? null
+            : PlasticHub.startHub( VERBOSE ? System.out : null );
+        if ( jvmHub != null ) {
+            exerciseHub( jvmHub );
         }
-        else {
-            hub = PlasticUtils.getLocalHub();
+
+        PlasticHubListener rmiHub = PlasticUtils.getLocalHub();
+        exerciseHub( rmiHub );
+        PlasticHubListener xmlrpcHub =
+            new XmlRpcHub( PlasticUtils.getXmlRpcUrl(), rmiHub );
+        exerciseHub( xmlrpcHub );
+
+        if ( jvmHub != null ) {
+            assertTrue( configFile.exists() );
+            jvmHub.stop();
+            assertTrue( ! configFile.exists() );
         }
+    }
+
+    private void exerciseHub( PlasticHubListener hub ) 
+            throws IOException, InterruptedException {
         URI id = hub.registerNoCallBack( "test-driver" );
         try {
             exerciseHub( hub, id );
         }
         finally {
             hub.unregister( id );
-        }
-
-        if ( hub instanceof PlasticHub ) {
-            ((PlasticHub) hub).stop();
-            assertTrue( ! configFile.exists() );
         }
     }
 
@@ -69,6 +79,11 @@ public class PlasticTest extends TestCase {
         Counter c2 = new Counter();
         Counter c3 = new Counter();
         URI id1 = PlasticUtils.registerRMI( c1 );
+  
+        Object soleId = 
+            removeMonitorsList( hub.getMessageRegisteredIds( CALC ),
+                                monitors ).get( 0 );
+        assertEquals( id1, soleId );
         assertEquals(
             Collections.singletonList( id1 ),
             removeMonitorsList( hub.getMessageRegisteredIds( CALC ),
@@ -149,6 +164,9 @@ public class PlasticTest extends TestCase {
                                  new ArrayList(),
                                  Arrays.asList( new URI[] { id1 } ) )
         );
+
+        hub.unregister( id1 );
+        hub.unregister( id2 );
     }
 
     private List calcArgs( String op, int value ) {
@@ -172,6 +190,9 @@ public class PlasticTest extends TestCase {
     }
 
     private Map removeMonitorsMap( Map map, Collection monitors ) {
+        if ( map == null ) {
+            return null;
+        }
         for ( Iterator it = monitors.iterator(); it.hasNext(); ) {
             map.remove( (URI) it.next() );
         }
@@ -179,6 +200,9 @@ public class PlasticTest extends TestCase {
     }
 
     private List removeMonitorsList( List list, Collection monitors ) {
+        if ( list == null ) {
+            return null;
+        }
         list.removeAll( monitors );
         return list;
     }
@@ -213,5 +237,9 @@ public class PlasticTest extends TestCase {
             }
             return new Integer( sum_ );
         }
+    }
+
+    public static void main( String[] args ) throws Exception {
+        new PlasticTest( "test" ).testHub();
     }
 }
