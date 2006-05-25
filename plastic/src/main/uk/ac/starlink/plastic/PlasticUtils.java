@@ -257,8 +257,8 @@ public class PlasticUtils {
 
         Vector argv = new Vector();
         argv.add( app.getName() );
-        argv.add( XmlRpcAgent.doctorArgs( app.getSupportedMessages() ) );
-        argv.add( XmlRpcAgent.doctorArgs( serverUrl.toString() ) );
+        argv.add( XmlRpcAgent.doctorObject( app.getSupportedMessages() ) );
+        argv.add( XmlRpcAgent.doctorObject( serverUrl ) );
         Object result;
         try {
             result = client.execute( "plastic.hub.registerXMLRPC", argv );
