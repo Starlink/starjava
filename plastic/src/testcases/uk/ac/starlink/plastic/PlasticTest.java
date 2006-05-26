@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.util.TestCase;
 
@@ -26,6 +28,10 @@ public class PlasticTest extends TestCase {
         new File( System.getProperty( "user.home" ),
                   PlasticHubListener.PLASTIC_CONFIG_FILENAME );
     private final Object lock_ = new Object();
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.plastic" ).setLevel( Level.WARNING );
+    }
 
     public PlasticTest( String name ) {
         super( name );
