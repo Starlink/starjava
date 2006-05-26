@@ -132,21 +132,14 @@ class ServerSet {
         rmiServer_ = rmiServer;
 
         /* Start an XML-RPC server on a suitable port. */
-        int xrPort = 2112 - 1;
+        int xrPort = PlasticUtils.getUnusedPort( 2112 );
         WebServer xrServer = null;
-        RuntimeException xrBindError = null;
-        for ( int i = 0; i < 20 && xrServer == null; i++ ) {
-            xrPort++;
-            try {
-                xrServer = new WebServer( xrPort );
-                xrServer.start();
-            }
-            catch ( RuntimeException e ) {
-                xrBindError = e;
-            }
+        try {
+            xrServer = new WebServer( xrPort );
+            xrServer.start();
         }
-        if ( xrServer == null ) {
-            throw xrBindError;
+        catch ( RuntimeException e ) {
+            throw new RemoteException( "Can't start XML-RPC server", e );
         }
         xmlrpcServer_ = xrServer;
         xmlrpcUrl_ = new URL( "http://" +

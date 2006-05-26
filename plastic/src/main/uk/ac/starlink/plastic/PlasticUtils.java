@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -228,23 +230,15 @@ public class PlasticUtils {
     public static URI registerXMLRPC( final PlasticApplication app )
             throws IOException {
         final XmlRpcClient client = new XmlRpcClient( getXmlRpcUrl() );
-        int port = 3112 - 1;
-        WebServer server = null;
-        IOException error = null;
-        for ( int i = 0; i < 20 && server == null; i++ ) {
-            port++;
-            try {
-                server = new WebServer( port );
-                server.start();
-            }
-            catch ( RuntimeException e ) {  // probably from a BindException
-                server = null;
-                error = (IOException) new IOException( e.getMessage() )
-                                     .initCause( e );
-            }
+        final WebServer server;
+        int port = getUnusedPort( 3112 );
+        try {
+            server = new WebServer( port );
+            server.start();
         }
-        if ( server == null ) {
-            throw error;
+        catch ( RuntimeException e ) {  // probably from a BindException
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
 
         URL serverUrl = new URL( "http://"
@@ -388,5 +382,35 @@ public class PlasticUtils {
                   new IllegalArgumentException( "Bad URI: " + uri )
                  .initCause( e );
         }
+    }
+
+    /**
+     * Returns an unused port number on the local host.
+     *
+     * @param   startPort  suggested port number; ports nearby will be
+     *          chosen if this is in use
+     */
+    static int getUnusedPort( int startPort ) throws IOException {
+        final int nTry = 20;
+        for ( int iPort = startPort; iPort < startPort + nTry; iPort++ ) {
+            try {
+                Socket trySocket = new Socket( "localhost", iPort );
+                if ( ! trySocket.isClosed() ) {
+
+                    /* This line causes "java.util.NoSuchElementException" to
+                     * be written to standard error, at least at J2SE1.4.
+                     * Not my fault! */
+                    trySocket.close();
+                }
+            }
+            catch ( ConnectException e ) {
+
+                /* Can't connect - this hopefully means that the socket is
+                 * unused. */
+                return iPort;
+            }
+        }
+        throw new IOException( "Can't locate an unused port in range " + 
+                               startPort + " ... " + ( startPort + nTry ) );
     }
 }
