@@ -1,5 +1,6 @@
 package uk.ac.starlink.plastic;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -53,40 +54,59 @@ class ServerSet {
 
         /* Check if the config file already exists. */
         if ( configFile != null && configFile.exists() ) {
+
+            /* Load config file. */
             Properties props = new Properties();
-            InputStream in = null;
-            boolean badFile = false;
             try {
-                in = new FileInputStream( configFile );
-                props.load( in );
-                String rmiPort = props.getProperty( PlasticHubListener
-                                                   .PLASTIC_RMI_PORT_KEY );
-                if ( rmiPort != null ) {
-                    try {
-                        new Client( "localhost", Integer.parseInt( rmiPort ) );
-                    }
-                    catch ( NumberFormatException e ) {
-                        badFile = true;
-                    }
-                    catch ( Exception e ) {
-                        logger_.warning( "Moribund " + configFile +
-                                         " - deleting" );
-                        configFile_.delete();
-                    }
+                InputStream propStream =
+                    new BufferedInputStream(
+                        new FileInputStream( configFile ) );
+                props.load( propStream );
+                propStream.close();
+            }
+            catch ( IOException e ) {
+                throw (IOException)
+                      new IOException( "File " + configFile + "exists " 
+                                     + "but is unreadable" )
+                     .initCause( e );
+            }
+            String rmiPort = props.getProperty( PlasticHubListener
+                                               .PLASTIC_RMI_PORT_KEY );
+
+            /* Examine it to see if it describes a living or dead hub. */
+            boolean badFile = false;
+            if ( rmiPort != null ) {
+                try {
+                    Client client = 
+                        new Client( "localhost",
+                                     Integer.parseInt( rmiPort ) );
+                    client.exportInterface( PlasticListener.class );
+                    PlasticHubListener hub = (PlasticHubListener)
+                       client.lookup( PlasticHubListener.class );
                 }
-                else {
+                catch ( NumberFormatException e ) {
                     badFile = true;
                 }
-            }
-            finally {
-                if ( in != null ) {
-                    in.close();
+                catch ( Exception e ) {
+                    if ( configFile_.delete() ) {
+                        logger_.warning( "Apparently moribund " + configFile +
+                                         " - deleting" );
+                    }
+                    else {
+                        throw new IOException( "Tried and failed to delete "
+                                             + "apparently moribund "
+                                             + configFile ); 
+                    }
                 }
             }
+            else {
+                badFile = true;
+            }
+
             if ( configFile.exists() ) {
                 String msg = badFile
-                    ? "File " + configFile + " exists but hub doesn't seem " +
-                      "to be running - delete it?"
+                    ? "File " + configFile + " exists but looks wrong" +
+                      " - delete it?"
                     : "Hub described at " + configFile + " is already running";
                 throw new IOException( msg );
             }
@@ -213,7 +233,14 @@ class ServerSet {
             try {
                 if ( configFile_ != null && configFile_.exists() ) {
                     Properties props = new Properties();
-                    props.load( new FileInputStream( configFile_ ) );
+                    InputStream configStream =
+                        new FileInputStream( configFile_ );
+                    try {
+                        props.load( configStream );
+                    }
+                    finally {
+                        configStream.close();
+                    }
                     if ( serverIdValue_
                         .equals( props.getProperty( SERVER_ID_KEY ) ) ) {
                         configFile_.delete();
