@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.URI;
@@ -142,8 +143,14 @@ public class PlasticUtils {
                                 PLASTIC_FILE );
         if ( rvfile.exists() ) {
             Properties props = new Properties();
-            props.load( new BufferedInputStream(
-                             new FileInputStream( rvfile ) ) );
+            InputStream propStream =
+                new BufferedInputStream( new FileInputStream( rvfile ) );
+            try {
+                props.load( propStream );
+            }
+            finally {
+                propStream.close();
+            }
             return props;
         }
         else {
