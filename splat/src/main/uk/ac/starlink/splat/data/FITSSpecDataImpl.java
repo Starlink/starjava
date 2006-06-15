@@ -472,6 +472,11 @@ public class FITSSpecDataImpl
             //  Create a AST FITS channel to read the headers.
             ASTFITSChan chan = new ASTFITSChan( "FITS-WCS" );
 
+            //  Set the NAXIS and NAXIS1 cards so that AST knows
+            //  how far to check the transformation for linearity.
+            chan.add( "NAXIS   =  1" );
+            chan.add( "NAXIS1  = " + data.length );
+
             //  Write the AST object into it.
             boolean isNative = false;
             if ( ! chan.write( astref ) ) {
@@ -687,7 +692,7 @@ public class FITSSpecDataImpl
         Header header = hdurefs[hdunum].getHeader();
 
         //  Check for known non-standard formats (far too many of those it
-        //  seems). 
+        //  seems).
         astref = checkForNonStandardFormat( header );
 
         //  If not non-standard then proceed with simple AST method.
@@ -701,7 +706,7 @@ public class FITSSpecDataImpl
                 chan.add( ((HeaderCard) iter.next()).toString() );
             }
             chan.rewind();
-            
+
             //  Now get the ASTFrameSet.
             try {
                 astref = chan.read();
@@ -728,7 +733,7 @@ public class FITSSpecDataImpl
 
     /**
      *  Check for known non-standard formats (far too many of those it
-     *  seems). For now we recognise SDSS, which uses a log(wavelength) 
+     *  seems). For now we recognise SDSS, which uses a log(wavelength)
      *  scale.
      */
     protected FrameSet checkForNonStandardFormat( Header header )
@@ -752,7 +757,7 @@ public class FITSSpecDataImpl
                         "w = 10**(" + c0s + " + ( i * " + c1s + " ) )" };
                     String inv[] = {
                         "i = ( log10( w ) - " + c0s + ")/" + c1s };
-                    
+
                     MathMap sdssMap = new MathMap( 1, 1, fwd, inv );
                     Frame frame = new Frame( 1 );
                     FrameSet frameset = new FrameSet( new Frame( 1 ) );
@@ -760,7 +765,7 @@ public class FITSSpecDataImpl
                     frameset.addFrame( 1, sdssMap, new SpecFrame() );
                     return frameset;
                 }
-            }        
+            }
         }
         return null;
     }
