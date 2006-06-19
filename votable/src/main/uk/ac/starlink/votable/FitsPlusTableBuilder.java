@@ -310,7 +310,7 @@ public class FitsPlusTableBuilder implements TableBuilder {
             case 3:
                 return "NAXIS1".equals( key );
             case 4:
-                return "VOTMETA".equals( key );
+                return "VOTMETA".equals( key ) && "T".equals( value );
             default:
                 return true;
         }
