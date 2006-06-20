@@ -184,7 +184,7 @@ public abstract class Plot3D extends JPanel {
                 Arrays.fill( hiBounds_, +rmax );
                 loBoundsG_ = (double[]) loBounds_.clone();
                 hiBoundsG_ = (double[]) hiBounds_.clone();
-                final double range2 = rmax * rmax;
+                final double range2 = rmax * rmax * 1.0001;
                 rangeChecker_ = new RangeChecker() {
                     boolean inRange( double[] coords ) {
                         return ( coords[ 0 ] * coords[ 0 ] +
