@@ -9347,6 +9347,9 @@ introduced since the last version:
     <ul>
     <li>Fixed bug which caused some points to be missed out in spherical
         plots.</li>
+    <li>ISO-8601 strings now permit times of 24:00:00 as they should.</li>
+    <li>Quoted unit values are examined to determine probable column
+        data types.</li>
     </ul>
     </p></dd>
 
