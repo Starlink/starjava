@@ -807,7 +807,7 @@ of an SQL query on a table in a MySQL database as a VOTable:
    stilts -classpath /usr/local/jars/mysql-connector-java.jar \
           -Djdbc.drivers=com.mysql.jdbc.Driver \
           tcopy \
-          "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
+          in="jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
           ofmt=votable gsc.vot
 ]]></verbatim>
 or invoking Java directly:
@@ -815,8 +815,8 @@ or invoking Java directly:
    java -classpath stilts.jar:/usr/local/jars/mysql-connect-java.jar \
         -Djdbc.drivers=com.mysql.jdbc.Driver \
         uk.ac.starlink.ttools.TableCopy \
-        "jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
-        ofmt=votable gsc.vot
+        in="jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
+        ofmt=votable out=gsc.vot
 ]]></verbatim>
 You have to exercise some care to get the arguments
 in the right order here - see <ref id="invoke"/>.
@@ -2252,7 +2252,7 @@ stilts tcopy ifmt=csv ofmt=latex spec.csv
 <dt><verbatim>
 stilts -classpath /usr/local/jars/pg73jdbc3.jar \
        -Djdbc.drivers=org.postgresql.Driver \
-       tcopy "jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag FROM dqc" \
+       tcopy in="jdbc:postgresql://localhost/imsim#SELECT ra, dec, Imag FROM dqc" \
              ofmt=fits wfslist.cat
 </verbatim></dt>
 <dd><p>Makes an SQL query on a PostgreSQL database and writes the
