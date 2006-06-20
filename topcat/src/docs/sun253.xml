@@ -9342,6 +9342,14 @@ introduced since the last version:
     </ul>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Fixed bug which caused some points to be missed out in spherical
+        plots.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
