@@ -64,6 +64,12 @@ public class Conversions {
 
             /* See if we recognise the units. */
             if ( units != null && units.trim().length() > 0 ) {
+
+                /* Unquote the string.  This tackles a convention in use
+                 * at CDS which uses values of the unit attribute in VOTables
+                 * to represent non-standard values, e.g. unit='"hms"'.
+                 * Also trim it for good measure. */
+                units = unquote( units.trim() ).trim();
                 if ( ISO8601_UNIT_PATTERN.matcher( units ).matches() ) {
                     return new Iso8601ToJulian( info );
                 }
@@ -77,6 +83,7 @@ public class Conversions {
 
             /* See if there's a clue in the UCD. */
             if ( ucd != null && ucd.trim().length() > 0 ) {
+                ucd = ucd.trim();
                 if ( ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
                     return new Iso8601ToJulian( info );
                 }
@@ -91,5 +98,24 @@ public class Conversions {
 
         /* Nope. */
         return null;
+    }
+
+    /**
+     * Removes matched single or double quotes from the ends of a string,
+     * if they are present.  If they aren't, returns the original string.
+     *
+     * @param  str   quoted or unquoted string
+     * @return  unquoted string
+     */
+    private static String unquote( String str ) {
+        int leng = str.length();
+        if ( ( leng > 1 ) &&
+             ( ( str.charAt( 0 ) == '\'' && str.charAt( leng - 1 ) == '\'' ) ||
+               ( str.charAt( 0 ) == '"' && str.charAt( leng - 1 ) == '"' ) ) ) {
+            return str.substring( 1, leng - 1 );
+        }
+        else {
+            return str;
+        }
     }
 }
