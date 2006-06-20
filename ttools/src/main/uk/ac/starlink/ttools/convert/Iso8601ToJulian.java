@@ -191,7 +191,12 @@ public class Iso8601ToJulian implements ValueConverter {
         int intMillis = (int) Math.round( sec * 1000.0 );
         cal.set( year, month - 1, day, hour, min, intMillis / 1000 );
         cal.set( Calendar.MILLISECOND, intMillis % 1000 );
-        return unixMillisToMjd( cal.getTimeInMillis() );
+        try {
+            return unixMillisToMjd( cal.getTimeInMillis() );
+        }
+        catch ( RuntimeException e ) {
+            return Double.NaN;
+        }
     }
 
     /**
@@ -260,7 +265,7 @@ public class Iso8601ToJulian implements ValueConverter {
      */
     private static Calendar newCalendar() {
         GregorianCalendar cal = new GregorianCalendar( UTC, Locale.UK );
-        cal.setLenient( false );
+        cal.setLenient( true );
         return cal;
     }
 

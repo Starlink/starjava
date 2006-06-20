@@ -485,7 +485,7 @@ public class Times {
      */
     private static Calendar newCalendar() {
         GregorianCalendar cal = new GregorianCalendar( UTC, Locale.UK );
-        cal.setLenient( false );
+        cal.setLenient( true );
         return cal;
     }
 
