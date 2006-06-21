@@ -168,7 +168,7 @@ public class DiskRowStore implements RowStore {
                          .map( FileChannel.MapMode.READ_ONLY, 0, fileSize );
         istrm.close();
         logger_.info( nrow_ + " rows stored in " + fileSize + " bytes" );
-        SeekableDataInput in = new NioDataInput( bbuf );
+        SeekableDataInput in = new NioDataAccess( bbuf );
         storedTable_ = new DiskStarTable( in );
     }
 

@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.storage;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,24 +11,24 @@ import uk.ac.starlink.table.Tables;
 /**
  * Adapts a {@link java.nio.ByteBuffer} to look like a 
  * {@link java.io.DataInput}.
- * As documented below, the <tt>DataInput</tt> implmentation 
- * is not quite complete; the unimplemented methods are not used
- * by the classes in this package for which this adapter class was
- * written.
+ * As documented below, the <tt>DataInput</tt> and <tt>DataOut</tt> 
+ * implementations are not quite complete; the unimplemented methods 
+ * are not used by the classes in this package for which this adapter
+ * class was written.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004
  */
-class NioDataInput implements SeekableDataInput {
+class NioDataAccess implements SeekableDataInput, DataOutput {
 
     private final ByteBuffer bbuf_;
 
     /**
-     * Constructs a new DataInput based on a byte buffer.
+     * Constructs a new DataAccess based on a byte buffer.
      *
      * @param  bbuf  backing buffer
      */
-    public NioDataInput( ByteBuffer bbuf ) {
+    public NioDataAccess( ByteBuffer bbuf ) {
         bbuf_ = bbuf;
     }
 
@@ -160,6 +161,117 @@ class NioDataInput implements SeekableDataInput {
         }
     }
 
+    public void write( int b ) throws IOException {
+        try {
+            bbuf_.put( (byte) b );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void write( byte[] b, int off, int len ) throws IOException {
+        try {
+            bbuf_.put( b, off, len );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void write( byte[] b ) throws IOException {
+        try {
+            bbuf_.put( b );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeBoolean( boolean val ) throws IOException {
+        try {
+            bbuf_.put( val ? (byte) 1 : (byte) 0 );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeByte( int val ) throws IOException {
+        try {
+            bbuf_.put( (byte) val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeChar( int val ) throws IOException {
+        try {
+            bbuf_.putChar( (char) val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeShort( int val ) throws IOException {
+        try {
+            bbuf_.putShort( (short) val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeInt( int val ) throws IOException {
+        try {
+            bbuf_.putInt( val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeLong( long val ) throws IOException {
+        try {
+            bbuf_.putLong( val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeFloat( float val ) throws IOException {
+        try {
+            bbuf_.putFloat( val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+    public void writeDouble( double val ) throws IOException {
+        try {
+            bbuf_.putDouble( val );
+        }
+        catch ( RuntimeException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
+    }
+
+
     /**
      * Not implemented.
      *
@@ -179,4 +291,35 @@ class NioDataInput implements SeekableDataInput {
         throw new UnsupportedOperationException( 
                       "Incomplete DataInput implementation" );
     }
+
+    /**
+     * Not implemented.
+     *
+     * @throws UnsupportedOperationException
+     */
+    public void writeBytes( String val ) throws IOException {
+        throw new UnsupportedOperationException( 
+                      "Incomplete DataInput implementation" );
+    }
+
+    /**
+     * Not implemented.
+     *
+     * @throws UnsupportedOperationException
+     */
+    public void writeChars( String val ) throws IOException {
+        throw new UnsupportedOperationException( 
+                      "Incomplete DataInput implementation" );
+    }
+
+    /**
+     * Not implemented.
+     *
+     * @throws UnsupportedOperationException
+     */
+    public void writeUTF( String val ) throws IOException {
+        throw new UnsupportedOperationException( 
+                      "Incomplete DataInput implementation" );
+    }
+
 }
