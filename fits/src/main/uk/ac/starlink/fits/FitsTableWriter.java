@@ -75,7 +75,9 @@ public class FitsTableWriter extends StreamStarTableWriter {
         int dotPos = location.lastIndexOf( '.' );
         if ( dotPos > 0 ) {
             String exten = location.substring( dotPos + 1 ).toLowerCase();
-            if ( exten.startsWith( "fit" ) || exten.equals( "fts" ) ) {
+            if ( exten.equals( "fit" ) ||
+                 exten.equals( "fits" ) ||
+                 exten.equals( "fts" ) ) {
                 return true;
             }
         }
