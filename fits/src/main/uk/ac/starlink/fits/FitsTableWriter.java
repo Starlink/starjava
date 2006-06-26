@@ -42,10 +42,6 @@ import uk.ac.starlink.table.StreamStarTableWriter;
  * table is set to the largest of these.  Excess space is padded
  * with some sort of blank value (NaN for floating point values,
  * spaces for strings, zero-like values otherwise).
- * <p>
- * Null cell values are written using some zero-like value, not a proper
- * blank value.  Doing this right would require some changes to the tables
- * infrastructure.
  *
  * @author   Mark Taylor (Starlink)
  */
