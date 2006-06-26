@@ -322,7 +322,7 @@ abstract class ColumnWriter {
         }
         else if ( clazz == boolean[].class ) {
             final byte[] buf = new byte[ nel ];
-            final byte PAD = 'F';
+            final byte PAD = (byte) 0;
             return new ColumnWriter( 'L', 1, shape ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {
