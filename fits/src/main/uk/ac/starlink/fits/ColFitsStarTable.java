@@ -56,6 +56,11 @@ public class ColFitsStarTable extends ColumnStarTable {
             throw new TableFormatException( "HDU 1 not BINTABLE" );
         }
 
+        /* Check it has exactly one row. */
+        if ( hdr.getIntValue( "NAXIS2" ) != 1 ) {
+            throw new TableFormatException( "Doesn't have exactly one row" );
+        }
+
         /* Find the number of columns. */
         int ncol = hdr.getIntValue( "TFIELDS" );
 
@@ -83,7 +88,11 @@ public class ColFitsStarTable extends ColumnStarTable {
             formatChars[ icol ] = formatChar;
 
             /* Row count and item shape. */
-            long[] dims = parseTdim( hdr.getStringValue( "TDIM" + jcol ) );
+            String tdims = hdr.getStringValue( "TDIM" + jcol );
+            long[] dims = parseTdim( tdims );
+            if ( dims == null ) {
+                throw new TableFormatException( "Bad TDIM value " + tdims );
+            }
             if ( multiply( dims ) != nitem ) {
                 throw new TableFormatException( "TDIM doesn't match TFORM" );
             }
@@ -152,18 +161,19 @@ public class ColFitsStarTable extends ColumnStarTable {
     /**
      * Parse the content of a FITS TDIMnn header card.
      * This has the form (a,b,c,..), where a, b, c are integer values.
+     * Returns null if <code>tdim</code> is not of the expected form.
      *
      * @param   tdim   header card value
      * @return  array of values
      */
-    private static long[] parseTdim( String tdim ) throws TableFormatException {
+    static long[] parseTdim( String tdim ) {
         if ( tdim == null ) {
-            throw new TableFormatException( "Missing TDIM value" );
+            return null;
         }
         tdim = tdim.trim();
         if ( tdim.charAt( 0 ) != '(' ||
              tdim.charAt( tdim.length() - 1 ) != ')' ) {
-            throw new TableFormatException( "Bad TDIM value " + tdim );
+            return null;
         }
         String[] sdims = tdim.substring( 1, tdim.length() - 1 ).split( "," );
         long[] dims = new long[ sdims.length ];
@@ -172,7 +182,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 dims[ i ] = Long.parseLong( sdims[ i ].trim() );
             }
             catch ( NumberFormatException e ) {
-                throw new TableFormatException( "Bad TDIM value " + tdim, e );
+                return null;
             }
         }
         return dims;
