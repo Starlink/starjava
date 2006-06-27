@@ -6,15 +6,20 @@ import java.io.DataInputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
+import nom.tam.util.BufferedDataInputStream;
+import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -29,9 +34,10 @@ abstract class FileColumnStore implements ColumnStore {
 
     private final ValueInfo info_;
     private final File file_;
-    private final DataOutputStream out_;
+    private final DataOutput out_;
     private final char formatChar_;
     private final int typeBytes_;
+    private final boolean dumpCopy_;
     private long nrow_;
     private int[] itemShape_;
     private byte[] copyBuf_;
@@ -40,7 +46,38 @@ abstract class FileColumnStore implements ColumnStore {
         Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
-     * Constructor.
+     * Constructor with optional dumpCopy flag.
+     *
+     * @param   info   column metadata
+     * @param   formatChar  FITS format character label
+     * @param   typeBytes  number of bytes per primitive array element;
+     *          this value is not necessarily the size of elements in the
+     *          column since they may be arrays of items of this size
+     * @param   dumpCopy  true only if the intermediate file is written in
+     *          such a way that it can be dumped directly to the output 
+     *          FITS file
+     */
+    protected FileColumnStore( ValueInfo info, char formatChar,
+                               int typeBytes, boolean dumpCopy )
+            throws IOException {
+        info_ = info;
+        formatChar_ = formatChar;
+        typeBytes_ = typeBytes;
+        dumpCopy_ = dumpCopy;
+        setItemShape( new int[] { 1 } );
+        file_ = File.createTempFile( "col-"
+                                   + info.getName().replaceAll( "\\W+", "" ),
+                                     ".bin" );
+        file_.deleteOnExit();
+        // Note: a DataOutputStream on a BufferedOutputStream is slow.
+        // out_ = new DataOutputStream(
+        //            new BufferedOutputStream(
+        //                new FileOutputStream( file_ ) ) );
+        out_ = new BufferedDataOutputStream( new FileOutputStream( file_ ) );
+    }
+
+    /**
+     * Constructor which sets dumpCopy false.
      *
      * @param   info   column metadata
      * @param   formatChar  FITS format character label
@@ -48,19 +85,9 @@ abstract class FileColumnStore implements ColumnStore {
      *          this value is not necessarily the size of elements in the
      *          column since they may be arrays of items of this size
      */
-    protected FileColumnStore( ValueInfo info, char formatChar,
-                               int typeBytes ) throws IOException {
-        info_ = info;
-        formatChar_ = formatChar;
-        typeBytes_ = typeBytes;
-        setItemShape( new int[] { 1 } );
-        file_ = File.createTempFile( "col-"
-                                   + info.getName().replaceAll( "\\W+", "" ),
-                                     ".bin" );
-        file_.deleteOnExit();
-        out_ = new DataOutputStream(
-                   new BufferedOutputStream(
-                       new FileOutputStream( file_ ) ) );
+    protected FileColumnStore( ValueInfo info, char formatChar, int typeBytes )
+            throws IOException {
+        this( info, formatChar, typeBytes, false );
     }
 
     public void storeValue( Object value ) throws IOException {
@@ -69,21 +96,49 @@ abstract class FileColumnStore implements ColumnStore {
     }
 
     public void streamData( DataOutput out ) throws IOException {
-        DataInputStream in = new DataInputStream(
-                                 new BufferedInputStream(
-                                     new FileInputStream( file_ ) ) );
-        try {
-            for ( long irow = 0; irow < nrow_; irow++ ) {
-                copyValue( in, out );
+        if ( dumpCopy_ ) {
+            FileInputStream in = new FileInputStream( file_ );
+            int bufsiz = 64 * 1024;
+            byte[] buf = new byte[ bufsiz ];
+            try {
+                for ( long nbyte = getDataLength(); nbyte > 0; ) {
+                    int count = in.read( buf, 0,
+                                         Math.min( (int) nbyte, bufsiz ) );
+                    if ( count < 0 ) {
+                        throw new EOFException();
+                    }
+                    out.write( buf, 0, count );
+                    nbyte -= count;
+                }
+            }
+            finally {
+                in.close();
             }
         }
-        finally {
-            in.close();
+        else {
+            // Note: a DataInputStream on a BufferedInputStream is slow.
+            // DataInput in = new DataInputStream(
+            //                    new BufferedInputStream(
+            //                        new FileInputStream( file_ ) ) );
+            DataInput in =
+                new BufferedDataInputStream( new FileInputStream( file_ ) );
+            try {
+                for ( long irow = 0; irow < nrow_; irow++ ) {
+                    copyValue( in, out );
+                }
+            }
+            finally {
+                if ( in instanceof InputStream ) {
+                    ((InputStream) in).close();
+                }
+            }
         }
     }
 
     public void endStores() throws IOException {
-        out_.close();
+        if ( out_ instanceof OutputStream ) {
+            ((OutputStream) out_).close();
+        }
     }
 
     public long getDataLength() {
@@ -215,7 +270,7 @@ abstract class FileColumnStore implements ColumnStore {
         Class clazz = info.getContentClass();
 
         if ( clazz == Boolean.class ) {
-            return new FileColumnStore( info, 'L', 1 ) {
+            return new FileColumnStore( info, 'L', 1, true ) {
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {
                     byte b;
@@ -263,7 +318,7 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == Float.class ) {
-            return new FileColumnStore( info, 'E', 4 ) {
+            return new FileColumnStore( info, 'E', 4, true ) {
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {
                     out.writeFloat( value instanceof Number
@@ -274,7 +329,7 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == Double.class ) {
-            return new FileColumnStore( info, 'D', 8 ) {
+            return new FileColumnStore( info, 'D', 8, true ) {
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {
                     out.writeDouble( value instanceof Number
@@ -285,7 +340,7 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == Character.class ) {
-            return new FileColumnStore( info, 'A', 1 ) {
+            return new FileColumnStore( info, 'A', 1, true ) {
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {
                     out.writeByte( value instanceof Character
@@ -475,7 +530,8 @@ abstract class FileColumnStore implements ColumnStore {
          */
         FixedArrayColumnStore( ValueInfo info, ArrayStorage handler )
                 throws IOException {
-            super( info, handler.getFormatChar(), handler.getTypeBytes() );
+            super( info, handler.getFormatChar(), handler.getTypeBytes(),
+                   true );
             handler_ = handler;
             size_ = multiply( info.getShape() );
             buffer_ = Array.newInstance( handler.getComponentClass(), size_ );
