@@ -4,7 +4,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
-import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Defines an object which can provide serial storage and serial 
