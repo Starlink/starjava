@@ -73,13 +73,26 @@ public class LineInvoker {
                 }
                 else if ( arg.equals( "-version" ) ) {
                     it.remove();
-                    System.out.println();
-                    System.out.println( "STILTS version " 
-                                      + Stilts.getVersion() );
-                    System.out.println( "STIL version " +
-                        IOUtils.getResourceContents( StarTable.class,
-                                                     "stil.version" ) );
-                    System.out.println();
+                    String[] lines = new String[] {
+                        "",
+                        "This is STILTS, the STIL Tool Set",
+                        "",
+                        "STILTS version " + Stilts.getVersion(),
+                        "STIL version "
+                        + IOUtils.getResourceContents( StarTable.class,
+                                                       "stil.version" ),
+                        "",
+                        "Author: Mark Taylor",
+                        "WWW: http://www.starlink.ac.uk/stilts/",
+                        "",
+                    };
+                    for ( int il = 0; il < lines.length; il++ ) {
+                        String line = lines[ il ];
+                        if ( line.length() > 0 ) {
+                            System.out.print( "    " );
+                        }
+                        System.out.println( line );
+                    }
                     return;
                 }
                 else if ( arg.equals( "-verbose" ) ) {
