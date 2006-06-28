@@ -4,6 +4,11 @@ import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Provides static methods which do miscellaneous input/output tasks.
@@ -11,6 +16,10 @@ import java.io.InputStream;
  * @author   Mark Taylor
  */
 public class IOUtils {
+
+    private final static Map resourceMap_ = new HashMap();
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.util" );
 
     /**
      * Skips over a number of bytes in a <tt>DataInput</tt>.
@@ -95,5 +104,53 @@ public class IOUtils {
         if ( strm.read() == -1 ) {
             throw new EOFException();
         }
+    }
+
+    /**
+     * Reads a static resource and returns the contents as a string.
+     * The resource is read using <code>clazz.getResourceAsStream(name)</code>
+     * and is assumed to have ASCII content.  The result is cached so that
+     * subsequent calls will return the same value.
+     * If it can't be read, "?" is returned.
+     * This is intended for short files such as version strings.
+     *
+     * @param  clazz  class defining relative location of resource
+     * @param  name   resource name relative to <code>clazz</code>
+     * @return resource content string
+     * @see    java.lang.Class#getResourceAsStream
+     */
+    public static String getResourceContents( Class clazz, String name ) {
+        List key = Arrays.asList( new Object[] { clazz, name } );
+        if ( ! resourceMap_.containsKey( key ) ) {
+            String value = null;
+            InputStream in = null;
+            try {
+                in = clazz.getResourceAsStream( name );
+                if ( in != null ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int b; ( b = in.read() ) > 0; ) {
+                        sbuf.append( (char) b );
+                    }
+                    value = sbuf.toString().trim();
+                }
+            }
+            catch ( IOException e ) {
+            }
+            finally {
+                if ( in != null ) {
+                    try {
+                        in.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            if ( value == null ) {
+                logger_.warning( "Couldn't read requested resource " + name );
+                value = "?";
+            }
+            resourceMap_.put( key, value );
+        }
+        return (String) resourceMap_.get( key );   
     }
 }

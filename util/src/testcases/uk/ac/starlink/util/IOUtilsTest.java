@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
 
 /**
@@ -90,6 +92,14 @@ public class IOUtilsTest extends TestCase {
         catch ( EOFException e ) {
         }
         strm.close();
+    }
+
+    public void testGetResourceContents() {
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
+        assertEquals( "some-text",
+                      IOUtils.getResourceContents( getClass(), "resource" ) );
+        assertEquals( "?",
+                      IOUtils.getResourceContents( getClass(), "not.resource" ) );
     }
     
 }
