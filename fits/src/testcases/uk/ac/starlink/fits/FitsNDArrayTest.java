@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.ArrayBuilder;
@@ -20,6 +22,7 @@ public class FitsNDArrayTest extends TestCase {
 
     public FitsNDArrayTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testBuilder() throws MalformedURLException, IOException {

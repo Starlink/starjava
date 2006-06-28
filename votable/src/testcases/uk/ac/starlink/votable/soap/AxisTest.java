@@ -2,6 +2,8 @@ package uk.ac.starlink.votable.soap;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.rpc.ParameterMode;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -17,6 +19,9 @@ public class AxisTest extends TableTestCase {
 
     public AxisTest( String name ) {
         super( name );
+        Logger.getLogger( "org.mortbay" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.soap" ).setLevel( Level.WARNING );
+        Logger.getLogger( "org.apache.axis" ).setLevel( Level.SEVERE );
     }
 
     public void testAxis() throws Exception {

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.net.URL;
 import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.SAXException;
@@ -17,6 +19,8 @@ public class VOTableTest extends TestCase {
 
     public VOTableTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.table.storage" )
+              .setLevel( Level.WARNING );
     }
 
     public void testTable() throws SAXException, IOException {

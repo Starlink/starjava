@@ -9,6 +9,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -42,6 +44,8 @@ public class FitsNdxTest extends TestCase {
 
     public FitsNdxTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.ndx" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void setUp() {

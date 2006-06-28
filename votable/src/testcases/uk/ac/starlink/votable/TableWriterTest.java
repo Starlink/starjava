@@ -3,6 +3,8 @@ package uk.ac.starlink.votable;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.xml.sax.InputSource;
 import org.iso_relax.verifier.Verifier;
@@ -16,6 +18,7 @@ public class TableWriterTest extends TestCase {
 
     public TableWriterTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.SEVERE );
     }
 
     public void testTableWriter() throws Exception {
