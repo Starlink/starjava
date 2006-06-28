@@ -10,12 +10,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
+import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.util.Base64OutputStream;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Implementation of the <tt>StarTableWriter</tt> interface for
@@ -315,8 +317,13 @@ public class VOTableWriter implements StarTableWriter {
         /* Output a comment claiming authorship. */
         writer.write( "<!--" );
         writer.newLine();
-        writer.write( " !  VOTable written by " +
-                      serializer.formatText( this.getClass().getName() ) );
+        writer.write( " !  VOTable written by STIL version "
+                    + IOUtils.getResourceContents( StarTable.class,
+                                                   "stil.version" )
+                    + " (" + serializer.formatText( getClass().getName() )
+                    + ")" );
+        writer.newLine();
+        writer.write( " !  at " + AbstractFitsTableWriter.getCurrentDate() );
         writer.newLine();
         writer.write( " !-->" );
         writer.newLine();
