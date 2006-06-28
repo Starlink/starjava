@@ -227,8 +227,6 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
                 throw new HdxException
                         ( "getObject asked to realise bad type "
                          + el.getTagName() );
-            System.err.println( "BridgeNDArrayHdxFacade returning this="
-                               + toString() );
             return BridgeNDArray.this;
         }
 
