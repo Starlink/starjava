@@ -2,10 +2,12 @@ package uk.ac.starlink.table;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.storage.ListRowStore;
 import uk.ac.starlink.table.storage.DiscardRowStore;
 import uk.ac.starlink.table.storage.DiskRowStore;
+import uk.ac.starlink.table.storage.SidewaysRowStore;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -27,8 +29,8 @@ import uk.ac.starlink.util.Loader;
  *
  * <p>Code which wants to store data in a particular way may use one of
  * the predefined policies {@link #PREFER_MEMORY}, {@link #PREFER_DISK}
- * or {@link #DISCARD}, or may implement their own policy by extending
- * this class.
+ * {@link #SIDEWAYS} or {@link #DISCARD}, or may implement their 
+ * own policy by extending this class.
  * If you want more control, you can always create instances of the 
  * public {@link RowStore} implementations directly.
  *
@@ -37,6 +39,8 @@ import uk.ac.starlink.util.Loader;
 public abstract class StoragePolicy {
 
     private static StoragePolicy defaultInstance_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.storage" );
 
     /**
      * Smallest number of cells that will get written to disk by default.
@@ -66,6 +70,9 @@ public abstract class StoragePolicy {
                 }
                 else if ( "memory".equals( pref ) ) {
                     defaultInstance_ = PREFER_MEMORY;
+                }
+                else if ( "sideways".equals( pref ) ) {
+                    defaultInstance_ = SIDEWAYS;
                 }
                 else if ( "discard".equals( pref ) ) {
                     defaultInstance_ = DISCARD;
@@ -195,42 +202,39 @@ public abstract class StoragePolicy {
      * garbage collected), though this cannot be guaranteed since it
      * depends on the details of the JVM's GC implementation.
      */
-    public static final StoragePolicy PREFER_DISK = new StoragePolicy() {
-        public RowStore makeRowStore() {
-            try {
+    public static final StoragePolicy PREFER_DISK =
+        new DiskStoragePolicy( "PREFER_DISK", MIN_DISK_CELLS ) {
+            protected RowStore makeDiskRowStore() throws IOException {
                 return new DiskRowStore();
             }
-            catch ( SecurityException e ) {
-                return new ListRowStore();
+        };
+
+    /**
+     * Storage policy which will normally store table data in scratch disk
+     * files in such a way that cells from the same column are contiguous
+     * on disk.  This may be more efficient for certain access patterns
+     * for tables which are very large and, in particular, very wide.
+     * It's generally more expensive on system resources than 
+     * {@link #PREFER_DISK} however, so it is only the best choice in
+     * rather specialised circumstances.
+     * If it's impossible for some reason to store the data in this way,
+     * or if the number of cells requested is small, it will fall back
+     * to using memory storage.
+     * Temporary disk files (at least one per column) are written 
+     * in the default temporary directory, which is the value of the 
+     * <tt>java.io.tmpdir</tt> system property.  
+     * These files will be deleted when the JVM exits,
+     * if not before.  They will <em>probably</em> be deleted around the
+     * time they are no longer needed (when the RowStore in question is 
+     * garbage collected), though this cannot be guaranteed since it
+     * depends on the details of the JVM's GC implementation.
+     */
+    public static final StoragePolicy SIDEWAYS =
+        new DiskStoragePolicy( "SIDEWAYS", MIN_DISK_CELLS ) {
+            protected RowStore makeDiskRowStore() throws IOException {
+                return new SidewaysRowStore();
             }
-            catch ( IOException e ) {
-                return new ListRowStore();
-            }
-        }
-        public RowStore makeConfiguredRowStore( StarTable meta ) {
-            long nrow = meta.getRowCount();
-            if ( nrow > 0 && nrow * meta.getColumnCount() < MIN_DISK_CELLS ) {
-                ListRowStore store = new ListRowStore();
-                store.acceptMetadata( meta );
-                return store;
-            }
-            else {
-                try {
-                    RowStore store = makeRowStore();
-                    store.acceptMetadata( meta );
-                    return store;
-                }
-                catch ( TableFormatException e ) {
-                    ListRowStore store = new ListRowStore();
-                    store.acceptMetadata( meta );
-                    return store;
-                }
-            }
-        }
-        public String toString() {
-            return "StoragePolicy.PREFER_DISK";
-        }
-    };
+        };
 
     /**
      * Storage policy which just throws away the rows it is given.
@@ -250,5 +254,79 @@ public abstract class StoragePolicy {
             return "StoragePolicy.DISCARD";
         }
     };
- 
+
+    /**
+     * Abstract superclass of storage policies which use disk-based storage
+     * for tables larger than a certain threshold.
+     * If disk-based storage can't be used for one reason or another, 
+     * or for small tables, it falls back to dispensing 
+     * <code>ListRowStore</code>s.
+     */
+    private abstract static class DiskStoragePolicy extends StoragePolicy {
+
+        private final String name_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  public name for this policy
+         * @param  minDiskCells   threshold of number of cells in a table 
+         *         below which memory based storage will be used
+         */
+        DiskStoragePolicy( String name, int minDiskCells ) {
+            name_ = name;
+        }
+
+        /**
+         * Constructs a disk-based row store.
+         *
+         * @return  disk row store
+         */
+        protected abstract RowStore makeDiskRowStore() throws IOException;
+
+        public RowStore makeRowStore() {
+            Exception error;
+            try {
+                return makeDiskRowStore();
+            }
+            catch ( SecurityException e ) {
+                error = e;
+            }
+            catch ( IOException e ) {
+                error = e;
+            }
+            assert error != null;
+            logger_.warning( "Failed to create disk storage: " + error
+                           + " - using memory instead" );
+            return new ListRowStore();
+        }
+
+        public RowStore makeConfiguredRowStore( StarTable meta ) {
+            long nrow = meta.getRowCount();
+            if ( nrow > 0 && nrow * meta.getColumnCount() < MIN_DISK_CELLS ) {
+                ListRowStore store = new ListRowStore();
+                store.acceptMetadata( meta );
+                return store;
+            }
+            else {
+                try {
+                    RowStore store = makeRowStore();
+                    store.acceptMetadata( meta );
+                    return store;
+                }
+                catch ( TableFormatException e ) {
+                    logger_.warning( "Disk store " + this
+                                   + " unsuitable for table: " + e
+                                   + " - using memory instead" );
+                    ListRowStore store = new ListRowStore();
+                    store.acceptMetadata( meta );
+                    return store;
+                }
+            }
+        }
+
+        public String toString() {
+            return "StoragePolicy." + name_;
+        }
+    }
 }
