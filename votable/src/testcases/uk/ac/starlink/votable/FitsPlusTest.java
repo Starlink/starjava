@@ -3,7 +3,11 @@ package uk.ac.starlink.votable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
+import uk.ac.starlink.fits.ColFitsTableBuilder;
+import uk.ac.starlink.fits.ColFitsTableWriter;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.ArrayColumn;
@@ -34,6 +38,7 @@ public class FitsPlusTest extends TestCase {
 
     public FitsPlusTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void setUp() {
@@ -45,12 +50,20 @@ public class FitsPlusTest extends TestCase {
         table_.getParameters().add( authorParam );
     }
 
-    public void testData() throws IOException {
-        StarTableWriter fpOut = new FitsPlusTableWriter();
-        StarTableWriter fOut = new FitsTableWriter();
-        TableBuilder fpIn = new FitsPlusTableBuilder();
-        TableBuilder fIn = new FitsTableBuilder();
+    public void testFitsPlus() throws IOException {
+        exerciseFormats( new FitsPlusTableWriter(), new FitsTableWriter(),
+                         new FitsPlusTableBuilder(), new FitsTableBuilder() );
+    }
 
+    public void testColFitsPlus() throws IOException {
+        exerciseFormats( new ColFitsPlusTableWriter(), new ColFitsTableWriter(),
+                         new ColFitsPlusTableBuilder(),
+                         new ColFitsTableBuilder() );
+    }
+
+    public void exerciseFormats( StarTableWriter fpOut, StarTableWriter fOut,
+                                 TableBuilder fpIn, TableBuilder fIn )
+            throws IOException {
         {
             StarTable t2 = copyTable( table_, fpOut, fpIn );
             assertEquals( table_.getCell( 0, 0 ), t2.getCell( 0, 0 ) );
