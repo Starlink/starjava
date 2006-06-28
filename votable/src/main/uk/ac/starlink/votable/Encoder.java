@@ -27,7 +27,7 @@ abstract class Encoder {
     final ValueInfo info;
     final Map attMap = new HashMap();
     String description;
-    String values;
+    String nullString;
     String links;
     private String content;
 
@@ -180,9 +180,9 @@ abstract class Encoder {
                 contBuf.append( '\n' )
                        .append( description );
             }
-            if ( values != null && values.trim().length() > 0 ) {
+            if ( nullString != null && nullString.trim().length() > 0 ) {
                 contBuf.append( '\n' )
-                       .append( values );
+                       .append( "<VALUES null='" + nullString + "'/>" );
             }
             if ( links != null && links.trim().length() > 0 ) {
                 contBuf.append( '\n' )
@@ -204,6 +204,15 @@ abstract class Encoder {
      */
     public Map getFieldAttributes() {
         return attMap;
+    }
+
+    /**
+     * Sets the null representation for this encoder.
+     *
+     * @param   nullString  null representation
+     */
+    public void setNullString( String nullString ) {
+        this.nullString = nullString;
     }
 
     /**
@@ -656,16 +665,8 @@ abstract class Encoder {
             super( info, datatype );
 
             /* Set up bad value representation. */
-            if ( nullString != null ) {
-                String pref = ( values == null || values.trim().length() == 0 )
-                            ? ""
-                            : ( values + "\n" );
-                values = pref + "<VALUES null='" + nullString + "'/>";
-                nullText = nullString;
-            }
-            else {
-                nullText = "";
-            }
+            setNullString( nullString );
+            this.nullText = nullString == null ? "" : nullString;
         }
 
         public String encodeAsText( Object val ) {
