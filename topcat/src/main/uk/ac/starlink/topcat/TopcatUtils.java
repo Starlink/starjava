@@ -14,6 +14,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Class containing miscellaneous static methods and constants 
@@ -405,36 +406,7 @@ public class TopcatUtils {
      * @return  version number only
      */
     public static String getVersion() {
-        if ( version_ == null ) {
-            InputStream strm = null;
-            try {
-                strm = AuxWindow.class.getResourceAsStream( VERSION_RESOURCE );
-                if ( strm != null ) {
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int b; ( b = strm.read() ) > 0; ) {
-                        sbuf.append( (char) b );
-                    }
-                    version_ = sbuf.toString().trim();
-                }
-            }
-            catch ( IOException e ) {
-            }
-            finally {
-                if ( strm != null ) {
-                    try {
-                        strm.close();
-                    }
-                    catch ( IOException e ) {
-                    }
-                }
-            }
-            if ( version_ == null ) {
-                logger_.warning( "Couldn't load version string from "
-                               + VERSION_RESOURCE );
-                version_ = "?";
-            }
-        }
-        return version_;
+        return IOUtils.getResourceContents( AuxWindow.class, VERSION_RESOURCE );
     }
 
     /**
@@ -443,36 +415,7 @@ public class TopcatUtils {
      * @return  STIL version number
      */
     public static String getSTILVersion() {
-        if ( stilVersion_ == null ) {
-            InputStream strm = null;
-            try {
-                strm = StarTable.class.getResourceAsStream( "stil.version" );
-                if ( strm != null ) { 
-                    StringBuffer sbuf = new StringBuffer(); 
-                    for ( int b; ( b = strm.read() ) > 0; ) {
-                        sbuf.append( (char) b );
-                    }
-                    stilVersion_ = sbuf.toString().trim();
-                }
-            }
-            catch ( IOException e ) {
-            }
-            finally {
-                if ( strm != null ) {
-                    try {
-                        strm.close();
-                    }
-                    catch ( IOException e ) {
-                    }
-                }
-            }
-            if ( version_ == null ) {
-                logger_.warning( "Couldn't load version string from "
-                               + "uk/ac/starlink/table/stil.version" );
-                stilVersion_ = "?";
-            }
-        }
-        return stilVersion_;
+        return IOUtils.getResourceContents( StarTable.class, "stil.version" );
     }
 
     /**

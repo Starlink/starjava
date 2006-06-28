@@ -10,6 +10,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -21,6 +22,7 @@ import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.ObjectFactory;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Invokes the Stilts tasks using a {@link LineEnvironment}.
@@ -71,8 +73,13 @@ public class LineInvoker {
                 }
                 else if ( arg.equals( "-version" ) ) {
                     it.remove();
-                    System.out.println( "\n" + "STILTS version " 
-                                             + Stilts.getVersion() + "\n" );
+                    System.out.println();
+                    System.out.println( "STILTS version " 
+                                      + Stilts.getVersion() );
+                    System.out.println( "STIL version " +
+                        IOUtils.getResourceContents( StarTable.class,
+                                                     "stil.version" ) );
+                    System.out.println();
                     return;
                 }
                 else if ( arg.equals( "-verbose" ) ) {

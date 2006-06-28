@@ -5,6 +5,7 @@ import java.io.InputStream;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
+import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -58,28 +59,7 @@ public class Stilts {
      * @return  version string
      */
     public static String getVersion() {
-        InputStream strm = null;
-        try {
-            strm = Stilts.class.getResourceAsStream( VERSION_RESOURCE );
-            StringBuffer sbuf = new StringBuffer();
-            for ( int b; ( b = strm.read() ) > 0; ) {
-                sbuf.append( (char) b );
-            }
-            return sbuf.toString().trim();
-        }
-        catch ( IOException e ) {
-            throw new RuntimeException( "Version unknown", e );
-        }
-        finally {
-            if ( strm != null ) {
-                try {
-                    strm.close();
-                }
-                catch ( IOException e ) {
-                    // never mind
-                }
-            }
-        }
+        return IOUtils.getResourceContents( Stilts.class, VERSION_RESOURCE );
     }
 
     /**
