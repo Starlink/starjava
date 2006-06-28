@@ -23,7 +23,7 @@ import uk.ac.starlink.table.StarTable;
 public class ColFitsTableWriter extends AbstractFitsTableWriter {
 
     public ColFitsTableWriter() {
-        super( "colfits" );
+        super( "colfits-basic" );
     }
 
     public boolean looksLikeFile( String location ) {

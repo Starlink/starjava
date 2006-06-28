@@ -35,7 +35,7 @@ import uk.ac.starlink.util.FileDataSource;
 public class ColFitsTableBuilder implements TableBuilder {
 
     public String getFormatName() {
-        return "colfits-raw";
+        return "colfits-basic";
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
