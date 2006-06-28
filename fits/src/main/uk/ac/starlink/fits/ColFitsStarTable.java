@@ -32,24 +32,12 @@ public class ColFitsStarTable extends ColumnStarTable {
      * Constructor.
      *
      * @param   file  file containing the FITS data
+     * @param   hdr   header of the HDU containing the table
+     * @param   dataPos  offset into <code>file</code> of the start of the
+     *          data part of the HDU
      */
-    public ColFitsStarTable( File file ) throws IOException {
-
-        /* Locate the first extension and read the HDU header. */
-        ArrayDataInput in = new BufferedFile( file.toString() );
-        long pos = 0;
-        Header hdr = new Header();
-        try {
-            pos += FitsConstants.skipHDUs( in, 1 );
-            pos += FitsConstants.readHeader( hdr, in );
-        }
-        catch ( FitsException e ) {
-            throw (IOException) new IOException( "FITS read error" )
-                               .initCause( e );
-        }
-        finally {
-            in.close();
-        }
+    public ColFitsStarTable( File file, Header hdr, long dataPos )
+            throws IOException {
 
         /* Check it's a BINTABLE. */
         if ( ! hdr.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
@@ -140,6 +128,7 @@ public class ColFitsStarTable extends ColumnStarTable {
          * metadata we have ascertained from the header. */
         FileChannel chan = new RandomAccessFile( file, "r" ).getChannel();
         try {
+            long pos = dataPos;
             for ( int icol = 0; icol < ncol; icol++ ) {
                 MappedColumnData colData =
                     createColumn( formatChars[ icol ], infos[ icol ],
