@@ -65,6 +65,17 @@ public class ColFitsStarTable extends ColumnStarTable {
             /* Format character and length. */
             String tform = hdr.getStringValue( "TFORM" + jcol ).trim();
             char formatChar = tform.charAt( tform.length() - 1 );
+
+            /* Use a special value if we have byte values offset by 128
+             * (which allows one to represent signed bytes as unigned ones). */
+            if ( formatChar == 'B' &&
+                 ( hdr.containsKey( "TZERO" + jcol )
+                   && hdr.getFloatValue( "TZERO" + jcol ) == -128.0f ) &&
+                 ( ! hdr.containsKey( "TSCALE" + jcol )
+                   || hdr.getFloatValue( "TSCALE" + jcol ) == 1.0f ) ) {
+                formatChar = 'b';
+            }
+  
             long nitem;
             try {
                 nitem =
@@ -258,7 +269,7 @@ public class ColFitsStarTable extends ColumnStarTable {
             }
 
             else if ( formatChar == 'B' ) {
-                info.setContentClass( Byte.class );
+                info.setContentClass( Short.class );
                 final boolean hasBad = blank != null;
                 final byte badval = hasBad ? blank.byteValue() : (byte) 0;
                 info.setNullable( hasBad );
@@ -268,7 +279,23 @@ public class ColFitsStarTable extends ColumnStarTable {
                         byte val = buf.get( offset );
                         return ( hasBad && val == badval )
                              ? null
-                             : new Byte( val );
+                             : new Short( (short) ( val & 0xff ) );
+                    }
+                };
+            }
+
+            else if ( formatChar == 'b' ) {
+                info.setContentClass( Short.class );
+                final boolean hasBad = blank != null;
+                final byte badval = hasBad ? blank.byteValue() : (byte) 0;
+                info.setNullable( hasBad );
+                return new MappedColumnData( info, 1, SCALAR, nrow,
+                                             chan, pos ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
+                        byte val = buf.get( offset );
+                        return ( hasBad && val == badval )
+                             ? null
+                             : new Short( (short) val );
                     }
                 };
             }
@@ -364,15 +391,31 @@ public class ColFitsStarTable extends ColumnStarTable {
             }
 
             else if ( formatChar == 'B' ) {
-                info.setContentClass( byte[].class );
+                info.setContentClass( short[].class );
                 return new MappedColumnData( info, 1, itemShape, nrow,
                                              chan, pos ) {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
-                        byte[] val = new byte[ itemSize ];
+                        short[] val = new short[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
-                            val[ i ] = buf.get();
+                            val[ i ] = (short) ( buf.get() & 0xff );
+                        }
+                        return val;
+                    }
+                };
+            }
+
+            else if ( formatChar == 'b' ) {
+                info.setContentClass( short[].class );
+                return new MappedColumnData( info, 1, itemShape, nrow,
+                                             chan, pos ) {
+                    protected synchronized Object readValue( ByteBuffer buf,
+                                                             int offset ) {
+                        buf.position( offset );
+                        short[] val = new short[ itemSize ];
+                        for ( int i = 0; i < itemSize; i++ ) {
+                            val[ i ] = (short) buf.get();
                         }
                         return val;
                     }
