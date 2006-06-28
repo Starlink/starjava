@@ -15,14 +15,27 @@ import junit.framework.AssertionFailedError;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BintableStarTable;
+import uk.ac.starlink.fits.ColFitsTableWriter;
+import uk.ac.starlink.fits.ColFitsTableBuilder;
+import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.storage.DiskRowStore;
 import uk.ac.starlink.table.storage.ListRowStore;
+import uk.ac.starlink.table.storage.SidewaysRowStore;
+import uk.ac.starlink.table.formats.AsciiTableBuilder;
+import uk.ac.starlink.table.formats.AsciiTableWriter;
+import uk.ac.starlink.table.formats.CsvTableBuilder;
+import uk.ac.starlink.table.formats.CsvTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.ColFitsPlusTableBuilder;
+import uk.ac.starlink.votable.ColFitsPlusTableWriter;
+import uk.ac.starlink.votable.FitsPlusTableBuilder;
+import uk.ac.starlink.votable.FitsPlusTableWriter;
 import uk.ac.starlink.votable.VOStarTable;
+import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.votable.VOTableWriter;
 
 public class FormatsTest extends TestCase {
@@ -45,6 +58,7 @@ public class FormatsTest extends TestCase {
         SIZE_INFO.setUnitString( "Area of Wales" );
 
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     private StarTable table;
@@ -124,6 +138,7 @@ public class FormatsTest extends TestCase {
     public void testStorage() throws IOException {
         exerciseRowStore( new ListRowStore() );
         exerciseRowStore( new DiskRowStore() );
+        exerciseRowStore( new SidewaysRowStore() );
     }
 
     private void exerciseRowStore( RowStore store ) throws IOException {
@@ -149,17 +164,20 @@ public class FormatsTest extends TestCase {
     public void testFactory() {
         String[] defaultFormats = new String[] {
             "FITS-plus",
+            "colfits",
             "FITS",
             "VOTable",
         };
         String[] knownFormats = new String[] {
             "FITS-plus",
+            "colfits",
             "FITS",
             "VOTable",
             "ASCII",
             "CSV",
             "IPAC",
             "WDC",
+            "colfits-basic",
         };
         StarTableFactory factory = new StarTableFactory();
         assertEquals( Arrays.asList( knownFormats ),
@@ -197,6 +215,8 @@ public class FormatsTest extends TestCase {
             "fits",
             "fits-plus",
             "fits-basic",
+            "colfits",
+            "colfits-basic",
             "votable-tabledata",
             "votable-binary-inline",
             "votable-fits-href",
@@ -317,6 +337,11 @@ public class FormatsTest extends TestCase {
                 else if ( cell1 instanceof Byte && cell2 instanceof Short ) {
                     cell1 = new Short( ((Number) cell1).shortValue() );
                 }
+                else if ( cell1 == null &&
+                          cell2 != null &&
+                          cell2.getClass().getComponentType() != null ) {
+                    cell2 = null;
+                }
                 try {
                     assertScalarOrArrayEquals( cell1, cell2 );
                 }
@@ -377,6 +402,144 @@ public class FormatsTest extends TestCase {
         assertEquals( "Dobbin", t2.getName() );
         assertEquals( "Dobbin", t3.getName() );
         assertTableEquals( t2, t3 );
+    }
+
+    public void testReadWrite() throws IOException {
+        exerciseReadWrite( new FitsTableWriter(),
+                           new FitsTableBuilder(), "fits" );
+        exerciseReadWrite( new FitsPlusTableWriter(),
+                           new FitsPlusTableBuilder(), "fits" );
+        exerciseReadWrite( new ColFitsTableWriter(),
+                           new ColFitsTableBuilder(), "fits" );
+        exerciseReadWrite( new ColFitsPlusTableWriter(),
+                           new ColFitsPlusTableBuilder(), "votable" );
+        exerciseReadWrite( new VOTableWriter(),
+                           new VOTableBuilder(), "votable" );
+        exerciseReadWrite( new AsciiTableWriter(),
+                           new AsciiTableBuilder(), "text" );
+        exerciseReadWrite( new CsvTableWriter( true ),
+                           new CsvTableBuilder(), "text" );
+                    
+    }
+
+    public void exerciseReadWrite( StarTableWriter writer,
+                                   TableBuilder reader, String method )
+            throws IOException {
+        File loc = getTempFile( "trw." + writer.getFormatName().toLowerCase() );
+        StarTable t1 = table;
+        writer.writeStarTable( t1, loc.toString(), sto );
+        StarTable t2 = reader.makeStarTable( new FileDataSource( loc ), true,
+                                             StoragePolicy.PREFER_MEMORY );
+        checkStarTable( t2 );
+        if ( "fits".equals( method ) ) {
+            assertFitsTableEquals( t1, t2 );
+        }
+        else if ( "votable".equals( method ) ) {
+            assertVOTableEquals( t1, t2, false );
+        }
+        else if ( "text".equals( method ) ) {
+            assertTextTableEquals( t1, t2 );
+        }
+        else if ( "exact".equals( method ) ) {
+            assertTableEquals( t1, t2 );
+        }
+        else if ( "none".equals( method ) ) {
+        }
+        else {
+            fail();
+        }
+    }
+
+    public void testColFits() throws IOException {
+        StarTableWriter writer = new ColFitsTableWriter();
+        File loc = getTempFile( "t.colfits" );
+        StarTable t1 = table;
+        writer.writeStarTable( t1, loc.toString(), sto );
+        StarTable t2 = new ColFitsTableBuilder()
+                      .makeStarTable( new FileDataSource( loc ), false, null );
+        assertEquals( "uk.ac.starlink.fits.ColFitsStarTable",
+                      t2.getClass().getName() );
+        checkStarTable( t2 );
+        assertFitsTableEquals( t1, t2 );
+    }
+
+
+    private void assertTextTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
+        int ncol = t1.getColumnCount();
+        assertEquals( ncol, t2.getColumnCount() );
+        char[] types = new char[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo info1 = t1.getColumnInfo( icol );
+            ColumnInfo info2 = t2.getColumnInfo( icol );
+            assertEquals( info1.getName(), info2.getName() );
+            if ( info1.getContentClass().getComponentType() == null ) {
+                Class clazz1 = info1.getContentClass();
+                Class clazz2 = info2.getContentClass();
+                if ( clazz1.isAssignableFrom( Number.class ) ) {
+                    assertTrue( clazz2.isAssignableFrom( Number.class ) );
+                    types[ icol ] = 'n';
+                }
+                else if ( clazz2 == String.class ) {
+                    assertEquals( String.class, clazz2 );
+                    types[ icol ] = 's';
+                }
+                else {
+                    types[ icol ] = 'o';
+                }
+            }
+            else {
+                types[ icol ] = 'a';
+            }
+        }
+
+        RowSequence rseq1 = t1.getRowSequence();
+        RowSequence rseq2 = t2.getRowSequence();
+        try {
+            while ( rseq1.next() ) {
+                assertTrue( rseq2.next() );
+                Object[] row1 = rseq1.getRow();
+                Object[] row2 = rseq2.getRow();
+                assertEquals( ncol, row1.length );
+                assertEquals( ncol, row2.length );
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    Object val1 = row1[ icol ];
+                    Object val2 = row2[ icol ];
+                    if ( Tables.isBlank( val1 ) ) {
+                        assertTrue( Tables.isBlank( val2 ) );
+                    }
+                    else {
+                        assertTrue( ! Tables.isBlank( val2 ) );
+                        switch ( types[ icol ] ) {
+                            case 'n':
+                                assertEquals( ((Number) val1).doubleValue(),
+                                              ((Number) val2).doubleValue() );
+                                break;
+                            case 's':
+                                if ( ((String) val1).length() > 24 ) {
+                                    assertEquals(
+                                        ((String) val1).substring( 0, 24 ),
+                                        ((String) val2).substring( 0, 24 ) );
+                                }
+                                else {
+                                    assertEquals( (String) val1,
+                                                  (String) val2 );
+                                }
+                                break;
+                            case 'o':
+                            case 'a':
+                                break;
+                            default:
+                                fail();
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            rseq1.close();
+            rseq2.close();
+        }
     }
 
     private void assertFitsTableEquals( StarTable t1, StarTable t2 )
@@ -444,7 +607,7 @@ public class FormatsTest extends TestCase {
             }
         }
         rseq1.close();
-        rseq1.close();
+        rseq2.close();
     }
 
     public void assertTableEquals( StarTable t1, StarTable t2 )
@@ -469,7 +632,7 @@ public class FormatsTest extends TestCase {
         RowSequence rseq2 = t2.getRowSequence();
         int irow = 0;
         while ( rseq1.next() ) {
-            assertTrue( rseq2.next() );
+            assertTrue( "irow: " + irow, rseq2.next() );
             Object[] row1 = rseq1.getRow();
             Object[] row2 = rseq2.getRow();
             for ( int i = 0; i < ncol; i++ ) {
@@ -506,7 +669,7 @@ public class FormatsTest extends TestCase {
         Comparator sorter = new DescribedValueComparator();
         Collections.sort( dvals1, sorter );
         Collections.sort( dvals2, sorter );
-        assertEquals( nparam, dvals2.size() );
+        assertEquals( dvals1 + "\t" + dvals2, nparam, dvals2.size() );
         for ( int i = 0; i < nparam; i++ ) {
             DescribedValue dv1 = (DescribedValue) dvals1.get( i );
             DescribedValue dv2 = (DescribedValue) dvals2.get( i );
