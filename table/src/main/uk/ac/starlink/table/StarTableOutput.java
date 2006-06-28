@@ -38,6 +38,7 @@ import uk.ac.starlink.util.Loader;
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.CsvTableWriter}
+ * <li> {@link uk.ac.starlink.votable.ColFitsPlusTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.HTMLTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
@@ -58,6 +59,8 @@ public class StarTableOutput {
     private static String[] defaultHandlerClasses = {
         "uk.ac.starlink.votable.FitsPlusTableWriter",
         "uk.ac.starlink.fits.FitsTableWriter",
+        "uk.ac.starlink.votable.ColFitsPlusTableWriter",
+        "uk.ac.starlink.fits.ColFitsTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",
         TextTableWriter.class.getName(),
         AsciiTableWriter.class.getName(),

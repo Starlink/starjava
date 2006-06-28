@@ -64,6 +64,8 @@ import uk.ac.starlink.util.URLDataSource;
  * <ul>
  * <li> {@link uk.ac.starlink.votable.FitsPlusTableBuilder}
  *      (format name="fits-plus")
+ * <li> {@link uk.ac.starlink.votable.ColFitsPlusTableBuilder}
+ *      (format name="colfits")
  * <li> {@link uk.ac.starlink.fits.FitsTableBuilder}
  *      (format name="fits")
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
@@ -82,6 +84,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="ipac")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
+ * <li> {@link uk.ac.starlink.fits.ColFitsTableBuilder}
+ *      (format name="colfits-raw")
  * </ul>
  * Additionally, any classes named in the 
  * <tt>startable.readers</tt> system property (as a colon-separated list)
@@ -121,6 +125,7 @@ public class StarTableFactory {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
+        "uk.ac.starlink.votable.ColFitsPlusTableBuilder",
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
     };
@@ -129,6 +134,7 @@ public class StarTableFactory {
         CsvTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
         WDCTableBuilder.class.getName(),
+        "uk.ac.starlink.fits.ColFitsTableBuilder",
     };
 
     /**
