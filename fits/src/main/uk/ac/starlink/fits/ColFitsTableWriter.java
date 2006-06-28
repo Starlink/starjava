@@ -1,10 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -23,33 +20,24 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-public class ColFitsTableWriter extends StreamStarTableWriter {
+public class ColFitsTableWriter extends AbstractFitsTableWriter {
 
-    public String getFormatName() {
-        return "colfits";
-    }
-
-    public String getMimeType() {
-        return "application/fits";
+    public ColFitsTableWriter() {
+        super( "colfits" );
     }
 
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".colfits" );
     }
 
-    public void writeStarTable( StarTable table, OutputStream ostrm )
-            throws IOException {
-        DataOutputStream out = new DataOutputStream( ostrm );
-        ColFitsTableSerializer serializer = new ColFitsTableSerializer( table );
-        writePrimary( table, serializer, out );
-        serializer.writeHeader( out );
-        serializer.writeData( out );
-        out.flush();
-    }
-
-    protected void writePrimary( StarTable table, ColFitsTableSerializer fitser,
+    public void writePrimaryHDU( StarTable table, FitsTableSerializer fitser,
                                  DataOutput out )
             throws IOException {
         FitsConstants.writeEmptyPrimary( out );
+    }
+
+    protected FitsTableSerializer createSerializer( StarTable table )
+            throws IOException {
+        return new ColFitsTableSerializer( table );
     }
 }

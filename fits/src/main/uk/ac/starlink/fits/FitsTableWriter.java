@@ -1,12 +1,8 @@
 package uk.ac.starlink.fits;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.OutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.StreamStarTableWriter;
 
 /**
  * Handles writing of a StarTable in FITS binary format.
@@ -45,19 +41,10 @@ import uk.ac.starlink.table.StreamStarTableWriter;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class FitsTableWriter extends StreamStarTableWriter {
+public class FitsTableWriter extends AbstractFitsTableWriter {
 
-    /**
-     * Returns "FITS".
-     *
-     * @return  format name
-     */
-    public String getFormatName() {
-        return "fits-basic";
-    }
-
-    public String getMimeType() {
-        return "application/fits";
+    public FitsTableWriter() {
+        super( "fits-basic" );
     }
 
     /**
@@ -80,38 +67,14 @@ public class FitsTableWriter extends StreamStarTableWriter {
         return false;
     }
 
-    /**
-     * Writes a table in FITS binary format.  Currently the output is
-     * to a new file called <tt>location</tt>, in the first extension
-     * (HDU 0 is a dummy header, since the primary HDU cannot hold a table).
-     *
-     * @param  startab  the table to write
-     * @param  location  the filename to write to
-     */
-    public void writeStarTable( StarTable startab, OutputStream out )
+    public void writePrimaryHDU( StarTable startab, FitsTableSerializer fitser,
+                                 DataOutput out )
             throws IOException {
-        DataOutputStream strm = new DataOutputStream( out );
-        FitsTableSerializer serializer = new FitsTableSerializer( startab );
-        writePrimary( startab, serializer, strm );
-        serializer.writeHeader( strm );
-        serializer.writeData( strm );
-        strm.flush();
+        FitsConstants.writeEmptyPrimary( out );
     }
 
-    /**
-     * Called from {@link #writeStarTable} to write headers prior to the
-     * BINTABLE header which contains the table proper.
-     * The default implementation writes an empty primary HDU;
-     * subclasses may write one or more headers, though the first one
-     * should be a legal primary FITS HDU.
-     *
-     * @param  startab  the table which will be written into the next HDU
-     * @param  fitser  fits serializer initialised from <cod>startab</code>
-     * @param  strm     the stream down which it will be written
-     */
-    protected void writePrimary( StarTable startab, FitsTableSerializer fitser,
-                                 DataOutputStream strm )
+    protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
-        FitsConstants.writeEmptyPrimary( strm );
+        return new StandardFitsTableSerializer( table );
     }
 }
