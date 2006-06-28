@@ -179,6 +179,16 @@ public class Driver {
         /* Use sloppy interpretation of VOTables. */
         VOElementFactory.STRICT_DEFAULT = false;
 
+        /* Fine tune the logging - we don't need HDS or AST here, so 
+         * stop them complaining when they can't be loaded. */
+        try {
+            Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
+            Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        }
+        catch ( SecurityException e ) {
+            // If running in a sandbox, this may be blocked - never mind.
+        }
+
         /* Prepare basic usage message. */
         if ( cmdname == null ) {
             cmdname = "topcat";
@@ -326,16 +336,6 @@ public class Driver {
         }
         int nload = names.size();
         assert nload == handlers.size();
-
-        /* Fine tune the logging - we don't need HDS or AST here, so 
-         * stop them complaining when they can't be loaded. */
-        try {
-            Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
-            Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
-        }
-        catch ( SecurityException e ) {
-            // If running in a sandbox, this may be blocked - never mind.
-        }
 
         /* Start up the GUI now. */
         getControlWindow();
