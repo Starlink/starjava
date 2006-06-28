@@ -1,24 +1,15 @@
 package uk.ac.starlink.votable;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCard;
-import uk.ac.starlink.fits.FitsConstants;
+import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.FitsTableSerializer;
-import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 
 /**
- * TableWriter which writes table data into the first extension of a FITS file, 
+ * TableWriter which writes table data into the first extension of a FITS file,
  * Unlike {@link uk.ac.starlink.fits.FitsTableWriter} however, the
  * primary extension is not left contentless, instead it gets the
  * text of a DATA-less VOTable written into it.  This VOTable describes
@@ -43,19 +34,10 @@ import uk.ac.starlink.table.StarTableWriter;
  * @author   Mark Taylor (Starlink)
  * @since    26 Aug 2004
  */
-public class FitsPlusTableWriter extends FitsTableWriter {
+public class FitsPlusTableWriter extends VOTableFitsTableWriter {
 
-    private static String XML_ENCODING = "UTF-8";
-    private static Logger logger = 
-        Logger.getLogger( "uk.ac.starlink.table.formats" );
-    private String formatName_ = "fits-plus";
-
-    public String getFormatName() {
-        return formatName_;
-    }
-
-    public String getMimeType() {
-        return "application/fits";
+    public FitsPlusTableWriter() {
+        super( "fits-plus" );
     }
 
     /**
@@ -76,138 +58,23 @@ public class FitsPlusTableWriter extends FitsTableWriter {
         return false;
     }
 
-    /**
-     * Attempts to write a VOTable containing metadata for <tt>table</tt>
-     * into the primary HDU.
-     */
-    protected void writePrimary( StarTable table, FitsTableSerializer fitser,
-                                 DataOutputStream strm )
-            throws IOException {
-
-        /* Try to write the metadata as VOTable text in the primary HDU. */
-        Exception thrown = null;
-        try {
-            writeVOTablePrimary( table, fitser, strm );
-            return;
-        }
-        catch ( IOException e ) {
-            thrown = e;
-        }
-        catch ( FitsException e ) {
-            thrown = e;
-        }
-
-        /* But if it fails, just write an empty one. */
-        if ( thrown != null ) {
-            logger.log( Level.WARNING, 
-                        "Failed to write VOTable metadata to primary HDU",
-                        thrown );
-        }
-        super.writePrimary( table, fitser, strm );
+    protected void customisePrimaryHeader( Header hdr )
+            throws HeaderCardException {
+        hdr.addValue( "VOTMETA", true, "Table metadata in VOTable format" );
     }
 
-    /**
-     * Writes a primary that consists of a character array holding a 
-     * VOTable which holds the table metadata.
-     */
-    private void writeVOTablePrimary( StarTable table,
-                                      FitsTableSerializer fitser,
-                                      DataOutputStream strm ) 
-            throws IOException, FitsException {
-
-        /* Get a serializer that knows how to write VOTable metadata for
-         * this table. */
-        VOSerializer voser = VOSerializer.makeFitsSerializer( table, fitser );
-
-        /* Get a buffer to hold the VOTable character data. */
-        StringWriter textWriter = new StringWriter();
-
-        /* Turn it into a BufferedWriter. */
-        BufferedWriter writer = new BufferedWriter( textWriter );
-
-        /* Output preamble. */
-        writer.write( "<?xml version='1.0' encoding='" + XML_ENCODING + "'?>" );
-        writer.newLine();
-        writer.write( "<VOTABLE version='1.1'>" );
-        writer.newLine();
-        writer.write( "<!--" );
-        writer.newLine();
-        writer.write( " !  VOTable written by " +
-                      voser.formatText( this.getClass().getName() ) );
-        writer.newLine();
-        writer.write( " !  Describes BINTABLE extension in following HDU" );
-        writer.newLine();
-        writer.write( " !-->" );
-        writer.newLine();
-        writer.write( "<RESOURCE>" );
-        writer.newLine();
-
-        /* Output table element containing the metadata with the help of 
-         * the VOTable serializer. */
-        voser.writeDescription( writer );
-        voser.writeParams( writer );
-        writer.write( "<TABLE" );
-        String tname = table.getName();
-        if ( tname != null && tname.trim().length() > 0 ) {
-            writer.write( voser.formatAttribute( "name", tname.trim() ) );
+    protected boolean isMagic( int icard, String key, String value ) {
+        switch ( icard ) {
+            case 4:
+                return "VOTMETA".equals( key ) && "T".equals( value );
+            default:
+                return super.isMagic( icard, key, value );
         }
-        long nrow = table.getRowCount();
-        if ( nrow > 0 ) {
-            writer.write( voser.formatAttribute( "nrows", 
-                                                 Long.toString( nrow ) ) );
-        }
-        writer.write( ">" );
-        writer.newLine();
-        voser.writeFields( writer );
-        writer.write( "<!-- Dummy VOTable - no DATA element -->" );
-        writer.newLine();
-        writer.write( "</TABLE>" );
-        writer.newLine();
+    }
 
-        /* Output traling tags and flush. */
-        writer.write( "</RESOURCE>" );
-        writer.newLine();
-        writer.write( "</VOTABLE>" );
-        writer.flush();
-
-        /* Get a byte array containing the VOTable text. */
-        byte[] textBytes = textWriter.getBuffer().toString()
-                                     .getBytes( XML_ENCODING );
-        int nbyte = textBytes.length;
-
-        /* Prepare and write a FITS header describing the character data. */
-        Header hdr = new Header();
-        hdr.addValue( "SIMPLE", true, "Standard FITS format" );
-        hdr.addValue( "BITPIX", 8, "Character data" );
-        hdr.addValue( "NAXIS", 1, "Text string" );
-        hdr.addValue( "NAXIS1", nbyte, "Number of characters" );
-        hdr.addValue( "VOTMETA", true, "Table metadata in VOTABLE format" );
-        hdr.addValue( "EXTEND", true, "There are standard extensions" );
-        String[] comments = new String[] {
-            " ",
-            "This header consists of bytes which comprise a VOTABLE document.",
-            "The VOTable describes the metadata of the table contained",
-            "in the following BINTABLE extension.",
-            "The BINTABLE extension can be used on its own as a perfectly",
-            "good table, but the information from this HDU may provide some",
-            "useful additional metadata.",
-        };
-        for ( int i = 0; i < comments.length; i++ ) {
-            hdr.insertComment( comments[ i ] );
-        }
-        hdr.insertCommentStyle( "END", "" );
-        assert headerOK( hdr );
-        FitsConstants.writeHeader( strm, hdr );
-
-        /* Write the character data itself. */
-        strm.write( textBytes );
-
-        /* Writer padding to the end of the FITS block. */
-        int partial = textBytes.length % FitsConstants.FITS_BLOCK;
-        if ( partial > 0 ) {
-            int pad = FitsConstants.FITS_BLOCK - partial;
-            strm.write( new byte[ pad ] );
-        }
+    protected FitsTableSerializer createSerializer( StarTable table ) 
+            throws IOException {
+        return new StandardFitsTableSerializer( table );
     }
 
     /**
@@ -222,24 +89,7 @@ public class FitsPlusTableWriter extends FitsTableWriter {
     public static StarTableWriter[] getStarTableWriters() {
         FitsPlusTableWriter w1 = new FitsPlusTableWriter();
         FitsPlusTableWriter w2 = new FitsPlusTableWriter();
-        w1.formatName_ = "fits";
+        w1.setFormatName( "fits" );
         return new StarTableWriter[] { w1, w2 };
-    }
-
-    /**
-     * Check that the header we have written is the same as the one that
-     * the corresponding input handler is expecting to see.
-     */
-    private static boolean headerOK( Header hdr ) {
-        boolean ok = true;
-        ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
-        for ( Iterator it = hdr.iterator(); it.hasNext(); ) {
-            String card = ((HeaderCard) it.next()).toString();
-            ok = ok && card.length() == 80;
-            for ( int i = 0; i < card.length(); i++ ) {
-                bstrm.write( (byte) card.charAt( i ) );
-            }
-        }
-        return ok && FitsPlusTableBuilder.isMagic( bstrm.toByteArray() );
     }
 }
