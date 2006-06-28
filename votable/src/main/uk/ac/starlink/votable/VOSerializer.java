@@ -15,6 +15,8 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
+import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -474,8 +476,8 @@ public abstract class VOSerializer {
             return new TabledataVOSerializer( table);
         }
         else if ( dataFormat == DataFormat.FITS ) {
-            return new FITSVOSerializer( table,
-                                         new FitsTableSerializer( table ) );
+            return new FITSVOSerializer(
+                table, new StandardFitsTableSerializer( table ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             return new BinaryVOSerializer( table );
@@ -764,6 +766,7 @@ public abstract class VOSerializer {
                  * written by the FITS serializer. */
                 char tform = fitser.getFormatChar( icol );
                 int[] dims = fitser.getDimensions( icol );
+                String badval = fitser.getBadValue( icol );
 
                 /* Only write a FIELD element if the FITS serializer is going
                  * to serialize it. */
@@ -814,12 +817,16 @@ public abstract class VOSerializer {
                         atts.put( "arraysize", arraysize.toString() );
                     }
 
+                    /* Modify the VALUES text to match what the FITS serializer
+                     * will write. */
+                    encoder.setNullString( badval );
+
                     /* Write out the FIELD element with attributes which match
                      * the way the FITS serializer will write the table. */
                     writeFieldElement( writer, content, atts );
                 }
                 else {
-                    writer.write( "<!-- Omitted column " + 
+                    writer.write( "<!-- Omitted column " +
                                   getTable().getColumnInfo( icol ) + " -->" );
                     writer.newLine();
                 }
@@ -828,8 +835,7 @@ public abstract class VOSerializer {
 
         public void streamData( DataOutput out ) throws IOException {
             FitsConstants.writeEmptyPrimary( out );
-            fitser.writeHeader( out );
-            fitser.writeData( out );
+            new FitsTableWriter().writeTableHDU( getTable(), fitser, out );
         }
 
     }
