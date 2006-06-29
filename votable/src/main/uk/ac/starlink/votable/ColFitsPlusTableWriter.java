@@ -28,7 +28,7 @@ import uk.ac.starlink.table.StarTable;
 public class ColFitsPlusTableWriter extends VOTableFitsTableWriter {
 
     public ColFitsPlusTableWriter() {
-        super( "colfits-plus"" );
+        super( "colfits-plus" );
     }
 
     public boolean looksLikeFile( String location ) {
