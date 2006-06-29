@@ -794,7 +794,7 @@ by a STIL-based application.
 </p>
 
 <p>Like normal FITS, two variants are supported;
-with (<code>colfits</code>) and without (<code>colfits-basic</code>)
+with (<code>colfits-plus</code>) and without (<code>colfits-basic</code>)
 metadata stored as a VOTable byte array in the primary HDU.
 </p>
 
@@ -1217,7 +1217,7 @@ cases normal FITS is a more suitable choice.
 <p>Like normal (row-oriented) FITS (see <ref id="outFits"/>), 
 there are two variants:
 <dl>
-<dt>colfits</dt>
+<dt>colfits-plus</dt>
 <dd><p>The primary HDU contains an array of bytes which stores the
     table metadata in VOTable format.
     </p></dd>

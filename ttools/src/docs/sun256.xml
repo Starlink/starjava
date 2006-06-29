@@ -971,7 +971,7 @@ Matching is case-insensitive.
 <dd><p>FITS file; primary HDU is data-less, first extension
     contains a FITS binary table</p></dd>
 
-<dt><code>colfits</code></dt>
+<dt><code>colfits-plus</code></dt>
 <dd><p>FITS file containing a BINTABLE with a single row; each cell of
     the row contains a whole column's worth of data.
     The primary HDU also contains a VOTable representation of the metadata.

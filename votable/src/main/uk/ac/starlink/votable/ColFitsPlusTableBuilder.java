@@ -50,7 +50,7 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         new ColFitsPlusTableWriter();
 
     public String getFormatName() {
-        return "colfits";
+        return "colfits-plus";
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )

@@ -65,7 +65,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link uk.ac.starlink.votable.FitsPlusTableBuilder}
  *      (format name="fits-plus")
  * <li> {@link uk.ac.starlink.votable.ColFitsPlusTableBuilder}
- *      (format name="colfits")
+ *      (format name="colfits-plus")
  * <li> {@link uk.ac.starlink.fits.FitsTableBuilder}
  *      (format name="fits")
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
@@ -85,7 +85,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * <li> {@link uk.ac.starlink.fits.ColFitsTableBuilder}
- *      (format name="colfits-raw")
+ *      (format name="colfits-basic")
  * </ul>
  * Additionally, any classes named in the 
  * <tt>startable.readers</tt> system property (as a colon-separated list)
