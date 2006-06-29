@@ -164,20 +164,20 @@ public class FormatsTest extends TestCase {
     public void testFactory() {
         String[] defaultFormats = new String[] {
             "FITS-plus",
-            "colfits",
+            "colfits-plus",
             "FITS",
             "VOTable",
         };
         String[] knownFormats = new String[] {
             "FITS-plus",
-            "colfits",
+            "colfits-plus",
             "FITS",
             "VOTable",
+            "colfits-basic",
             "ASCII",
             "CSV",
             "IPAC",
             "WDC",
-            "colfits-basic",
         };
         StarTableFactory factory = new StarTableFactory();
         assertEquals( Arrays.asList( knownFormats ),
@@ -215,7 +215,7 @@ public class FormatsTest extends TestCase {
             "fits",
             "fits-plus",
             "fits-basic",
-            "colfits",
+            "colfits-plus",
             "colfits-basic",
             "votable-tabledata",
             "votable-binary-inline",

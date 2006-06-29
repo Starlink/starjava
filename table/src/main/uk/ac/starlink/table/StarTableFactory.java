@@ -76,6 +76,8 @@ import uk.ac.starlink.util.URLDataSource;
  * <em>known handler list</em>
  * (not used by default but available by specifying the format name):
  * <ul>
+ * <li> {@link uk.ac.starlink.fits.ColFitsTableBuilder}
+ *      (format name="colfits-basic")
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableBuilder}
  *      (format name="ascii")
  * <li> {@link uk.ac.starlink.table.formats.CsvTableBuilder}
@@ -84,8 +86,6 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="ipac")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
- * <li> {@link uk.ac.starlink.fits.ColFitsTableBuilder}
- *      (format name="colfits-basic")
  * </ul>
  * Additionally, any classes named in the 
  * <tt>startable.readers</tt> system property (as a colon-separated list)
@@ -130,11 +130,11 @@ public class StarTableFactory {
         "uk.ac.starlink.votable.VOTableBuilder",
     };
     private static String[] knownBuilderClasses = {
+        "uk.ac.starlink.fits.ColFitsTableBuilder",
         AsciiTableBuilder.class.getName(),
         CsvTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
         WDCTableBuilder.class.getName(),
-        "uk.ac.starlink.fits.ColFitsTableBuilder",
     };
 
     /**
