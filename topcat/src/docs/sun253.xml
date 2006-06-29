@@ -768,6 +768,42 @@ even in the absence of TOPCAT's <code>-disk</code> flag
 
 </subsubsect>
 
+<subsubsect id="inColfits">
+<subhead><title>Column-oriented FITS</title></subhead>
+
+<p>As well as normal binary and ASCII FITS tables, STIL supports
+FITS files which contain tabular data stored in column-oriented format.
+This means that the table is stored in a BINTABLE extension HDU,
+but that BINTABLE has a single row, with each cell of that row
+holding a whole column's worth of data.  The final (slowest-varying)
+dimension of each of these cells (declared via the TDIMn header cards)
+is the same, namely, the number of rows in the table that is represented.
+The point of this is that all the cells of a given column are stored
+contiguously, which for very large, and especially very wide tables
+means that certain access patterns (basically, ones which access
+only a small proportion of the columns in a table) can be much more
+efficient since they require less I/O overhead in reading data blocks.
+</p>
+
+<p>Such tables are perfectly legal FITS files, but most non-STIL software
+will probably not recognise them as tables in the usual way.
+This format is mostly intended for the case where you have a large
+table in some other format (possibly the result of an SQL query)
+and you wish to cache it in a way which can be read efficiently
+by a STIL-based application.
+</p>
+
+<p>Like normal FITS, two variants are supported;
+with (<code>colfits</code>) and without (<code>colfits-basic</code>)
+metadata stored as a VOTable byte array in the primary HDU.
+</p>
+
+<p>Colfits format is only available for data which stored as an
+uncompressed file in the file system (not, for instance, from a URL).
+</p>
+
+</subsubsect>
+
 <subsubsect id="inVotable">
 <subhead><title>VOTable</title></subhead>
 
@@ -1100,6 +1136,10 @@ in a way TOPCAT can read in again later (see <ref id="outFits"/>).
 These files are quite usable as normal FITS tables by other applications, 
 but they will only be able to see the limited metadata stored in the
 FITS headers.
+For very large files, in some circumstances column-oriented FITS
+("<code>colfits</code>") format can be more efficient for some applications,
+though this is unlikely to be understood except by STIL-based code
+(TOPCAT and STILTS).
 If you want to write to a format which retains all metadata in a portable
 format, then one of the <ref id="outVotable"/> formats might be better.
 </p>
@@ -1149,6 +1189,42 @@ type BINTABLE containing the table data.
 In general, you can just let TOPCAT detect the format automatically
 and not worry about which of these variants is being used - if 
 <code>fits-plus</code> is being used you just get some hidden benefits.
+</p>
+
+</subsubsect>
+
+<subsubsect id="outColfits">
+<subhead><title>Column-oriented FITS</title></subhead>
+
+<p>When saving in column-oriented FITS format a new file is written
+consisting of two HDUs (Header+Data Units); a primary one (required
+by the FITS standard) and a single extension of type BINTABLE
+containing the table data.  Unlike normal FITS format however,
+this table consists of a single row in which each cell holds the
+data for an entire column.  This can be a more efficient format
+to work with when dealing with very large, and especially very wide,
+tables.  The benefits are greatest when the file size exceeds the
+amount of available physical memory and operations are required
+which scan through the table using only a few of the columns
+(much of TOPCAT's operations, for instance plotting two columns
+against each other, fit into this category).
+The overhead for reading and writing this format is somewhat
+higher than for normal FITS however, and other applications may not
+be able to work with it (though it is a legal FITS file), so in most
+cases normal FITS is a more suitable choice.
+</p>
+
+<p>Like normal (row-oriented) FITS (see <ref id="outFits"/>), 
+there are two variants:
+<dl>
+<dt>colfits</dt>
+<dd><p>The primary HDU contains an array of bytes which stores the
+    table metadata in VOTable format.
+    </p></dd>
+<dt>colfits-basic</dt>
+<dd><p>The primary HDU contains no data.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsect>
@@ -3043,6 +3119,8 @@ The following ones have special significance within TOPCAT:
     Setting it to "<code>disk</code>" has basically the same effect as
     supplying the "<code>-disk</code>" argument on the TOPCAT command line
     (see <ref id="topcatArgs"/>).
+    Other possible values are "<code>memory</code>" (the default),
+    "<code>sideways</code>" and "<code>discard</code>".
     </p></dd>
 
 <dt><code>startable.writers</code></dt>
@@ -3310,6 +3388,29 @@ report on the console), and there are some things you can do about this:
     also reduce the need to use <code>-disk</code> or
     <code>-Xmx</code> flags as above.
     </p></dd>
+
+<dt>Use column-oriented storage</dt>
+<dd><p>For really large tables storing them in 
+    the <ref id="outColfits">colfits</ref> output format 
+    can significantly improve performance.
+    This stores all the elements of a single column contiguously on disk,
+    which means that scanning through all the values in one or a few
+    columns can proceed with much less unnecessary I/O than in normal
+    (row-oriented) FITS format.  It will make most difference when
+    the table is larger than the amount of physical memory available,
+    and the table has many columns.  Be aware however that operations
+    which require all the cells in all the rows
+    (for instance, calculating <ref id="StatsWindow">row statistics</ref>) 
+    may be somewhat slower using this format.
+    </p>
+    <p>It is also possible to use column-oriented storage for non-FITS
+    files by specifying the flag <code>-Dstartable.storage=sideways</code>.
+    This is like using the <code>-disk</code> flag but uses column-oriented
+    rather than row-oriented temporary files.  However, using it for
+    such large files means that the conversion is likely to be rather
+    slow, so you may be better off converting the original file to
+    <code>colfits</code> format in a separate step and using that.
+    </p></dd>
 </dl>
 </p>
 
@@ -3320,9 +3421,8 @@ be greater or less than the file size for other formats) will
 fit into unused physical memory then general everything will run very quickly
 because the operating system can cache the data in memory; if it's
 larger than physical memory then the data has to keep being re-read
-from disk and most operations will be much slower.
-Using column-based storage to improve matters is a project which may
-be pursued in future releases.
+from disk and most operations will be much slower, though use of
+column-oriented storage can help a lot in that case.
 </p>
 
 </subsect>
@@ -9344,13 +9444,29 @@ introduced since the last version:
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Fixed bug which caused some points to be missed out in spherical
-        plots.</li>
-    <li>ISO-8601 strings now permit times of 24:00:00 as they should.</li>
-    <li>Quoted unit values are examined to determine probable column
-        data types.</li>
-    </ul>
+    <dl>
+
+    <dt>Column-oriented storage</dt>
+    <dd><p>New features for permitting column-oriented storage
+        (<ref id="outColfits">colfits</ref> format, 
+        <code>startable.storage</code> policy "<code>sideways</code>") 
+        have been introduced.
+        These can provide considerable efficiency improvements for
+        certain tasks when working with very large (and especially wide)
+        tables. 
+        </p></dd>
+
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed bug which caused some points to be missed out in spherical
+            plots.</li>
+        <li>ISO-8601 strings now permit times of 24:00:00 as they should.</li>
+        <li>Quoted unit values are examined to determine probable column
+            data types.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
