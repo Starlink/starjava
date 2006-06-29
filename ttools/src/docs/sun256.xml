@@ -739,7 +739,9 @@ on the command line is equivalent to having the following in your
 <dd><p>Can be set to determine the default storage policy.
     Setting it to "<code>disk</code>" has basically the same effect as
     supplying the "<code>-disk</code>" argument on the command line
-    (see <ref id="stilts-flags"/>).
+    (see <ref id="stilts-flags"/>).  Other possible values are
+    "<code>memory</code>", "<code>sideways</code>" and "<code>discard</code>";
+    see <docxref doc="sun252" loc="storagePolicy"/>.
     </p></dd>
 
 <dt><code>startable.writers</code></dt>
@@ -890,6 +892,17 @@ The following list gives the values usually allowed for this
     so "table.fits#3" means the third HDU extension.
     </p></dd>
 
+<dt><code>colfits</code></dt>
+<dd><p>Column-oriented FITS format.  This is where a table is stored as
+    a BINTABLE extension which contains a single row, each cell of the
+    row containing a whole column of the table it represents.
+    This has different performance characteristics from normal FITS tables;
+    in particular it may be considerably efficient for very large, and
+    especially very wide tables where not all of the columns are required
+    at any one time.
+    Only available for uncompressed files on disk.
+    </p></dd>
+
 <dt><code>votable</code></dt>
 <dd><p>VOTable format - any legal version 1.0 or 1.1 format 
     VOTable documents, and many illegal ones, can be read.
@@ -957,6 +970,18 @@ Matching is case-insensitive.
 <dt><code>fits-basic</code></dt>
 <dd><p>FITS file; primary HDU is data-less, first extension
     contains a FITS binary table</p></dd>
+
+<dt><code>colfits</code></dt>
+<dd><p>FITS file containing a BINTABLE with a single row; each cell of
+    the row contains a whole column's worth of data.
+    The primary HDU also contains a VOTable representation of the metadata.
+    </p></dd>
+
+<dt><code>colfits-basic</code></dt>
+<dd><p>FITS file containing a BINTABLE with a single row; each cell of
+    the row contains a whole column's worth of data.  The primary HDU
+    contains nothing.
+    </p></dd>
 
 <dt><code>votable-tabledata</code></dt>
 <dd><p>VOTable document with TABLEDATA (pure XML) encoding</p></dd>
@@ -3407,6 +3432,21 @@ but my thanks are especially due to the following:
         <li>Setting <code>istream=true</code> is now less likely to cause a
             "Can't re-read stream" error.</li>
         </ul>
+        </p></dd>
+    </dl>
+
+</p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <dl>
+    <dt>Column-oriented Storage</dt>
+    <dd><p>New features for permitting column-oriented storage
+        (<code>colfits</code> format, new <code>startable.storage</code> 
+        policy <code>sideways</code>) have been introduced.
+        These can provide considerable efficiency improvements for
+        certain tasks when working with very large (and especially wide)
+        tables.
         </p></dd>
     </dl>
 </p></dd>
