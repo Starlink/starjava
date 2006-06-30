@@ -9466,6 +9466,13 @@ introduced since the last version:
             data types.</li>
         </ul>
         </p></dd>
+
+    <dt>Other items</dt>
+    <dd><p>
+        <ul>
+        <li>Added flux conversion functions (Jansky&lt;-&gt;magnitude).</li>
+        </ul>
+        </p></dd>
     </dl>
     </p></dd>
 
