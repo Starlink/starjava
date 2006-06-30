@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.ttools.func.Arithmetic;
 import uk.ac.starlink.ttools.func.Conversions;
 import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.Fluxes;
 import uk.ac.starlink.ttools.func.Formats;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
@@ -68,6 +69,7 @@ public class JELUtils {
                 Arithmetic.class,
                 Conversions.class,
                 Coords.class,
+                Fluxes.class,
                 Formats.class,
                 Maths.class,
                 Strings.class,

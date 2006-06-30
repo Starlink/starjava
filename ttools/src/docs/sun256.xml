@@ -3452,6 +3452,7 @@ but my thanks are especially due to the following:
     <dd><p>
         <ul>
         <li><code>transpose</code> filter added.</li>
+        <li>Added flux conversion functions (Jansky&lt;-&gt;magnitude).</li>
         </ul>
         </p></dd>
     </dl>

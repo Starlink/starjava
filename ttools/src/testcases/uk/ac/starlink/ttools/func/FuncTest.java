@@ -129,6 +129,21 @@ public class FuncTest extends TestCase {
         assertEquals( "101", Conversions.toString( (double) 101 ) );
     }
 
+    public void testFluxes() {
+        assertEquals( 21.4, Fluxes.janskyToAb( 10e-6 ), 1e-8 );
+        assertEquals( 10e-6, Fluxes.abToJansky( 21.4 ), 1e-16 );
+        for ( int i = 1; i < 40; i++ ) {
+            double mag = i * 1.0;
+            double flux = i * 1e-6;
+            assertEquals( 1.0,
+                          Fluxes.janskyToAb( Fluxes.abToJansky( mag ) ) / mag,
+                          1e-12 );
+            assertEquals( 1.0,
+                          Fluxes.abToJansky( Fluxes.janskyToAb( flux ) ) / flux,
+                          1e-12 );
+        }
+    }
+
     public void testFormats() {
         assertEquals( "3.", Formats.formatDecimal( Math.PI, 0 ) );
         assertEquals( ".0000000000", Formats.formatDecimal( 0, 10 ) );
