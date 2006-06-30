@@ -55,6 +55,7 @@ public class StepFactory {
         filterFactory_.register( "stats", pkg + "StatsFilter" );
         filterFactory_.register( "tablename", pkg + "NameFilter" );
         filterFactory_.register( "tail", pkg + "TailFilter" );
+        filterFactory_.register( "transpose", pkg + "TransposeFilter" );
         filterFactory_.register( "uniq", pkg + "UniqueFilter" );
     }
 
