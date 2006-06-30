@@ -3448,6 +3448,12 @@ but my thanks are especially due to the following:
         certain tasks when working with very large (and especially wide)
         tables.
         </p></dd>
+    <dt>Other items</dt>
+    <dd><p>
+        <ul>
+        <li><code>transpose</code> filter added.</li>
+        </ul>
+        </p></dd>
     </dl>
 </p></dd>
 
