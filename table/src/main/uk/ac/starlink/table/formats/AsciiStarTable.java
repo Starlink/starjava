@@ -94,7 +94,7 @@ public class AsciiStarTable extends StreamStarTable {
         super( datsrc );
     }
 
-    protected Metadata obtainMetadata()
+    protected RowEvaluator.Metadata obtainMetadata()
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
@@ -122,7 +122,7 @@ public class AsciiStarTable extends StreamStarTable {
         }
 
         /* Get and check the metadata. */
-        Metadata meta = evaluator.getMetadata();
+        RowEvaluator.Metadata meta = evaluator.getMetadata();
         if ( meta.nrow_ == 0 ) {
             throw new TableFormatException( "No rows" );
         }

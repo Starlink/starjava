@@ -55,7 +55,7 @@ public class CsvStarTable extends StreamStarTable {
         return in;
     }
 
-    protected Metadata obtainMetadata()
+    protected RowEvaluator.Metadata obtainMetadata()
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
@@ -86,12 +86,12 @@ public class CsvStarTable extends StreamStarTable {
         }
 
         /* Get and check the metadata. */
-        Metadata meta = evaluator.getMetadata();
+        RowEvaluator.Metadata meta = evaluator.getMetadata();
         if ( meta.nrow_ == 0 ) {
             throw new TableFormatException( "No rows" );
         }
         ColumnInfo[] colinfos = meta.colInfos_;
-        Decoder[] decoders = meta.decoders_;
+        RowEvaluator.Decoder[] decoders = meta.decoders_;
         int ncol = meta.ncol_;
         long nrow = meta.nrow_;
 
@@ -135,7 +135,7 @@ public class CsvStarTable extends StreamStarTable {
         }
 
         /* Return the, possibly modified, metadata. */
-        return new Metadata( colinfos, decoders, nrow );
+        return new RowEvaluator.Metadata( colinfos, decoders, nrow );
     }
 
     /**
