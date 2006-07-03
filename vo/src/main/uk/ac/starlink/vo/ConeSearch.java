@@ -37,8 +37,22 @@ import uk.ac.starlink.votable.VOTableBuilder;
 public class ConeSearch {
 
     private final String serviceUrl_;
+    private String label_;
+
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
+
+    /**
+     * Constructs a new ConeSearch from its service URL.
+     *
+     * @param  serviceUrl   base URL for cone search
+     * @throws  IllegalArgumentType if the service URL is unsuitable
+     */
+    public ConeSearch( String serviceUrl ) {
+        new CgiQuery( serviceUrl );  // may throw
+        serviceUrl_ = serviceUrl;
+        label_ = serviceUrl_;
+    }
 
     /**
      * Constructs a new ConeSearch from a CONE-type resource.
@@ -46,9 +60,19 @@ public class ConeSearch {
      * @param   resource  resource from registry
      * @throws  IllegalArgumentType if the service URL is unsuitable
      */
-    public ConeSearch( String serviceUrl ) {
-        new CgiQuery( serviceUrl );  // may throw
-        serviceUrl_ = serviceUrl;
+    public ConeSearch( SimpleResource resource ) {
+        this( resource.getServiceURL() );
+        String label = null;
+        if ( label == null ) {
+            label = resource.getShortName();
+        }
+        if ( label == null ) {
+            label = resource.getTitle();
+        }
+        if ( label == null ) {
+            label = resource.getServiceURL().toString();
+        }
+        label_ = label;
     }
 
     /**
@@ -213,6 +237,6 @@ public class ConeSearch {
     }
 
     public String toString() {
-        return "CONE(" + serviceUrl_ + ")";
+        return label_;
     }
 }
