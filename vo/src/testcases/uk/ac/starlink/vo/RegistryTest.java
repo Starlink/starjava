@@ -18,7 +18,7 @@ public class RegistryTest extends TestCase {
             SimpleResource r0 = data[ 0 ];
             assertEquals( "CONE", r0.getServiceType() );
             assertEquals( "HST", r0.getFacility() );
-            ConeSearch coner = new ConeSearch( r0 );
+            ConeSearch coner = new ConeSearch( r0.getServiceURL() );
         }
     }
 }

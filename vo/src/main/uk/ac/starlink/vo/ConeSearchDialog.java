@@ -93,7 +93,13 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
             throw new IllegalStateException( "No cone search service " +
                                              "selected" );
         }
-        final ConeSearch coner = new ConeSearch( resources[ 0 ] );
+        final SimpleResource resource = resources[ 0 ];
+        String stype = resource.getServiceType();
+        if ( ! "CONE".equalsIgnoreCase( stype ) ) {
+            logger_.warning( "ServiceType \"" + stype
+                           + "\" should be \"CONE\"" );
+        }
+        final ConeSearch coner = new ConeSearch( resource.getServiceURL() );
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
@@ -104,7 +110,7 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
             decField_.getDescribedValue(),
             srField_.getDescribedValue(),
         } ) );
-        metadata.addAll( Arrays.asList( coner.getMetadata() ) );
+        metadata.addAll( Arrays.asList( ConeSearch.getMetadata( resource ) ) );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,
                                        String format ) throws IOException {

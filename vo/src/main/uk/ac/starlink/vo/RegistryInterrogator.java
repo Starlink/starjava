@@ -95,7 +95,12 @@ public class RegistryInterrogator {
             int ncone = resources.length;
             ConeSearch[] cs = new ConeSearch[ ncone ];
             for ( int i = 0; i < ncone; i++ ) {
-                cs[ i ] = new ConeSearch( resources[ i ] );
+                final String label = toString( resources[ i ] );
+                cs[ i ] = new ConeSearch( resources[ i ].getServiceURL() ) {
+                    public String toString() {
+                        return label;
+                    }
+                };
             }
             return cs;
         }
@@ -127,4 +132,23 @@ public class RegistryInterrogator {
         return available_.booleanValue();
     }
 
+    /**
+     * Utility method to give a convenient label for a SimpleResource object.
+     *
+     * @param   resource  resource
+     * @return  resource label
+     */
+    public static String toString( SimpleResource resource ) {
+        String id = null;
+        if ( id == null ) {
+            id = resource.getShortName();
+        }
+        if ( id == null ) {
+            id = resource.getTitle();
+        }
+        if ( id == null ) {
+            id = resource.getServiceURL().toString();
+        }
+        return id;
+    }
 }

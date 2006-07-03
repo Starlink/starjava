@@ -10,8 +10,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
@@ -27,37 +27,33 @@ import uk.ac.starlink.votable.VOTableBuilder;
 /**
  * Encapsulates the mechanics of a standard cone search web service.
  * The cone search service definition is taken to be supplied by the
- * document at 
- * <a href="http://us-vo.org/pubs/files/conesearch.html">http://us-vo.org/pubs/files/conesearch.html</a>.
+ * document at
+ * <a href="http://us-vo.org/pubs/files/conesearch.html"
+ *         >http://us-vo.org/pubs/files/conesearch.html</a>.
  *
  * @author   Mark Taylor (Starlink)
  * @since    16 Dec 2004
  */
 public class ConeSearch {
 
-    SimpleResource resource_;
-    private Logger logger_ = Logger.getLogger( "uk.ac.starlink.vo" );
-    
+    private final String serviceUrl_;
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
+
     /**
      * Constructs a new ConeSearch from a CONE-type resource.
      *
      * @param   resource  resource from registry
-     * @throws  IllegalArgumentType if <code>resource.getServiceType()</code> 
-     *          is not "CONE" or the service URL is unsuitable
+     * @throws  IllegalArgumentType if the service URL is unsuitable
      */
-    public ConeSearch( SimpleResource resource ) {
-        resource_ = resource;
-        String stype = resource_.getServiceType();
-        if ( ! stype.equalsIgnoreCase( "CONE" ) ) { 
-            throw new IllegalArgumentException( "ServiceType \"" + stype + 
-                                                "\" should be \"CONE\"" );
-        }
-        new CgiQuery( resource_.getServiceURL() );  // may throw
+    public ConeSearch( String serviceUrl ) {
+        new CgiQuery( serviceUrl );  // may throw
+        serviceUrl_ = serviceUrl;
     }
 
     /**
-     * Asynchronously executes a cone search request, feeding the 
-     * resulting table to a TableSink.  Note this will not correctly 
+     * Asynchronously executes a cone search request, feeding the
+     * resulting table to a TableSink.  Note this will not correctly
      * identify error conditions.
      *
      * @param  ra    J2000 right ascension in decimal degrees
@@ -113,7 +109,7 @@ public class ConeSearch {
             }
         }
 
-        /* Otherwise, look through PARAM and INFO elements to try to find 
+        /* Otherwise, look through PARAM and INFO elements to try to find
          * an explanation of the error. */
         throwErrorElement( topEl );
 
@@ -135,12 +131,12 @@ public class ConeSearch {
         }
         if ( el.getTagName().equalsIgnoreCase( "INFO" ) ||
              el.getTagName().equalsIgnoreCase( "PARAM" ) ) {
-            if ( el.hasAttribute( "name" ) && 
+            if ( el.hasAttribute( "name" ) &&
                  el.getAttribute( "name" ).equalsIgnoreCase( "ERROR" ) ) {
                 throw new IOException( el.getAttribute( "value" ) );
             }
         }
-        for ( Node node = el.getFirstChild(); node != null; 
+        for ( Node node = el.getFirstChild(); node != null;
               node = node.getNextSibling() ) {
             if ( node instanceof Element ) {
                 throwErrorElement( (Element) node );
@@ -150,7 +146,7 @@ public class ConeSearch {
 
     /**
      * Returns a cone search CGI URL for this service.
-     * 
+     *
      * @param  ra    J2000 right ascension in decimal degrees
      * @param  dec   J2000 declination in decimal degrees
      * @param  sr    search radius in decimal degrees
@@ -159,7 +155,7 @@ public class ConeSearch {
      * @return   CGI url which will return the VOTable result of this query
      */
     public URL getSearchURL( double ra, double dec, double sr, int verb ) {
-        CgiQuery query = new CgiQuery( resource_.getServiceURL() )
+        CgiQuery query = new CgiQuery( serviceUrl_ )
                         .addArgument( "RA", ra )
                         .addArgument( "DEC", dec )
                         .addArgument( "SR", sr );
@@ -170,37 +166,29 @@ public class ConeSearch {
     }
 
     /**
-     * Returns this search's resource.
+     * Returns a list of described values for the <code>SimpleResource</code>
+     * object representing a cone search.
      *
-     * @return  resource
+     * @param   resource   cone search resource
      */
-    public SimpleResource getResource() {
-        return resource_;
-    }
-
-    /**
-     * Returns a list of described values which characterise this cone search.
-     *
-     * @return  cone search service metadata
-     */
-    public DescribedValue[] getMetadata() {
+    public static DescribedValue[] getMetadata( SimpleResource resource ) {
         List metadata = new ArrayList();
-        addMetadatum( metadata, resource_.getShortName(), 
+        addMetadatum( metadata, resource.getShortName(),
                       "Service short name",
                       "Short name for cone search service" );
-        addMetadatum( metadata, resource_.getTitle(), 
-                      "Service title", 
+        addMetadatum( metadata, resource.getTitle(),
+                      "Service title",
                       "Cone search service title" );
-        addMetadatum( metadata, resource_.getDescription(), 
-                      "Service description", 
+        addMetadatum( metadata, resource.getDescription(),
+                      "Service description",
                       "Description of cone search service" );
-        addMetadatum( metadata, resource_.getReferenceURL(), 
+        addMetadatum( metadata, resource.getReferenceURL(),
                       "Service reference URL",
                       "Descriptive URL for cone search service" );
-        addMetadatum( metadata, resource_.getPublisher(),
+        addMetadatum( metadata, resource.getPublisher(),
                       "Service publisher",
                       "Publisher for cone search service" );
-        addMetadatum( metadata, resource_.getServiceURL(),
+        addMetadatum( metadata, resource.getServiceURL(),
                       "Service endpoint",
                       "Base URL for cone search service" );
         return (DescribedValue[]) metadata.toArray( new DescribedValue[ 0 ] );
@@ -225,17 +213,6 @@ public class ConeSearch {
     }
 
     public String toString() {
-        SimpleResource res = getResource();
-        String id = null;
-        if ( id == null ) {
-            id = res.getShortName();
-        }
-        if ( id == null ) {
-            id = res.getTitle();
-        }
-        if ( id == null ) {
-            id = res.getServiceURL().toString();
-        }
-        return id;
+        return "CONE(" + serviceUrl_ + ")";
     }
 }
