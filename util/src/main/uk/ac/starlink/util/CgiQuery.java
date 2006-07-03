@@ -22,9 +22,12 @@ public class CgiQuery {
         "-_.!~*'()";
 
     /**
-     * Constructs a CGI query with no arguments.
+     * Constructs a CGI query.
+     * The submitted <code>base</code> argument may optionally be a
+     * partially-formed CGI-query, that is, one ending in a '?'
+     * and zero or more '&amp;name=value' pairs.
      * 
-     * @param  base  base part of the CGI URL (the bit before the '?')
+     * @param  base  base part of the CGI URL
      * @throws  IllegalArgumentException  if <tt>base</tt> is not a legal
      *          base URL
      */
