@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.util.Arrays;
 import uk.ac.starlink.util.TestCase;
 
 public class ConcatTableTest extends TestCase {
@@ -9,7 +10,7 @@ public class ConcatTableTest extends TestCase {
         super( name );
     }
 
-    public void testConcatTable() throws IOException {
+    public void testDiverse() throws IOException {
         ColumnInfo c0 = new ColumnInfo( "A", Integer.class, null );
         ColumnInfo c1n = new ColumnInfo( "B", Number.class, null );
         ColumnInfo c1f = new ColumnInfo( "B", Float.class, null );
@@ -41,5 +42,24 @@ public class ConcatTableTest extends TestCase {
         assertArrayEquals( row2, ct.getRow( 250 ) );
 
         Tables.checkTable( ct );
+    }
+
+    public void testSame() throws IOException {
+        ColumnInfo[] infos = new ColumnInfo[] {
+            new ColumnInfo( "A", Double.class, null ),
+            new ColumnInfo( "B", Double.class, null ),
+        };
+        Object[] row = new Object[] { new Double( 5 ), new Double( 10 ) };
+        StarTable t1 = new ConstantStarTable( infos, row, 10 );
+        StarTable[] items = new StarTable[ 10 ];
+        Arrays.fill( items, t1 );
+        StarTable ct = new ConcatStarTable( items );
+        Tables.checkTable( t1 );
+        Tables.checkTable( ct );
+        assertArrayEquals( row, t1.getRow( 5 ) );
+        assertEquals( 100L, ct.getRowCount() );
+        for ( int i = 0; i < ct.getRowCount(); i++ ) {
+            assertArrayEquals( row, ct.getRow( i ) );
+        }
     }
 }
