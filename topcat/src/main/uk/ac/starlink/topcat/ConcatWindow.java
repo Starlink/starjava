@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -223,7 +224,10 @@ public class ConcatWindow extends AuxWindow
             }
             t2.addColumn( cdata );
         }
-        return new ConcatStarTable( new StarTable[] { t1, t2 } );
+        ConcatStarTable catted =
+            new ConcatStarTable( new StarTable[] { t1, t2 } );
+        catted.setParameters( new ArrayList( t1.getParameters() ) );
+        return catted;
     }
 
     /**
