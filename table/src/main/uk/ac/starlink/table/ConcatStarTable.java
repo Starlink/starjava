@@ -64,7 +64,7 @@ public class ConcatStarTable extends AbstractStarTable {
                     jcol++;
                 }
                 if ( jcol < ncol ) {
-                    colMaps_[ itab ][ jcol ] = icol;
+                    colMaps_[ itab ][ jcol++ ] = icol;
                 }
             }
         }
