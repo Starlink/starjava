@@ -25,6 +25,7 @@ public class ParameterTest extends TestCase {
         "matcher", "values1", "values2", "params",
         "in", "in1", "in2", "expression",
         "cols", "binsizes",
+        "ra", "dec", "sr",
     } ) );
 
     public ParameterTest( String name ) {
