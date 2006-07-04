@@ -293,7 +293,8 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
             String tagName = getTagName( namespaceURI, localName, qName );
-            if ( inCell_ && "TD".equals( tagName ) && icol_ < ncol_ ) {
+            if ( inCell_ && "TD".equals( tagName ) && icol_ < ncol_
+                         && row_ != null ) {
                 row_[ icol_ ] = cell_.length() > 0
                          ? decoders_[ icol_ ].decodeString( cell_.toString() )
                          : null;
