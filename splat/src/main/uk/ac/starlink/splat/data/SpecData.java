@@ -877,7 +877,7 @@ public class SpecData
         //  Copy remaining data. The size of result spectrum is the current
         //  size, minus the number of positions that will be erased, plus one
         //  per range to hold the BAD value to form the break.
-        int nkeep = xPos.length - ndelete + nRanges;;
+        int nkeep = xPos.length - ndelete + nRanges;
         double[] newCoords = new double[nkeep];
         double[] newData = new double[nkeep];
         int length = 0;
