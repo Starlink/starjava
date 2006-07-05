@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.task;
 
-import uk.ac.starlink.ttools.mode.CopyMode;
-
 /**
  * Performs a cone search query for each row of an input table, 
  * and concatenates the result as one big output table.
@@ -11,6 +9,6 @@ import uk.ac.starlink.ttools.mode.CopyMode;
  */
 public class MultiCone extends MapperTask {
     public MultiCone() {
-        super( new MultiConeMapper(), new CopyMode(), true, true );
+        super( new MultiConeMapper(), new ChoiceMode(), true, true );
     }
 }
