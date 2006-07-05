@@ -6,11 +6,13 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ConcatStarTable;
 import uk.ac.starlink.table.ConstantStarTable;
+import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -159,17 +161,19 @@ public class MultiConeMapper implements TableMapper {
                                  .getColumnIndices( copyColIdList );
                 SequentialJELRowReader jelReader =
                     new SequentialJELRowReader( inTable );
-                Library lib = JELUtils.getLibrary( jelReader );
-                CompiledExpression raExpr = compileDouble( raString, lib );
-                CompiledExpression decExpr = compileDouble( decString, lib );
-                CompiledExpression srExpr = compileDouble( srString, lib );
-                StarTable outTable =
-                    multiCone( inTable, coner, tfact, jelReader,
-                               compileDouble( raString, lib ),
-                               compileDouble( decString, lib ),
-                               compileDouble( srString, lib ),
-                               verb, iCopyCols );
-                out[ 0 ].consume( outTable );
+                try {
+                    Library lib = JELUtils.getLibrary( jelReader );
+                    StarTable outTable =
+                        multiCone( inTable, coner, tfact, jelReader,
+                                   compileDouble( raString, lib ),
+                                   compileDouble( decString, lib ),
+                                   compileDouble( srString, lib ),
+                                   verb, iCopyCols );
+                    out[ 0 ].consume( outTable );
+                }
+                finally {
+                    jelReader.close();
+                }
             }
         };
     }
@@ -193,8 +197,8 @@ public class MultiConeMapper implements TableMapper {
      * @param   iCopyCols  array of column indices from <code>in</code>
      *          to copy to the output table
      */
-    private static StarTable multiCone( StarTable in, ConeSearch coner,
-                                        StarTableFactory tfact,
+    private static StarTable multiCone( StarTable in, final ConeSearch coner,
+                                        final StarTableFactory tfact,
                                         SequentialJELRowReader jelReader,
                                         CompiledExpression raExpr,
                                         CompiledExpression decExpr,
@@ -205,7 +209,7 @@ public class MultiConeMapper implements TableMapper {
         /* Create array of column metadata objects for the columns which are
          * to be copied from the input table. */
         int ncopy = iCopyCols.length;
-        ColumnInfo[] constInfos = new ColumnInfo[ ncopy ];
+        final ColumnInfo[] constInfos = new ColumnInfo[ ncopy ];
         for ( int ic = 0; ic < ncopy; ic++ ) {
             constInfos[ ic ] = in.getColumnInfo( iCopyCols[ ic ] );
         }
@@ -223,16 +227,15 @@ public class MultiConeMapper implements TableMapper {
                                  + e.getMessage() )
                  .initCause( e );
         }
-        JoinStarTable meta =
+        final JoinStarTable meta =
              new JoinStarTable( new StarTable[] {
                  new ConstantStarTable( constInfos, new Object[ ncopy ], 0L ),
                  coneMeta,
              } );
         meta.setParameters( coneMeta.getParameters() );
 
-        /* Get an array of tables, one representing the result of a cone
-         * search determined by the values in each row of the input table. */
-        List resultList = new ArrayList();
+        /* Accumulate a list of the arguments which specify a single query. */
+        final List argsList = new ArrayList();
         while ( jelReader.next() ) {
 
             /* Get numeric values for the cone search request. */
@@ -255,15 +258,44 @@ public class MultiConeMapper implements TableMapper {
                 dec = Double.NaN;
                 sr = Double.NaN;
             }
-
-            /* Make and process the request if the values are reasonable. */
             if ( ! Double.isNaN( ra ) &&
                  ! Double.isNaN( dec ) &&
                  ! Double.isNaN( sr ) ) {
+
+                /* Get any cells from this row to be copied to the
+                 * corresponding section of the output table. */
+                Object[] cells = new Object[ ncopy ];
+                for ( int ic = 0; ic < ncopy; ic++ ) {
+                    cells[ ic ] = jelReader.getCell( iCopyCols[ ic ] );
+                }
+
+                /* Store the information that we will need to make this
+                 * query. */
+                argsList.add( new ConeArgs( ra, dec, sr, verb, cells ) );
+            }
+        }
+
+        /* Construct an iterator which will iterate over the searches thus
+         * defined, returning a table representing the result for each item. */
+        final Iterator argsIt = argsList.iterator();
+        Iterator tableIt = new Iterator() {
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+            public boolean hasNext() {
+                return argsIt.hasNext();
+            }
+            public Object next() {
+                ConeArgs args = (ConeArgs) argsIt.next();
+
+                /* Make the request. */
                 StarTable coneResult;
                 try {
-                    coneResult = coner.performSearch( ra, dec, sr, verb,
+                    coneResult = coner.performSearch( args.ra_, args.dec_,
+                                                      args.sr_, args.verb_,
                                                       tfact );
+                    coneResult = tfact.getStoragePolicy()
+                                      .copyTable( coneResult );
                 }
                 catch ( IOException e ) {
                     coneResult = null;
@@ -271,44 +303,27 @@ public class MultiConeMapper implements TableMapper {
                 }
 
                 /* Combine selected cells from the input table as requested
-                 * and the retrieved data to construct a table giving the
-                 * current section of the result data. */
-                if ( coneResult != null  ) {
-                    coneResult = Tables.randomTable( coneResult );
-                    long nrow = coneResult.getRowCount();
-                    assert nrow >= 0;
-                    if ( nrow > 0 ) {
-                        Object[] cells = new Object[ ncopy ];
-                        for ( int ic = 0; ic < ncopy; ic++ ) {
-                            cells[ ic ] = jelReader.getCell( iCopyCols[ ic ] );
-                        }
+                 * with the retrieved data to construct a table giving
+                 * the current section of the result table. */
+                if ( coneResult != null ) {
+                    long nr = coneResult.getRowCount();
+                    assert nr >= 0;
+                    if ( nr > 0 ) {
+                        logger_.info( "Retreived " + nr + " rows" );
                         StarTable constTable =
-                            new ConstantStarTable( constInfos, cells, nrow );
-                        assert constTable.isRandom();
-                        StarTable result =
-                            new JoinStarTable( new StarTable[] { constTable,
-                                                                 coneResult } );
-                        assert result.isRandom();
-                        resultList.add( result );
-                        logger_.info( "Retrieved " + nrow + " rows" );
-                    }
-                    else {
-                        logger_.info( "No data" );
+                            new ConstantStarTable( constInfos, args.copyCells_,
+                                                   nr );
+                        StarTable[] pair = new StarTable[] { constTable,
+                                                             coneResult };
+                        return new JoinStarTable( pair );
                     }
                 }
+                return new EmptyStarTable( meta );
             }
-        }
+        };
 
         /* Combine all the result tables into one and return. */
-        if ( resultList.isEmpty() ) {
-            throw new ExecutionException( "No results were returned "
-                                        + "from any of the queries" );
-        }
-        else {
-            StarTable[] results =
-                (StarTable[]) resultList.toArray( new StarTable[ 0 ] );
-            return new ConcatStarTable( meta, results );
-        }
+        return new ConcatStarTable( meta, tableIt );
     }
 
     /**
@@ -327,6 +342,25 @@ public class MultiConeMapper implements TableMapper {
         catch ( CompilationException e ) {
             throw new UsageException( "Bad numeric expression \"" + sexpr + "\""
                                     + " - " + e.getMessage() );
+        }
+    }
+
+    /**
+     * Encapsulates the arguments required for a cone search query.
+     */
+    private static class ConeArgs {
+        final double ra_;
+        final double dec_;
+        final double sr_;
+        final int verb_;
+        final Object[] copyCells_;
+        ConeArgs( double ra, double dec, double sr, int verb,
+                  Object[] copyCells ) {
+            ra_ = ra;
+            dec_ = dec;
+            sr_ = sr;
+            verb_ = verb;
+            copyCells_ = copyCells;
         }
     }
 }
