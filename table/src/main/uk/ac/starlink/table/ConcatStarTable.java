@@ -129,6 +129,9 @@ public class ConcatStarTable extends WrapperStarTable {
      * @throws  IOException  in case of incompatibility
      */
     private void checkCompatible( StarTable table ) throws IOException {
+        if ( table.getRowCount() == 0 ) {
+            return;
+        }
         int ncol0 = colInfos_.length;
         int ncol1 = table.getColumnCount();
         if ( ncol1 != ncol0 ) {
