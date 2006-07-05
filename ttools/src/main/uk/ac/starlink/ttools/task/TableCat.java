@@ -41,9 +41,8 @@ public class TableCat extends MapperTask {
     private static class Cat2Mapping implements TableMapping {
         public void mapTables( StarTable[] inTables,
                                TableConsumer[] consumers ) throws IOException {
-            ConcatStarTable catted = new ConcatStarTable( inTables );
-            catted.setParameters( inTables[ 0 ].getParameters() );
-            consumers[ 0 ].consume( catted );
+            consumers[ 0 ].consume( new ConcatStarTable( inTables[ 0 ],
+                                                         inTables ) );
         }
     }
 }

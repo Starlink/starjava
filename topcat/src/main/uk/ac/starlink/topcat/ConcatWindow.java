@@ -182,7 +182,7 @@ public class ConcatWindow extends AuxWindow
      *
      * @return  concatenated table
      */
-    private StarTable makeTable() {
+    private StarTable makeTable() throws IOException {
         StarTable t1 = getBaseTable().getApparentStarTable();
         final StarTable t2base = getAddedTable().getApparentStarTable();
         int ncol = colSelectors.length;
@@ -224,10 +224,7 @@ public class ConcatWindow extends AuxWindow
             }
             t2.addColumn( cdata );
         }
-        ConcatStarTable catted =
-            new ConcatStarTable( new StarTable[] { t1, t2 } );
-        catted.setParameters( new ArrayList( t1.getParameters() ) );
-        return catted;
+        return new ConcatStarTable( t1, new StarTable[] { t1, t2 } );
     }
 
     /**
