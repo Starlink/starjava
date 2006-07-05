@@ -199,16 +199,16 @@ public class MultiConeMapper implements TableMapper {
      */
     private static StarTable multiCone( StarTable in, final ConeSearch coner,
                                         final StarTableFactory tfact,
-                                        SequentialJELRowReader jelReader,
-                                        CompiledExpression raExpr,
-                                        CompiledExpression decExpr,
-                                        CompiledExpression srExpr,
-                                        int verb, int[] iCopyCols )
+                                        final SequentialJELRowReader jelReader,
+                                        final CompiledExpression raExpr,
+                                        final CompiledExpression decExpr,
+                                        final CompiledExpression srExpr,
+                                        final int verb, final int[] iCopyCols )
             throws IOException, TaskException {
 
         /* Create array of column metadata objects for the columns which are
          * to be copied from the input table. */
-        int ncopy = iCopyCols.length;
+        final int ncopy = iCopyCols.length;
         final ColumnInfo[] constInfos = new ColumnInfo[ ncopy ];
         for ( int ic = 0; ic < ncopy; ic++ ) {
             constInfos[ ic ] = in.getColumnInfo( iCopyCols[ ic ] );
@@ -234,91 +234,100 @@ public class MultiConeMapper implements TableMapper {
              } );
         meta.setParameters( coneMeta.getParameters() );
 
-        /* Accumulate a list of the arguments which specify a single query. */
-        final List argsList = new ArrayList();
-        while ( jelReader.next() ) {
-
-            /* Get numeric values for the cone search request. */
-            double ra;
-            double dec;
-            double sr;
-            try {
-                Object raObj = jelReader.evaluate( raExpr );
-                Object decObj = jelReader.evaluate( decExpr );
-                Object srObj = jelReader.evaluate( srExpr );
-                ra = raObj instanceof Number ? ((Number) raObj).doubleValue()
-                                             : Double.NaN;
-                dec = decObj instanceof Number ? ((Number) decObj).doubleValue()
-                                               : Double.NaN;
-                sr = srObj instanceof Number ? ((Number) srObj).doubleValue()
-                                             : Double.NaN;
-            }
-            catch ( Throwable e ) {
-                ra = Double.NaN;
-                dec = Double.NaN;
-                sr = Double.NaN;
-            }
-            if ( ! Double.isNaN( ra ) &&
-                 ! Double.isNaN( dec ) &&
-                 ! Double.isNaN( sr ) ) {
-
-                /* Get any cells from this row to be copied to the
-                 * corresponding section of the output table. */
-                Object[] cells = new Object[ ncopy ];
-                for ( int ic = 0; ic < ncopy; ic++ ) {
-                    cells[ ic ] = jelReader.getCell( iCopyCols[ ic ] );
-                }
-
-                /* Store the information that we will need to make this
-                 * query. */
-                argsList.add( new ConeArgs( ra, dec, sr, verb, cells ) );
-            }
-        }
-
-        /* Construct an iterator which will iterate over the searches thus
-         * defined, returning a table representing the result for each item. */
-        final Iterator argsIt = argsList.iterator();
+        /* Construct an iterator which will iterate over the rows of the 
+         * input table returning StarTable objects representing the result
+         * of the cone searches they define. */
         Iterator tableIt = new Iterator() {
+            StarTable next_ = nextTable();
             public void remove() {
                 throw new UnsupportedOperationException();
             }
             public boolean hasNext() {
-                return argsIt.hasNext();
+                return next_ != null;
             }
             public Object next() {
-                ConeArgs args = (ConeArgs) argsIt.next();
+                StarTable current = next_;
+                next_ = nextTable();
+                return current;
+            }
+            private StarTable nextTable() {
+                try {
+                    if ( ! jelReader.next() ) {
+                        return null;
+                    }
+                }
+                catch ( IOException e ) {
+                    logger_.warning( "Read error: " + e.getMessage() );
+                    return null;
+                }
+                double ra;
+                double dec;
+                double sr;
+                Object[] copyCells;
+                try {
+                    Object raObj = jelReader.evaluate( raExpr );
+                    Object decObj = jelReader.evaluate( decExpr );
+                    Object srObj = jelReader.evaluate( srExpr );
+                    ra = raObj instanceof Number
+                       ? ((Number) raObj).doubleValue()
+                       : Double.NaN;
+                    dec = decObj instanceof Number
+                        ? ((Number) decObj).doubleValue()
+                        : Double.NaN;
+                    sr = srObj instanceof Number
+                       ? ((Number) srObj).doubleValue()
+                       : Double.NaN;
+                    copyCells = new Object[ ncopy ];
+                    for ( int ic = 0; ic < ncopy; ic++ ) {
+                        copyCells[ ic ] = jelReader.getCell( iCopyCols[ ic ] );
+                    }
+                }
+                catch ( IOException e ) {
+                    logger_.warning( "Data read error: " + e.getMessage() );
+                    return new EmptyStarTable( meta );
+                }
+                catch ( Throwable e ) {
+                    logger_.warning( "Data evaluation error: "
+                                   + e.getMessage() );
+                    return new EmptyStarTable( meta );
+                }
+                if ( Double.isNaN( ra ) ||
+                     Double.isNaN( dec ) ||
+                     Double.isNaN( sr ) ) {
+                    logger_.warning( "Search parameters invalid" );
+                    return new EmptyStarTable( meta );
+                }
 
                 /* Make the request. */
                 StarTable coneResult;
                 try {
-                    coneResult = coner.performSearch( args.ra_, args.dec_,
-                                                      args.sr_, args.verb_,
+                    coneResult = coner.performSearch( ra, dec, sr, verb,
                                                       tfact );
                     coneResult = tfact.getStoragePolicy()
                                       .copyTable( coneResult );
                 }
                 catch ( IOException e ) {
-                    coneResult = null;
                     logger_.warning( "Error response: " + e.getMessage() );
+                    return new EmptyStarTable( meta );
                 }
-
-                /* Combine selected cells from the input table as requested
-                 * with the retrieved data to construct a table giving
-                 * the current section of the result table. */
-                if ( coneResult != null ) {
-                    long nr = coneResult.getRowCount();
-                    assert nr >= 0;
-                    if ( nr > 0 ) {
-                        logger_.info( "Retreived " + nr + " rows" );
-                        StarTable constTable =
-                            new ConstantStarTable( constInfos, args.copyCells_,
-                                                   nr );
-                        StarTable[] pair = new StarTable[] { constTable,
-                                                             coneResult };
-                        return new JoinStarTable( pair );
-                    }
+ 
+                /* Combine selected cells from the input table as 
+                 * requested with the retrieved data to construct 
+                 * a table giving the current section of the result
+                 * table. */
+                long nr = coneResult.getRowCount();
+                assert nr >= 0;
+                logger_.info( "Retrieved " + nr + " rows" );
+                if ( nr > 0 ) {
+                    StarTable constTable =
+                        new ConstantStarTable( constInfos, copyCells, nr );
+                    StarTable[] pair = new StarTable[] { constTable,
+                                                         coneResult };
+                    return new JoinStarTable( pair );
                 }
-                return new EmptyStarTable( meta );
+                else {
+                    return new EmptyStarTable( meta );
+                }
             }
         };
 
@@ -342,25 +351,6 @@ public class MultiConeMapper implements TableMapper {
         catch ( CompilationException e ) {
             throw new UsageException( "Bad numeric expression \"" + sexpr + "\""
                                     + " - " + e.getMessage() );
-        }
-    }
-
-    /**
-     * Encapsulates the arguments required for a cone search query.
-     */
-    private static class ConeArgs {
-        final double ra_;
-        final double dec_;
-        final double sr_;
-        final int verb_;
-        final Object[] copyCells_;
-        ConeArgs( double ra, double dec, double sr, int verb,
-                  Object[] copyCells ) {
-            ra_ = ra;
-            dec_ = dec;
-            sr_ = sr;
-            verb_ = verb;
-            copyCells_ = copyCells;
         }
     }
 }
