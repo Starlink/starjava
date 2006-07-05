@@ -151,8 +151,11 @@ public class MultiConeMapper implements TableMapper {
             public void mapTables( StarTable[] in, TableConsumer[] out )
                     throws TaskException, IOException {
                 StarTable inTable = in[ 0 ];
-                ColumnIdentifier colIdent = new ColumnIdentifier( inTable );
-                int[] iCopyCols = colIdent.getColumnIndices( copyColIdList );
+                int[] iCopyCols = ( copyColIdList == null ||
+                                    copyColIdList.trim().length() == 0 )
+                                ? new int[ 0 ]
+                                : new ColumnIdentifier( inTable )
+                                 .getColumnIndices( copyColIdList );
                 SequentialJELRowReader jelReader =
                     new SequentialJELRowReader( inTable );
                 Library lib = JELUtils.getLibrary( jelReader );
