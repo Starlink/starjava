@@ -17,6 +17,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
@@ -159,20 +160,15 @@ public class MultiConeMapper implements TableMapper {
                 SequentialJELRowReader jelReader =
                     new SequentialJELRowReader( inTable );
                 Library lib = JELUtils.getLibrary( jelReader );
-                CompiledExpression raExpr;
-                CompiledExpression decExpr;
-                CompiledExpression srExpr;
-                try {
-                    raExpr = Evaluator.compile( raString, lib, double.class );
-                    decExpr = Evaluator.compile( decString, lib, double.class );
-                    srExpr = Evaluator.compile( srString, lib, double.class );
-                }
-                catch ( CompilationException e ) {
-                    throw new UsageException( "Bad numeric expression", e );
-                }
+                CompiledExpression raExpr = compileDouble( raString, lib );
+                CompiledExpression decExpr = compileDouble( decString, lib );
+                CompiledExpression srExpr = compileDouble( srString, lib );
                 StarTable outTable =
                     multiCone( inTable, coner, tfact, jelReader,
-                               raExpr, decExpr, srExpr, verb, iCopyCols );
+                               compileDouble( raString, lib ),
+                               compileDouble( decString, lib ),
+                               compileDouble( srString, lib ),
+                               verb, iCopyCols );
                 out[ 0 ].consume( outTable );
             }
         };
@@ -204,7 +200,7 @@ public class MultiConeMapper implements TableMapper {
                                         CompiledExpression decExpr,
                                         CompiledExpression srExpr,
                                         int verb, int[] iCopyCols )
-            throws IOException {
+            throws IOException, TaskException {
 
         /* Create array of column metadata objects for the columns which are
          * to be copied from the input table. */
@@ -213,6 +209,26 @@ public class MultiConeMapper implements TableMapper {
         for ( int ic = 0; ic < ncopy; ic++ ) {
             constInfos[ ic ] = in.getColumnInfo( iCopyCols[ ic ] );
         }
+
+        /* Get a metadata-only table from the service by specifying a 
+         * search radius of zero.  This also acts as a useful check that
+         * the service is alive. */
+        StarTable coneMeta;
+        try {
+            coneMeta = coner.performSearch( 0., 0., 0., verb, tfact );
+        }
+        catch ( IOException e ) {
+            throw (IOException)
+                  new IOException( "Error response while retrieving metadata: "
+                                 + e.getMessage() )
+                 .initCause( e );
+        }
+        JoinStarTable meta =
+             new JoinStarTable( new StarTable[] {
+                 new ConstantStarTable( constInfos, new Object[ ncopy ], 0L ),
+                 coneMeta,
+             } );
+        meta.setParameters( coneMeta.getParameters() );
 
         /* Get an array of tables, one representing the result of a cone
          * search determined by the values in each row of the input table. */
@@ -284,8 +300,33 @@ public class MultiConeMapper implements TableMapper {
         }
 
         /* Combine all the result tables into one and return. */
-        StarTable[] results =
-            (StarTable[]) resultList.toArray( new StarTable[ 0 ] );
-        return new ConcatStarTable( results );
+        if ( resultList.isEmpty() ) {
+            throw new ExecutionException( "No results were returned "
+                                        + "from any of the queries" );
+        }
+        else {
+            StarTable[] results =
+                (StarTable[]) resultList.toArray( new StarTable[ 0 ] );
+            return new ConcatStarTable( meta, results );
+        }
+    }
+
+    /**
+     * Compiles a JEL expression.
+     * An informative UsageException is thrown if it won't compile.
+     *
+     * @param   lib   JEL library
+     * @param   sexpr   string expression
+     * @return  compiled expression
+     */
+    private static CompiledExpression compileDouble( String sexpr, Library lib )
+            throws UsageException {
+        try {
+            return Evaluator.compile( sexpr, lib, double.class );
+        }
+        catch ( CompilationException e ) {
+            throw new UsageException( "Bad numeric expression \"" + sexpr + "\""
+                                    + " - " + e.getMessage() );
+        }
     }
 }
