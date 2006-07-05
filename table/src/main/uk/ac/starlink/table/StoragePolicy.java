@@ -153,6 +153,21 @@ public abstract class StoragePolicy {
         }
 
         /* Otherwise get a suitable row store and stream the rows into it. */
+        return copyTable( table );
+    }
+
+    /**
+     * Returns a random-access deep copy of the given table.
+     * This utility method is like {@link #randomTable} except 
+     * that a copy is made even if the original is already random access.
+     * It can be useful if you want a copy of the table known to have
+     * the resource usage or performance characteristics defined by 
+     * this policy.
+     *
+     * @param   table  input table
+     * @return  deep copy of <code>table</code>
+     */
+    public StarTable copyTable( StarTable table ) throws IOException {
         RowStore store = makeConfiguredRowStore( table );
         RowSequence rseq = table.getRowSequence();
         try {
