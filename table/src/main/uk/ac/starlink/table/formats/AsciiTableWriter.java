@@ -112,6 +112,10 @@ public class AsciiTableWriter extends TextTableWriter {
         return "ascii";
     }
 
+    public int getMaxWidth() {
+        return 158;
+    }
+
     protected void printSeparator( OutputStream strm, int[] colwidths ) {
         // no action.
     }

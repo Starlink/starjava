@@ -22,16 +22,6 @@ public class TextTableWriter extends StreamStarTableWriter {
     private boolean writeParams = true;
 
     /**
-     * Maximum width for a given column.
-     */
-    private int maxWidth = 30;
-
-    /**
-     * Number of columns sampled to find column width.
-     */
-    private int sampledRows = 100;
-
-    /**
      * Returns "text";
      *
      * @return "text"
@@ -73,7 +63,8 @@ public class TextTableWriter extends StreamStarTableWriter {
         boolean allRowsSampled = false;
         RowSequence srseq = startab.getRowSequence();
         try {
-            for ( long lrow = 0; lrow < sampledRows; lrow++ ) {
+            int sr = getSampledRows();
+            for ( long lrow = 0; lrow < sr; lrow++ ) {
                 if ( ! srseq.next() ) {
                     allRowsSampled = true;
                     break;
@@ -169,6 +160,26 @@ public class TextTableWriter extends StreamStarTableWriter {
      */
     public boolean getWriteParameters() {
         return writeParams;
+    }
+
+    /**
+     * Returns the maximum width for a given column.  Values longer than
+     * this may be truncated.
+     *
+     * @return  maximum permitted column width in characters
+     */
+    public int getMaxWidth() {
+        return 40;
+    }
+
+    /**
+     * Returns the number of columns which will be sampled to 
+     * work out the column width.
+     *
+     * @return   number of rows scanned
+     */
+    public int getSampledRows() {
+        return 200;
     }
 
     /**
@@ -298,7 +309,7 @@ public class TextTableWriter extends StreamStarTableWriter {
             return 11;
         }
         else {
-            return maxWidth;
+            return getMaxWidth();
         }
     }
 }
