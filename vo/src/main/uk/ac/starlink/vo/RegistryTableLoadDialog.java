@@ -81,9 +81,8 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
                 public StarTable getTable( StarTableFactory factory,
                                            String format )
                         throws IOException {
-                    SimpleResource[] resources;
                     try {
-                        resources = query.performQuery();
+                        return new RegistryStarTable( query );
                     }
                     catch ( RemoteException e ) {
                         throw asIOException( e );
@@ -91,19 +90,9 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
                     catch ( ServiceException e ) {
                         throw asIOException( e );
                     }
-                    BeanStarTable st; 
-                    try {
-                        st = new BeanStarTable( SimpleResource.class );
-                    }
                     catch ( IntrospectionException e ) {
                         throw asIOException( e );
                     }
-                    DescribedValue[] metadata = query.getMetadata();
-                    for ( int i = 0; i < metadata.length; i++ ) {
-                        st.setParameter( metadata[ i ] );
-                    }
-                    st.setData( resources );
-                    return st;
                 }
                 public String getTableID() {
                     return query.toString();
