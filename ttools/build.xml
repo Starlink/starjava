@@ -1234,11 +1234,36 @@
       <batchtest>
         <fileset dir="${tests.dir}">
           <include name="**/*Test.java"/>
+          <exclude name="**/net_tests/*"/>
         </fileset>
       </batchtest>
 
     </junit>
 
+  </target>
+
+  <!--
+   !   =================
+   !   Run network tests
+   !   =================
+   !-->
+  <target name="run-net-tests"
+          depends="compile-tests"
+          if="junit.present"
+          description="-> run network-dependent JUnit tests">
+    <junit printsummary="${junit.summary}" haltonfailure="yes"
+           filtertrace="${junit.filtertrace}"
+           fork="${junit.fork}">
+      <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <formatter type="brief" usefile="false"/>
+      <batchtest>
+        <fileset dir="${tests.dir}">
+          <include name="**/net_tests/*Test.java"/>
+        </fileset>
+      </batchtest>
+    </junit>
   </target>
 
   <target name="run-single-test"
