@@ -18,6 +18,7 @@
 
   <!-- Short descriptions for each command. -->
   <!ENTITY calc-purpose 'Calculator'>
+  <!ENTITY multicone-purpose 'Multiple Cone-Search Query'>
   <!ENTITY tcat-purpose 'Table Concatenater'>
   <!ENTITY tcopy-purpose 'Table Format Converter'>
   <!ENTITY tcube-purpose 'N-dimensional Histogram Calculator'>
@@ -34,6 +35,7 @@
 
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
+  <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
@@ -168,6 +170,12 @@ the following commands specifically for operating on VOTable files:
     </li>
 <li><ref id="votlint" plaintextref="yes"><code>votlint</code></ref>:
     &votlint-purpose;
+    </li>
+</ul>
+the following command for accessing VO services:
+<ul>
+<li><ref id="multicone" plaintextref="yes"><code>multicone</code></ref>:
+    &multicone-purpose;
     </li>
 </ul>
 and the following general purpose utility:
@@ -333,6 +341,7 @@ name of one of the tasks listed in <ref id="cmdUsage"/> - currently
 the available tasks are:
 <ul>
 <li><code>calc</code></li>
+<li><code>multicone</code></li>
 <li><code>tcat</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
@@ -849,8 +858,9 @@ then you could avoid having to give the <code>-classpath</code> and
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>,
-           <ref id="tcube"><code>tcube</code></ref>
-       and <ref id="tmatch2"><code>tmatch2</code></ref>)
+           <ref id="tcube"><code>tcube</code></ref>,
+           <ref id="tmatch2"><code>tmatch2</code></ref> and
+           <ref id="multicone"><code>multicone</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
 STIL has its own model of what a table
@@ -1198,10 +1208,12 @@ existing columns in a table.
     have the same name, the first one that matches is selected.
     </p></dd>
 
-<dt>Column Index</dt>
+<dt>Column Index or &column.id.char;ID</dt>
 <dd><p>The index of the column may always be used; this is a useful
     fallback if the column name isn't suitable for some reason.
     The first column is '1', the second is '2' and so on.
+    You may alternatively use the forms 
+    '&column.id.char;1', '&column.id.char;2' etc.
     </p>
     <p>Tip: if counting which column has which index is giving you a
     headache, running <code>tpipe</code> with <code>omode=meta</code> or 
@@ -1235,10 +1247,16 @@ the following:
     columns have the same name, the first one that matches is selected.
     </p></dd>
 
-<dt>Column Index</dt>
+<dt>Column Index or &column.id.char;ID</dt>
 <dd><p>The index of the column may always be used; this is a useful
     fallback if the column name isn't suitable for some reason.
     The first column is '1', the second is '2' and so on.
+    You may alternatively use the forms 
+    '&column.id.char;1', '&column.id.char;2' etc.
+    </p>
+    <p>Tip: if counting which column has which index is giving you a
+    headache, running <code>tpipe</code> with <code>omode=meta</code> or 
+    <code>omode=stats</code> on the table may help.
     </p></dd>
 
 <dt>Wildcard Expression</dt>
@@ -2118,6 +2136,135 @@ stilts calc 'isoToMjd("2005-12-25T00:00:00")'
     The output is "53729.0".
     </p></dd>
 
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="multicone">
+<subhead><title><code>multicone</code>: &multicone-purpose;</title></subhead>
+
+<p><code>multicone</code> is a utility which performs a cone search
+query for each row of an input table and concatenates the results 
+of all these queries together into one big output table.
+You give the <label>service URL</label> for the cone search server you wish
+to use, and expressions (usually column names) 
+defining how to get the search parameters 
+(sky position and search radius) for each row of the input table.  
+The program then goes through the input table and dispatches
+a cone search query to the server for each row.  
+For each of these queries the service should respond with a 
+VOTable containing the objects it knows about in the specified region; 
+hopefully the columns will be the same or very similar for
+all the different queries since they are using the same service.
+The response tables aren stitched together top-to-bottom 
+(in the same way as <ref id="tcat"><code>tcat</code></ref>)
+and the result is output.
+</p>
+
+<p>This is in some ways like doing a positional crossmatch 
+where one of the catalogues is local and the other is remote.
+Because of both the network communication and the naive algorithm
+however, it is only suitable if the local catalogue has a rather
+small number of rows.
+</p>
+
+<p>The <label>cone search</label> protocol is not currently a formal IVOA 
+standard, but it is a simple service widely implemented by catalogue servers.
+A description of the protocol can be found at
+<webref url="http://us-vo.org/pubs/files/conesearch.html"/>.
+You can locate available cone search services and their service URLs
+by interrogating the <label>VO Registry</label>.
+</p>
+
+<p>Note that when running, <code>multicone</code> often generates a lot
+of WARNING messages.  Most of these are complaining about badly formed
+VOTables being returned from the cone search services.  STILTS does its
+best to work out what the service responses mean in this case, 
+and usually makes a good enough job of it.
+</p>
+
+<p>This command is experimental.  It may be modified or renamed in a future
+release of STILTS.
+</p>
+
+&multicone-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>multicone</code>:
+<dl>
+
+<dt><verbatim>
+stilts multicone serviceurl=http://archive.stsci.edu/hst/search.php \
+                 in=messier.xml ra=RA dec=DEC sr=0.05 \
+                 out=matches.xml
+</verbatim></dt>
+<dd><p>This queries the HST cone search service from Space Telescope for
+    records within .05 degrees of each Messier object contained in a 
+    local VOTable <code>messier.xml</code>.  The result is written to a
+    new VOTable, <code>matches.xml</code>.  The J2000 positions of each
+    record in the input file are held in columns named RA and
+    DEC respectively.
+    </p></dd>
+
+<dt><verbatim>
+stilts multicone \
+       serviceurl='http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=NOMAD' \
+       in=vizier.xml#7 \
+       icmd='addskycoords -inunit sex fk4 fk5 RAB1950 DEB1950 RAJ2000 DEJ2000' \
+       icmd='progress'
+       ra=RAJ2000 dec=DEJ2000 sr=0.01 \
+       ocmd='replacecol -units rad RA hmsToRadians(RA[0],RA[1],RA[2])' \
+       ocmd='replacecol -units rad DEC dmsToRadians(DEC[0],DEC[1],DEC[2])' \
+       omode=topcat
+</verbatim></dt>
+<dd><p>In this example some pre-processing of the input catalogue and
+    post-processing of the output catalogue is performed as well as the
+    multiple cone search itself.
+    </p>
+    <p>The input catalogue, which is the 8th TABLE element in a VOTable file,
+    contains sky positions in sexagesimal FK4 (B1950) coordinates.  
+    The <code>icmd=addskycoords...</code> parameter specifies a filter which
+    will add new columns in FK5 (J2000) degrees, which are what the 
+    multicone command requires.
+    The <code>icmd=progress</code> parameter specifies a filter which
+    will write progress information to the terminal so you can see how
+    the queries are progressing.
+    </p>
+    <p>The NOMAD service specified by the <code>serviceurl</code> parameter
+    used here happens to return results with the RA/DEC columns represented
+    in a rather eccentric format, namely 3-element floating point arrays 
+    representing (hours,minutes,seconds)/(degrees,minutes,seconds).
+    The two <code>ocmd=replacecol...</code> filters replace the values of
+    these columns with the scalar equivalents in radians.
+    Finally, the <code>omode=topcat</code> parameter causes the result
+    table to be loaded directly into TOPCAT (if it is available).
+    </p>
+    </dd>
+
+<dt><verbatim>
+stilts multicone serviceurl='http://archive.stsci.edu/iue/search.php?' \
+                 in=queries.txt ifmt=ascii \
+                 ra='&column.id.char;1' dec='&column.id.char;2' sr='&column.id.char;3' copycols='&column.id.char;4' \
+                 out=found.fits
+</verbatim></dt>
+<dd><p>Here the input is a plain text table with four unnamed columns, 
+    giving in order the right ascension, declination,
+    positional error and name of target objects.
+    The command carries out a cone search to the named service for
+    each one.  Note in this case the search radius (<code>sr</code> parameter)
+    is taken from the table and so varies for each query.
+    The <code>copycols</code> parameter has the value 
+    '<code>&column.id.char;4</code>',
+    which means that the value of the fourth column of the input table 
+    will be prepended to each row of the output table for 
+    which it is responsible.
+    Output is to a FITS table.
+    </p></dd>
 </dl>
 </p>
 
@@ -3447,6 +3594,12 @@ but my thanks are especially due to the following:
         These can provide considerable efficiency improvements for
         certain tasks when working with very large (and especially wide)
         tables.
+        </p></dd>
+    <dt>multicone</dt>
+    <dd><p>Added a new task <ref id="multicone"/> which can perform a 
+        number of cone search queries as directed by an input table.
+        This task is experimental and may be modified or renamed in
+        future releases.
         </p></dd>
     <dt>Other items</dt>
     <dd><p>
