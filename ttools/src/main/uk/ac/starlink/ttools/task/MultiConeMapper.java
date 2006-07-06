@@ -17,6 +17,7 @@ import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -44,6 +45,7 @@ public class MultiConeMapper implements TableMapper {
     private final Parameter srParam_;
     private final ChoiceParameter verbParam_;
     private final Parameter copycolsParam_;
+    private final BooleanParameter zmetaParam_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -118,6 +120,25 @@ public class MultiConeMapper implements TableMapper {
             "which provided the parameters of the query which produced it.",
             "See <ref id='colid-list'/> for list syntax.",
         } );
+
+        zmetaParam_ = new BooleanParameter( "zerometa" );
+        zmetaParam_.setDefault( "false" );
+        zmetaParam_.setPrompt( "Acquire service metadata using initial "
+                             + "SR=0 query?" );
+        zmetaParam_.setDescription( new String[] {
+            "Determines where the metadata for the output table comes from.",
+            "If true, an initial query is made to the service",
+            "with search radius set to zero.  Cone search services are",
+            "supposed to respond to such requests with a metadata-only",
+            "table giving column information etc but no data.",
+            "Unfortunately, many services in practice respond with metadata",
+            "which is incommpatible with successful data queries,",
+            "which means the other queries cannot be used by",
+            "<code>multicone</code>.",
+            "The default setting of false instead picks up the metadata",
+            "from the first non-empty data request.  This is less likely",
+            "to fail, but doesn't stream data so well on output.",
+        } );
     }
 
     public int getInCount() {
@@ -131,6 +152,7 @@ public class MultiConeMapper implements TableMapper {
             srParam_,
             verbParam_,
             copycolsParam_,
+            zmetaParam_,
         };
     }
 
@@ -145,6 +167,7 @@ public class MultiConeMapper implements TableMapper {
         }
         String sverb = verbParam_.stringValue( env );
         final int verb = sverb == null ? -1 : Integer.parseInt( sverb );
+        final boolean zmeta = zmetaParam_.booleanValue( env );
         final String copyColIdList = copycolsParam_.stringValue( env );
         final StarTableFactory tfact = TableEnvironment.getTableFactory( env );
         final String raString = raParam_.stringValue( env );
@@ -168,7 +191,7 @@ public class MultiConeMapper implements TableMapper {
                                    compileDouble( raString, lib ),
                                    compileDouble( decString, lib ),
                                    compileDouble( srString, lib ),
-                                   verb, iCopyCols );
+                                   verb, iCopyCols, zmeta );
                     out[ 0 ].consume( outTable );
                 }
                 finally {
@@ -196,6 +219,7 @@ public class MultiConeMapper implements TableMapper {
      * @param   verb  verbosity level 
      * @param   iCopyCols  array of column indices from <code>in</code>
      *          to copy to the output table
+     * @param   zmeta   if true, get the metadata from an initial SR=0 query
      */
     private static StarTable multiCone( StarTable in, final ConeSearch coner,
                                         final StarTableFactory tfact,
@@ -203,7 +227,8 @@ public class MultiConeMapper implements TableMapper {
                                         final CompiledExpression raExpr,
                                         final CompiledExpression decExpr,
                                         final CompiledExpression srExpr,
-                                        final int verb, final int[] iCopyCols )
+                                        final int verb, final int[] iCopyCols,
+                                        boolean zmeta )
             throws IOException, TaskException {
 
         /* Create array of column metadata objects for the columns which are
@@ -215,8 +240,9 @@ public class MultiConeMapper implements TableMapper {
         }
 
         /* Get a metadata-only table from the service by specifying a 
-         * search radius of zero.  This also acts as a useful check that
-         * the service is alive. */
+         * search radius of zero.  Although (depending on the zmeta parameter)
+         * we may not actually use this later, it acts as a useful check
+         * that the service is alive. */
         StarTable coneMeta;
         try {
             coneMeta = coner.performSearch( 0., 0., 0., verb, tfact );
@@ -227,16 +253,11 @@ public class MultiConeMapper implements TableMapper {
                                  + e.getMessage() )
                  .initCause( e );
         }
-        final JoinStarTable meta =
-             new JoinStarTable( new StarTable[] {
-                 new ConstantStarTable( constInfos, new Object[ ncopy ], 0L ),
-                 coneMeta,
-             } );
-        meta.setParameters( coneMeta.getParameters() );
 
         /* Construct an iterator which will iterate over the rows of the 
          * input table returning StarTable objects representing the result
          * of the cone searches they define. */
+        final StarTable emptyTable = new EmptyStarTable();
         Iterator tableIt = new Iterator() {
             StarTable next_ = nextTable();
             public void remove() {
@@ -284,18 +305,18 @@ public class MultiConeMapper implements TableMapper {
                 }
                 catch ( IOException e ) {
                     logger_.warning( "Data read error: " + e.getMessage() );
-                    return new EmptyStarTable( meta );
+                    return emptyTable;
                 }
                 catch ( Throwable e ) {
                     logger_.warning( "Data evaluation error: "
                                    + e.getMessage() );
-                    return new EmptyStarTable( meta );
+                    return emptyTable;
                 }
                 if ( Double.isNaN( ra ) ||
                      Double.isNaN( dec ) ||
                      Double.isNaN( sr ) ) {
                     logger_.warning( "Search parameters invalid" );
-                    return new EmptyStarTable( meta );
+                    return emptyTable;
                 }
 
                 /* Make the request. */
@@ -308,7 +329,7 @@ public class MultiConeMapper implements TableMapper {
                 }
                 catch ( IOException e ) {
                     logger_.warning( "Error response: " + e.getMessage() );
-                    return new EmptyStarTable( meta );
+                    return emptyTable;
                 }
  
                 /* Combine selected cells from the input table as 
@@ -326,13 +347,43 @@ public class MultiConeMapper implements TableMapper {
                     return new JoinStarTable( pair );
                 }
                 else {
-                    return new EmptyStarTable( meta );
+                    return emptyTable;
                 }
             }
         };
 
-        /* Combine all the result tables into one and return. */
-        return new ConcatStarTable( meta, tableIt );
+        /* If we're using the metadata-only query for output metadata,
+         * construct the output table directly on the iterator.
+         * This enables the output to be streamed better. */
+        if ( zmeta ) {
+            JoinStarTable meta = new JoinStarTable( new StarTable[] {
+                new ConstantStarTable( constInfos, new Object[ ncopy ], 0L ),
+                coneMeta,
+            } );
+            meta.setParameters( coneMeta.getParameters() );
+            return new ConcatStarTable( meta, tableIt );
+        }
+
+        /* Otherwise, read all the results and get a list of the 
+         * constituent tables.  Just use the first one for metadata. */
+        else {
+            List tableList = new ArrayList();
+            while ( tableIt.hasNext() ) {
+                StarTable table = (StarTable) tableIt.next();
+                if ( table != emptyTable ) {
+                    tableList.add( table );
+                }
+            }
+            StarTable[] tables =
+                (StarTable[]) tableList.toArray( new StarTable[ 0 ] );
+            if ( tables.length == 0 ) {
+                throw new ExecutionException( "No data returned by any "
+                                            + " of the queries" );
+            }
+            else {
+                return new ConcatStarTable( tables[ 0 ], tables );
+            }
+        }
     }
 
     /**
