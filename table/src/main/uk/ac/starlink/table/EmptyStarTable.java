@@ -8,8 +8,20 @@ package uk.ac.starlink.table;
  */
 public class EmptyStarTable extends WrapperStarTable {
 
+    /**
+     * Creates a new empty table with metadata taken from an existing one.
+     *
+     * @param  baseTable  base table
+     */
     public EmptyStarTable( StarTable baseTable ) {
         super( baseTable );
+    }
+
+    /**
+     * Creates a new empty table with no columns, no rows and no parameters.
+     */
+    public EmptyStarTable() {
+        this( ColumnStarTable.makeTableWithRows( 0L ) );
     }
 
     public boolean isRandom() {
