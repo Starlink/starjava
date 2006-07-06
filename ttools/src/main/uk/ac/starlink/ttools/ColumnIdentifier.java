@@ -162,7 +162,11 @@ public class ColumnIdentifier {
             throw new IOException( "Found " + colid + 
                                    " while looking for column ID" );
         }
-        if ( colid.matches( "[0-9]+" ) ) {
+        if ( colid.matches( "\\Q" + JELRowReader.COLUMN_ID_CHAR + "\\E?" +
+                            "[0-9]+" ) ) {
+            if ( colid.charAt( 0 ) == JELRowReader.COLUMN_ID_CHAR ) {
+                colid = colid.substring( 1 );
+            }
             int ix1 = Integer.parseInt( colid );
             if ( ix1 < 1 || ix1 > ncol_ ) {
                 throw new IOException( "Column index " + ix1 + " out of range "
