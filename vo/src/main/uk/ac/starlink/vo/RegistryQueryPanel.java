@@ -27,7 +27,7 @@ public class RegistryQueryPanel extends JPanel {
 
     /** Known registry URLs.  */
     public static String[] KNOWN_REGISTRIES = new String[] {
-        "http://voservices.net/registry/registry.asmx",
+        RegistryInterrogator.DEFAULT_URL.toString(),
     };
 
     /**
