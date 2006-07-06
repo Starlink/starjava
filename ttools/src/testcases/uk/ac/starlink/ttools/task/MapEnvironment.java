@@ -22,6 +22,7 @@ public class MapEnvironment extends TableEnvironment {
     private final ByteArrayOutputStream err_ = new ByteArrayOutputStream();
     private final PrintStream pout_ = new PrintStream( out_ );
     private final PrintStream perr_ = new PrintStream( err_ );
+    private Class resourceBase_ = MapEnvironment.class;
 
     /**
      * Constructs a new environment with no values.
@@ -99,6 +100,18 @@ public class MapEnvironment extends TableEnvironment {
     }
 
     /**
+     * Sets the class which defines the context for resource discovery.
+     *
+     * @param  clazz  resource base class
+     * @return  this
+     * @see   java.lang.Class#getResource
+     */
+    public MapEnvironment setResourceBase( Class clazz ) {
+        resourceBase_ = clazz;
+        return this;
+    }
+
+    /**
      * If the task which has been executed in this environment has created
      * an output table which has not been otherwise disposed of, you
      * can get it from here.
@@ -131,10 +144,24 @@ public class MapEnvironment extends TableEnvironment {
             throw new IllegalArgumentException(
                 "No value supplied for param " + param );
         }
-        else if ( value instanceof StarTable &&
-                  param instanceof InputTableParameter ) {
+        else if ( param instanceof InputTableParameter &&
+                  value instanceof StarTable ) {
             ((InputTableParameter) param)
                                   .setValueFromTable( (StarTable) value );
+        }
+        else if ( param instanceof InputTableParameter &&
+                  value instanceof String &&
+                  ((String) value).indexOf( '/' ) < 0 ) {
+            String sval = (String) value;
+            String frag = "";
+            int ihash = sval.indexOf( '#' );
+            if ( ihash > 0 ) {
+                frag = sval.substring( ihash );
+                sval = sval.substring( 0, ihash );
+            }
+            param.setValueFromString( this, resourceBase_
+                                           .getResource( sval )
+                                           .toString() + frag );
         }
         else if ( value instanceof String ) {
             param.setValueFromString( this, (String) value );
