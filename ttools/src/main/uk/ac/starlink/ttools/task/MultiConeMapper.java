@@ -62,6 +62,9 @@ public class MultiConeMapper implements TableMapper {
             "(\"<code>name=value</code>\", separated by '&amp;' characters).",
             "If this value does not end in either a '?' or a '&amp;',",
             "one will be added as appropriate.",
+            "Note that the <ref id='regquery'><code>regquery</code></ref>",
+            "command can be used to locate the service URL for cone search",
+            "services.",
         } );
 
         raParam_ = new Parameter( "ra" );
@@ -147,6 +150,7 @@ public class MultiConeMapper implements TableMapper {
 
     public Parameter[] getParameters() {
         return new Parameter[] {
+            urlParam_,
             raParam_,
             decParam_,
             srParam_,
