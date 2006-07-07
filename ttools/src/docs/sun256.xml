@@ -18,7 +18,8 @@
 
   <!-- Short descriptions for each command. -->
   <!ENTITY calc-purpose 'Calculator'>
-  <!ENTITY multicone-purpose 'Multiple Cone-Search Query'>
+  <!ENTITY multicone-purpose 'Multiple Cone-Search Querier'>
+  <!ENTITY regquery-purpose 'Registry Querier'>
   <!ENTITY tcat-purpose 'Table Concatenater'>
   <!ENTITY tcopy-purpose 'Table Format Converter'>
   <!ENTITY tcube-purpose 'N-dimensional Histogram Calculator'>
@@ -36,6 +37,7 @@
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
+  <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
@@ -147,20 +149,20 @@ same ground as the STIL and TOPCAT user documents
 <p>Currently, this package consists of the following commands for generic
 table manipulation:
 <ul>
-<li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
-    &tcat-purpose;
-    </li>
 <li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
     &tcopy-purpose;
     </li>
-<li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
-    &tcube-purpose;
+<li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
+    &tpipe-purpose;
     </li>
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
     </li>
-<li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
-    &tpipe-purpose;
+<li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
+    &tcat-purpose;
+    </li>
+<li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
+    &tcube-purpose;
     </li>
 </ul>
 the following commands specifically for operating on VOTable files:
@@ -172,8 +174,11 @@ the following commands specifically for operating on VOTable files:
     &votlint-purpose;
     </li>
 </ul>
-the following command for accessing VO services:
+the following commands for accessing VO services:
 <ul>
+<li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
+    &regquery-purpose;
+    </li>
 <li><ref id="multicone" plaintextref="yes"><code>multicone</code></ref>:
     &multicone-purpose;
     </li>
@@ -342,6 +347,7 @@ the available tasks are:
 <ul>
 <li><code>calc</code></li>
 <li><code>multicone</code></li>
+<li><code>regquery</code></li>
 <li><code>tcat</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
@@ -859,8 +865,9 @@ then you could avoid having to give the <code>-classpath</code> and
            <ref id="tcopy"><code>tcopy</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
-           <ref id="tmatch2"><code>tmatch2</code></ref> and
-           <ref id="multicone"><code>multicone</code></ref>)
+           <ref id="tmatch2"><code>tmatch2</code></ref>,
+           <ref id="multicone"><code>multicone</code></ref> and
+           <ref id="regquery"><code>regquery</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
 STIL has its own model of what a table
@@ -2175,8 +2182,23 @@ small number of rows.
 standard, but it is a simple service widely implemented by catalogue servers.
 A description of the protocol can be found at
 <webref url="http://us-vo.org/pubs/files/conesearch.html"/>.
-You can locate available cone search services and their service URLs
+</p>
+
+<p>You can locate available cone search services and their service URLs
 by interrogating the <label>VO Registry</label>.
+One way to do this is using the <code>regquery</code> command.
+For instance, to identify registered cone search services that have
+something to do with Sloan data, you could execute the folowing:
+<verbatim>
+    stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
+           ocmd="keepcols 'shortName serviceUrl'" \
+           ofmt=ascii
+</verbatim>
+Writing just <code>query="serviceType = 'CONE'"</code> with no
+further qualification will give you all registered cone search services.
+See the section on 
+<ref id="regquery" plaintextref="yes"><code>regquery</code></ref> 
+for more explanation.
 </p>
 
 <p>Note that when running, <code>multicone</code> often generates a lot
@@ -2265,6 +2287,76 @@ stilts multicone serviceurl='http://archive.stsci.edu/iue/search.php?' \
     which it is responsible.
     Output is to a FITS table.
     </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="regquery">
+<subhead><title><code>regquery</code>: &regquery-purpose;</title></subhead>
+
+<p><code>regquery</code> submits a query to the Virtual Observatory 
+<label>registry</label>
+and returns the result as a table containing all the records which 
+match the condition specified.  The resulting table can be written out 
+in any of the supported formats or otherwise processed in the usual ways.
+Currently the registry used by default is the SOAP service offered
+by the US NVO registry at 
+<webref url="http://voservices.net/registry/registry.asmx"/>.
+Because VO registries generally harvest from each other, the content of
+this one can be expected to be similar to that stored in registries
+maintained by other organisations.
+</p>
+
+&regquery-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>regquery</code>:
+<dl>
+
+<dt><verbatim>
+stilts regquery query="identifier like '%astrogrid%'" out=ag.xml
+</verbatim></dt>
+<dd><p>Retrieves all the records in the registry whose 
+    <code>identifier</code> field contain the string 
+    "<code>astrogrid</code>".  The '<code>%</code>' characters function
+    as wildcards for the <code>like</code> operator.
+    The output is written to a local VOTable file which can be examined
+    or further processed later.
+    </p></dd>
+
+<dt><verbatim>
+stilts regquery query="serviceType = 'SSAP'" omode=count
+</verbatim></dt>
+<dd><p>Queries the registry for all the records whose
+       <code>serviceType</code> fields equal the string <code>SSAP</code>
+       (this identifies services which support the Simple Spectral Access
+       Protocol).  These records are not stored, but the 
+       <code>omode=count</code> output mode counts the rows.
+       This therefore tells you how many SSAP servers are registered.
+       </p></dd>
+
+<dt><verbatim>
+stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
+                ocmd="keepcols 'shortName serviceUrl'" \
+                ofmt=ascii out=-
+</verbatim></dt>
+<dd><p>Queries the registry for all
+       <webref url="http://us-vo.org/pubs/files/conesearch.html"
+               plaintextref="yes"
+               >cone search services</webref>
+       whose title contains the term "Sloan".
+       The <code>keepcols</code> filter takes the result and throws away
+       all the columns except for <code>shortName</code> and
+       <code>serviceUrl</code>, and these are written to the terminal
+       in ASCII format.  This may be useful to find the service URL
+       for a cone search service with particular data for use with
+       the <ref id="multicone"><code>multicone</code></ref> command.
+       </p></dd>
 </dl>
 </p>
 
@@ -3595,10 +3687,15 @@ but my thanks are especially due to the following:
         certain tasks when working with very large (and especially wide)
         tables.
         </p></dd>
-    <dt>multicone</dt>
-    <dd><p>Added a new task <ref id="multicone"/> which can perform a 
-        number of cone search queries as directed by an input table.
-        This task is experimental and may be modified or renamed in
+    <dt>New VO commands</dt>
+    <dd><p>Added two new commands for querying Virtual Observatory services:
+        <ul>
+        <li><ref id="multicone"><code>multicone</code></ref>
+                                - &multicone-purpose;</li>
+        <li><ref id="regquery"><code>regquery</code></ref>
+                                - &regquery-purpose;</li>
+        </ul>
+        These tasks are experimental and may be modified or renamed in
         future releases.
         </p></dd>
     <dt>Other items</dt>
