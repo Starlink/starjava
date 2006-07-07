@@ -136,7 +136,7 @@ public abstract class SkySystem {
     }
 
     public String toString() {
-        return getName();
+        return getDescription();
     }
 
     /**
