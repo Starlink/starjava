@@ -97,10 +97,10 @@ public class TablePipeTest extends TableTestCase {
             for ( int j = 0; j < units.length; j++ ) {
                 SkyUnits unit = units[ j ];
                 String cmd = "addskycoords -inunit deg -outunit " + unit
-                           + " fk5 " + system + " ra dec c1 c2"
+                           + " fk5 " + system.getName() + " ra dec c1 c2"
                            + ";\n"
                            + "addskycoords -inunit " + unit + " -outunit deg "
-                           + system + " fk5 c1 c2 rax decx";
+                           + system.getName() + " fk5 c1 c2 rax decx";
                 StarTable xTable = process( skyTable, cmd );
                 assertArrayEquals(
                     new String[] { "ra", "dec", "c1", "c2", "rax", "decx", },
