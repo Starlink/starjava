@@ -80,6 +80,8 @@ public class Formatter {
                 else if ( tag.equals( "ul" ) ) {
                     result.newLine();
                     appendChildren( result, el );
+                    result.newLine();
+                    result.newLine();
                 }
                 else if ( tag.equals( "li" ) ) {
                     result.newLine();
@@ -235,7 +237,13 @@ public class Formatter {
             if ( line_ != null && line_.toString().trim().length() > 0 ) {
                 sbuf_.append( line_ );
             }
-            return sbuf_.toString();
+            while ( sbuf_.length() > 0 &&
+                    isWhitespace( sbuf_.charAt( sbuf_.length() - 1 ) ) ) {
+                sbuf_.setLength( sbuf_.length() - 1 );
+            }
+            return sbuf_.toString()
+                        .replaceAll( " *\n", "\n" )
+                        .replaceAll( "\n{3,}", "\n\n" );
         }
 
         /**
