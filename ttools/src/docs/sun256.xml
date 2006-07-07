@@ -78,7 +78,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>7 October 2005</docdate>
+<docdate>7 July 2006</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -3676,13 +3676,13 @@ but my thanks are especially due to the following:
 
 </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 1.2 (7 July 2006)</dt>
 <dd><p>
     <dl>
     <dt>Column-oriented Storage</dt>
     <dd><p>New features for permitting column-oriented storage
         (<code>colfits</code> format, new <code>startable.storage</code> 
-        policy <code>sideways</code>) have been introduced.
+        policy "<code>sideways</code>") have been introduced.
         These can provide considerable efficiency improvements for
         certain tasks when working with very large (and especially wide)
         tables.
@@ -3703,6 +3703,7 @@ but my thanks are especially due to the following:
         <ul>
         <li><code>transpose</code> filter added.</li>
         <li>Added flux conversion functions (Jansky&lt;-&gt;magnitude).</li>
+        <li>ISO-8601 strings now permit times of 24:00:00 as they should.</li>
         </ul>
         </p></dd>
     </dl>
