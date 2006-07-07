@@ -1,0 +1,93 @@
+<?xml version='1.0'?>
+<!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>
+<VOTABLE version='1.1'>
+<!--
+ !  VOTable written by uk.ac.starlink.votable.VOTableWriter
+ !-->
+<RESOURCE>
+<PARAM name="Author" value="Mark Taylor" ID="author-id"
+       datatype="char" arraysize="*"/>
+<TABLE name="main-animals" ID="t1">
+<FIELD datatype="int" name="index"/>
+<FIELD arraysize="8" datatype="char" name="Species"/>
+<FIELD arraysize="6" datatype="char" name="Name"/>
+<FIELD datatype="int" name="Legs" ID="legs-id"/>
+<FIELD datatype="double" name="Height" ID="height-id"/>
+<FIELD datatype="boolean" name="Mammal"/>
+<GROUP ID="group1-id" name="Morphology">
+  <FIELDref ref="legs-id"/>
+  <FIELDref ref="height-id"/>
+  <PARAMref ref="author-id"/>
+  <PARAM name="Planet" value="Earth" datatype="char" arraysize="*"/>
+</GROUP>
+<DATA>
+<TABLEDATA>
+  <TR>
+    <TD>1</TD>
+    <TD>pig</TD>
+    <TD>Bland</TD>
+    <TD>4</TD>
+    <TD>0.8</TD>
+    <TD>T</TD>
+  </TR>
+  <TR>
+    <TD>2</TD>
+    <TD>cow</TD>
+    <TD>Daisy</TD>
+    <TD>4</TD>
+    <TD>2.0</TD>
+    <TD>T</TD>
+  </TR>
+  <TR>
+    <TD>3</TD>
+    <TD>goldfish</TD>
+    <TD>Dobbin</TD>
+    <TD>0</TD>
+    <TD>0.05</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>4</TD>
+    <TD>ant</TD>
+    <TD></TD>
+    <TD>6</TD>
+    <TD>0.0010</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>5</TD>
+    <TD>ant</TD>
+    <TD></TD>
+    <TD>6</TD>
+    <TD>0.0010</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>6</TD>
+    <TD>human</TD>
+    <TD>Mark</TD>
+    <TD>2</TD>
+    <TD>1.9</TD>
+    <TD>T</TD>
+  </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+
+<TABLE ref="t1" name="supplementary-animals">
+<DATA>
+<TABLEDATA>
+  <TR>
+    <TD>99</TD>
+    <TD>duckling</TD>
+    <TD>Luck-Luck</TD>
+    <TD>2</TD>
+    <TD>0.1</TD>
+    <TD>F</TD>
+  </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+
+</RESOURCE>
+</VOTABLE>

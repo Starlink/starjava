@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="http://vizier.u-strasbg.fr/xml/VOTable.xsd">
+ <DESCRIPTION>
+   VizieR Astronomical Server: vizier.u-strasbg.fr 	2002-11-12T10:46:25
+   Explanations and Statistics of UCDs:			See LINK below
+   In case of problem, please report to:	question@simbad.u-strasbg.fr
+ </DESCRIPTION>
+<!-- VOTable description at  http://vizier.u-strasbg.fr/doc/VOTable/ -->
+
+<DEFINITIONS>
+  <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+</DEFINITIONS>
+
+
+<!-- Parameters used for the Query:
+ -c=Crab
+ -->
+<INFO ID="Ref" name="-ref" value="VOTx331" />
+<INFO ID="CatalogsExamined" value="96">
+  96 catalogues with potential matches were examined
+</INFO>
+<INFO ID="Target" name="-c" value="083.633208+22.014472,rm=10."/>
+
+<RESOURCE ID="yCat_2068" name="II/68">
+  <DESCRIPTION>Dearborn Catalogue of faint red stars (Lee+ 1947)</DESCRIPTION>
+  <TABLE ID="II_68_catalog" name="II/68/catalog">
+    <DESCRIPTION>The Dearborn Observatory catalog</DESCRIPTION>
+    <!-- RowName:  ${DO} -->
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/68/catalog&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="DO" ucd="ID_MAIN" datatype="int" width="5">
+      <DESCRIPTION>[1/44076]+ Dearborn number</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/68/catalog&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="NoteFlag" ucd="REMARKS" datatype="char" arraysize="1">
+      <DESCRIPTION>*[#*] a note exists in the file "notes"</DESCRIPTION>
+    </FIELD>
+    <FIELD name="RA1900" ucd="POS_EQ_RA_MAIN" ref="B1900" datatype="char" arraysize="7" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>Right Ascension 1900 (hours)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DE1900" ucd="POS_EQ_DEC_MAIN" ref="B1900" datatype="char" arraysize="6" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>Declination 1900 (sign)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Rmag" ucd="PHOT_PHG_R" datatype="float" width="4" precision="1" unit="mag">
+      <DESCRIPTION>*? Magnitude on red-sensitive emulsion</DESCRIPTION>
+    </FIELD>
+    <FIELD name="n_Rmag" ucd="CODE_VARIAB" datatype="char">
+      <DESCRIPTION>*[?*V] Uncertainty and variability flag</DESCRIPTION>
+    </FIELD>
+    <FIELD name="SpType" ucd="SPECT_TYPE_GENERAL" datatype="char" arraysize="4*">
+      <DESCRIPTION>Dearborn spectral type</DESCRIPTION>
+    </FIELD>
+    <FIELD name="HDtype" ucd="SPECT_TYPE_GENERAL" datatype="char" arraysize="3">
+      <DESCRIPTION>*Spectral type from HD (catalog &lt;III/135&gt;)</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>11369</TD><TD>11369</TD><TD> </TD><TD>05 28.7</TD><TD>+22 06</TD><TD>9.5</TD><TD> </TD><TD>M1</TD><TD>   </TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+</RESOURCE>
+
+<RESOURCE ID="yCat_2126" name="II/126">
+  <DESCRIPTION>IRAS Serendipitous Survey Catalog (IPAC 1986)</DESCRIPTION>
+  <TABLE ID="II_126_sources" name="II/126/sources">
+    <DESCRIPTION>Properties of the point sources identified</DESCRIPTION>
+    <!-- RowName:  ${IRAS} ${RGRID} -->
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/126/sources&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="IRAS" ucd="ID_MAIN" datatype="char" arraysize="11*">
+      <DESCRIPTION>IRAS/SSC Source Name (1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/126/sources&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>Right Ascension 1950 (hours)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>Declination 1950 (degrees)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="ANGLE" ucd="ERROR" datatype="short" width="3">
+      <DESCRIPTION>Position Angle of SSC Source Error Box expressed in degrees East of North.</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FLUX12" ucd="PHOT_FLUX_IR_12" datatype="float" width="9" precision="E2" unit="Jy">
+      <DESCRIPTION>Averaged Non-color Corrected Flux Densities(2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FLUX25" ucd="PHOT_FLUX_IR_25" datatype="float" width="9" precision="E2" unit="Jy">
+      <DESCRIPTION>Averaged Non-color Corrected Flux Densities(2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FLUX60" ucd="PHOT_FLUX_IR_60" datatype="float" width="9" precision="E2" unit="Jy">
+      <DESCRIPTION>Averaged Non-color Corrected Flux Densities(2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="RGRID" ucd="REFER_CODE" datatype="int" width="5" type="hidden">
+      <DESCRIPTION>Reference Grid Number</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=2126&amp;-corr=PFK=RGRID&amp;RGRID=${RGRID}" value="${RGRID}"/>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>10253</TD><TD>05315+2158</TD><TD>05 31 30.4</TD><TD>+21 58 35</TD><TD>87</TD><TD>9.84e-02</TD><TD>1.69e-01</TD><TD>4.58e+01</TD><TD>646</TD></TR>
+<TR><TD>10256</TD><TD>05316+2208</TD><TD>05 31 39.7</TD><TD>+22 08 33</TD><TD>87</TD><TD>9.43e-01</TD><TD>2.24e-01</TD><TD>1.48e-01</TD><TD>646</TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+</RESOURCE>
+
+<RESOURCE ID="yCat_2206" name="II/206">
+  <DESCRIPTION>Stellar Polarization Bibliography (Belous, 1996)</DESCRIPTION>
+  <COOSYS ID="B2000" system="eq_FK4" equinox="J2000"/>
+  <TABLE ID="II_206_bcsp" name="II/206/bcsp">
+    <DESCRIPTION>The Bibliographical Catalogue of Stellar Polarization</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/206/bcsp&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="Name" ucd="ID_MAIN" datatype="char" arraysize="14*">
+      <DESCRIPTION>Object identifier, preferably HD (1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/206/bcsp&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="RA2000" ucd="POS_EQ_RA_MAIN" ref="B2000" datatype="char" arraysize="7" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>?Right Ascension 2000 (hours)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DE2000" ucd="POS_EQ_DEC_MAIN" ref="B2000" datatype="char" arraysize="6" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>?Declination 2000 (degrees)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="SpType" ucd="SPECT_TYPE_GENERAL" datatype="char" arraysize="12*">
+      <DESCRIPTION>Spectral type (2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="p" ucd="POL_DEGREE_MISC" datatype="double" width="9" precision="5" unit="%">
+      <DESCRIPTION>The degree of polarization (3)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="r_p" ucd="REFER_CODE" datatype="char" arraysize="10*">
+      <DESCRIPTION>Reference (A&amp;AA number) (7)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-n?-info=XML&amp;-source=II/206/refs&amp;%2a%231==${r_p}" value="${r_p}"/>
+    </FIELD>
+    <FIELD name="Type" ucd="CLASS_OBJECT" datatype="char" arraysize="10*">
+      <DESCRIPTION>Object type (8)</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>373</TD><TD>3C144</TD><TD>05 34.5</TD><TD>+22 01</TD><TD>F</TD><TD>25.00000</TD><TD>29.141.577</TD><TD>PU SR</TD></TR>
+<TR><TD>374</TD><TD>3C144</TD><TD>05 34.5</TD><TD>+22 01</TD><TD>F</TD><TD>16.00000</TD><TD>26.141.112</TD><TD>SR</TD></TR>
+<TR><TD>375</TD><TD>3C144</TD><TD>05 34.5</TD><TD>+22 01</TD><TD>F</TD><TD>70.00000</TD><TD>30.141.501</TD><TD>PU SR</TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+</RESOURCE>
+
+<RESOURCE ID="yCat_2214" name="II/214A">
+  <DESCRIPTION>Combined General Catalogue of Variable Stars (Kholopov+ 1998)</DESCRIPTION>
+  <TABLE ID="II_214A_gcvs" name="II/214A/gcvs">
+    <DESCRIPTION>Combined GCVS (vols I-III and name lists)</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/214A/gcvs&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="GCVS" ucd="ID_VARIAB" datatype="char" arraysize="10*">
+      <DESCRIPTION>Variable star designation</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/214A/crossid&amp;Vname===${GCVS}"/>
+    </FIELD>
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>? Hours RA, equinox 1950.0</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/214A/gcvs&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>? Degrees Dec, equinox 1950.0</DESCRIPTION>
+    </FIELD>
+    <FIELD name="VarType" ucd="VAR_CLASS" datatype="char" arraysize="10*">
+      <DESCRIPTION>Type of variability</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/vizExec/Vgrep?II/214A&amp;-p&amp;-pre&amp;-s:&amp;^\seds/(.*)[+-].*$1/${VarType}&amp;vartype.txt"/>
+    </FIELD>
+    <FIELD name="magMax" ucd="PHOT_MAG_UNDEF" datatype="float" width="6" precision="3" unit="mag">
+      <DESCRIPTION>? Magnitude at maximum brightness</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Period" ucd="TIME_PERIOD" datatype="double" width="16" precision="10" unit="d">
+      <DESCRIPTION>? Period of the variable star</DESCRIPTION>
+    </FIELD>
+    <FIELD name="SpType" ucd="SPECT_TYPE_GENERAL" datatype="char" arraysize="17*">
+      <DESCRIPTION>Spectral type</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>29053</TD><TD>CM    Tau</TD><TD>05 31 31.0</TD><TD>+21 58 54</TD><TD>SN+PSR</TD><TD>-6.000</TD><TD></TD><TD>cont</TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+  <TABLE ID="II_214A_nsv" name="II/214A/nsv">
+    <DESCRIPTION>*Suspected variables</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/214A/nsv&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="NSV" ucd="ID_MAIN" datatype="int" width="5">
+      <DESCRIPTION>NSV number</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/214A/nsv&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>?Hours RA, equinox 1950.0</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>?Degrees Dec, equinox 1950.0</DESCRIPTION>
+    </FIELD>
+    <FIELD name="VarType" ucd="VAR_CLASS" datatype="char" arraysize="5*">
+      <DESCRIPTION>Type of variability</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/vizExec/Vgrep?II/214A&amp;-p&amp;-pre&amp;-s:&amp;^\seds/(.*)[+-].*$1/${VarType}&amp;vartype.txt"/>
+    </FIELD>
+    <FIELD name="magMax" ucd="PHOT_MAG_UNDEF" datatype="float" width="5" precision="2" unit="mag">
+      <DESCRIPTION>?Magnitude at maximum brightness</DESCRIPTION>
+    </FIELD>
+    <FIELD name="SpType" ucd="SPECT_TYPE_GENERAL" datatype="char" arraysize="2">
+      <DESCRIPTION>Spectral type</DESCRIPTION>
+    </FIELD>
+    <FIELD name="VarName" ucd="ID_ALTERNATIVE" datatype="char" arraysize="10*">
+      <DESCRIPTION>Designation in GCVS</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>2192</TD><TD>2192</TD><TD>05 31 54.2</TD><TD>+21 54 49</TD><TD>-</TD><TD>10.20</TD><TD>A2</TD><TD></TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+</RESOURCE>
+
+<RESOURCE ID="yCat_2219" name="II/219">
+  <DESCRIPTION>New Catalogue of Suspected Variable Stars Supplement (Kazarovets+ 1998)</DESCRIPTION>
+  <TABLE ID="II_219_nsv" name="II/219/nsv">
+    <DESCRIPTION>*New Suspected Variables (Kukarkin et al. 1982)</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/219/nsv&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="NSV" ucd="ID_MAIN" datatype="short" width="5">
+      <DESCRIPTION>[1,14811]+= NSV number</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/219/nsv&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>? Hours RA, equinox 1950.0</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>? Degrees Dec, equinox 1950.0</DESCRIPTION>
+    </FIELD>
+    <FIELD name="VarType" ucd="VAR_CLASS" datatype="char" arraysize="5*">
+      <DESCRIPTION>Type of variability</DESCRIPTION>
+    </FIELD>
+    <FIELD name="magMax" ucd="PHOT_MAG_UNDEF" datatype="float" width="5" precision="2" unit="mag">
+      <DESCRIPTION>? Magnitude at maximum brightness</DESCRIPTION>
+    </FIELD>
+    <FIELD name="magMin" ucd="PHOT_MAG_UNDEF" datatype="float" width="6" precision="3" unit="mag">
+      <DESCRIPTION>? Minimum magnitude or amplitude</DESCRIPTION>
+    </FIELD>
+    <FIELD name="VarName" ucd="ID_VARIAB" datatype="char" arraysize="10*">
+      <DESCRIPTION>Designation in GCVS</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=GCVS/gcvs&amp;GCVS===${VarName}"/>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>2192</TD><TD>2192</TD><TD>05 31 54.2</TD><TD>+21 54 49</TD><TD>-</TD><TD>10.20</TD><TD></TD><TD></TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+</RESOURCE>
+
+<RESOURCE ID="yCat_2225" name="II/225">
+  <DESCRIPTION>Catalog of Infrared Observations, Edition 5 (Gezari+ 1999)</DESCRIPTION>
+  <TABLE ID="II_225_catalog" name="II/225/catalog">
+    <DESCRIPTION>*CIO main catalog</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="name" ucd="ID_IDENTIFIER" datatype="char" arraysize="13*">
+      <DESCRIPTION>! Object from reference</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>[0,24[+=? Right ascension (B1950): hours</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>[0,90]? Declination: degrees</DESCRIPTION>
+    </FIELD>
+    <FIELD name="lambda" ucd="INST_WAVELENGTH_VALUE" datatype="float" width="7" precision="2" unit="um">
+      <DESCRIPTION>? wavelength in microns</DESCRIPTION>
+    </FIELD>
+    <FIELD name="F(IR)" ucd="PHOT_FLUX_IR_MISC" datatype="double" width="10" precision="3">
+      <DESCRIPTION>? Infrared flux, units in x_F(IR)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="x_F(IR)" ucd="UNITS" datatype="char" arraysize="2">
+      <DESCRIPTION>[ A-Z,MA,JA]Infrared flux units</DESCRIPTION>
+    </FIELD>
+    <FIELD name="r_F(IR)" ucd="REFER_CODE" datatype="char" arraysize="6*">
+      <DESCRIPTION>[0-9] Bibliographic reference number</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-n?-info=XML&amp;-source=II/225/refs&amp;%2a%231==${r_F(IR)}" value="${r_F(IR)}"/>
+    </FIELD>
+    <FIELD name="IRAS" ucd="ID_CROSSID" datatype="char" arraysize="11*">
+      <DESCRIPTION>IRAS cross identification</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/225/psc&amp;IRAS===${IRAS}"/>
+    </FIELD>
+    <FIELD name="12um" datatype="unsignedByte" width="1">
+      <DESCRIPTION>[0,4]? IRAS flux strength code for 12 um</DESCRIPTION>
+    </FIELD>
+    <FIELD name="25um" datatype="unsignedByte" width="1">
+      <DESCRIPTION>[0,4]? IRAS flux strength code for 25 um</DESCRIPTION>
+    </FIELD>
+    <FIELD name="60um" datatype="unsignedByte" width="1">
+      <DESCRIPTION>[0,4]? IRAS flux strength code for 60 um</DESCRIPTION>
+    </FIELD>
+    <FIELD name="100um" datatype="unsignedByte" width="1">
+      <DESCRIPTION>[0,5]? IRAS flux strength code for 100 um</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>78909</TD><TD>CRAB</TD><TD>05 31 05.0</TD><TD>+21 59 12</TD><TD>12.00</TD><TD>33.000</TD><TD>J </TD><TD>890521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>78910</TD><TD>CRAB</TD><TD>05 31 05.0</TD><TD>+21 59 12</TD><TD>25.00</TD><TD>72.000</TD><TD>J </TD><TD>890521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>78911</TD><TD>CRAB</TD><TD>05 31 05.0</TD><TD>+21 59 12</TD><TD>60.00</TD><TD>197.000</TD><TD>J </TD><TD>890521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>78912</TD><TD>CRAB</TD><TD>05 31 05.0</TD><TD>+21 59 12</TD><TD>100.00</TD><TD>185.000</TD><TD>J </TD><TD>890521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79103</TD><TD>CRAB 2&apos; SW</TD><TD>05 31 22.0</TD><TD>+21 58 00</TD><TD>50.00</TD><TD>-12.000</TD><TD>J </TD><TD>781220</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79104</TD><TD>CRAB 2&apos; SW</TD><TD>05 31 22.0</TD><TD>+21 58 00</TD><TD>100.00</TD><TD>2.100</TD><TD>J </TD><TD>781220</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79129</TD><TD>FK 8</TD><TD>05 31 24.7</TD><TD>+22 00 06</TD><TD>1.01</TD><TD>3.000</TD><TD>A </TD><TD>840317</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79134</TD><TD>CRAB #B</TD><TD>05 31 25.0</TD><TD>+22 00 00</TD><TD>1230.00</TD><TD>65.800</TD><TD>J </TD><TD>760601</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79144</TD><TD>FK 9</TD><TD>05 31 26.6</TD><TD>+21 58 33</TD><TD>1.01</TD><TD>2.000</TD><TD>A </TD><TD>840317</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79160</TD><TD>TAU A WEST</TD><TD>05 31 28.0</TD><TD>+21 58 30</TD><TD>800.00</TD><TD></TD><TD>P </TD><TD>910330</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79161</TD><TD>CRAB #E</TD><TD>05 31 28.0</TD><TD>+21 58 40</TD><TD>1230.00</TD><TD>74.000</TD><TD>J </TD><TD>760601</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79170</TD><TD>M 1 POS M2</TD><TD>05 31 28.8</TD><TD>+21 58 39</TD><TD>1.01</TD><TD>8.000</TD><TD>A </TD><TD>840317</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79171</TD><TD>M 1 POS M2</TD><TD>05 31 28.8</TD><TD>+21 58 39</TD><TD>1.57</TD><TD></TD><TD>S </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79172</TD><TD>M 1 POS M2</TD><TD>05 31 28.8</TD><TD>+21 58 39</TD><TD>1.64</TD><TD>56.000</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79173</TD><TD>M 1 POS M2</TD><TD>05 31 28.8</TD><TD>+21 58 39</TD><TD>2.12</TD><TD>1.800</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79174</TD><TD>M 1 POS M2</TD><TD>05 31 28.8</TD><TD>+21 58 39</TD><TD>2.17</TD><TD>6.200</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79175</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>0.85</TD><TD></TD><TD>S </TD><TD>811112</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79176</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1.26</TD><TD>-25.200</TD><TD>L </TD><TD>640502</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79177</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1.55</TD><TD>0.140</TD><TD>J </TD><TD>680405</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79178</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1.55</TD><TD>0.450</TD><TD>J </TD><TD>680405</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79179</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1.65</TD><TD>0.530</TD><TD>J </TD><TD>680405</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79180</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1.78</TD><TD>-24.900</TD><TD>L </TD><TD>640502</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79181</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1.93</TD><TD>-24.900</TD><TD>L </TD><TD>640502</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79182</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>2.20</TD><TD>4.000</TD><TD>J </TD><TD>600301</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79183</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>2.20</TD><TD>6.400</TD><TD>J </TD><TD>680404</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79184</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>2.20</TD><TD>0.650</TD><TD>J </TD><TD>680405</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79185</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>3.50</TD><TD>13.000</TD><TD>J </TD><TD>680404</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79186</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>4.75</TD><TD>20.400</TD><TD>J </TD><TD>680405</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79187</TD><TD>NGC 1952</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>5.00</TD><TD>2.630</TD><TD>M </TD><TD>700302</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79188</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>10.00</TD><TD>138.000</TD><TD>J </TD><TD>710904</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79189</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>50.00</TD><TD>-17.000</TD><TD>J </TD><TD>781220</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79190</TD><TD>M 1</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>91.00</TD><TD>2400.000</TD><TD>J </TD><TD>740908</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79191</TD><TD>M 1</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>100.00</TD><TD>20000.000</TD><TD>X </TD><TD>720304</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79192</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>100.00</TD><TD>2.800</TD><TD>J </TD><TD>781220</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79193</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>300.00</TD><TD>35.000</TD><TD>J </TD><TD>790610</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79194</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>400.00</TD><TD>41.000</TD><TD>J </TD><TD>790610</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79195</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1000.00</TD><TD>75.000</TD><TD>J </TD><TD>790610</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79196</TD><TD>TAU A</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1000.00</TD><TD>123.000</TD><TD>J </TD><TD>840815</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79197</TD><TD>TAU A</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD><TD>1200.00</TD><TD>16000.000</TD><TD>J </TD><TD>690308</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79206</TD><TD>G184.6-5.8</TD><TD>05 31 30.0</TD><TD>+21 59 00</TD><TD>12.00</TD><TD>38.000</TD><TD>J </TD><TD>920811</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79207</TD><TD>G184.6-5.8</TD><TD>05 31 30.0</TD><TD>+21 59 00</TD><TD>25.00</TD><TD>62.000</TD><TD>J </TD><TD>920811</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79208</TD><TD>G184.6-5.8</TD><TD>05 31 30.0</TD><TD>+21 59 00</TD><TD>60.00</TD><TD>220.000</TD><TD>J </TD><TD>920811</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79209</TD><TD>G184.6-5.8</TD><TD>05 31 30.0</TD><TD>+21 59 00</TD><TD>100.00</TD><TD>160.000</TD><TD>J </TD><TD>920811</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79210</TD><TD>CRAB #A</TD><TD>05 31 30.0</TD><TD>+21 59 43</TD><TD>1230.00</TD><TD>73.300</TD><TD>J </TD><TD>760601</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79232</TD><TD>HMK 1</TD><TD>05 31 30.8</TD><TD>+21 58 28</TD><TD>1.01</TD><TD>2.000</TD><TD>A </TD><TD>840317</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79243</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.20</TD><TD>14.550</TD><TD>M </TD><TD>940826</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79244</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.25</TD><TD>14.900</TD><TD>M </TD><TD>820312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79245</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.25</TD><TD>14.130</TD><TD>M </TD><TD>831009</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79246</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.25</TD><TD>0.004</TD><TD>J </TD><TD>970308</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79247</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.60</TD><TD>14.270</TD><TD>M </TD><TD>940826</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79248</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.65</TD><TD>14.300</TD><TD>M </TD><TD>820312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79249</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.65</TD><TD>13.640</TD><TD>M </TD><TD>831009</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79250</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1.65</TD><TD>0.004</TD><TD>J </TD><TD>970308</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79251</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>2.20</TD><TD>13.780</TD><TD>M </TD><TD>820312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79252</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>2.20</TD><TD>13.030</TD><TD>M </TD><TD>831009</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79253</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>2.20</TD><TD>13.700</TD><TD>M </TD><TD>940826</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79254</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>2.20</TD><TD>0.003</TD><TD>J </TD><TD>970308</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79255</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>3.40</TD><TD>12.950</TD><TD>M </TD><TD>820312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79256</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>3.40</TD><TD>13.260</TD><TD>M </TD><TD>831009</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79257</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>4.80</TD><TD>12.510</TD><TD>M </TD><TD>831009</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79258</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD><TD>1230.00</TD><TD>31.200</TD><TD>J </TD><TD>760601</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79259</TD><TD>CRAB NEBULA</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD><TD>1.25</TD><TD>8.480</TD><TD>M </TD><TD>790808</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79260</TD><TD>CRAB NEBULA</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD><TD>1.60</TD><TD>7.720</TD><TD>M </TD><TD>790808</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79261</TD><TD>NP 0532</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD><TD>1.65</TD><TD></TD><TD>S </TD><TD>690601</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79262</TD><TD>NP 0532</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD><TD>2.20</TD><TD></TD><TD>S </TD><TD>731204</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79263</TD><TD>CRAB NEBULA</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD><TD>2.20</TD><TD>6.980</TD><TD>M </TD><TD>790808</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79264</TD><TD>TAU A PEAK</TD><TD>05 31 32.0</TD><TD>+21 58 30</TD><TD>800.00</TD><TD></TD><TD>P </TD><TD>910330</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79265</TD><TD>TAU A PEAK</TD><TD>05 31 32.0</TD><TD>+21 58 30</TD><TD>1100.00</TD><TD></TD><TD>P </TD><TD>910330</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79266</TD><TD>FIRSSE 82</TD><TD>05 31 32.0</TD><TD>+21 59 12</TD><TD>20.00</TD><TD>36.000</TD><TD>J </TD><TD>830201</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79267</TD><TD>FIRSSE 82</TD><TD>05 31 32.0</TD><TD>+21 59 12</TD><TD>27.00</TD><TD>61.000</TD><TD>J </TD><TD>830201</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79268</TD><TD>FIRSSE 82</TD><TD>05 31 32.0</TD><TD>+21 59 12</TD><TD>93.00</TD><TD>54.000</TD><TD>J </TD><TD>830201</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79272</TD><TD>05315+2158</TD><TD>05 31 32.0</TD><TD>+21 58 42</TD><TD>60.00</TD><TD>190.100</TD><TD>J </TD><TD>921118</TD><TD>05315+2158</TD><TD>0</TD><TD>0</TD><TD>2</TD><TD>2</TD></TR>
+<TR><TD>79279</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>0.95</TD><TD></TD><TD>S </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79280</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.03</TD><TD>0.160</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79281</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.04</TD><TD>0.060</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79282</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.07</TD><TD>0.060</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79283</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.08</TD><TD>0.270</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79284</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.09</TD><TD>0.060</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79285</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.19</TD><TD>0.090</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79286</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.26</TD><TD>0.600</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79287</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.28</TD><TD>0.080</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79288</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.29</TD><TD>0.090</TD><TD>Y </TD><TD>940513</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79289</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.57</TD><TD></TD><TD>S </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79290</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>1.64</TD><TD>77.000</TD><TD>G </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79291</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>2.06</TD><TD></TD><TD>S </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79292</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>2.12</TD><TD>3.200</TD><TD>G </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79293</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>2.17</TD><TD>1.800</TD><TD>G </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79294</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>2.33</TD><TD></TD><TD>S </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79295</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD><TD>2.42</TD><TD>3.200</TD><TD>G </TD><TD>900312</TD><TD>05314+2200</TD><TD>0</TD><TD>0</TD><TD>0</TD><TD>1</TD></TR>
+<TR><TD>79296</TD><TD>FK 5</TD><TD>05 31 32.6</TD><TD>+21 59 58</TD><TD>0.95</TD><TD></TD><TD>S </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79297</TD><TD>FK 5</TD><TD>05 31 32.6</TD><TD>+21 59 58</TD><TD>1.08</TD><TD>0.330</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79298</TD><TD>FK 5</TD><TD>05 31 32.6</TD><TD>+21 59 58</TD><TD>1.19</TD><TD>0.042</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79299</TD><TD>FK 5</TD><TD>05 31 32.6</TD><TD>+21 59 58</TD><TD>1.26</TD><TD>0.450</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79300</TD><TD>FK 5</TD><TD>05 31 32.6</TD><TD>+21 59 58</TD><TD>1.28</TD><TD>0.073</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79308</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>0.95</TD><TD></TD><TD>S </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79309</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.01</TD><TD>1.000</TD><TD>A </TD><TD>840317</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79310</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.03</TD><TD>0.210</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79311</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.04</TD><TD>0.060</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79312</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.07</TD><TD>0.045</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79313</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.08</TD><TD>0.470</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79314</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.09</TD><TD>0.046</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79315</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.16</TD><TD></TD><TD>S </TD><TD>900521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79316</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.19</TD><TD>9.300</TD><TD>G </TD><TD>900521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79317</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.19</TD><TD>0.089</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79318</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.24</TD><TD></TD><TD>S </TD><TD>900521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79319</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.26</TD><TD>83.000</TD><TD>G </TD><TD>900521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79320</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.26</TD><TD>0.540</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79321</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.28</TD><TD>10.900</TD><TD>G </TD><TD>900521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79322</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.28</TD><TD>0.120</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79323</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.29</TD><TD>7.600</TD><TD>G </TD><TD>900521</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79324</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.29</TD><TD>0.076</TD><TD>Y </TD><TD>940513</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79325</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.57</TD><TD></TD><TD>S </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79326</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>1.64</TD><TD>67.000</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79327</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>2.12</TD><TD>2.600</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79328</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>2.17</TD><TD>3.300</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79329</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD><TD>2.42</TD><TD>4.000</TD><TD>G </TD><TD>900312</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79333</TD><TD>CRAB #D</TD><TD>05 31 34.0</TD><TD>+21 57 55</TD><TD>1230.00</TD><TD>62.600</TD><TD>J </TD><TD>760601</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79337</TD><TD>CRAB #C</TD><TD>05 31 35.0</TD><TD>+21 59 50</TD><TD>1230.00</TD><TD>54.000</TD><TD>J </TD><TD>760601</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79344</TD><TD>TAU A NE</TD><TD>05 31 36.0</TD><TD>+21 59 30</TD><TD>800.00</TD><TD></TD><TD>P </TD><TD>910330</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>79348</TD><TD>FK 1</TD><TD>05 31 36.3</TD><TD>+21 58 56</TD><TD>1.01</TD><TD>12.000</TD><TD>A </TD><TD>840317</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+  <TABLE ID="II_225_names" name="II/225/names">
+    <DESCRIPTION>*Appendix D: Index of IR source positions ordered by name</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/names&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="name" ucd="ID_MAIN" datatype="char" arraysize="13*">
+      <DESCRIPTION>! Object name</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;-c=${RAB1950}${DEB1950},eq=1950,rm=1" value=" ${name}"/>
+    </FIELD>
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>[0,24[? Right ascension (B1950): hours</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/names&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>[0,90]? Declination (B1950): degrees</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>14048</TD><TD>CRAB</TD><TD>05 31 05.0</TD><TD>+21 59 12</TD></TR>
+<TR><TD>14049</TD><TD>CRAB 2&apos; SW</TD><TD>05 31 22.0</TD><TD>+21 58 00</TD></TR>
+<TR><TD>24869</TD><TD>FK 8</TD><TD>05 31 24.7</TD><TD>+22 00 06</TD></TR>
+<TR><TD>14051</TD><TD>CRAB #B</TD><TD>05 31 25.0</TD><TD>+22 00 00</TD></TR>
+<TR><TD>24870</TD><TD>FK 9</TD><TD>05 31 26.6</TD><TD>+21 58 33</TD></TR>
+<TR><TD>14054</TD><TD>CRAB #E</TD><TD>05 31 28.0</TD><TD>+21 58 40</TD></TR>
+<TR><TD>86164</TD><TD>TAU A WEST</TD><TD>05 31 28.0</TD><TD>+21 58 30</TD></TR>
+<TR><TD>51088</TD><TD>M 1 POS M2</TD><TD>05 31 28.8</TD><TD>+21 58 39</TD></TR>
+<TR><TD>14056</TD><TD>CRAB NEBULA</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD></TR>
+<TR><TD>51087</TD><TD>M 1</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD></TR>
+<TR><TD>58863</TD><TD>NGC 1952</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD></TR>
+<TR><TD>86161</TD><TD>TAU A</TD><TD>05 31 29.0</TD><TD>+21 59 13</TD></TR>
+<TR><TD>14050</TD><TD>CRAB #A</TD><TD>05 31 30.0</TD><TD>+21 59 43</TD></TR>
+<TR><TD>26369</TD><TD>G184.6-5.8</TD><TD>05 31 30.0</TD><TD>+21 59 00</TD></TR>
+<TR><TD>35754</TD><TD>HMK 1</TD><TD>05 31 30.8</TD><TD>+21 58 28</TD></TR>
+<TR><TD>14058</TD><TD>CRAB PULSAR</TD><TD>05 31 31.5</TD><TD>+21 58 55</TD></TR>
+<TR><TD>14057</TD><TD>CRAB NEBULA</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD></TR>
+<TR><TD>69500</TD><TD>NP 0532</TD><TD>05 31 31.7</TD><TD>+21 59 29</TD></TR>
+<TR><TD>24609</TD><TD>FIRSSE 82</TD><TD>05 31 32.0</TD><TD>+21 59 12</TD></TR>
+<TR><TD>86163</TD><TD>TAU A PEAK</TD><TD>05 31 32.0</TD><TD>+21 58 30</TD></TR>
+<TR><TD>96158</TD><TD>05315+2158</TD><TD>05 31 32.0</TD><TD>+21 58 42</TD></TR>
+<TR><TD>24868</TD><TD>FK 6</TD><TD>05 31 32.2</TD><TD>+22 00 12</TD></TR>
+<TR><TD>24867</TD><TD>FK 5</TD><TD>05 31 32.6</TD><TD>+21 59 58</TD></TR>
+<TR><TD>24871</TD><TD>FK 10</TD><TD>05 31 33.7</TD><TD>+21 57 57</TD></TR>
+<TR><TD>14053</TD><TD>CRAB #D</TD><TD>05 31 34.0</TD><TD>+21 57 55</TD></TR>
+<TR><TD>14052</TD><TD>CRAB #C</TD><TD>05 31 35.0</TD><TD>+21 59 50</TD></TR>
+<TR><TD>86162</TD><TD>TAU A NE</TD><TD>05 31 36.0</TD><TD>+21 59 30</TD></TR>
+<TR><TD>24866</TD><TD>FK 1</TD><TD>05 31 36.3</TD><TD>+21 58 56</TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+  <TABLE ID="II_225_psc" name="II/225/psc">
+    <DESCRIPTION>*IRAS PSC V2 data for CIO sources</DESCRIPTION>
+    <!-- MatchedRows: 999 (upper limit) -->
+
+    <!-- Now comes the definition of each field -->
+    <FIELD name="recno" ucd="RECORD" datatype="int" width="8" type="hidden">
+      <DESCRIPTION>Record number within the original table (starting from 1)</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/psc&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="IRAS" ucd="ID_MAIN" datatype="char" arraysize="11*">
+      <DESCRIPTION>! Source object name in IRAS PSC</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;-c=${RAB1950}${DEB1950},eq=1950,rm=1" value=" ${IRAS}"/>
+    </FIELD>
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+      <DESCRIPTION>[0,24[ Right ascension (B1950): hours</DESCRIPTION>
+      <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/psc&amp;recno=${recno}"/>
+    </FIELD>
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+      <DESCRIPTION>[0,90] Declination: degrees</DESCRIPTION>
+    </FIELD>
+    <FIELD name="F12um" ucd="PHOT_FLUX_IR_12" datatype="double" width="12" precision="4" unit="Jy">
+      <DESCRIPTION>12 micron IRAS flux</DESCRIPTION>
+    </FIELD>
+    <FIELD name="q_F12um" ucd="CODE_QUALITY" datatype="char">
+      <DESCRIPTION>[ :U] IRAS flux quality code at 12 um</DESCRIPTION>
+    </FIELD>
+    <FIELD name="F25um" ucd="PHOT_FLUX_IR_25" datatype="double" width="12" precision="4" unit="Jy">
+      <DESCRIPTION>25 micron IRAS flux</DESCRIPTION>
+    </FIELD>
+
+<DATA><TABLEDATA>
+<TR><TD>5623</TD><TD>05314+2200</TD><TD>05 31 29.1</TD><TD>+22 00 11</TD><TD>1.7880</TD><TD>U</TD><TD>3.0710</TD></TR>
+<TR><TD>5627</TD><TD>05315+2158</TD><TD>05 31 32.0</TD><TD>+21 58 42</TD><TD>1.2530</TD><TD>U</TD><TD>4.1100</TD></TR>
+</TABLEDATA>
+</DATA>
+  </TABLE>
+</RESOURCE>
+</VOTABLE>

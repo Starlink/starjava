@@ -1,0 +1,21 @@
+<body>
+Provides an extensible implementation of the <tt>org.w3c.dom</tt> API.
+Since the J2SE defines this only in terms of interfaces, it is 
+difficult to extend the functionality of the provided DOM implementation.
+This package provides an extensible set of classes which allow one to
+subclass the default implementation and add functionality.
+The implementation provided does not do any of its own work,
+it delegates all the work to an existing DOM tree, which must be
+provided on construction of the <code>DelegatingDocument</code>.
+This tree can be obtained in any of the usual ways 
+(for instance the classes in <code>javax.xml.parsers</code>).
+
+<p>When extending these classes, you need to take some care that the
+nodes released to the user are the delegating nodes and not the
+delegate ('base') nodes on which they are based.
+See {@link uk.ac.starlink.votable.dom.DelegatingDocument} 
+for how to go about extending the implementation.
+
+@author   Mark Taylor (Starlink)
+@since    14 Sep 2004
+</body>

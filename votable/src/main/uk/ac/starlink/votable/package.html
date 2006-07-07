@@ -1,0 +1,47 @@
+<body>
+Classes for VOTable input and output.
+
+<p>Elements in the VOTable DTD are represented by instances of
+{@link uk.ac.starlink.votable.VOElement} 
+or one of its subclasses.  Not every VOTable 
+element has a corresponding class, but the generic facilities
+of <tt>VOElement</tt> can still be used for navigation if required.
+In general a subclass of <tt>VOElement</tt> is provided in those 
+cases for which functionality beyond that given by the
+{@link uk.ac.starlink.votable.VOElement#getAttribute} and
+{@link uk.ac.starlink.votable.VOElement#getChildren} 
+is required.
+
+<p>The usual way of using these classes to read a VOTable document 
+would be to use one of the static <tt>makeVOElement</tt> methods in
+{@link uk.ac.starlink.votable.VOElementFactory} to construct a 
+top-level VOElement from a file, URL, input stream, DOM or whatever
+and then to interrogate this element for its children to find 
+the elements of interest (e.g. TABLE elements).
+
+<p>A hybrid SAX/DOM parsing scheme is used, so that if a parse is done by 
+this library (when using one of the non-DOM constructors of VOElement
+or one of its subclasses) bulk data is not represented in the resulting
+DOM.  In the case of TABLEDATA encoding, this means that the 
+(potentially large) number of TR and TD nodes are parsed directly
+using SAX and never introduced into the DOM.  In the case of FITS or
+BINARY encoding in which the data is base64-encoded inline in the STREAM
+element, this element is read and converted into table data during
+the parse, and the screed of base64 text is not included in the DOM.
+The user doesn't have to worry about all this of course, but it has
+the effect that the parsing is fast and as memory-efficient as possible.
+If the parsing has already been done (a DOMSource constructor is used
+to construct the VOElement instances) the library will use the 
+text data in DOM nodes which exist in the presented DOM (it will not
+excise them from the given DOM).
+
+<h2>Implementation Status</h2>
+These classes support (with a very few exceptions) to the 
+VOTable DTD version 1.0.
+All three defined data implementations (TABLEDATA, FITS and BINARY)
+are fully supported for input and output.
+
+@see  <a href="http://www.star.bris.ac.uk/~mbt/stil/">STIL</a>
+
+
+</body>

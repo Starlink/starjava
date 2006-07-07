@@ -1,0 +1,64 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     starmirage
+
+#  Purpose:
+#     Invokes the Starlink Mirage front end
+
+#  Description:
+#     This script invokes the Starlink front end for the Bell labs
+#     Mirage application.  The purpose of the front end is to adapt
+#     StarTable objects and present them to Mirage in a form which it
+#     recognises.
+#
+#     The job that this script does is to locate a JVM and invoke 
+#     it on the Starlink mirage jar file.  Note that the Mirage jar
+#     file (probably Mirage0.1.jar) has to be on the classpath for 
+#     the whole thing to work.
+
+#  Authors:
+#     MBT: Mark Taylor (Starlink)
+#-
+
+#  Find where this script is located.  We normally find this out by 
+#  looking at where we were invoked from, but this can be overridden
+#  by setting STARMIRAGE_DIR (necessary if invocation is from another
+#  directory because of filesystem links).
+if test -z "$STARMIRAGE_DIR"
+then
+   bindir="`dirname $0`"
+else
+   bindir="$STARMIRAGE_DIR"
+fi
+
+#  Locate the application jar file.
+
+appjar="$bindir/../lib/mirage/mirage.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate $appjar."
+   exit 1
+fi
+
+#  Locate the java startup script.
+
+starjava="$bindir/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate '$bindir/starjava'."
+   exit 1
+fi
+
+#  Construct an augmented classpath.
+
+if test -z "$CLASSPATH"
+then
+   classpath="$appjar"
+else
+   classpath="${appjar}:$CLASSPATH"
+fi
+
+#  Run the application.
+
+$starjava -classpath $classpath uk.ac.starlink.mirage.MirageDriver $*
+

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<deployment xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+            xmlns:votable="http://www.ivoa.net/xml/VOTable/v1.1">
+
+  <handler name="loghandler"
+           type="java:org.apache.axis.handlers.LogHandler"/>
+
+  <!-- Without this, there seems to be trouble at Axis 1.2. -->
+  <globalConfiguration>
+    <parameter name="sendMultiRefs" value="false"/>
+  </globalConfiguration>
+
+  <service name="VotableTest" provider="java:RPC" streaming="on">
+
+    <!-- <requestFlow><handler type="loghandler"/></requestFlow>   -->
+    <!-- <responseFlow><handler type="loghandler"/></responseFlow> -->
+
+    <typeMapping
+         qname="votable:VOTABLE"
+         languageSpecificType="java:uk.ac.starlink.table.StarTable"
+         serializer="uk.ac.starlink.votable.soap.AxisTableSerializerFactory"
+         deserializer="uk.ac.starlink.votable.soap.AxisTableDeserializerFactory"
+         encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+    <parameter name="className" 
+               value="uk.ac.starlink.votable.soap.AxisServices"/>
+    <parameter name="allowedMethods" value="copy"/>
+  </service>
+</deployment>

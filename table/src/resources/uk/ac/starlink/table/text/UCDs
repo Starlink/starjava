@@ -1,0 +1,1426 @@
+<!-- Downloaded from http://vizier.u-strasbg.fr/viz-bin/UCDs by mbt
+ !-- at 5 Dec 2002 -->
+
+<!-- Input on stdin  -->
+<!-- cgiprint(v7.9) input options: -tex -oglu -mail -->
+<TITLE>UCDs</TITLE><BODY bgcolor="#FFFFFF">
+<A NAME="ToC1"></A>
+<H2>1&#160;&#160;List of all UCDs</H2>
+<PRE>
+AT                               Atomic Data
+  AT_COLL                        Atomic Collisional Quantities
+    AT_COLL_EXCIT-RATE           Collisional Excitation Rate
+    AT_COLL_STRENGTH             Collisional strength
+  AT_CONFIG                      Electronic Configuration
+  AT_CONSTANT                    Atomic Constant
+  AT_DAMPING                     Atomic Damping Quantities
+    AT_DAMPING_VDWAALS           Van der Waals damping
+  AT_DATA                        Various Atomic data
+  AT_DEGENERACY                  Atomic Degeneracy Parameter
+  AT_DIPOLE                      Atomic Dipole
+    AT_DIPOLE_MISC               Atomic Dipole
+    AT_DIPOLE_MOMENT             Atomic Dipole Moment
+  AT_EIGENVECTOR                 Atomic Eigenvector
+  AT_ELEC-COEFF                  Atomic Electric Coefficient
+  AT_ELEMENT                     Atomic Element Name or number, eventually with ionization stage
+  AT_EMISSIVITY                  Atomic Emissivity
+  AT_ENERGY                      Atomic Energy or Potential
+    AT_ENERGY_BAND               Atomic (molecular) Energy Band
+    AT_ENERGY_DIFF               Energy difference between experimental and calculated quantities
+    AT_ENERGY_EXCIT              Excitation Energy
+    AT_ENERGY_IONIZ              Ionization Energy or Potential
+    AT_ENERGY_LEVEL              Energy Level
+    AT_ENERGY_FORMATION          Formation energy (or heat for molecules)
+    AT_ENERGY_POTENTIAL          Atomic Energy or Potential
+    AT_ENERGY_ROTATION           Rotation Energy
+    AT_ENERGY_TOTAL              Total atomic energy
+  AT_FREQUENCY                   Transition Frequency
+    AT_FREQUENCY_NU              Transition Frequency at rest
+    AT_FREQUENCY_ROTAT           Rotation Frequency
+  AT_FS                          Fine Structure Quantities
+    AT_FS_COLL-STR               Fine Structure Collision Strength
+    AT_FS_CONSTANT               Fine Structure Constant
+    AT_FS_CONTRIB                Fine Structure Contribution to Line Profile
+    AT_FS_SPLIT                  Fine Structure Splitting
+  AT_GA                          Atomic ga value
+  AT_INTENSITY                   Line Intensity
+  AT_ION                         Ions
+    AT_ION_ID                    Ion Identification
+    AT_ION_STAGE                 Ionization Stage
+  AT_LANDE-FACT                  Lande Factor (gf)
+  AT_LEVEL                       Level Identification
+  AT_LIFETIME                    Radiative Lifetime
+  AT_LINE                        Atomic or Molecular Lines
+    AT_LINE_EMISSIVITY           Line Emissivity
+    AT_LINE_FLUOR-YIELD          Line Fluorescence Yield
+    AT_LINE_ID                   Line Identification
+    AT_LINE_STRENGTH             Line Strength
+  AT_MAIN-TERM                   Main Term
+  AT_MOL                         Quantities Related to Molecules
+    AT_MOL_DIEL-FN               Molecular Dielectric Function
+    AT_MOL_DISS-ENRGY            Molecular Dissociation Energy
+    AT_MOL_ID                    Molecule Identification
+    AT_MOL_LEVEL                 Molecule Transition Level
+  AT_MULTIPLET                   Quantities Related to Multiplets
+    AT_MULTIPLET_ID              Multiplet Identification
+    AT_MULTIPLET_N               Multiplet Number element
+  AT_NUMBER                      Atomic Number
+  AT_OSC                         Oscillator Related Quantities
+    AT_OSC_STRENGTH              Oscillator Strength
+  AT_PARITY                      Atomic Parity
+  AT_Q-N                         Atomic Structure, Quantum Numbers
+    AT_Q-N_ANG-MOM               Angular Momentum Quantum Number
+    AT_Q-N_K                     K quantum number
+    AT_Q-N_MISC                  Atomic Structure Quantum Number
+    AT_Q-N_ORBITAL               Orbital Quantum Number
+    AT_Q-N_PRINCIPAL             Principal Quantum Number
+      AT_Q-N_PRINCIPAL_FIRST     First Principal Quantum Number
+      AT_Q-N_PRINCIPAL_SECOND    Second Principal Quantum Number
+    AT_Q-N_ROTATIONAL            Rotational Quantum Number
+    AT_Q-N_TORSIONAL             Torsional Quantum Number
+    AT_Q-N_VIBRATIONAL           Vibrational Quantum Number
+  AT_REACTION                    Atomic Reaction
+  AT_SHELL-NUMBER                Shell Quantum Numbers
+  AT_SPECIES                     Atomic Species Participating in a Reaction
+  AT_STARK                       Stark Effect
+    AT_STARK_BROAD               Broadening due to Stark Effect
+    AT_STARK_INTENSITY           Intensity due to Stark Effect
+  AT_STAT-WEIGHT                 Statistical Weight
+  AT_STRENGTH-PARAM              Strength Parameter or Expect Width
+  AT_TRANS                       Quantities Related to Transitions
+    AT_TRANS_BRNCH-RATIO         Transition Branching Ratio
+    AT_TRANS_ENERGY              Transition Energy (or wave number)
+    AT_TRANS_ID                  Transition Identification
+    AT_TRANS_LEVELS              Transition Level
+    AT_TRANS_PROB                Transition Probability
+    AT_TRANS_STRENGTH            Transition Strength
+    AT_TRANS_TYPE                Transition Type
+    AT_TRANS_RECOMBIN            Recombination coefficients in atomic transitions
+  AT_WAVELENGTH                  Laboratory or Theoretical Line Wavelength
+  AT_WEIGHT                      Atomic Weight
+CLASS                            Various Classification Descriptors
+  CLASS_CODE                     Classification Code
+  CLASS_COLOR                    Color Classification
+  CLASS_DISTANCE                 Abell Distance Class
+  CLASS_MISC                     Various Classification Descriptors
+  CLASS_OBJECT                   Object Type Classification
+  CLASS_RICHNESS                 Abell Richness Class
+  CLASS_STAR/GALAXY              Star galaxy discriminator or classification.
+  CLASS_STRUCT                   Structure Classification (e.g. cluster Bautz-Morgan classification)
+CODE                             Codes or Flags
+  CODE_ERROR                     Flag denoting uncertainty about a given quantity
+  CODE_LIMIT                     Lower or Upper limit Flag
+  CODE_MEMB                      Membership Code
+  CODE_MISC                      Miscellaneous Codes or Flags
+  CODE_MULT                      Codes related to Multiplicity (particularly stars)
+    CODE_MULT_FLAG               A code or flag indicating a multiplicity of binarity
+    CODE_MULT_FREQUENCY          Multiplicity Frequency Code
+    CODE_MULT_INDEX              Multiplicity Index Code
+  CODE_QUALITY                   Quality Code
+  CODE_VARIAB                    Variability Code or Flag
+DATA                             Quantities Related to the Data
+  DATA_FACTOR-EXP                Scale Factor Exponent (Base 10)
+  DATA_LINK                      Link to additional data (in VizieR or any other database)
+  DATA_MAXIMUM                   Maximum data value found in a database column
+  DATA_SCALE-FACTOR              Factor to Convert a Data Column to a normal value
+  DATA_TYPE                      Data Type
+DYN                              Dynamic Data Quantities (mixed column content)
+  DYN_QUANTITY                   Used when a Column means more than one thing.
+  DYN_VALUE                      Identification of a Dynamic Value
+ERROR                            Error or Uncertainty in Measurements
+EXTENSION                        Quantities used to describe the extension in the sky of objects
+  EXTENSION_AREA                 Angular Area Covered by an Object
+  EXTENSION_DEC                  Angular Extension in Declination
+  EXTENSION_DIAM                 Angular Diameter or Size of the Major Axis
+  EXTENSION_FWHM                 Angular Full Width at Half Maximum (FWHM)
+    EXTENSION_FWHM_CIRC          Angular Full Width at Half Maximum (FWHM)
+    EXTENSION_FWHM_MAJ           Angular FWHM along the Major Axis
+    EXTENSION_FWHM_MIN           Angular FWHM along the Minor Axis
+    EXTENSION_HALFINT            Angular Size at Half Intensity along the Minor Axis
+  EXTENSION_MIN                  Angular Diameter of an object along the Minor Axis
+  EXTENSION_NORM                 Angular diameter normalized to beam size
+  EXTENSION_RA                   Angular extension in right ascension
+  EXTENSION_RAD                  Angular radius of an object or Semi-major axis
+  EXTENSION_SC-LENGTH            Angular Scale Length (bulge or disk)
+  EXTENSION_SMIN                 Angular size of Semi-Minor Axis
+FIT                              Fits of Models to Observational Data
+  FIT_ERROR                      Fit Error
+  FIT_GOODNESS                   Fit Goodness
+  FIT_ID                         Identification of the fit or solution
+  FIT_LF                         Fit of Luminosity Function
+    FIT_LF_GENERAL               Fit of Luminosity Function
+    FIT_LF_MAG                   Magnitudes related to the LF
+      FIT_LF_MAG_MAX             Magnitude interval upper limit
+      FIT_LF_MAG_MIN             Magnitude interval lower limit
+  FIT_MEAS/THEOR                 Ratio of Measurement to Theoretical Value
+  FIT_PARAM                      Fit Parameter
+    FIT_PARAM_ID                 Fit Parameter Identification
+    FIT_PARAM_MISC               Miscellaneous fit parameters
+  FIT_RESIDUAL                   Fit Residual
+  FIT_CHI2                       Chi-square Fit Measurement
+  FIT_STDDEV                     Fit's Standard Deviation
+  FIT_TYPE                       Fit or Solution Type
+  FIT_ZP                         Fit Zero Point (mostly in linear fits)
+ID                               Fields Used as Identifiers
+  ID_ALTERNATIVE                 Alternative identification
+  ID_AREA                        Area Identification (usually in a photographic plate)
+  ID_ASSOCIATED                  Identification of Associated Object (counterpart)
+  ID_AUTHOR                      Author Name
+  ID_CANDIDATE                   Candidate Identification
+  ID_CATALOG                     Catalog Identification
+  ID_CHART                       Finding Chart Identification
+  ID_COMPARISON                  Name of a Comparison Object
+  ID_CONSTEL                     Constellation Name
+  ID_CROSSID                     Cross Identification (counterpart)
+  ID_DATABASE                    Database Identification
+  ID_DATASET                     Data-Set Identification
+  ID_EXPOSURE                    Exposure Identification
+  ID_FIBER                       Fiber Optics Identification (for M.O.S.)
+  ID_FIELD                       Field Identification
+  ID_FIGURE                      Figure Identification Number
+  ID_FILE                        File Identification
+  ID_FRAME                       Frame Identification
+  ID_GROUP                       Group Identification
+  ID_HUMAN                       Identification of Discoverer or Observer
+  ID_IDENTIFIER                  Main identification field incomplete, ie, field is blank in some cases
+  ID_IMAGE                       Image Identification
+  ID_MAIN                        Main Identifier of a Celestial Object
+  ID_MAIN:1                      First component of an identification field.
+  ID_MAIN:2                      Second component of an identification field.
+  ID_MAIN:3                      Third component of an identification field.
+  ID_MAP                         Map Identification
+  ID_NUMBER                      Numeric Identification (usually sequential)
+  ID_PARENT                      Parent Identification (galaxy, cluster, nebulae)
+  ID_PLATE                       Plate Identification
+  ID_REGION                      Region Identification (not necessarily sky region)
+  ID_SET                         Set or Subset Identification
+  ID_SITE                        Site/Location/Observatory/City/Country identifier
+  ID_SLIT                        Slit Identification (usually in the context of M.O.S.)
+  ID_SURVEY                      Survey Identification
+  ID_TABLE                       Table Identification
+  ID_TARGET                      Target Identifier
+  ID_TRACER                      Tracer used to follow the various identification steps
+  ID_VARIAB                      Variable Object Identification
+  ID_VOLUME                      Volume Identification
+  ID_ZONE                        Durchmusterung zone identification/sign
+INST                             Instrumental Quantities
+  INST_ANG                       Angular Properties of the Instruments/Telescopes
+    INST_ANG_OFFAXIS             Off-axis angle respect to main direction of observation
+    INST_ANG_PHASE               Satellite phase angle
+    INST_ANG_RESOL               Angular resolution of instrument
+    INST_ANG_VEL                 Satellite angular velocity
+  INST_ANTENNA-TEMP              Antenna temperature
+  INST_APERT                     Instrument/telescope aperture
+  INST_AREA                      Collecting area or detector area
+  INST_BACKGROUND                Background contribution
+  INST_BAND                      Instrumental Band quantities
+    INST_BAND_DRIFT              Band's drift rate
+    INST_BAND_PASS               Bandpass
+  INST_BANDWIDTH                 Spectral window used for the observation
+  INST_BASELINE                  Baseline (interferometry)
+  INST_BEAM                      Beam properties
+    INST_BEAM_MISC               Miscellaneous beam properties
+    INST_BEAM_SIZE               Beam width or size
+    INST_BEAM_TEMPERATURE        Beam temperature
+  INST_CALIB                     Instrument calibration quantities
+    INST_CALIB_ERROR             Instrument calibration error
+    INST_CALIB_MISC              Miscellaneous instrument calibration quantities
+    INST_CALIB_PARAM             Calibration parameter
+  INST_CORR-FACTOR               Correction (no only correction factor)
+  INST_DET                       Detector parameters
+    INST_DET_LIMIT               Detector limit
+    INST_DET_RELIAB              Detector reliability
+    INST_DET_SIZE                Detector size
+  INST_DISPERSION                Dispersion scale in a spectrograph
+  INST_EFFICIENCY                Instrument efficiency
+  INST_ERROR                     Errors associated to the instrument
+  INST_FILTER                    Filter characteristics
+    INST_FILTER_CODE             Filter characteristics type/code
+    INST_FILTER_FWHM             FWHM of the used filter (also bandpass)
+    INST_FILTER_TRANSM           Transmission characteristics of the filter (response)
+  INST_ID                        Instrument/Detector Identification
+  INST_LINE-WIDTH                Instrumental Line-Width
+  INST_NOISE                     Detector/Instrument noise level rms
+  INST_PARAM                     Various Instrumental Parameters
+  INST_PIXSIZE                   Pixel Size
+  INST_PLATE                     Quantities related to Photographic Plates
+    INST_PLATE_DIMENSION         Size or plate dimension
+    INST_PLATE_DIST              Distance measurement on a plate
+    INST_PLATE_EMULSION          Plate Emulsion Type
+    INST_PLATE_EXTENSION         Extension of an object in a plate (in plate units)
+    INST_PLATE_NUMBER            Photographic plate number
+  INST_POS                       Position on a detector or M.O.S template
+  INST_PRECISION                 Instrumental Precision
+  INST_PSF                       Detector's Point Spread Function (PSF)
+  INST_QE                        Detector's Quantum Efficiency
+  INST_S/N                       Instrumental signal to noise ratio (S/N)
+  INST_SAMP-TIME                 Instrumental Sampling Time
+  INST_SCALE                     Instrumental Scale (ccd or plate)
+  INST_SEEING                    Seeing or fwhm of PSF
+  INST_SENSITIVITY               Detector's Sensitivity (Flux limit)
+  INST_SETUP                     Instrument configuration or set-up
+  INST_SKY                       Instrumental Sky Properties
+    INST_SKY_LEVEL               Local Sky Level
+    INST_SKY_TEMP                Sky Temperature
+  INST_SPECT                     Spectroscopic instruments' quantities
+    INST_SPECT_BAND              Spectroscopic observation band
+    INST_SPECT_CODE              Spectroscopic instrument specification (prism, grism, grating)
+    INST_SPECT_ORDER             Spectral Order
+    INST_SPECT_SLIT-LENGTH       Slit Length
+    INST_SPECT_SLIT-WIDTH        Slit Width
+  INST_TEMP                      Instrument Temperature (radio regime)
+    INST_TEMP_BEAM               Beam Temperature or Brightness
+    INST_TEMP_SYST               System Temperature
+  INST_TRIGGER                   Detector's triggering Threshold
+  INST_TYPE                      Instrument Type
+  INST_VELOC                     Velocity Quantities at the Instrumental Level
+    INST_VELOC_CENTRAL           Instrumental Central Velocity
+    INST_VELOC_SPACING           Instrumental Velocity Channel Spacing
+    INST_VELOC_WINDOW            Detector's Velocity Range
+  INST_WAVELENGTH                Observation's Wavelength properties
+    INST_WAVELENGTH_COVERAGE     Instrument's Wavelength Range
+    INST_WAVELENGTH_EFFECTIVE     Observation's Effective Wavelength
+    INST_WAVELENGTH_VALUE        Wavelength related to an instrument, filter, etc.
+LUNAR-OCCULT                     Lunar Occultaion related quantities
+  LUNAR-OCCULT_ANGLE             Lunar Occultation Contact Angle
+  LUNAR-OCCULT_FRACTION          Percentage of the moon illuminated during the time of occultation
+  LUNAR-OCCULT_LIMB-SLOPE        Lunar Occultation Limb Slope
+MODEL                            Quantities generated by Models
+  MODEL_CONTINUUM                Continuum level
+  MODEL_CORRECTION               Correction or adjustment
+  MODEL_DRIFT-VELOC              Terminal drift velocity
+  MODEL_DYN-TRIAX                Dynamical triaxiality
+  MODEL_ENERGY                   Energy modeled quantities
+    MODEL_ENERGY_DIST            Energy distribution
+  MODEL_EOS                      Equation of state
+    MODEL_EOS_ID                 Name of used equation of state
+  MODEL_EXTINCTION               Interstellar extinction quantities
+    MODEL_EXTINCTION_COEFF       Insterstellar extinction coefficient
+  MODEL_FEATURE                  Model Feature
+  MODEL_FLUX                     Modeled Flux
+  MODEL_ID                       Model Identification
+  MODEL_LINE-FLUX                Model Spectral Line Flux
+  MODEL_MAG                      Model-generated Magnitude
+    MODEL_MAG_CORR               Magnitude Correction or Difference
+    MODEL_MAG_VALUE              Magnitude (in any band) generated by a model (or templates)
+  MODEL_MOMENT-FLUX-RATIO        Moment Flux Ratio
+  MODEL_PARAM                    Model Parameter
+  MODEL_POP-SYNTHESIS            Population Synthesis Quantity
+  MODEL_RESIDUAL                 Model Residual
+  MODEL_RESULT                   Model Solution Value
+  MODEL_TYPE                     Model Type
+  MODEL_ZEEMAN                   Zeeman Effect Quantities
+    MODEL_ZEEMAN_COEFF           Zeeman Effect Coefficient
+MORPH                            Morphology of celestial objects
+  MORPH_ARMS                     Spiral Arms Structure (galaxies)
+    MORPH_ARMS_RATIO             Ratio of Spiral Arm (galaxies)
+    MORPH_ARMS_WOUND             Wound Parameter of a spiral arm galaxy
+  MORPH_ASYMMETRY                Asymmetry Induced by Rotation
+  MORPH_BAR                      Presence or detection of a bar in a galaxy
+  MORPH_CODE                     Code refering to a morphological property
+  MORPH_PARAM                    Morphological (geometrical) parameter
+  MORPH_TYPE                     Morphological Type
+NOTE                             A Note related to a certain quantity or value
+NUMBER                           Number Of ``things'' (stars, observations, etc.)
+NUTATION                         Earth's Nutation Related Quantities
+  NUTATION_PARAM                 Nutation Parameter
+OBS                              Observational Quantities
+  OBS_ANG-SIZE                   Observational angular size
+  OBS_BAND                       Band or Filter used for the observation
+  OBS_CALIB                      Calibrations related to observations
+    OBS_CALIB_CONST              Calibration's Constant
+    OBS_CALIB_FACTOR             Calibration conversion factor
+  OBS_CODE                       Observation code for observing run
+  OBS_CONDITIONS                 Observation condition
+  OBS_DETECT-LIMIT               Detection Limit
+  OBS_DETECT-SIGNIF              Detection Significance
+  OBS_DIFF                       Observations' offset, difference, or deviation
+  OBS_DRIFT                      Positional drift during the observation
+  OBS_FREQUENCY                  Frequency of the observation
+  OBS_ID                         Observation identification
+  OBS_LW                         Observed gaussian line-width
+  OBS_METHOD                     Observational Method/Technique
+  OBS_OTHER                      Other Measurements
+  OBS_PARAM                      Additional Observational Parameters
+  OBS_PLATE                      Quantities related to measurements on plates
+    OBS_PLATE_APERT              Plate (Circular) Aperture
+    OBS_PLATE_EXTENSION          Linear diameter of an object measured on a Plate
+  OBS_PRED/OBS                   Fraction of predicted to observed quantities
+  OBS_RUN                        Observation run
+  OBS_SIZE                       Observed size
+    OBS_SIZE_DEC                 Observed size in declination
+  OBS_SLIT                       Spectroscopic slit properties
+    OBS_SLIT_OFFSET              Slit offset respect to the nucleus of galaxy
+    OBS_SLIT_ORIENT              Slit orientation
+  OBS_SPECTRUM                   Spectral observations
+  OBS_TYPE                       Type of observation
+OBSTY                            Data on Observatories
+  OBSTY_ALTITUDE                 Observatory Altitude
+  OBSTY_CODE                     Observatory Code
+  OBSTY_ID                       Observatory Identification/Name
+ORBIT                            Orbital elements (planets, double stars, galaxies)
+  ORBIT_ASC-NODE                 Longitude of ascending node
+  ORBIT_COMETS                   Cometary orbit parameter
+  ORBIT_CONV-ANGLE               Convergence angle
+  ORBIT_DISTANCE                 Distance, perihelion, or separation between components
+  ORBIT_ECCENTRICITY             Orbital eccentricity
+  ORBIT_ELONGATION               Elongation of radiant
+  ORBIT_FREQUENCY                Orbital frequency (orbital angular velocity)
+  ORBIT_MEAN-ANOMALY             Mean anomaly
+  ORBIT_P-ASTRON                 Quantities related to the Periastron
+    ORBIT_P-ASTRON_ARG           Periastron argument or longitude
+    ORBIT_P-ASTRON_DATE          Date of occurance of periastron
+    ORBIT_P-ASTRON_RATE          Rate of periastron advance
+  ORBIT_P-HELION                 Perihelion argument or longitude
+  ORBIT_PARAM                    Orbital parameter
+  ORBIT_PERIOD                   Orbital period
+    ORBIT_PERIOD_DERIVATIVE      Time derivative of orbital period
+  ORBIT_PHASE-ANGLE              Orbital phase angle
+  ORBIT_RV                       Orbital radial velocity properties
+    ORBIT_RV_S-AMPLITUDE         Semi amplitude of radial velocity curve
+  ORBIT_SEPARATION               Orbital Separation (angular distance)
+  ORBIT_SIZE                     Orbital size
+    ORBIT_SIZE_RADIUS            Orbital radius (binary stars)
+    ORBIT_SIZE_SMAJ              Semi-major axis of the orbit
+PHOT                             Photometry, extending to several wavelength regimes (X to Radio)
+  PHOT_13C                       13 color system (Stellar Applications) GCPD#66
+    PHOT_13C_33-52               Color index 33-52 (13C)
+    PHOT_13C_35-52               Color index 35-52 (13C)
+    PHOT_13C_37-52               Color index 37-52 (13C)
+    PHOT_13C_40-52               Color index 40-52 (13C)
+    PHOT_13C_45-52               Color index 45-52 (13C)
+    PHOT_13C_52                  Magnitude 52 (13C)
+    PHOT_13C_52-110              Color index 52-110 (13C)
+    PHOT_13C_52-58               Color index 52-58 (13C)
+    PHOT_13C_52-63               Color index 52-63 (13C)
+    PHOT_13C_52-72               Color index 52-72 (13C)
+    PHOT_13C_52-80               Color index 52-80 (13C)
+    PHOT_13C_52-86               Color index 52-86 (13C)
+    PHOT_13C_52-99               Color index 52-99 (13C)
+  PHOT_ABS-MAG                   Absolute magnitude
+    PHOT_ABS-MAG_BAND            Absolute magnitude in a band, regardles of band
+    PHOT_ABS-MAG_BOL             Bolometric absolute magnitude
+  PHOT_ATM                       Earth Atmosphere Parameters Linked to Photometry
+    PHOT_ATM_AIRMASS             Air mass
+    PHOT_ATM_EXT                 Atmospheric extinction coefficient
+  PHOT_BOL                       Bolometric Quantities
+    PHOT_BOL_CORR                Bolometric correction
+    PHOT_BOL_FLUX                Bolometric Flux
+    PHOT_BOL_LUMINOSITY          Bolometric luminosity
+    PHOT_BOL_MAG                 Bolometric magnitude
+  PHOT_BRIGHTNESS-SLOPE          Spatial brightness distribution slope
+  PHOT_CI                        Color index in unspecified system
+    PHOT_CI_102-C220             Color index 102-C220
+    PHOT_CI_B-R                  Color index B-r
+    PHOT_CI_ALPHA                Color index based on H-alpha line
+    PHOT_CI_BETA                 Color index beta or h-beta (not Stroemgren index)
+    PHOT_CI_BALMER               Color index using the Balmer lines Hgamma or higher
+    PHOT_CI_B-I                  Color index B-I from heterogeneous photometric systems
+    PHOT_CI_B-K                  Color index B-K from heterogeneous photometric systems
+    PHOT_CI_B-V                  Color index B-V in a non-conventional system
+    PHOT_CI_CN-TIO               Color index CN-TiO
+    PHOT_CI_CODE                 Codes associated with color index
+    PHOT_CI_FRACT                Fractional color index
+    PHOT_CI_GB-GV                Color index gb-gv
+    PHOT_CI_GU-GB                Color index gu-gb
+    PHOT_CI_IR                   Various far IR color indices (e.g. with IRAS bands)
+    PHOT_CI_IR-OPT               Color index Infrared minus optical
+    PHOT_CI_M-51                 Color index M-51
+    PHOT_CI_R-HALPHA             Color index R minus Halpha
+    PHOT_CI_R-I                  Color index R-I
+    PHOT_CI_U-B                  Color index u-B U-B
+    PHOT_CI_U-R                  Color index u-r
+    PHOT_CI_UNDEF                Color index in unspecified system
+    PHOT_CI_UV-OPT               Color index uv minus Optical (UV-OPT)
+    PHOT_CI_V-I                  Color index V-I (no standard system specified)
+    PHOT_CI_V-R                  Color index V-R (no standard system specified)
+  PHOT_CLASS                     Classification of photometry
+  PHOT_COLOR                     Quantities related to color indices
+    PHOT_COLOR_EXCESS            Color excess (not just E(B-V))
+  PHOT_COUNT-RATE                Count rates in several wavelength regimes
+    PHOT_COUNT-RATE_UV           Count rate in ultraviolet
+    PHOT_COUNT-RATE_X            Count rate in x-ray
+  PHOT_COUNTS                    Count measured in the detector
+    PHOT_COUNTS_IUE              Count from IUE
+    PHOT_COUNTS_MISC             Count measurement in the detector
+      PHOT_COUNTS_RADIO          Counts in radio regime
+      PHOT_COUNTS_GAMMA          Count in gamma-ray regime
+      PHOT_COUNT-RATE_GAMMA      Count rate of gamma photons
+      PHOT_COUNTS_RATIO          Ratio of photon counts, or relative counts.
+    PHOT_COUNTS_X                Counts in X-ray
+  PHOT_COUS                      Cousins photometric system GCPD#54
+    PHOT_COUS_I                  Cousins magnitude I COUS
+    PHOT_COUS_R                  Cousins magnitude R COUS
+    PHOT_COUS_R-I                Cousins R-I color index COUS
+    PHOT_COUS_V-I                (Kron-)Cousins V-I color index COUS
+    PHOT_COUS_V-R                (Kron-)Cousins V-R color index
+  PHOT_DDO                       DDO Photometric System GCPD#12
+    PHOT_DDO_35-38               Color index 35-38 DDO
+    PHOT_DDO_38-41               Color index 38-41 DDO
+    PHOT_DDO_41-42               Color index 41-42 DDO
+    PHOT_DDO_42-45               Color index 42-45 DDO
+    PHOT_DDO_42-48               Color index 42-48 DDO
+    PHOT_DDO_45-48               Color index 45-48 DDO
+    PHOT_DDO_48-51               Color index 48-51 DDO
+    PHOT_DDO_M48                 Magnitude m48 DDO
+  PHOT_DIFF                      Differences or differential quantities
+    PHOT_DIFF_CI                 Difference in color index
+    PHOT_DIFF_MAG                Difference in or differential magnitude
+    PHOT_DIFF_SB                 Difference in surface brightness
+  PHOT_DIST-MOD                  Distance Modulus
+  PHOT_EXTINCTION                Extinction total to differential
+    PHOT_EXTINCTION_GAL          Galactic extinction
+    PHOT_EXTINCTION_INT          Internal extinction
+    PHOT_EXTINCTION_ISM          Interstellar Absorption
+    PHOT_EXTINCTION_R            Insterstellar extinction (ratio total to differential)
+    PHOT_EXTINCTION_TOTAL        Total Extinction
+  PHOT_FLUENCE                   Fluence
+  PHOT_FLUX                      Flux
+    PHOT_FLUX_DENSITY            Flux density
+    PHOT_FLUX_GAMMA              Flux in gamma rays
+    PHOT_FLUX_HALPHA             H-Alpha Flux
+    PHOT_FLUX_HBETA              H Beta line flux
+    PHOT_FLUX_IR                 IR flux (IRAS or others)
+      PHOT_FLUX_IR_6             Flux density around 6 microns (e.g. ISO at 6.7 microns) close to M filter
+      PHOT_FLUX_IR_9             Flux density around 9 microns (range 8-10)
+      PHOT_FLUX_IR_12            Flux density (IRAS) at 12 microns, or around 12 microns (ISO at 14.3)
+      PHOT_FLUX_IR_25            Flux density (IRAS) at 25 microns
+      PHOT_FLUX_IR_3.5           Flux density at 3.5 microns
+      PHOT_FLUX_IR_15            Flux density around 15 microns (e.g. 14.3um ISO)
+      PHOT_FLUX_IR_60            Flux density (IRAS) at 60 microns
+      PHOT_FLUX_IR_100           Flux density (IRAS) at 100 microns
+      PHOT_FLUX_IR_170           Far infra-red Flux density around 170um (1750GHz)
+      PHOT_FLUX_IR_300           Far infra-red Flux density around 300um (3000GHz)
+      PHOT_FLUX_IR_FAR           Far Infrared flux
+      PHOT_FLUX_IR_H             Flux Density in Johnson's H Band
+      PHOT_FLUX_IR_L             Flux Density in Johnson's L Band
+      PHOT_FLUX_IR_MISC          Miscellaneous IR fluxes
+    PHOT_FLUX_NORM               Normalized Flux, always dimensionless
+    PHOT_FLUX_OPTICAL            Flux in the Optical (unspecified system and/or units)
+    PHOT_FLUX_RADIO              Flux density at radio frequencies
+      PHOT_FLUX_RADIO_22M        Radio flux density around 22MHz (13.6m)
+      PHOT_FLUX_RADIO_31M        Radio flux density around 31MHz (9.7m)
+      PHOT_FLUX_RADIO_43M        Radio flux density around 43MHz (7.0m)
+      PHOT_FLUX_RADIO_61M        Radio flux density around 61MHz (4.9m)
+      PHOT_FLUX_RADIO_87M        Radio flux density around 87MHz (3.5m)
+      PHOT_FLUX_RADIO_110M       Radio flux density around 110MHz (2.7m)
+      PHOT_FLUX_RADIO_150M       Radio flux density around 150MHz (2.0m)
+      PHOT_FLUX_RADIO_175M       Radio flux density around 175MHz (1.7m)
+      PHOT_FLUX_RADIO_250M       Radio flux density around 250MHz (1.2m)
+      PHOT_FLUX_RADIO_325M       Radio flux density around 325MHz (92cm)
+      PHOT_FLUX_RADIO_365M       Radio flux density around 365MHz (82cm)
+      PHOT_FLUX_RADIO_400M       Radio flux density around 400MHz (75cm)
+      PHOT_FLUX_RADIO_500M       Radio flux density around 500MHz (60cm)
+      PHOT_FLUX_RADIO_600M       Radio flux density around 600MHz (50cm)
+      PHOT_FLUX_RADIO_700M       Radio flux density around 700MHz (43cm)
+      PHOT_FLUX_RADIO_850M       Radio flux density around 850MHz (35cm)
+      PHOT_FLUX_RADIO_1G         Radio flux density around 1GHz (30cm)
+      PHOT_FLUX_RADIO_1.4G       Radio flux density around 1.4GHz (21cm)
+      PHOT_FLUX_RADIO_1.6G       Radio flux density around (OH maser)
+      PHOT_FLUX_RADIO_2G         Radio flux density around 2GHz (15cm)
+      PHOT_FLUX_RADIO_2.7G       Radio flux density around 2.7GHz (11cm)
+      PHOT_FLUX_RADIO_3.9G       Radio flux density around 3.9GHz (7.7cm)
+      PHOT_FLUX_RADIO_5G         Radio flux density around 5GHz (6cm)
+      PHOT_FLUX_RADIO_7.5G       Radio flux density around 7.5GHz (4cm)
+      PHOT_FLUX_RADIO_8.4G       Radio flux density around 8.4GHz (3.6cm)
+      PHOT_FLUX_RADIO_10.7G      Radio flux density around 10.7GHz (2.8cm)
+      PHOT_FLUX_RADIO_15G        Radio flux density around 15GHz (2cm)
+      PHOT_FLUX_RADIO_22G        Radio flux density around (H2O maser)
+      PHOT_FLUX_RADIO_36G        Radio flux density around 36GHz (8.3mm)
+      PHOT_FLUX_RADIO_43G        Radio flux density around 43GHz (7.0mm)
+      PHOT_FLUX_RADIO_63G        Radio flux density around 63GHz (4.8mm)
+      PHOT_FLUX_RADIO_90G        Radio flux density around 90GHz (3.3mm)
+      PHOT_FLUX_RADIO_125G       Radio flux density around 125GHz (2.4mm)
+      PHOT_FLUX_RADIO_180G       Radio flux density around 180GHz (1.7mm)
+      PHOT_FLUX_RADIO_250G       Radio flux density around 250GHz (1.2mm)
+      PHOT_FLUX_RADIO_350G       Radio flux density around 350GHz (860um)
+      PHOT_FLUX_RADIO_500G       Radio flux density around 500GHz (600um)
+      PHOT_FLUX_RADIO_700G       Radio flux density around 700GHz (430um)
+      PHOT_FLUX_RADIO_MISC       Miscellaneous Radio flux density
+      PHOT_FLUX_RADIO_SIO-MASER   SiO maser peak radio flux
+    PHOT_FLUX_RATIO              Flux ratio
+    PHOT_FLUX_REL                Relative (normalized) flux
+    PHOT_FLUX_UV                 Ultraviolet flux (uv far-uv euv)
+    PHOT_FLUX_X                  X-ray flux
+  PHOT_GEN                       Geneva's photometric system GCPD#13
+    PHOT_GEN_B-V                 Geneva color index B-V (GEN)
+    PHOT_GEN_B1-B                Geneva color index B1-B (GEN)
+    PHOT_GEN_B2-B                Geneva color index B2-B (GEN)
+    PHOT_GEN_G-B                 Geneva color index G-B (GEN)
+    PHOT_GEN_MISC                various geneva photometric color indices (and linear combinations)
+    PHOT_GEN_U-B                 Geneva color index U-B (GEN)
+    PHOT_GEN_V                   Geneva magnitude filter V (GEN)
+    PHOT_GEN_V-B                 Geneva color index V-B (GEN)
+    PHOT_GEN_V1-B                Geneva color index V1-B (GEN)
+  PHOT_GUNN                      Gunn Photometric System GCPD#38
+    PHOT_GUNN_G                  Magnitude g (GUNN)
+    PHOT_GUNN_G-I                Color index g-i (GUNN)
+    PHOT_GUNN_G-R                Color index g-r (GUNN)
+    PHOT_GUNN_I                  Magnitude i (GUNN), also used in DENIS (0.82{mu}m)
+    PHOT_GUNN_I-Z                Color index I-z (GUNN)
+    PHOT_GUNN_R                  Magnitude R (GUNN)
+    PHOT_GUNN_R-I                Color index R-I (GUNN)
+    PHOT_GUNN_V                  Magnitude v (GUNN)
+    PHOT_GUNN_V-R                Color index V-R (GUNN)
+    PHOT_GUNN_Z                  Magnitude z (GUNN)
+  PHOT_HEI                       Heidelberg s Photometric System (HEI)
+    PHOT_HEI_U-B                 Heidelberg photometry U-B (HEI)
+  PHOT_HIPPAR                    Hipparcos' photometry system
+  PHOT_HST                       HST Photometric System (by filter name) (HST)
+    PHOT_HST_F1042M              Magnitude F1042M (HST)
+    PHOT_HST_F140W               Magnitude M104W (HST)
+    PHOT_HST_CI_IR               HST Color Index from IR filters, e.g. F140W-F210W
+    PHOT_HST_CI_U-B              HST Color Index close to U-B, e.g. F336W-F430W
+    PHOT_HST_F170W               Magnitude F170W (HST)
+    PHOT_HST_F175W               Magnitude F175W (HST)
+    PHOT_HST_F220W               Magnitude F220W (HST)
+    PHOT_HST_F255W               Magnitude F255W (HST)
+    PHOT_HST_F275W               Magnitude F275W (HST)
+    PHOT_HST_F300W               Ultraviolet Magnitude F300W (HST)
+    PHOT_HST_CI_U-V              HST Color Index close to U-V, e.g. F336W-F555W
+    PHOT_HST_F342W               Ultraviolet Magnitude in filters F330W or F342W (HST)
+    PHOT_HST_F430W               Ultraviolet magnitude F430W or F439W (HST)
+    PHOT_HST_CI_B-V              HST Color Index close to B-V, e.g. F430W-F555W
+    PHOT_HST_F450W               Ultraviolet Magnitude F450W (HST)
+    PHOT_HST_F480LP              Magnitude F480LP (HST)
+    PHOT_HST_F547M               Magnitude F547M (HST)
+    PHOT_HST_F555W               Magnitude F555W (HST)
+    PHOT_HST_CI_B-R              HST Color Index close to B-R, e.g. F430W-F675W
+    PHOT_HST_CI_V-R              HST Color Index close to V-R, e.g. F555W-F675W
+    PHOT_HST_CI_R-I              HST Color Index close to R-I, e.g. F675W-F814W
+    PHOT_HST_F569W               Magnitude F569W (HST)
+    PHOT_HST_F606W               Magnitude F606W (HST)
+    PHOT_HST_CI_V-I              HST Color Index close to V-I, e.g. F555W-F814W
+    PHOT_HST_F622W               Magnitude F622W (HST)
+    PHOT_HST_F675W               Magnitude F675W (HST)
+    PHOT_HST_F702W               Magnitude F702W (HST)
+    PHOT_HST_F725LP              Magnitude F725LP (HST)
+    PHOT_HST_F785LP              Magnitude F785LP (HST)
+    PHOT_HST_F791W               Magnitude F791W (HST)
+    PHOT_HST_F814W               Magnitude F814W (HST)
+    PHOT_HST_F850LP              Magnitude F850LP (HST)
+    PHOT_HST_V                   Magnitude V (visual) HST (unspecified filter name)
+  PHOT_INDX                      Photometric index (usually in narrow bands)
+    PHOT_INDX_HI                 Neutral hydrogen HI photometry index
+  PHOT_INT-MAG                   Integrated or isophotal magnitudes
+    PHOT_INT-MAG_B               Integrated total or isophotal blue magnitude
+    PHOT_INT-MAG_I               Integrated, total or isophotal, I magnitude
+    PHOT_INT-MAG_MISC            Miscellaneous Integrated or isophotal magnitudes
+    PHOT_INT-MAG_R               Integrated, total or isophotal, R magnitude
+    PHOT_INT-MAG_U               Integrated, total or isophotal, V magnitude
+    PHOT_INT-MAG_V               Integrated, total or isophotal, V magnitude
+  PHOT_INTENSITY                 Intensity
+    PHOT_INTENSITY_ADU           Intensity expressed in ADU (analog to digital units)
+    PHOT_INTENSITY_ESTIMATED     Estimated intensity
+    PHOT_INTENSITY_MISC          Miscellaneous Intensity
+    PHOT_INTENSITY_NORMALIZED     Normalized intensity
+    PHOT_INTENSITY_PROFILE       Intensity profile
+    PHOT_INTENSITY_RATIO         Intensity ratio
+  PHOT_IR                        Infrared magnitudes (not well inserted in photometric systems)
+    PHOT_IR_12-25                Infrared color index 12-25 (IRAS)
+    PHOT_IR_2.29                 CO band index magnitude at 2.29 micron
+    PHOT_IR_25-60                Infrared IRAS color index 25-60 microns
+    PHOT_IR_3.4                  Infrared magnitude at 3.4 microns
+    PHOT_IR_4.2                  Infrared magnitude at 4.2 micron
+    PHOT_IR_BGAMMA               Infrared Bracket Gamma magnitude
+    PHOT_IR_K-10                 Infrared color index K-10 (K minus 10 microns)
+    PHOT_IR_K-100                Infrared color index K-100 (K minus 100 microns)
+    PHOT_IR_K-12                 Infrared color index K-12 (K minus 12 microns)
+    PHOT_IR_K-25                 Infrared color index K-25 (K minus 25 microns)
+    PHOT_IR_K-60                 Infrared color index K-60 (K minus 60 microns)
+    PHOT_IR_L0                   Infrared magnitude L at 3.7 micron
+    PHOT_IR_MAG                  Far infrared magnitude mfir (may include IRAS bands)
+    PHOT_IR_N1:8.38              Infrared magnitude at 8.38 microns
+    PHOT_IR_N2:9.69              Infrared magnitude at 9.69 microns
+    PHOT_IR_N3:12.89             Infrared magnitude at 12.89 microns
+    PHOT_IR_N:10.4               Infrared magnitude N at 10.4 microns
+    PHOT_IR_Q:18.06              Infrared magnitude at 18.06 microns
+  PHOT_JHN                       Johnson's Photometric system GCPD#8 GCPD#9
+    PHOT_JHN_B                   Johnson magnitude B (JHN), centered at 450nm
+    PHOT_JHN_B-H                 Johnson color index B-H (JHN)
+    PHOT_JHN_B-I                 Johnson color index B-I (JHN)
+    PHOT_JHN_B-K                 Johnson color index B-K (JHN)
+    PHOT_JHN_B-K'                Johnson color index B-K' (JHN)
+    PHOT_JHN_B-R                 Johnson color index B-R (JHN)
+    PHOT_JHN_B-V                 Johnson color index B-V (JHN)
+    PHOT_JHN_H                   Johnson magnitude H (JHN), centered at 1.62{mu}m
+    PHOT_JHN_H-K                 Johnson color index H-K (JHN)
+    PHOT_JHN_I                   Johnson magnitude I (JHN), centered at 0.87{mu}m
+    PHOT_JHN_I-K                 Johnson color index I-K (JHN)
+    PHOT_JHN_J                   Johnson magnitude J (JHN), also used in DENIS (1.25{mu}m)
+    PHOT_JHN_J-H                 Johnson color index J-H (JHN)
+    PHOT_JHN_J-K                 Johnson color index J-K (JHN)
+    PHOT_JHN_K                   Johnson magnitude K (JHN), and Ks filter in DENIS (2.15{mu}m)
+    PHOT_JHN_K'                  Johnson magnitude K' (JHN)
+    PHOT_JHN_K-L                 Johnson color index K-L (JHN), centered at 3.5{mu}m
+    PHOT_JHN_K-L'                Johnson color index K-L' (JHN)
+    PHOT_JHN_K-M                 Johnson color index K-M (JHN), centered at 5.0{mu}m
+    PHOT_JHN_K-N                 Johnson color index K-N (JHN), centered at 9.0{mu}m
+    PHOT_JHN_K-Q                 Johnson color index K-Q (JHN)
+    PHOT_JHN_L                   Johnson magnitude L (JHN) (3.5{mu}m)
+    PHOT_JHN_L'                  Johnson magnitude L' (JHN)
+    PHOT_JHN_L-M                 Johnson color index L-M (JHN)
+    PHOT_JHN_M                   Johnson magnitude M (JHN) (5.0{mu}m)
+    PHOT_JHN_MISC                Johnson Photometric system GCPD#8 GCPD#9
+    PHOT_JHN_N                   Johnson flux magnitude N (JHN) (9.0{mu}m)
+    PHOT_JHN_R                   Johnson magnitude R (JHN)
+    PHOT_JHN_R-H                 Johnson color index R-H (JHN)
+    PHOT_JHN_R-I                 Johnson color index R-I (JHN)
+    PHOT_JHN_R-K                 Johnson color index R-K
+    PHOT_JHN_U                   Johnson magnitude U (JHN), centered at 360nm
+    PHOT_JHN_U-B                 Johnson color index U-B (JHN)
+    PHOT_JHN_U-V                 Johnson color index U-V (JHN)
+    PHOT_JHN_V                   Johnson-Cousins magnitude V (JHN), centered at 555nm
+    PHOT_JHN_V-H                 Johnson color index V-H (JHN)
+    PHOT_JHN_V-I                 Johnson color index V-I (JHN)
+    PHOT_JHN_V-J                 Johnson color index V-J (JHN)
+    PHOT_JHN_V-K                 Johnson color index V-K (JHN)
+    PHOT_JHN_V-L                 Johnson color index V-L (JHN)
+    PHOT_JHN_V-M                 Johnson color index V-M (JHN)
+    PHOT_JHN_V-N                 Johnson color index V-N (JHN)
+    PHOT_JHN_V-R                 Johnson color index V-R (JHN)
+  PHOT_K-CORRECTION              K correction
+  PHOT_LCKWD                     Lockwood photometric system GCPD#30
+    PHOT_LCKWD_81-78             Color index 81-78 LCKWD
+  PHOT_MAG                       Magnitude of uncertain origin
+    PHOT_MAG_5007                Magnitude O III lambda 5007
+    PHOT_MAG_B                   Blue B magnitude
+    PHOT_MAG_BLUE                Set of UCDs describing magnitudes in the "blue" region of the spectrum
+    PHOT_MAG_CENTR               Central magnitude
+    PHOT_MAG_CORR                Magnitude correction
+    PHOT_MAG_DROP                Drop in magnitude
+    PHOT_MAG_EYE                 Eye estimated magnitude
+    PHOT_MAG_HI                  Magnitude associated with neutral hidrogen
+    PHOT_MAG_I                   Near-Infrared magnitude around 0.8um (undefined or non-conventional system)
+    PHOT_MAG_J                   Near-Infrared magnitude around 1.2um (undefined or non-conventional system)
+    PHOT_MAG_H                   Near-Infrared magnitude around 1.6um (undefined or non-conventional system)
+    PHOT_MAG_K                   Near-Infrared magnitude around 2.2um (undefined or non-conventional system)
+    PHOT_MAG_IR                  Set of UCDs describing infra-red magnitudes (NIR + FIR)
+    PHOT_MAG_LIMIT               Magnitude limit
+    PHOT_MAG_OFFST               Magnitude offset
+    PHOT_MAG_OPTICAL             Optical magnitude
+    PHOT_MAG_R                   Red (R) magnitude
+    PHOT_MAG_RED                 Set of UCDs describing red magnitudes (lambda_eff &lt; 7000A)
+    PHOT_MAG_U                   U' magnitude (3402 A)
+    PHOT_MAG_UNDEF               Magnitude of uncertain origin or different bands in same column
+    PHOT_MAG_UV                  Various Ultraviolet magnitude (TD1, ANS, FAUST, ...)
+    PHOT_MAG_V                   Visual magnitude
+    PHOT_MAG_VISUAL              Set of UCDs describing any magnitude near the "visual". eg, johnson's V
+  PHOT_PAL                       Palomar Photometric System
+    PHOT_PAL_B-V                 Palomar photometric index b-v
+    PHOT_PAL_G-R                 Palomar photometric index G-R
+    PHOT_PAL_U-V                 Palomar photometry index U-V
+    PHOT_PAL_V                   Palomar photometry index V
+  PHOT_PHG                       Photographic magnitude Quantities
+    PHOT_PHG_B                   Photographic blue magnitude B (includes the O magnitude of POSS)
+    PHOT_PHG_B-R                 Photographic color index B-R (includes the O-E color index from POSS)
+    PHOT_PHG_B-V                 Photographic color index B-V
+    PHOT_PHG_BJ                  Photographic magnitude Bj
+    PHOT_PHG_BJ-RF               Photographic color index Bj-Rf
+    PHOT_PHG_I                   Photographic magnitude I
+    PHOT_PHG_U-B                 Photographic color index U-B
+    PHOT_PHG_MAG                 Photographic magnitude in unidentified band
+    PHOT_PHG_U                   Ultraviolet photographic magnitude
+    PHOT_PHG_U-V                 Photographic color index U-V (ultraviolet minus photovisual)
+    PHOT_PHG_R                   Photographic red band magnitude R (includes E magnitude from POSS)
+    PHOT_PHG_R-I                 Photographic color index R-I
+    PHOT_PHG_V                   Photographic visual magnitude V
+  PHOT_PROFILE                   Light distribution profile
+    PHOT_PROFILE_PAR             Light distribution's profile parameter, like Sersic's index
+  PHOT_RADIO                     all radio data
+    PHOT_RADIO_CM                Radio data 10cm &gt; lambda &gt; 1cm
+    PHOT_RADIO_DECI-M            Radio data 100cm &gt; lambda &gt; 10cm
+    PHOT_RADIO_HI-FREQ           Radio data &gt; 100 GHz
+    PHOT_RADIO_INT-FREQ          Radio data 1GHZ &lt; nu &lt; 100GHz
+    PHOT_RADIO_LOW-FREQ          Radio data &lt; 1GHz
+    PHOT_RADIO_METRIC            Radio data lambda &gt; 100cm
+    PHOT_RADIO_MM                Radio data 1 to 9.9 mm
+    PHOT_RADIO_SUBMM             Radio data &lt; 1mm
+  PHOT_RF                        Reddening Free Photometric Parameters
+    PHOT_RF_MISC                 Miscellaneous reddening-free photometric indices
+    PHOT_RF_B-L                  B-L extinction free color
+    PHOT_RF_B-U                  B-U extinction free color
+    PHOT_RF_Q                    Reddening free Q parameter
+    PHOT_RF_STR                  Reddening free indices in the Stroemgren system
+      PHOT_RF_STR_C0             Dereddened color index parameter c0
+      PHOT_RF_STR_M0             Dereddened color index parameter m0
+    PHOT_RF_U-W                  U-W extinction free color
+    PHOT_RF_V                    Reddening free magnitude v
+    PHOT_RF_X                    Reddening free geneva photometry parameter
+    PHOT_RF_Y                    Reddening free geneva photometry parameter
+    PHOT_RF_Z                    Reddening free geneva photometry parameter
+  PHOT_SB                        Surface Brightness quantities
+    PHOT_SB_CI                   Color index differential surface brightness
+    PHOT_SB_CODE                 Encoded Surface Brigthness
+    PHOT_SB_DIFF                 Differential surface brightness
+    PHOT_SB_GENERAL              Surface Brightness (in general)
+    PHOT_SB_GUNN-G               Surface Brightness in Gunn G
+    PHOT_SB_IR-100               Surface Brightness at 100 micron
+    PHOT_SB_JHN                  Surface Brightness in Johnson's System
+      PHOT_SB_JHN_B              Surface Brightness in Johnson B
+      PHOT_SB_JHN_B-R            Surface brightness Johnson's color B-R
+      PHOT_SB_JHN_H              Surface Brightness in Johnson H
+      PHOT_SB_JHN_I              Surface Brightness in Johnson I
+      PHOT_SB_JHN_J              Surface Brightness in Johnson J
+      PHOT_SB_JHN_K              Surface Brightness in Johnson K
+      PHOT_SB_JHN_K'             Surface Brightness in Johnson K'
+      PHOT_SB_JHN_R              Surface Brightness in Johnson R
+      PHOT_SB_JHN_U              Surface Brightness in Johnson U
+      PHOT_SB_JHN_U-R            Surface Brightness color index U-R
+      PHOT_SB_JHN_V              Surface Brightness in johnson V
+    PHOT_SB_LIMIT                Surface Brightness Limit
+    PHOT_SB_RATIO                Surface Brightness Ratio
+    PHOT_SB_SKY                  Sky Surface Brightness
+  PHOT_SD/B-BRIGHT               Surface Density To Brightness Ratio
+  PHOT_SDSS                      Sloan Digital Sky Survey photometric system (1996AJ....111.1748F)
+    PHOT_SDSS_U                  Magnitude in u' or u* filter of Sloan Digital Sky Survey (1996AJ....111.1748F)
+    PHOT_SDSS_G                  Magnitude in g' filter of Sloan Digital Sky Survey (1996AJ....111.1748F)
+    PHOT_SDSS_R                  Magnitude in r' filter of Sloan Digital Sky Survey (1996AJ....111.1748F)
+    PHOT_SDSS_I                  Magnitude in i' filter of Sloan Digital Sky Survey (1996AJ....111.1748F)
+    PHOT_SDSS_Z                  Magnitude in z' filter of Sloan Digital Sky Survey (1996AJ....111.1748F)
+  PHOT_SPHOT                     Spectrophotometric quantities (narrow bands)
+    PHOT_SPHOT_CONT-GRAD         Pseudo Continuum Gradient
+    PHOT_SPHOT_CORR-FACT         Spectrophotometry Correction Factor
+    PHOT_SPHOT_FLUX              Flux measured (in physical units) in a narrow-band filter (optical, near-IR or near-UV)
+    PHOT_SPHOT_INDEX             Spectrophotometric Index defined by various combinations of narrow-band fluxes
+    PHOT_SPHOT_INT-ENERGY        Intrinsic Energy in Narrow Spectral Band
+    PHOT_SPHOT_MAG               Normalized magnitude in a narrow spectral band
+  PHOT_STR                       Stroemgren Photometric System GCPD#4
+    PHOT_STR_B                   Stroemgren Magnitude b (STR)
+    PHOT_STR_B-R                 Stroemgren Color Index b-r (STR)
+    PHOT_STR_B-V                 Stroemgren Color Index b-v (STR)
+    PHOT_STR_B-Y                 Stroemgren Color Index b-y (STR)
+    PHOT_STR_C1                  Stroemgren Color Index c1 (STR)
+    PHOT_STR_HBETA               Stroemgren Beta Value
+    PHOT_STR_M1                  Stroemgren Color Index m1 (STR)
+    PHOT_STR_U                   Stroemgren Magnitude u (STR)
+    PHOT_STR_U-B                 Stroemgren Color Index u-b (STR)
+    PHOT_STR_U-V                 Stroemgren Color Index u-v (STR)
+    PHOT_STR_V                   Stroemgren Magnitude v (STR)
+    PHOT_STR_V-B                 Stroemgren Color Index v-b (STR)
+    PHOT_STR_V-Y                 Stroemgren Color Index v-y (STR)
+    PHOT_STR_Y                   Stroemgren Magnitude y (STR)
+  PHOT_SYS-ID                    Identification of the Photometric System in use
+  PHOT_TRANSF                    Transformation of a Photometry, like conversion parameters between photometric systems
+  PHOT_TRANSF_PARAM              Parameter used in photometric transformations
+  PHOT_TOT-BRIGHT/B-BRIGHT       Total blue magnitude to Brightness ratio
+  PHOT_TYCHO                     Tycho Photometric System
+    PHOT_TYCHO_B                 Blue Tycho Magnitude B_T_
+    PHOT_TYCHO_V                 Visual Tycho Magnitude V_T_
+  PHOT_UBVR20                    UBVr20 Photometric System GCPD#69
+    PHOT_UBVR20_B-V20            Color Index B-V20 (UBVr20)
+    PHOT_UBVR20_U-B20            Color Index U-B20 (UBVr20)
+    PHOT_UBVR20_V-R20            Color Index V-r20 (UBVr20)
+  PHOT_UV                        UV Magnitude Photometry number # &lt;= Lambda_central &lt; #+100
+    PHOT_UV_1300                 Far UV Magnitude 1300 to 1400 Angstrom UV
+    PHOT_UV_1400                 Far UV Magnitude 1400 to 1500 Angstrom UV
+    PHOT_UV_1500                 Far UV Magnitude 1500 to 1600 Angstrom UV
+    PHOT_UV_1600                 Far UV Magnitude 1600 to 1700 Angstrom UV
+    PHOT_UV_1700                 UV Magnitude 1700 to 1800 Angstrom UV
+    PHOT_UV_1800                 UV Magnitude 1800 to 1900 Angstrom UV
+    PHOT_UV_1900                 UV Magnitude 1900 to 2000 Angstrom UV
+    PHOT_UV_2000                 UV Magnitude 2000 to 2100 Angstrom UV
+    PHOT_UV_2200                 UV Magnitude 2200 to 2300 Angstrom UV
+    PHOT_UV_2300                 UV Magnitude 2300 to 2400 Angstrom UV
+    PHOT_UV_2400                 Near UV Magnitude 2400 to 2500 Angstrom UV
+    PHOT_UV_2500                 Near UV Magnitude 2500 to 2600 Angstrom UV
+    PHOT_UV_2700                 Near UV Magnitude 2700 to 2800 Angstrom UV
+    PHOT_UV_2945                 Near UV Magnitude 2900 to 3000 Angstrom UV
+    PHOT_UV_3150                 Near UV Magnitude 3100 to 3200 Angstrom UV
+    PHOT_UV_3300                 Near UV Magnitude 3300 to 3400 Angstrom UV
+    PHOT_UV_4250                 Near UV Magnitude 4200 to 4300 Angstrom UV
+    PHOT_UV_COLOR                Ultraviolet Color Index (no bands specified)
+    PHOT_UV_GENERAL              UV Magnitude unspecified band
+  PHOT_UVBGRI                    UVBGRI Photometric System GCPD#6
+    PHOT_UVBGRI_B                Filter Blue Magnitude UVBGRI
+    PHOT_UVBGRI_G                Filter Green Magnitude UVBGRI
+    PHOT_UVBGRI_I                Filter Infra Magnitude UVBGRI
+    PHOT_UVBGRI_R                Filter Red Magnitude UVBGRI
+    PHOT_UVBGRI_U                Filter Ultra Magnitude UVBGRI
+    PHOT_UVBGRI_V                Filter Violet Magnitude UVBGRI
+  PHOT_VIL                       Vilnius Photometric System GCPD#21
+    PHOT_VIL_P-X                 Vilnius Color Index p-x (VIL)
+    PHOT_VIL_S-V                 Vilnius Color Index s-v (VIL)
+    PHOT_VIL_U-P                 Vilnius Color Index u-p (VIL)
+    PHOT_VIL_U-V                 Vilnius Color Index u-v (VIL)
+    PHOT_VIL_V                   Magnitude V Vilnius (VIL)
+    PHOT_VIL_V-P                 Vilnius Color Index v-p (VIL)
+    PHOT_VIL_V-S                 Vilnius Color Index v-s (VIL)
+    PHOT_VIL_V-W                 Vilnius Color Index v-w
+    PHOT_VIL_V-X                 Vilnius Color Index v-x (VIL)
+    PHOT_VIL_V-Z                 Vilnius Color Index v-z (VIL)
+    PHOT_VIL_X                   Magnitude X Vilnius (VIL)
+    PHOT_VIL_X-Y                 Vilnius Color Index x-y (VIL)
+    PHOT_VIL_Y-Z                 Vilnius Color Index y-z (VIL)
+    PHOT_VIL_Z-V                 Vilnius Color Index z-v (VIL)
+  PHOT_WASH                      Washington Photometric System GCPD#48
+    PHOT_WASH_C-M                Washington Color Index c-m (WASH)
+    PHOT_WASH_C-T1               Washington Color Index c-t1 (WASH)
+    PHOT_WASH_D                  Washington Abundance Indicator D (WASH)
+    PHOT_WASH_M-T1               Washington Color Index m-t1 (WASH)
+    PHOT_WASH_M-T2               Washington Color Index m-t2 (WASH)
+    PHOT_WASH_T1                 Washington Magnitude t1 (WASH)
+  PHOT_WLRV                      Walraven Photometric System GCPD#11
+    PHOT_WLRV_B                  Walraven Magnitude (flux intensity) B (WLRV)
+    PHOT_WLRV_B-L                Walraven Color Index B-L (WLRV)
+    PHOT_WLRV_B-U                Walraven Color Index B-U (WLRV)
+    PHOT_WLRV_B-W                Walraven Color Index B-W (WLRV)
+    PHOT_WLRV_L                  Walraven Magnitude (Flux Intensity) L (WLRV)
+    PHOT_WLRV_U                  Walraven Magnitude (Flux Intensity) U (WLRV)
+    PHOT_WLRV_U-W                Walraven Color Index U-W (WLRV)
+    PHOT_WLRV_V                  Walraven Magnitude (Flux Intensity) V (WLRV)
+    PHOT_WLRV_V-B                Walraven Color Index V-B (WLRV)
+    PHOT_WLRV_W                  Walraven Magnitude (Flux Intensity) W (WLRV)
+  PHOT_ZP                        Zero point coefficient for the photometric system
+PHYS                             Physical Quantities
+  PHYS_ABUND                     Abundances
+    PHYS_ABUND_MISC              Abundance (other than H, He, and Fe)
+    PHYS_ABUND_X                 Hydrogen Abundance (X)
+    PHYS_ABUND_Y                 Helium Abundance (Y)
+    PHYS_ABUND_Z                 Metal Abundance Z (metallicity)
+    PHYS_ABUND_[FE/H]            Fe to H Abundance (Metallicity)
+  PHYS_ALBEDO                    Albedo
+  PHYS_ANG-MOMENTUM              Angular Momentum
+  PHYS_AREA                      Physical quantities related to Area
+    PHYS_AREA_CR-SECT            Cross Section
+    PHYS_AREA_GENERAL            Area (in general)
+  PHYS_AXIS-RATIO                Axis Ratio
+  PHYS_BRIGHT                    Object's brightness quantities
+    PHYS_BRIGHT_CHANGE           Brightness Change
+  PHYS_COLUMN                    Line Of Sight Column Properties
+    PHYS_COLUMN_DENSITY          Column Density (by number of particles)
+    PHYS_COLUMN_MASS-DENSITY     Mass Column Density
+  PHYS_COMPACTNESS               Compactness Indicator
+  PHYS_CONCENT                   Concentration Indicators
+    PHYS_CONCENT_INDEX           Concentration Index
+  PHYS_DENSITY                   Density (various flavours)
+    PHYS_DENSITY_ELECTRON        Electron Density
+    PHYS_DENSITY_ENERGY          Energy Density
+    PHYS_DENSITY_MASS            Mass Density
+      PHYS_DENSITY_MASS_SURF     Surface Mass-Density
+      PHYS_DENSITY_MASS_VOL      Volume Mass-Density
+    PHYS_DENSITY_NUMBER          Number Density
+    PHYS_DENSITY_RATIO           Density Ratio
+    PHYS_DENSITY_SURFACE         Surface Density
+  PHYS_DISP-MEASURE              Dispersion Measure
+  PHYS_DISTANCE                  Distance and related quantities
+    PHYS_DISTANCE_DIFF           Distance Difference
+    PHYS_DISTANCE_NORM           Relative or Normalized Distance
+    PHYS_DISTANCE_PROJ           Projected Distance
+    PHYS_DISTANCE_RATIO          Distance Fraction or Ratio
+    PHYS_DISTANCE_RELATIVE       Relative Distance
+    PHYS_DISTANCE_TRUE           Distance (true, linear distance)
+  PHYS_ECCENTRICITY              Eccentricity
+  PHYS_ELEC-FIELD                Electric (electrostatic) Field
+  PHYS_ELLIPTICITY               Ellipticity (1-b/a)
+  PHYS_EM-MEASURE                Emission Measure
+  PHYS_ENERGY                    Energy and related quantities
+    PHYS_ENERGY_CONTRIB          Energy Contribution
+    PHYS_ENERGY_GENERAL          Energy in general
+    PHYS_ENERGY_INDEX            Energy Index
+    PHYS_ENERGY_ION              Ion Energy
+    PHYS_ENERGY_LOSS-RATE        Energy Loss Rate
+    PHYS_ENERGY_X                X-ray or Gamma-ray Energy
+  PHYS_EXCITATION                Excitation in the Context of Ionizing Photons
+    PHYS_EXCITATION_PARAM        Excitation Parameter
+  PHYS_FLOW                      Matter Flow or Outflows Quantities
+    PHYS_FLOW_POLARITY           Flow Polarity
+  PHYS_GRADIENT                  Gradients (usually on galaxy context)
+    PHYS_GRADIENT_CHEMICAL       Chemical Gradient
+    PHYS_GRADIENT_CI             Color Index Gradient
+    PHYS_GRADIENT_GENERAL        General gradients (usually on galaxy context)
+    PHYS_GRADIENT_SB             Surface Brightness Gradient
+    PHYS_GRADIENT_TEMPERATURE     Temperature Gradient
+    PHYS_GRADIENT_VELOCITY       Velocity Gradient
+  PHYS_GRAVITY                   Gravity and related properties
+    PHYS_GRAVITY_POTENTIAL       Gravitational Potential
+    PHYS_GRAVITY_PRESSURE        Gravitational pressure
+    PHYS_GRAVITY_SURFACE         Surface Gravity
+  PHYS_HEIGHT                    Height or depth (usually in an atmospheric context)
+  PHYS_IMPACT-PAR                Impact Parameter
+  PHYS_INV-COMPTON-BEAM-FACT       Inverse Compton Effect Beam Factor
+  PHYS_IONIZATION                Ionization quantities (in stellar/interstellar environments)
+    PHYS_IONIZATION_PARAM        Ionization Parameter
+    PHYS_IONIZATION_PHOTONS      Ionizing Photons
+      PHYS_IONIZATION_PHOTONS_RATIO   Ionizing Photon Ratio
+      PHYS_IONIZATION_PHOTONS_TOTAL   Total ionizing Photons
+  PHYS_LENGTH                    Length related quantities
+    PHYS_LENGTH_RATIO            Length Ratio
+  PHYS_LIMB-DARK                 Limb Darkening Phenomena
+    PHYS_LIMB-DARK_COEFF         Limb Darkening Coefficient
+  PHYS_LUMINOSITY                Luminosity, in different bands and types
+    PHYS_LUMINOSITY_B            Luminosity in blue light
+    PHYS_LUMINOSITY_CARBON       Carbon luminosity
+    PHYS_LUMINOSITY_CONTINUUM     Continuum luminosity
+    PHYS_LUMINOSITY_DENSITY      Luminosity density
+    PHYS_LUMINOSITY_GENERAL      Luminosity in general
+    PHYS_LUMINOSITY_H2O          Water maser luminosity
+    PHYS_LUMINOSITY_HALPHA       H alpha luminosity
+    PHYS_LUMINOSITY_HBETA        H beta luminosity
+    PHYS_LUMINOSITY_HE           Helium luminosity
+    PHYS_LUMINOSITY_HYDROG       Hydrogen luminosity
+    PHYS_LUMINOSITY_IR           Infrared luminosity
+      PHYS_LUMINOSITY_IR_100     Luminosity at 100 micron
+      PHYS_LUMINOSITY_IR_12      Luminosity at 12 micron
+      PHYS_LUMINOSITY_IR_25      Luminosity at 25 micron
+      PHYS_LUMINOSITY_IR_60      Luminosity at 60 micron
+      PHYS_LUMINOSITY_IR_MISC    Infrared luminosity in general
+    PHYS_LUMINOSITY_MASER        Maser luminosity
+    PHYS_LUMINOSITY_NU           Neutrino luminosity
+    PHYS_LUMINOSITY_OH           OH luminosity
+    PHYS_LUMINOSITY_PROFILE      Luminosity profile
+    PHYS_LUMINOSITY_R            Luminosity in red light
+    PHYS_LUMINOSITY_RADIO        Radio luminosity
+    PHYS_LUMINOSITY_RATIO        Luminosity ratio
+    PHYS_LUMINOSITY_SURFACE      Surface luminosity
+    PHYS_LUMINOSITY_UV           Ultraviolet luminosity
+      PHYS_LUMINOSITY_UV_LYA     Ionizing ultraviolet luminosity in lyman alpha
+      PHYS_LUMINOSITY_UV_MISC    Ultraviolet luminosity
+    PHYS_LUMINOSITY_X            X-ray luminosity
+  PHYS_MAG-FIELD                 Magnetic Field
+  PHYS_MASS                      Mass and related quantities
+    PHYS_MASS_ABS-COEFF          Mass Absorption Coefficient
+    PHYS_MASS_FLUX               Mass flux or flow
+    PHYS_MASS_FRACTIONAL         Fractional Mass
+    PHYS_MASS_FUNCTION           Function of mass, typically in spectroscopic binaries (M2*sini)^3^/(M1+M2)^2^
+    PHYS_MASS_LOSS               Mass Loss
+    PHYS_MASS_MISC               Mass
+    PHYS_MASS_RATIO              Mass Ratio
+    PHYS_MASS_YIELD              Mass yield associated to a given element
+    PHYS_MASS/LIGHT              Mass to Light Ratio
+  PHYS_OPACITY                   Opacity
+  PHYS_OPTICAL-DEPTH             Optical Depth
+  PHYS_OUTFLOW                   Outflows related quantities
+    PHYS_OUTFLOW_PARAM           Outflow Parameter Factor
+  PHYS_PLASMA                    Plasma Physics Parameters
+    PHYS_PLASMA_PARAM            Plasma Physics Parameters
+    PHYS_PLASMA_GAUNT-FACT       Plasma Physics Gaunt Factor
+  PHYS_PRESSURE                  Pressure and related quantities
+    PHYS_PRESSURE_E              Electron Pressure
+    PHYS_PRESSURE_G              Gas Pressure
+  PHYS_RAD-MAX-ROT-VEL           Radius at which maximum rotational velocity occurs
+  PHYS_RADIATIVE-ACCEL           Radiative Acceleration
+  PHYS_REFLECTANCE               Reflectance
+  PHYS_REFRACT-INDX              Refraction Index
+  PHYS_ROTATION-MEASURE          Rotation Measure
+  PHYS_SCALE                     Quantities Representing a Scale
+    PHYS_SCALE_HEIGHT            Scale Height
+    PHYS_SCALE_LENGTH            Scale Length
+  PHYS_SEPARATION                Pair Separation (in non-angular units)
+  PHYS_SIZE                      Size (in non-angular units)
+    PHYS_SIZE_DIAM               Diameter
+    PHYS_SIZE_MAJ                Size (diameter) measured along the major axis
+    PHYS_SIZE_MIN                Size (diameter) measured along the minor axis
+    PHYS_SIZE_RADIUS             Radius and related quantities
+      PHYS_SIZE_RADIUS_GENERAL   Linear Radius
+      PHYS_SIZE_RADIUS_NORM      Normalized Radius
+    PHYS_SIZE_RATIO              Size Ratio
+    PHYS_SIZE_SMAJ               Size Of The Semi Major Axis
+      PHYS_SIZE_SMAJ_GENERAL     Size Of The Semi Major Axis
+      PHYS_SIZE_SMAJ_NORM        Normalized Size of the Major Axis
+    PHYS_SIZE_SMIN               Size of the Semi Minor Axis
+      PHYS_SIZE_SMIN_NORM        Normalized Size of the Minor Axis
+  PHYS_STAR-FORM                 Star Formation Related Quantities
+    PHYS_STAR-FORM_RATE          Star Formation Rate
+  PHYS_SUN                       Solar Related Quantities
+    PHYS_SUN_ATM                 Quantities Related to the Solar Atmosphere
+      PHYS_SUN_ATM_ABS-COEFF     Solar Spectral Absorption Coefficient
+      PHYS_SUN_ATM_PARAM         Solar Atmosphere Parameter
+    PHYS_SUN_HARM/FUN-BAND-FREQ-RATIO     Harmonic to Fundamental Frequency Ratio
+  PHYS_TANG-DOPPLER-FACT         Tangential Doppler Effect Factor
+  PHYS_TEMP                      Temperature and related quantities
+    PHYS_TEMP_DIFF               Temperature Amplitude or difference
+    PHYS_TEMP_EFFEC              Effective Temperature
+    PHYS_TEMP_ELECT              Electron Temperature
+    PHYS_TEMP_EXCIT              Excitation Temperature
+    PHYS_TEMP_F-F                Free-free or Bremsstrahlung Temperature
+    PHYS_TEMP_KINETIC            Kinetic Temperature
+    PHYS_TEMP_MISC               Temperature in general
+    PHYS_TEMP_PLASMA             Plasma Temperature
+    PHYS_TEMP_THETA              Effective temperature theta (5040/Teff)
+    PHYS_TEMP_XRAY               X Ray temperature
+  PHYS_TYPE                      Type of Phenomenon or Event
+  PHYS_VOLUME                    Volume
+    PHYS_VOLUME_RATIO            Volume Ratio
+  PHYS_WIND                      Stellar or Solar Wind Properties
+    PHYS_WIND_LUMINOSITY         Wind Luminosity
+POL                              Polarization Related Quantities
+  POL_DEGREE                     Degree of Polarization
+    POL_DEGREE_CIRC              Degree of Circular polarization
+    POL_DEGREE_LINEAR            Degree of Linear polarisation
+    POL_DEGREE_MISC              Degree of Polarization (unspecified type)
+  POL_FLUX                       Polarized Flux (two flavours)
+    POL_FLUX_LCP                 Left Circular Polarization Flux
+    POL_FLUX_LINEAR              Linearly polarized flux density
+    POL_FLUX_RCP                 Right Circular Polarization Flux
+  POL_INDEX                      Polarization Index
+  POL_LAMBDA-MAX                 Maximum Polarization's Wavelength
+  POL_LINEAR/CIRC                Ratio of Linear to Circular Polarization
+  POL_PA                         Polarization Position Angle
+    POL_PA_EQ                    Position Angle in Equatorial Coordinates of the Polarization vector
+    POL_PA_GAL                   Position Angle in Galactic Coordinates of the Polarization vector
+    POL_PA_MISC                  Vector's Position Angle in unspecified coordinate system
+  POL_SENSE                      Sense Of Polarization
+  POL_SLOPE                      Polarimetry Slope
+  POL_STOKES                     Polarization Stokes Parameters
+  POL_STOKES_I                   Stokes parameter I (total power)
+  POL_STOKES_Q                   Stokes Parameter Q (absolute, or relative Q/I) [horizontal/vertical component]
+  POL_STOKES_U                   Stokes Parameter U (absolute, or relative U/I) [diagonal component]
+  POL_STOKES_V                   Stokes Parameter V (absolute, or relative V/I) [circular component]
+POS                              Position Related Quantities
+  POS_ANG                        Angular Position
+    POS_ANG_DIST                 Angular Distance and related quantities
+      POS_ANG_DIST_GENERAL       Angular Distance Or Separation
+      POS_ANG_DIST_REL           Relative or Normalized Angular Distance
+      POS_ANG_DIST_SQ            Quadratic Angular Distance
+    POS_ANG_VEL                  Rate Of Position Change (drift motion, angular velocity)
+  POS_CCD                        Positions Related To CCD's
+    POS_CCD_X                    CCD Position Along the X Axis
+    POS_CCD_Y                    CCD Position Along the Y Axis
+  POS_DETECTOR                   Position Related to the Detector
+    POS_DETECTOR_DIST            Distance Or Position In Detector Units
+    POS_DETECTOR_RADIUS          Radius of an Object Expressed In Detector's Unit
+  POS_DIR-COSINE                 Direction Cosine
+  POS_EARTH                      Positions On The Earth
+    POS_EARTH_LAT                Earth's Latitude
+      POS_EARTH_LAT_MAIN         Earth's Latitude
+      POS_EARTH_LAT_VAR          Variation of Local Latitude
+    POS_EARTH_LOCATION           Earth Location
+    POS_EARTH_LON                Earth Longitude
+  POS_EC                         Ecliptic Coordinates and derivates
+    POS_EC_LAT                   Ecliptic Latitude
+    POS_EC_LON                   Ecliptic Longitude
+  POS_EQ                         Equatorial Coordinates and related quantities
+    POS_EQ_A-V-PRECESS           Annual Variation of Precession in RA
+    POS_EQ_DEC                   Declination related quantities
+      POS_EQ_DEC_3T              Third Term in Declination
+      POS_EQ_DEC_MAIN            Declination
+      POS_EQ_DEC_OFF             Declination Offset Difference
+      POS_EQ_DEC_OTHER           Declination in Non-Standard Units or partial values
+      POS_EQ_DEC_PRECESS         Precession Variation in Declination
+      POS_EQ_DEC_REL             Relative Declination in a Special Scale
+    POS_EQ_PLX                   Relations between Parallax and RA and Dec
+      POS_EQ_PLX_FACTOR          Parallax Factor in Declination
+      POS_EQ_PMDEC               Proper Motion in Declination (pmdec)
+      POS_EQ_PMRA                Proper Motion in Right Ascension (pmra)
+    POS_EQ_PREC                  Annual Precesion Quantities
+      POS_EQ_PREC_DEC            Annual Precession In Declination
+      POS_EQ_PREC_RA             Precession Variation In RA
+    POS_EQ_RA                    Right Ascension related quantities
+      POS_EQ_RA_2T               Second Component in right Ascension
+      POS_EQ_RA_3T               Third Term In Right Ascension
+      POS_EQ_RA_CORR             Correction in Right Ascension
+      POS_EQ_RA_MAIN             Right Ascension
+      POS_EQ_RA_OFF              RA Offset or Residual In Right Ascension
+      POS_EQ_RA_OTHER            Right Ascension in Non-Standard Units or partial values
+      POS_EQ_RA_REL              Relative Right Ascension in a Special Scale
+  POS_GAL                        Galactic Coordinates and related quantities
+    POS_GAL_COSEC-B              Cosecant of galactic latitude
+    POS_GAL_LAT                  Galactic Latitude
+    POS_GAL_LON                  Galactic Longitude
+    POS_GAL_X                    X coordinate of object in Galactic Plane
+    POS_GAL_Y                    Y coordinate of object in Galactic Plane
+  POS_GENERAL                    Position in general
+  POS_GEO                        Geocentric Quantities
+    POS_GEO_ANGLE                Angle Of The Geocenter
+    POS_GEO_DEC                  Geocentric declination
+    POS_GEO_RA                   Geocentric Right Ascension
+  POS_HA                         Hour Angle
+  POS_HC                         Heliocentric Coordinates
+    POS_HC_X                     Heliocentric X
+    POS_HC_Y                     Heliocentric Y
+    POS_HC_Z                     Heliocentric Z
+  POS_INCLIN                     Inclination angles
+    POS_INCLIN_EC                Inclination Respect to the ecliptic
+    POS_INCLIN_GP                Inclination Respect to the Galactic Plane
+    POS_INCLIN_LOS               Inclination Respect to the Line Of Sight
+  POS_JOVIC                      Jovicentric Coordinates (Jupiter's Phenomena)
+    POS_JOVIC_X                  Jovicentric X
+    POS_JOVIC_Y                  Jovicentric Y
+  POS_LAMBERT                    Coordinates in the Lambert Projection
+    POS_LAMBERT_R                Lambert Polar Distance
+    POS_LAMBERT_X                Lambert X Coordinate
+    POS_LAMBERT_Y                Lambert Y Coordinate
+  POS_LIMIT                      Position Limit to an Observation
+  POS_LITERAL                    Literal Alpha-Delta Identification of a Position
+  POS_LOCATION                   Location of certain events not easily expressed in other categories
+  POS_MAP                        Quantity Measurement on a Contour Map
+  POS_OCCULT                     Quantity related to the lunar occultations
+    POS_OCCULT_DIR               Direction of lunar motion
+    POS_OCCULT_POS               Quantity related to the lunar occultations
+    POS_OCCULT_SLOPE             Lunar Slope
+  POS_OFFSET                     Positional offsets, usually a string
+  POS_PAR-ANG                    Parallactic Angle
+  POS_PARLX                      Parallax and related quantities
+    POS_PARLX_DYN                Dynamical Parallax
+    POS_PARLX_PHOT               Photometric Parallax
+    POS_PARLX_RADIO              Radio Parallax
+    POS_PARLX_SPEC               Spectroscopic Parallax
+    POS_PARLX_TRIG               Trigonometric Parallax
+  POS_PLANETARY                  Coordinates in a System Related Non-Jovian Planets
+  POS_PLATE                      Positions measured in photographic plates
+    POS_PLATE_DIFF               Difference in position or separation between objects
+    POS_PLATE_X                  X Coordinate on a Plate
+    POS_PLATE_Y                  Y Coordinate on a Plate
+  POS_PM                         Proper Motion (non-equatorial) and related quantities
+    POS_PM_DIFF                  Difference In Proper Motion
+  POS_PM_DISP                    Mean/Dispersion in proper motions (typically in clusters)
+    POS_PM_NON-EQ                Proper Motion (non-equatorial)
+    POS_PM_PA                    Polar Angle of Proper Motion Vector
+  POS_POS-ANG                    Position Angle (PA) of a certain vector
+  POS_PRECESSION                 Precession
+  POS_RADIUS                     Radius Used To Calculate Other Quantity
+  POS_REFERENCE-SYSTEM           Used Reference System
+  POS_SG                         Super Galactic Coordinates
+    POS_SG_LAT                   Supergalactic Latitude
+    POS_SG_LON                   Supergalactic Longitude
+    POS_SG_X                     Supergalactic X coordinate
+    POS_SG_Y                     Supergalactic Y coordinate
+    POS_SG_Z                     Supergalactic Z coordinate
+  POS_SOLAR                      Solar Positions
+    POS_SOLAR_ELEVAT             Solar Elevation
+    POS_SOLAR_ELONG              Solar Elongation
+  POS_TRANSF                     Transformation of a Position, like WCS constants
+  POS_TRANSF_PARAM               Parameter used in astrometric transformations, e.g. WCS constants
+  POS_TANG-PLANE                 Tangent Plane Position or a system attached to an object
+  POS_TOPO                       Topocentric Positions
+    POS_TOPO_DEC                 Topocentric Declination
+    POS_TOPO_RA                  Topocentric right ascension
+  POS_VAR                        Positional Variations
+    POS_VAR_RATE                 Rate of Variation of positional quantities
+  POS_ZD                         Zenith Distance and related quantities
+    POS_ZD_MAIN                  Zenith Distance
+    POS_ZD_RES                   Residual In Zenith Distance
+RECORD                           Record Number
+REDSHIFT                         Redshift
+  REDSHIFT_DIFF                  Difference in redshift (usually between companions or nearby objects)
+  REDSHIFT_GC                    Galactocentric Redshift
+  REDSHIFT_HC                    Redshift (normally heliocentric)
+  REDSHIFT_PHOT                  Photometric Redshift
+REDUCT                           Quantities Associated with the Reduction Process
+  REDUCT_EXTR-RAD                Extraction Radius
+  REDUCT_METHOD                  Reduction Method
+  REDUCT_PARAM                   Reduction Parameter
+  REDUCT_TECH                    Reduction Technique
+REFER                            References
+  REFER_BIBCODE                  Reference Bibliographic Code
+  REFER_CODE                     References (or reference code)
+  REFER_TEXT                     Text related to a reference, may include author, journal, editor, publisher...
+  REFER_JOURN                    Journal/Publication
+  REFER_PAGE                     Page Number
+  REFER_VOL                      Volume
+REMARKS                          Remark or Comments
+SPECT                            Spectroscopy and related quantities
+  SPECT_BALMER                   Properties of hydrogen balmer series
+    SPECT_BALMER_DEC             Balmer Decrement
+    SPECT_BALMER_JUMP            Balmer Jump
+  SPECT_CONTINUUM                Continuum Properties
+    SPECT_CONTINUUM_CORR-FACT     Continuum Correction Factor
+    SPECT_CONTINUUM_DEPTH        Continuum Depth
+    SPECT_CONTINUUM_INDICATOR     Continuum Indicator
+    SPECT_CONTINUUM_PROP         Continuum Properties
+  SPECT_DOPPLER-PAR              Doppler Parameter
+  SPECT_EMISSIVITY               Emissivity In A Certain Waveband
+  SPECT_EQ-WIDTH                 Equivalent Width
+  SPECT_FEATURE                  Spectroscopic Feature properties
+    SPECT_FEATURE_PROP           Spectroscopic Feature properties
+    SPECT_FEATURE_WIDTH          Equivalent Width of a given Feature
+  SPECT_FLUX                     Flux, usually in a narrow spectral band
+    SPECT_FLUX_NORM              Normalized Flux, usually in a narrow spectral band
+    SPECT_FLUX_RATIO             Spectroscopic flux ratio
+    SPECT_FLUX_UV                Spectroscopy line flux in the uv
+    SPECT_FLUX_VALUE             Flux, usually in a narrow spectral band
+  SPECT_GENERAL                  Spectroscopy in general
+  SPECT_HARDNESS-RATIO           Hardness ratio usually in X-ray
+  SPECT_ID                       Spectral identification
+  SPECT_INDEX                    Spectroscopic index
+    SPECT_INDEX_BANDPASS         Spectroscopic index bandpass
+    SPECT_INDEX_HALPHA           H alpha spectroscopic index
+    SPECT_INDEX_HBETA            H Beta spectroscopic index
+    SPECT_INDEX_HGAMMA           H gamma spectroscopic index
+    SPECT_INDEX_MISC             Miscellaneous spectroscopic index
+  SPECT_INTEGRAL                 Integral spectrum
+  SPECT_INTENSITY                Spectral Intensity
+    SPECT_INTENSITY_ESTIMATED     Estimated Intensity
+    SPECT_INTENSITY_FR-DROP      Intensity Drop Fraction
+    SPECT_INTENSITY_HBETA-NORM     Hbeta Normalized Intensity
+    SPECT_INTENSITY_INST-UNIT     Intensity In Instrumental Units
+    SPECT_INTENSITY_MAIN         Spectral Intensity
+    SPECT_INTENSITY_RATIO        Intensity Ratio
+    SPECT_INTENSITY_REL          Relative Intensity
+  SPECT_LINE                     Spectral Line Properties
+    SPECT_LINE_BROADENING        Line Broadening
+    SPECT_LINE_CENT              Line Central Position
+    SPECT_LINE_DEPTH             Line Depth
+      SPECT_LINE_DEPTH_DIFF      Difference In Line Depth
+      SPECT_LINE_DEPTH_VALUE     Line Depth
+    SPECT_LINE_ENERGY            Line Energy
+    SPECT_LINE_FREQUENCY         Line Frequency (usually in radio)
+    SPECT_LINE_DIFF-FREQ         Differential frequency between two lines (usually in radio)
+    SPECT_LINE_FWHM              Line Full Width Half Maximum (FWHM)
+    SPECT_LINE_ID                Line Identification
+    SPECT_LINE_INTENSITY         Line Intensity
+    SPECT_LINE_MOMENT            Line Moment
+    SPECT_LINE_RATIO             Line Ratio
+    SPECT_LINE_STRENGTH          Line Strength
+    SPECT_LINE_TEMP              Line temperature
+    SPECT_LINE_WIDTH             Line Width
+  SPECT_LUM-CLASS                Luminosity Classification
+  SPECT_LUM/WVLNGTH-INT          Luminosity per Wavelength Interval
+  SPECT_LUMINOSITY               Monochromatic Luminosity
+  SPECT_NORMALIZED               Normalized Spectrum
+  SPECT_PECUL                    Spectral Peculiarities
+  SPECT_POWER                    Spectral Power
+  SPECT_RANGE                    Spectral Range
+  SPECT_RESOLUTION               Spectral Resolution
+  SPECT_S/N                      Spectrum Signal To Noise Ratio
+  SPECT_SENSITIVITY              Spectral sensitivity
+  SPECT_SOFTNESS-RATIO           Softness ratio usual in x ray
+  SPECT_SP+INDEX                 Spectral Index (positive alpha)
+  SPECT_SP-INDEX                 Spectral Index (negative alpha)
+  SPECT_STARK                    Stark effect related quantities
+  SPECT_SUN                      Solar Spectrum
+  SPECT_TYPE                     Spectrum Classification
+    SPECT_TYPE_GENERAL           Spectrum Classification
+    SPECT_TYPE_MK                MK Spectral Classification
+    SPECT_TYPE_RADIO             Radio Spectral Type
+  SPECT_VELOC                    Velocity (associated with lines)
+    SPECT_VELOC_VALUE            Velocity (associated with lines)
+    SPECT_VELOC_WIDTH            Velocity width
+  SPECT_WAVELENGTH               Wavelength (associated to lines)
+    SPECT_WAVELENGTH_CENTRAL     Central wavelength
+    SPECT_WAVELENGTH_DIFF        Difference in Wavelength
+    SPECT_WAVELENGTH_MISC        Wavelength (associated to lines)
+STAT                             Statistical Properties
+  STAT_%REJECT                   Percent of Rejection
+  STAT_COMPLETENESS              Degree of Completeness of a Sample
+  STAT_CORRELATION               Correlation
+  STAT_LIKELIHOOD                Maximum Likelihood of existence or occurence
+  STAT_LIKELIHOOD-RATIO          Likelihood Ratio
+  STAT_MEAN                      Statistics Mean Value
+  STAT_MEDIAN                    Statistics Median Value
+  STAT_N-DOF                     Degrees of Freedom
+  STAT_PARAM                     Statistic Parameter or Factor
+  STAT_PROBABILITY               Probability
+  STAT_PROP                      Statistical Properties
+  STAT_SAMP-FACTOR               Sampling Factor
+  STAT_SIGNIFICANCE              Statistical Significance
+TEL                              Telescopes
+  TEL_APERTURE                   Telescope Aperture
+  TEL_FOCAL-LENGTH               Focal Length
+  TEL_ID                         Telescope Identification
+TIME                             Time and related Quantities
+  TIME_AGE                       Age
+  TIME_CROSSING                  Crossing Time
+  TIME_CYCLE                     Cycle number of a variable object.
+  TIME_DATE                      Date (Julian Date or Heliocentric Julian date)
+  TIME_DELAY                     Time Delay
+  TIME_DIFF                      Time Difference O-C Residual
+  TIME_DP/DT                     Period Rate Of Change
+  TIME_EPOCH                     Epoch
+  TIME_EQUINOX                   Equinox
+  TIME_EVOLUTION                 Evolution Time
+  TIME_EXPTIME                   Exposure Time
+  TIME_INTERVAL                  Time Interval
+  TIME_LIMIT                     Time Limit
+  TIME_MISC                      Time in general
+  TIME_PERIOD                    Period
+  TIME_PHASE                     Phase (in the context of periodic variable objects)
+  TIME_RATE                      Rate Of Certain Phenomenon
+  TIME_RELAXATION                Relaxation Time
+  TIME_RESOLUTION                Time resolution
+  TIME_SCALE                     Time Scale
+  TIME_ZONE                      Time Zone
+UNITS                            Units in which a quantity is measured
+VAR                              Quantities related to variable objects
+  VAR_AMPLITUDE                  Amplitude of variation and related quantities
+    VAR_AMPLITUDE_RATIO          Amplitude Ratio
+    VAR_AMPLITUDE_VALUE          Amplitude of variation
+  VAR_CLASS                      Type of variability
+  VAR_DF/DT2                     2nd time derivative of barycentric rotation frequency in seconds
+  VAR_DF/DT3                     3rd time derivative of barycentric rotation frequency in seconds
+  VAR_ECL-CYC-N                  Eclipse Cycle Number
+  VAR_FRACT-LIGHT                Fraction Light
+  VAR_INDEX                      Variability Index
+  VAR_LIGHT-DROP                 Light Drop
+  VAR_MAG-RANGE                  Magnitude Range
+  VAR_MEAN                       Quantity at stage of mean
+  VAR_MODEL-FIT                  Variability Fit Parameter
+  VAR_PERIOD                     Period of Variability and related quantities
+    VAR_PERIOD_VAR               Period Variations
+  VAR_PRIM-MIN                   Primary Minimum Importance
+  VAR_PROBABILITY                Probability of Variability
+  VAR_PULSE                      Quantities related to pulses (pulsars)
+    VAR_PULSE_EQ-WIDTH           Pulse Equivalent Width
+    VAR_PULSE_WIDTH              Pulse Width
+  VAR_RAD-OSCILL                 Radial Oscillation Parameter
+  VAR_RRLYRA-FREQ                Frequency Of RR Lyrae
+  VAR_SEC-MIN                    Secondary Minimum Importance
+VELOC                            Velocity
+  VELOC_BARYCENTER               Barycenter Velocity
+  VELOC_CM                       Velocity Refered to a Co-Moving System
+    VELOC_CM_X                   Comoving Velocity Along X Eastward
+    VELOC_CM_Y                   Comoving Velocity Along Y Northward
+    VELOC_CM_Z                   Comoving Velocity Along the Line of Sight
+  VELOC_CMB                      Radial Velocity respect to the 3K CMB
+  VELOC_CORR                     Velocity Correction
+  VELOC_DIFF                     Velocity Difference
+  VELOC_DISP                     Velocity Dispersion
+  VELOC_ESCAPE                   Escape Velocity
+  VELOC_EXPANSION                Expansion Velocity
+  VELOC_GAL                      Space Velocity In Galactic Coordinates
+    VELOC_GAL_PHI                Space Velocity In Galactic Coordinate Phi Component
+    VELOC_GAL_RHO                Space Velocity In Galactic Coordinate Rho Component
+    VELOC_GAL_U                  Space Velocity In Galactic Coordinate U Component
+    VELOC_GAL_V                  Space Velocity In Galactic Coordinate V Component
+    VELOC_GAL_W                  Space Velocity In Galactic Coordinate W Component
+  VELOC_GC                       Galactocentric Radial Velocity
+  VELOC_GEOC                     Geocentric Radial Velocity
+  VELOC_HC                       Heliocentric Radial Velocity
+  VELOC_LG                       Local Group Radial Velocity
+  VELOC_LSR                      Radial Velocity Respect to the Local Standard of Rest
+  VELOC_MAX                      Maximum or Terminal Velocity
+  VELOC_MEAN                     Mean Velocity
+  VELOC_MICRO-TURB               Microturbulence Velocity
+  VELOC_MISC                     Velocity in general
+  VELOC_OBS                      Observed velocity (without corrections)
+  VELOC_OCCULT                   Occultation Velocity
+  VELOC_ORBIT                    Orbital Velocity
+  VELOC_PECULIAR                 Peculiar Velocity
+  VELOC_PRE-ENTRY                Pre-Entry Velocity (meteorites)
+  VELOC_PULSAT                   Pulsation Velocity
+  VELOC_RANGE                    Velocity Range
+  VELOC_RELAT                    Relative Velocity
+  VELOC_RESID                    Residual velocity (any component or system)
+  VELOC_RMS                      Velocity RMS
+  VELOC_ROTAT                    Rotational Velocity
+  VELOC_SPACE                    Space Velocity
+    VELOC_SPACE_X                Space Velocity X Component
+    VELOC_SPACE_Y                Space Velocity Y Component
+    VELOC_SPACE_Z                Space Velocity Z Component
+  VELOC_SYST                     Systemic Velocity
+    VELOC_SYST_HC                Heliocentric Systemic Velocity
+    VELOC_SYST_MISC              Systemic Velocity
+  VELOC_TANG                     Tangential Velocities
+    VELOC_TANG_GAL               Tangential Velocity in Galactic Frame
+    VELOC_TANG_MISC              Tangential Velocity
+    VELOC_TANG_PEC               Peculiar Tangential Velocity
+  VELOC_TOTAL                    Total Velocity
+  VELOC_WIND                     Wind Velocity
+WEIGHT                           Statistical Weight Associated to Data Fits
+</PRE><HR noshade>
+<TABLE width=97%>
+<TR><TD ALIGN=LEFT>&copy;ULP/CNRS -
+<A HREF="http://cdsweb.u-strasbg.fr/"> <I><B>C</B>entre
+de <B>D</B>onn&eacute;es astronomiques de 
+<B>S</B>trasbourg</A></I></TD>
+<TD ALIGN=RIGHT><A HREF="mailto:question@simbad.u-strasbg.fr?Subject=/viz-bin/UCDs">
+<IMG SRC="http://simbad.u-strasbg.fr/Icons/envelop1.gif" ALIGN="middle"
+border=0 ALT="Question@simbad"></A></TD></TR>
+</TABLE>
+</BODY>
+
+<!-- ++Closing tex environment[1] 'BODY' -->
+</BODY><!-- ....wait for 1 children: %0=3378 -->
+
+<!-- ....open_pipe(/usr/sun4u/bin/glufilter, 1) -->

@@ -1,0 +1,17 @@
+<html>
+<head><title>Table join package</title></head>
+<body>
+Classes for performing table joins by matching rows to each other.
+The matching is done in an entirely configurable and pluggable way
+by defining a {@link uk.ac.starlink.table.join.MatchEngine} which defines
+what counts as a match between two tuples (rows) and can be used to
+work out what counts as a near miss too.  Matching is (except in 
+pathological cases) an O(N ln N) process,
+where N is the total number of rows in all the tables participating in
+a match.
+<code>MatchEngine</code> implementations are provided for a number of
+(astronomically) common cases, including N-dimensional Cartesian, 
+spherical polar, exact value and Sky matching 
+(the Sky one uses the HEALPix scheme).
+You can also combine matches to an arbitrary level of complexity.
+</body>

@@ -1,0 +1,22 @@
+
+# Import the AXIS docs and webapps directories as third party sources. 
+# Start from the top-level directory of a binary release.
+
+#  The documents. Remember to get the LICENSE file.
+cp LICENSE docs
+cd docs
+cvs import -ko -I! -m "Axis docs" java/source/axis/docs/axis AXIS Axis_Docs_V1_2_1
+
+#  OLD commands.
+#cvs import -ko -I! -m "Axis docs" java/source/axis/docs/axis AXIS Axis_Docs_V1RC1
+#cvs import -ko -I! -m "Axis docs" java/source/axis/docs/axis AXIS Axis_Docs_V1_1
+
+#  Webapps for creating the war file.
+
+cd ..
+cd webapps
+cvs import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1_2_1
+
+#  OLD commands.
+#cvs import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1RC1
+#cvs import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1_1

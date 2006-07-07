@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--W3C Schema for VOTable  = Virtual Observatory Tabular Format
+     See History at      http://vizier.u-strasbg.fr/doc/VOTable
+     See Discussions at  http://archives.us-vo.org/VOTable
+  This XML schema can be referenced by
+       http://us-vo.org/xml/VOTable.xsd
+   or  http://cdsweb.u-strasbg.fr/xml/VOTable.xsd 
+  The DTD is available from
+       http://us-vo.org/xml/VOTable.dtd
+   or  http://cdsweb.u-strasbg.fr/xml/VOTable.dtd 
+.Version 1.0 : 15-Apr-2002
+.Version 1.0a: 27-Sep-2001 in MIN MAX STREAM
+.Version 1.0b: 09-Nov-2002 from Steve Lowe, slowe@head-cfa.harvard.edu:
+	       in DEFINITIONS, use 'xs:sequence' rather than 'xs:all'
+.Version 1.0c: 12-Nov-2002 from Steve Lowe, use xs:choice in DEFINITIONS
+.Version 1.0d: 10-Dec-2002 Allow several INFO TABLE
+.Version 1.0e: 01-Oct-2003 Changes in LINK 
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+<!-- Here we define some interesting new datatypes:
+     - anyTEXT   may have embedded XHTML (conforming HTML)
+     - astroYear is an epoch in Besselian or Julian year, e.g. J2000
+     - arrayDEF  specifies an array size e.g. 12x23x*
+     - dataType  defines the acceptable datatypes
+     - precType  defines the acceptable precisions
+     - yesno     defines just the 2 alternatives
+-->
+
+<xs:complexType name="anyTEXT" mixed="true">
+      <xs:sequence>
+        <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
+      </xs:sequence>
+</xs:complexType>
+
+<xs:simpleType  name="astroYear">
+  <xs:restriction base="xs:token">
+    <xs:pattern  value="[JB][0-9]+([.][0-9]*)?"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType  name="arrayDEF">
+  <xs:restriction base="xs:token">
+    <xs:pattern  value="([0-9]+x)*[0-9]*[*]?"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="dataType">
+  <xs:restriction base="xs:NMTOKEN">
+    <xs:enumeration value="boolean"/>
+    <xs:enumeration value="bit"/>
+    <xs:enumeration value="unsignedByte"/>
+    <xs:enumeration value="short"/>
+    <xs:enumeration value="int"/>
+    <xs:enumeration value="long"/>
+    <xs:enumeration value="char"/>
+    <xs:enumeration value="unicodeChar"/>
+    <xs:enumeration value="float"/>
+    <xs:enumeration value="double"/>
+    <xs:enumeration value="floatComplex"/>
+    <xs:enumeration value="doubleComplex"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="precType">
+  <xs:restriction base="xs:token">
+    <xs:pattern value="[EF]?[1-9][0-9]*"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="yesno">
+  <xs:restriction base="xs:NMTOKEN">
+    <xs:enumeration value="yes"/>
+    <xs:enumeration value="no"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<!-- VOTable is the root element -->
+  <xs:element name="VOTABLE">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="DESCRIPTION" minOccurs="0"/>
+        <xs:element ref="DEFINITIONS" minOccurs="0"/>
+        <xs:element ref="INFO" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="RESOURCE" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="version">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="1.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+<!-- RESOURCES can contain DESCRIPTION, (INFO|PARM|LINK), (TABLE|RESOURCE) -->
+  <xs:element name="RESOURCE">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="DESCRIPTION" minOccurs="0"/>
+        <xs:element ref="INFO" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="COOSYS" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="PARAM" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="LINK" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="TABLE" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="RESOURCE" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:token"/>
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="type" default="results">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="results"/>
+            <xs:enumeration value="meta"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="DESCRIPTION" type="anyTEXT" />
+
+  <xs:element name="DEFINITIONS">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="COOSYS" />
+        <xs:element ref="PARAM" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+<!-- INFO is a name-value pair -->
+  <xs:element name="INFO">
+    <xs:complexType mixed="true"><xs:complexContent>
+      <xs:extension base="anyTEXT">
+        <xs:attribute name="ID" type="xs:ID"/>
+        <xs:attribute name="name" type="xs:token" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:complexContent></xs:complexType>
+  </xs:element>
+
+<!-- A PARAM is similar to a FIELD, but it also has a "value" attribute -->
+  <xs:element name="PARAM">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="DESCRIPTION" minOccurs="0"/>
+        <xs:element ref="VALUES" minOccurs="0"/>
+        <xs:element ref="LINK" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="unit" type="xs:token"/>
+      <xs:attribute name="datatype" type="dataType"/>
+      <xs:attribute name="precision" type="precType"/>
+      <xs:attribute name="width" type="xs:positiveInteger"/>
+      <xs:attribute name="ref" type="xs:IDREF"/>
+      <xs:attribute name="name" type="xs:token" use="required"/>
+      <xs:attribute name="ucd" type="xs:token"/>
+      <xs:attribute name="value" type="xs:string"/>
+      <xs:attribute name="arraysize" type="arrayDEF"/>
+    </xs:complexType>
+  </xs:element>
+
+<!-- A TABLE is a sequence of FIELDS and LINKS and DESCRIPTION, 
+     possibly followed by a DATA section 
+-->
+  <xs:element name="TABLE">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="DESCRIPTION" minOccurs="0"/>
+        <xs:element ref="FIELD" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="LINK" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="DATA" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="name" type="xs:token"/>
+      <xs:attribute name="ref" type="xs:IDREF"/>
+    </xs:complexType>
+  </xs:element>
+
+<!-- FIELD is the definition of what is in a column of the table -->
+  <xs:element name="FIELD">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="DESCRIPTION" minOccurs="0"/>
+        <xs:element ref="VALUES" minOccurs="0" maxOccurs="2"/>
+        <xs:element ref="LINK" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="unit" type="xs:token"/>
+      <xs:attribute name="datatype" type="dataType" use="required"/>
+      <xs:attribute name="precision" type="precType"/>
+      <xs:attribute name="width" type="xs:positiveInteger"/>
+      <xs:attribute name="ref" type="xs:IDREF"/>
+      <xs:attribute name="name" type="xs:token" use="required"/>
+      <xs:attribute name="ucd" type="xs:string"/>
+      <xs:attribute name="arraysize" type="xs:string"/>
+      <xs:attribute name="type">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="hidden"/>
+            <xs:enumeration value="no_query"/>
+            <xs:enumeration value="trigger"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+<!-- VALUES expresses the values that can be taken by the data 
+     in a column or by a parameter
+-->
+  <xs:element name="VALUES">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="MIN" minOccurs="0"/>
+        <xs:element ref="MAX" minOccurs="0"/>
+        <xs:element ref="OPTION" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="type" default="legal">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="legal"/>
+            <xs:enumeration value="actual"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="null" type="xs:token"/>
+      <xs:attribute name="invalid" type="yesno" default="no"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MIN">
+    <xs:complexType>
+      <xs:attribute name="value" type="xs:string" use="required"/>
+      <xs:attribute name="inclusive" type="yesno" default="yes"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MAX">
+    <xs:complexType>
+      <xs:attribute name="value" type="xs:string" use="required"/>
+      <xs:attribute name="inclusive" type="yesno" default="yes"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OPTION">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="OPTION" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:token"/>
+      <xs:attribute name="value" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+<!-- The LINK is a URL (href) or some other kind of reference (gref) -->
+  <xs:element name="LINK">
+    <xs:complexType mixed="true">
+      <xs:attribute name="ID" type="xs:ID"/>
+      <xs:attribute name="content-role">
+        <xs:simpleType>
+          <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="query"/>
+            <xs:enumeration value="hints"/>
+            <xs:enumeration value="doc"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="content-type" type="xs:token"/>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="value" type="xs:string"/>
+      <xs:attribute name="href" type="xs:anyURI"/>
+      <xs:attribute name="gref" type="xs:token"/>
+      <xs:attribute name="action" type="xs:anyURI"/>
+    </xs:complexType>
+  </xs:element>
+
+<!-- DATA is the actual table data, in one of three formats -->
+  <xs:element name="DATA">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element ref="TABLEDATA"/>
+        <xs:element ref="BINARY"/>
+        <xs:element ref="FITS"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+<!-- Pure XML data -->
+  <xs:element name="TABLEDATA">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="TR" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="TD">
+    <xs:complexType mixed="true"><xs:complexContent>
+      <xs:extension base="anyTEXT">
+        <xs:attribute name="ref" type="xs:IDREF"/>
+      </xs:extension>
+    </xs:complexContent></xs:complexType>
+  </xs:element>
+
+  <xs:element name="TR">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="TD" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+<!-- FITS file, perhaps with specification of which extension to seek to -->
+  <xs:element name="FITS">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="STREAM"/>
+      </xs:sequence>
+      <xs:attribute name="extnum" type="xs:positiveInteger"/>
+    </xs:complexType>
+  </xs:element>
+
+<!-- BINARY data format -->
+  <xs:element name="BINARY">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="STREAM"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+<!-- STREAM can be local or remote, encoded or not -->
+  <xs:element name="STREAM">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="type" default="locator">
+            <xs:simpleType>
+              <xs:restriction base="xs:NMTOKEN">
+                <xs:enumeration value="locator"/>
+                <xs:enumeration value="other"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="href" type="xs:anyURI"/>
+          <xs:attribute name="actuate" default="onRequest">
+            <xs:simpleType>
+              <xs:restriction base="xs:NMTOKEN">
+                <xs:enumeration value="onLoad"/>
+                <xs:enumeration value="onRequest"/>
+                <xs:enumeration value="other"/>
+                <xs:enumeration value="none"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="encoding" default="none">
+            <xs:simpleType>
+              <xs:restriction base="xs:NMTOKEN">
+                <xs:enumeration value="gzip"/>
+                <xs:enumeration value="base64"/>
+                <xs:enumeration value="dynamic"/>
+                <xs:enumeration value="none"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="expires" type="xs:dateTime"/>
+          <xs:attribute name="rights" type="xs:token"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+<!-- Expresses the coordinate system we are using -->
+  <xs:element name="COOSYS">
+    <xs:complexType mixed="true"><xs:complexContent>
+      <xs:extension base="anyTEXT">
+        <xs:attribute name="ID" type="xs:ID"/>
+        <xs:attribute name="equinox" type="astroYear"/>
+        <xs:attribute name="epoch" type="astroYear"/>
+        <xs:attribute name="system" default="eq_FK5">
+          <xs:simpleType>
+            <xs:restriction base="xs:NMTOKEN">
+              <xs:enumeration value="eq_FK4"/>
+              <xs:enumeration value="eq_FK5"/>
+              <xs:enumeration value="ICRS"/>
+              <xs:enumeration value="ecl_FK4"/>
+              <xs:enumeration value="ecl_FK5"/>
+              <xs:enumeration value="galactic"/>
+              <xs:enumeration value="supergalactic"/>
+              <xs:enumeration value="xy"/>
+              <xs:enumeration value="barycentric"/>
+              <xs:enumeration value="geo_app"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension></xs:complexContent></xs:complexType>
+  </xs:element>
+
+</xs:schema>

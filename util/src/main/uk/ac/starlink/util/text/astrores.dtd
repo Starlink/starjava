@@ -1,0 +1,456 @@
+<!-- DOCUMENT TYPE DEFINITION FOR THE ASTRONOMICAL RESOURCES
+     Version 0.9 - 17-Apr-2000  == ID / IDREF definitions
+     Version 0.8 - 16 Janv 2000 == LINK Modifications
+     Version 0.7 - 20 Dece 1999 == Allan Brighton's Remarks
+     Version 0.6 - 06 Nove 1999 == Addition of <CSV> tag
+     Version 0.5 - 24 Sept 1999
+     Version 0.4 - 28 july 1999
+     Version 0.3 - 25 july 1999
+     Version 0.2 - 12 july 1999
+     Version 0.1 - 29 june 1999
+     
+     This DTD describes the architecture of XML documents
+     for astronomical resources. Astronomical resources means
+     in this context:
+        . excerpt tables or complete tables
+        . lists of table descriptions
+        . lists of server descriptions
+     The aim is to give enough knowledge to the user interfaces 
+     to manipulate these resources (units, formats, anchors, natural
+     language descriptions, nomenclatures, value ranges...).
+     
+     Syntax policy
+     =============
+     - The element names are in uppercase in order to help the reading.
+     - The attribute names are preferably in lowercase (exception
+       for ID from the Xpointer standard)
+     - The attribute values are not set directly in the DTD but indicated
+       in comments to facilitate the reading and future extensions.
+     
+     Remarks about the ID attribute
+     ==============================
+     This DTD use the ID attribute defined by Xpointer standard
+     in order to refer the elements between them:
+     The attribute ID can take any authorized values in XML.
+     Each ID MUST BE UNIQUE in the XML document.
+     To refer to an element the Xpointer standard is used. For
+     example attr="myJ2000" refers to the element that contains ID="myJ2000"
+     in the current XML document. An alternative to this notation has
+     been introduced with the classical $NAME variable (or ${NAME}). This
+     notation will be prefered in case of substitutions (URL template,
+     epochs depending of the row values,...
+     ex: http://vizir.u-strasbg.fr?cgi-bin?-c=$ra+$de&-r=10)
+
+     Remarks about DATA element
+     ==========================
+     The DATA element can indicate different structures depending
+     of the origin and the size of the DATA.
+        -> CSV embedded (Character Separated values)
+        -> Full XML tagging
+        -> anchor to external data
+     In case of CSV syntax, headings are authorized to help the reading.
+        
+     The LINK element has been defined to set together any
+     URL template for queries, documentation, additional
+     information... It follows the Xlink syntax.
+
+   This attribute does not work with IE...
+   xmlns:ASTRO  CDATA   #IMPLIED
+-->
+
+<!ELEMENT ASTRO (DESCRIPTION?, DEFINITIONS?, INFO*, RESOURCE+) >
+   <!ATTLIST ASTRO
+   ID           ID      #IMPLIED 
+   >
+
+<!ELEMENT RESOURCE (DEFINITIONS*, NAME?, TITLE?, DESCRIPTION?, INFO*, 
+                    FIELD*, TABLE*, LINK* ) >
+   <!ATTLIST RESOURCE
+   ID           ID           #IMPLIED 
+   type         (results|meta)  "results" >
+
+<!-- Details of the used parameters -->
+<!ELEMENT INFO (#PCDATA)>
+   <!-- ID       To refer this element
+        name     Argument's canonical name (ASU); 
+                 when absent, the argument can't be used for back queries.
+        value    Argument's contents
+   -->     
+   <!ATTLIST INFO
+   ID           ID          #IMPLIED
+   name         CDATA          #IMPLIED
+   value        CDATA          #IMPLIED >
+
+<!-- To specify ranges or lists of values
+     In case of use in <FIELD> tag, the type attribute
+     can be used to indicate the kind of values.
+     The multiple attribute specifies that it is
+     not an exclusive list of value, and in this case
+     the separator value indicates the character to
+     separate several values
+        type      legal|actual
+        multiple  yes|no 
+        separator a letter, by default "," -->
+
+<!-- Astronomical table -->
+<!-- Note: table may be empty .. thus ================ FIELD* -->
+<!ELEMENT TABLE (NAME?, TITLE?, DESCRIPTION?, COOSYS*, FIELD*, LINK*, DATA?) >
+   <!ATTLIST TABLE
+   ID           ID           #IMPLIED >
+   
+<!-- 1) In TABLE tag: Catalog or table shortname
+        ex: "GSC1.2"
+     2) In FIELD tag: field name
+        ex: "RA(J2000)" -->
+<!ELEMENT NAME (#PCDATA) >
+
+<!-- 1) In TABLE tag: Catalog or table description (paragraph)
+        ex: "This is an excerpt of the GSC1.2. This version was re-reduced
+             with PPM catalogue; see more details about..."
+     2) In FIELD tag: field description (paragraph) -->
+<!ELEMENT DESCRIPTION (#PCDATA) >
+   <!ATTLIST DESCRIPTION
+   about        CDATA   #IMPLIED >
+   
+<!-- 1) In TABLE tag: Catalog or table title in one line
+        ex: "The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996)"
+     2) In FIELD tag: field description (paragraph)
+        ex: "Right ascension in J2000, epoch of plate" -->
+<!ELEMENT TITLE (#PCDATA) >
+
+<!-- Definition of a field -->
+<!ELEMENT FIELD (NAME?, TITLE?, DESCRIPTION?, VALUES*, LINK? ) >
+   <!-- ID       To refer this element
+        unit     Unit used for the field (see appendix)
+        datatype Datatype of field value
+                 F-float, D-double, I-integer, A-ascii
+                 L-boolean (logical), E-exponential
+        precision Precision of field value: number of significant digits
+                 after the dot (ex: "3")
+        width    number of characters          "8"
+        format   indicate the format by a "%fmt" template (as "printf()"
+                 in language C). Use for coordinate format, time and date
+                 formats   (ex: "%RAh:%RAmd %DEd:%DEmd" - (see appendix)
+        ref      Reference to the system for this field. For example it can be
+                 a coordinate or a photometric system.
+                 ex : #id("myJ2000")  -> The syntax comes from Xpointers
+        name     Alternative to specify the name of the field if it uses
+                 only ascii characters (see the NAME element for the
+                 other possibility)
+        ucd      Unified column descriptor    "POS_EQ_RA" (ESO/CDS work)
+        type     To characterize the field
+                 hidden   for fields used typically for server/client exchange
+                 no_query for fields which specify some parameters
+                          (e.g. the equinox of a coordinate system)
+                 trigger  for fields which contain a parameter for an action
+                          
+        actualvalues Reference to the range or list of actual values
+                 (it is an alternative to the <VALUES> entity in order to
+                 be able to factorize them)
+        legalvalues Reference to the range or list of legal values
+                 (it's an alternative to the <VALUES> entity in order to
+                 be able to factorize them)
+   -->     
+   <!ATTLIST FIELD
+   ID           ID             #IMPLIED
+   unit         CDATA          #IMPLIED
+   datatype     (F|I|D|E|A|L)  #IMPLIED
+   precision    CDATA          #IMPLIED
+   width        CDATA          #IMPLIED
+   format       CDATA          #IMPLIED
+   ref          IDREF          #IMPLIED
+   name         CDATA          #IMPLIED
+   ucd          CDATA          #IMPLIED
+   type         (hidden|no_query|trigger) #IMPLIED >
+   
+<!-- To specify ranges or lists of values
+     In case of use in <FIELD> tag, the type attribute
+     can be used to indicate the kind of values.
+     The multiple attribute specifies that it is
+     not an exclusive list of value, and in this case
+     the separator value indicates the character to
+     separate several values
+        type      legal|actual
+        multiple  yes|no 
+        separator a letter, by default "," -->
+<!ELEMENT VALUES (MIN*, MAX*, OPTION*, NULL?) >
+   <!ATTLIST VALUES
+   ID           ID             #IMPLIED
+   multiple    (yes |no)       "no"
+   type        (legal|actual)  "legal" >
+
+<!-- Min of a value range
+    value        the min
+    inclusive    yes|no  (default: yes) -->
+<!ELEMENT MIN (#PCDATA) >
+   <!ATTLIST MIN
+   value        CDATA          #REQUIRED
+   inclusive    (yes |no)      "yes" >
+
+<!-- Max of a value range
+    value        the max
+    inclusive    yes|no  (default: yes) -->
+<!ELEMENT MAX (#PCDATA) >
+   <!ATTLIST MAX
+   value        CDATA          #REQUIRED
+   inclusive    (yes |no)      "yes" >
+
+<!-- Item of list of values. The content of the
+     OPTION tag can be not empty to indicate
+     a corresponding sentence (ex: value="I/239"
+     and content: "Hipparcos catalog" 
+     NOTE: OPTION may include VALUE for hierarchical menus.
+           (therefore OPTION can't have #PCDATA)
+     -->
+<!ELEMENT OPTION (OPTION*) >
+   <!ATTLIST OPTION
+   name         CDATA          #IMPLIED
+   value        CDATA          #REQUIRED >
+
+<!-- Specify the value for the null representation
+    value        the null representation -->
+<!ELEMENT NULL (#PCDATA) >
+   <!ATTLIST NULL
+   value        CDATA          #REQUIRED >
+      
+<!-- Link to relevant information. 
+     The LINK indicates a possibility to retrieve more data,
+     in a mime type specified in the content-type attribute,
+     for a purpose sketched in the content-role attribute;
+     the title attribute is the text which can be proposed
+     for e.g. a header of a button label, 
+     and the value attribute can propose a text for each
+     row (using the substitution possibilities)
+
+     The link can be defined in one of the 3 forms:
+     1. Via the href (e.g.. href="http://...?param=${id-field}..."    ),
+     2. Via the action (e.g.. action="http://...")
+        which acts as the html FORM tag: 
+        the full link is the concatenation of:
+        -> the action contents 
+        -> each field of the <RESOURCE> with no type or marked as type="hidden"
+           is appended as ${name}=${value}
+           where ${name} stands for the contents of the name attribute
+                                      of in the FIELD tag
+              ${value} stands for the relevant value
+     3. Via the gref (the GLU way of specifying the link)
+     The link may contain $ symbols indicating variable substitution,
+     (see "Remarks about the ID attribute" above)
+
+     The purpose of the link defined by the content-role attribute may
+     contain the following keys:
+        query   URL template to query the resource
+        hints   URL template to get additional information proposed
+                by the server for use by the application
+        doc     URL template to get documentation about the resource
+        ....    (other tbd's) -->
+
+<!ELEMENT LINK (#PCDATA) >
+   <!ATTLIST LINK
+   ID           ID             #IMPLIED 
+   content-role (query|hints|doc) #IMPLIED
+   content-type CDATA           #IMPLIED
+   title        CDATA          #IMPLIED
+   value        CDATA          #IMPLIED 
+   href         CDATA          #IMPLIED
+   gref         CDATA          #IMPLIED 
+   action       CDATA          #IMPLIED >
+
+
+<!-- Data of the table. The data may be supplied via a link,
+     as Character-Separed-Values (CSV) or 
+     as a fully-tagged XML table (TABLEDATA).
+  
+  For CSV data, the possible attributes are
+        colsep    column separator (by default \t) (ex: "|")
+        recsep    record separator (by default \n) (ex: "\r")
+        headlines number of heading lines to ignore (comment lines)
+
+  For TABLEDATA, made of rows, each row made of cells
+      Empty tables (no row) are allowed; 
+      but a row cannot be made of zero cell.
+-->
+
+<!ELEMENT TABLEDATA (ROW*)>
+   <!ATTLIST TABLEDATA
+   headlines    CDATA          #IMPLIED >
+
+<!ELEMENT ROW (CELL+) >
+
+<!ELEMENT CELL (#PCDATA)>
+   <!ATTLIST CELL
+   ref          IDREF          #IMPLIED >
+
+<!ELEMENT DATA (TABLEDATA | LINK | CSV) >
+
+<!ELEMENT CSV (#PCDATA)>
+   <!ATTLIST CSV
+   recsep       CDATA          #IMPLIED
+   colsep       CDATA          #IMPLIED
+   headlines    CDATA          #IMPLIED >
+
+
+<!-- General definitions for default system coordinates and
+     set of values -->
+<!ELEMENT DEFINITIONS (COOSYS*) >
+   
+<!-- Coordinate system declaration -->
+<!ELEMENT COOSYS (#PCDATA) >
+   <!-- ID       to refer it                   "myJ2000"
+        system    eq_FK4|eq_FK5|ICRS|ecl_FK4|ecl_FK5|
+                  galactic|supergalactic|xy|barycentric|geo_app
+        equinox  the equinox
+        epoch    the epoch
+        x        Alternative for referring to RA
+        y        Alternative for referring to DE
+   -->
+   <!ATTLIST COOSYS
+   ID           ID              #IMPLIED
+   system       (eq_FK4|eq_FK5|ICRS|ecl_FK4|ecl_FK5|galactic|supergalactic|xy|barycentric|geo_app)      "eq_FK5"
+   equinox      CDATA           #IMPLIED
+   epoch        CDATA           #IMPLIED
+   x            CDATA           #IMPLIED
+   y            CDATA           #IMPLIED >
+      
+
+
+<!-- APPENDIX
+
+     "unit" attibute values (FIELD element)
+     ______________________________________
+     %         percent                  10-2
+     A         Ampere                   A
+     a         year                     3.15576x10+7s
+     al        light-year               9.46053x10+15m
+     Angstroem Angstroem (0.1nm)        10-10m
+     arcmin    minute of arc            4.62963x10-5
+     arcsec    second of arc            7.71605x10-7
+     atm       atmosphere               1.01325x10+5Pa (kg.m-1.s-2)
+     AU        astronomical unit        1.49598x10+11m
+     au        astronomical unit        1.49598x10+11m
+     bar       ?bar(10+5Pa)             10+5Pa (kg.m-1.s-2)
+     barn      barn(10-28m2)            10-28m+2
+     bit       binary information unit
+     byte      byte(8bits)        
+     C         Coulomb                  C (s.A)
+     c         c(speed_of_light)        2.99792x10+8m.s-1
+     cal       calorie                  4.1854J (kg.m+2.s-2)
+     cd        candela(lumen/sr)        cd
+     ct        count              
+     D         Debye (dipole)           3.33333x10-30m.s.A
+     d         day                      8.64x10+4s
+     deg       degree                   2.77778x10-3
+     dyn       dyne(10-5N)              10-5N (kg.m.s-2)
+     e         e(electron_charge)       1.60218x10-19C (s.A)
+     erg       erg(10-7J)               10-7J (kg.m+2.s-2)
+     eV        electron-Volt            1.60218x10-19J (kg.m+2.s-2)
+     F         Farad                    F (kg-1.m-2.s+4.A+2)
+     G         G(gravitation)           6.67x10-11kg-1.m+3.s-2
+     g         gram                     10-3kg
+     gauss     Gauss(10-4T)             10-4T (kg.s-2.A-1)
+     H         Henry                    H (kg.m+2.s-2.A-2)
+     h         hour                     3.6x10+3s
+     hr        hour(use 'h')            3.6x10+3s
+     Hz        Herz                     Hz (s-1)
+     inch      inch                     2.54x10-2m
+     J         Joule                    J (kg.m+2.s-2)
+     JD        Julian Day               8.64x10+4s
+     Jy        Jansky(10-26W/m2/Hz)     10-26kg.s-2
+     K         Kelvin                   K
+     k         k(Boltzmann)             1.38062x10-23kg.m+2.s-2.K-1
+     kg        kilogram                 kg
+     l         litre                    10-3m+3
+     lm        lumen                    7.95775x10-2cd
+     lx        lux(lm/m2)               7.95775x10-2m-2.cd
+     lyr       light-year (c*yr)        9.46053x10+15m
+     m         metre                    m
+     mag       magnitude                mag
+     mas       milli-second of arc      7.71605x10-10
+     me        electron_mass            9.10956x10-31kg
+     min       minute                   6x10+1s
+     MJD       Mod. JD (JD-2400000.5)   8.64x10+4s
+     mmHg      mercury_mm               1.33322x10+2Pa (kg.m-1.s-2)
+     mol       mole                     mol
+     month     month              
+     mp        proton_mass              1.67266x10-27kg
+     N         Newton                   N (kg.m.s-2)
+     Ohm       Ohm(V/A)                 Ohm (kg.m+2.s-3.A-2)
+     Pa        Pascal                   Pa (kg.m-1.s-2)
+     pc        parsec                   3.0857x10+16m
+     ph        photon             
+     pi        pi(=3.14...)             3.14159
+     pix       pixel              
+     R         R(gas_constant)          8.3143kg.m+2.s-2.K-1.mol-1
+     rad       radian                   1.59155x10-1
+     Ry        Rydberg(13.6eV)          2.17989x10-18J (kg.m+2.s-2)
+     S         Siemens(A/V)             S (kg-1.m-2.s+3.A+2)
+     s         second                   s
+     sec       second (use 's')         s
+     solLum    solar luminosity         3.826x10+26W (kg.m+2.s-3)
+     solMass   solar mass               1.989x10+30kg
+     solRad    solar radius             6.9599x10+8m
+     sr        steradian                7.95775x10-2
+     Sun       Solar unit 
+     T         Tesla                    T (kg.s-2.A-1)
+     t         ton                      10+3kg
+     V         Volt                     V (kg.m+2.s-3.A-1)
+     W         Watt                     W (kg.m+2.s-3)
+     Wb        Weber(V.s)               Wb (kg.m+2.s-2.A-1)
+     yr        year                     3.15576x10+7s
+     
+     "format" attibute value (FIELD element)
+     ______________________________________     
+     COOd  entire coord. string in decimal degrees (76.96583 -76.44222)
+     COO   entire coord. string in sex. format (05 07 51.8 -76 26 32)
+     RA    RA in standard sexagesimal form (05 07 51.8)
+     RAdeg RA in degrees (76.96583)
+     RAh   hours of right ascension (05)
+     RAhd  RA in decimal hours (5.13106)
+     RAm   minutes of RA (07)
+     RAmd  minutes of RA including any fractional minutes (07.9)
+     RAs   seconds of RA (52)
+     RAsd  seconds of RA including fractional seconds (51.8)
+     DE    DE in standard sexagesimal form (-76 26 32.0)
+     DEdeg DE in degrees (-76.44222)
+     DEd   degrees of DE (-76)
+     DEm   minutes of DE (26)
+     DEmd  minutes of DE including fractional minutes (26.5)
+     DEs   seconds of DE (32)
+     DEsd  seconds of DE including fractional seconds (32.0)
+     LON   longitudinal coord. in degrees (288.48372)
+     LAT   latitudinal coord. in degrees (-32.30250)
+-->
+
+<!-- APPENDIX
+
+     "time" formats (Astrobrowse and GLU Definitions)
+     See        http://heasarc.gsfc.nasa.gov/ab/time.html
+     ("UTC", "TAI", or "other")
+
+     Symbol    Meaning                            Example
+     ====================================================
+     YYYY      4-digit year                       1999
+     YYYYffff  4-digit year with fractional year  1999.0877
+     YY        2-digit year                       99
+     DDD       3-digit day of year                032
+     DDDffffff 3-digit day of year with 6-digit   032.218142
+               fractional day
+     MM        2-digit month                      02
+     DD        2-digit day of month               01
+     DDfff     2-digit day of month with 3-digit  01.218
+               fractional day
+     hh        2-digit hour of day                05
+     mm        2-digit minute of hour             14
+     ss        2-digit seconds of minute          07
+     ssff      seconds of minute with fraction    07.45
+     hhffff    hours with decimal fraction        05.1242
+     month     name of month in lowercase         february
+     Month     name of month (capitalized)        February
+     mon       abbrev name of month               feb
+     JD        Julian Date                        2451210.71814178
+     TJD       Truncated Julian Date              11210.2181417824
+     MJD       Modified Julian Date               51210.2181417824
+     SHF       SHF: short history file time key   602313260
+     XTE       XTE mission day with fractional    1857.21818287037
+               day
+-->

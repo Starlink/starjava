@@ -1,0 +1,15 @@
+<body>
+Classes providing custom serialization/deserialization of StarTables
+in JAX-RPC SOAP calls.
+StarTables are serialized as VOTABLE elements containing the 
+bulk data as a BINARY inline stream element, since this will be the
+most space-efficient way of doing it.
+
+<p>The appropriate parameter type is given by
+{@link uk.ac.starlink.votable.soap.VOTableSerialization#QNAME_VOTABLE}.
+
+<p>Although in principle these should work with any JAX-RPC implementation,
+in practice there are several places where the code has had to be
+made AXIS-specific, so it's unlikely they will work with
+implementations other than AXIS.
+</body>

@@ -1,0 +1,27 @@
+
+This is an extracted part of Axis 1.2.1  
+
+The docs and webapps directories contain the unmodified, imported, equivalent
+directories from the binary release. See the "do_import" script for the
+commands used to do this.
+
+The "axis.war" file in the lib directory is just a jar of the contents of the
+webapps/axis directory, minus the "lib" directory, with a
+"WEB-INF/server-config.wsdd" file added.
+
+The src/lib directory is a copy of axis/lib, but with the following changes:
+
+  - a copy of axis.war has been placed in the axis.jar file in the same
+  directory as the AxisEngine class. This means that the war file maybe
+  located: 
+
+    URL warFile = AxisEngine.class.getResource( "axis.war" );
+
+  - the log4j jar files have been removed. This should mean that the Java 1.4 
+    logging system is used, which is more compatible with our system.
+
+Miscelleaneous directories.
+
+  webapps/lib is copy of webapps/axis/WEB_INF/lib, this is probably no longer
+  required.
+

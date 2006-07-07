@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="1.0">
+  <DEFINITIONS>
+  <COOSYS ID="myJ2000" equinox="2000." epoch="2000." system="eq_FK5"/>
+  </DEFINITIONS>
+  <RESOURCE>
+    <PARAM name="Observer" datatype="char" arraysize="*" value="William Herschel">
+      <DESCRIPTION>This parameter is designed to store the observer's name
+      </DESCRIPTION> 
+    </PARAM>
+    <INFO name="Editor" value="Mark Taylor"/>
+    <TABLE name="Stars">
+      <DESCRIPTION>Some bright stars</DESCRIPTION>
+      <FIELD name="Star-Name" ucd="ID_MAIN" datatype="char" arraysize="10"/>
+      <FIELD name="RA" ucd="POS_EQ_RA" ref="myJ2000" unit="deg" 
+             datatype="float" precision="F3" width="7"/>
+      <FIELD name="Dec" ucd="POS_EQ_DEC" ref="myJ2000" unit="deg" 
+             datatype="float" precision="F3" width="7"/>
+      <FIELD name="Counts" ucd="NUMBER" datatype="int" arraysize="2x3x*"/>
+      <DATA>
+        <TABLEDATA>
+        <TR>
+          <TD>Procyon</TD>
+          <TD>114.827</TD>
+          <TD> 5.227</TD>
+          <TD>4 5 3 4 3 2 1 2 3 3 5 6</TD>
+        </TR>
+        <TR>
+          <TD>Vega</TD>
+          <TD>279.234</TD>
+          <TD>38.782</TD>
+          <TD>8 7 8 6 8 6</TD>
+          <TD>Ignore me!</TD> <!-- extra cell should be ignored -->
+        </TR>
+        <TR>
+           <TD/>
+           <TD/>
+           <TD/>
+                 <!-- Missing cell should be supplied as null -->
+        </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>

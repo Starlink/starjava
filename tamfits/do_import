@@ -1,0 +1,136 @@
+#!/bin/sh -xv
+
+# Import the nom.tam.fits java sources. First unpack "fits_src.jar",
+# "image_src.jar" and "util_src.jar" into an empty directory and then do:
+
+CVS_RSH=ssh
+export CVS_RSH
+
+cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+   import -ko -I! -m "update to nom.tam.fits sources" \
+      java/source/tamfits/src/main TAMFITS Nom_Tam_Fits_V_0_96
+
+exit
+
+# Log of import follows.
+
+cvs -d :ext:pwd@cvs.starlink.ac.uk:/cvs import -ko '-I!' \
+   -m 'update to nom.tam.fits sources' java/source/tamfits/src/main \
+   TAMFITS Nom_Tam_Fits_V_0_96
+
+cvs server: Importing /cvs/java/source/tamfits/src/main/nom
+cvs server: Importing /cvs/java/source/tamfits/src/main/nom/tam
+cvs server: Importing /cvs/java/source/tamfits/src/main/nom/tam/fits
+U java/source/tamfits/src/main/nom/tam/fits/AsciiTable.java
+U java/source/tamfits/src/main/nom/tam/fits/AsciiTableHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/BadHeaderException.java
+U java/source/tamfits/src/main/nom/tam/fits/BasicHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/BinaryTable.java
+U java/source/tamfits/src/main/nom/tam/fits/BinaryTableHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/Data.java
+U java/source/tamfits/src/main/nom/tam/fits/Fits.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsDate.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsElement.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsException.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsFactory.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsHeap.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsUtil.java
+C java/source/tamfits/src/main/nom/tam/fits/Header.java
+U java/source/tamfits/src/main/nom/tam/fits/HeaderCard.java
+U java/source/tamfits/src/main/nom/tam/fits/HeaderCardException.java
+U java/source/tamfits/src/main/nom/tam/fits/ImageData.java
+U java/source/tamfits/src/main/nom/tam/fits/ImageHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/RandomGroupsData.java
+U java/source/tamfits/src/main/nom/tam/fits/RandomGroupsHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/TableData.java
+U java/source/tamfits/src/main/nom/tam/fits/TableHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/TruncatedFileException.java
+U java/source/tamfits/src/main/nom/tam/fits/UndefinedData.java
+U java/source/tamfits/src/main/nom/tam/fits/UndefinedHDU.java
+cvs server: Importing /cvs/java/source/tamfits/src/main/nom/tam/util
+U java/source/tamfits/src/main/nom/tam/util/ArrayDataInput.java
+U java/source/tamfits/src/main/nom/tam/util/ArrayDataOutput.java
+U java/source/tamfits/src/main/nom/tam/util/ArrayFuncs.java
+U java/source/tamfits/src/main/nom/tam/util/BufferedDataInputStream.java
+U java/source/tamfits/src/main/nom/tam/util/BufferedDataOutputStream.java
+U java/source/tamfits/src/main/nom/tam/util/BufferedFile.java
+U java/source/tamfits/src/main/nom/tam/util/ByteFormatter.java
+U java/source/tamfits/src/main/nom/tam/util/ByteParser.java
+U java/source/tamfits/src/main/nom/tam/util/ColumnTable.java
+U java/source/tamfits/src/main/nom/tam/util/Cursor.java
+U java/source/tamfits/src/main/nom/tam/util/DataIO.java
+U java/source/tamfits/src/main/nom/tam/util/DataTable.java
+U java/source/tamfits/src/main/nom/tam/util/FormatException.java
+U java/source/tamfits/src/main/nom/tam/util/HashedList.java
+U java/source/tamfits/src/main/nom/tam/util/PrimitiveInfo.java
+U java/source/tamfits/src/main/nom/tam/util/RandomAccess.java
+U java/source/tamfits/src/main/nom/tam/util/TableException.java
+U java/source/tamfits/src/main/nom/tam/util/TruncationException.java
+cvs server: Importing /cvs/java/source/tamfits/src/main/nom/tam/image
+U java/source/tamfits/src/main/nom/tam/image/ImageTiler.java
+
+1 conflicts created by this import.
+Use the following command to help the merge:
+
+        cvs -d :ext:pwd@cvs.starlink.ac.uk:/cvs checkout -j<prev_rel_tag> -jNom_
+Tam_Fits_V_0_96 java/source/tamfits/src/main
+
+# Log of merge follows:
+
+> cvs -d :ext:pwd@cvs.starlink.ac.uk:/cvs checkout \
+   -jNom_Tam_Fits_V_0_93 -jNom_Tam_Fits_V_0_96 java/source/tamfits/src/main
+cvs server: Updating java/source/tamfits/src/main
+cvs server: Updating java/source/tamfits/src/main/nom
+cvs server: Updating java/source/tamfits/src/main/nom/tam
+cvs server: Updating java/source/tamfits/src/main/nom/tam/fits
+U java/source/tamfits/src/main/nom/tam/fits/AsciiTable.java
+U java/source/tamfits/src/main/nom/tam/fits/AsciiTableHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/BadHeaderException.java
+U java/source/tamfits/src/main/nom/tam/fits/BasicHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/BinaryTable.java
+U java/source/tamfits/src/main/nom/tam/fits/BinaryTableHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/Data.java
+U java/source/tamfits/src/main/nom/tam/fits/Fits.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsDate.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsElement.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsException.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsFactory.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsHeap.java
+U java/source/tamfits/src/main/nom/tam/fits/FitsUtil.java
+U java/source/tamfits/src/main/nom/tam/fits/Header.java
+RCS file: /cvs/java/source/tamfits/src/main/nom/tam/fits/Header.java,v
+retrieving revision 1.1.1.1
+retrieving revision 1.1.1.2
+Merging differences between 1.1.1.1 and 1.1.1.2 into Header.java
+U java/source/tamfits/src/main/nom/tam/fits/HeaderCard.java
+U java/source/tamfits/src/main/nom/tam/fits/HeaderCardException.java
+U java/source/tamfits/src/main/nom/tam/fits/ImageData.java
+U java/source/tamfits/src/main/nom/tam/fits/ImageHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/RandomGroupsData.java
+U java/source/tamfits/src/main/nom/tam/fits/RandomGroupsHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/TableData.java
+U java/source/tamfits/src/main/nom/tam/fits/TableHDU.java
+U java/source/tamfits/src/main/nom/tam/fits/TruncatedFileException.java
+U java/source/tamfits/src/main/nom/tam/fits/UndefinedData.java
+U java/source/tamfits/src/main/nom/tam/fits/UndefinedHDU.java
+cvs server: Updating java/source/tamfits/src/main/nom/tam/image
+U java/source/tamfits/src/main/nom/tam/image/ImageTiler.java
+cvs server: Updating java/source/tamfits/src/main/nom/tam/util
+U java/source/tamfits/src/main/nom/tam/util/ArrayDataInput.java
+U java/source/tamfits/src/main/nom/tam/util/ArrayDataOutput.java
+U java/source/tamfits/src/main/nom/tam/util/ArrayFuncs.java
+U java/source/tamfits/src/main/nom/tam/util/BufferedDataInputStream.java
+U java/source/tamfits/src/main/nom/tam/util/BufferedDataOutputStream.java
+U java/source/tamfits/src/main/nom/tam/util/BufferedFile.java
+U java/source/tamfits/src/main/nom/tam/util/ByteFormatter.java
+U java/source/tamfits/src/main/nom/tam/util/ByteParser.java
+U java/source/tamfits/src/main/nom/tam/util/ColumnTable.java
+U java/source/tamfits/src/main/nom/tam/util/Cursor.java
+U java/source/tamfits/src/main/nom/tam/util/DataIO.java
+U java/source/tamfits/src/main/nom/tam/util/DataTable.java
+U java/source/tamfits/src/main/nom/tam/util/FormatException.java
+U java/source/tamfits/src/main/nom/tam/util/HashedList.java
+U java/source/tamfits/src/main/nom/tam/util/PrimitiveInfo.java
+U java/source/tamfits/src/main/nom/tam/util/RandomAccess.java
+U java/source/tamfits/src/main/nom/tam/util/TableException.java
+U java/source/tamfits/src/main/nom/tam/util/TruncationException.java

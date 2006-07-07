@@ -1,0 +1,158 @@
+Introduction:
+
+This directory contains source and documentation for
+Version 0.91 of the Java FITS library developed by T.McGlynn.
+
+Included are the following files:
+
+    README		This file
+    JavaFits.doc	A Word document describing this library and release.
+    fits.jar		A JAR file with class files in the nom.tam.fits package
+    fits_src.jar	A JAR file with source files in the nom.tam.fits package.
+    fits_test_src.jar   A JAR file with source files for FITS test programs.
+    util.jar            A JAR file with class files in the nom.tam.util package.
+    util_src.jar        A JAR file with source files for the nom.tam.util package.
+    util_test_src.jar   A JAR file with source files for utility test programs.
+    image.jar           A JAR file with class files in the nom.tam.image package.
+    image_src.jar       A JAR file with source files in the nom.tam.image package.
+    
+These files should be available at:
+
+    http://members.home.net/mcglynn/java/v0.9
+    
+        or
+	
+    http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/v0.9
+    
+Javadoc documentatation is available at 
+    http://heasarc.gsfc.nasa/gov/docs/heasarc/fits/java
+
+Please send comments and bug reports to 
+
+   Tom McGlynn, mcglynn@home.com or tam@silk.gsfc.nasa.gov
+   
+
+Version 0.92
+
+   BinaryTable
+      - Fixed bug initializing BinaryTable's read from streams
+        (rather than files).
+	
+Version 0.91
+
+   FitsDate:
+      - added getFitsDateString
+      
+   Header:
+      - made several methods public.
+      - added checking for initial keywords before write.
+      
+   BinaryTable:
+      - removed TDIM keywords for variable length columns.
+      - fixed bug that made BinaryTable(Object[][]) constructor
+        unusable.
+   
+   BinaryTableHDU:
+      - fixed usage of THEAP keyword
+      
+   AsciiTable:
+      - use blanks for data filler rather than nulls.
+      
+   BasicHDU
+      - made getDummyHDU public.
+      
+   HeaderCard
+      - fixed padding of string values which
+        sometimes had one too many spaces.
+	
+   image.ImageTiler
+      - allow requests for tiles that
+        are not fully within the original image.
+      
+   util.ByteFormatter
+      - changed formatter to use 'E' (rather than 'e')
+        for exponents since 'e' not legal for
+	FITS ASCII tables.
+      
+
+Version 0.9
+
+Major enhancments:
+
+   - Support for ASCII tables.
+   - Deferred input for images and tables (data is read
+     only when user actually requests it).
+   - Image subsetting without reading the entire image
+   - Reading individual rows and elements of tables without
+     reading the entire table.
+   - Support for in-place rewriting of headers and data.
+   - Transparent support for Strings in ASCII and Binary tables.
+   - Transparent support for booleans in binary tables, including
+     varying length columns.
+   
+   - Efficient buffered random access methods.
+   - More flexible support for I/O of primitive arrays.
+     
+Known limitations are:
+
+   - No support for HIERARCH style header cards.
+   - Limited support for COMPLEX, varying length columns in binary tables.
+   - Lack of deferred input for RandomGroups data.
+   - Limitations on the use of TDIM keywords with varying length columns
+   - Limited control of the format for floating point data
+     in ASCII tables.
+   - Limited support for row aliasing in varying length columns.
+   
+Known extensions of FITS standards are:
+
+   - Support for 8 byte integer images and binary table columns
+   - Use of Random groups data in image extensions.
+
+
+
+Changes from earlier release:
+
+Note that while this library generally extends the public interface defined
+in version 0.6 of this library, some methods have been deleted or renamed. I
+hope that most of these should not be noticeable to users but a few, notably
+the deletion of the HDU class, and changes in the Header class may require
+modification of existing code.  I am not averse to keeping deprecated calls
+(or even classes) in the library, but it would be a bit cleaner to leave
+them out so I thought to try to release this without worrying too much about
+complete backwards compatibility.  Most of the higher level interface for
+users is unaffected.
+
+Please let me know if you are using methods which are no longer supported
+and would like to have them retained.  A modestly detailed list of changes
+is included in the JavaFits.doc documentation.
+
+
+
+Contents:
+
+This release comprises three elements:
+
+1. The Java classes themselves are found in three packages:
+
+   nom.tam.util, nom.tam.fits, and nom.tam.image
+   
+Both class files compiled under Compaq TruUnix JDK 1.2.2-1 and Java source
+files are provided.
+   
+2. A substantial if somewhat disorganized introduction to using these
+classes is available as in the JavaFits.doc file in Word 97 format.
+
+3. Test classes are available in the packages
+
+    nom.tam.util.test, nom.tam.fits.test
+       
+Typically these are simple classes with a single main method which tests
+classes in the appropriate libraries.  While they were written as simple
+tests of functionality, users may find them to be helpful in understanding
+how to use the various classes.
+
+
+
+Bugs:
+
+No warrantee is given for any of this software.

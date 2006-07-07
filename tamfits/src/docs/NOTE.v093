@@ -1,0 +1,42 @@
+Changes since 0.93
+
+An error in findColumn in TableHDU was fixed.
+
+Changes for Release 0.93
+
+Enhancements:
+
+1. The HeaderCard class has been modified to handle
+The HIERARCH keyword convention.  The FitsFactory
+now has methods set/getUseHierarch to enable/disable
+this processing.
+
+2. A new interface FitsElement has been added which
+is implemented by the BasicHDU, Header, Data and FitsHeap
+classes. It enables users to more easily deal with FITS data
+at the byte level.  There is also a public method
+getDataSize in Header to get the size in bytes
+of the associated data element including padding.
+The FitsHeap class has been made public.
+
+Bug fixes:
+
+1. Several bugs relating to null images were corrected.
+(Thanks to Jens Knudstrup) (ImageData)
+
+2. The handling of EOF conditions in array reads in 
+the BufferedFile and  BufferedDataInputStream classes 
+was made consistent with the behavior of java.io classes
+reading byte arrays.
+
+3. Several bug fixes implemented by Alan Brighton (and already
+fixed in the Jsky distribution) were incorporated.
+
+4. All references to the java.lang.reflect.Array.newInstance()
+methods were modified to use new methods with the same signature
+in ArrayFuncs.  These new methods throw an OutOfMemory exception
+when an array cannot be created.  The JVM methods seem -- in
+contradiction to the documentation -- to simply return null.
+Previously the program could mysteriously crash when used to read large
+files, when the null in a dynamic allocation was eventually
+dereferenced.

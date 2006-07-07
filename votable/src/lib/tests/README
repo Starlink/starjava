@@ -1,0 +1,9 @@
+The jar files in this directory are from Sun's MSV distribution.
+MSV is Sun's implementation of JARV.  See 
+
+   http://www.sun.com/software/xml/developers/multischema/ 
+
+It's used here for validation of test VOTable documents against 
+the VOTable XSD schema in the VOTable package unit tests. 
+These libraries are not used or installed as part of the runtime
+VOTable package.

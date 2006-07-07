@@ -1,0 +1,10 @@
+The MIRAGE package provides adaption of mirage format input files to
+the Starlink tables infrastructure.  A command-line script 'starmirage' 
+is provided which will invoke Mirage given a StarTable by name.
+
+NOTE THAT: the Mirage package itself is not part of this starlink package,
+for licencing reasons.  All this mirage stuff will only work if 
+the Mirage classes (probably called Mirage0.1.jar) is on your classpath
+at run time.  The Mirage home page is at 
+
+   http://cm.bell-labs.com/who/tkh/mirage/index.html
