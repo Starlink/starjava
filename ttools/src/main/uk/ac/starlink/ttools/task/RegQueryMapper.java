@@ -37,13 +37,23 @@ public class RegQueryMapper implements TableMapper {
             "you wish to retrieve from the registry.",
             "Some examples are:",
             "<ul>",
-            "<li>serviceType='CONE'</li>",
-            "<li>title like '%2MASS%'</li>",
-            "<li>publisher like 'CDS%' and title like '%galax%'</li>",
+            "<li><code>serviceType='CONE'</code></li>",
+            "<li><code>title like '%2MASS%'</code></li>",
+            "<li><code>publisher like 'CDS%' and title like "
+                    + "'%galax%'</code></li>",
             "</ul>",
             "The special value \"ALL\" will attempt to retrieve all the",
             "records in the registry",
             "(though this is not necessarily a sensible thing to do).",
+            "A full description of SQL syntax is beyond the scope of this",
+            "documentation, but in general you want to use",
+            "<code>&lt;field-name&gt; like '&lt;value&gt;</code>",
+            "where '<code>%</code>' is a wildcard character.",
+            "Logical operators <code>and</code> and <code>or</code> and",
+            "parentheses can be used to group and combine expressions.",
+            "You can find the various <code>&lt;field-name&gt;</code>s",
+            "by executing one of the queries above and looking at the",
+            "column names in the returned table.",
         } );
 
         urlParam_ = new Parameter( "regurl" );
