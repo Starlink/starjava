@@ -3709,6 +3709,13 @@ but my thanks are especially due to the following:
     </dl>
 </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Added ICRS coordinate system for <code>addskycoords</code>.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>

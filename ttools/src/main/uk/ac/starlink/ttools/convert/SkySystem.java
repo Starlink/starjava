@@ -1,8 +1,10 @@
 package uk.ac.starlink.ttools.convert;
 
 import uk.ac.starlink.pal.AngleDR;
+import uk.ac.starlink.pal.Cartesian;
 import uk.ac.starlink.pal.Galactic;
 import uk.ac.starlink.pal.Pal;
+import uk.ac.starlink.pal.Spherical;
 import uk.ac.starlink.ttools.func.Times;
 
 /**
@@ -22,6 +24,7 @@ public abstract class SkySystem {
 
     /** All known SkySystem instances. */
     private static final SkySystem[] KNOWN_SYSTEMS = new SkySystem[] {
+        new ICRSSystem( "icrs" ),
         new FK5System( "fk5" ),
         new FK4System( "fk4" ),
         new GalSystem( "galactic" ),
@@ -235,6 +238,26 @@ public abstract class SkySystem {
     }
 
     /**
+     * International Celestial Reference System (as used for Hipparcos).
+     */
+    private static class ICRSSystem extends SkySystem {
+        public ICRSSystem( String name ) {
+            super( name, "ICRS (Hipparcos)",
+                   "Right Ascension", "Declination", "RA", "DEC" );
+        }
+        public double[] fromFK5( double c1, double c2, double epoch ) {
+            AngleDR in = new AngleDR( c1, c2 );
+            AngleDR out = fk5hz( in, epoch );
+            return new double[] { out.getAlpha(), out.getDelta() };
+        }
+        public double[] toFK5( double c1, double c2, double epoch ) {
+            AngleDR in = new AngleDR( c1, c2 );
+            AngleDR out = hfk5z( in, epoch );
+            return new double[] { out.getAlpha(), out.getDelta() };
+        }
+    }
+
+    /**
      * B1950.0 FK4 system.
      */
     private static class FK4System extends SkySystem {
@@ -314,5 +337,76 @@ public abstract class SkySystem {
             AngleDR out = PAL.Ecleq( in, mjd );
             return new double[] { out.getAlpha(), out.getDelta() };
         }
+    }
+
+    /**
+     * Convert from FK5 to ICRS coordinates.
+     * This routine is missing from PAL.
+     *
+     * @param  r2000  FK5 coordinates
+     * @param  bepoch   epoch 
+     * @return  ICRS  coordinates
+     */
+    private static AngleDR fk5hz( AngleDR r2000, double bepoch ) {
+
+        /* This implementation is a java-isation of the source code from
+         * the FORTRAN SLALIB routine FK5HZ. */
+        final double AS2R = 0.484813681109535994e-5;
+        final double EPX = -19.9e-3 * AS2R;
+        final double EPY =  -9.1e-3 * AS2R;
+        final double EPZ = +22.9e-3 * AS2R;
+        final double OMX = -0.30e-3 * AS2R;
+        final double OMY = +0.60e-3 * AS2R;
+        final double OMZ = +0.70e-3 * AS2R;
+        final double[] ORTN = new double[] { EPX, EPY, EPZ };
+        double[] p5e = PAL.Dcs2c( r2000 );
+        double[][] r5h = PAL.Dav2m( ORTN );
+        double t = 2000.0 - bepoch;
+        double[] vst = new double[] { OMX * t, OMY * t, OMZ * t };
+        double[][] rst = PAL.Dav2m( vst );
+        double[] p5 = PAL.Dimxv( rst, p5e );
+        double[] ph = PAL.Dmxv( r5h, p5 );
+        AngleDR hipp = PAL.Dcc2s( ph );
+        hipp.setAlpha( PAL.Dranrm( hipp.getAlpha() ) );
+        return hipp;
+    }
+
+    /**
+     * Convert from ICRS to FK5 coordinates.
+     * This routine is missing from PAL.
+     *
+     * @param  rHipp  ICRS angle
+     * @param  bepoch  epoch
+     * @return  FK5 coordinates
+     */
+    private static AngleDR hfk5z( AngleDR rHipp, double bepoch ) {
+
+        /* This implementation is a java-isation of the source code from
+         * the FORTRAN SLALIB routine HFK5Z. */
+        final double AS2R = 0.484813681109535994e-5;
+        final double EPX = -19.9e-3 * AS2R;
+        final double EPY =  -9.1e-3 * AS2R;
+        final double EPZ = +22.9e-3 * AS2R;
+        final double OMX = -0.30e-3 * AS2R;
+        final double OMY = +0.60e-3 * AS2R;
+        final double OMZ = +0.70e-3 * AS2R;
+        final double[] ORTN = new double[] { EPX, EPY, EPZ };
+        double[] ph = PAL.Dcs2c( rHipp );
+        double[][] r5h = PAL.Dav2m( ORTN );
+        double[] s5 = new double[] { OMX, OMY, OMZ };
+        double[] sh = PAL.Dmxv( r5h, s5 );
+        double t = bepoch - 2000.0;
+        double[] vst = new double[] { OMX * t, OMY * t, OMZ * t };
+        double[][] rst = PAL.Dav2m( vst );
+        double[][] r5ht = PAL.Dmxm( r5h, rst );
+        double[] pv5e1 = PAL.Dimxv( r5ht, ph );
+        double[] vv = PAL.Dvxv( sh, ph );
+        double[] pv5e2 = PAL.Dimxv( r5ht, vv );
+        Cartesian pv5e = new Cartesian( pv5e1[ 0 ], pv5e1[ 1 ], pv5e1[ 2 ],
+                                        pv5e2[ 0 ], pv5e2[ 1 ], pv5e2[ 2 ] );
+        Spherical sph5 = PAL.Dc62s( pv5e );
+        double r5 = PAL.Dranrm( sph5.getLong() );
+        double d5 = sph5.getLat();
+        return new AngleDR( r5, d5 );
     }
 }
