@@ -8179,7 +8179,7 @@ in the <ref id="ColumnInfoWindow">Columns Window</ref>.
 
 <p>The dialogue window has two halves; on the left you 
 give the existing columns which represent sky coordinates,
-their coordinate system (fk5, fk4, galactic, supergalactic or ecliptic)
+their coordinate system (ICRS, fk5, fk4, galactic, supergalactic or ecliptic)
 and the units (degrees, radians or sexagesimal) that they are in.
 Note that the columns available for selection will depend on the
 units you have selected; for degrees or radians only numeric columns
@@ -9474,6 +9474,13 @@ introduced since the last version:
         </ul>
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Added new coordinate system ICRS for sky coordinate conversions.</li>
+    </ul>
     </p></dd>
 
 </dl>
