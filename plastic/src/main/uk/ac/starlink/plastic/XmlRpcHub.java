@@ -44,7 +44,7 @@ public class XmlRpcHub implements PlasticHubListener {
      * @param   properHub   RMI hub object
      */
     public XmlRpcHub( URL xmlrpcUrl, PlasticHubListener properHub ) {
-        client_ = new XmlRpcClient( xmlrpcUrl );
+        client_ = PlasticUtils.createXmlRpcClient( xmlrpcUrl );
         properHub_ = properHub;
     }
 

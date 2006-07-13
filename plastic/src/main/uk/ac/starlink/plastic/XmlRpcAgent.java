@@ -39,7 +39,7 @@ class XmlRpcAgent extends Agent {
     public XmlRpcAgent( int iseq, String name, URI[] supportedMessages,
                         URL xmlrpcUrl ) {
         super( iseq, name, supportedMessages );
-        client_ = new XmlRpcClient( xmlrpcUrl );
+        client_ = PlasticUtils.createXmlRpcClient( xmlrpcUrl );
     }
 
     public Object request( URI sender, URI message, List args ) 

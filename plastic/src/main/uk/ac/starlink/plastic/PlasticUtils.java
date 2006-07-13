@@ -22,6 +22,7 @@ import java.util.Vector;
 import net.ladypleaser.rmilite.Client;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClient;
+import org.apache.xmlrpc.XmlRpcClientLite;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.votech.plastic.PlasticListener;
@@ -229,7 +230,7 @@ public class PlasticUtils {
      */
     public static URI registerXMLRPC( final PlasticApplication app )
             throws IOException {
-        final XmlRpcClient client = new XmlRpcClient( getXmlRpcUrl() );
+        final XmlRpcClient client = createXmlRpcClient( getXmlRpcUrl() );
         final WebServer server;
         int port = getUnusedPort( 3112 );
         try {
@@ -385,6 +386,19 @@ public class PlasticUtils {
     }
 
     /**
+     * Factory method for obtaining a new XmlRpcClient.
+     * Consistent use of this permits switching between client implementations.
+     *
+     * @param  url  XML-RPC server URL
+     * @return   new client for communication with <code>url</code>
+     */
+    public static XmlRpcClient createXmlRpcClient( URL url ) {
+        // return new XmlRpcClient( url );
+        // return new XmlRpcClientLite( url );
+        return new XmlRpcClient( url, new CustomTransportFactory( url ) );
+    }
+
+    /**
      * Returns an unused port number on the local host.
      *
      * @param   startPort  suggested port number; ports nearby will be
@@ -398,7 +412,7 @@ public class PlasticUtils {
                 if ( ! trySocket.isClosed() ) {
 
                     /* This line causes "java.util.NoSuchElementException" to
-                     * be written to standard error, at least at J2SE1.4.
+                     * be written to System.err, at least at J2SE1.4.
                      * Not my fault! */
                     trySocket.close();
                 }
