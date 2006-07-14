@@ -173,6 +173,9 @@ public class PlasticTest extends TestCase {
 
         hub.unregister( id1 );
         hub.unregister( id2 );
+
+        assertEquals( PlasticUtils.PLASTIC_VERSION,
+                      PlasticMonitor.getHubVersion() );
     }
 
     private List calcArgs( String op, int value ) {
