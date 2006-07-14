@@ -54,7 +54,7 @@ public class XmlRpcHub implements PlasticHubListener {
     }
 
     public URI getHubId() {
-        return toUri( xmlrpcCall( "hubId", new Object[ 0 ] ) );
+        return toUri( xmlrpcCall( "getHubId", new Object[ 0 ] ) );
     }
 
     public String getName( URI id ) {
