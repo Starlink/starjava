@@ -27,6 +27,7 @@ class XmlRpcAgent extends Agent {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.plastic" );
     private final XmlRpcClient client_;
+    private final String connection_;
 
     /**
      * Constructor.
@@ -40,6 +41,11 @@ class XmlRpcAgent extends Agent {
                         URL xmlrpcUrl ) {
         super( iseq, name, supportedMessages );
         client_ = PlasticUtils.createXmlRpcClient( xmlrpcUrl );
+        connection_ = "XMLRPC: " + xmlrpcUrl;
+    }
+
+    public String getConnection() {
+        return connection_;
     }
 
     public Object request( URI sender, URI message, List args ) 

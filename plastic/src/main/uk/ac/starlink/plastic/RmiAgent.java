@@ -27,6 +27,10 @@ class RmiAgent extends Agent {
         listener_ = listener;
     }
 
+    public String getConnection() {
+        return "Java RMI: " + listener_;
+    }
+
     public Object request( URI sender, URI message, List args ) {
         return listener_.perform( sender, message, args );
     }

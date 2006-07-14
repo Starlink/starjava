@@ -57,6 +57,14 @@ abstract class Agent {
     }
 
     /**
+     * Returns a human-readable description of the kind of connection
+     * which exists between this agent and the hub.
+     *
+     * @return   connection description
+     */
+    public abstract String getConnection();
+
+    /**
      * Indicates whether this agent is interested in receiving a message
      * with a given ID.
      *

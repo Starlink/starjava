@@ -21,6 +21,10 @@ class NoCallBackAgent extends Agent {
         super( iseq, name, new URI[ 0 ] );
     }
 
+    public String getConnection() {
+        return "None";
+    }
+
     public boolean supportsMessage( URI message ) {
         return false;
     }
