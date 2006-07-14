@@ -393,9 +393,9 @@ public class PlasticUtils {
      * @return   new client for communication with <code>url</code>
      */
     public static XmlRpcClient createXmlRpcClient( URL url ) {
-        // return new XmlRpcClient( url );
         // return new XmlRpcClientLite( url );
-        return new XmlRpcClient( url, new CustomTransportFactory( url ) );
+        return new XmlRpcClient( url );
+        // return new XmlRpcClient( url, new CustomTransportFactory( url ) );
     }
 
     /**
