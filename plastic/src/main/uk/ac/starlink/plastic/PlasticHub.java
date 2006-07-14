@@ -65,7 +65,6 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     public PlasticHub( ServerSet servers ) throws RemoteException {
         servers_ = servers;
         agentMap_ = new HashMap();
-        hubId_ = createId( this, "hub", 0 );
 
         /* Listen for PLASTIC requests on RMI server. */
         servers_.getRmiServer()
@@ -81,6 +80,15 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
                 PlasticHub.this.stop();
             }
         } );
+
+        /* Create and register an application which will serve as a 
+         * representative of this hub.  It will answer questions like
+         * what version are you, what is your name, etc. */
+        BasicApplication servApp = new BasicApplication( "hub" );
+        servApp.setDescription( "PlasKit hub" );
+        hubId_ = registerRMI( servApp.getName(), 
+                              Arrays.asList( servApp.getSupportedMessages() ),
+                              servApp );
     }
 
     public URI getHubId() {
@@ -136,6 +144,10 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
         agentMap_.put( id, agent );
         if ( verbose_ ) {
             out( "Register: " + agent );
+            out( "    ID:" );
+            out( "        " + agent.getId() );
+            out( "    Connection:" );
+            out( "        " + agent.getConnection() );
             URI[] msgs = agent.getSupportedMessages();
             if ( msgs.length > 0 ) {
                 out( "    Supported Messages:" );
@@ -753,7 +765,10 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      */
     public static void main( String[] args )
             throws RemoteException, IOException {
-        String usage = "\nUsage: " + PlasticHub.class.getName()
+        String usage = "\nUsage:"
+                     + "\n       "
+                     + PlasticHub.class.getName()
+                     + "\n           "
                      + " [-verbose]"
                      + " [-gui]"
                      + "\n";
