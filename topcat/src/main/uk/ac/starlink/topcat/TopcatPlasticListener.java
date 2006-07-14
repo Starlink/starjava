@@ -52,6 +52,7 @@ public class TopcatPlasticListener extends HubManager {
     public static final URI VOT_LOADURL;
     public static final URI VOT_SHOWOBJECTS;
     public static final URI VOT_HIGHLIGHTOBJECT;
+    public static final URI INFO_GETDESCRIPTION;
     public static final URI INFO_GETICON;
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
         VOT_LOAD = createURI( "ivo://votech.org/votable/load" ),
@@ -59,6 +60,8 @@ public class TopcatPlasticListener extends HubManager {
         VOT_SHOWOBJECTS = createURI( "ivo://votech.org/votable/showObjects" ),
         VOT_HIGHLIGHTOBJECT =
             createURI( "ivo://votech.org/votable/highlightObject" ),
+        INFO_GETDESCRIPTION =
+            createURI( "ivo://votech.org/info/getDescription" ),
         INFO_GETICON = createURI( "ivo://votech.org/info/getIconURL" ),
     };
     public static final URI SKY_POINTAT =
@@ -105,7 +108,13 @@ public class TopcatPlasticListener extends HubManager {
             String url = args.get( 0 ) instanceof String
                        ? (String) args.get( 0 )
                        : args.get( 0 ).toString();
-            votableLoadFromURL( sender, url );
+            String id = url;
+            if ( args.size() > 1 ) {
+                id = args.get( 1 ) instanceof String
+                   ? (String) args.get( 0 )
+                   : args.get( 0 ).toString();
+            }
+            votableLoadFromURL( sender, url, id );
             return Boolean.TRUE;
         }
 
@@ -128,6 +137,10 @@ public class TopcatPlasticListener extends HubManager {
         /* Get TOPCAT icon. */
         else if ( INFO_GETICON.equals( message ) ) {
             return "http://www.starlink.ac.uk/topcat/tc3.gif";
+        }
+
+        else if ( INFO_GETDESCRIPTION.equals( message ) ) {
+            return "TOol for Processing Catalogues And Tables";
         }
 
         /* Unknown message. */
@@ -215,7 +228,7 @@ public class TopcatPlasticListener extends HubManager {
          * don't block the GUI. */
         new Thread( "PLASTIC table broadcast" ) {
             public void run() {
-                List argList = Collections.singletonList( tmpUrl );
+                List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
                 Map responses = recipients == null 
                     ? hub.request( plasticId, VOT_LOADURL, argList )
                     : hub.requestToSubset( plasticId, VOT_LOADURL, argList,
@@ -486,11 +499,12 @@ public class TopcatPlasticListener extends HubManager {
      *
      * @param   sender  sender ID
      * @param   url  location of table
+     * @param   key  identifier for loaded table   
      */
-    private void votableLoadFromURL( URI sender, String url )
+    private void votableLoadFromURL( URI sender, String url, String key )
             throws IOException {
         loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( url, "votable" ), sender, url );
+                  .makeStarTable( url, "votable" ), sender, key );
     }
 
     /**
