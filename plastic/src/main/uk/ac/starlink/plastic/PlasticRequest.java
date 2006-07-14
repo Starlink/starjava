@@ -7,9 +7,11 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.votech.plastic.PlasticHubListener;
 
 /**
@@ -38,29 +40,48 @@ public class PlasticRequest {
      * This application does not claim to make it possible to execute 
      * requests of arbitrary complexity from the command line.
      *
+     * <p>If the <code>-targetName</code> or <code>-targetId</code> flags
+     * are specified, then the request will only be sent to the 
+     * listener(s) so identified.  Otherwise, it will be sent to all
+     * registered listeners. 
+     *
      * <h2>Flags</h2>
      * <dl>
      * <dt>-sync</dt>
      * <dd>Force synchronous operation (the default).</dd>
      * <dt>-async</dt>
      * <dd>Force asynchronous operation.</dd>
-     * <dt>-name name</dt>
+     * <dt>-targetName name</dt>
+     * <dd>Specifies the application name of the app to which the request
+     *     will be delivered.  May be given more than once.
+     * <dt>-targetId id</dt>
+     * <dd>Specifies the application ID of the app to which the request
+     *     will be delivered.  May be given more than once.
+     * <dt>-regName name</dt>
      * <dd>Specify the generic application name by which the reqestor 
      *     registers with the hub.</dd>
      * </dl>
      */
     public static void main( String[] args ) throws IOException {
 
-        String usage = "\nUsage: " + PlasticRequest.class.getName()
-                     + "\n        "
+        String usage = "\nUsage:"
+                     + "\n       "
+                     + PlasticRequest.class.getName()
+                     + "\n           "
                      + " [-sync|-async]"
-                     + " [-name appName]"
+                     + " [-regName name]"
+                     + "\n           "
+                     + " [-targetName name ...]"
+                     + " [-targetId id ...]"
+                     + "\n           "
                      + " messsageId"
                      + " [args ...]"
                      + "\n";
 
         String appName = "request";
         boolean sync = true;
+        Set targetNameSet = new HashSet();
+        List targetIdList = new ArrayList();
 
         /* Parse flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -81,10 +102,29 @@ public class PlasticRequest {
                 it.remove();
                 sync = false;
             }
-            else if ( arg.equals( "-name" ) && it.hasNext() ) {
+            else if ( arg.equals( "-regName" ) && it.hasNext() ) {
                 it.remove();
                 appName = (String) it.next();
                 it.remove();
+            }
+            else if ( arg.equals( "-targetName" ) && it.hasNext() ) {
+                it.remove();
+                targetNameSet.add( it.next() );
+                it.remove();
+            }
+            else if ( arg.equals( "-targetId" ) && it.hasNext() ) {
+                it.remove();
+                String uri = (String) it.next();
+                it.remove();
+                try {
+                    targetIdList.add( new URI( uri ) );
+                }
+                catch ( URISyntaxException e ) {
+                    throw (IllegalArgumentException)
+                          new IllegalArgumentException( "Badly formed URI: " 
+                                                      + uri )
+                         .initCause( e );
+                }
             }
             else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
@@ -120,13 +160,43 @@ public class PlasticRequest {
         PlasticHubListener hub = PlasticUtils.getLocalHub();
         URI id = hub.registerNoCallBack( appName );
 
+        /* Identify the list of applications to which we will send. */
+        List targetList;
+        boolean sendAll;
+        if ( targetNameSet.isEmpty() && targetIdList.isEmpty() ) {
+            targetList = null;
+        }
+        else {
+            targetList = new ArrayList( targetIdList );
+            if ( ! targetNameSet.isEmpty() ) {
+                for ( Iterator it = hub.getRegisteredIds().iterator();
+                      it.hasNext(); ) {
+                    URI appId = (URI) it.next();
+                    String name = hub.getName( appId );
+                    if ( targetNameSet.contains( hub.getName( appId ) ) ) {
+                        targetList.add( appId );
+                    }
+                }
+            }
+        }
+
         /* Execute the request. */
         try {
             if ( sync ) {
-                showMap( hub.request( id, msgId, msgParams ), System.out );
+                Map map = targetList == null
+                        ? hub.request( id, msgId, msgParams )
+                        : hub.requestToSubset( id, msgId, msgParams,
+                                               targetList );
+                showMap( map, System.out );
             }
             else {
-                hub.requestAsynch( id, msgId, msgParams );
+                if ( targetList == null ) {
+                    hub.requestAsynch( id, msgId, msgParams );
+                }
+                else {
+                    hub.requestToSubsetAsynch( id, msgId, msgParams,
+                                               targetList );
+                }
             }
         }
 
