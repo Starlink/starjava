@@ -9,9 +9,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.votech.plastic.PlasticHubListener;
 
@@ -33,6 +36,10 @@ public class PlasticMonitor implements PlasticApplication {
     private boolean stopped_;
     private ApplicationListModel appListModel_;
     private PlasticHubListener hub_;
+    private final String hubVersion_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.plastic" );
 
     private static int MAX_ARG_COUNT = 64;
     private static int MAX_ARG_LENG = 256;
@@ -43,10 +50,13 @@ public class PlasticMonitor implements PlasticApplication {
      *
      * @param  name   application name
      * @param  out    logging output stream
+     * @param  hubVersion PLASTIC protocol version used by the hub to monitor
      */
-    protected PlasticMonitor( String name, PrintStream out ) {
+    protected PlasticMonitor( String name, PrintStream out, 
+                              String hubVersion ) {
         name_ = name;
         out_ = out;
+        hubVersion_ = hubVersion;
     }
 
     public String getName() {
@@ -54,7 +64,26 @@ public class PlasticMonitor implements PlasticApplication {
     }
 
     public URI[] getSupportedMessages() {
-        return new URI[ 0 ];
+        float version;
+        try {
+            version = Float.parseFloat( hubVersion_.trim() );
+        }
+        catch ( RuntimeException e ) {
+            version = -1f;
+        }
+        if ( version > 0.45 ) {
+            return new URI[] {
+                PlasticHub.HUB_STOPPING,
+                PlasticHub.APP_REG,
+                PlasticHub.APP_UNREG,
+            };
+        }
+
+        /* Hub versions 0.4 and earlier used an empty array as a special
+         * case meaning "send me all messages". */
+        else {
+            return new URI[ 0 ];
+        }
     }
 
     public Object perform( URI sender, URI message, List args ) {
@@ -179,7 +208,10 @@ public class PlasticMonitor implements PlasticApplication {
      * </dl>
      */
     public static void main( String[] args ) throws IOException {
-        String usage = "\nUsage: " + PlasticMonitor.class.getName() 
+        String usage = "\nUsage:"
+                     + "\n       "
+                     + PlasticMonitor.class.getName() 
+                     + "\n           "
                      + " [-xmlrpc|-rmi]"
                      + " [-gui]"
                      + " [-verbose]"
@@ -226,7 +258,7 @@ public class PlasticMonitor implements PlasticApplication {
         }
 
         PrintStream out = verbose ? System.out : null;
-        PlasticMonitor mon = new PlasticMonitor( name, out );
+        PlasticMonitor mon = new PlasticMonitor( name, out, getHubVersion() );
        
         if ( gui ) {
             PlasticHubListener hub = PlasticUtils.getLocalHub();
@@ -273,6 +305,32 @@ public class PlasticMonitor implements PlasticApplication {
         }
         catch ( InterruptedException e ) {
             System.out.println( "Interrupted." );
+        }
+    }
+
+    /**
+     * Returns the hub version as a floating point number, if it can.
+     */
+    public static String getHubVersion() {
+        try {
+            PlasticHubListener hub = PlasticUtils.getLocalHub(); 
+            URI hubId = hub.getHubId();
+            URI clientId = hub.registerNoCallBack( "monitor-pre" );
+            try {
+                URI msgId = PlasticUtils
+                           .createURI( "ivo://votech.org/info/getVersion" );
+                Map vMap =
+                    hub.requestToSubset( clientId, msgId, new ArrayList(),
+                                         Collections.singletonList( hubId ) );
+                return vMap.get( hubId ).toString().trim();
+            }
+            finally {
+                hub.unregister( clientId );
+            }
+        }
+        catch ( Exception e ) {
+            logger_.warning( "Unknown hub version: " + e );
+            return "???";
         }
     }
 }
