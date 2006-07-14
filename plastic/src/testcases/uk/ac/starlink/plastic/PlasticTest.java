@@ -3,6 +3,7 @@ package uk.ac.starlink.plastic;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,7 +38,8 @@ public class PlasticTest extends TestCase {
         super( name );
     }
 
-    public void testHub() throws IOException, InterruptedException {
+    public void testHub() throws IOException, InterruptedException,
+                                 URISyntaxException {
         PlasticHub jvmHub = configFile.exists()
             ? null
             : PlasticHub.startHub( VERBOSE ? System.out : null );
@@ -59,7 +61,7 @@ public class PlasticTest extends TestCase {
     }
 
     private void exerciseHub( PlasticHubListener hub ) 
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, URISyntaxException {
         URI id = hub.registerNoCallBack( "test-driver" );
         try {
             exerciseHub( hub, id );
@@ -70,7 +72,7 @@ public class PlasticTest extends TestCase {
     }
 
     private void exerciseHub( PlasticHubListener hub, URI id ) 
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, URISyntaxException {
 
         /* Get a list of applications which is listening to all messages.
          * This may be non-empty if the hub already exists with some 
@@ -174,8 +176,22 @@ public class PlasticTest extends TestCase {
         hub.unregister( id1 );
         hub.unregister( id2 );
 
-        assertEquals( PlasticUtils.PLASTIC_VERSION,
-                      PlasticMonitor.getHubVersion() );
+        String hubDescrip =
+            (String)
+            hub.requestToSubset(
+                    id, new URI( "ivo://votech.org/info/getDescription" ),
+                    new ArrayList(),
+                    Collections.singletonList( hub.getHubId() ) )
+               .get( hub.getHubId() );
+                
+        if ( hubDescrip != null && hubDescrip.indexOf( "PlasKit" ) >= 0 ) {
+            assertEquals( PlasticUtils.PLASTIC_VERSION,
+                          PlasticMonitor.getHubVersion() );
+        }
+        else {
+            System.out.println( "Someone else's hub is running: "
+                              + hubDescrip );
+        }
     }
 
     private List calcArgs( String op, int value ) {
