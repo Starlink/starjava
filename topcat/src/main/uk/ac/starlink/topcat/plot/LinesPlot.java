@@ -314,7 +314,7 @@ public abstract class LinesPlot extends JComponent {
                     surface = graphs[ graphIndices[ iset ] ];
                 }
             }
-            if ( surface != null ) {
+            if ( surface != null && points.getCount() > 0 ) {
                 points.getCoords( ip, coords );
                 Point point =
                     surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );

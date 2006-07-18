@@ -1376,10 +1376,20 @@ public abstract class Plot3D extends JPanel {
          * @param  g  graphics context
          */
         void draw( Graphics g, Transformer3D trans, PlotVolume vol ) {
+
+            /* Check that the points object is not empty and bail out if so.  
+             * I think this is a hack; we shouldn't be here if it is empty.
+             * However not making this check results in ugly stackdumps. */
+            Points points = getPoints();
+            if ( points.getCount() == 0 ) {
+                return;
+            }
+
+            /* Draw markers for any active points. */
             boolean[] logFlags = getState().getLogFlags();
             for ( int i = 0; i < activePoints_.length; i++ ) {
                 double[] coords = new double[ 3 ];
-                getPoints().getCoords( activePoints_[ i ], coords );
+                points.getCoords( activePoints_[ i ], coords );
                 if ( logize( coords, logFlags ) ) {
                     trans.transform( coords );
                     cursorStyle_.drawMarker( g, vol.projectX( coords[ 0 ] ),

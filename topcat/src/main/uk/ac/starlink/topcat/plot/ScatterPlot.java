@@ -557,10 +557,18 @@ public abstract class ScatterPlot extends SurfacePlot {
         void draw( Graphics graphics ) {
             Graphics2D g2 = (Graphics2D) graphics.create();
 
+            /* Check that the points object is not empty and bail out if so.
+             * I think this is a hack; we shouldn't be here if it is empty.
+             * However not making this check results in ugly stackdumps. */
+            Points points = getPoints();
+            if ( points.getCount() == 0 ) {
+                return;
+            }
+          
             /* Draw any active points. */
             for ( int i = 0; i < activePoints_.length; i++ ) {
                 double[] coords = new double[ 2 ];
-                getPoints().getCoords( activePoints_[ i ], coords );
+                points.getCoords( activePoints_[ i ], coords );
                 Point p = getSurface().dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                        true );
                 if ( p != null ) {
