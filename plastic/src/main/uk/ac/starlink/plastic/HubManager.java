@@ -63,15 +63,12 @@ public abstract class HubManager implements PlasticListener {
     private PlasticHubListener hub_;
     private ApplicationListModel appListModel_;
 
-    private static final URI GET_NAME;
-    private static final URI ECHO;
-    private static final URI HUB_STOPPING;
     private static final URI[] INTERNAL_SUPPORTED_MESSAGES = new URI[] {
-        GET_NAME = createURI( "ivo://votech.org/info/getName" ),
-        ECHO = createURI( "ivo://votech.org/test/echo" ),
-        HUB_STOPPING = createURI( "ivo://votech.org/hub/event/HubStopping" ),
-        PlasticHub.APP_REG,
-        PlasticHub.APP_UNREG,
+        MessageId.TEST_ECHO,
+        MessageId.INFO_GETNAME,
+        MessageId.HUB_STOPPING,
+        MessageId.HUB_APPREG,
+        MessageId.HUB_APPUNREG,
     };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.plastic" );
@@ -305,7 +302,7 @@ public abstract class HubManager implements PlasticListener {
             public void actionPerformed( ActionEvent evt ) {
                 try {
                     if ( internal ) {
-                        PlasticHub.startHub( null );
+                        PlasticHub.startHub( null, null );
                     }
                     else {
                         PlasticUtils.startExternalHub();
@@ -411,14 +408,14 @@ public abstract class HubManager implements PlasticListener {
      */
     public Object perform( URI sender, URI message, List args ) {
         logger_.config( "Received PLASTIC message " + message );
-        if ( HUB_STOPPING.equals( message ) ) {
+        if ( MessageId.HUB_STOPPING.equals( message ) ) {
             synchronized ( this ) {
                 plasticId_ = null;
                 setHub( null );
             }
             updateState( false );
         }
-        else if ( PlasticHub.APP_REG.equals( message ) ) {
+        else if ( MessageId.HUB_APPREG.equals( message ) ) {
             try {
                 URI id = createURI( args.get( 0 ).toString() );
                 appListModel_.register( id, hub_.getName( id ),
@@ -427,7 +424,7 @@ public abstract class HubManager implements PlasticListener {
             catch ( Exception e ) {
             }
         }
-        else if ( PlasticHub.APP_UNREG.equals( message ) ) {
+        else if ( MessageId.HUB_APPUNREG.equals( message ) ) {
             try {
                 URI id = createURI( args.get( 0 ).toString() );
                 appListModel_.unregister( id );
@@ -452,10 +449,10 @@ public abstract class HubManager implements PlasticListener {
                 return e;
             }
         }
-        else if ( ECHO.equals( message ) ) {
+        else if ( MessageId.TEST_ECHO.equals( message ) ) {
             return args.size() > 0 ? args.get( 0 ) : null;
         }
-        else if ( GET_NAME.equals( message ) ) {
+        else if ( MessageId.INFO_GETNAME.equals( message ) ) {
             return applicationName_;
         }
         else if ( Arrays.asList( INTERNAL_SUPPORTED_MESSAGES )

@@ -16,18 +16,6 @@ import java.util.logging.Logger;
  */
 public class BasicApplication implements PlasticApplication {
 
-    private static final URI GET_VERSION =
-        PlasticUtils.createURI( "ivo://votech.org/info/getVersion" );
-    private static final URI GET_NAME = 
-        PlasticUtils.createURI( "ivo://votech.org/info/getName" );
-    private static final URI GET_DESCRIPTION =
-        PlasticUtils.createURI( "ivo://votech.org/info/getDescription" );
-    private static final URI GET_ICON =
-        PlasticUtils.createURI( "ivo://votech.org/info/getIconURL" );
-    private static final URI GET_IVORN =
-        PlasticUtils.createURI( "ivo://votech.org/info/getIVORN" );
-    private static final URI ECHO =
-        PlasticUtils.createURI( "ivo://votech.org/test/echo" );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.plastic" );
 
@@ -99,40 +87,40 @@ public class BasicApplication implements PlasticApplication {
 
     public URI[] getSupportedMessages() {
         List msgList = new ArrayList();
-        msgList.add( GET_NAME );
+        msgList.add( MessageId.INFO_GETNAME );
         if ( description_ != null ) {
-            msgList.add( GET_DESCRIPTION );
+            msgList.add( MessageId.INFO_GETDESCRIPTION );
         }
         if ( version_ != null ) {
-            msgList.add( GET_VERSION );
+            msgList.add( MessageId.INFO_GETVERSION );
         }
         if ( iconUrl_ != null ) {
-            msgList.add( GET_ICON );
+            msgList.add( MessageId.INFO_GETICONURL );
         }
         if ( ivorn_ != null ) {
-            msgList.add( GET_IVORN );
+            msgList.add( MessageId.INFO_GETIVORN );
         }
-        msgList.add( ECHO );
+        msgList.add( MessageId.TEST_ECHO );
         return (URI[]) msgList.toArray( new URI[ 0 ] );
     }
 
     public Object perform( URI sender, URI msg, List args ) {
-        if ( ECHO.equals( msg ) ) {
+        if ( MessageId.TEST_ECHO.equals( msg ) ) {
             return args.get( 0 );
         }
-        else if ( GET_NAME.equals( msg ) ) {
+        else if ( MessageId.INFO_GETNAME.equals( msg ) ) {
             return name_;
         }
-        else if ( GET_DESCRIPTION.equals( msg ) ) {
+        else if ( MessageId.INFO_GETDESCRIPTION.equals( msg ) ) {
             return description_;
         }
-        else if ( GET_VERSION.equals( msg ) ) {
+        else if ( MessageId.INFO_GETVERSION.equals( msg ) ) {
             return version_;
         }
-        else if ( GET_ICON.equals( msg ) ) {
+        else if ( MessageId.INFO_GETICONURL.equals( msg ) ) {
             return iconUrl_;
         }
-        else if ( GET_IVORN.equals( msg ) ) {
+        else if ( MessageId.INFO_GETIVORN.equals( msg ) ) {
             return ivorn_;
         }
         else {
