@@ -412,7 +412,7 @@ public class Driver {
         }
         if ( plasticHub ) {
             try {
-                PlasticHub.startHub( null );
+                PlasticHub.startHub( null, null );
             }
             catch ( IOException e ) {
                 logger.warning( "Can't start PLASTIC hub: " + e );
