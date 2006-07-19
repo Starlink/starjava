@@ -101,7 +101,8 @@ public class PlasticMonitor implements PlasticApplication {
             logOut_.println( summary );
         }
         if ( warnOut_ != null ) {
-            String[] warnings = validator_.validate( sender, message, args );
+            String[] warnings =
+                validator_.validateRequest( sender, message, args );
             if ( warnings.length > 0 ) {
                 warnOut_.println( "WARNINGS: " );
                 for ( int i = 0; i < warnings.length; i++ ) {
@@ -123,8 +124,11 @@ public class PlasticMonitor implements PlasticApplication {
                  args.size() > 0 ) {
                 try {
                     URI id = new URI( args.get( 0 ).toString() );
-                    appListModel_.register( id, hub_.getName( id ), 
-                                            hub_.getUnderstoodMessages( id ) );
+                    String name = hub_.getName( id );
+                    List msgs = hub_.getUnderstoodMessages( id );
+                    if ( id != null && name != null && msgs != null ) {
+                        appListModel_.register( id, name, msgs );
+                    }
                 }
                 catch ( URISyntaxException e ) {
                 }
