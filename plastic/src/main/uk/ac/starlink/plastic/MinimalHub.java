@@ -460,6 +460,15 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
         }
     }
 
+    /**
+     * Returns whether the hub has finished operations.
+     *
+     * @return  true iff this hub has terminated
+     */
+    synchronized boolean isStopped() {
+        return stopped_;
+    }
+
     public void finalize() throws Throwable {
         try {
             stop();
