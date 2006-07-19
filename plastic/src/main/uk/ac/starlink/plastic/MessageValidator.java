@@ -69,7 +69,7 @@ class MessageValidator {
     }
 
     /**
-     * Performs validation on an observed message and returns an array 
+     * Performs validation on an observed request and returns an array 
      * of strings each of which contains some text describing a worrying
      * thing about the message.  The array will be empty if the message
      * looks legal, decent honest and truthful.  A non-empty array does
@@ -80,7 +80,7 @@ class MessageValidator {
      * @param   argList  list of argument objects
      * @return  array of warning messages
      */
-    public String[] validate( URI sender, URI message, List argList ) {
+    public String[] validateRequest( URI sender, URI message, List argList ) {
         List warningList = new ArrayList();
 
         /* Check sender is registered. */
@@ -138,6 +138,33 @@ class MessageValidator {
 
         /* Returns accumulated list of warning strings. */
         return (String[]) warningList.toArray( new String[ 0 ] );
+    }
+
+    /** 
+     * Performs validation on the response to an observed message
+     * and returns an array of warning strings.  The array will be
+     * empty if the response looks OK.
+     * Warnings which would have cropped up in a corresponding 
+     * {@link validateRequest} call will not be repeated.
+     *
+     * @param   message  message ID
+     * @param   retval   response value to validate
+     * @return  array of warning messages
+     */
+    public String[] validateResponse( URI message, Object retval ) {
+        if ( messageMap_.containsKey( message ) ) {
+            MessageDefinition msgDef =
+                (MessageDefinition) messageMap_.get( message );
+            try {
+                msgDef.getReturnType().checkJavaValue( retval );
+            }
+            catch ( ValueTypeException e ) {
+                return new String[] { 
+                    "Return value type mismatch: " + e.getMessage(),
+                };
+            }
+        }
+        return new String[ 0 ];
     }
 
     /**
