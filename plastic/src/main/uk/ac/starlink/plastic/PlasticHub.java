@@ -108,7 +108,7 @@ public class PlasticHub extends MinimalHub {
     public List getUnderstoodMessages( URI id ) {
         List result = super.getUnderstoodMessages( id );
         if ( warnings_ && result == null ) {
-            warn( "getUnderstoodMessages() request for uknown listener: "
+            warn( "getUnderstoodMessages() request for unknown listener: "
                 + id );
         }
         return result;
@@ -180,7 +180,8 @@ public class PlasticHub extends MinimalHub {
             }
         }
         if ( warnings_ ) {
-            String[] warnlines = validator_.validate( sender, message, args );
+            String[] warnlines =
+                validator_.validateRequest( sender, message, args );
             for ( int i = 0; i < warnlines.length; i++ ) {
                 warn( "    !! " + warnlines[ i ] );
             }
@@ -191,7 +192,7 @@ public class PlasticHub extends MinimalHub {
     }
 
     RequestThread createRequestThread( final Agent agent, URI sender,
-                                       URI message, List args ) {
+                                       final URI message, List args ) {
         return new RequestThread( agent, sender, message, args ) {
             public void run() {
                 if ( verbose_ ) {
@@ -208,15 +209,28 @@ public class PlasticHub extends MinimalHub {
                     }
                     log( "        <- " + agent + ": " + result );
                 }
+                if ( warnings_ ) {
+                    try { 
+                        String[] warnlines = 
+                            validator_.validateResponse( message, getResult() );
+                        for ( int i = 0; i < warnlines.length; i++ ) {
+                            warn( "    !! " + warnlines[ i ] );
+                        }
+                    }
+                    catch ( IOException e ) {
+                        // error getting result - this will already have
+                        // been logged
+                    }
+                }
             }
         };
     }
 
     public void stop() {
-        super.stop();
-        if ( verbose_ ) {
+        if ( verbose_ && ! isStopped() ) {
             log( "Hub stopped." );
         }
+        super.stop();
     }
 
     /**
