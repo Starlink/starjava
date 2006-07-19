@@ -1,61 +1,38 @@
 package uk.ac.starlink.plastic;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Vector;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
-import org.apache.xmlrpc.XmlRpcHandler;
 import org.votech.plastic.PlasticHubListener;
-import org.votech.plastic.PlasticListener;
 
 /**
- * PLASTIC hub implementation.
- *
- * <p>A {@link #main} method is provided for standalone use.
+ * Plastic hub implementation which provides some user friendly featuers
+ * such as logging, message validation,
+ * a {@link javax.swing.ListModel} which keeps track of
+ * registered applications, and a {@link #main} method to start it up.
  *
  * @author   Mark Taylor
  * @since    17 Feb 2006
  */
-public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
+public class PlasticHub extends MinimalHub {
 
-    private final URI hubId_;
-    private final Map agentMap_;
-    private final ServerSet servers_;
-    private boolean stopped_;
-    private PrintStream out_;
-    private int nReg_;
-    private int nReq_;
+    private PrintStream logOut_;
+    private PrintStream warnOut_;
     private boolean verbose_;
+    private boolean warnings_;
     private ApplicationListModel listModel_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.plastic" );
-
-    private static final String HUB_ID_KEY = "hub.id";
-    static final URI HUB_STOPPING =
-        createURI( "ivo://votech.org/hub/event/HubStopping" );
-    static final URI APP_REG =
-        createURI( "ivo://votech.org/hub/event/ApplicationRegistered" );
-    static final URI APP_UNREG =
-        createURI( "ivo://votech.org/hub/event/ApplicationUnregistered" );
+    private MessageValidator validator_;
+    private int nReq_;
 
     /**
      * Constructs a new hub, given running server objects.
@@ -63,254 +40,78 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      * @param   servers   object encapsulating listening servers
      */
     public PlasticHub( ServerSet servers ) throws RemoteException {
-        servers_ = servers;
-        agentMap_ = new HashMap();
-
-        /* Listen for PLASTIC requests on RMI server. */
-        servers_.getRmiServer()
-                .publish( PlasticHubListener.class, this,
-                          new Class[] { PlasticListener.class } );
-
-        /* Listen for PLASTIC requests on XML-RPC server. */
-        servers_.getXmlRpcServer().addHandler( "plastic.hub", this );
-
-        /* Arrange to tidy up if the JVM terminates. */
-        Runtime.getRuntime().addShutdownHook( new Thread() {
-            public void run() {
-                PlasticHub.this.stop();
-            }
-        } );
-
-        /* Create and register an application which will serve as a 
-         * representative of this hub.  It will answer questions like
-         * what version are you, what is your name, etc. */
-        BasicApplication servApp = new BasicApplication( "hub" );
-        servApp.setDescription( "PlasKit hub" );
-        hubId_ = registerRMI( servApp.getName(), 
-                              Arrays.asList( servApp.getSupportedMessages() ),
-                              servApp );
+        super( servers );
     }
 
-    public URI getHubId() {
-        return hubId_;
-    }
-
-    public URI registerRMI( String name, List supportedMessages,
-                            PlasticListener caller ) {
-        Agent agent = new RmiAgent( ++nReg_, name,
-                                    toUriArray( supportedMessages ), caller );
-        register( agent );
-        return agent.getId();
-    }
-
-    public URI registerXMLRPC( String name, List supportedMessages,
-                               URL callbackURL ) {
-        Agent agent = new XmlRpcAgent( ++nReg_, name, 
-                                       toUriArray( supportedMessages ),
-                                       callbackURL );
-        register( agent );
-        return agent.getId();
-    }
-
-    public URI registerNoCallBack( String name ) {
-        Agent agent = new NoCallBackAgent( ++nReg_, name );
-        register( agent );
-        return agent.getId();
-    }
-
-    public void unregister( URI id ) {
-        while ( agentMap_.containsKey( id ) ) {
-            Agent agent = (Agent) agentMap_.get( id );
-            if ( verbose_ ) {
-                out( "Unregister: " + agent );
-                out();
-            }
-            if ( listModel_ != null ) {
-                listModel_.unregister( id );
-            }
-            requestAsynch( hubId_, APP_UNREG,
-                           Arrays.asList( new Object[] { id } ) );
-            agentMap_.remove( id );
-        }
-    }
-
-    /**
-     * Performs generic registration of an agent (listening application).
-     *
-     * @param  agent  object representing the registering application
-     */
-    private void register( Agent agent ) {
-        URI id = agent.getId();
-        agentMap_.put( id, agent );
+    void register( Agent agent ) {
         if ( verbose_ ) {
-            out( "Register: " + agent );
-            out( "    ID:" );
-            out( "        " + agent.getId() );
-            out( "    Connection:" );
-            out( "        " + agent.getConnection() );
+            log( "Register: " + agent );
+            log( "    ID:" );
+            log( "        " + agent.getId() );
+            log( "    Connection:" );
+            log( "        " + agent.getConnection() );
             URI[] msgs = agent.getSupportedMessages();
             if ( msgs.length > 0 ) {
-                out( "    Supported Messages:" );
+                log( "    Supported Messages:" );
                 for ( int i = 0; i < msgs.length; i++ ) {
-                    out( "        " + msgs[ i ] );
+                    log( "        " + msgs[ i ] );
                 }
             }
-            out();
+        }
+        if ( warnings_ ) {
+            URI[] msgs = agent.getSupportedMessages();
+            for ( int i = 0; i < msgs.length; i++ ) {
+                if ( validator_.getDefinition( msgs[ i ] ) == null ) {
+                    warn( "Unknown message: " + msgs[ i ] );
+                }
+            }
+        }
+        if ( verbose_ ) {
+            log( "" );
         }
         if ( listModel_ != null ) {
             listModel_.register( agent.getId(), agent.getName(),
                                  Arrays.asList( agent
                                                .getSupportedMessages() ) );
         }
-        requestAsynch( hubId_, APP_REG,
-                       Arrays.asList( new Object[] { id } ) );
+        super.register( agent );
     }
 
-    public List getRegisteredIds() {
-        return new ArrayList( agentMap_.keySet() );
+    public void unregister( URI id ) {
+        Agent agent = (Agent) getAgentMap().get( id );
+        if ( agent != null ) {
+            if ( listModel_ != null ) {
+                listModel_.unregister( id );
+            }
+            if ( verbose_ ) {
+                log( "Unregister: " + agent );
+                log( "" );
+            }
+        }
+        else {
+            if ( warnings_ ) {
+                warn( "Attempt to unregister unknown listener: "
+                    + id );
+            }
+        }
+        super.unregister( id );
     }
 
     public String getName( URI id ) {
-        Agent agent = (Agent) agentMap_.get( id );
-        return agent == null ? null : agent.getName();
+        String result = super.getName( id );
+        if ( warnings_ && result == null ) {
+            warn( "getName() request for unknown listener: " + id );
+        }
+        return result;
     }
 
     public List getUnderstoodMessages( URI id ) {
-        Agent agent = (Agent) agentMap_.get( id );
-        return agent == null 
-             ? null
-             : Arrays.asList( agent.getSupportedMessages() );
-    }
-
-    public List getMessageRegisteredIds( URI message ) {
-        List supporters = new ArrayList();
-        for ( Iterator it = agentMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            URI id = (URI) entry.getKey();
-            Agent agent = (Agent) entry.getValue();
-            URI[] messages = agent.getSupportedMessages();
-	    if ( messages == null ||
-                 messages.length == 0 ||
-                 Arrays.asList( messages ).contains( message ) ) {
-                 supporters.add( id );
-            }
+        List result = super.getUnderstoodMessages( id );
+        if ( warnings_ && result == null ) {
+            warn( "getUnderstoodMessages() request for uknown listener: "
+                + id );
         }
-        return supporters;
-    }
-
-    public Object execute( String method, Vector params )
-            throws IOException, URISyntaxException {
-
-        /* For each known hub operation, turn it from an XML-RPC method name
-         * to a call of one of the methods on this object.  Some of the
-         * arguments need changing from XML-RPC types to the types 
-         * defined by the PlasticHubListener interface. */
-        List paramList = new ArrayList( params );
-        final Object result;
-        if ( "plastic.hub.getRegisteredIds".equals( method ) ) {
-            result = getRegisteredIds();
-        }
-        else if ( "plastic.hub.getHubId".equals( method ) ) {
-            result = getHubId().toString();
-        }
-        else if ( "plastic.hub.getName".equals( method ) ) {
-            URI id = new URI( (String) paramList.remove( 0 ) );
-            result = getName( id );
-        }
-        else if ( "plastic.hub.getUnderstoodMessages".equals( method ) ) {
-            URI id = new URI( (String) paramList.remove( 0 ) );
-            result = getUnderstoodMessages( id );
-        }
-        else if ( "plastic.hub.getMessageRegisteredIds".equals( method ) ) {
-            URI message = new URI( (String) paramList.remove( 0 ) );
-            result = getMessageRegisteredIds( message );
-        }
-
-        else if ( "plastic.hub.registerXMLRPC".equals( method ) ) {
-            String name = (String) paramList.remove( 0 );
-            List supportedMessages = (List) paramList.remove( 0 );
-            URL callBackUrl = new URL( (String) paramList.remove( 0 ) );
-            result = registerXMLRPC( name, toUriList( supportedMessages ),
-                                     callBackUrl );
-        }
-        else if ( "plastic.hub.registerRMI".equals( method ) ) {
-            throw new IOException( "Can't registerRMI using XML-RPC" );
-        }
-        else if ( "plastic.hub.registerNoCallBack".equals( method ) ) {
-            String name = (String) paramList.remove( 0 );
-            result = registerNoCallBack( name );
-        }
-        else if ( "plastic.hub.unregister".equals( method ) ) {
-            URI id = new URI( (String) paramList.remove( 0 ) );
-            unregister( id );
-            result = null;
-        }
-
-        else if ( "plastic.hub.request".equals( method ) ) {
-            URI sender = new URI( (String) paramList.remove( 0 ) );
-            URI message = new URI( (String) paramList.remove( 0 ) );
-            List args = (List) paramList.remove( 0 );
-            result = request( sender, message, args );
-        }
-        else if ( "plastic.hub.requestAsynch".equals( method ) ) {
-            URI sender = new URI( (String) paramList.remove( 0 ) );
-            URI message = new URI( (String) paramList.remove( 0 ) );
-            List args = (List) paramList.remove( 0 );
-            requestAsynch( sender, message, args );
-            result = null;
-        }
-        else if ( "plastic.hub.requestToSubset".equals( method ) ) {
-            URI sender = new URI( (String) paramList.remove( 0 ) );
-            URI message = new URI( (String) paramList.remove( 0 ) );
-            List args = (List) paramList.remove( 0 );
-            List recipientIds = (List) paramList.remove( 0 );
-            result = requestToSubset( sender, message, args,
-                                      toUriList( recipientIds ) );
-        }
-        else if ( "plastic.hub.requestToSubsetAsynch".equals( method ) ) {
-            URI sender = new URI( (String) paramList.remove( 0 ) );
-            URI message = new URI( (String) paramList.remove( 0 ) );
-            List args = (List) paramList.remove( 0 );
-            List recipientIds = (List) paramList.remove( 0 );
-            requestToSubsetAsynch( sender, message, args,
-                                   toUriList( recipientIds ) );
-            result = null;
-        }
-
-        else {
-            throw new UnsupportedOperationException( "No method " + method 
-                                                   + " on hub" );
-        }
-        Object xResult = XmlRpcAgent.doctorObject( result );
-        return xResult;
-    }
-
-    public Map request( URI sender, URI message, List args ) {
-        return requestTo( sender, message, args, getOtherAgents( sender ) );
-    }
-
-    public Map requestToSubset( URI sender, URI message, List args,
-                                List recipientIds ) {
-        return requestTo( sender, message, args,
-                          getSelectedAgents( recipientIds ) );
-    }
-
-    public void requestAsynch( URI sender, URI message, List args ) {
-        requestAsynchTo( sender, message, args, getOtherAgents( sender ) );
-    }
-
-    public void requestToSubsetAsynch( URI sender, URI message, List args,
-                                       List recipientIds ) {
-        requestAsynchTo( sender, message, args,
-                         getSelectedAgents( recipientIds ) );
-    }
-
-    public URI registerPolling( String name, List supportedMessages ) {
-        throw new UnsupportedOperationException( "Polling not supported" );
-    }
-
-    public List pollForMessages( URI id ) {
-        throw new UnsupportedOperationException( "Polling not supported" );
+        return result;
     }
 
     /**
@@ -328,7 +129,7 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
 
             /* Prepare an intial list of applications. */
             List appList = new ArrayList();
-            for ( Iterator it = agentMap_.entrySet().iterator();
+            for ( Iterator it = getAgentMap().entrySet().iterator();
                   it.hasNext(); ) {
                 Agent agent = (Agent) ((Map.Entry) it.next()).getValue();
                 List msgList = Arrays.asList( agent.getSupportedMessages() );
@@ -344,275 +145,122 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
         return listModel_;
     }
 
-    /**
-     * Returns an array of all registered agents except for the one with
-     * a given identifier.
-     *
-     * @param   excluded  URI to exclude
-     * @return   array of all other agents
-     */
-    private Agent[] getOtherAgents( URI excluded ) {
-        List agentList = new ArrayList();
-        for ( Iterator it = agentMap_.keySet().iterator(); it.hasNext(); ) {
-            URI id = (URI) it.next();
-            if ( id != null && ! id.equals( excluded ) ) {
-                Agent agent = (Agent) agentMap_.get( id );
-                if ( agent != null ) {
-                    agentList.add( agent );
-                }
-            }
-        }
-        return (Agent[]) agentList.toArray( new Agent[ 0 ] );
+    Map requestTo( URI sender, URI message, List args, Agent[] agents ) {
+        logRequest( sender, message, args, agents, true );
+        return super.requestTo( sender, message, args, agents );
     }
 
-    /**
-     * Returns an array of the agents corresponding to a given list of
-     * identifiers.
-     *
-     * @param  idList  list of URIs identifying registered agents
-     * @return  array of agents corresponding to <code>idList</code>
-     */
-    private Agent[] getSelectedAgents( List idList ) {
-        List agentList = new ArrayList();
-        for ( Iterator it = idList.iterator(); it.hasNext(); ) {
-            Agent agent = (Agent) agentMap_.get( it.next() );
-            if ( agent != null ) {
-                agentList.add( agent );
-            }
-        }
-        return (Agent[]) agentList.toArray( new Agent[ 0 ] );
+    void requestAsynchTo( URI sender, URI message, List args, Agent[] agents ) {
+        logRequest( sender, message, args, agents, false );
+        super.requestAsynchTo( sender, message, args, agents );
     }
 
-    /**
-     * Performs the work of a synchronous request to a given list of agents.
+    /** 
+     * Logs information as per current configuration about a message request
+     * which is about to be sent.
      *
      * @param  sender  sender ID
      * @param  message  message ID
      * @param  args    message arguments
      * @param  agents  list of agents to which the request will be multiplexed
+     * @param  isSynch  true iff the message will be sent synchronously
      */
-    private Map requestTo( URI sender, URI message, List args,
-                           Agent[] agents ) {
+    private void logRequest( URI sender, URI message, List args,
+                             Agent[] agents, boolean isSynch ) {
 
         /* Log request with unique ID. */
         final int reqId = ++nReq_;
         if ( verbose_ ) {
-            out( "Synch request " + reqId );
-            out( "    Sender:  " + stringify( sender ) );
-            out( "    Message: " + message );
+            log( ( isSynch ? "Synchronous" : "Asynchronous" )
+               + " request " + reqId );
+            log( "    Sender:  " + stringify( sender ) );
+            log( "    Message: " + message );
             if ( args.size() > 0 ) {
-                out( "    Args:    " + stringify( args ) );
+                log( "    Args:    " + stringify( args ) );
             }
         }
-
-        /* Assemble a list of threads which will perform the synchronous
-         * calls on each agent. */
-        List threadList = new ArrayList();
-        for ( int i = 0; i < agents.length; i++ ) {
-            final Agent agent = agents[ i ];
-            if ( agent.supportsMessage( message ) ) {
-                threadList.add( new RequestThread( agent, sender,
-                                                   message, args ) {
-                    public void run() {
-                        if ( verbose_ ) {
-                            out( "        -> " + agent );
-                        }
-                        super.run();
-                        if ( verbose_ ) {
-                            String result;
-                            try {
-                                result = stringify( getResult() );
-                            }
-                            catch ( IOException e ) {
-                                result = stringify( e );
-                            }
-                            out( "        <- " + agent + ": " + result );
-                        }
-                    }
-                } );
+        if ( warnings_ ) {
+            String[] warnlines = validator_.validate( sender, message, args );
+            for ( int i = 0; i < warnlines.length; i++ ) {
+                warn( "    !! " + warnlines[ i ] );
             }
-        }
-        RequestThread[] threads =
-            (RequestThread[]) threadList.toArray( new RequestThread[ 0 ] );
-
-        /* Start all the threads off. */
-        Map results = new HashMap();
-        for ( int i = 0; i < threads.length; i++ ) {
-            threads[ i ].start();
-        }
-
-        /* Wait for all the threads to finish and assemble the result map. */
-        for ( int i = 0; i < threads.length; i++ ) {
-            RequestThread thread = threads[ i ];
-            Object result;
-            try {
-                thread.join();
-                result = thread.getResult();
-            }
-            catch ( IOException e ) {
-                result = null;
-            }
-            catch ( InterruptedException e ) {
-                result = null;
-            }
-            results.put( thread.getAgent().getId(), result );
         }
         if ( verbose_ ) {
-            out();
+            log( "" );
         }
-
-        /* Return the result map. */
-        return results;
     }
 
-    /**
-     * Performs the work of an asynchronous request to a given list of agents.
-     *
-     * @param  sender  sender ID
-     * @param  message  message ID
-     * @param  args    message arguments
-     * @param  agents  list of agents to which the request will be multiplexed
-     */
-    private void requestAsynchTo( URI sender, URI message, List args,
-                                  Agent[] agents ) {
-
-        /* Log request with unique ID. */
-        final int reqId = ++nReq_;
-        if ( verbose_ ) {
-            out( "Asynch request " + reqId );
-            out( "    Sender:  " + stringify( sender ) );
-            out( "    Message: " + message );
-            if ( args.size() > 0 ) {
-                out( "    Args:    " + stringify( args ) );
-            }
-            out();
-        }
-
-        /* Invoke message asynchronously on all listed agents. */
-        for ( int i = 0; i < agents.length; i++ ) {
-            Agent agent = agents[ i ];
-            if ( agent.supportsMessage( message ) ) {
+    RequestThread createRequestThread( final Agent agent, URI sender,
+                                       URI message, List args ) {
+        return new RequestThread( agent, sender, message, args ) {
+            public void run() {
                 if ( verbose_ ) {
-                    out( "        -> " + agent );
+                    log( "        -> " + agent );
                 }
-                try {
-                    agent.requestAsynch( sender, message, args );
-                }
-                catch ( IOException e ) {
+                super.run();
+                if ( verbose_ ) {
+                    String result;
+                    try {
+                        result = stringify( getResult() );
+                    }
+                    catch ( IOException e ) {
+                        result = stringify( e );
+                    }
+                    log( "        <- " + agent + ": " + result );
                 }
             }
+        };
+    }
+
+    public void stop() {
+        super.stop();
+        if ( verbose_ ) {
+            log( "Hub stopped." );
         }
     }
 
     /**
-     * Sets a stream for this hub to perform logging to.
+     * Sets a stream for this hub to perform logging to. 
      * If <code>out</code> is null (the default), no logging is performed.
      *
      * @param  out  logging print stream
      */
     public void setLogStream( PrintStream out ) {
         verbose_ = out != null;
-        out_ = out;
+        logOut_ = out;
     }
 
     /**
-     * Logs a line of output.
+     * Sets a stream for this hub to log warnings (about validation of
+     * messages etc) to.
+     * If <code>out</code> is null (the default), no logging is performed.
+     *
+     * @param  out  warning print stream
+     */
+    public void setWarningStream( PrintStream out ) {
+        warnings_ = out != null;
+        warnOut_ = out;
+        if ( warnings_ && validator_ == null ) {
+            validator_ = new MessageValidator();
+        }
+    }
+
+    /**
+     * Writes a line of logging output.
      *
      * @param   line   line to write
      */
-    private void out( String line ) {
-        out_.println( line );
+    private void log( String line ) {
+        logOut_.println( line );
     }
 
     /**
-     * Logs an empty line.
-     */
-    private void out() {
-        out_.println();
-    }
-
-    /**
-     * Shuts down this hub and tidies up.  Its main job is to send HUB_STOPPING
-     * messages to all registered listeners.
-     * May safely be called multiple times.
-     * It is good practice to call this method if the hub is no longer
-     * required to run.  However, it will be called automatically if the
-     * hub is finalised or the JVM shuts down normally.
-     */
-    public void stop() {
-        boolean stop;
-        synchronized ( this ) {
-            stop = ! stopped_;
-            stopped_ = true;
-        }
-        if ( stop ) {
-            try {
-                requestAsynch( getHubId(), HUB_STOPPING, new ArrayList() );
-            }
-            catch ( Exception e ) {
-            }
-            try {
-                servers_.stop();
-            }
-            catch ( Exception e ) {
-            }
-            if ( listModel_ != null ) {
-                listModel_.clear();
-            }
-            if ( verbose_ ) {
-                out( "Hub stopped." );
-            }
-        }
-    }
-
-    public void finalize() throws Throwable {
-        try {
-            stop();
-        }
-        finally {
-            super.finalize();
-        }
-    }
-
-    /**
-     * Creates a unique URI.
-     * This utility method is used to come up with a new ID not used before.
-     * 
-     * @param  obj  object the ID is for
-     * @param  text  short descriptive name of the type of object
-     * @param  iseq  integer value which differs from values previously
-     *         passed to this routine with the same object type and text
-     * @param  ID which differs from previous ones returned by this method
-     */
-    static URI createId( Object obj, String text, int iseq ) {
-        text = text.replaceAll( "[^A-Za-z0-9_]+", "_" );
-        try {
-            return new URI( "plastic://" + obj.getClass().getName() + "/" + 
-                            Integer.toHexString( System
-                                                .identityHashCode( obj ) ) +
-                            "-" + iseq + "-" + text );
-        }
-        catch ( URISyntaxException e ) {
-            throw new AssertionError( e );
-        }
-    }
-
-    /**
-     * Utility method to construct a URI without pesky checked exceptions.
+     * Writes a line of warning output.
      *
-     * @param  uri  URI text
-     * @return  URI
-     * @throws  IllegalArgumentException  if there's a problem
+     * @param  line  line to write
      */
-    private static URI createURI( String uri ) {
-        try {
-            return new URI( uri );
-        }
-        catch ( URISyntaxException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad URI: " + uri )
-                 .initCause( e );
-        }
+    private void warn( String line ) {
+        warnOut_.println( line );
     }
 
     /**
@@ -628,11 +276,11 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             return "null";
         }
         else if ( value instanceof URI ) {
-            Object agent = agentMap_.get( value );
+            Object agent = getAgentMap().get( value );
             if ( agent instanceof Agent ) {
                 return "id:" + agent.toString();
             }
-            else if ( value.equals( hubId_ ) ) {
+            else if ( value.equals( getHubId() ) ) {
                 return "id:" + "hub";
             }
             else {
@@ -666,61 +314,22 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
     }
 
     /**
-     * Turns a List of URI objects into an array of URI objects.
-     *
-     * @param  list  uri list
-     * @return uri array
-     */
-    private URI[] toUriArray( List list ) {
-        return (URI[]) list.toArray( new URI[ 0 ] );
-    }
-
-    /**
-     * Turns a list of string-or-URI objects into a list of URI objects.
-     *
-     * @param  list  list of objects
-     * @return list of URIs
-     */
-    private List toUriList( List list ) {
-        if ( list == null ) {
-            return null;
-        }
-        List uriList = new ArrayList();
-        for ( Iterator it = list.iterator(); it.hasNext(); ) {
-            Object obj = it.next();
-            if ( obj instanceof URI ) {
-                uriList.add( obj );
-            }
-            else if ( obj instanceof String ) {
-                try {
-                    uriList.add( new URI( (String) obj ) );
-                }
-                catch ( URISyntaxException e ) {
-                    logger_.warning( "Bad URI string: " + obj );
-                }
-            }
-            else {
-               logger_.warning( "Can't make URI from " + obj );
-            }
-        }
-        return uriList;
-    }
-
-    /**
      * Creates and starts a PlasticHub running, writing its config information
      * to the default file and optionally logging output to a print stream.
      * The config file will be deleted automatically if the hub stops running.
      *
-     * @param   out  logging output stream (may be null for no logging)
+     * @param  logOut  logging output stream (may be null for no logging)
+     * @param  warnOut  logging stream for warnings (may be null for no logging)
      */
-    public static PlasticHub startHub( PrintStream out ) 
+    public static PlasticHub startHub( PrintStream logOut, PrintStream warnOut )
             throws IOException, RemoteException {
-        return startHub( out, new File( System.getProperty( "user.home" ),
-                                        PLASTIC_CONFIG_FILENAME ) );
+        return startHub( logOut, warnOut,
+                         new File( System.getProperty( "user.home" ),
+                         PLASTIC_CONFIG_FILENAME ) );
     }
 
     /**
-     * Creates and starts a PlasticHub running, optionally 
+     * Creates and starts a PlasticHub running, optionally
      * writing the config information into a given file and
      * logging output to a print stream.
      * The config file is usually 
@@ -730,15 +339,18 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      *
      * @param   configFile  file to write setup information to,
      *          if null no file is written
-     * @param   out  logging output stream (may be null for no logging)
+     * @param  logOut  logging output stream (may be null for no logging)
+     * @param  warnOut  logging stream for warnings (may be null for no logging)
      */
-    public static PlasticHub startHub( PrintStream out, File configFile )
+    public static PlasticHub startHub( PrintStream logOut, PrintStream warnOut,
+                                       File configFile )
             throws RemoteException, IOException {
         final ServerSet servers = new ServerSet( configFile );
         final PlasticHub hub = new PlasticHub( servers );
-        hub.setLogStream( out );
-        if ( out != null ) {
-            out.println( "Hub started." );
+        hub.setLogStream( logOut );
+        hub.setWarningStream( warnOut );
+        if ( logOut != null ) {
+            logOut.println( "Hub started." );
         }
         Runtime.getRuntime().addShutdownHook( new Thread() {
             public void run() {
@@ -754,8 +366,12 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
      * <h2>Flags</h2>
      * <dl>
      * <dt>-verbose</dt>
-     * <dd>Causes verbose messages to be written to standard output 
+     * <dd>Causes verbose messages to be written to standard output
      *     logging hub operations.</dd>
+     * <dt>-warn</dt>
+     * <dd>Causes extra validation and warning messages to be output
+     *     in the case of hub interactions which do not follow the letter
+     *     of the protocol.</dd>
      * <dt>-gui</dt>
      * <dd>Pops up a graphical window which monitors applications currently
      *     registered.  The hub will terminate if this window is closed.</dd>
@@ -770,9 +386,11 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
                      + PlasticHub.class.getName()
                      + "\n           "
                      + " [-verbose]"
+                     + " [-warn]"
                      + " [-gui]"
                      + "\n";
-        PrintStream out = null;
+        PrintStream logOut = null;
+        PrintStream warnOut = null;
 
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = false;
@@ -780,7 +398,11 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             String arg = (String) it.next();
             if ( arg.equals( "-verbose" ) ) {
                 it.remove();
-                out = System.out;
+                logOut = System.out;
+            }
+            if ( arg.equals( "-warn" ) ) {
+                it.remove();
+                warnOut = System.out;
             }
             else if ( arg.equals( "-gui" ) ) {
                 it.remove();
@@ -795,8 +417,9 @@ public class PlasticHub implements PlasticHubListener, XmlRpcHandler {
             System.err.println( usage );
             System.exit( 1 );
         }
-        PlasticHub hub = 
-            startHub( out, new File( System.getProperty( "user.home" ),
+        PlasticHub hub =
+            startHub( logOut, warnOut,
+                      new File( System.getProperty( "user.home" ),
                       PlasticHubListener.PLASTIC_CONFIG_FILENAME ) );
         if ( gui ) {
             JFrame window = new ListWindow( hub.getApplicationListModel() );
