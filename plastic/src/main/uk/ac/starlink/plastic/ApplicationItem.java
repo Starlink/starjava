@@ -54,7 +54,7 @@ public class ApplicationItem {
     }
 
     /**
-     * Returns the list of messages suupported by this application
+     * Returns the list of messages supported by this application
      *
      * @return  list of message id URIs
      */
