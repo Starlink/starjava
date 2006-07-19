@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.HubManager;
+import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
@@ -48,24 +49,14 @@ public class TopcatPlasticListener extends HubManager {
     private final Map idMap_;
     private final Map highlightMap_;
 
-    public static final URI VOT_LOAD;
-    public static final URI VOT_LOADURL;
-    public static final URI VOT_SHOWOBJECTS;
-    public static final URI VOT_HIGHLIGHTOBJECT;
-    public static final URI INFO_GETDESCRIPTION;
-    public static final URI INFO_GETICON;
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
-        VOT_LOAD = createURI( "ivo://votech.org/votable/load" ),
-        VOT_LOADURL = createURI( "ivo://votech.org/votable/loadFromURL" ),
-        VOT_SHOWOBJECTS = createURI( "ivo://votech.org/votable/showObjects" ),
-        VOT_HIGHLIGHTOBJECT =
-            createURI( "ivo://votech.org/votable/highlightObject" ),
-        INFO_GETDESCRIPTION =
-            createURI( "ivo://votech.org/info/getDescription" ),
-        INFO_GETICON = createURI( "ivo://votech.org/info/getIconURL" ),
+        MessageId.VOT_LOAD,
+        MessageId.VOT_LOADURL,
+        MessageId.VOT_SHOWOBJECTS,
+        MessageId.VOT_HIGHLIGHTOBJECT,
+        MessageId.INFO_GETDESCRIPTION,
+        MessageId.INFO_GETICONURL,
     };
-    public static final URI SKY_POINTAT =
-        createURI( "ivo://votech.org/sky/pointAtCoords" );
  
     /**
      * Constructs a new listener which will react appropriately to 
@@ -93,7 +84,7 @@ public class TopcatPlasticListener extends HubManager {
             throws IOException {
 
         /* Load VOTable passed as text in an argument. */
-        if ( VOT_LOAD.equals( message ) &&
+        if ( MessageId.VOT_LOAD.equals( message ) &&
              checkArgs( args, new Class[] { String.class } ) ) {
             String text = (String) args.get( 0 );
             String id = args.size() > 1 ? String.valueOf( args.get( 1 ) )
@@ -103,7 +94,7 @@ public class TopcatPlasticListener extends HubManager {
 	}
 
         /* Load VOTable by URL. */
-        else if ( VOT_LOADURL.equals( message ) &&
+        else if ( MessageId.VOT_LOADURL.equals( message ) &&
                   checkArgs( args, new Class[] { Object.class } ) ) {
             String url = args.get( 0 ) instanceof String
                        ? (String) args.get( 0 )
@@ -119,7 +110,8 @@ public class TopcatPlasticListener extends HubManager {
         }
 
         /* Select VOTable rows. */
-        else if ( VOT_SHOWOBJECTS.equals( message ) && args.size() >= 2 &&
+        else if ( MessageId.VOT_SHOWOBJECTS.equals( message ) &&
+                  args.size() >= 2 &&
                   args.get( 1 ) instanceof List ) {
             String tableId = args.get( 0 ).toString();
             List objList = (List) args.get( 1 );
@@ -127,7 +119,8 @@ public class TopcatPlasticListener extends HubManager {
         }
 
         /* Highlight a single row. */
-        else if ( VOT_HIGHLIGHTOBJECT.equals( message ) && args.size() >= 2 &&
+        else if ( MessageId.VOT_HIGHLIGHTOBJECT.equals( message ) &&
+                  args.size() >= 2 &&
                   args.get( 1 ) instanceof Number ) {
             String tableId = args.get( 0 ).toString();
             int irow = ((Number) args.get( 1 )).intValue();
@@ -135,11 +128,11 @@ public class TopcatPlasticListener extends HubManager {
         }
 
         /* Get TOPCAT icon. */
-        else if ( INFO_GETICON.equals( message ) ) {
+        else if ( MessageId.INFO_GETICONURL.equals( message ) ) {
             return "http://www.starlink.ac.uk/topcat/tc3.gif";
         }
 
-        else if ( INFO_GETDESCRIPTION.equals( message ) ) {
+        else if ( MessageId.INFO_GETDESCRIPTION.equals( message ) ) {
             return "TOol for Processing Catalogues And Tables";
         }
 
@@ -172,7 +165,7 @@ public class TopcatPlasticListener extends HubManager {
      */
     public PlasticTransmitter createTableTransmitter( final 
                                                       ControlWindow control ) {
-        return new PlasticTransmitter( this, VOT_LOADURL, "table" ) {
+        return new PlasticTransmitter( this, MessageId.VOT_LOADURL, "table" ) {
             protected void transmit( ApplicationItem app ) throws IOException {
                 TopcatModel tcModel = control.getCurrentModel();
                 if ( tcModel != null ) {
@@ -230,8 +223,9 @@ public class TopcatPlasticListener extends HubManager {
             public void run() {
                 List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
                 Map responses = recipients == null 
-                    ? hub.request( plasticId, VOT_LOADURL, argList )
-                    : hub.requestToSubset( plasticId, VOT_LOADURL, argList,
+                    ? hub.request( plasticId, MessageId.VOT_LOADURL, argList )
+                    : hub.requestToSubset( plasticId, MessageId.VOT_LOADURL,
+                                           argList,
                                            Arrays.asList( recipients ) );
 
                 /* Delete the temp file. */
@@ -250,7 +244,8 @@ public class TopcatPlasticListener extends HubManager {
     public PlasticTransmitter
            createSubsetTransmitter( final TopcatModel tcModel,
                                     final SubsetWindow subSelector ) {
-        return new PlasticTransmitter( this, VOT_SHOWOBJECTS, "subset" ) {
+        return new PlasticTransmitter( this, MessageId.VOT_SHOWOBJECTS,
+                                       "subset" ) {
             protected void transmit( ApplicationItem app ) throws IOException {
                 RowSubset rset = subSelector.getSelectedSubset();
                 if ( rset != null ) {
@@ -318,10 +313,12 @@ public class TopcatPlasticListener extends HubManager {
                 List argList =
                     Arrays.asList( new Object[] { tableId, rowList } );
                 if ( recipients == null ) {
-                    hub.requestAsynch( plasticId, VOT_SHOWOBJECTS, argList );
+                    hub.requestAsynch( plasticId, MessageId.VOT_SHOWOBJECTS,
+                                       argList );
                 }
                 else {
-                    hub.requestToSubsetAsynch( plasticId, VOT_SHOWOBJECTS,
+                    hub.requestToSubsetAsynch( plasticId,
+                                               MessageId.VOT_SHOWOBJECTS,
                                                argList,
                                                Arrays.asList( recipients ) );
                 }
@@ -347,10 +344,12 @@ public class TopcatPlasticListener extends HubManager {
                 List argList =
                     Arrays.asList( new Object[] { url.toString(), rowList } );
                 if ( recipients == null ) {
-                    hub.requestAsynch( plasticId, VOT_SHOWOBJECTS, argList );
+                    hub.requestAsynch( plasticId, MessageId.VOT_SHOWOBJECTS,
+                                       argList );
                 }
                 else {
-                    hub.requestToSubsetAsynch( plasticId, VOT_SHOWOBJECTS,
+                    hub.requestToSubsetAsynch( plasticId,
+                                               MessageId.VOT_SHOWOBJECTS,
                                                argList, 
                                                Arrays.asList( recipients ) );
                 }
@@ -425,10 +424,12 @@ public class TopcatPlasticListener extends HubManager {
                 new Integer( sendRow ),
             } );
             if ( recipients == null ) {
-                hub.requestAsynch( plasticId, VOT_HIGHLIGHTOBJECT, args );
+                hub.requestAsynch( plasticId, MessageId.VOT_HIGHLIGHTOBJECT,
+                                   args );
             }
             else {
-                hub.requestToSubsetAsynch( plasticId, VOT_HIGHLIGHTOBJECT, args,
+                hub.requestToSubsetAsynch( plasticId,
+                                           MessageId.VOT_HIGHLIGHTOBJECT, args,
                                            Arrays.asList( recipients ) );
             }
             return true;
@@ -457,10 +458,10 @@ public class TopcatPlasticListener extends HubManager {
         List args = Arrays.asList( new Object[] { new Double( ra2000 ),
                                                   new Double( dec2000 ) } );
         if ( recipients == null ) {
-            hub.requestAsynch( plasticId, SKY_POINTAT, args );
+            hub.requestAsynch( plasticId, MessageId.SKY_POINT, args );
         }
         else {
-            hub.requestToSubsetAsynch( plasticId, SKY_POINTAT, args,
+            hub.requestToSubsetAsynch( plasticId, MessageId.SKY_POINT, args,
                                        Arrays.asList( recipients ) );
         }
     }
