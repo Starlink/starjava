@@ -25,7 +25,7 @@ import org.votech.plastic.PlasticListener;
  * @author   Mark Taylor
  * @since    25 May 2006
  */
-public class XmlRpcHub implements PlasticHubListener {
+class XmlRpcHub implements PlasticHubListener {
 
     private final XmlRpcClient client_;
     private final PlasticHubListener properHub_;

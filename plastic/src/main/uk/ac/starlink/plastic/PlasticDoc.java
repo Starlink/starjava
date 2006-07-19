@@ -9,7 +9,7 @@ package uk.ac.starlink.plastic;
  * @author   Mark Taylor
  * @since    14 Jul 2006
  */
-public class PlasticDoc {
+class PlasticDoc {
 
     private static final Class[] cmds = new Class[] {
         PlasticHub.class,

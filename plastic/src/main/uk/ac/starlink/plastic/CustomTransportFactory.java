@@ -42,7 +42,7 @@ import org.apache.xmlrpc.XmlRpcTransportFactory;
  *
  * @author   Mark Taylor
  */
-public class CustomTransportFactory implements XmlRpcTransportFactory {
+class CustomTransportFactory implements XmlRpcTransportFactory {
 
     private URL url_;
     private String auth_;
