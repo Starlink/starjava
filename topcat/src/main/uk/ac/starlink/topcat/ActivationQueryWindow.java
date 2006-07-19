@@ -36,6 +36,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
 import uk.ac.starlink.plastic.ApplicationItem;
+import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
@@ -412,8 +413,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 ControlWindow.getInstance().getPlasticServer();
             ComboBoxModel appModel =
                 ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( TopcatPlasticListener
-                                           .VOT_HIGHLIGHTOBJECT );
+               .createPlasticComboBoxModel( MessageId.VOT_HIGHLIGHTOBJECT );
             appSelector_ = new JComboBox( appModel );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "Target Application", appSelector_ );
@@ -472,7 +472,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 ControlWindow.getInstance().getPlasticServer();
             ComboBoxModel appModel =
                 ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( TopcatPlasticListener.SKY_POINTAT );
+               .createPlasticComboBoxModel( MessageId.SKY_POINTAT );
             appSelector_ = new JComboBox( appModel );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "RA Column", raSelector_ );
