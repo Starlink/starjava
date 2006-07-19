@@ -40,9 +40,19 @@ public class PlasticTest extends TestCase {
 
     public void testHub() throws IOException, InterruptedException,
                                  URISyntaxException {
+
+//      if ( ! configFile.exists() ) {
+//          ServerSet servers = new ServerSet( configFile );
+//          MinimalHub minHub = new MinimalHub( servers );
+//          exerciseHub( minHub );
+//          minHub.stop();
+//          servers.stop();
+//      }
+
         PlasticHub jvmHub = configFile.exists()
             ? null
-            : PlasticHub.startHub( VERBOSE ? System.out : null );
+            : PlasticHub.startHub( VERBOSE ? System.out : null,
+                                   VERBOSE ? System.out : null );
         if ( jvmHub != null ) {
             exerciseHub( jvmHub );
         }
