@@ -190,6 +190,17 @@ abstract class FileColumnStore implements ColumnStore {
                 // never mind.
             }
         }
+
+        /* UCD. */
+        String ucd = info_.getUCD();
+        if ( ucd != null && ucd.trim().length() > 0 && ucd.length() < 68 ) {
+            try {
+                hdr.addValue( "TUCD" + icol, ucd, null );
+            }
+            catch ( HeaderCardException e ) {
+                // never mind.
+            }
+        }
     }
 
     public void dispose() throws IOException {

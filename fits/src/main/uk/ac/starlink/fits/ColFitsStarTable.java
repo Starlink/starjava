@@ -130,6 +130,10 @@ public class ColFitsStarTable extends ColumnStarTable {
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
+            String tucd = hdr.getStringValue( "TUCD" + jcol );
+            if ( tucd != null ) {
+                cinfo.setUCD( tucd );
+            }
             infos[ icol ] = cinfo;
         }
         nrow_ = nrow;

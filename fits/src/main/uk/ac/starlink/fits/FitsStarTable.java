@@ -172,6 +172,12 @@ public class FitsStarTable extends RandomStarTable {
                 cinfo.setDescription( tcomm );
             }
 
+            /* UCD (non-standard). */
+            String tucd = cards.getStringValue( "TUCD" + jcol );
+            if ( tucd != null ) {
+                cinfo.setUCD( tucd );
+            }
+
             /* Implementation specifics. */
             String tbcol = cards.getStringValue( "TBCOL" + jcol );
             if ( tbcol != null ) {

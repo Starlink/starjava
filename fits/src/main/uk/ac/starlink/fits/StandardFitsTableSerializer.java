@@ -299,8 +299,19 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                         hdr.addValue( "TCOMM" + jcol, comm, null );
                     }
                     catch ( HeaderCardException e ) {
-                        logger.warning( "Description " + comm +
-                                        " too long for FITS header" );
+                        // never mind.
+                    }
+                }
+
+                /* UCD (non-standard). */
+                String ucd = colinfo.getUCD();
+                if ( ucd != null && ucd.trim().length() > 0 &&
+                     ucd.length() < 68 ) {
+                    try {
+                        hdr.addValue( "TUCD" + jcol, ucd, null );
+                    }
+                    catch ( HeaderCardException e ) {
+                        // never mind.
                     }
                 }
             }
