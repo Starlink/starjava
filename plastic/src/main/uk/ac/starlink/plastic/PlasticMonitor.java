@@ -32,11 +32,13 @@ import org.votech.plastic.PlasticHubListener;
 public class PlasticMonitor implements PlasticApplication {
 
     private final String name_;
-    private final PrintStream out_;
+    private final PrintStream logOut_;
+    private final PrintStream warnOut_;
     private boolean stopped_;
     private ApplicationListModel appListModel_;
     private PlasticHubListener hub_;
     private final String hubVersion_;
+    private final MessageValidator validator_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.plastic" );
@@ -52,11 +54,13 @@ public class PlasticMonitor implements PlasticApplication {
      * @param  out    logging output stream
      * @param  hubVersion PLASTIC protocol version used by the hub to monitor
      */
-    protected PlasticMonitor( String name, PrintStream out, 
-                              String hubVersion ) {
+    protected PlasticMonitor( String name, PrintStream logOut,
+                              PrintStream warnOut, String hubVersion ) {
         name_ = name;
-        out_ = out;
+        logOut_ = logOut;
+        warnOut_ = warnOut;
         hubVersion_ = hubVersion;
+        validator_ = new MessageValidator();
     }
 
     public String getName() {
@@ -72,11 +76,11 @@ public class PlasticMonitor implements PlasticApplication {
             version = -1f;
         }
         if ( version > 0.45 ) {
-            return new URI[] {
-                PlasticHub.HUB_STOPPING,
-                PlasticHub.APP_REG,
-                PlasticHub.APP_UNREG,
-            };
+            URI[] msgs = MessageId.getKnownMessages();
+            assert Arrays.asList( msgs ).contains( MessageId.HUB_APPREG );
+            assert Arrays.asList( msgs ).contains( MessageId.HUB_APPUNREG );
+            assert Arrays.asList( msgs ).contains( MessageId.HUB_STOPPING );
+            return msgs;
         }
 
         /* Hub versions 0.4 and earlier used an empty array as a special
@@ -87,16 +91,25 @@ public class PlasticMonitor implements PlasticApplication {
     }
 
     public Object perform( URI sender, URI message, List args ) {
-        String summary = new StringBuffer()
-            .append( stringify( sender ) )
-            .append( ": " )
-            .append( stringify( message ) )
-            .append( stringify( args ) )
-            .toString();
-        if ( out_ != null ) {
-            out_.println( summary );
+        if ( logOut_ != null ) {
+            String summary = new StringBuffer()
+                .append( stringify( sender ) )
+                .append( ": " )
+                .append( stringify( message ) )
+                .append( stringify( args ) )
+                .toString();
+            logOut_.println( summary );
         }
-        if ( PlasticHub.HUB_STOPPING.equals( message ) ) {
+        if ( warnOut_ != null ) {
+            String[] warnings = validator_.validate( sender, message, args );
+            if ( warnings.length > 0 ) {
+                warnOut_.println( "WARNINGS: " );
+                for ( int i = 0; i < warnings.length; i++ ) {
+                    warnOut_.println( "    " + warnings[ i ] );
+                }
+            }
+        }
+        if ( MessageId.HUB_STOPPING.equals( message ) ) {
             stopped_ = true;
             if ( appListModel_ != null ) {
                 appListModel_.clear();
@@ -106,7 +119,7 @@ public class PlasticMonitor implements PlasticApplication {
             }
         }
         if ( appListModel_ != null ) {
-            if ( PlasticHub.APP_REG.equals( message ) && 
+            if ( MessageId.HUB_APPREG.equals( message ) && 
                  args.size() > 0 ) {
                 try {
                     URI id = new URI( args.get( 0 ).toString() );
@@ -116,7 +129,7 @@ public class PlasticMonitor implements PlasticApplication {
                 catch ( URISyntaxException e ) {
                 }
             }
-            else if ( PlasticHub.APP_UNREG.equals( message ) ) {
+            else if ( MessageId.HUB_APPUNREG.equals( message ) ) {
                 try {
                     URI id = new URI( args.get( 0 ).toString() );
                     appListModel_.unregister( id );
@@ -214,6 +227,7 @@ public class PlasticMonitor implements PlasticApplication {
                      + "\n           "
                      + " [-xmlrpc|-rmi]"
                      + " [-gui]"
+                     + " [-warn]"
                      + " [-verbose]"
                      + " [-name name]"
                      + "\n";
@@ -223,6 +237,7 @@ public class PlasticMonitor implements PlasticApplication {
         String mode = "rmi";
         boolean gui = false;
         boolean verbose = false;
+        boolean validate = false;
         String name = "monitor";
         for ( Iterator it = argv.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -242,6 +257,10 @@ public class PlasticMonitor implements PlasticApplication {
                 it.remove();
                 verbose = true;
             }
+            else if ( "-warn".equals( arg ) ) {
+                it.remove();
+                validate = true;
+            }
             else if ( "-name".equals( arg ) && it.hasNext() ) {
                 it.remove();
                 name = (String) it.next();
@@ -257,8 +276,10 @@ public class PlasticMonitor implements PlasticApplication {
             System.exit( 1 );
         }
 
-        PrintStream out = verbose ? System.out : null;
-        PlasticMonitor mon = new PlasticMonitor( name, out, getHubVersion() );
+        PrintStream logOut = verbose ? System.out : null;
+        PrintStream warnOut = validate ? System.out : null;
+        PlasticMonitor mon = new PlasticMonitor( name, logOut, warnOut,
+                                                 getHubVersion() );
        
         if ( gui ) {
             PlasticHubListener hub = PlasticUtils.getLocalHub();
@@ -274,8 +295,8 @@ public class PlasticMonitor implements PlasticApplication {
             window.setVisible( true );
         }
 
-        if ( out != null ) {
-            out.println( "Connnecting in " + mode + " mode..." );
+        if ( logOut != null ) {
+            logOut.println( "Connnecting in " + mode + " mode..." );
         }
         if ( "rmi".equals( mode ) ) {
             PlasticUtils.registerRMI( mon );
@@ -286,8 +307,8 @@ public class PlasticMonitor implements PlasticApplication {
         else {
             assert false;
         }
-        if ( out != null ) {
-            out.println( "...connected." );
+        if ( logOut != null ) {
+            logOut.println( "...connected." );
         }
 
         /* Wait on the monitor.  If it receives a HUB_STOPPING message
@@ -298,8 +319,8 @@ public class PlasticMonitor implements PlasticApplication {
                     mon.wait();
                 }
             }
-            if ( out != null ) {
-                out.println( "Hub stopped." );
+            if ( logOut != null ) {
+                logOut.println( "Hub stopped." );
             }
             System.exit( 0 );
         }
@@ -309,7 +330,9 @@ public class PlasticMonitor implements PlasticApplication {
     }
 
     /**
-     * Returns the hub version as a floating point number, if it can.
+     * Returns the hub version as a string number, if it can.
+     *
+     * @return   hub version string
      */
     public static String getHubVersion() {
         try {
@@ -317,10 +340,9 @@ public class PlasticMonitor implements PlasticApplication {
             URI hubId = hub.getHubId();
             URI clientId = hub.registerNoCallBack( "monitor-pre" );
             try {
-                URI msgId = PlasticUtils
-                           .createURI( "ivo://votech.org/info/getVersion" );
                 Map vMap =
-                    hub.requestToSubset( clientId, msgId, new ArrayList(),
+                    hub.requestToSubset( clientId, MessageId.INFO_GETVERSION,
+                                         new ArrayList(),
                                          Collections.singletonList( hubId ) );
                 return vMap.get( hubId ).toString().trim();
             }
