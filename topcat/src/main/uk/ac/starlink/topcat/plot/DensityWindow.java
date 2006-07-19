@@ -39,7 +39,7 @@ import nom.tam.fits.Header;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.plastic.ApplicationItem;
-import uk.ac.starlink.plastic.PlasticUtils;
+import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
@@ -84,9 +84,6 @@ public class DensityWindow extends GraphicsWindow {
         new SuffixFileFilter( new String[] { ".fits", ".fit", ".fts", } );
     private static FileFilter jpegFilter_ =
         new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
-
-    private static final URI MSG_LOADIMG =
-        PlasticUtils.createURI( "ivo://votech.org/fits/image/loadFromURL" );
 
     /**
      * Constructs a new DensityWindow.
@@ -222,7 +219,7 @@ public class DensityWindow extends GraphicsWindow {
         PlasticTransmitter imageTransmitter =
                 new PlasticTransmitter( ControlWindow.getInstance()
                                                      .getPlasticServer(),
-                                        MSG_LOADIMG, "FITS image" ) {
+                                        MessageId.FITS_LOADURL, "FITS image" ) {
             protected void transmit( ApplicationItem app ) throws IOException {
                 transmitFits( app == null ? null : new URI[] { app.getId() } );
             }
@@ -425,9 +422,10 @@ public class DensityWindow extends GraphicsWindow {
         new Thread( "FITS broadcast" ) {
             public void run() {
                 List argList = Collections.singletonList( tmpUrl );
+                URI msgId = MessageId.FITS_LOADURL;
                 Map responses = recipients == null
-                    ? hub.request( plasticId, MSG_LOADIMG, argList )
-                    : hub.requestToSubset( plasticId, MSG_LOADIMG, argList,
+                    ? hub.request( plasticId, msgId, argList )
+                    : hub.requestToSubset( plasticId, msgId, argList,
                                            Arrays.asList( recipients ) );
                 tmpfile.delete();
             }
