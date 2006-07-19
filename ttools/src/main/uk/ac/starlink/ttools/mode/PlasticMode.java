@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -51,16 +52,10 @@ public class PlasticMode implements ProcessingMode {
     };
 
     /** Message ID for load by passing VOTable text as a string argument. */
-    public final static URI MSG_BYTEXT =
-        getURI( "ivo://votech.org/votable/load" );
+    public final static URI MSG_BYTEXT = MessageId.VOT_LOAD;
 
     /** Message ID for load by passing VOTable URL (temp file) as argument.*/
-    public final static URI MSG_BYURL = 
-        getURI( "ivo://votech.org/votable/loadFromURL" );
-
-    /** Message ID for getting application name. */
-    private final static URI MSG_NAME =
-        getURI( "ivo://votech.org/info/getName" );
+    public final static URI MSG_BYURL = MessageId.VOT_LOADURL;
 
     public String getDescription() {
         return new StringBuffer()
@@ -183,14 +178,15 @@ public class PlasticMode implements ProcessingMode {
         /* Determine the list of clients for receipt of the message. */
         URI clientId = null;
         if ( client != null && client.trim().length() > 0 ) {
-            Map nameResponses = hub.request( plasticId, MSG_NAME,
+            Map nameResponses = hub.request( plasticId, MessageId.INFO_GETNAME,
                                              new ArrayList() );
             for ( Iterator it = nameResponses.entrySet().iterator();
                   clientId == null && it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry) it.next();
                 URI id = (URI) entry.getKey();
-                String appName = (String) entry.getValue();
-                if ( appName != null && appName.equalsIgnoreCase( client ) ) {
+                Object value = entry.getValue();
+                if ( value instanceof String &&
+                     ((String) value).equalsIgnoreCase( client ) ) {
                     clientId = id;
                 }
             }
@@ -266,7 +262,7 @@ public class PlasticMode implements ProcessingMode {
                 if ( loadResponses.size() > 0 ) {
                     out.print( "Broadcast to listeners: " );
                     Map nameResponses =
-                        hub.requestToSubset( plasticId, MSG_NAME,
+                        hub.requestToSubset( plasticId, MessageId.INFO_GETNAME,
                                              new ArrayList(),
                                              new ArrayList( loadResponses
                                                            .keySet() ) );
@@ -293,24 +289,5 @@ public class PlasticMode implements ProcessingMode {
 
         /* Can't get here? */
         throw new AssertionError( "Unknown transport: " + msg );
-    }
-
-    /**
-     * Convenience method to turn a String into a URI without throwing
-     * any pesky checked exceptions.
-     *
-     * @param  uri  URI text
-     * @return  URI
-     * @throws  IllegalArgumentException   if uri doesn't look like a URI
-     */
-    private static URI getURI( String uri ) {
-        try {
-            return new URI( uri );
-        }
-        catch ( URISyntaxException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad URI: " + uri )
-                 .initCause( e );
-        }
     }
 }
