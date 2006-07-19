@@ -50,9 +50,9 @@ public class ValueType {
             throw new ValueTypeException( "Null value illegal" );
         }
         else if ( ! jClazz_.isAssignableFrom( jValue.getClass() ) ) {
-            throw new ValueTypeException( jValue + "("
-                                        + jValue.getClass().getName() + ") "
-                                        + " is not a " + jClazz_.getName() );
+            throw new ValueTypeException( jValue
+                                        + " (" + objClassName( jValue ) + ")"
+                                        + " is not a " + className( jClazz_ ) );
         }
     }
 
@@ -262,13 +262,36 @@ public class ValueType {
                 throw new ValueTypeException( "Illegal null map key value" );
             }
             else if ( key.getClass() != String.class ) {
-                throw new ValueTypeException( "Illegal map key value " + key + 
-                                              "(" + key.getClass().getName() +
-                                              ") should be a String" );
+                throw new ValueTypeException( "Illegal map key value " + key
+                                            + " (" + objClassName( key ) + ")"
+                                            + " should be a String" );
             }
             else {
                 checkObject( value );
             }
         }
+    }
+
+    /**
+     * Convenience method to return a human-readable version of the classname
+     * of an object.
+     *
+     * @param  obj  object
+     * @return  classname or similar
+     */
+    private static String objClassName( Object obj ) {
+        return obj == null ? "null"
+                           : className( obj.getClass() );
+    }
+
+    /**
+     * Convenience method to return a human-readable version of the name of
+     * a class.
+     *
+     * @param  clazz  class
+     * @return  classname or similar
+     */
+    private static String className( Class clazz ) {
+        return clazz.getName().replaceFirst( "^java\\.lang\\.", "" );
     }
 }
