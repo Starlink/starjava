@@ -472,7 +472,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 ControlWindow.getInstance().getPlasticServer();
             ComboBoxModel appModel =
                 ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( MessageId.SKY_POINTAT );
+               .createPlasticComboBoxModel( MessageId.SKY_POINT );
             appSelector_ = new JComboBox( appModel );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "RA Column", raSelector_ );
