@@ -208,8 +208,6 @@
       export BLD_SHR
       export CC
       export CFLAGS
-      export FC
-      export FFLAGS
       export JAVA_SYSTEM
       export JAVA_INCLUDE
       export LINK
@@ -235,11 +233,10 @@
 #  -------------------------------
             alpha_OSF1)
                AR_IN='ar -r'
-               BLD_SHR='f() ld -shared -o $$1 $$2 $$3 -lfor -lFutil -lUfor -lm -lots -lc; f'
+               BLD_SHR='f() ld -shared -o $$1 $$2 $$3 -lm -lots -lc; f'
                CC='cc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -pthread'
                LINK='ln -s'
-               LINK_LIB=''
                RANLIB='ranlib'
                SHARE='.so'
                TAR_IN='tar -cvhf'
@@ -252,11 +249,10 @@
 #  ---------------------------------------------
             sun4_Solaris)
                AR_IN='ar -r'
-               BLD_SHR='f() f77 -G -o $$1 $$2 -Bstatic -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
+               BLD_SHR='f() cc -G -o $$1 $$2 -Bstatic -lsunmath -Bdynamic -lm -lcx -lc; f'
                CC='cc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -K PIC'
                LINK='ln -s'
-               LINK_LIB=''
                SHARE='.so'
                TAR_IN='tar -cvhf'
                TAR_OUT='tar -xf'
@@ -273,10 +269,7 @@
                BLD_SHR='f() { gcc -shared -o $$1 $$2 -lm -lgcc -lc;}; f'
                CC='gcc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
-               FC='g77'
-               FFLAGS='-fno-second-underscore -O -fPIC'
                LINK='ln -s'
-               LINK_LIB=''
                RANLIB='ranlib'
                SHARE='.so'
                TAR_IN='tar -cvhf'
@@ -291,13 +284,10 @@
 #  ------------------------
             ppc_MacOSX)
                AR_IN='ar r'
-               BLD_SHR='f() { gcc -dynamiclib -single_module -o $$1 $$2 /sw/lib/libg2c.a;}; f'
+               BLD_SHR='f() { gcc -dynamiclib -single_module -o $$1 $$2 ;}; f'
                CC='gcc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O'
-               FC='g77'
-               FFLAGS='-fno-second-underscore -O'
                LINK='ln -s'
-               LINK_LIB='/sw/bin/libg2c.a'
                RANLIB='ranlib'
                SHARE='.jnilib'
                TAR_IN='tar -cvhf'

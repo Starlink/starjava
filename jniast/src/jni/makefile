@@ -32,7 +32,7 @@ STAR_INC = $(STARLINK)/include
 STAR_LIB = $(STARLINK)/lib
 STAR_SHARE = $(STARLINK)/share
 
-#  Default macros for compiling C and Fortran source code.
+#  Default macros for compiling C source code.
 
 CC = c89
 CFLAGS = -O
