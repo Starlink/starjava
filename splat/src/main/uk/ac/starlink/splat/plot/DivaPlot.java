@@ -953,9 +953,17 @@ public class DivaPlot
                 }
 
                 //  Get the AST FrameSet to use and check if this contains a
-                //  DSBSpecFrame, we handle those differently.
+                //  DSBSpecFrame, we handle those differently, unless the 
+                //  sideband is set to "LO".
                 FrameSet astref = astJ.getRef();
                 boolean isDSB = astJ.isFirstAxisDSBSpecFrame();
+                String sideband = null;
+                if ( isDSB ) {
+                    sideband = astref.getC( "SideBand" );
+                    if ( "LO".equals( sideband ) ) {
+                        isDSB = false;
+                    }
+                }
 
                 //  Create a Plot for the graphics, this is matched to the
                 //  component size or it's visible area and is how we get an
@@ -1016,7 +1024,6 @@ public class DivaPlot
                     //  already should have been drawn using the first pass
                     //  state).
                     Plot mainMainPlot = mainPlot;
-                    String sideband = astref.getC( "SideBand" );
                     setSideBandBaseBox( astref, sideband );
                     astref.setBase( current );
                     createPlot( astref, graphicsEdges.getXLeft(),

@@ -160,6 +160,7 @@ public class PlotUnitsFrame
         sideBandMap.put( UNKNOWN, UNKNOWN);
         sideBandMap.put( "Lower", "LSB" );
         sideBandMap.put( "Upper", "USB" );
+        sideBandMap.put( "Offset from LO", "LO" );
     };
 
     /**
