@@ -174,7 +174,8 @@
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+  <property name="home.page"
+            value="http://www.star.bristol.ac.uk/~mbt/plastic/"/>
 
   <!--
    !   =========
@@ -476,11 +477,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>PLASTIC - support and utilities for the PLASTIC protocol</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"Starlink PLASTIC - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -495,8 +496,6 @@
          <jar href="${name}/${name}.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="{EXT1}" href="{ext1}.jnlp"/>
-         <extension name="{EXT2}" href="{ext2}.jnlp"/>
        </resources>
 
        <!-- This is a component -->
