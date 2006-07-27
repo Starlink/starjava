@@ -740,6 +740,11 @@
       <fileset dir="${dist.docs}"/>
     </copy>
 
+    <mkdir dir="${release.dir}/topcat/bin"/>
+    <copy todir="${release.dir}/topcat/bin">
+      <fileset dir="${script.dir}"/>
+    </copy>
+
     <!-- Create a .dmg file containing the app and docs -->
     <exec executable="/usr/bin/hdiutil" os="Mac OS X">
       <arg value="create"/>
