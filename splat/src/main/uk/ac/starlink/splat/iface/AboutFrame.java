@@ -80,9 +80,6 @@ public class AboutFrame extends JDialog
         "<h5 align=center>Home page:<i> " +
         Utilities.getSupportURL() +
         "</i></h5>" +
-        "<h5 align=center>Bugs:<i> " +
-        Utilities.getSupportEmail() +
-        "</i></h5>" + 
         "</html></body>";
 
     /**
@@ -96,7 +93,7 @@ public class AboutFrame extends JDialog
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 550, 300 ) );
+            setSize( new Dimension( 600, 350 ) );
         }
         catch( Exception e ) {
             e.printStackTrace();
