@@ -353,11 +353,36 @@ public class TXTSpecDataImpl
             r.write( "#BEGIN\n" );
             r.write( "# File created by "+ Utilities.getReleaseName() + "\n" );
             r.write( "# name " + shortName + "\n" );
-            writeAstAtt( r, "System" );
-            writeAstAtt( r, "Unit" );
-            writeAstAtt( r, "StdOfRest" );
-            writeAstAtt( r, "SourceVRF" );
-            writeAstAtt( r, "SourceVel" );
+
+            // All known attributes, including DSBSpecFrames.
+            String[] atts = {
+                "System",
+                "Unit",
+                "AlignSystem",
+                "Domain",
+                "Epoch",
+                "Format",
+                "Label",
+                "ObsLat",
+                "ObsLon",
+                "Symbol",
+                "Title",
+                "AlignStdOfRest",
+                "RefDec",
+                "RefRA",
+                "RestFreq",
+                "SourceVRF",
+                "SourceVel",
+                "StdOfRest",
+                "DSBCentre",
+                "IF",
+                "SideBand",
+                "ImageFreq"
+            };
+            for ( int i = 0; i < atts.length; i++ ) {
+                writeAstAtt( r, atts[i] );
+            }
+
             String units = getDataUnits();
             if ( units != null ) {
                 r.write( "# DataUnits " + units + "\n" );
