@@ -133,12 +133,14 @@ public class PlotUnitsFrame
         coordinateSystems.add( new Cdus( UNKNOWN, UNKNOWN, UNKNOWN ) );
         coordinateSystems.add( new Cdus( "Angstroms", "Angstrom", "WAVE" ) );
         coordinateSystems.add( new Cdus( "Nanometres", "nm", "WAVE" ) );
-        coordinateSystems.add( new Cdus( "Millimetres", "mm", "WAVE" ) );
         coordinateSystems.add( new Cdus( "Micrometres", "um", "WAVE" ) );
+        coordinateSystems.add( new Cdus( "Millimetres", "mm", "WAVE" ) );
+        coordinateSystems.add( new Cdus( "Metres", "m", "WAVE" ) );
+        coordinateSystems.add( new Cdus( "Terahertz", "THz", "FREQ" ) );
         coordinateSystems.add( new Cdus( "Gigahertz", "GHz", "FREQ" ) );
         coordinateSystems.add( new Cdus( "Megahertz", "MHz", "FREQ" ) );
-        coordinateSystems.add( new Cdus( "Terahertz", "THz", "FREQ" ) );
         coordinateSystems.add( new Cdus( "Kilohertz", "kHz", "FREQ" ) );
+        coordinateSystems.add( new Cdus( "Hertz", "Hz", "FREQ" ) );
         coordinateSystems.add( new Cdus( "Joules", "J", "ENER" ) );
         coordinateSystems.add( new Cdus( "Ergs", "erg", "ENER" ) );
         coordinateSystems.add( new Cdus( "Electron-volts", "eV", "ENER" ) );

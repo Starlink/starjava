@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.LutMap;
@@ -190,6 +191,7 @@ public class TXTSpecDataImpl
         int nhead = 0;
         StringTokenizer st = null;
         String raw = null;
+        boolean dsbspecframe = false;
         attributes = null;
         try {
             raw = r.readLine();
@@ -197,6 +199,8 @@ public class TXTSpecDataImpl
                 attributes = new LinkedHashMap();
                 nhead++;
 
+                String key;
+                String value;
                 while ( ( raw = r.readLine() ) != null ) {
                     if ( "#END".equals( raw ) ) {
                         nhead++;
@@ -210,7 +214,12 @@ public class TXTSpecDataImpl
                     }
                     st = new StringTokenizer( raw );
                     st.nextToken(); // Skip comment
-                    attributes.put( st.nextToken(), st.nextToken() );
+                    key = st.nextToken();
+                    value = st.nextToken();
+                    if ( "sideband".equalsIgnoreCase( key ) ) {
+                        dsbspecframe = true;
+                    }
+                    attributes.put( key, value );
                     nhead++;
                 }
                 if ( nhead == 0 ) attributes = null;
@@ -316,7 +325,7 @@ public class TXTSpecDataImpl
             createAst();
         }
         else {
-            createSpecFrameAst();
+            createSpecFrameAst( dsbspecframe );
         }
     }
 
@@ -417,14 +426,20 @@ public class TXTSpecDataImpl
      * WinMap. This version also creates a SpecFrame and configures it
      * with attributes obtained from the file header section.
      */
-    protected void createSpecFrameAst()
+    protected void createSpecFrameAst( boolean dsbspecframe )
     {
         //  Create two simple frames, one for the indices of the data
         //  counts and one for the coordinates. Note we no longer
         //  label these as known.
         Frame baseframe = new Frame( 1 );
         baseframe.set( "Label(1)=Data count" );
-        SpecFrame currentframe = new SpecFrame();
+        SpecFrame currentframe = null;
+        if ( dsbspecframe ) {
+            currentframe = new DSBSpecFrame();
+        }
+        else {
+            currentframe = new SpecFrame();
+        }
 
         // Set all the attributes.
         Set entrySet = attributes.entrySet();

@@ -275,10 +275,12 @@ public class SpecCoordinatesFrame
         unitsMap.put( "Nanometres", "nm" );
         unitsMap.put( "Millimetres", "mm" );
         unitsMap.put( "Micrometres", "um" );
+        unitsMap.put( "Metres", "m" );
+        unitsMap.put( "Terahertz", "THz" );
         unitsMap.put( "Gigahertz", "GHz" );
         unitsMap.put( "Megahertz", "MHz" );
-        unitsMap.put( "Terahertz", "THz" );
         unitsMap.put( "Kilohertz", "kHz" );
+        unitsMap.put( "Hertz", "Hz" );
         unitsMap.put( "Joules", "J" );
         unitsMap.put( "Ergs", "erg" );
         unitsMap.put( "Electron-volts", "eV" );
