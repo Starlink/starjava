@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.Frame;
@@ -189,7 +188,7 @@ public class TXTSpecDataImpl
 
         // Look for a header section.
         int nhead = 0;
-        StringTokenizer st = null;
+        String words[];
         String raw = null;
         boolean dsbspecframe = false;
         attributes = null;
@@ -212,10 +211,9 @@ public class TXTSpecDataImpl
                          || raw.charAt(0) == '*' ) {
                         continue;
                     }
-                    st = new StringTokenizer( raw );
-                    st.nextToken(); // Skip comment
-                    key = st.nextToken();
-                    value = st.nextToken();
+                    words = raw.split( " ", 3 );
+                    key = words[1];
+                    value = words[2];
                     if ( "sideband".equalsIgnoreCase( key ) ) {
                         dsbspecframe = true;
                     }
@@ -259,11 +257,11 @@ public class TXTSpecDataImpl
                 else {
                     // Read at least one or two floating numbers from line
                     // and no more than 3.
-                    st = new StringTokenizer( raw );
-                    count = Math.min( st.countTokens(), 3 );
+                    words = raw.split( " " );
+                    count = Math.min( words.length, 3 );
                     nwords = Math.max( count, nwords );
                     for ( int i = 0; i < count; i++ ) {
-                        vec[i].add( new Float( st.nextToken() ) );
+                        vec[i].add( new Float( words[i] ) );
                     }
                     for ( int i = count; i < 3; i++ ) {
                         vec[i].add( new Float( 0.0 ) );
