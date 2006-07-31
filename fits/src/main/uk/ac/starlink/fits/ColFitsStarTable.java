@@ -519,11 +519,17 @@ public class ColFitsStarTable extends ColumnStarTable {
                                                                  int offset ) {
                             buf.position( offset );
                             int iend = 0;
+                            boolean end = false;
                             for ( int i = 0; i < sleng; i++ ) {
                                 byte b = buf.get();
-                                charBuf[ i ] = (char) ( b & 0xff );
-                                if ( b != 0 && b != (byte) ' ' ) {
-                                    iend = i + 1;
+                                if ( b == 0 ) {
+                                    end = true;
+                                }
+                                if ( ! end ) {
+                                    charBuf[ i ] = (char) ( b & 0xff );
+                                    if ( b != (byte) ' ' ) {
+                                        iend = i + 1;
+                                    }
                                 }
                             }
                             return iend > 0 ? new String( charBuf, 0, iend )
@@ -546,11 +552,17 @@ public class ColFitsStarTable extends ColumnStarTable {
                             String[] val = new String[ nstring ];
                             for ( int is = 0; is < nstring; is++ ) {
                                 int iend = 0;
+                                boolean end = false;
                                 for ( int ic = 0; ic < sleng; ic++ ) {
                                     byte b = buf.get();
-                                    charBuf[ ic ] = (char) ( b & 0xff );
-                                    if ( b != 0 && b != (byte) ' ' ) {
-                                        iend = ic + 1;
+                                    if ( b == 0 ) {
+                                        end = true;
+                                    }
+                                    if ( ! end ) {
+                                        charBuf[ ic ] = (char) ( b & 0xff );
+                                        if ( b != (byte) ' ' ) {
+                                            iend = ic + 1;
+                                        }
                                     }
                                 }
                                 val[ is ] = iend > 0
@@ -587,13 +599,13 @@ public class ColFitsStarTable extends ColumnStarTable {
          * @param   chan       file channel to map data from
          * @param   pos        offset into file of start of column
          */
-        MappedColumnData( ColumnInfo info, int typeBytes, int[] itemShape, 
+        MappedColumnData( ColumnInfo info, int typeBytes, int[] itemShape,
                           long nrow, FileChannel chan, long pos )
                 throws IOException {
             super( info );
             itemBytes_ = Tables.checkedLongToInt( multiply( itemShape ) )
                        * typeBytes;
-            buf_ = chan.map( FileChannel.MapMode.READ_ONLY, pos, 
+            buf_ = chan.map( FileChannel.MapMode.READ_ONLY, pos,
                              nrow * itemBytes_ );
         }
 

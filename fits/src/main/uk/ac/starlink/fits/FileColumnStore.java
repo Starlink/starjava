@@ -363,7 +363,7 @@ abstract class FileColumnStore implements ColumnStore {
 
         else if ( clazz == String.class ) {
             return new FileColumnStore( info, 'A', 1 ) {
-                int maxleng_;
+                int maxleng_ = 1;
                 byte[] copyBuffer_;
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {
@@ -387,7 +387,7 @@ abstract class FileColumnStore implements ColumnStore {
                         throw new IOException( "Corrupted temporary file" );
                     }
                     in.readFully( copyBuffer_, 0, leng );
-                    Arrays.fill( copyBuffer_, leng, maxleng_, (byte) ' ' );
+                    Arrays.fill( copyBuffer_, leng, maxleng_, (byte) '\0' );
                     out.write( copyBuffer_ );
                 }
             };
@@ -443,7 +443,7 @@ abstract class FileColumnStore implements ColumnStore {
 
         else if ( clazz == String[].class ) {
             return new FileColumnStore( info, 'A', 1 ) {
-                int maxChars_;
+                int maxChars_ = 1;
                 int maxStrings_;
                 byte[] blankString_; 
 
@@ -470,7 +470,7 @@ abstract class FileColumnStore implements ColumnStore {
                     super.endStores();
                     setItemShape( new int[] { maxChars_, maxStrings_ } );
                     blankString_ = new byte[ maxChars_ ];
-                    Arrays.fill( blankString_, (byte) ' ' );
+                    Arrays.fill( blankString_, (byte) '\0' );
                 }
 
                 protected void copyValue( DataInput in, DataOutput out )
@@ -490,7 +490,7 @@ abstract class FileColumnStore implements ColumnStore {
                             out.writeByte( in.readByte() );
                         }
                         for ( int ic = nchar; ic < maxChars_; ic++ ) {
-                            out.writeByte( (byte) ' ' );
+                            out.writeByte( (byte) '\0' );
                         }
                     }
                     for ( int is = nstring; is < maxStrings_; is++ ) {
