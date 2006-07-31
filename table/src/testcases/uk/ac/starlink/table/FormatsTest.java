@@ -165,15 +165,16 @@ public class FormatsTest extends TableCase {
         String[] defaultFormats = new String[] {
             "FITS-plus",
             "colfits-plus",
+            "colfits-basic",
             "FITS",
             "VOTable",
         };
         String[] knownFormats = new String[] {
             "FITS-plus",
             "colfits-plus",
+            "colfits-basic",
             "FITS",
             "VOTable",
-            "colfits-basic",
             "ASCII",
             "CSV",
             "IPAC",

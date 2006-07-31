@@ -66,6 +66,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="fits-plus")
  * <li> {@link uk.ac.starlink.votable.ColFitsPlusTableBuilder}
  *      (format name="colfits-plus")
+ * <li> {@link uk.ac.starlink.fits.ColFitsTableBuilder}
+ *      (format name="colfits-basic")
  * <li> {@link uk.ac.starlink.fits.FitsTableBuilder}
  *      (format name="fits")
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
@@ -76,8 +78,6 @@ import uk.ac.starlink.util.URLDataSource;
  * <em>known handler list</em>
  * (not used by default but available by specifying the format name):
  * <ul>
- * <li> {@link uk.ac.starlink.fits.ColFitsTableBuilder}
- *      (format name="colfits-basic")
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableBuilder}
  *      (format name="ascii")
  * <li> {@link uk.ac.starlink.table.formats.CsvTableBuilder}
@@ -126,11 +126,11 @@ public class StarTableFactory {
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
         "uk.ac.starlink.votable.ColFitsPlusTableBuilder",
+        "uk.ac.starlink.fits.ColFitsTableBuilder",
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
     };
     private static String[] knownBuilderClasses = {
-        "uk.ac.starlink.fits.ColFitsTableBuilder",
         AsciiTableBuilder.class.getName(),
         CsvTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
