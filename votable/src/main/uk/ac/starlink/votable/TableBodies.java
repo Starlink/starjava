@@ -9,6 +9,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.EmptyRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
@@ -50,7 +51,7 @@ class TableBodies {
             return classes[ icol ];
         }
 
-        public abstract RowStepper getRowStepper() throws IOException;
+        public abstract RowSequence getRowSequence() throws IOException;
 
         public boolean isRandom() {
             return false;
@@ -75,12 +76,8 @@ class TableBodies {
         public long getRowCount() {
             return 0L;
         }
-        public RowStepper getRowStepper() {
-            return new RowStepper() {
-                public Object[] nextRow() {
-                    return null;
-                }
-            };
+        public RowSequence getRowSequence() {
+            return EmptyRowSequence.getInstance();
         }
     }
 
@@ -106,13 +103,8 @@ class TableBodies {
             return startab.getColumnInfo( icol ).getContentClass();
         }
 
-        public RowStepper getRowStepper() throws IOException {
-            return new RowStepper() {
-                RowSequence rseq = startab.getRowSequence();
-                public Object[] nextRow() throws IOException {
-                    return rseq.next() ? rseq.getRow() : null;
-                }
-            };
+        public RowSequence getRowSequence() throws IOException {
+            return startab.getRowSequence();
         }
 
         public boolean isRandom() {
@@ -145,9 +137,9 @@ class TableBodies {
             this.encoding = encoding;
         }
 
-        public RowStepper getRowStepper() throws IOException {
+        public RowSequence getRowSequence() throws IOException {
             InputStream istrm = new BufferedInputStream( url.openStream() );
-            return new BinaryRowStepper( decoders, istrm, encoding );
+            return new BinaryRowSequence( decoders, istrm, encoding );
         }
     }
 
@@ -227,17 +219,50 @@ class TableBodies {
             return null;
         }
 
-        public RowStepper getRowStepper() {
-            return new RowStepper() {
-                Element trEl = 
-                    firstSibling( "TR", tabledataEl.getFirstChild() );
-                public Object[] nextRow() {
+        public RowSequence getRowSequence() {
+            return new RowSequence() {
+                Element trEl;
+                boolean done;
+
+                public boolean next() {
+                    if ( done ) {
+                        return false;
+                    }
+                    Node prev = trEl == null ? tabledataEl.getFirstChild()
+                                             : trEl.getNextSibling();
+                    trEl = firstSibling( "TR", prev );
                     if ( trEl == null ) {
+                        done = true;
+                    }
+                    return ! done;
+                }
+
+                public Object[] getRow() {
+                    if ( trEl == null || done ) {
+                        throw new IllegalStateException();
+                    }
+                    return TabledataTabularData.this.getRow( trEl );
+                }
+
+                public Object getCell( int icol ) {
+                    if ( trEl == null || done ) {
+                        throw new IllegalStateException();
+                    }
+                    Element tdEl = firstSibling( "TD", trEl.getFirstChild() );
+                    while ( icol-- > 0 ) {
+                        tdEl = firstSibling( "TD", tdEl.getNextSibling() );
+                    }
+                    if ( tdEl == null ) {
                         return null;
                     }
-                    Object[] row = getRow( trEl );
-                    trEl = firstSibling( "TR", trEl.getNextSibling() );
-                    return row;
+                    String txt = DOMUtils.getTextContent( tdEl );
+                    return ( txt == null || txt.length() == 0 )
+                         ? null
+                         : decoders[ icol ].decodeString( txt );
+                }
+
+                public void close() {
+                    trEl = null;
                 }
             };
         }

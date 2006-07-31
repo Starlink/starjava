@@ -15,6 +15,7 @@ import org.xml.sax.SAXParseException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.Base64InputStream;
@@ -338,17 +339,19 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                 protected void doReading( InputStream datain )
                         throws IOException {
                     InputStream in = new BufferedInputStream( datain );
-                    RowStepper rstep =
-                        new BinaryRowStepper( decoders, in, "base64" );
+                    RowSequence rseq =
+                        new BinaryRowSequence( decoders, in, "base64" );
                     try {
-                        Object[] row;
-                        while ( ( row = rstep.nextRow() ) != null ) {
-                            tableHandler_.rowData( row );
+                        while ( rseq.next() ) {
+                            tableHandler_.rowData( rseq.getRow() );
                         }
                     }
                     catch ( SAXException e ) {
                         throw (IOException) new IOException( e.getMessage() )
                              .initCause( e );
+                    }
+                    finally {
+                        rseq.close();
                     }
                 }
             };

@@ -7,6 +7,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableSink;
 
 /**
@@ -62,10 +63,15 @@ class VOTableParser extends SkeletonDOMBuilder {
                 tableHandler.startTable( tableEl.getMetadataTable() );
                 Decoder[] decoders = getDecoders( tableEl.getFields() );
                 String encoding = getAttribute( atts, "encoding" );
-                RowStepper rstep = 
-                    new BinaryRowStepper( decoders, in, encoding );
-                for ( Object[] row; ( row = rstep.nextRow() ) != null; ) {
-                    tableHandler.rowData( row );
+                RowSequence rseq =
+                    new BinaryRowSequence( decoders, in, encoding );
+                try {
+                    while ( rseq.next() ) {
+                        tableHandler.rowData( rseq.getRow() );
+                    }
+                }
+                finally {
+                    rseq.close();
                 }
                 tableHandler.endTable();
             }

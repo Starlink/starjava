@@ -13,7 +13,6 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.ReaderRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.URLValueInfo;
@@ -303,12 +302,7 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final RowStepper rstep = tdata.getRowStepper();
-        return new ReaderRowSequence() {
-            protected Object[] readRow() throws IOException {
-                return rstep.nextRow();
-            }
-        };
+        return tdata.getRowSequence();
     }
 
     public Object[] getRow( long lrow ) throws IOException {

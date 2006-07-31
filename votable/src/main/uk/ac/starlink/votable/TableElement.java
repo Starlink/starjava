@@ -14,6 +14,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.Base64InputStream;
 import uk.ac.starlink.util.DataSource;
@@ -245,10 +246,10 @@ public class TableElement extends VOElement {
             }
             else {
                 return new TableBodies.SequentialTabularData( clazzes ) {
-                    public RowStepper getRowStepper() throws IOException {
+                    public RowSequence getRowSequence() throws IOException {
                         InputStream istrm = getTextChildrenStream( streamEl );
-                        return new BinaryRowStepper( decoders, istrm,
-                                                     "base64" );
+                        return new BinaryRowSequence( decoders, istrm,
+                                                      "base64" );
                     }
                 };
             }

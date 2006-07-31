@@ -1,14 +1,15 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
+import uk.ac.starlink.table.RowSequence;
 
 /**
  * Contains the actual cell contents of a VOTable TABLE element.
  * <p>
  * The cell data may always be retrieved sequentially from the table
- * by acquiring a <tt>RowStepper</tt> object (method {@link #getRowStepper}) -
+ * by acquiring a <tt>RowSequence</tt> object (method {@link #getRowSequence}) -
  * this allows you to read all the data from the first row to the last.
- * Multiple <tt>RowSteppers</tt> may be simultaneously active.
+ * Multiple <tt>RowSequences</tt> may be simultaneously active.
  * In some cases random access may also be available; if {@link #isRandom}
  * returns true, then the {@link #getRow} and {@link #getCell} methods
  * can be used to retrieve cell values in any order.
@@ -72,7 +73,7 @@ public interface TabularData {
      *
      * @return  an object providing sequential access to the data
      */
-    RowStepper getRowStepper() throws IOException;
+    RowSequence getRowSequence() throws IOException;
 
     /**
      * Indicates whether random access is provided by this table.

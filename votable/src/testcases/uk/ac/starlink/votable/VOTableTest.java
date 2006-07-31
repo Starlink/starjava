@@ -64,11 +64,12 @@ public class VOTableTest extends TestCase {
             assertEquals( tab.getNrows(), stab.getRowCount() );
             assertEquals( tab.getFields().length, stab.getColumnCount() );
             RowSequence rseq = stab.getRowSequence();
-            RowStepper rstep = tab.getData().getRowStepper();
+            RowSequence rstep = tab.getData().getRowSequence();
             List rows = new ArrayList();
             for ( int ir = 0; ir < nrow; ir++ ) {
                 assertTrue( rseq.next() );
-                Object[] row = rstep.nextRow();
+                assertTrue( rstep.next() );
+                Object[] row = rstep.getRow();
                 assertNotNull( row );
                 assertEquals( ncol, row.length );
                 for ( int ic = 0; ic < ncol; ic++ ) {
@@ -83,7 +84,7 @@ public class VOTableTest extends TestCase {
                 }
                 rows.add( row );
             }
-            assertNull( rstep.nextRow() );
+            assertTrue( ! rstep.next() );
             assertTrue( ! rseq.next() );
             rseq.close();
 

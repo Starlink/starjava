@@ -14,6 +14,7 @@ import java.io.OutputStreamWriter;
 import java.net.ConnectException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.transform.Source;
@@ -120,9 +121,9 @@ public class SerializerTest extends TestCase {
         try {
             VOElement res = factory.makeVOElement( xsrc );
             TableElement table = (TableElement) res.getChildByName( "TABLE" );
-            RowStepper rstep = table.getData().getRowStepper();
-            assertNull( "If the table can be constructed, " +
-                        "it should have no rows", rstep.nextRow() );
+            RowSequence rseq = table.getData().getRowSequence();
+            assertTrue( "If the table can be constructed, " +
+                        "it should have no rows", ! rseq.next() );
         }
         catch ( FileNotFoundException e ) {
         }
@@ -215,14 +216,18 @@ public class SerializerTest extends TestCase {
                     new InputSource( new ByteArrayInputStream( xmltext ) );
                 TableStreamer.streamStarTable( saxsrc, rstore, itable, strict );
 
-                RowStepper rstep = rstore.getRowStepper();
+                RowSequence rstep = rstore.getRowSequence();
                 RowSequence rseq = table0.getRowSequence();
                 while ( rseq.next() ) {
-                    assertArrayEquals( rseq.getRow(), rstep.nextRow() );
+                    assertTrue( rstep.next() );
+                    assertArrayEquals( rseq.getRow(), rstep.getRow() );
                 }
-                rseq.close();
                 assertTrue( ! rseq.next() );
-                assertNull( rstep.nextRow() );
+                assertTrue( ! rstep.next() );
+                rseq.close();
+                rstep.close();
+                assertTrue( ! rseq.next() );
+                assertTrue( ! rstep.next() );
             }
 
             try {
@@ -300,19 +305,20 @@ public class SerializerTest extends TestCase {
         RowSequence rseq = table0.getRowSequence();
         int ncol = table0.getColumnCount();
         assertEquals( ncol, votab.getFields().length );
-        RowStepper rstep = votab.getData().getRowStepper();
+        RowSequence rstep = votab.getData().getRowSequence();
 
         Object[] row;
         int irow = 0;
-        for ( Object[] rowCells; ( rowCells = rstep.nextRow() ) != null; ) {
-            rseq.next();
-            assertArrayEquals( rseq.getRow(), rowCells );
+        while ( rstep.next() ) {
+            assertTrue( rseq.next() );
+            assertArrayEquals( rseq.getRow(), rstep.getRow() );
             irow++;
         }
         assertEquals( table0.getRowCount(), irow );
         assertTrue( ! rseq.next() );
-        assertNull( rstep.nextRow() );
+        assertTrue( ! rstep.next() );
         rseq.close();
+        rstep.close();
     }
 
     private void writeTableInline( VOSerializer ser, BufferedWriter writer ) 
@@ -411,12 +417,19 @@ public class SerializerTest extends TestCase {
             }
         }
 
-        public RowStepper getRowStepper() {
-            return new RowStepper() {
-                int irow = 0;
-                public Object[] nextRow() {
-                    return irow < rows.size() ? (Object[]) rows.get( irow++ )
-                                              : null;
+        public RowSequence getRowSequence() {
+            return new RowSequence() {
+                int irow = -1;
+                public boolean next() {
+                    return ++irow < rows.size();
+                }
+                public Object[] getRow() {
+                    return (Object[]) rows.get( irow );
+                }
+                public Object getCell( int icol ) {
+                    return getRow()[ icol ];
+                }
+                public void close() {
                 }
             };
         }
