@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
@@ -27,6 +28,9 @@ import uk.ac.starlink.table.Tables;
 public class ColFitsStarTable extends ColumnStarTable {
 
     private final long nrow_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Constructor.
@@ -142,19 +146,14 @@ public class ColFitsStarTable extends ColumnStarTable {
          * i.e. each column in the represented table, based on the
          * metadata we have ascertained from the header. */
         FileChannel chan = new RandomAccessFile( file, "r" ).getChannel();
-        try {
-            long pos = dataPos;
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                MappedColumnData colData =
-                    createColumn( formatChars[ icol ], infos[ icol ],
-                                  itemShapes[ icol ], nrow_, blanks[ icol ],
-                                  chan, pos );
-                addColumn( colData );
-                pos += colData.getItemBytes() * nrow_;
-            }
-        }
-        finally {
-            chan.close();
+        long pos = dataPos;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            MappedColumnData colData =
+                createColumn( formatChars[ icol ], infos[ icol ],
+                              itemShapes[ icol ], nrow_, blanks[ icol ],
+                              chan, pos );
+            addColumn( colData );
+            pos += colData.getItemBytes() * nrow_;
         }
     }
 
@@ -587,7 +586,10 @@ public class ColFitsStarTable extends ColumnStarTable {
     private static abstract class MappedColumnData extends ColumnData {
 
         private final int itemBytes_;
-        private final ByteBuffer buf_;
+        private final FileChannel chan_;
+        private final long nrow_;
+        private final long pos_;
+        private ByteBuffer buf_;
 
         /**
          * Constructor.
@@ -599,20 +601,34 @@ public class ColFitsStarTable extends ColumnStarTable {
          * @param   chan       file channel to map data from
          * @param   pos        offset into file of start of column
          */
-        MappedColumnData( ColumnInfo info, int typeBytes, int[] itemShape,
+        MappedColumnData( ColumnInfo info, int typeBytes, int[] itemShape, 
                           long nrow, FileChannel chan, long pos )
                 throws IOException {
             super( info );
             itemBytes_ = Tables.checkedLongToInt( multiply( itemShape ) )
                        * typeBytes;
-            buf_ = chan.map( FileChannel.MapMode.READ_ONLY, pos,
-                             nrow * itemBytes_ );
+            chan_ = chan;
+            nrow_ = nrow;
+            pos_ = pos;
+        }
+
+        private ByteBuffer getBuffer() throws IOException {
+
+            /* Map columns lazily.  Since in many cases colfits format tables
+             * will only have a few of their columns accessed during their
+             * lifetime, this can save considerably on resources. */
+            if ( buf_ == null ) {
+                buf_ = chan_.map( FileChannel.MapMode.READ_ONLY, pos_, 
+                                  nrow_ * itemBytes_ );
+                logger_.config( "Mapping column " + getColumnInfo() );
+            }
+            return buf_;
         }
 
         public synchronized Object readValue( long irow ) throws IOException {
             try {
-                return readValue( buf_, Tables.checkedLongToInt( irow )
-                                        * itemBytes_ );
+                return readValue( getBuffer(), Tables.checkedLongToInt( irow )
+                                               * itemBytes_ );
             }
             catch ( RuntimeException e ) {
                 throw (IOException)
