@@ -42,7 +42,8 @@ public class CsvStarTable extends StreamStarTable {
 
     public CsvStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        super( datsrc );
+        super();
+        init( datsrc );
     }
 
     protected PushbackInputStream getInputStream() throws IOException {

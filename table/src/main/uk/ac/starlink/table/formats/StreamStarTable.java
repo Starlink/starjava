@@ -26,22 +26,37 @@ import uk.ac.starlink.util.DataSource;
  */
 public abstract class StreamStarTable extends AbstractStarTable {
 
-    private final DataSource datsrc_;
-    private final int ncol_;
-    private final long nrow_;
-    private final RowEvaluator.Decoder[] decoders_;
-    private final ColumnInfo[] colInfos_;
+    private DataSource datsrc_;
+    private int ncol_;
+    private long nrow_;
+    private RowEvaluator.Decoder[] decoders_;
+    private ColumnInfo[] colInfos_;
 
     /** Char representation of -1 (as returned end-of-stream read) */
     protected final static char END = (char) -1;
 
     /**
-     * Constructor.
+     * Constructor.  This doesn't perform any processing; you must call
+     * {@link #init} before doing anything with the constructed table.
+     * It is arranged this way so that the initialisation is able to
+     * call overridden methods in subclasses, which is a Bad thing to
+     * do from a constructor.
+     */
+    protected StreamStarTable() {
+    }
+
+    /**
+     * Initialises the table from the input stream.
+     * This method calls {@link #obtainMetadata}, which probably reads
+     * through some or all of the stream.
      *
      * @param  datsrc  data source from which the stream can be obtained
      */
-    protected StreamStarTable( DataSource datsrc )
+    protected void init( DataSource datsrc )
             throws TableFormatException, IOException {
+        if ( datsrc_ != null ) {
+            throw new IllegalStateException( "Alread initialised" );
+        }
         datsrc_ = datsrc;
 
         /* Work out the table metadata, probably by reading through
@@ -109,8 +124,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
 
     /**
      * Obtains column metadata for this table, probably by reading through
-     * the rows once and using a RowEvaluator.  Note, this method is
-     * called in the StreamStarTable constructor.
+     * the rows once and using a RowEvaluator.
      *
      * @return   information about the table represented by the character
      *           stream

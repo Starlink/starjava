@@ -91,7 +91,8 @@ public class AsciiStarTable extends StreamStarTable {
      */
     public AsciiStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        super( datsrc );
+        super();
+        init( datsrc );
     }
 
     protected RowEvaluator.Metadata obtainMetadata()
