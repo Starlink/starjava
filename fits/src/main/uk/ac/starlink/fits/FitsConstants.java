@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.FitsUtil;
@@ -66,6 +67,9 @@ public class FitsConstants {
         ".lilo", ".lihi", ".silo", ".sihi", ".mxlo",
         ".mxhi", ".rilo", ".rihi", ".vdlo", ".vdhi",
     };
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Gets the default permitted list of extensions which identify a 
@@ -168,12 +172,15 @@ public class FitsConstants {
             throws IOException {
         if ( datsrc instanceof FileDataSource && 
              datsrc.getCompression() == Compression.NONE ) {
-            return new MappedFile( ((FileDataSource) datsrc)
-                                  .getFile().toString() );
+            try {
+                return new MappedFile( ((FileDataSource) datsrc)
+                                      .getFile().toString() );
+            }
+            catch ( MappedFile.FileTooLongException e ) {
+                logger.config( datsrc + " too long to map" );
+            }
         }
-        else {
-            return new BufferedDataInputStream( datsrc.getInputStream() );
-        }
+        return new BufferedDataInputStream( datsrc.getInputStream() );
     }
 
     /**
