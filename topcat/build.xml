@@ -674,8 +674,9 @@
    !   The osxjarbundler task will work only on OS X, as will
    !   the hdiutil application.
    !-->
-  <target name="build_osxapp"
-          depends="build_demo,build-standalone">
+  <target name="build-osxapp"
+          depends="build_demo,build-standalone"
+          description="-> builds .dmg application bundle for MacOS X">
     <property name="release.dir" value="release-osx"/>
     <mkdir dir="${release.dir}"/>
     <!-- 'Infostring' should not contain a version number (as of OS X
@@ -710,18 +711,17 @@
                 version="${version}"
                 jar="${dist.lib.pkg}/topcat-full.jar">
 
-      <!-- Copy in the ppc JNI libraries -->
-      <resourcefileset dir="${star.dir}/lib"
-                       includes="ppc/*.jnilib"/>
-      <javaproperty name="java.library.path"
-                    value="$APP_PACKAGE/Contents/Resources/ppc"/>
-
-      <!--
-       !   Now that Intel Macs are with us, it is necessary to
-       !   add ix86/osx libraries to the bundle.  This is required if JNI apps
-       !   are to run on Intel machines.  See
-       !   <http://developer.apple.com/qa/qa2005/qa1295.html> for discussion.
-       ! -->
+      <!-- We could copy the ppc JNI libraries here.  However, since 
+       !   the topcat-full.jar file does not contain the SPLAT classes,
+       !   there's little point in this.  The fact that we currently
+       !   only have ppc and not intel binaries makes it even more
+       !   attractive not to get involved in shared libraries
+       !   (see <http://developer.apple.com/qa/qa2005/qa1295.html>).
+       !  <resourcefileset dir="${star.dir}/lib"
+       !                   includes="ppc/*.jnilib"/>
+       !  <javaproperty name="java.library.path"
+       !                value="$APP_PACKAGE/Contents/Resources/ppc"/>
+       !-->
 
       <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->
       <resourcefileset dir="${src.etc}"
@@ -737,16 +737,20 @@
 
     </osxjarbundler>
 
-    <!-- Copy the docs into the release directory (anything else?) -->
+    <!-- Copy the docs into the release directory -->
     <mkdir dir="${release.dir}/docs"/>
     <copy todir="${release.dir}/docs">
-      <fileset dir="${dist.docs}"/>
+      <fileset dir="${dist.docs}/${name}"/>
     </copy>
 
+    <!-- Copy scripts into the release directory -->
     <mkdir dir="${release.dir}/bin"/>
     <copy todir="${release.dir}/bin">
-      <fileset dir="${star.bin}"/>
+      <fileset dir="${star.bin}" includes="topcat stilts"/>
     </copy>
+    <chmod perm="ugo+x" type="file" failonerror="yes">
+      <fileset dir="${release.dir}/bin"/>
+    </chmod>
 
     <mkdir dir="${release.dir}/README.rtfd"/>
     <copy todir="${release.dir}/README.rtfd">
@@ -764,7 +768,7 @@
       <arg value="-volname"/>
       <arg value="${name}"/>
       <arg value="-ov"/>
-      <arg value="${name}.dmg"/>
+      <arg value="${name}-full.dmg"/>
     </exec>
   </target>
 
