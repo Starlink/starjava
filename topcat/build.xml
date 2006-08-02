@@ -103,7 +103,6 @@
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
 
-
   <!-- Directory containing the java source (top of the namespace)-->
   <property name="java.dir" value="${src.dir}/main"/>
 
@@ -736,24 +735,28 @@
     </osxjarbundler>
 
     <!-- Copy the docs into the release directory (anything else?) -->
-    <copy todir="${release.dir}">
+    <mkdir dir="${release.dir}/docs"/>
+    <copy todir="${release.dir}/docs">
       <fileset dir="${dist.docs}"/>
     </copy>
 
-    <mkdir dir="${release.dir}/topcat/bin"/>
-    <copy todir="${release.dir}/topcat/bin">
-      <fileset dir="${script.dir}"/>
-    </copy>
+    <mkdir dir="${release.dir}/bin"/>
+    <copy todir="${release.dir/bin" 
+          src="${star.bin}"
+          includes="topcat stilts"/>
 
     <!-- Create a .dmg file containing the app and docs -->
+    <!-- Note: to examine this on OSX do 
+     !      % hdiutil attach topcat.dmg 
+     ! ...  % hdiutil detach /dev/... -->
     <exec executable="/usr/bin/hdiutil" os="Mac OS X">
       <arg value="create"/>
       <arg value="-srcfolder"/>
       <arg value="${release.dir}"/>
       <arg value="-volname"/>
-      <arg value="${Name} ${version}"/>
+      <arg value="${name}"/>
       <arg value="-ov"/>
-      <arg value="${Name}-${version}.dmg"/>
+      <arg value="${name}.dmg"/>
     </exec>
   </target>
 

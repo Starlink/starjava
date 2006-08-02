@@ -43,6 +43,11 @@ stilts_jars="\
  stilts.jar\
 "
 
+# If we're on a Mac, look for the jar in the resource bundle.
+if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
+   topcat_jars="$topcat_jars ../TOPCAT.app/Contents/Resources/Java/topcat-full.jar"
+fi
+
 #  Find where this script is located.
 bindir="`dirname $0`"
 
