@@ -2,6 +2,7 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.util.Iterator;
+import java.util.logging.Logger;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -33,7 +34,14 @@ public class StarJTable extends JTable {
     private boolean rowHeader;
     private StarTable startable;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.gui" );
+
+    /** Minimum width in pixels for a column. */
     private static final int MIN_WIDTH = 50;
+
+    /** Maximum time that <code>configureColumnWidths</code> will run for. */
+    private static final long MAX_CONFIG_TIME = 8000;
 
     /**
      * Constructs a new <tt>StarJTable</tt>, optionally with a dummy
@@ -172,7 +180,8 @@ public class StarJTable extends JTable {
 
         /* Take a sample of rows to see if the cells in each one are going
          * to require more width. */
-        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample );
+        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample,
+                                            MAX_CONFIG_TIME );
               it.hasNext(); ) {
             int irow = ((Integer) it.next()).intValue();
             for ( int icol = 0; icol < ncol; icol++ ) {
@@ -240,7 +249,8 @@ public class StarJTable extends JTable {
         int width = getHeaderWidth( table, icol );
 
         /* Go through a sample of to see if any of them need more width. */
-        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample );
+        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample,
+                                            MAX_CONFIG_TIME );
               it.hasNext(); ) {
             int irow = ((Integer) it.next()).intValue();
             int w = getCellWidth( table, irow, icol );
@@ -316,15 +326,19 @@ public class StarJTable extends JTable {
      * rows in a table.  If <tt>nsample&gt;=nrow</tt> it will iterate
      * over all the rows, otherwise it try to cover a representative 
      * sample, broadly speaking the first few, last few, and some in the
-     * middle.
+     * middle.  The iterator will not continue to iterate for an 
+     * elapsed time of (much) more than {@link #MAX_CONFIG_TIME}.
      *
-     * @param   number of rows in the table
-     * @param   maximum number of rows to sample
+     * @param   nrow   number of rows in the table
+     * @param   nsample   maximum number of rows to sample
+     * @param   maxTime  maximum elapsed time (approx) for iterator to live
+     *                   in milliseconds
      * @return  iterator over <tt>Integer</tt> objects each representing 
      *          a table row index 
      */
     private static Iterator sampleIterator( final int nrow,
-                                            final int nsample ) {
+                                            final int nsample,
+                                            final long maxTime ) {
         if ( nsample >= nrow ) {
             return new Iterator() {
                 int irow = 0;
@@ -345,12 +359,39 @@ public class StarJTable extends JTable {
                 int isamp = 0;
                 int ns4 = nsample / 4;
                 int ns2 = nsample / 2;
+                int segment = 0;
+                long segStart = System.currentTimeMillis();
                 public boolean hasNext() {
-                    return isamp < nsample;
+                    if ( isamp < nsample ) {
+                        if ( segment < 4 ) {
+                            return true;
+                        }
+                        else {
+                            logger_.config(
+                                "Out of time - " +
+                                "curtailed column width assessment after " +
+                                isamp + "/" + nsample + " rows" );
+                            return false;
+                        }
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 public Object next() {
                     int is = isamp++;
-                    switch ( is * 4 / nsample ) {
+                    int seg = segment;
+                    int newseg = seg;
+                    long now = System.currentTimeMillis();
+                    if ( now - segStart > maxTime / 4 ) {
+                        newseg++;
+                    }
+                    newseg = Math.max( newseg, is * 4 / nsample );
+                    if ( newseg != seg ) {
+                        segStart = now;
+                        segment = newseg;
+                    }
+                    switch ( seg ) {
                         case 0:
                             return new Integer( is );
                         case 1:
@@ -362,7 +403,8 @@ public class StarJTable extends JTable {
                         case 3:
                             return new Integer( nrow - ( nsample - is ) );
                         default:
-                            throw new AssertionError();
+                            assert false : "segment " + seg;
+                            return new Integer( 0 );
                     }
                 }
                 public void remove() {
