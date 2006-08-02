@@ -99,9 +99,7 @@ public class RowEvaluator {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             boolean done = false;
             String cell = (String) row.get( icol );
-            if ( cell == null ) {
-                cell = "";
-            }
+            cell = cell == null ? "" : cell.trim();
             int leng = cell.length();
             if ( leng == 0 ) {
                 done = true;
