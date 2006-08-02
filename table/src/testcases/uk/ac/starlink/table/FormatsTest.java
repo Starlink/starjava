@@ -26,6 +26,8 @@ import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableWriter;
+import uk.ac.starlink.table.formats.TstTableBuilder;
+import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
@@ -177,6 +179,7 @@ public class FormatsTest extends TableCase {
             "VOTable",
             "ASCII",
             "CSV",
+            "TST",
             "IPAC",
             "WDC",
         };
@@ -227,6 +230,7 @@ public class FormatsTest extends TableCase {
             "ascii",
             "csv",
             "csv-noheader",
+            "tst",
             "html",
             "html-element",
             "latex",
@@ -357,6 +361,8 @@ public class FormatsTest extends TableCase {
                            new AsciiTableBuilder(), "text" );
         exerciseReadWrite( new CsvTableWriter( true ),
                            new CsvTableBuilder(), "text" );
+        exerciseReadWrite( new TstTableWriter(),
+                           new TstTableBuilder(), "text" );
                     
     }
 
