@@ -63,15 +63,16 @@ public class TstTableWriter extends StreamStarTableWriter {
     }
 
     /**
-     * Returns true for <code>location</code> argument which ends in ".tst"
-     * or ".TST".
+     * Returns true for <code>location</code> argument which ends in 
+     * ".tst", ".TST" or ".TAB".
      *
      * @param   location  the intended destination of the output
      * @return   whether it looks suitable for this class
      */
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".tst" ) 
-            || location.endsWith( ".TST" );
+            || location.endsWith( ".TST" )
+            || location.endsWith( ".TAB" );
     }
 
     public void writeStarTable( StarTable st, OutputStream out )
