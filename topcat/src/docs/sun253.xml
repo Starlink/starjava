@@ -1038,6 +1038,53 @@ you wish to load a table in <code>csv</code> format.
 
 </subsubsect>
 
+<subsubsect id="inTst">
+<subhead><title>Tab-Separated Table</title></subhead>
+
+<p>Tab-Separated Table, or TST, is a text-based table format used
+by a number of astronomical tools including Starlink's 
+<webref url="http://www.starlink.ac.uk/gaia/">GAIA</webref> and
+ESO's <webref url="http://archive.eso.org/skycat/">SkyCat</webref>
+on which it is based.
+A definition of the format can be found in
+<webref url="http://www.starlink.ac.uk/star/docs/ssn75.htx/node38.html"
+        >Starlink Software Note 75</webref>.
+The implementation here ignores all comment lines: special comments
+such as the "<code>#column-units:</code>" are not processed.
+</p>
+
+<p>An example looks like this:
+<verbatim><![CDATA[
+    Simple TST example; stellar photometry catalogue.
+
+    A.C. Davenhall (Edinburgh) 26/7/00.
+
+    Catalogue of U,B,V colours.
+    UBV photometry from Mount Pumpkin Observatory, 
+    see Sage, Rosemary and Thyme (1988). 
+
+    # Start of parameter definitions. 
+    EQUINOX: J2000.0 
+    EPOCH: J1996.35
+
+    id_col: -1
+    ra_col: 0
+    dec_col: 1
+
+    # End of parameter definitions.
+    ra<tab>dec<tab>V<tab>B_V<tab>U_B
+    --<tab>---<tab>-<tab>---<tab>---
+    5:09:08.7<tab> -8:45:15<tab>  4.27<tab>  -0.19<tab>  -0.90
+    5:07:50.9<tab> -5:05:11<tab>  2.79<tab>  +0.13<tab>  +0.10
+    5:01:26.3<tab> -7:10:26<tab>  4.81<tab>  -0.19<tab>  -0.74
+    5:17:36.3<tab> -6:50:40<tab>  3.60<tab>  -0.11<tab>  -0.47
+    [EOD]
+]]></verbatim>
+</p>
+
+</subsubsect>
+
+
 <subsubsect id="inSql">
 <subhead><title>SQL Database Queries</title></subhead>
 
@@ -1350,6 +1397,15 @@ such as some spreadsheets or databases.
 
 </subsubsect>
 
+<subsubsect id="outTst">
+<subhead><title>Tab-Separated Table</title></subhead>
+
+<p>Tables can be written to TST format, which is described in more 
+detail in <ref id="inTst"/>.  This can be useful for communicating 
+with some other astronomical tools such as GAIA.
+</p>
+
+</subsubsect>
 
 <subsubsect id="outSql">
 <subhead><title>SQL Tables</title></subhead>
@@ -2724,7 +2780,9 @@ and click on that.  These files would be located in the
 <code>java/lib/topcat/</code> directory in a standard Starjava installation.
 Note that when you start by clicking on something
 you may not have the option of entering
-any of the command line options described below.
+any of the command line options described below -
+to use these options, which you may need to do for serious use of 
+the program, you will have to run the program from the command line.
 </p>
 
 <p>Alternatively you will have to invoke the program from the command line.
@@ -9480,6 +9538,13 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Added new coordinate system ICRS for sky coordinate conversions.</li>
+    <li>Eliminated some unsightly but harmless stack dumps that could 
+        occur during plotting.</li>
+    <li>TUCDnn header cards now used in FITS files to transmit UCDs
+        (non-standard mechanism).</li>
+    <li>Added TST (Tab-Separated Table) format 
+        <ref id="inTst">input</ref> and 
+        <ref id="outTst">output</ref> handlers.</li>
     </ul>
     </p></dd>
 
