@@ -98,7 +98,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
                     Object[] row = new Object[ ncol ];
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         String sval = (String) cellList.get( icol );
-                        if ( sval != null && sval.length() > 0 ) {
+                        if ( sval != null && sval.trim().length() > 0 ) {
                             row[ icol ] = decoders_[ icol ].decode( sval );
                         }
                     }

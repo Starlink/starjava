@@ -341,7 +341,9 @@ class TstStarTable extends StreamStarTable {
             DefaultValueInfo info =
                 new DefaultValueInfo( meta1.colInfos_[ 0 ] );
             info.setName( name );
-            Object value = meta1.decoders_[ 0 ].decode( sval );
+            Object value = sval == null || sval.trim().length() == 0 
+                         ? null
+                         : meta1.decoders_[ 0 ].decode( sval );
             return new DescribedValue( info, value );
         }
         catch ( TableFormatException e ) {   // unlikely
