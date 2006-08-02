@@ -59,6 +59,10 @@ public abstract class StreamStarTable extends AbstractStarTable {
         }
         datsrc_ = datsrc;
 
+        /* Configure some table characteristics from the data source. */
+        setName( datsrc.getName() );
+        setURL( datsrc.getURL() );
+
         /* Work out the table metadata, probably by reading through
          * the rows once. */
         RowEvaluator.Metadata meta = obtainMetadata();
@@ -66,10 +70,6 @@ public abstract class StreamStarTable extends AbstractStarTable {
         colInfos_ = meta.colInfos_;
         nrow_ = meta.nrow_;
         ncol_ = meta.ncol_;
-
-        /* Configure some table characteristics from the data source. */
-        setName( datsrc_.getName() );
-        setURL( datsrc.getURL() );
     }
 
     public int getColumnCount() {
