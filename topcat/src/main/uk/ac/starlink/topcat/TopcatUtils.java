@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -310,7 +311,8 @@ public class TopcatUtils {
                     canSog_ = Boolean.TRUE;
                 }
                 catch ( Throwable th ) {
-                    logger_.warning( "No SoG: " + th );
+                    logger_.info( "No SoG: " + th );
+                    logger_.log( Level.CONFIG, "SoG load error", th );
                     canSog_ = Boolean.FALSE;
                 }
             }
@@ -336,7 +338,8 @@ public class TopcatUtils {
                     }
                 }
                 catch ( Throwable th ) {
-                    logger_.warning( "No SPLAT: " + th );
+                    logger_.info( "No SPLAT: " + th );
+                    logger_.log( Level.CONFIG, "SPLAT load error", th );
                     canSplat_ = Boolean.FALSE;
                 }
             }
