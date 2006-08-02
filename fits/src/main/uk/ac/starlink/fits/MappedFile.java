@@ -91,22 +91,47 @@ public class MappedFile
     private ByteBuffer niobuf;
     private int size;
 
-    /*
-     * Constructors.
+    /**
+     * Constructs a MappedFile object from a byte buffer.
+     *
+     * @param   buf  byte buffer
      */
-
     public MappedFile( ByteBuffer buf ) {
         this.niobuf = buf;
     }
 
+    /**
+     * Constructs a MappedFile object by mapping the whole of
+     * an existing file using read-only mode.
+     *
+     * @param  filename  name of the file to map
+     * @throws  FileTooLongException  if the file is too long to map
+     */
     public MappedFile( String filename ) throws IOException {
         this( filename, "r" );
     }
 
+    /**
+     * Constructs a MappedFile object by mapping the whole of
+     * an existing file with a given mode.
+     *
+     * @param  filename  name of the file to map
+     * @param  mode  mode
+     * @throws  FileTooLongException  if the file is too long to map
+     */
     public MappedFile( String filename, String mode ) throws IOException {
         this( getExistingFileBuffer( filename, mode ) );
     }
 
+    /**
+     * Constructs a MappedFile object by mapping part of an existing file
+     * with a given mode.
+     *
+     * @param  filename  name of the file to map
+     * @param  mode  mode
+     * @param  start  offset of region to map
+     * @param  size  length of region to map
+     */
     public MappedFile( String filename, String mode, long start, int size )
             throws IOException {
         this( getNioBuffer( filename, mode, start, size ) );
@@ -694,6 +719,14 @@ public class MappedFile
         return buf;
     }
 
+    /**
+     * Maps an existing file.
+     *
+     * @param  filename  name of the file to map
+     * @param  mode  mode
+     * @return  mapped buffer
+     * @throws  FileTooLongException  if the file is too long to map
+     */
     private static ByteBuffer getExistingFileBuffer( String filename,
                                                      String mode ) 
             throws IOException {
@@ -703,9 +736,9 @@ public class MappedFile
         }
         long size = file.length();
         if ( size > Integer.MAX_VALUE ) {
-            throw new UnsupportedOperationException( 
-                "File too long for MappedFile (" + size + 
-                " > " + Integer.MAX_VALUE + ">" );
+            throw new FileTooLongException( filename + " too long to map: "
+                                          + size + " > " + Integer.MAX_VALUE
+                                          + " - use buffered reads instead" );
         }
         return getNioBuffer( filename, mode, 0L, (int) size );
     }
@@ -780,4 +813,12 @@ public class MappedFile
         return utflen + 2;
     }
 
+    /**
+     * Exception indicating that a file is too long to map.
+     */
+    public static class FileTooLongException extends IOException {
+        FileTooLongException( String msg ) {
+            super( msg );
+        }
+    }
 }
