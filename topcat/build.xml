@@ -716,9 +716,12 @@
       <javaproperty name="java.library.path"
                     value="$APP_PACKAGE/Contents/Resources/ppc"/>
 
-      <!-- The first Intel Macs will appear in February/March 2006; at
-       !   that point it will become necessary to add ix86/osx
-       !   libraries to the bundle, and possible to test it. -->
+      <!--
+       !   Now that Intel Macs are with us, it is necessary to
+       !   add ix86/osx libraries to the bundle.  This is required if JNI apps
+       !   are to run on Intel machines.  See
+       !   <http://developer.apple.com/qa/qa2005/qa1295.html> for discussion.
+       ! -->
 
       <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->
       <resourcefileset dir="${src.etc}"
@@ -741,9 +744,14 @@
     </copy>
 
     <mkdir dir="${release.dir}/bin"/>
-    <copy todir="${release.dir/bin" 
-          src="${star.bin}"
-          includes="topcat stilts"/>
+    <copy todir="${release.dir}/bin">
+      <fileset dir="${star.bin}"/>
+    </copy>
+
+    <mkdir dir="${release.dir}/README.rtfd"/>
+    <copy todir="${release.dir}/README.rtfd">
+      <fileset dir="${src.dir}/lib/MacOS/README.rtfd"/>
+    </copy>
 
     <!-- Create a .dmg file containing the app and docs -->
     <!-- Note: to examine this on OSX do 
