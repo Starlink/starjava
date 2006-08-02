@@ -107,7 +107,7 @@ public class MetadataMode implements ProcessingMode {
             String value = val.toString().trim();
             if ( value.length() > 0 ) {
                 out.println( key + ":" );
-                value = pad + value.replaceAll( "\n", pad + "\n" );
+                value = pad + value.replaceAll( "\n", "\n" + pad );
                 out.println( value );
             }
         }
