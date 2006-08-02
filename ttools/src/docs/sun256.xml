@@ -939,6 +939,11 @@ The following list gives the values usually allowed for this
     using approximately the conventions used by MS Excel.
     </p></dd>
 
+<dt><code>tst</code></dt>
+<dd><p>Tab-Separated Table format,
+    as used by Starlink's GAIA and ESO's SkyCat amongst other tools.
+    </p></dd>
+
 <dt><code>ipac</code></dt>
 <dd><p>IPAC Table Format.
     </p></dd>
@@ -1032,6 +1037,9 @@ Matching is case-insensitive.
 
 <dt><code>csv-noheader</code></dt>
 <dd><p>Comma-Separated Value format with no header line.</p></dd>
+
+<dt><code>tst</code></dt>
+<dd><p>Tab-Separated Table format.</p></dd>
 
 <dt><code>html</code></dt>
 <dd><p>Standalone HTML document containing a <code>TABLE</code> element</p></dd>
@@ -3713,6 +3721,10 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>Added ICRS coordinate system for <code>addskycoords</code>.</li>
+    <li>TUCDnn header cards now used in FITS files to transmit UCDs
+        (non-standard mechanism).</li>
+    <li>Tab-Separated Table (TST) format now supported for reading and 
+        writing.</li>
     </ul>
     </p></dd>
 
