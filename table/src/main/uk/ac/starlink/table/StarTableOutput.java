@@ -21,6 +21,7 @@ import uk.ac.starlink.table.formats.CsvTableWriter;
 import uk.ac.starlink.table.formats.HTMLTableWriter;
 import uk.ac.starlink.table.formats.LatexTableWriter;
 import uk.ac.starlink.table.formats.TextTableWriter;
+import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -38,6 +39,7 @@ import uk.ac.starlink.util.Loader;
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.CsvTableWriter}
+ * <li> {@link uk.ac.starlink.table.formats.TstTableWriter}
  * <li> {@link uk.ac.starlink.votable.ColFitsPlusTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.HTMLTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
@@ -65,6 +67,7 @@ public class StarTableOutput {
         TextTableWriter.class.getName(),
         AsciiTableWriter.class.getName(),
         CsvTableWriter.class.getName(),
+        TstTableWriter.class.getName(),
         HTMLTableWriter.class.getName(),
         LatexTableWriter.class.getName(),
         "uk.ac.starlink.mirage.MirageTableWriter",

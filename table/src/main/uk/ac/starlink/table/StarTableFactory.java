@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.IpacTableBuilder;
+import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.util.Compression;
@@ -82,6 +83,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="ascii")
  * <li> {@link uk.ac.starlink.table.formats.CsvTableBuilder}
  *      (format name="csv")
+ * <li> {@link uk.ac.starlink.table.formats.TstTableBuilder}
+ *      (format name="tst")
  * <li> {@link uk.ac.starlink.table.formats.IpacTableBuilder}
  *      (format name="ipac")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
@@ -133,6 +136,7 @@ public class StarTableFactory {
     private static String[] knownBuilderClasses = {
         AsciiTableBuilder.class.getName(),
         CsvTableBuilder.class.getName(),
+        TstTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
         WDCTableBuilder.class.getName(),
     };
