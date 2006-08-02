@@ -28,7 +28,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    1 Aug 2006
  */
-public class TstStarTable extends StreamStarTable {
+class TstStarTable extends StreamStarTable {
 
     private int ncol_;
 
@@ -46,7 +46,8 @@ public class TstStarTable extends StreamStarTable {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.formats" );
 
-    private static final ValueInfo DESCRIPTION_INFO =
+    /** Key for parameter composed of freeform description lines. */
+    public static final ValueInfo DESCRIPTION_INFO =
         new DefaultValueInfo( "Description", String.class, 
                               "Free text description of the table" );
 
@@ -88,10 +89,9 @@ public class TstStarTable extends StreamStarTable {
             if ( ! COMMENT_REGEX.matcher( line0 ).matches() &&
                  ! BLANK_REGEX.matcher( line0 ).matches() &&
                  ! PARAM_REGEX.matcher( line0 ).matches() ) {
-                title = ((String) lineList.remove( 0 )).trim();
+                setName( ((String) lineList.remove( 0 )).trim() );
             }
         }
-        setName( title );
 
         /* Set default values for special column indices. */
         int idIndex = 0;
@@ -164,16 +164,16 @@ public class TstStarTable extends StreamStarTable {
         }
         if ( raIndex >= 0 ) {
             ColumnInfo info = colInfos[ raIndex ];
+            info.setUCD( "pos.eq.ra" );
             if ( Number.class.isAssignableFrom( info.getContentClass() ) ) {
                 info.setUnitString( "deg" );
-                info.setUCD( "pos.eq.ra" );
             }
         }
         if ( decIndex >= 0 ) {
             ColumnInfo info = colInfos[ decIndex ];
+            info.setUCD( "pos.eq.dec" );
             if ( Number.class.isAssignableFrom( info.getContentClass() ) ) {
                 info.setUnitString( "deg" );
-                info.setUCD( "pos.eq.dec" );
             }
         }
         if ( idIndex >= 0 ) {
