@@ -9545,6 +9545,9 @@ introduced since the last version:
     <li>Added TST (Tab-Separated Table) format 
         <ref id="inTst">input</ref> and 
         <ref id="outTst">output</ref> handlers.</li>
+    <li>Efficiency improvements for column-oriented access.</li>
+    <li>Improved responsiveness when viewing table data for extremely
+        large tables.</li>
     </ul>
     </p></dd>
 

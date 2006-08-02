@@ -3725,6 +3725,7 @@ but my thanks are especially due to the following:
         (non-standard mechanism).</li>
     <li>Tab-Separated Table (TST) format now supported for reading and 
         writing.</li>
+    <li>Efficiency improvements for column-oriented access.</li>
     </ul>
     </p></dd>
 
