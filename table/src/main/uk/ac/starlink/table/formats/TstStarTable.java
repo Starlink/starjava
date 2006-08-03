@@ -97,6 +97,8 @@ class TstStarTable extends StreamStarTable {
         int idIndex = 0;
         int raIndex = 1;
         int decIndex = 2;
+        int xIndex = -1;
+        int yIndex = -1;
 
         /* Read table parameters. */
         List paramList = new ArrayList();
@@ -117,6 +119,14 @@ class TstStarTable extends StreamStarTable {
                 }
                 else if ( "dec_col".equalsIgnoreCase( pname ) ) {
                     decIndex = parseColumnIndex( pval, ncol_ );
+                    it.remove();
+                }
+                else if ( "x_col".equalsIgnoreCase( pname ) ) {
+                    xIndex = parseColumnIndex( pval, ncol_ );
+                    it.remove();
+                }
+                else if ( "y_col".equalsIgnoreCase( pname ) ) {
+                    yIndex = parseColumnIndex( pval, ncol_ );
                     it.remove();
                 }
                 else {
@@ -178,7 +188,13 @@ class TstStarTable extends StreamStarTable {
         }
         if ( idIndex >= 0 ) {
             ColumnInfo info = colInfos[ idIndex ];
-            info.setUCD( "meta.id" );
+            colInfos[ idIndex ].setUCD( "meta.id" );
+        }
+        if ( xIndex >= 0 ) {
+            colInfos[ xIndex ].setUCD( "pos.cartesian.x" );
+        }
+        if ( yIndex >= 0 ) {
+            colInfos[ yIndex ].setUCD( "pos.cartesian.y" );
         }
         return metadata;
     }
