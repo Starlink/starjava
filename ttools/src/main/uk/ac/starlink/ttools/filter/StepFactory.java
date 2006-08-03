@@ -36,6 +36,7 @@ public class StepFactory {
         filterFactory_.register( "badval", pkg + "BadValueFilter" );
         filterFactory_.register( "cache", pkg + "CacheFilter" );
         filterFactory_.register( "check", pkg + "CheckFilter" );
+        filterFactory_.register( "clearparams", pkg + "ClearParameterFilter" );
         filterFactory_.register( "colmeta", pkg + "ColumnMetadataFilter" );
         filterFactory_.register( "delcols", pkg + "DeleteColumnFilter" );
         filterFactory_.register( "every", pkg + "EveryFilter" );

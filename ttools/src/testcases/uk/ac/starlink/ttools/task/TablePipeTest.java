@@ -176,6 +176,47 @@ public class TablePipeTest extends TableTestCase {
         assertSameData( inTable_, apply( "cache" ) );
     }
 
+    public void testClearparams() throws Exception {
+        assertNotNull(
+            apply( "setparam flavour smokeybacon" )
+           .getParameterByName( "flavour" ) );
+        assertNotNull(
+            apply( "setparam flavour smokeybacon; clearparams taste" )
+           .getParameterByName( "flavour" ) );
+        assertNotNull(
+            apply( "setparam flavour smokeybacon; clearparams t*" )
+           .getParameterByName( "flavour" ) );
+        assertNull(
+            apply( "setparam flavour smokeybacon; clearparams flavour" )
+           .getParameterByName( "flavour" ) );
+        assertNull(
+            apply( "setparam flavour smokeybacon; clearparams *" )
+           .getParameterByName( "flavour" ) );
+        assertNull(
+            apply( "setparam flavour smokeybacon; clearparams f*r" )
+           .getParameterByName( "flavour" ) );
+
+        assertEquals(
+            2,
+            apply( "clearparams *; setparam xx 100; setparam yx 200" )
+           .getParameters().size() );
+        assertEquals(
+            2,
+            apply( "clearparams *; setparam xx 100; setparam yx 200;"
+                 + "clearparams x" ) 
+           .getParameters().size() );
+        assertEquals(
+            1,
+            apply( "clearparams *; setparam xx 100; setparam yx 200;"
+                 + "clearparams xx" )
+           .getParameters().size() );
+        assertEquals(
+            0,
+            apply( "clearparams *; setparam xx 100; setparam yx 200;"
+                 + "clearparams *x" )
+           .getParameters().size() );
+    }
+
     public void testColmeta() throws Exception {
         assertArrayEquals(
             new String[] { "Index", "Name", "Class" },
