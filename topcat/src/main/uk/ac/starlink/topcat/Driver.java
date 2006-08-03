@@ -220,6 +220,8 @@ public class Driver {
             }
             else if ( arg.equals( "-version" ) ) {
                 it.remove();
+                Logger.getLogger( "uk.ac.starlink.topcat" )
+                      .setLevel( Level.WARNING );
                 String[] about = TopcatUtils.getAbout();
                 System.out.println();
                 for ( int i = 0; i < about.length; i++ ) {
