@@ -2,8 +2,10 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -91,12 +93,16 @@ public class TstTableWriter extends StreamStarTableWriter {
         st = prepareTable( st );
 
         /* Write some sort of heading. */
-        String title = st.getName();
-        if ( title != null && title.trim().length() > 0 ) {
-            printLine( out, title );
+        String tname = st.getName();
+        URL turl = st.getURL();
+        if ( tname != null && tname.trim().length() > 0 ) {
+            printLine( out, tname );
+        }
+        else if ( turl != null ) {
+            printLine( out, turl.toString().replaceFirst( "^.*[:/]*", "" ) );
         }
         else {
-            printLine( out, "Tab Separated Table" );
+            printLine( out, "# Tab Separated Table" );
         }
         printLine( out, "" );
 
@@ -369,7 +375,12 @@ public class TstTableWriter extends StreamStarTableWriter {
                 ColumnStarTable.makeTableWithRows( out.getRowCount() );
             indexTable.addColumn( indexCol );
             idIndex = out.getColumnCount();
-            out = new JoinStarTable( new StarTable[] { out, indexTable } );
+            AbstractStarTable joined = 
+                new JoinStarTable( new StarTable[] { out, indexTable } );
+            joined.setName( out.getName() );
+            joined.setURL( out.getURL() );
+            joined.setParameters( out.getParameters() );
+            out = joined;
             assert out.getColumnCount() == idIndex + 1;
         }
 
