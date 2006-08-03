@@ -21,9 +21,9 @@ import java.util.TreeMap;
  */
 public abstract class AbstractStarTable implements StarTable {
 
-    private List parameters = new ArrayList();
-    private String name;
-    private URL url;
+    private List parameters_ = new ArrayList();
+    private String name_;
+    private URL url_;
 
     /**
      * Goes through the table columns (<tt>ColumnInfo</tt> objects) 
@@ -67,7 +67,7 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     public List getParameters() {
-        return parameters;
+        return parameters_;
     }
 
     /**
@@ -79,11 +79,12 @@ public abstract class AbstractStarTable implements StarTable {
      *         to this table
      */
     public void setParameters( List parameters ) {
-        this.parameters = parameters;
+        parameters_ = parameters;
     }
 
     public void setParameter( DescribedValue dval ) {
         DescribedValue old = getParameterByName( dval.getInfo().getName() );
+        List parameters = getParameters();
         if ( old != null ) {
             parameters.remove( old );
         }
@@ -91,7 +92,7 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     public String getName() {
-        return name;
+        return name_;
     }
 
     /**
@@ -100,11 +101,11 @@ public abstract class AbstractStarTable implements StarTable {
      * @param  name  the table name - may be <tt>null</tt>
      */
     public void setName( String name ) {
-        this.name = name;
+        name_ = name;
     }
 
     public URL getURL() {
-        return url;
+        return url_;
     }
 
     /**
@@ -113,7 +114,7 @@ public abstract class AbstractStarTable implements StarTable {
      * @param  url  the URL where this table lives - may be <tt>null</tt>
      */
     public void setURL( URL url ) {
-        this.url = url;
+        url_ = url;
     }
 
     public DescribedValue getParameterByName( String parname ) {
