@@ -118,7 +118,7 @@ public class ValueType {
             try {
                 new URL( str );
                 if ( str.matches( "file:/?[^/].*" ) ) {
-                    throw new ValueTypeException( "file:-type URL " + str
+                    throw new ValueTypeException( "file:-type URL " + str + " "
                                                 + "violates RFC1738 - " 
                                                 + "should be "
                                                 + "file://localhost/..." );
