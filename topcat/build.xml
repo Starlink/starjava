@@ -740,7 +740,7 @@
     <!-- Copy the docs into the release directory -->
     <mkdir dir="${release.dir}/docs"/>
     <copy todir="${release.dir}/docs">
-      <fileset dir="${dist.docs}/${name}"/>
+      <fileset dir="${dist.docs}/${name}" excludes="javadocs javadocs/**"/>
     </copy>
 
     <!-- Copy scripts into the release directory -->
