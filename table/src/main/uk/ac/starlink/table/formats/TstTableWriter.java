@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Iterator;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StreamStarTableWriter;
@@ -35,6 +38,10 @@ public class TstTableWriter extends StreamStarTableWriter {
         new ColumnInfo( "RA", Number.class, "Right Ascension J2000" );
     private static final ColumnInfo DEC_INFO =
         new ColumnInfo( "DEC", Number.class, "Declination J2000" );
+    private static final ColumnInfo X_INFO =
+        new ColumnInfo( "X", Number.class, "X pixel index" );
+    private static final ColumnInfo Y_INFO =
+        new ColumnInfo( "Y", Number.class, "Y pixel index" );
     private static final ValueInfo LABEL_INFO = 
         new DefaultValueInfo( "TstTableWriter.Label", String.class,
                               "Identifier private to this class" );
@@ -42,6 +49,8 @@ public class TstTableWriter extends StreamStarTableWriter {
         ID_INFO.setAuxDatum( new DescribedValue( LABEL_INFO, "ID" ) );
         RA_INFO.setAuxDatum( new DescribedValue( LABEL_INFO, "RA" ) );
         DEC_INFO.setAuxDatum( new DescribedValue( LABEL_INFO, "DEC" ) );
+        X_INFO.setAuxDatum( new DescribedValue( LABEL_INFO, "X" ) );
+        Y_INFO.setAuxDatum( new DescribedValue( LABEL_INFO, "Y" ) );
     }
 
     /**
@@ -118,6 +127,8 @@ public class TstTableWriter extends StreamStarTableWriter {
         int raIndex = -1;
         int decIndex = -1;
         int idIndex = -1;
+        int xIndex = -1;
+        int yIndex = -1;
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo info = st.getColumnInfo( icol );
             colInfos[ icol ] = info;
@@ -130,6 +141,12 @@ public class TstTableWriter extends StreamStarTableWriter {
             }
             if ( matches( info, DEC_INFO ) ) {
                 decIndex = icol;
+            }
+            if ( matches( info, X_INFO ) ) {
+                xIndex = icol;
+            }
+            if ( matches( info, Y_INFO ) ) {
+                yIndex = icol;
             }
         }
 
@@ -145,6 +162,12 @@ public class TstTableWriter extends StreamStarTableWriter {
         printLine( out, "id_col: " + idIndex );
         printLine( out, "ra_col: " + raIndex );
         printLine( out, "dec_col: " + decIndex );
+        if ( xIndex >= 0 ) {
+            printLine( out, "x_col: " + xIndex );
+        }
+        if ( yIndex >= 0 ) {
+            printLine( out, "y_col: " + yIndex );
+        }
         printLine( out, "" );
 
         /* Write advert. */
@@ -254,6 +277,8 @@ public class TstTableWriter extends StreamStarTableWriter {
         int raIndex = -1;
         int decIndex = -1;
         int idIndex = -1;
+        int xIndex = -1;
+        int yIndex = -1;
         double raFactor = 1.0;
         double decFactor = 1.0;
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -292,8 +317,23 @@ public class TstTableWriter extends StreamStarTableWriter {
                 if ( lucd.startsWith( "meta.id" ) ||
                      lucd.startsWith( "id_" ) ||
                      lname.equals( "id" ) ||
-                     lname.startsWith( "ident" ) ) {
+                     lname.startsWith( "ident" ) ||
+                     lname.equals( "name" ) ) {
                     idIndex = icol;
+                }
+            }
+            if ( xIndex < 0 ) {
+                if ( lucd.startsWith( "pos.cartesian.x" ) ||
+                     lname.equals( "x" ) ||
+                     lname.equals( "xpos" ) ) {
+                    xIndex = icol;
+                }
+            }
+            if ( yIndex < 0 ) {
+                if ( lucd.startsWith( "pos.cartesian.y" ) ||
+                     lname.equals( "y" ) ||
+                     lname.equals( "ypos" ) ) {
+                    yIndex = icol;
                 }
             }
         }
@@ -310,6 +350,29 @@ public class TstTableWriter extends StreamStarTableWriter {
         }
         StarTable out = new FactorStarTable( in, factors );
 
+        /* Ensure that we have an ID column, by faking one if necessary.
+         * Although SSN/75 appears to say that an ID column is optional
+         * and can be indicated with an "id_col: -1" parameter,
+         * GAIA complains when loading such a table that -1 is out of
+         * range and refuses to plot the data.
+         * I'm not currently sure if this is a GAIA bug or not. */
+        if ( idIndex < 0 ) {
+            ColumnInfo indexInfo =
+                new ColumnInfo( "Index", Long.class,
+                                "Row index within table" );
+            ColumnData indexCol = new ColumnData( indexInfo ) {
+                public Object readValue( long irow ) {
+                    return new Long( irow + 1 );
+                }
+            };
+            ColumnStarTable indexTable = 
+                ColumnStarTable.makeTableWithRows( out.getRowCount() );
+            indexTable.addColumn( indexCol );
+            idIndex = out.getColumnCount();
+            out = new JoinStarTable( new StarTable[] { out, indexTable } );
+            assert out.getColumnCount() == idIndex + 1;
+        }
+
         /* Doctor the column metadata in such a way that the matches() 
          * method will be able to identify ID, RA and DEC columns. */
         String labelKey = LABEL_INFO.getName();
@@ -324,6 +387,14 @@ public class TstTableWriter extends StreamStarTableWriter {
         if ( decIndex >= 0 ) {
             out.getColumnInfo( decIndex )
                .setAuxDatum( DEC_INFO.getAuxDatumByName( labelKey ) );
+        }
+        if ( xIndex >= 0 ) {
+            out.getColumnInfo( xIndex )
+               .setAuxDatum( X_INFO.getAuxDatumByName( labelKey ) );
+        }
+        if ( yIndex >= 0 ) {
+            out.getColumnInfo( yIndex )
+               .setAuxDatum( Y_INFO.getAuxDatumByName( labelKey ) );
         }
         return out;
     }
