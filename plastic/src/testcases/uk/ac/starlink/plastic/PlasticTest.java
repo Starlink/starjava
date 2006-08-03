@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import junit.framework.TestCase;
 import org.votech.plastic.PlasticHubListener;
-import uk.ac.starlink.util.TestCase;
 
 public class PlasticTest extends TestCase {
 
@@ -98,6 +98,8 @@ public class PlasticTest extends TestCase {
         Counter c3 = new Counter();
         URI id1 = PlasticUtils.registerRMI( c1 );
   
+        assertNotNull( hub );
+        assertNotNull( hub.getMessageRegisteredIds( CALC ) );
         Object soleId = 
             removeMonitorsList( hub.getMessageRegisteredIds( CALC ),
                                 monitors ).get( 0 );
