@@ -31,7 +31,7 @@ public class SetParameterFilter extends BasicFilter {
             "(if it looks like an integer it's an integer etc)", 
             "but this can be overridden using the <code>-type</code> flag.",
             "The parameter description may be set using the",
-            "<code>-descrip</code>" flag.
+            "<code>-descrip</code> flag.",
         };
     }
 
