@@ -28,6 +28,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.TableEnvironment;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -249,7 +250,9 @@ public class PlasticMode implements ProcessingMode {
             /* Hub communication is synchronous; we want to wait until all
              * clients have responded so we can delete the temporary file
              * afterwards. */
-            List args = Collections.singletonList( tmpfile.toURL() );
+            List args = Collections
+                       .singletonList( URLUtils.makeFileURL( tmpfile )
+                                               .toString() );
             Map loadResponses = clientList == null
                               ? hub.request( plasticId, MSG_BYURL, args )
                               : hub.requestToSubset( plasticId, MSG_BYURL, args,
