@@ -3720,11 +3720,12 @@ but my thanks are especially due to the following:
 <dt>Version 1.2-1 (3 August 2006)</dt>
 <dd><p>
     <ul>
+    <li>Tab-Separated Table (TST) format now supported for reading and 
+        writing.</li>
+    <li>New <code>setparam</code> filter.</li>
     <li>Added ICRS coordinate system for <code>addskycoords</code>.</li>
     <li>TUCDnn header cards now used in FITS files to transmit UCDs
         (non-standard mechanism).</li>
-    <li>Tab-Separated Table (TST) format now supported for reading and 
-        writing.</li>
     <li>Efficiency improvements for column-oriented access.</li>
     </ul>
     </p></dd>
