@@ -58,7 +58,7 @@ public class TstTest extends TestCase {
         new TstTableWriter().writeStarTable( permut, bout );
         bout.close();
         String ttxt = new String( bout.toByteArray() );
-        assertTrue( ttxt.indexOf( "\nid_col: -1\n" ) > 0 );
+        assertTrue( ttxt.indexOf( "\nid_col: 5\n" ) > 0 );
         assertTrue( ttxt.indexOf( "\nra_col: 4\n" ) > 0 );
         assertTrue( ttxt.indexOf( "\ndec_col: 3\n" ) > 0 );
         assertTrue( ttxt.indexOf( "\ndummy: Joselin\n" ) > 0 ); 
