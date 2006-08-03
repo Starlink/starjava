@@ -17,7 +17,7 @@ public class SetParameterFilter extends BasicFilter {
 
     public SetParameterFilter() {
         super( "setparam",
-               "[-type byte|short|int|long|float|double|boolean|string] " +
+               "[-type byte|short|int|long|float|double|boolean|string]\n" +
                "[-desc <descrip>] " +
                "<pname> <pval>" );
     }
