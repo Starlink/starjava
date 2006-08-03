@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
@@ -325,6 +326,63 @@ public class TablePipeTest extends TableTestCase {
            getColData( apply( "replacecol b (float)b;"
                             + "replaceval null " + Math.PI + " b;"
                             + "replaceval " + Math.PI + " 40 b" ), 1 ) );
+    }
+
+    public void testSetparam() throws Exception {
+        DescribedValue dval =
+            apply( "setparam -descrip 'What it tastes like' "
+                           + "flavour salt+vinegar" )
+           .getParameterByName( "flavour" );
+        assertEquals( "flavour", dval.getInfo().getName() );
+        assertEquals( "What it tastes like", dval.getInfo().getDescription() );
+        assertEquals( String.class, dval.getInfo().getContentClass() );
+        assertEquals( "salt+vinegar", dval.getValue() );
+
+        assertEquals(
+            new Double( 3.1 ),
+            apply( "setparam x 3.1" ).getParameterByName( "x" ).getValue() );
+        assertEquals(
+            new Integer( 19 ),
+            apply( "setparam x 19" ).getParameterByName( "x" ).getValue() );
+        assertEquals(
+            Boolean.FALSE,
+            apply( "setparam x false" ).getParameterByName( "x" ).getValue() );
+
+        assertEquals(
+            new Double( 3.0 ),
+            apply( "setparam -type double x 3" ).getParameterByName( "x" )
+                                                .getValue() );
+        assertEquals(
+            new Float( 3.0f ),
+            apply( "setparam -type float x 3" ).getParameterByName( "x" )
+                                               .getValue() );
+        assertEquals(
+            new Long( 3L ),
+            apply( "setparam -type long x 3" ).getParameterByName( "x" )
+                                              .getValue() );
+        assertEquals(
+            new Integer( 3 ),
+            apply( "setparam -type int x 3" ).getParameterByName( "x" )
+                                             .getValue() );
+        assertEquals(
+            new Short( (short) 3 ),
+            apply( "setparam -type short x 3" ).getParameterByName( "x" )
+                                               .getValue() );
+        assertEquals(
+            new Byte( (byte) 3 ),
+            apply( "setparam -type byte x 3" ).getParameterByName( "x" )
+                                              .getValue() );
+        assertEquals(
+            "3",
+            apply( "setparam -type string x 3" ).getParameterByName( "x" )
+                                                .getValue() );
+        try {
+            apply( "setparam -type int 3.1415" );
+            fail();
+        }
+        catch ( TaskException e ) {
+            assertTrue( e.getCause() instanceof ArgException );
+        }
     }
 
     public void testTablename() throws Exception {
