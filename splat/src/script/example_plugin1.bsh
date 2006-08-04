@@ -1,3 +1,0 @@
-show();
-print("This is plugin example number 1");
-browser.displaySpectrum("/home/pdraper/java/top/uk/ac/starlink/splat/testdata/spectrum.sdf");
