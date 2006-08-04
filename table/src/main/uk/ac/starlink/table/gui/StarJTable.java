@@ -355,56 +355,44 @@ public class StarJTable extends JTable {
         }
         else {
             return new Iterator() {
-                int irow = 0;
-                int isamp = 0;
-                int ns4 = nsample / 4;
-                int ns2 = nsample / 2;
-                int segment = 0;
-                long segStart = System.currentTimeMillis();
+                final int NS4 = nsample / 4;
+                final int NS2 = nsample / 2;
+                final int NR4 = nrow / 4;
+                int iseg_ = 0;
+                int isamp4_ = 0;
+                long segStart_ = System.currentTimeMillis();
+                int next_ = nextInt();
                 public boolean hasNext() {
-                    if ( isamp < nsample ) {
-                        if ( segment < 4 ) {
-                            return true;
-                        }
-                        else {
-                            logger_.config(
-                                "Out of time - " +
-                                "curtailed column width assessment after " +
-                                isamp + "/" + nsample + " rows" );
-                            return false;
-                        }
-                    }
-                    else {
-                        return false;
-                    }
+                    return next_ >= 0;
                 }
                 public Object next() {
-                    int is = isamp++;
-                    int seg = segment;
-                    int newseg = seg;
+                    if ( next_ >= 0 ) {
+                        Integer nobj = new Integer( next_ );
+                        next_ = nextInt();
+                        return nobj;
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
+                }
+                private int nextInt() {
                     long now = System.currentTimeMillis();
-                    if ( now - segStart > maxTime / 4 ) {
-                        newseg++;
+                    if ( isamp4_ >= NS4 || now - segStart_ > maxTime / 4 ) {
+                        segStart_ = now;
+                        isamp4_ = 0;
+                        iseg_++;
                     }
-                    newseg = Math.max( newseg, is * 4 / nsample );
-                    if ( newseg != seg ) {
-                        segStart = now;
-                        segment = newseg;
-                    }
-                    switch ( seg ) {
+                    switch ( iseg_ ) {
                         case 0:
-                            return new Integer( is );
+                            return isamp4_;
                         case 1:
+                            return ( ( isamp4_ / NS4 ) * NR4 ) + NR4;
                         case 2:
-                            double frac =
-                                2.0 * ( ( is / (double) nsample ) - 0.25 );
-                            int irow = ns4 + (int) ( frac * ( nrow - ns2 ) );
-                            return new Integer( irow );
+                            return ( ( isamp4_ / NS4 ) * NR4 ) + ( NR4 * 2 );
                         case 3:
-                            return new Integer( nrow - ( nsample - is ) );
+                            return nrow - 1 - isamp4_;
                         default:
-                            assert false : "segment " + seg;
-                            return new Integer( 0 );
+                            return -1;
                     }
                 }
                 public void remove() {
