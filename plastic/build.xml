@@ -850,6 +850,22 @@
   </target>
 
   <!--
+   !   ================
+   !   Deploy www files
+   !   ================
+   !-->
+  <target name="install-www"
+          depends="www"
+          description="-> Deploy files to www page">
+    <property name="plastic.www.dir" value="${user.home}/public_html/plastic"/>
+    <delete dir="${plastic.www.dir}"/>
+    <mkdir dir="${plastic.www.dir}"/>
+    <copy todir="${plastic.www.dir}">
+      <fileset dir="${dist.www}"/>
+    </copy>
+  </target>
+
+  <!--
    !   ========================================
    !   Install runonly into the "Starlink" tree
    !   ========================================
