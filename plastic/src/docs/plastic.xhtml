@@ -79,6 +79,13 @@ Can connect to the hub using either RMI or XML-RPC protocols
 </p>
 <usage class="uk.ac.starlink.plastic.PlasticRequest"/>
 
+<h3>HubTester</h3>
+<p>Runs unit tests against a running hub, and exits with an error status
+(and stackdump) if any of the assertions fails.
+Should be improved to give rather more useful messages.
+</p>
+<usage class="uk.ac.starlink.plastic.HubTester"/>
+
 <hr/>
 <h2><a name="download"/>Download</h2>
 
@@ -142,11 +149,12 @@ or as one combined jar file for convenience:
     <li>Added <code>XmlRpcHub</code> (mainly for testing purposes).</li>
     </ul></dd>
 
-<dt><b>Next Version</b></dt>
+<dt><a name="0.4" /><b>Version 0.4 (7 Aug 2006)</b></dt>
 <dd><ul>
     <li>Provided new <code>CustomTransportFactory</code> implementation;
         this provides better error reporting than the xmlrpc-2.0 version
         in some cases.</li>
+    <li>New <code>HubTester</code> class.</li>
     </ul></dd>
 
 </dl>

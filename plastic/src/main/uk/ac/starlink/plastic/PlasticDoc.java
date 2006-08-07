@@ -15,6 +15,7 @@ class PlasticDoc {
         PlasticHub.class,
         PlasticMonitor.class,
         PlasticRequest.class,
+        HubTester.class,
     };
 
     public static void main( String[] args ) {
