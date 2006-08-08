@@ -56,6 +56,13 @@ public class PlasticUtils {
         Logger.getLogger( "uk.ac.starlink.plastic" );
 
     /**
+     * True if spurious java.util.NoSuchElementExceptions should be flagged.
+     * If future JVMs fix this bug, this should be set false or the code
+     * removed.
+     */
+    public static boolean WARN_ABOUT_NOSUCHELEMENTEXCEPTIONS = true;
+
+    /**
      * Private sole constructor blocks instantiation.
      */
     private PlasticUtils() {
@@ -458,6 +465,12 @@ public class PlasticUtils {
                     /* This line causes "java.util.NoSuchElementException" to
                      * be written to System.err, at least at J2SE1.4.
                      * Not my fault! */
+                    if ( WARN_ABOUT_NOSUCHELEMENTEXCEPTIONS ) {
+                        WARN_ABOUT_NOSUCHELEMENTEXCEPTIONS = false;
+                        System.err.println(
+                            "Please ignore spurious \"" 
+                          + "java.util.NoSuchElementException\" messages." );
+                    }
                     trySocket.close();
                 }
             }
