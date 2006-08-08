@@ -73,6 +73,7 @@ public class PlasticRequest {
                      + "\n           "
                      + " [-targetName name ...]"
                      + " [-targetId id ...]"
+                     + " [-targetHub]"
                      + "\n           "
                      + " messsageId"
                      + " [args ...]"
@@ -82,6 +83,7 @@ public class PlasticRequest {
         boolean sync = true;
         Set targetNameSet = new HashSet();
         List targetIdList = new ArrayList();
+        boolean targetHub = false;
 
         /* Parse flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -111,6 +113,10 @@ public class PlasticRequest {
                 it.remove();
                 targetNameSet.add( it.next() );
                 it.remove();
+            }
+            else if ( arg.equals( "-targetHub" ) ) {
+                it.remove();
+                targetHub = true;
             }
             else if ( arg.equals( "-targetId" ) && it.hasNext() ) {
                 it.remove();
@@ -163,11 +169,21 @@ public class PlasticRequest {
         /* Identify the list of applications to which we will send. */
         List targetList;
         boolean sendAll;
-        if ( targetNameSet.isEmpty() && targetIdList.isEmpty() ) {
+        if ( targetNameSet.isEmpty() && targetIdList.isEmpty() && !targetHub ) {
             targetList = null;
         }
         else {
-            targetList = new ArrayList( targetIdList );
+            targetList = new ArrayList();
+            if ( targetHub ) {
+                URI hubId = hub.getHubId();
+                if ( hubId != null ) { 
+                    targetList.add( hubId );
+                }
+                else {
+                    throw new IOException( "No hub ID available" );
+                }
+            }
+            targetList.addAll( targetIdList );
             if ( ! targetNameSet.isEmpty() ) {
                 for ( Iterator it = hub.getRegisteredIds().iterator();
                       it.hasNext(); ) {
