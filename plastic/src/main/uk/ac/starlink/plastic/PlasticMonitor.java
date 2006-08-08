@@ -37,7 +37,6 @@ public class PlasticMonitor implements PlasticApplication {
     private boolean stopped_;
     private ApplicationListModel appListModel_;
     private PlasticHubListener hub_;
-    private final String hubVersion_;
     private final MessageValidator validator_;
 
     private static final Logger logger_ =
@@ -46,20 +45,20 @@ public class PlasticMonitor implements PlasticApplication {
     private static int MAX_ARG_COUNT = 64;
     private static int MAX_ARG_LENG = 256;
     private static int TRUNC_ARG_LENG = Math.min( 64, MAX_ARG_LENG - 3 );
+    private static final Object NULL = new Vector();
 
     /**
      * Constructor.
      *
      * @param  name   application name
-     * @param  out    logging output stream
-     * @param  hubVersion PLASTIC protocol version used by the hub to monitor
+     * @param  logOut    logging output stream
+     * @param  warnOut   warning output stream
      */
-    protected PlasticMonitor( String name, PrintStream logOut,
-                              PrintStream warnOut, String hubVersion ) {
+    public PlasticMonitor( String name, PrintStream logOut,
+                           PrintStream warnOut ) {
         name_ = name;
         logOut_ = logOut;
         warnOut_ = warnOut;
-        hubVersion_ = hubVersion;
         validator_ = new MessageValidator();
     }
 
@@ -68,26 +67,14 @@ public class PlasticMonitor implements PlasticApplication {
     }
 
     public URI[] getSupportedMessages() {
-        float version;
-        try {
-            version = Float.parseFloat( hubVersion_.trim() );
-        }
-        catch ( RuntimeException e ) {
-            version = -1f;
-        }
-        if ( version > 0.45 ) {
-            URI[] msgs = MessageId.getKnownMessages();
-            assert Arrays.asList( msgs ).contains( MessageId.HUB_APPREG );
-            assert Arrays.asList( msgs ).contains( MessageId.HUB_APPUNREG );
-            assert Arrays.asList( msgs ).contains( MessageId.HUB_STOPPING );
-            return msgs;
-        }
-
-        /* Hub versions 0.4 and earlier used an empty array as a special
-         * case meaning "send me all messages". */
-        else {
-            return new URI[ 0 ];
-        }
+        return new URI[] {
+            MessageId.HUB_APPREG, 
+            MessageId.HUB_APPUNREG,
+            MessageId.HUB_STOPPING,
+            MessageId.INFO_GETNAME,
+            MessageId.INFO_GETDESCRIPTION,
+            MessageId.TEST_ECHO, 
+        };
     }
 
     public Object perform( URI sender, URI message, List args ) {
@@ -110,6 +97,34 @@ public class PlasticMonitor implements PlasticApplication {
                 }
             }
         }
+        Object result = doPerform( sender, message, args );
+        if ( logOut_ != null ) {
+            logOut_.println(
+                "\t->" +
+                ( result == null
+                     ? "null"
+                     : "(" + result.getClass().getName() + "): " + result ) );
+        }
+        if ( warnOut_ != null ) {
+            String[] warnings = validator_.validateResponse( message, result );
+            if ( warnings.length > 0 ) {
+                warnOut_.println( "WARNINGS: " );
+                for ( int i = 0; i < warnings.length; i++ ) {
+                    warnOut_.println( "    " + warnings[ i ] );
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Does the actual message handling.
+     *
+     * @param  sender  sender ID
+     * @param  message  message ID
+     * @param  args   message argument list
+     */
+    private Object doPerform( URI sender, URI message, List args ) {
         if ( MessageId.HUB_STOPPING.equals( message ) ) {
             stopped_ = true;
             if ( appListModel_ != null ) {
@@ -118,10 +133,19 @@ public class PlasticMonitor implements PlasticApplication {
             synchronized ( this ) {
                 notifyAll();
             }
+            return NULL;
         }
-        if ( appListModel_ != null ) {
-            if ( MessageId.HUB_APPREG.equals( message ) && 
-                 args.size() > 0 ) {
+        else if ( MessageId.INFO_GETNAME.equals( message ) ) {
+            return name_;
+        }
+        else if ( MessageId.INFO_GETDESCRIPTION.equals( message ) ) {
+            return "Plastic message monitor";
+        }
+        else if ( MessageId.TEST_ECHO.equals( message ) ) {
+            return args.size() > 0 ? args.get( 0 ) : "";
+        }
+        else if ( MessageId.HUB_APPREG.equals( message ) ) {
+            if ( appListModel_ != null && args.size() > 0 ) {
                 try {
                     URI id = new URI( args.get( 0 ).toString() );
                     String name = hub_.getName( id );
@@ -133,7 +157,10 @@ public class PlasticMonitor implements PlasticApplication {
                 catch ( URISyntaxException e ) {
                 }
             }
-            else if ( MessageId.HUB_APPUNREG.equals( message ) ) {
+            return NULL;
+        }
+        else if ( MessageId.HUB_APPUNREG.equals( message ) ) {
+            if ( appListModel_ != null && args.size() > 0 ) {
                 try {
                     URI id = new URI( args.get( 0 ).toString() );
                     appListModel_.unregister( id );
@@ -141,8 +168,14 @@ public class PlasticMonitor implements PlasticApplication {
                 catch ( URISyntaxException e ) {
                 }
             }
+            return NULL;
         }
-        return Boolean.FALSE;
+        else {
+            if ( warnOut_ != null ) {
+                warnOut_.println( "Unsolicited message " + message );
+            }
+            return NULL;
+        }
     }
 
     /**
@@ -150,7 +183,7 @@ public class PlasticMonitor implements PlasticApplication {
      *
      * @param  hub  hub
      */
-    private void setHub( PlasticHubListener hub ) {
+    public void setHub( PlasticHubListener hub ) {
         hub_ = hub;
     }
 
@@ -159,7 +192,7 @@ public class PlasticMonitor implements PlasticApplication {
      *
      * @param   listModel  model of registered applications
      */
-    private void setListModel( ApplicationListModel listModel ) {
+    public void setListModel( ApplicationListModel listModel ) {
         appListModel_ = listModel;
     }
 
@@ -282,9 +315,7 @@ public class PlasticMonitor implements PlasticApplication {
 
         PrintStream logOut = verbose ? System.out : null;
         PrintStream warnOut = validate ? System.out : null;
-        PlasticMonitor mon = new PlasticMonitor( name, logOut, warnOut,
-                                                 getHubVersion() );
-       
+        PlasticMonitor mon = new PlasticMonitor( name, logOut, warnOut );
         if ( gui ) {
             PlasticHubListener hub = PlasticUtils.getLocalHub();
             ApplicationItem[] regApps =
@@ -330,33 +361,6 @@ public class PlasticMonitor implements PlasticApplication {
         }
         catch ( InterruptedException e ) {
             System.out.println( "Interrupted." );
-        }
-    }
-
-    /**
-     * Returns the hub version as a string number, if it can.
-     *
-     * @return   hub version string
-     */
-    public static String getHubVersion() {
-        try {
-            PlasticHubListener hub = PlasticUtils.getLocalHub(); 
-            URI hubId = hub.getHubId();
-            URI clientId = hub.registerNoCallBack( "monitor-pre" );
-            try {
-                Map vMap =
-                    hub.requestToSubset( clientId, MessageId.INFO_GETVERSION,
-                                         new ArrayList(),
-                                         Collections.singletonList( hubId ) );
-                return vMap.get( hubId ).toString().trim();
-            }
-            finally {
-                hub.unregister( clientId );
-            }
-        }
-        catch ( Exception e ) {
-            logger_.warning( "Unknown hub version: " + e );
-            return "???";
         }
     }
 }
