@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -19,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.logging.Logger;
 import net.ladypleaser.rmilite.Client;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClient;
@@ -48,6 +51,9 @@ public class PlasticUtils {
     public static final String XMLRPC_PREFIX = 
         Double.parseDouble( PLASTIC_VERSION ) > 0.399 ? null
                                                       : "plastic.client";
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.plastic" );
 
     /**
      * Private sole constructor blocks instantiation.
@@ -207,18 +213,28 @@ public class PlasticUtils {
      * communication.
      *
      * @param   app  application to register
-     * @return  registered ID
+     * @return  connection corresponding to <code>app</code> registered
+     *          with the hub
+     * @throws  IOException if the application could not register
      */
-    public static URI registerRMI( final PlasticApplication app )
+    public static PlasticConnection registerRMI( final PlasticApplication app )
             throws IOException {
-        HubManager hubber = new HubManager( app.getName(),
-                                            app.getSupportedMessages() ) {
+        final HubManager hubber = new HubManager( app.getName(),
+                                                  app.getSupportedMessages() ) {
             public Object doPerform( URI sender, URI message, List args ) {
                 return app.perform( sender, message, args );
             }
         };
         hubber.register();
-        return hubber.getRegisteredId();
+        final URI id = hubber.getRegisteredId();
+        return new PlasticConnection() {
+            public URI getId() {
+                return id;
+            }
+            public void unregister() {
+                hubber.unregister();
+            }
+        };
     }
 
     /**
@@ -228,7 +244,8 @@ public class PlasticUtils {
      * @param  app  application to register
      * @return  registered ID
      */
-    public static URI registerXMLRPC( final PlasticApplication app )
+    public static PlasticConnection registerXMLRPC( final
+                                                    PlasticApplication app )
             throws IOException {
         final XmlRpcClient client = createXmlRpcClient( getXmlRpcUrl() );
         final WebServer server;
@@ -269,18 +286,45 @@ public class PlasticUtils {
             }
             else if ( result instanceof String ) {
                 final URI id = new URI( (String) result );
+                PlasticConnection conn = new PlasticConnection() {
+                    private boolean unreg_;
+                    public URI getId() {
+                        return id;
+                    }
+                    public synchronized void unregister() {
+                        if ( ! unreg_ ) {
+                            unreg_ = true;
+                            Vector argv = new Vector();
+                            argv.add( id.toString() );
+                            try {
+                                client.execute( "plastic.hub.unregister",
+                                                argv );
+                            }
+                            catch ( Throwable e ) {
+                                logger_.info( "Unregister failed: " + e );
+                            }
+                        }
+                    }
+                    protected void finalize() throws Throwable {
+                        try {
+                            unregister();
+                        }
+                        finally {
+                            super.finalize();
+                        }
+                    }
+                };
+                final Reference connRef = new WeakReference( conn );
                 Runtime.getRuntime().addShutdownHook( new Thread() {
                     public void run() {
-                        Vector argv = new Vector();
-                        argv.add( id.toString() );
-                        try {
-                            client.execute( "plastic.hub.unregister", argv );
-                        }
-                        catch ( Throwable e ) {
+                        PlasticConnection conn =
+                            (PlasticConnection) connRef.get();
+                        if ( conn != null ) {
+                            conn.unregister();
                         }
                     }
                 } );
-                return id;
+                return conn;
             }
             else {
                 return null; // only happens if hub returns a bad ID
