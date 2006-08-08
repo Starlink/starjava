@@ -70,9 +70,14 @@ public class HubTest extends TestCase {
                         new ArrayList(),
                         Collections.singletonList( hub.getHubId() ) )
                    .get( hub.getHubId() );
+            String hubVers = (String)
+                hub.requestToSubset(
+                        htest.getId(), MessageId.INFO_GETVERSION,
+                        new ArrayList(),
+                        Collections.singletonList( hub.getHubId() ) )
+                   .get( hub.getHubId() );
             if ( hubDescrip != null && hubDescrip.indexOf( "PlasKit" ) >= 0 ) {
-                assertEquals( PlasticUtils.PLASTIC_VERSION,
-                              PlasticMonitor.getHubVersion() );
+                assertEquals( PlasticUtils.PLASTIC_VERSION, hubVers );
             }
             else {
                 System.out.println( "Someone else's hub is running: "
