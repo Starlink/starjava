@@ -479,8 +479,14 @@ public class HubTester {
             System.err.println( usage );
             System.exit( 1 );
         }
-        testHub();
-        System.exit( 0 );
+        try {
+            testHub();
+            System.exit( 0 );
+        }
+        catch ( Throwable error ) {
+            error.printStackTrace();
+            System.exit( 1 );
+        }
     }
 
     /**
