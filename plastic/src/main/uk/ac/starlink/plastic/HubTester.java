@@ -91,6 +91,7 @@ public class HubTester {
         assertTrue( CONFIG_FILE.exists() );
         try {
             exerciseCounters();
+            exerciseMonitors();
         }
         catch ( IOException e ) {
             throw new HubTestException( "Hub failed", e );
@@ -107,7 +108,8 @@ public class HubTester {
             throws HubTestException, IOException, InterruptedException {
         Counter c1 = new Counter();
         Counter c2 = new Counter();
-        URI id1 = PlasticUtils.registerRMI( c1 );
+        PlasticConnection conn1 = PlasticUtils.registerRMI( c1 );
+        URI id1 = conn1.getId();
 
         assertTrue( hub_.getMessageRegisteredIds( CALC_MSG ) != null );
         assertEquals(
@@ -127,7 +129,8 @@ public class HubTester {
             removeMonitorsMap( hub_.request( id_, CALC_MSG,
                                              calcArgs( PLUS, 0 ) ) ) );
 
-        URI id2 = PlasticUtils.registerXMLRPC( c2 );
+        PlasticConnection conn2 = PlasticUtils.registerXMLRPC( c2 );
+        URI id2 = conn2.getId();
         assertEquals(
             new HashSet( Arrays.asList( new URI[] { id1, id2 } ) ),
             new HashSet( removeMonitorsList(
@@ -202,20 +205,49 @@ public class HubTester {
         assertTrue( hub_.getMessageRegisteredIds( CALC_MSG ).contains( id1 ) );
         assertTrue( ! hub_.getMessageRegisteredIds( DUMMY_MSG )
                           .contains( id1 ) );
-        hub_.unregister( id1 );
+        conn1.unregister();
         assertTrue( ! hub_.getRegisteredIds().contains( id1 ) );
         assertTrue( ! hub_.getMessageRegisteredIds( CALC_MSG )
                           .contains( id1 ) );
 
         assertTrue( hub_.getRegisteredIds().contains( id2 ) );
         assertTrue( hub_.getMessageRegisteredIds( CALC_MSG ).contains( id2 ) );
-        hub_.unregister( id2 );
+        conn2.unregister();
         assertTrue( ! hub_.getRegisteredIds().contains( id2 ) );
         assertTrue( ! hub_.getMessageRegisteredIds( CALC_MSG )
                           .contains( id2 ) );
 
         c1.dispose();
         c2.dispose();
+    }
+
+    private void exerciseMonitors()
+            throws IOException, HubTestException, InterruptedException {
+        PlasticMonitor mon1 = new PlasticMonitor( "mon1", null, null );
+        PlasticMonitor mon2 = new PlasticMonitor( "mon2", null, null );
+        ApplicationItem[] regApps =
+            PlasticUtils.getRegisteredApplications( hub_ );
+        ApplicationListModel appList1 = new ApplicationListModel( regApps );
+        ApplicationListModel appList2 = new ApplicationListModel( regApps );
+        mon1.setListModel( appList1 );
+        mon2.setListModel( appList2 );
+        mon1.setHub( hub_ );
+        mon2.setHub( hub_ );
+        PlasticConnection conn1 = PlasticUtils.registerRMI( mon1 );
+        URI id1 = conn1.getId();
+        assertTrue( hub_.getRegisteredIds().contains( id1 ) );
+        PlasticConnection conn2 = PlasticUtils.registerXMLRPC( mon2 );
+        URI id2 = conn2.getId();
+        assertTrue( hub_.getRegisteredIds().contains( id2 ) );
+
+        Thread.sleep( 2000 );
+
+        assertTrue( hub_.getRegisteredIds().contains( id1 ) );
+        assertTrue( hub_.getRegisteredIds().contains( id2 ) );
+        conn1.unregister();
+        assertTrue( ! hub_.getRegisteredIds().contains( id1 ) );
+        conn2.unregister();
+        assertTrue( ! hub_.getRegisteredIds().contains( id2 ) );
     }
 
     /**
@@ -403,6 +435,7 @@ public class HubTester {
         }
         testHub( rmiHub );
         testHub( xmlrpcHub );
+        testHub( rmiHub );
     }
 
     /**
