@@ -142,8 +142,9 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
 
     public List getUnderstoodMessages( URI id ) {
         Agent agent = (Agent) agentMap_.get( id );
-        return agent == null ? null
-                             : Arrays.asList( agent.getSupportedMessages() );
+        return agent == null
+             ? null
+             : new ArrayList( Arrays.asList( agent.getSupportedMessages() ) );
     }
 
     public List getMessageRegisteredIds( URI message ) {
