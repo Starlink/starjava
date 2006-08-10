@@ -29,6 +29,7 @@ public class HubTester {
     private final URI id_;
     private List monitors_;
     private final Object lock_ = new Object();
+    private final boolean abuse_;
 
     private static final String CLIENT_NAME = "test-driver";
     private static final URI CALC_MSG = 
@@ -289,6 +290,9 @@ public class HubTester {
         if ( list == null ) {
             return null;
         }
+        if ( ! abuse_ ) {
+            list = new ArrayList( list );
+        }
         list.removeAll( monitors_ );
         return list;
     }
@@ -303,6 +307,9 @@ public class HubTester {
     private Map removeMonitorsMap( Map map ) {
         if ( map == null ) {
             return null;
+        }
+        if ( ! abuse_ ) {
+            map = new HashMap( map );
         }
         for ( Iterator it = monitors_.iterator(); it.hasNext(); ) {
             map.remove( (URI) it.next() );
