@@ -29,7 +29,7 @@ public class HubTester {
     private final URI id_;
     private List monitors_;
     private final Object lock_ = new Object();
-    private final boolean abuse_;
+    private final boolean abuse_ = false;
 
     private static final String CLIENT_NAME = "test-driver";
     private static final URI CALC_MSG = 
