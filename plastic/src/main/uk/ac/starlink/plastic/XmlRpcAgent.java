@@ -80,19 +80,6 @@ class XmlRpcAgent extends Agent {
         }
     }
 
-    public void requestAsynch( final URI sender, final URI message,
-                               final List args ) {
-        new Thread() {
-            public void run() {
-                try {
-                    request( sender, message, args );
-                }
-                catch ( Throwable e ) {
-                }
-            }
-        }.start();
-    }
-
     /**
      * Turns an object into a version which will be palatable for XML-RPC
      * transport - this basically involves turning collections into Vectors

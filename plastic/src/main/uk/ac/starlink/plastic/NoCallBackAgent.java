@@ -32,8 +32,4 @@ class NoCallBackAgent extends Agent {
     public Object request( URI sender, URI message, List args ) {
         throw new UnsupportedOperationException();
     }
-
-    public void requestAsynch( URI sender, URI message, List args ) {
-        throw new UnsupportedOperationException();
-    }
 }

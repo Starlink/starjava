@@ -34,13 +34,4 @@ class RmiAgent extends Agent {
     public Object request( URI sender, URI message, List args ) {
         return listener_.perform( sender, message, args );
     }
-
-    public void requestAsynch( final URI sender, final URI message,
-                               final List args ) {
-        new Thread( message + ": " + sender + " -> " + getId() ) {
-            public void run() {
-                listener_.perform( sender, message, args );
-            }
-        }.start();
-    }
 }

@@ -99,16 +99,6 @@ abstract class Agent {
     public abstract Object request( URI sender, URI message, List args )
         throws IOException;
 
-    /**
-     * Executes a PLASTIC request asynchronously.
-     *
-     * @param   sender   sender ID
-     * @param   message  message ID
-     * @param   args     argument list
-     */
-    public abstract void requestAsynch( URI sender, URI message, List args )
-        throws IOException;
-
     public String toString() {
         return label_;
     }

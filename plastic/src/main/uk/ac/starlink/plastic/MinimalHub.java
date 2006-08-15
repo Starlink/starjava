@@ -343,26 +343,12 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
      */
     Map requestTo( URI sender, URI message, List args, Agent[] agents ) {
 
-        /* Assemble a list of threads which will perform the synchronous
-         * calls on each agent. */
-        List threadList = new ArrayList();
-        for ( int i = 0; i < agents.length; i++ ) {
-            final Agent agent = agents[ i ];
-            if ( agent.supportsMessage( message ) ) {
-                threadList.add( createRequestThread( agent, sender, message,
-                                                     args ) );
-            }
-        }
-        RequestThread[] threads =
-            (RequestThread[]) threadList.toArray( new RequestThread[ 0 ] );
-
-        /* Start all the threads off. */
-        Map results = new HashMap();
-        for ( int i = 0; i < threads.length; i++ ) {
-            threads[ i ].start();
-        }
+        /* Construct and start worker threads. */
+        RequestThread[] threads = 
+            startRequestThreads( sender, message, args, agents );
 
         /* Wait for all the threads to finish and assemble the result map. */
+        Map results = new HashMap();
         for ( int i = 0; i < threads.length; i++ ) {
             RequestThread thread = threads[ i ];
             Object result;
@@ -392,18 +378,41 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
      * @param  agents  list of agents to which the request will be multiplexed
      */
     void requestAsynchTo( URI sender, URI message, List args, Agent[] agents ) {
+        startRequestThreads( sender, message, args, agents );
+    }
 
-        /* Invoke message asynchronously on all listed agents. */
+    /**
+     * Prepares and starts working an array of threads which perform a
+     * given request to zero or more agents.
+     *
+     * @param  sender  sender ID
+     * @param  message message ID
+     * @param  agents  list of agents to which the request will be multiplexed
+     *                 (if supported)
+     */
+    private RequestThread[] startRequestThreads( URI sender, URI message,
+                                                 List args, Agent[] agents ) {
+
+        /* Assemble a list of threads which will perform the synchronous
+         * calls on each agent. */
+        List threadList = new ArrayList();
         for ( int i = 0; i < agents.length; i++ ) {
-            Agent agent = agents[ i ];
+            final Agent agent = agents[ i ];
             if ( agent.supportsMessage( message ) ) {
-                try {
-                    agent.requestAsynch( sender, message, args );
-                }
-                catch ( IOException e ) {
-                }
+                threadList.add( createRequestThread( agent, sender, message,
+                                                     args ) );
             }
         }
+        RequestThread[] threads = 
+            (RequestThread[]) threadList.toArray( new RequestThread[ 0 ] );
+
+        /* Start each one off. */
+        for ( int i = 0; i < threads.length; i++ ) {
+            threads[ i ].start();
+        }
+
+        /* Return the thread list. */
+        return threads;
     }
 
     /**
