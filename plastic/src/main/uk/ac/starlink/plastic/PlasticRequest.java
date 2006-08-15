@@ -242,13 +242,19 @@ public class PlasticRequest {
                    inArg.charAt( leng - 1 ) == '\'' ) ) {
                 outArg = inArg.substring( 1, leng - 2 );
             }
+            else if ( "true".equals( inArg ) ) {
+                outArg = Boolean.TRUE;
+            }
+            else if ( "false".equals( inArg ) ) {
+                outArg = Boolean.FALSE;
+            }
             else {
                 try {
-                    outArg = Double.valueOf( inArg );
+                    outArg = Integer.valueOf( inArg );
                 }
                 catch ( NumberFormatException e1 ) {
                     try {
-                        outArg = Integer.valueOf( inArg );
+                        outArg = Double.valueOf( inArg );
                     }
                     catch ( NumberFormatException e2 ) {
                         outArg = inArg;
