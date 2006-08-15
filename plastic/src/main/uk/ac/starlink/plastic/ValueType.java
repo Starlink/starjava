@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -102,7 +103,16 @@ public class ValueType {
     /** Void type - the return type for methods with no return value. */
     public static ValueType VOID = new ValueType( "VOID", null ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
-            if ( jValue != null ) {
+
+            /* Because of potential difficulties returning null values via
+             * XML-RPC, allow empty strings or lists. */
+            if ( jValue == null ||
+                 "".equals( jValue ) ||
+                 ( ( jValue instanceof Collection ) &&
+                   ((Collection) jValue).isEmpty() ) ) {
+                // ok
+            }
+            else {
                 throw new ValueTypeException( "Value " + jValue +
                                               " should have been null" );
             }
