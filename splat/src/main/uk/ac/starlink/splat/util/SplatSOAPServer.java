@@ -147,7 +147,7 @@ public class SplatSOAPServer
 
             //  Port may have been switched, so get port value back.
             portNumber = server.getPort();
-            logger.warning("Remote services port '" + portNumber + "' opened");
+            logger.info( "Remote services port '" + portNumber + "' opened" );
 
             //  Write the contact file and obtain the verification cookie.
             cookie = RemoteUtilities
