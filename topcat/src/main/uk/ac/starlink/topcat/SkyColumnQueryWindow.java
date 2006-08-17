@@ -457,12 +457,18 @@ public class SkyColumnQueryWindow extends QueryWindow {
                     outCoords_ = new Object[ 2 ];
                 }
                 else {
-                    double[] inRads = inUnits_.decode( in[ 0 ], in[ 1 ] );
-                    double[] fk5 = inSys_.toFK5( inRads[ 0 ], inRads[ 1 ],
-                                                 epoch_ );
-                    double[] outRads = outSys_.fromFK5( fk5[ 0 ], fk5[ 1 ],
-                                                        epoch_ );
-                    outCoords_ = outUnits_.encode( outRads[ 0 ], outRads[ 1 ] );
+                    try {
+                        double[] inRads = inUnits_.decode( in[ 0 ], in[ 1 ] );
+                        double[] fk5 =
+                            inSys_.toFK5( inRads[ 0 ], inRads[ 1 ], epoch_ );
+                        double[] outRads =
+                            outSys_.fromFK5( fk5[ 0 ], fk5[ 1 ], epoch_ );
+                        outCoords_ =
+                            outUnits_.encode( outRads[ 0 ], outRads[ 1 ] );
+                    }
+                    catch ( RuntimeException e ) {
+                        outCoords_ = new Object[ 2 ];
+                    }
                 }
                 irow_ = irow;
             }
