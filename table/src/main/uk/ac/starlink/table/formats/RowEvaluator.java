@@ -229,7 +229,7 @@ public class RowEvaluator {
                 colinfo = new ColumnInfo( name, Boolean.class, null );
                 decoder = new Decoder() {
                     public Object decode( String value ) {
-                        char v1 = value.charAt( 0 );
+                        char v1 = value.trim().charAt( 0 );
                         return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
                                                           : Boolean.FALSE;
                     }
@@ -239,7 +239,7 @@ public class RowEvaluator {
                 colinfo = new ColumnInfo( name, Short.class, null );
                 decoder = new Decoder() {
                     public Object decode( String value ) {
-                        return new Short( Short.parseShort( value ) );
+                        return new Short( Short.parseShort( value.trim() ) );
                     }
                 };
             }
@@ -247,7 +247,7 @@ public class RowEvaluator {
                 colinfo = new ColumnInfo( name, Integer.class, null );
                 decoder = new Decoder() {
                     public Object decode( String value ) {
-                        return new Integer( Integer.parseInt( value ) );
+                        return new Integer( Integer.parseInt( value.trim() ) );
                     }
                 };
             }
@@ -255,7 +255,7 @@ public class RowEvaluator {
                 colinfo = new ColumnInfo( name, Long.class, null );
                 decoder = new Decoder() {
                     public Object decode( String value ) {
-                        return new Long( Long.parseLong( value ) );
+                        return new Long( Long.parseLong( value.trim() ) );
                     }
                 };
             }
@@ -263,7 +263,7 @@ public class RowEvaluator {
                 colinfo = new ColumnInfo( name, Float.class, null );
                 decoder = new Decoder() {
                     public Object decode( String value ) {
-                        return new Float( Float.parseFloat( value ) );
+                        return new Float( Float.parseFloat( value.trim() ) );
                     }
                 };
             }
@@ -271,7 +271,7 @@ public class RowEvaluator {
                 colinfo = new ColumnInfo( name, Double.class, null );
                 decoder = new Decoder() {
                     public Object decode( String value ) {
-                        return new Double( Double.parseDouble( value ) );
+                        return new Double( Double.parseDouble( value.trim() ) );
                     }
                 };
             }
