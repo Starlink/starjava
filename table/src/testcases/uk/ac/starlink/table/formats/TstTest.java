@@ -21,7 +21,7 @@ public class TstTest extends TestCase {
     }
 
     public void testSimple() throws Exception {
-        StarTable simple = readSimple();
+        StarTable simple = readTst( "simple.TAB" );
         assertEquals( 4, simple.getRowCount() );
         assertEquals( 6, simple.getColumnCount() );
         assertEquals( "meta.id", simple.getColumnInfo( 0 ).getUCD() );
@@ -49,8 +49,16 @@ public class TstTest extends TestCase {
                    .indexOf( "Pumpkin" ) > 0 );
     }
 
+    public void testSex() throws Exception {
+        StarTable sex = readTst( "sextractor.TAB" );
+        assertEquals( 20, sex.getRowCount() );
+        assertEquals( 16, sex.getColumnCount() );
+        assertEquals( "SExCat",
+                      sex.getParameterByName( "short_name" ).getValue() );
+    }
+
     public void testOut() throws Exception {
-        StarTable simple = readSimple();
+        StarTable simple = readTst( "simple.TAB" );
         StarTable permut = 
             new ColumnPermutedStarTable( simple, new int[] { 5, 4, 3, 2, 1 } );
         permut.setParameter( new DescribedValue( DUMMY_PARAM, "Joselin" ) );
@@ -64,11 +72,11 @@ public class TstTest extends TestCase {
         assertTrue( ttxt.indexOf( "\ndummy: Joselin\n" ) > 0 ); 
     }
 
-    private static TstStarTable readSimple() throws Exception {
+    private static TstStarTable readTst( String name ) throws Exception {
         return (TstStarTable)
                new TstTableBuilder()
               .makeStarTable( new URLDataSource( TstTest.class
-                                                .getResource( "simple.TAB" ) ),
+                                                .getResource( name ) ),
                               false, StoragePolicy.getDefaultPolicy() );
     }
 
