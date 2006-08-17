@@ -280,7 +280,7 @@ public class ColumnSelectorModel {
                 if ( cdata != null ) {
                     ColumnInfo info = cdata.getColumnInfo();
                     if ( info.getUCD() != null && 
-                         info.getUCD().indexOf( ucd ) >= 0 ) {
+                         matchUcds( info.getUCD(), ucd ) ) {
                         selected = cdata;
                     }
                 }
@@ -304,6 +304,23 @@ public class ColumnSelectorModel {
             model.setSelectedItem( selected );
         }
         return model;
+    }
+
+    /**
+     * Determines whether two UCDs appear to match.
+     *
+     * @param  u1  first UCD
+     * @param  u2  second UCD
+     */
+    private static boolean matchUcds( String u1, String u2 ) {
+
+        /* Low-rent UCD1 -> UCD1+ conversion. */
+        u1 = u1.replace( '_', '.' ).toLowerCase();
+        u2 = u2.replace( '_', '.' ).toLowerCase();
+        if ( u1.indexOf( u2 ) >= 0 ) {
+            return true;
+        }
+        return false;
     }
 
     /**
