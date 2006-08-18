@@ -85,7 +85,12 @@ public class GaiaMd5 {
         StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < bsum.length; i++ ) {
             int ival = ( bsum[ i ] & 0xff );
-            sbuf.append( Integer.toHexString( ival ) );
+            String hexdigs = Integer.toHexString( ival );
+            if ( hexdigs.length() == 1 ) {
+                hexdigs = "0" + hexdigs;
+            }
+            assert hexdigs.length() == 2;
+            sbuf.append( hexdigs );
         }
         assert sbuf.length() == 32;
         return sbuf.toString();
