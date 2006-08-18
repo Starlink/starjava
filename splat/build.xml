@@ -783,6 +783,13 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <fileset dir="${src.docs}"/>
     </copy>
 
+    <!-- The SPLAT SUN also needs to go at the ${dist.docs} level to be picked
+     !   up by findme/showme -->
+    <mkdir dir="${dist.docs}/sun243.htx"/>
+    <copy todir="${dist.docs}/sun243.htx">
+      <fileset dir="${src.docs}/sun243.htx"/>
+    </copy>
+
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
