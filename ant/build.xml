@@ -207,7 +207,9 @@
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}">
+             storepass="${webstart.storepass}"
+             verbose="true"
+             maxmemory="128m">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
       <fileset dir="${star.jar.dir}" includes="ant*.jar"/>
       <fileset dir="${star.jar.dir}" includes="xercesImpl.jar"/>
