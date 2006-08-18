@@ -422,7 +422,7 @@ public class DensityWindow extends GraphicsWindow {
          * the GUI. */
         new Thread( "FITS broadcast" ) {
             public void run() {
-                List argList = Collections.singletonList( tmpUrl );
+                List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
                 URI msgId = MessageId.FITS_LOADIMAGE;
                 Map responses = recipients == null
                     ? hub.request( plasticId, msgId, argList )
