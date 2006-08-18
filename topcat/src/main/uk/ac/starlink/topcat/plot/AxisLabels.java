@@ -97,11 +97,7 @@ public class AxisLabels {
         for ( int i = 0; i < nTick; i++ ) {
             double value = loTick + i * gap;
             ticks[ i ] = value;
-            // labels[ i ] = pr.formatValue( value, gap );
-            String label = Float.toString( (float) value );
-            label = label.replaceFirst( "\\.0$", "" );
-            label = label.replaceFirst( "\\.0E", "E" );
-            labels[ i ] = label;
+            labels[ i ] = getLabel( value );
         }
         return new AxisLabels( ticks, labels );
     }
@@ -147,9 +143,7 @@ public class AxisLabels {
         for ( int i = 0; i < nTick; i++ ) {
             double value = loTick * Math.pow( gapFactor, i );
             ticks[ i ] = value;
-            String label = Float.toString( (float) value );
-            label = label.replaceFirst( "\\.0$", "" );
-            label = label.replaceFirst( "\\.0E", "E" );
+            String label = getLabel( value );
             if ( label.equals( "1000" ) ) {
                 label = "1E3";
             }
@@ -166,6 +160,22 @@ public class AxisLabels {
             labels[ i ] = label;
         }
         return new AxisLabels( ticks, labels );
+    }
+
+    /**
+     * Returns a somewhat tidied stringification of a numeric value.
+     *
+     * @param  value
+     * @param  string representing <code>value</code>
+     */
+    private static String getLabel( double value ) {
+        float fval = (float) value;
+        String label = Float.isInfinite( fval ) || fval == 0f
+                     ? Double.toString( value )
+                     : Float.toString( fval );
+        label = label.replaceFirst( "\\.0$", "" );
+        label = label.replaceFirst( "\\.0E", "E" );
+        return label;
     }
 
     public static void main( String[] args ) {
