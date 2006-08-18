@@ -219,7 +219,8 @@ public class DensityWindow extends GraphicsWindow {
         PlasticTransmitter imageTransmitter =
                 new PlasticTransmitter( ControlWindow.getInstance()
                                                      .getPlasticServer(),
-                                        MessageId.FITS_LOADURL, "FITS image" ) {
+                                        MessageId.FITS_LOADIMAGE,
+                                        "FITS image" ) {
             protected void transmit( ApplicationItem app ) throws IOException {
                 transmitFits( app == null ? null : new URI[] { app.getId() } );
             }
@@ -422,7 +423,7 @@ public class DensityWindow extends GraphicsWindow {
         new Thread( "FITS broadcast" ) {
             public void run() {
                 List argList = Collections.singletonList( tmpUrl );
-                URI msgId = MessageId.FITS_LOADURL;
+                URI msgId = MessageId.FITS_LOADIMAGE;
                 Map responses = recipients == null
                     ? hub.request( plasticId, msgId, argList )
                     : hub.requestToSubset( plasticId, msgId, argList,
