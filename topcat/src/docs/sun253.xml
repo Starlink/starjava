@@ -9556,6 +9556,8 @@ introduced since the last version:
     <ul>
     <li>Fixed bug in coordinate conversion that caused bad behaviour in the
         presence of malformed input coords.</li>
+    <li>Fixed bug with plotting very large or very small axis labels in
+        3-d plots.</li>
     </ul>
     </p></dd>
 
