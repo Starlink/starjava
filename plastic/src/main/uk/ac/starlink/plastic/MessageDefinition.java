@@ -34,7 +34,9 @@ public class MessageDefinition {
     public static final MessageDefinition VOT_LOADURL;
     public static final MessageDefinition VOT_SHOWOBJECTS;
     public static final MessageDefinition VOT_HIGHLIGHTOBJECT;
-    public static final MessageDefinition FITS_LOADURL;
+    public static final MessageDefinition FITS_LOADLINE;
+    public static final MessageDefinition FITS_LOADIMAGE;
+    public static final MessageDefinition FITS_LOADCUBE;
     public static final MessageDefinition SKY_POINT;
 
     /** Known message definition list. */
@@ -99,10 +101,25 @@ public class MessageDefinition {
                                                      ValueType.INT },
                                    ValueType.BOOLEAN ),
 
-        FITS_LOADURL =
-            new MessageDefinition( MessageId.FITS_LOADURL.toString(),
-                                   new ValueType[] { ValueType.STRING_URL },
-                                   ValueType.BOOLEAN ),
+        FITS_LOADLINE =
+            new MessageDefinition( MessageId.FITS_LOADLINE.toString(),
+                                   new ValueType[] { ValueType.STRING_URL,
+                                                     ValueType.STRING,
+                                                     ValueType.INT },
+                                   ValueType.BOOLEAN, 1 ),
+        FITS_LOADIMAGE =
+            new MessageDefinition( MessageId.FITS_LOADIMAGE.toString(),
+                                   new ValueType[] { ValueType.STRING_URL,
+                                                     ValueType.STRING,
+                                                     ValueType.INT },
+                                   ValueType.BOOLEAN, 1 ),
+        FITS_LOADCUBE =
+            new MessageDefinition( MessageId.FITS_LOADCUBE.toString(),
+                                   new ValueType[] { ValueType.STRING_URL,
+                                                     ValueType.STRING,
+                                                     ValueType.INT },
+                                   ValueType.BOOLEAN, 1 ),
+
         SKY_POINT =
             new MessageDefinition( MessageId.SKY_POINT.toString(),
                                    new ValueType[] { ValueType.DOUBLE,

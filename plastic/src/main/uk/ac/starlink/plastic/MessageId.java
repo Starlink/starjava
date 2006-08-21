@@ -32,7 +32,9 @@ public class MessageId {
     public static final URI VOT_SHOWOBJECTS;
     public static final URI VOT_HIGHLIGHTOBJECT;
 
-    public static final URI FITS_LOADURL;
+    public static final URI FITS_LOADLINE;
+    public static final URI FITS_LOADIMAGE;
+    public static final URI FITS_LOADCUBE;
     public static final URI SKY_POINT;
 
     /** Array of all messages known by this class.  */
@@ -58,7 +60,9 @@ public class MessageId {
         VOT_HIGHLIGHTOBJECT =
             createURI( "ivo://votech.org/votable/highlightObject" ),
 
-        FITS_LOADURL = createURI( "ivo://votech.org/fits/image/loadFromURL" ),
+        FITS_LOADLINE = createURI( "ivo://votech.org/fits/line/loadFromURL" ),
+        FITS_LOADIMAGE = createURI( "ivo://votech.org/fits/image/loadFromURL" ),
+        FITS_LOADCUBE = createURI( "ivo://votech.org/fits/cube/loadFromURL" ),
         SKY_POINT = createURI( "ivo://votech.org/sky/pointAtCoords" ),
     };
 
