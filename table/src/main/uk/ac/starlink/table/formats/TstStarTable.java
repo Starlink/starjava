@@ -37,7 +37,7 @@ class TstStarTable extends StreamStarTable {
     private static final Pattern BLANK_REGEX =
         Pattern.compile( "^\\s*$" );
     private static final Pattern RULER_REGEX =
-        Pattern.compile( "^(-+\\t)+-+ *$" );
+        Pattern.compile( "^[\\t\\-]*-[\\t\\-]*$" );
     private static final Pattern PARAM_REGEX =
         Pattern.compile( "^(\\S+):\\s*(.*)" );
     private static final Pattern EOD_REGEX =
@@ -75,8 +75,13 @@ class TstStarTable extends StreamStarTable {
         String ruler = (String) lineList.remove( lineList.size() - 1 );
         String colsLine = (String) lineList.remove( lineList.size() - 1 );
         assert RULER_REGEX.matcher( ruler ).matches();
-        ncol_ = tabSplit( ruler ).size();
         List colNames = tabSplit( colsLine );
+
+        /* SExtractor likes to add a trailing TAB to this line. */
+        if ( ((String) colNames.get( colNames.size() - 1 )).length() == 0 ) {
+            colNames.remove( colNames.size() - 1 );
+        }
+        ncol_ = colNames.size();
         if ( colNames.size() != ncol_ ) {
             throw new TableFormatException( "Ruler line and column name line "
                                           + "have different numbers of tabs" );
@@ -231,10 +236,21 @@ class TstStarTable extends StreamStarTable {
             }
         }
 
+        /* Check for End Of Data marker. */
         if ( EOD_REGEX.matcher( line ).matches() ) {
             return null;
         }
+
+        /* Split the line into fields. */
         List words = tabSplit( line );
+
+        /* SExtractor likes to put a trailing tab at the end of each line. */
+        if ( words.size() == ncol_ + 1 &&
+             ((String) words.get( ncol_ )).length() == 0 ) {
+            words.remove( ncol_ );
+        }
+
+        /* Check the number of fields and return if OK. */
         if ( words.size() != ncol_ ) {
             throw new TableFormatException( "Wrong number of fields ("
                                           + words.size() + " != " + ncol_

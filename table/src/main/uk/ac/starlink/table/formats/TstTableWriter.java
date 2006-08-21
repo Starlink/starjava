@@ -205,6 +205,7 @@ public class TstTableWriter extends StreamStarTableWriter {
                 }
                 printRow( out, srow );
             }
+            printLine( out, "[EOD]" );
         }
         finally {
             rseq.close();
