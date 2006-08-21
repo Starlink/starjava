@@ -259,7 +259,7 @@ public class TopcatUtils {
                 "SPLAT: " + ( canSplat() ? "available" : "absent" ),
                 "SoG: " + ( canSog() ? "available" : "absent" ),
                 "",
-                "Authors: Mark Taylor (Starlink)",
+                "Authors: Mark Taylor",
                 "WWW: http://www.starlink.ac.uk/topcat/",
             };
         }
