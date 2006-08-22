@@ -60,6 +60,14 @@ public class PlasticRequest {
      * <dt>-regName name</dt>
      * <dd>Specify the generic application name by which the reqestor 
      *     registers with the hub.</dd>
+     * <dt>-clientId id</dt>
+     * <dd>Specifies the ID of the client which claims to be sending the
+     *     request.  In this case the request will not register with the
+     *     hub prior to making the request.  You may not be making a 
+     *     legal, decent, honest and truthful request if you use
+     *     this flag.</dd>
+     * <dt>--</dt>
+     * <dd>Anything after this is not a flag, even if it looks like one.</dd>
      * </dl>
      */
     public static void main( String[] args ) throws IOException {
@@ -75,6 +83,9 @@ public class PlasticRequest {
                      + " [-targetId id ...]"
                      + " [-targetHub]"
                      + "\n           "
+                     + " [-clientId id]"
+                     + " [--]"
+                     + "\n           "
                      + " messsageId"
                      + " [args ...]"
                      + "\n";
@@ -84,6 +95,7 @@ public class PlasticRequest {
         Set targetNameSet = new HashSet();
         List targetIdList = new ArrayList();
         boolean targetHub = false;
+        URI spoofId = null;
 
         /* Parse flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -132,10 +144,29 @@ public class PlasticRequest {
                          .initCause( e );
                 }
             }
+            else if ( arg.equals( "-clientId" ) && it.hasNext() ) {
+                it.remove();
+                String uri = (String) it.next();
+                it.remove();
+                try {
+                    spoofId = new URI( uri );
+                }
+                catch ( URISyntaxException e ) {
+                    throw (IllegalArgumentException)
+                          new IllegalArgumentException( "Badly formed URI: "
+                                                      + uri )
+                         .initCause( e );
+                }
+            }
             else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
                 return;
+            }
+            else if ( arg.startsWith( "-" ) ) {
+                it.remove();
+                System.err.println( usage );
+                System.exit( 1 );
             }
         }
         if ( argList.isEmpty() ) {
@@ -164,7 +195,9 @@ public class PlasticRequest {
 
         /* Register with the hub. */
         PlasticHubListener hub = PlasticUtils.getLocalHub();
-        URI id = hub.registerNoCallBack( appName );
+        URI id = spoofId == null
+               ? hub.registerNoCallBack( appName )
+               : spoofId;
 
         /* Identify the list of applications to which we will send. */
         List targetList;
@@ -218,7 +251,9 @@ public class PlasticRequest {
 
         /* Unregister. */
         finally {
-            hub.unregister( id );
+            if ( spoofId == null ) {
+                hub.unregister( id );
+            }
         }
     }
 
