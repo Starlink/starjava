@@ -180,6 +180,9 @@ public class PlasticHub extends MinimalHub {
             }
         }
         if ( warnings_ ) {
+            if ( ! isRegistered( sender ) ) {
+                warn( "    request from unknown listener: " + sender );
+            }
             String[] warnlines =
                 validator_.validateRequest( sender, message, args );
             for ( int i = 0; i < warnlines.length; i++ ) {
@@ -328,6 +331,16 @@ public class PlasticHub extends MinimalHub {
     }
 
     /**
+     * Determines whether a client ID represents a currently registered
+     * application.
+     *
+     * @param  id  client ID
+     */
+    private boolean isRegistered( URI id ) {
+        return getAgentMap().containsKey( id );
+    }
+
+    /**
      * Creates and starts a PlasticHub running, writing its config information
      * to the default file and optionally logging output to a print stream.
      * The config file will be deleted automatically if the hub stops running.
@@ -436,7 +449,8 @@ public class PlasticHub extends MinimalHub {
                       new File( System.getProperty( "user.home" ),
                       PlasticHubListener.PLASTIC_CONFIG_FILENAME ) );
         if ( gui ) {
-            JFrame window = new ListWindow( hub.getApplicationListModel() );
+            JFrame window = 
+                new PlasticListWindow( hub.getApplicationListModel() );
             window.setTitle( "PlasticHub" );
             window.pack();
             window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
