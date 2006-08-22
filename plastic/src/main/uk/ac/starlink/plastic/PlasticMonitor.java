@@ -323,7 +323,7 @@ public class PlasticMonitor implements PlasticApplication {
             ApplicationListModel appsList = new ApplicationListModel( regApps );
             mon.setListModel( appsList );
             mon.setHub( hub );
-            JFrame window = new ListWindow( appsList );
+            JFrame window = new PlasticListWindow( appsList );
             window.setTitle( "PlasticMonitor" );
             window.pack();
             window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );

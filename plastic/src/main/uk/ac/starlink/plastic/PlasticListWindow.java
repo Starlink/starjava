@@ -11,19 +11,23 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 
 /**
- * Minimal window for displaying a JList of PLASTIC applications.
+ * Window for displaying a JList of PLASTIC applications.
+ *
+ * <p>This is currently pretty primitive (just shows a short name for each
+ * registered application), but functionality may be added in the future.
  *
  * @author  Mark Taylor
  * @since   10 Apr 2006
  */
-class ListWindow extends JFrame {
+public class PlasticListWindow extends JFrame {
 
     /**
      * Constructor.
      *
-     * @param   model  model to display
+     * @param   model  model containing {@link ApplicationItem}s representing
+     *          registered applications
      */
-    public ListWindow( ListModel model ) {
+    public PlasticListWindow( ListModel model ) {
         JList list = new JList( model );
         JScrollPane scroller = new JScrollPane( list );
         scroller.setPreferredSize( new Dimension( 200, 150 ) );
