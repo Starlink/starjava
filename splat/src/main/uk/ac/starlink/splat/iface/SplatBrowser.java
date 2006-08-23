@@ -58,6 +58,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.gui.ScientificFormat;
+import uk.ac.starlink.plastic.NoHubException;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -70,8 +71,10 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SEDSplatException;
+import uk.ac.starlink.splat.util.SpecTransmitter;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
+import uk.ac.starlink.splat.util.SplatPlastic;
 import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
@@ -104,6 +107,7 @@ import uk.ac.starlink.splat.vo.SSAServerList;
  * and {@link DivaPlot}).
  *
  * @author Peter W. Draper
+ * @author Mark Taylor
  * @version $Id$
  *
  * @see GlobalSpecPlotList
@@ -328,6 +332,11 @@ public class SplatBrowser
     protected Integer selectAxis = null;
 
     /**
+     * Controls communication with the PLASTIC hub.
+     */
+    protected SplatPlastic plasticServer = null;
+
+    /**
      *  Create a browser with no existing spectra.
      */
     public SplatBrowser()
@@ -398,6 +407,7 @@ public class SplatBrowser
 
         setEmbedded( embedded );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
+        this.plasticServer = new SplatPlastic( this );
         try {
             initComponents();
         }
@@ -586,6 +596,9 @@ public class SplatBrowser
 
         //  Operations menu.
         createOperationsMenu();
+
+        //  Interop menu.
+        createInteropMenu();
 
         //  Help menu.
         createHelpMenu();
@@ -914,6 +927,50 @@ public class SplatBrowser
     }
 
     /**
+     * Create the Interop menu and populate it with appropriate actions.
+     */
+    private void createInteropMenu()
+    {
+        JMenu interopMenu = new JMenu( "Interop" );
+        menuBar.add( interopMenu );
+  
+        // Add server registration options.
+        interopMenu.add( plasticServer.getRegisterAction( true ) );
+        interopMenu.add( plasticServer.getRegisterAction( false ) );
+  
+        // Add hub start options.
+        interopMenu.add( plasticServer.getHubStartAction( true ) );
+        interopMenu.add( plasticServer.getHubStartAction( false ) );
+
+        // Add registered application window option.
+        interopMenu.add( plasticServer.getHubWatchAction() );
+
+        // Add spectrum type acceptance options.
+        JMenuItem acceptFITS = 
+            new JCheckBoxMenuItem( "Accept spectra as 1d FITS", true );
+        JMenuItem acceptVOTable =
+            new JCheckBoxMenuItem( "Accept spectra as VOTable", true );
+        plasticServer.setAcceptFITSModel( acceptFITS.getModel() );
+        plasticServer.setAcceptVOTableModel( acceptVOTable.getModel() );
+        interopMenu.addSeparator();
+        interopMenu.add( acceptFITS );
+        interopMenu.add( acceptVOTable );
+  
+        // Set up an object which can transmit spectra over PLASTIC.
+        SpecTransmitter fitsTransmitter =
+            SpecTransmitter.createFitsTransmitter( plasticServer, specList );
+        SpecTransmitter votTransmitter =
+            SpecTransmitter.createVOTableTransmitter( plasticServer, specList );
+
+        // Add spectrum transmit menus.
+        interopMenu.addSeparator();
+        interopMenu.add( fitsTransmitter.getBroadcastAction() );
+        interopMenu.add( fitsTransmitter.createSendMenu() );
+        interopMenu.add( votTransmitter.getBroadcastAction() );
+        interopMenu.add( votTransmitter.createSendMenu() );
+    } 
+
+    /**
      * Set the vertical or horizontal split.
      */
     protected void setSplitOrientation( boolean init )
@@ -1043,6 +1100,19 @@ public class SplatBrowser
     protected void initRemoteServices()
     {
         if ( ! embedded ) {
+
+            //  PLASTIC registration.
+            try {
+                plasticServer.register();
+                logger.info( "Registered with PLASTIC hub" );
+            }
+            catch ( NoHubException e ) {
+                logger.config( "No PLASTIC hub running" );
+            }
+            catch ( Exception e ) {
+                logger.warning( "PLASTIC registration failed: " + e );
+            }
+
             try {
                 //  Socket-based services.
                 RemoteServer remoteServer = new RemoteServer( this );
