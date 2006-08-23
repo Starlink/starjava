@@ -40,11 +40,11 @@ import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.MessageId;
+import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
-import uk.ac.starlink.topcat.PlasticTransmitter;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -221,8 +221,11 @@ public class DensityWindow extends GraphicsWindow {
                                                      .getPlasticServer(),
                                         MessageId.FITS_LOADIMAGE,
                                         "FITS image" ) {
-            protected void transmit( ApplicationItem app ) throws IOException {
-                transmitFits( app == null ? null : new URI[] { app.getId() } );
+            protected void transmit( PlasticHubListener hub, URI clientId,
+                                     ApplicationItem app )
+                    throws IOException {
+                transmitFits( hub, clientId,
+                              app == null ? null : new URI[] { app.getId() } );
             }
         };
 
@@ -382,17 +385,14 @@ public class DensityWindow extends GraphicsWindow {
      * Transmits the currently plotted image as a FITS file to PLASTIC
      * listeners.
      *
+     * @param  hub  hub object
+     * @param  plasticId  registration ID for this applicaition
      * @param  recipients  list of targets PLASTIC ids for this message;
      *         if null broadcast to all
      */
-    private void transmitFits( final URI[] recipients ) throws IOException {
-
-        /* Get the hub and ID. */
-        TopcatPlasticListener pserv =
-            ControlWindow.getInstance().getPlasticServer();
-        pserv.register();
-        final PlasticHubListener hub = pserv.getHub();
-        final URI plasticId = pserv.getRegisteredId();
+    private void transmitFits( final PlasticHubListener hub,
+                               final URI plasticId,
+                               final URI[] recipients ) throws IOException {
 
         /* Write the data as a FITS image to a temporary file preparatory
          * to broadcast. */

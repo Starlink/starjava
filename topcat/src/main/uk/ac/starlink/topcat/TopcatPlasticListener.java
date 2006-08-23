@@ -28,6 +28,7 @@ import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.plastic.MessageId;
+import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
@@ -166,13 +167,15 @@ public class TopcatPlasticListener extends HubManager {
     public PlasticTransmitter createTableTransmitter( final 
                                                       ControlWindow control ) {
         return new PlasticTransmitter( this, MessageId.VOT_LOADURL, "table" ) {
-            protected void transmit( ApplicationItem app ) throws IOException {
+            protected void transmit( PlasticHubListener hub, URI clientId,
+                                     ApplicationItem app )
+                    throws IOException {
                 TopcatModel tcModel = control.getCurrentModel();
                 if ( tcModel != null ) {
                     URI[] recipients = app == null
                                      ? null
                                      : new URI[] { app.getId() };
-                    transmitTable( tcModel, recipients );
+                    transmitTable( tcModel, hub, clientId, recipients );
                 }
             }
         };
@@ -182,15 +185,14 @@ public class TopcatPlasticListener extends HubManager {
      * Sends a table to a specific list of PLASTIC listeners.
      *
      * @param  tcModel   the table model to broadcast
+     * @param  hub      hub object
+     * @param  plasticId  registration ID for this application
      * @param  recipients  listeners to receive it; null means do a broadcast
      */
-    private void transmitTable( TopcatModel tcModel, final URI[] recipients )
+    private void transmitTable( TopcatModel tcModel,
+                                final PlasticHubListener hub,
+                                final URI plasticId, final URI[] recipients )
             throws IOException {
-
-        /* Get the hub and ID. */
-        register();
-        final PlasticHubListener hub = getHub();
-        final URI plasticId = getRegisteredId();
 
         /* Write the data as a VOTable to a temporary file preparatory to
          * broadcast. */
@@ -246,13 +248,15 @@ public class TopcatPlasticListener extends HubManager {
                                     final SubsetWindow subSelector ) {
         return new PlasticTransmitter( this, MessageId.VOT_SHOWOBJECTS,
                                        "subset" ) {
-            protected void transmit( ApplicationItem app ) throws IOException {
+            protected void transmit( PlasticHubListener hub, URI clientId,
+                                     ApplicationItem app )
+                    throws IOException {
                 RowSubset rset = subSelector.getSelectedSubset();
                 if ( rset != null ) {
                     URI[] recipients = app == null
                                      ? null
                                      : new URI[] { app.getId() };
-                    transmitSubset( tcModel, rset, recipients );
+                    transmitSubset( tcModel, rset, hub, clientId, recipients );
                 }
             }
         };
@@ -264,16 +268,14 @@ public class TopcatPlasticListener extends HubManager {
      *
      * @param   tcModel  topcat model
      * @param   rset   row subset within tcModel
+     * @param   hub    hub object
+     * @param   plasticId  registration ID for this application
      * @param  recipients  listeners to receive it; null means do a broadcast
      */
     private void transmitSubset( TopcatModel tcModel, RowSubset rset, 
+                                 PlasticHubListener hub, URI plasticId,
                                  final URI[] recipients )
             throws IOException {
-
-        /* Get the hub and ID. */
-        register();
-        PlasticHubListener hub = getHub();
-        URI plasticId = getRegisteredId();
 
         /* See if the table we're broadcasting the set for is any of the
          * tables we've previously broadcast.  If so, send the rows using
