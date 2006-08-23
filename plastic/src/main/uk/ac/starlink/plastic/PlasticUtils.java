@@ -1,5 +1,7 @@
 package uk.ac.starlink.plastic;
 
+import java.awt.Component;
+import java.awt.Graphics;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +24,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import net.ladypleaser.rmilite.Client;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClient;
@@ -54,6 +58,9 @@ public class PlasticUtils {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.plastic" );
+
+    private static Icon sendIcon_;
+    private static Icon broadcastIcon_;
 
     /**
      * True if spurious java.util.NoSuchElementExceptions should be flagged.
@@ -380,14 +387,16 @@ public class PlasticUtils {
     /**
      * Attempts to start a hub running in an external process.
      * There's no guarantee that this will be successful.
+     *
+     * @param  gui  true iff a window representing the hub is to be posted
      */
-    public static void startExternalHub() throws IOException {
+    public static void startExternalHub( boolean gui ) throws IOException {
         String[] args = new String[] {
             "java",
             "-classpath",
             System.getProperty( "java.class.path" ),
             PlasticHub.class.getName(),
-            "-verbose",
+            ( gui ? "-gui" : "-verbose" ),
         };
         Runtime.getRuntime().exec( args );
     }
@@ -447,6 +456,55 @@ public class PlasticUtils {
         // return new XmlRpcClientLite( url );
         return new XmlRpcClient( url );
         // return new XmlRpcClient( url, new CustomTransportFactory( url ) );
+    }
+
+    /**
+     * Returns an icon which conveys the idea of point-to-point transmission.
+     *
+     * @return  send icon
+     */
+    public static Icon getSendIcon() {
+        if ( sendIcon_ == null ) {
+            sendIcon_ = createIcon( "send.gif" );
+        }
+        return sendIcon_;
+    }
+
+    /**
+     * Returns an icon which conveys the idea of one-to-many transmission.
+     *
+     * @return  broadcast icon
+     */
+    public static Icon getBroadcastIcon() {
+        if ( broadcastIcon_ == null ) {
+            broadcastIcon_ = createIcon( "broadcast.gif" );
+        }
+        return broadcastIcon_;
+    }
+
+    /**
+     * Constructs and returns an icon from the name of an image representing
+     * a resource in this package.
+     *
+     * @param   imageName  name of image file in the same place as this class
+     * @return  icon
+     */
+    private static Icon createIcon( String imageName ) {
+        try {
+            return new ImageIcon( PlasticUtils.class.getResource( imageName ) );
+        }
+        catch ( Exception e ) {
+            return new Icon() {
+                public int getIconHeight() {
+                    return 24;
+                }
+                public int getIconWidth() {
+                    return 24;
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                }
+            };
+        }
     }
 
     /**
