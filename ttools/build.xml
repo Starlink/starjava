@@ -555,7 +555,8 @@
          <j2se version="1.4+"/>
 
          <!-- All jar files of this application -->
-         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
+                  excludes="**/stilts.jar **/stilts-app.jar"/>
 
          <!-- Components that this component depends on (non applications
           !   named in the application jar file class-path). -->
