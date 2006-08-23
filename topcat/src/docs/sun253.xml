@@ -3436,7 +3436,7 @@ report on the console), and there are some things you can do about this:
     to convert it to FITS format once for subsequent use.
     You can do this either by loading it into TOPCAT once and saving it
     as FITS, or using the separate command-line package 
-    <webref url="http://www.starlink.ac.uk/stilts/sun252/tcopy.html"
+    <webref url="http://www.starlink.ac.uk/stilts/sun256/tcopy.html"
             >STILTS</webref>.
     Note that the "fits-plus" variant which TOPCAT uses by default retains
     all the metadata that would be stored in a corresponding VOTable,
