@@ -144,6 +144,7 @@ public abstract class PlasticTransmitter {
         menu.setToolTipText( "Transmit " + sendType_ + " to a single " +
                              "application using PLASTIC" );
         menuList_.add( menu );
+        updateEnabledness();
         return menu;
     }
 
