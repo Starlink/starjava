@@ -24,6 +24,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.plastic.ApplicationItem;
+import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
