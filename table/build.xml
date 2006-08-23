@@ -456,7 +456,7 @@
        </security>
        <resources>
          <j2se version="1.4+"/>
-         <jar href="${name}/${name}.jar"/>
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
          <extension name="UTIL" href="util.jnlp"/>
        </resources>
        <component_desc/>
