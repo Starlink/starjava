@@ -565,6 +565,11 @@
          <extension name="FITS" href="fits.jnlp"/>
          <extension name="MIRAGE" href="mirage.jnlp"/>
          <extension name="VOTABLE" href="votable.jnlp"/>
+         <extension name="TASK" href="task.jnlp"/>
+         <extension name="VO" href="vo.jnlp"/>
+         <extension name="PAL" href="pal.jnlp"/>
+         <extension name="AXIS" href="axis.jnlp"/>
+         <extension name="SOAPSERVER" href="soapserver.jnlp"/>
          <extension name="PLASTIC" href="plastic.jnlp"/>
        </resources>
 
