@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.ListModel;
@@ -62,6 +63,7 @@ public abstract class HubManager implements PlasticListener {
     private URI plasticId_;
     private PlasticHubListener hub_;
     private ApplicationListModel appListModel_;
+    private JFrame hubWindow_;
 
     private static final URI[] INTERNAL_SUPPORTED_MESSAGES = new URI[] {
         MessageId.TEST_ECHO,
@@ -305,7 +307,7 @@ public abstract class HubManager implements PlasticListener {
                         PlasticHub.startHub( null, null );
                     }
                     else {
-                        PlasticUtils.startExternalHub();
+                        PlasticUtils.startExternalHub( true );
                     }
                 }
                 catch ( Throwable e ) {
@@ -347,6 +349,31 @@ public abstract class HubManager implements PlasticListener {
             hubAct.setEnabled( ! PlasticUtils.isHubRunning() );
         }
         return hubAct;
+    }
+
+    /**
+     * Returns an action that can be used to post a window showing the
+     * state of the hub with which this object has a connection.
+     *
+     * @return   hub watcher window action
+     */
+    public Action getHubWatchAction() {
+        final Action watchAct = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( hubWindow_ == null ) {
+                    hubWindow_ = 
+                        new PlasticListWindow( getApplicationListModel() );
+                    hubWindow_.setTitle( "PLASTIC apps" );
+                    hubWindow_.pack();
+                }
+                hubWindow_.setVisible( true );
+            }
+        };
+        watchAct.putValue( Action.NAME, "Show Registered Applications" );
+        watchAct.putValue( Action.SHORT_DESCRIPTION,
+                           "Display applications " +
+                           "registered with the PLASTIC hub" );
+        return watchAct;
     }
 
     /**
