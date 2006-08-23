@@ -76,8 +76,6 @@ public abstract class PlasticTransmitter {
         /* Construct broadcast action. */
         broadcastAct_ = new TransmitAction( null );
         broadcastAct_.putValue( Action.NAME, "Broadcast " + sendType_ );
-        broadcastAct_.putValue( Action.SMALL_ICON,
-                                PlasticUtils.getBroadcastIcon() );
         broadcastAct_.putValue( Action.SHORT_DESCRIPTION,
                                 "Transmit " + sendType + " to all applications "
                               + "listening with the PLASTIC protocol" );
@@ -145,7 +143,6 @@ public abstract class PlasticTransmitter {
         }
         menu.setToolTipText( "Transmit " + sendType_ + " to a single " +
                              "application using PLASTIC" );
-        menu.setIcon( PlasticUtils.getSendIcon() );
         menuList_.add( menu );
         return menu;
     }
