@@ -49,6 +49,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatPlasticListener;
+import uk.ac.starlink.topcat.TopcatTransmitter;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
@@ -217,10 +218,10 @@ public class DensityWindow extends GraphicsWindow {
 
         /* PLASTIC transmitter for transmitting image as FITS. */
         PlasticTransmitter imageTransmitter =
-                new PlasticTransmitter( ControlWindow.getInstance()
-                                                     .getPlasticServer(),
-                                        MessageId.FITS_LOADIMAGE,
-                                        "FITS image" ) {
+                new TopcatTransmitter( ControlWindow.getInstance()
+                                                    .getPlasticServer(),
+                                       MessageId.FITS_LOADIMAGE,
+                                       "FITS image" ) {
             protected void transmit( PlasticHubListener hub, URI clientId,
                                      ApplicationItem app )
                     throws IOException {

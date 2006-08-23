@@ -166,7 +166,7 @@ public class TopcatPlasticListener extends HubManager {
      */
     public PlasticTransmitter createTableTransmitter( final 
                                                       ControlWindow control ) {
-        return new PlasticTransmitter( this, MessageId.VOT_LOADURL, "table" ) {
+        return new TopcatTransmitter( this, MessageId.VOT_LOADURL, "table" ) {
             protected void transmit( PlasticHubListener hub, URI clientId,
                                      ApplicationItem app )
                     throws IOException {
@@ -246,8 +246,8 @@ public class TopcatPlasticListener extends HubManager {
     public PlasticTransmitter
            createSubsetTransmitter( final TopcatModel tcModel,
                                     final SubsetWindow subSelector ) {
-        return new PlasticTransmitter( this, MessageId.VOT_SHOWOBJECTS,
-                                       "subset" ) {
+        return new TopcatTransmitter( this, MessageId.VOT_SHOWOBJECTS,
+                                      "subset" ) {
             protected void transmit( PlasticHubListener hub, URI clientId,
                                      ApplicationItem app )
                     throws IOException {
