@@ -408,13 +408,9 @@
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
-  <!--
     <copy todir="${build.classes}">
-      <fileset dir="${java.dir}">
-        <include name="**/{package.support.files}"/>
-      </fileset>
+      <fileset dir="${src.dir}/resources"/>
     </copy>
-  -->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
@@ -491,11 +487,7 @@
 
        <resources>
          <j2se version="1.4+"/>
-
-         <!-- Define the main library jar file -->
-         <jar href="${name}/${name}.jar"/>
-
-         <!-- Name any extension packages we directly depend on -->
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
        </resources>
 
        <!-- This is a component -->
