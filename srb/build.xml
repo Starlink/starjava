@@ -508,6 +508,7 @@
 
          <!-- Define the main library jar file -->
          <jar href="${name}/${name}.jar"/>
+         <jar href="${name}/jargon.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
          <extension name="UTIL" href="util.jnlp"/>
