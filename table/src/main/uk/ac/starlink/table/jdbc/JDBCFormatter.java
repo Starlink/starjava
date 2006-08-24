@@ -22,23 +22,28 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.Loader;
 
+/**
+ * Handles conversion of a StarTable into a new table in an RDBMS.
+ *
+ * @author   Mark Taylor
+ */
 public class JDBCFormatter {
 
-    private Connection conn;
-    private Map typeNames;
+    private Connection conn_;
+    private Map typeNames_;
 
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     public JDBCFormatter( Connection conn ) {
-        this.conn = conn;
+        conn_ = conn;
     }
 
     public void createJDBCTable( StarTable table, String tableName )
             throws IOException, SQLException {
  
         /* Table deletion. */
-        Statement stmt = conn.createStatement();
+        Statement stmt = conn_.createStatement();
         try {
             String cmd = "DROP TABLE " + tableName;
             logger.info( cmd );
@@ -163,7 +168,7 @@ public class JDBCFormatter {
             }
         }
         cmd.append( " )" );
-        PreparedStatement pstmt = conn.prepareStatement( cmd.toString() );
+        PreparedStatement pstmt = conn_.prepareStatement( cmd.toString() );
 
         /* Add the data. */
         RowSequence rseq = table.getRowSequence();
@@ -234,12 +239,12 @@ public class JDBCFormatter {
      * @return  connection-specific type name
      */
     public String typeName( int sqlType ) throws SQLException {
-        if ( typeNames == null ) {
-            typeNames = makeTypesMap( conn );
+        if ( typeNames_ == null ) {
+            typeNames_ = makeTypesMap( conn_ );
         }
         Object key = new Integer( sqlType );
-        return typeNames.containsKey( key ) ? (String) typeNames.get( key )
-                                            : null;
+        return typeNames_.containsKey( key ) ? (String) typeNames_.get( key )
+                                             : null;
     }
 
     /**
