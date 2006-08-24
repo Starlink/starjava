@@ -6,9 +6,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 /**
  * Defines the type of a value which is passed through the PLASTIC 
@@ -25,6 +27,7 @@ public class ValueType {
 
     private final String name_;
     private final Class jClazz_;
+    private final Object blank_;
 
     /**
      * Constructs a basic value type with a given symbolic name and a
@@ -32,10 +35,12 @@ public class ValueType {
      *
      * @param  name   label for this type (for documentation purposes only)
      * @param  jClazz  required assignable java class
+     * @param  blank   suitable blank value (see {@link #getBlankValue})
      */
-    public ValueType( String name, Class jClazz ) {
+    public ValueType( String name, Class jClazz, Object blank ) {
         name_ = name;
         jClazz_ = jClazz;
+        blank_ = blank;
     }
 
     /**
@@ -57,12 +62,24 @@ public class ValueType {
         }
     }
 
+    /**
+     * Returns a neutral sort of value which is legal for this type.
+     * This is not guaranteed to be suitable for any given use, but
+     * if you have to come up with a value for this type and don't have
+     * any other information, it's as good a guess as any.
+     *
+     * @return   blank value compatible with this type
+     */
+    public Object getBlankValue() {
+        return blank_;
+    }
+
     public String toString() {
         return name_;
     }
 
     /** No constraints - any object is permissible. */
-    public static ValueType ANY = new ValueType( "ANY", Object.class ) {
+    public static ValueType ANY = new ValueType( "ANY", Object.class, "" ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             checkObject( jValue );
@@ -70,30 +87,37 @@ public class ValueType {
     };
 
     /** Integer type. */
-    public static ValueType INT = new ValueType( "INT", Integer.class );
+    public static ValueType INT =
+        new ValueType( "INT", Integer.class, new Integer( 0 ) );
 
     /** Boolean type. */
-    public static ValueType BOOLEAN = new ValueType( "BOOLEAN", Boolean.class );
+    public static ValueType BOOLEAN =
+        new ValueType( "BOOLEAN", Boolean.class, Boolean.FALSE );
 
     /** String type. */
-    public static ValueType STRING = new ValueType( "STRING", String.class );
+    public static ValueType STRING =
+        new ValueType( "STRING", String.class, "" );
 
     /** Double precision type. */
-    public static ValueType DOUBLE = new ValueType( "DOUBLE", Double.class );
+    public static ValueType DOUBLE =
+        new ValueType( "DOUBLE", Double.class, new Double( 0.0 ) );
 
     /** ISO-8601 date type. */
-    public static ValueType DATE = new ValueType( "DATE", Date.class );
+    public static ValueType DATE =
+        new ValueType( "DATE", Date.class, new Date( 0L ) );
 
-    /** Map/<struct> type. */
-    public static ValueType MAP = new ValueType( "MAP", Map.class ) {
+    /** Map/&lt;struct&gt; type. */
+    public static ValueType MAP = new ValueType( "MAP", Map.class,
+                                                 new Hashtable() ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             checkMap( (Map) jValue );
         }
     };
 
-    /** List/<array> type. */
-    public static ValueType LIST = new ValueType( "LIST", List.class ) {
+    /** List/&lt;array&gt; type. */
+    public static ValueType LIST = new ValueType( "LIST", List.class,
+                                                  new Vector() ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             checkList( (List) jValue );
@@ -101,7 +125,7 @@ public class ValueType {
     };
 
     /** Void type - the return type for methods with no return value. */
-    public static ValueType VOID = new ValueType( "VOID", null ) {
+    public static ValueType VOID = new ValueType( "VOID", null, null ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
 
             /* Because of potential difficulties returning null values via
@@ -121,7 +145,7 @@ public class ValueType {
 
     /** Type for a string which is required to be a legal URL. */
     public static ValueType STRING_URL = new ValueType( "STRING_URL",
-                                                        String.class ) {
+                                                        String.class, "" ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             String str = (String) jValue;
@@ -142,7 +166,7 @@ public class ValueType {
 
     /** Type for a string which is required to be a legal IVORN. */
     public static ValueType STRING_IVORN = new ValueType( "STRING_IVORN",
-                                                          String.class ) {
+                                                          String.class, "" ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             String str = (String) jValue;
@@ -161,7 +185,7 @@ public class ValueType {
 
     /** Type for a string which is required to be a legal URI. */
     public static ValueType STRING_URI = new ValueType( "STRING_URI",
-                                                        String.class ) {
+                                                        String.class, "" ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             String str = (String) jValue;
@@ -175,8 +199,8 @@ public class ValueType {
     };
 
     /** List/<array> type in which all elements must be integers. */
-    public static ValueType LIST_INTS = new ValueType( "LIST_INTS",
-                                                       List.class ) {
+    public static ValueType LIST_INTS = new ValueType( "LIST_INTS", List.class,
+                                                       new Vector() ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
             super.checkJavaValue( jValue );
             List list = (List) jValue;
