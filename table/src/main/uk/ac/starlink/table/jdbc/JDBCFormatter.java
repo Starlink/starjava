@@ -29,50 +29,36 @@ import uk.ac.starlink.util.Loader;
  */
 public class JDBCFormatter {
 
-    private Connection conn_;
-    private Map typeNames_;
+    private final Connection conn_;
+    private final StarTable table_;
+    private final SqlColumn[] sqlCols_;
+    private final Map typeNameMap_;
 
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
-    public JDBCFormatter( Connection conn ) {
+    /**
+     * Constructor.
+     *
+     * @param  conn  JDBC connection
+     * @param  table   input table
+     */
+    public JDBCFormatter( Connection conn, StarTable table )
+            throws SQLException, IOException {
         conn_ = conn;
-    }
-
-    public void createJDBCTable( StarTable table, String tableName )
-            throws IOException, SQLException {
- 
-        /* Table deletion. */
-        Statement stmt = conn_.createStatement();
-        try {
-            String cmd = "DROP TABLE " + tableName;
-            logger.info( cmd );
-            stmt.executeUpdate( cmd );
-            logger.warning( "Dropped existing table " + tableName + 
-                            " to write new one" );
-        }
-        catch ( SQLException e ) {
-            // no action - might not be there
-        }
-
-        /* Table creation. */
-        StringBuffer cmd = new StringBuffer();
-        cmd.append( "CREATE TABLE " )
-           .append( tableName )
-           .append( " (" );
-
-        /* Specify table columns. */
-        int ncol = table.getColumnCount();
-        boolean[] charType = new boolean[ ncol ];
+        table_ = table;
+        typeNameMap_ = makeTypesMap( conn_ );
 
         /* Work out column types and see if we need to work out maximum string
          * lengths. */
+        int ncol = table_.getColumnCount();
+        boolean[] charType = new boolean[ ncol ];
         int[] sqlTypes = new int[ ncol ];
         int[] charSizes = new int[ ncol ];
         boolean[] needSizes = new boolean[ ncol ];
         boolean needSomeSizes = false;
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnInfo colInfo = table.getColumnInfo( icol );
+            ColumnInfo colInfo = table_.getColumnInfo( icol );
             sqlTypes[ icol ] = getSqlType( colInfo.getContentClass() );
             if ( sqlTypes[ icol ] == Types.VARCHAR ) {
                 int leng = colInfo.getElementSize();
@@ -88,7 +74,7 @@ public class JDBCFormatter {
 
         /* Work out maximum string lengths if necessary. */
         if ( needSomeSizes ) {
-            RowSequence rseq = table.getRowSequence();
+            RowSequence rseq = table_.getRowSequence();
             try {
                 while ( rseq.next() ) {
                     for ( int icol = 0; icol < ncol; icol++ ) {
@@ -108,11 +94,11 @@ public class JDBCFormatter {
             }
         }
 
-        /* Create a new SQL table with the right columns. */
-        boolean first = true;
+        /* Work out and store column specifications. */
+        sqlCols_ = new SqlColumn[ ncol ];
         Set cnames = new HashSet();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnInfo col = table.getColumnInfo( icol );
+            ColumnInfo col = table_.getColumnInfo( icol );
             String colName = fixColumnName( col.getName() );
 
             /* Check that we don't have a duplicate column name. */
@@ -123,61 +109,118 @@ public class JDBCFormatter {
 
             /* Add the column name to the statement string. */
             int sqlType = sqlTypes[ icol ];
-            String tName = typeName( sqlType );
-            if ( tName == null ) {
-                sqlType = Types.NULL;
+            String tSpec = typeName( sqlType );
+            if ( tSpec == null ) {
                 logger.warning( "Can't write column " + colName + " type " 
                               + col.getClass() );
             }
-            if ( sqlType != Types.NULL ) {
-                if ( ! first ) {
-                    cmd.append( ',' );
-                }
-                first = false;
-                cmd.append( ' ' )
-               .append( colName )
-               .append( ' ' )
-               .append( tName );
+            else {
                 if ( sqlType == Types.VARCHAR ) {
-                    cmd.append( '(' )
-                       .append( charSizes[ icol ] )
-                       .append( ')' );
+                    tSpec += "(" + charSizes[ icol ] + ")";
                 }
+                sqlCols_[ icol ] = new SqlColumn( sqlType, colName, tSpec );
             }
         }
-        cmd.append( " )" );
+    }
 
-        /* Create the table. */
-        logger.info( cmd.toString() );
-        stmt.executeUpdate( cmd.toString() );
-
-        /* Prepare a statement for adding the data. */
-        cmd = new StringBuffer();
-        cmd.append( "INSERT INTO " )
+    /**
+     * Returns the text of a suitable CREATE TABLE statement.
+     *
+     * @param  tableName   name of the new SQL table
+     */
+    public String getCreateStatement( String tableName ) {
+        StringBuffer sql = new StringBuffer();
+        sql.append( "CREATE TABLE " )
            .append( tableName )
-           .append( " VALUES(" );
-        first = true;
+           .append( " (" );
+        int ncol = sqlCols_.length;
+        boolean first = true;
         for ( int icol = 0; icol < ncol; icol++ ) {
-            if ( sqlTypes[ icol ] != Types.NULL ) {
+            SqlColumn sqlCol = sqlCols_[ icol ];
+            if ( sqlCol != null ) {
                 if ( ! first ) {
-                    cmd.append( ',' );
+                    sql.append( ',' );
                 }
                 first = false;
-                cmd.append( ' ' ) 
+                sql.append( ' ' )
+                   .append( sqlCol.getColumnName() )
+                   .append( ' ' )
+                   .append( sqlCol.getTypeSpec() );
+            }
+        }
+        sql.append( ')' );
+        return sql.toString();
+    }
+
+    /**
+     * Returns the text of a suitable parametric statement for inserting a
+     * row.  Data placeholders for writable columns will be represented
+     * by '?' characters.
+     *
+     * @param   tableName  name SQL table for insertion
+     */
+    public String getInsertStatement( String tableName ) {
+        StringBuffer sql = new StringBuffer();
+        sql.append( "INSERT INTO " )
+           .append( tableName )
+           .append( " VALUES(" );
+        boolean first = true;
+        int ncol = sqlCols_.length;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            if ( sqlCols_[ icol ] != null ) {
+                if ( ! first ) {
+                    sql.append( ',' );
+                }
+                first = false;
+                sql.append( ' ' ) 
                    .append( '?' );
             }
         }
-        cmd.append( " )" );
-        PreparedStatement pstmt = conn_.prepareStatement( cmd.toString() );
+        sql.append( " )" );
+        return sql.toString();
+    }
+
+    /**
+     * Creates a new table in the database according to the input table
+     * of this formatter.
+     *
+     * @param   tableName  name of the new table to create in the database
+     */
+    public void createJDBCTable( String tableName )
+            throws IOException, SQLException {
+ 
+        /* Table deletion. */
+        Statement stmt = conn_.createStatement();
+        try {
+            String cmd = "DROP TABLE " + tableName;
+            logger.info( cmd );
+            stmt.executeUpdate( cmd );
+            logger.warning( "Dropped existing table " + tableName + 
+                            " to write new one" );
+        }
+        catch ( SQLException e ) {
+            // no action - might not be there
+        }
+
+        /* Table creation. */
+        String create = getCreateStatement( tableName );
+        logger.info( create );
+        stmt.executeUpdate( create );
+
+        /* Prepare a statement for adding the data. */
+        String insert = getInsertStatement( tableName );
+        logger.info( insert );
+        PreparedStatement pstmt = conn_.prepareStatement( insert );
 
         /* Add the data. */
-        RowSequence rseq = table.getRowSequence();
+        int ncol = sqlCols_.length;
+        RowSequence rseq = table_.getRowSequence();
         try {
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 int pix = 0;
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    if ( sqlTypes[ icol ] != Types.NULL ) {
+                    if ( sqlCols_[ icol ] != null ) {
                         pix++;
                         Object val = row[ icol ];
                         if ( Tables.isBlank( val ) ) {
@@ -198,6 +241,25 @@ public class JDBCFormatter {
         }
     }
 
+    /**
+     * Returns the SqlColumn object describing how a given column of this
+     * formatter's input table will be written into the RDBMS.
+     * If the value for a given column is <code>null</code>, it means that
+     * column cannot, and will not, be written.
+     *
+     * @param  icol   column index in input table
+     * @return   SQL column description
+     */
+    public SqlColumn getColumn( int icol ) {
+        return sqlCols_[ icol ];
+    }
+
+    /**
+     * Returns an SQL type code suitable for a given class.
+     *
+     * @param  clazz   java class of data
+     * @return   one of the {@link java.sql.Types} codes
+     */
     public int getSqlType( Class clazz ) {
         if ( clazz.equals( Byte.class ) ) {
             return Types.TINYINT;
@@ -239,12 +301,10 @@ public class JDBCFormatter {
      * @return  connection-specific type name
      */
     public String typeName( int sqlType ) throws SQLException {
-        if ( typeNames_ == null ) {
-            typeNames_ = makeTypesMap( conn_ );
-        }
         Object key = new Integer( sqlType );
-        return typeNames_.containsKey( key ) ? (String) typeNames_.get( key )
-                                             : null;
+        return typeNameMap_.containsKey( key )
+             ? (String) typeNameMap_.get( key )
+             : null;
     }
 
     /**
@@ -332,6 +392,10 @@ public class JDBCFormatter {
         return name;
     }
 
+    /**
+     * Main method.
+     * Not really intended for use but may be helpful with debugging.
+     */
     public static void main( String[] args ) throws IOException, SQLException {
         String usage = "\nUsage: JDBCFormatter" 
                      + " intable"
@@ -349,7 +413,7 @@ public class JDBCFormatter {
                          .makeStarTable( inTable );
         try {
             Connection conn = DriverManager.getConnection( jdbcUrl );
-            new JDBCFormatter( conn ).createJDBCTable( intab, tableName );
+            new JDBCFormatter( conn, intab ).createJDBCTable( tableName );
         }
         catch ( SQLException e ) {
             if ( e.getNextException() != null ) {
@@ -360,6 +424,51 @@ public class JDBCFormatter {
                 }
             }
             throw e;
+        }
+    }
+
+    /**
+     * Describes a column as it will be written to a table in an RDBMS.
+     */
+    public static class SqlColumn {
+        private final int sqlType_;
+        private final String colName_;
+        private final String typeSpec_;
+
+        /**
+         * Constructor.
+         */
+        SqlColumn( int sqlType, String colName, String typeSpec ) {
+            sqlType_ = sqlType;
+            colName_ = colName;
+            typeSpec_ = typeSpec;
+        }
+
+        /**
+         * Returns the SQL type code for this column.
+         *
+         * @return  symbolic integer from {@link java.sql.Types}
+         */
+        public int getSqlType() {
+            return sqlType_;
+        }
+
+        /**
+         * Name used for the column.
+         *
+         * @return   column name
+         */
+        public String getColumnName() {
+            return colName_;
+        }
+
+        /**
+         * Type specification as used in CREATE statement. 
+         *
+         * @return  column type specification
+         */
+        public String getTypeSpec() {
+            return typeSpec_;
         }
     }
 }

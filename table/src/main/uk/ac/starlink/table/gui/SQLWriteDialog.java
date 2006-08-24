@@ -49,8 +49,8 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
                         Connection conn = null;
                         try {
                             conn = getConnector().getConnection();
-                            JDBCFormatter jfmt = new JDBCFormatter( conn );
-                            jfmt.createJDBCTable( table, getRef() );
+                            new JDBCFormatter( conn, table )
+                               .createJDBCTable( getRef() );
                         }
                         catch ( SQLException e ) {
                             throw (IOException) 
