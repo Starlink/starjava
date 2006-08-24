@@ -811,6 +811,11 @@
     <copy todir="${dist.www}">
       <fileset dir="${dist.lib.pkg}"/>
     </copy>
+    <mkdir dir="${dist.www}/images"/>
+    <copy todir="${dist.www}/images">
+      <fileset dir="${src.dir}/resources/uk/ac/starlink/plastic/"
+               includes="*.gif"/>
+    </copy>
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
