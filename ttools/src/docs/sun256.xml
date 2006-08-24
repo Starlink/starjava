@@ -831,7 +831,7 @@ or invoking Java directly:
 <verbatim><![CDATA[
    java -classpath stilts.jar:/usr/local/jars/mysql-connect-java.jar \
         -Djdbc.drivers=com.mysql.jdbc.Driver \
-        uk.ac.starlink.ttools.TableCopy \
+        uk.ac.starlink.ttools.Stilts tcopy \
         in="jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
         ofmt=votable out=gsc.vot
 ]]></verbatim>
