@@ -19,8 +19,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.rmi.NotBoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -354,8 +356,64 @@ public class PlasticUtils {
     }
 
     /**
-     * Sends a single asynchronous message to the hub without registering
-     * for callback.
+     * Gets the result of a request to a single registered application
+     * without registering for callback.
+     *
+     * @param   name  application name
+     * @param   message  message ID
+     * @param   args   message arguments
+     * @param   target   application ID of a registered application to which
+     *          the request is to be made
+     * @return  the response from the target application
+     */
+    public static Object targetRequest( String name, URI message, List args,
+                                        URI target )
+            throws IOException {
+        PlasticHubListener hub = getLocalHub();
+        URI id;
+        try {
+            id = hub.registerNoCallBack( name );
+        }
+        catch ( Throwable e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+        if ( id == null ) {
+            throw new IOException( "Can't connect to hub" );
+        }
+        try {
+            return targetRequest( id, message, args, target );
+        }
+        finally {
+            hub.unregister( id );
+        }
+    }
+
+    /**
+     * Gets the result of a request to a single registered application
+     * using an existing connection to the hub.
+     *
+     * @param   sender  application ID of registered listener from which
+     *          the request will be made
+     * @param   message  message ID
+     * @param   args   message arguments
+     * @param   target  application ID of a registered application to which
+     *          the request is to be made
+     * @return  the response from the target application
+     */
+    public static Object targetRequest( URI sender, URI message, List args,
+                                        URI target )
+            throws IOException {
+        PlasticHubListener hub = getLocalHub();
+        Map resultMap =
+            hub.requestToSubset( sender, message, args,
+                                 Collections.singletonList( target ) );
+        return resultMap.get( target );
+    }
+
+    /**
+     * Sends a single asynchronous message to the hub
+     * without registering for callback.
      *
      * @param   name  application name
      * @param   message  message ID
