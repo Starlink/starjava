@@ -224,8 +224,8 @@ public class HubTester {
 
     private void exerciseMonitors()
             throws IOException, HubTestException, InterruptedException {
-        PlasticMonitor mon1 = new PlasticMonitor( "mon1", null, null );
-        PlasticMonitor mon2 = new PlasticMonitor( "mon2", null, null );
+        PlasticMonitor mon1 = new PlasticMonitor( "mon1", true, null, null );
+        PlasticMonitor mon2 = new PlasticMonitor( "mon2", false, null, null );
         ApplicationItem[] regApps =
             PlasticUtils.getRegisteredApplications( hub_ );
         ApplicationListModel appList1 = new ApplicationListModel( regApps );
