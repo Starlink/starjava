@@ -3,10 +3,13 @@ package uk.ac.starlink.plastic;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import junit.framework.TestCase;
 import org.votech.plastic.PlasticHubListener;
 
@@ -56,7 +59,8 @@ public class HubTest extends TestCase {
         }
     }
 
-    private void exerciseHub( PlasticHubListener hub ) throws HubTestException {
+    private void exerciseHub( PlasticHubListener hub )
+            throws HubTestException, IOException {
         HubTester htest = new HubTester( hub );
         try {
 
@@ -83,6 +87,21 @@ public class HubTest extends TestCase {
                 System.out.println( "Someone else's hub is running: "
                                   + hubDescrip );
             }
+
+            /* Check monitor. */
+            PlasticMonitor mon = 
+                new PlasticMonitor( "monitor", false, null, null );
+            PlasticConnection moncon = PlasticUtils.registerRMI( mon );
+            String iconloc = (String)
+                PlasticUtils.targetRequest( "query", MessageId.INFO_GETICONURL,
+                                            new ArrayList(), moncon.getId() );
+            moncon.unregister();
+            assertNull(
+                PlasticUtils.targetRequest( "query", MessageId.INFO_GETICONURL,
+                                            new ArrayList(), moncon.getId() ) );
+            assertTrue( iconloc != null );
+            Icon icon = new ImageIcon( new URL( iconloc ) );
+            assertEquals( 19, icon.getIconWidth() );
         }
         finally {
             htest.dispose();
