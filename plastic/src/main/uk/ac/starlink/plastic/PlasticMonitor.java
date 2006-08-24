@@ -32,6 +32,7 @@ import org.votech.plastic.PlasticHubListener;
 public class PlasticMonitor implements PlasticApplication {
 
     private final String name_;
+    private final boolean multiclient_;
     private final PrintStream logOut_;
     private final PrintStream warnOut_;
     private boolean stopped_;
@@ -51,12 +52,15 @@ public class PlasticMonitor implements PlasticApplication {
      * Constructor.
      *
      * @param  name   application name
+     * @param  multiclient  true if you want it to attempt to implement
+     *                      all known messages
      * @param  logOut    logging output stream
      * @param  warnOut   warning output stream
      */
-    public PlasticMonitor( String name, PrintStream logOut,
-                           PrintStream warnOut ) {
+    public PlasticMonitor( String name, boolean multiclient,
+                           PrintStream logOut, PrintStream warnOut ) {
         name_ = name;
+        multiclient_ = multiclient;
         logOut_ = logOut;
         warnOut_ = warnOut;
         validator_ = new MessageValidator();
@@ -67,14 +71,17 @@ public class PlasticMonitor implements PlasticApplication {
     }
 
     public URI[] getSupportedMessages() {
-        return new URI[] {
-            MessageId.HUB_APPREG, 
-            MessageId.HUB_APPUNREG,
-            MessageId.HUB_STOPPING,
-            MessageId.INFO_GETNAME,
-            MessageId.INFO_GETDESCRIPTION,
-            MessageId.TEST_ECHO, 
-        };
+        return multiclient_ ? MessageId.getKnownMessages()
+                            : new URI[] {
+                                  MessageId.HUB_APPREG, 
+                                  MessageId.HUB_APPUNREG,
+                                  MessageId.HUB_STOPPING,
+                                  MessageId.INFO_GETNAME,
+                                  MessageId.INFO_GETDESCRIPTION,
+                                  MessageId.INFO_GETICONURL,
+                                  MessageId.INFO_GETVERSION,
+                                  MessageId.TEST_ECHO, 
+                              };
     }
 
     public Object perform( URI sender, URI message, List args ) {
@@ -141,6 +148,12 @@ public class PlasticMonitor implements PlasticApplication {
         else if ( MessageId.INFO_GETDESCRIPTION.equals( message ) ) {
             return "Plastic message monitor";
         }
+        else if ( MessageId.INFO_GETICONURL.equals( message ) ) {
+            return "http://www.star.bris.ac.uk/~mbt/plastic/images/eye.gif";
+        }
+        else if ( MessageId.INFO_GETVERSION.equals( message ) ) {
+            return PlasticUtils.PLASTIC_VERSION;
+        }
         else if ( MessageId.TEST_ECHO.equals( message ) ) {
             return args.size() > 0 ? args.get( 0 ) : "";
         }
@@ -170,12 +183,18 @@ public class PlasticMonitor implements PlasticApplication {
             }
             return NULL;
         }
-        else {
-            if ( warnOut_ != null ) {
-                warnOut_.println( "Unsolicited message " + message );
+        else if ( multiclient_ ) {
+            MessageDefinition def = MessageDefinition.getMessage( message );
+            if ( def != null ) {
+                return def.getReturnType().getBlankValue();
             }
-            return NULL;
         }
+
+        /* Message not known. */
+        if ( warnOut_ != null ) {
+            warnOut_.println( "Unsolicited message " + message );
+        }
+        return NULL;
     }
 
     /**
@@ -253,6 +272,13 @@ public class PlasticMonitor implements PlasticApplication {
      * <dd>Pops up a window monitoring currently registered applications</dd>
      * <dt>-verbose</dt>
      * <dd>Writes a log to standard output of all PLASTIC traffic</dd>
+     * <dt>-warn</dt>
+     * <dd>Writes a log to standard output of illegal or questionable
+     *     conditions</dt>
+     * <dt>-multi</dt>
+     * <dd>Attempt to implement as many messages as possible
+     *     (a dummy implementation is provided for every message know by
+     *     the {@link MessageDefinition} class)</dd>
      * <dt>-name name</dt>
      * <dd>Supply application name which monitor will register under</dd>
      * </dl>
@@ -264,8 +290,9 @@ public class PlasticMonitor implements PlasticApplication {
                      + "\n           "
                      + " [-xmlrpc|-rmi]"
                      + " [-gui]"
-                     + " [-warn]"
                      + " [-verbose]"
+                     + " [-warn]"
+                     + " [-multi]"
                      + " [-name name]"
                      + "\n";
 
@@ -275,6 +302,7 @@ public class PlasticMonitor implements PlasticApplication {
         boolean gui = false;
         boolean verbose = false;
         boolean validate = false;
+        boolean multiclient = false;
         String name = "monitor";
         for ( Iterator it = argv.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -298,6 +326,10 @@ public class PlasticMonitor implements PlasticApplication {
                 it.remove();
                 validate = true;
             }
+            else if ( "-multi".equals( arg ) ) {
+                it.remove();
+                multiclient = true;
+            }
             else if ( "-name".equals( arg ) && it.hasNext() ) {
                 it.remove();
                 name = (String) it.next();
@@ -315,7 +347,8 @@ public class PlasticMonitor implements PlasticApplication {
 
         PrintStream logOut = verbose ? System.out : null;
         PrintStream warnOut = validate ? System.out : null;
-        PlasticMonitor mon = new PlasticMonitor( name, logOut, warnOut );
+        PlasticMonitor mon =
+            new PlasticMonitor( name, multiclient, logOut, warnOut );
         if ( gui ) {
             PlasticHubListener hub = PlasticUtils.getLocalHub();
             ApplicationItem[] regApps =
