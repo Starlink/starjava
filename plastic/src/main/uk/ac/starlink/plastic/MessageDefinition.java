@@ -2,6 +2,9 @@ package uk.ac.starlink.plastic;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Describes PLASTIC messages known to this package.
@@ -38,6 +41,7 @@ public class MessageDefinition {
     public static final MessageDefinition FITS_LOADIMAGE;
     public static final MessageDefinition FITS_LOADCUBE;
     public static final MessageDefinition SKY_POINT;
+    private static final Map MESSAGE_MAP;
 
     /** Known message definition list. */
     private static final MessageDefinition[] KNOWN_MESSAGES = {
@@ -126,6 +130,14 @@ public class MessageDefinition {
                                                      ValueType.DOUBLE },
                                    ValueType.BOOLEAN ),
     };
+    static {
+        Map map = new HashMap();
+        for ( int i = 0; i < KNOWN_MESSAGES.length; i++ ) {
+            MessageDefinition def = KNOWN_MESSAGES[ i ];
+            map.put( def.getId(), def );
+        }
+        MESSAGE_MAP = Collections.unmodifiableMap( map );
+    }
 
     /**
      * Constructs a message definition which may have some optional arguments.
@@ -229,5 +241,16 @@ public class MessageDefinition {
      */
     public static MessageDefinition[] getKnownMessages() {
         return (MessageDefinition[]) KNOWN_MESSAGES.clone();
+    }
+
+    /**
+     * Returns the message definition corresponding to a given message ID.
+     * Returns null if no such message is known.
+     *
+     * @param   id   message ID
+     * @return  definition for message with ID <code>id</code>, or null
+     */
+    public static MessageDefinition getMessage( URI id ) {
+        return (MessageDefinition) MESSAGE_MAP.get( id );
     }
 }
