@@ -365,7 +365,7 @@ public class TableSpecDataImpl
             TableSpecDataImpl tsdi = (TableSpecDataImpl) parentImpl;
             columnInfos[0] = new ColumnInfo( tsdi.columnInfos[0] );
             columnInfos[1] = new ColumnInfo( tsdi.columnInfos[1] );
-            if ( tsdi.columnInfos[2] != null ) {
+            if ( tsdi.columnInfos.length > 2 && tsdi.columnInfos[2] != null ) {
                 columnInfos[2] = new ColumnInfo( tsdi.columnInfos[2] );
             }
             else {
