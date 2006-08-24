@@ -11,7 +11,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ListModel;
 import javax.swing.JMenu;
-import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.votech.plastic.PlasticHubListener;
@@ -232,14 +231,7 @@ public abstract class PlasticTransmitter {
                 Component parent = src instanceof Component
                                  ? (Component) src
                                  : null;
-                Object msg = new String[] {
-                    "PLASTIC transmission failed:",
-                    e.getMessage(),
-                    e.getClass().getName(),
-                };
-                JOptionPane.showMessageDialog( parent, msg,
-                                               "PLASTIC Send Error",
-                                               JOptionPane.WARNING_MESSAGE );
+                ErrorDialog.showError( parent, "PLASTIC Send Error", e );
             }
         }
 
