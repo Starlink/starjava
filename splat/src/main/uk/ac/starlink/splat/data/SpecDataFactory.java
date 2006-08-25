@@ -29,7 +29,9 @@ import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 
+import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.datanode.nodes.IconFactory;
+import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.splat.iface.LocalLineIDManager;
@@ -95,8 +97,13 @@ public class SpecDataFactory
     /** Line identifier file. */
     public final static int IDS = 6;
 
+    /** The type should be determined using the DataNode guessing mechanisms.
+     *  One problem with this is that remote resources require downloading
+     *  first. */
+    public final static int GUESS = 7;
+
     /** VOTable SED source, XXX not yet a proper type */
-    public final static int SED = 7;
+    public final static int SED = 8;
 
     /**
      * Short descriptions of each type.
@@ -108,7 +115,8 @@ public class SpecDataFactory
         "text",
         "hdx",
         "table",
-        "line ids"
+        "line ids",
+        "guess"
     };
 
     /**
@@ -137,6 +145,10 @@ public class SpecDataFactory
         {"ids"}
     };
 
+    /** 
+     * Our DataNodeFactory.
+     */
+    private DataNodeFactory dataNodeFactory = null;
 
     /**
      * Datanode icons symbolic names for each data type. XXX may want
@@ -198,63 +210,74 @@ public class SpecDataFactory
     public SpecData get( String specspec, int type )
         throws SplatException
     {
+        //  Type established by file name rules.
         if ( type == DEFAULT ) {
             return get( specspec );
         }
 
         //  The specification could be for a local or remote file and in URL
         //  or local file format. We need to know so that we can make a local
-        //  copy and construct a RemoteSpecData.
+        //  copy and construct a RemoteSpecData. Note that when we're using
+        //  the full guessing mechanisms remote resources are always
+        //  downloaded by SPLAT.
         NameParser namer = new NameParser( specspec );
         boolean isRemote = namer.isRemote();
-        if ( namer.isRemote() && type != TABLE && type != HDX ) {
-            PathParser pathParser = remoteToLocalFile( namer.getURL(), type );
-            specspec = pathParser.ndfname();
+        if ( isRemote ) {
+            if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {
+                PathParser pathParser = remoteToLocalFile( namer.getURL(),
+                                                           type );
+                specspec = pathParser.ndfname();
+            }
         }
 
-        SpecDataImpl impl = null;
-        switch (type)
-        {
-            case FITS: {
-                impl = makeFITSSpecDataImpl( specspec );
-            }
-            break;
-            case HDS: {
-                impl = makeNDFSpecDataImpl( namer.getName() );
-            }
-            break;
-            case TEXT: {
-                impl = new TXTSpecDataImpl( specspec );
-            }
-            break;
-            case HDX: {
-                //  HDX should download remote files as it needs to keep the
-                //  basename to locate other references.
-                if ( namer.isRemote() ) {
-                    impl = new NDXSpecDataImpl( namer.getURL() );
+        if ( type != GUESS ) {
+            SpecDataImpl impl = null;
+            switch (type)
+                {
+                case FITS: {
+                    impl = makeFITSSpecDataImpl( specspec );
                 }
-                else {
-                    impl = new NDXSpecDataImpl( specspec );
+                    break;
+                case HDS: {
+                    impl = makeNDFSpecDataImpl( namer.getName() );
                 }
+                    break;
+                case TEXT: {
+                    impl = new TXTSpecDataImpl( specspec );
+                }
+                    break;
+                case HDX: {
+                    //  HDX should download remote files as it needs to keep the
+                    //  basename to locate other references.
+                    if ( namer.isRemote() ) {
+                        impl = new NDXSpecDataImpl( namer.getURL() );
+                    }
+                    else {
+                        impl = new NDXSpecDataImpl( specspec );
+                    }
+                }
+                    break;
+                case TABLE: {
+                    impl = makeTableSpecDataImpl( specspec );
+                }
+                    break;
+                case IDS: {
+                    impl = new LineIDTXTSpecDataImpl( specspec );
+                }
+                    break;
+                default: {
+                    throw new SplatException( "Spectrum '" + specspec + "' supplied"+
+                                              " with an unknown type: " + type );
+                }
+                }
+            if ( impl == null ) {
+                throwReport( specspec, true );
             }
-            break;
-            case TABLE: {
-                impl = makeTableSpecDataImpl( specspec );
-            }
-            break;
-            case IDS: {
-                impl = new LineIDTXTSpecDataImpl( specspec );
-            }
-            break;
-            default: {
-                throw new SplatException( "Spectrum '" + specspec + "' supplied"+
-                                          " with an unknown type: " + type );
-            }
+            return makeSpecDataFromImpl( impl, isRemote, namer.getURL() );
         }
-        if ( impl == null ) {
-            throwReport( specspec, true );
-        }
-        return makeSpecDataFromImpl( impl, isRemote, namer.getURL() );
+
+        //  Only get here for guessed spectra.
+        return makeGuessedSpecData( specspec );
     }
 
     /**
@@ -816,20 +839,13 @@ public class SpecDataFactory
     protected PathParser remoteToLocalFile( URL url, int type )
         throws SplatException
     {
-        //  XXX how to determine the format, mime types and files
-        //  types are the obvious way, but mime types are probably
-        //  rarely available, so we will need to use the usual file
-        //  extensions mechanisms. I'd like to let datanode sort this
-        //  out some day.
-
         PathParser namer = null;
         try {
             //  Contact the resource.
             InputStream is = url.openStream();
 
             //  And read it into a local file. Use the existing file extension
-            //  if available, without a file extension this will currently
-            //  fail.
+            //  if available and we're not guessing the type.
             namer = new PathParser( url.getPath() );
 
             //  Create a temporary file. Use a file extension based on the
@@ -856,6 +872,10 @@ public class SpecDataFactory
                     stype = ".tmp";
                 }
                 break;
+                case GUESS: {
+                    stype = ".tmp";
+                }
+                break;
                 default: {
                     stype = namer.type();
                     if ( stype.equals( "" ) ) {
@@ -879,17 +899,17 @@ public class SpecDataFactory
             fis.close();
 
             //  Test if equal to '<!DO' of "<!DOCTYPE" or '<HTM'
-            if ( ( header[0] == '<' && header[1] == '!' && 
+            if ( ( header[0] == '<' && header[1] == '!' &&
                    header[2] == 'D' && header[3] == 'O' ) ||
-                 header[0] == '<' && header[1] == 'H' && 
+                 header[0] == '<' && header[1] == 'H' &&
                  header[2] == 'T' && header[3] == 'M' ) {
                 //  Must be HTML.
-                throw new SplatException( "Cannot use the file returned" + 
+                throw new SplatException( "Cannot use the file returned" +
                                           " by the URL : " + url.toString() +
                                           " it contains an HTML document" );
             }
             else if ( header[0] == 0 && header[1] == 0 ) {
-                throw new SplatException( "Cannot use the file returned" + 
+                throw new SplatException( "Cannot use the file returned" +
                                           " by the URL : " + url.toString() +
                                           " as it is empty" );
             }
@@ -913,7 +933,7 @@ public class SpecDataFactory
      * <ul>
      *   <li>Collapse onto the dispersion axis</li>
      *   <li>Expansion into a spectrum per dispersion line of the original
-     *       data</li> 
+     *       data</li>
      *   <li>Vectorisation of the original data into a single spectrum</li>
      * </ul>
      * To be re-processable a SpecData must have an implementation that is 2D
@@ -947,9 +967,9 @@ public class SpecDataFactory
         if ( method == VECTORIZE ) {
             //  Nothing to do, this is the native form. XXX maybe we should
             //  check the dispersion axis. If this isn't the first one then we
-            //  could re-order so we run along it, not perpendicular to it. 
+            //  could re-order so we run along it, not perpendicular to it.
             return null;
-        } 
+        }
 
         //  Check dimensionality, for 1D and greater than 3D we do nothing.
         SpecDims specDims = new SpecDims( specData );
@@ -957,7 +977,7 @@ public class SpecDataFactory
 
         SpecData[] results = null;
         if ( ndims > 1 && ndims < 4 ) {
-            
+
             //  Use choice of dispersion and stepped axis.
             specDims.setDispAxis( dax, true );
             specDims.setSelectAxis( sax, true );
@@ -985,7 +1005,7 @@ public class SpecDataFactory
         if ( ndims == 2 ) {
             //  Simple 2D data.
             results = new SpecData[1];
-            SpecDataImpl newImpl = 
+            SpecDataImpl newImpl =
                 new CollapsedSpecDataImpl( specData, specDims );
             results[0] = new SpecData( newImpl );
         }
@@ -999,7 +1019,7 @@ public class SpecDataFactory
             int displen = specDims.getSigDims()[stepaxis];
             results = new SpecData[displen];
             for ( int i = 0; i < displen; i++ ) {
-                SpecDataImpl newImpl = 
+                SpecDataImpl newImpl =
                     new CollapsedSpecDataImpl( specData, specDims, i );
                 results[i] = new SpecData( newImpl );
             }
@@ -1027,7 +1047,7 @@ public class SpecDataFactory
                 results = new SpecData[dims[1]];
             }
             for ( int i = 0; i < results.length; i++ ) {
-                SpecDataImpl newImpl = 
+                SpecDataImpl newImpl =
                     new ExtractedSpecDataImpl( specData, specDims, i );
                 results[i] = new SpecData( newImpl );
             }
@@ -1042,7 +1062,7 @@ public class SpecDataFactory
             int count = 0;
             for ( int j = 0; j < otherlength; j++ ) {
                 for ( int i = 0; i < steplength; i++ ) {
-                    SpecDataImpl newImpl = 
+                    SpecDataImpl newImpl =
                         new ExtractedSpecDataImpl( specData, specDims, i, j );
                     results[count++] = new SpecData( newImpl );
                 }
@@ -1054,7 +1074,7 @@ public class SpecDataFactory
     /**
      * Process a SED (IVOA spectral data model) XML file and extract all the
      * spectra that it contains.
-     * 
+     *
      * @param specspec the SED specification, assumed to be a VOTable, can be
      *                 remote or local.
      * @return an array of SpecData instances, one for each spectrum located.
@@ -1112,7 +1132,7 @@ public class SpecDataFactory
     /**
      * Process a SED stored in a FITS table and extract all the
      * spectra that it contains.
-     * 
+     *
      * @param specspec the SED FITS file containing the table.
      * @param nspec number of spectra table contains.
      * @return an array of SpecData instances, one for each spectrum located.
@@ -1132,5 +1152,26 @@ public class SpecDataFactory
         return spectra;
     }
 
+    //
+    //  DataNode guessing.
+    //
+    public SpecData makeGuessedSpecData( String specspec )
+        throws SplatException
+    {
+        SpecData specData = null;
+        if ( dataNodeFactory == null ) {
+            dataNodeFactory = new DataNodeFactory();
+            SplatDataNode.customiseFactory( dataNodeFactory );
+        }
 
+        try {
+            DataNode node = 
+                dataNodeFactory.makeDataNode( null, new File( specspec ) );
+            specData = SplatDataNode.makeSpecData( node );
+        }
+        catch (Exception e) {
+            throw new SplatException( e );
+        }
+        return specData;
+    }
 }

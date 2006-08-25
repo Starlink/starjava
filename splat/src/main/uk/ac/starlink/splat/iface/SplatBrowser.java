@@ -1588,6 +1588,7 @@ public class SplatBrowser
         if ( result != null ) {
             newFiles = new String[1];
             newFiles[0] = result;
+            openUsertypeIndex = SpecDataFactory.GUESS;
             threadLoadChosenSpectra();
         }
     }
