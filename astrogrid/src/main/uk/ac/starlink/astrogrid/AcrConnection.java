@@ -29,7 +29,7 @@ import uk.ac.starlink.connect.Connector;
  * @author   Mark Taylor
  * @since    9 Sep 2005
  */
-class AcrConnection extends Connection {
+public class AcrConnection extends Connection {
 
     private final AcrBranch root_;
     private final XmlRpcClient client_;
@@ -85,6 +85,15 @@ class AcrConnection extends Connection {
          * for the ACR server itself. */
     }
 
+    /**
+     * Return the URI of the user's home directory for this connection.
+     *
+     * @return   home directory ivo: URI
+     */
+    public String getHome() {
+        return root_.uri_;
+    }
+
     public boolean getCacheDirectories() {
         return cacheDirectories_;
     }
@@ -99,8 +108,8 @@ class AcrConnection extends Connection {
      * If it represents a struct, it will be a <code>Map</code>.
      * An <code>IOException</code> will be thrown if anything goes wrong.
      *
-     * @param   fully-qualified command name
-     * @args    array of arguments to pass to the XML-RPC service
+     * @param   cmd     fully-qualified command name
+     * @param   args    array of arguments to pass to the XML-RPC service
      * @return   result of execution
      */
     public Object execute( String cmd, Object[] args ) throws IOException {
