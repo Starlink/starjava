@@ -2,6 +2,7 @@ package uk.ac.starlink.util;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -720,7 +721,18 @@ public abstract class DataSource {
         private InputStream getBase() throws IOException {
             if ( base == null ) {
                 base = getInputStream();
-                for ( int i = 0; i < nskip; i+= (int) base.skip( nskip ) ) {}
+                for ( int i = 0; i < nskip; ) {
+                    int nb = (int) base.skip( nskip );
+                    if ( nb > 0 ) {
+                        i += nb;
+                    }
+                    else if ( base.read() >= 0 ) {
+                        i++;
+                    }
+                    else {
+                        throw new EOFException( "Unexpected end of file" );
+                    }
+                }
             }
             return base;
         }
