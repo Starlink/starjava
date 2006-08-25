@@ -64,6 +64,17 @@ public class AcrConnector implements Connector {
     }
 
     public Connection logIn( Map authValues ) throws IOException {
+        return logIn();
+    }
+
+    /**
+     * Attempts to open a connection.
+     *
+     * @return  a live connection object
+     * @throws  IOException  if there was some error,
+     *          for instance authorization failure
+     */
+    public Connection logIn() throws IOException {
         AcrConnection connection = new AcrConnection( this );
         boolean cache = getCacheDirectories();
         if ( cache ) {
