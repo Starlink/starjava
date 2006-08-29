@@ -946,15 +946,19 @@ public class SplatBrowser
         interopMenu.add( plasticServer.getHubWatchAction() );
 
         // Add spectrum type acceptance options.
-        JMenuItem acceptFITS = 
+        JMenuItem acceptFITSLine = 
             new JCheckBoxMenuItem( "Accept spectra as 1d FITS", true );
         JMenuItem acceptVOTable =
             new JCheckBoxMenuItem( "Accept spectra as VOTable", true );
-        plasticServer.setAcceptFITSModel( acceptFITS.getModel() );
+        JMenuItem acceptFITSTable =
+            new JCheckBoxMenuItem( "Accept spectra as FITS table", false );
+        plasticServer.setAcceptFITSLineModel( acceptFITSLine.getModel() );
         plasticServer.setAcceptVOTableModel( acceptVOTable.getModel() );
+        plasticServer.setAcceptFITSTableModel( acceptFITSTable.getModel() );
         interopMenu.addSeparator();
-        interopMenu.add( acceptFITS );
+        interopMenu.add( acceptFITSLine );
         interopMenu.add( acceptVOTable );
+        interopMenu.add( acceptFITSTable );
   
         // Set up an object which can transmit spectra over PLASTIC.
         SpecTransmitter fitsTransmitter =

@@ -33,6 +33,7 @@ public class SplatPlastic
      */
     protected static final URI[] SUPPORTED_MESSAGES = new URI[] {
         MessageId.FITS_LOADLINE,
+        MessageId.FITS_LOADIMAGE,
         MessageId.VOT_LOADURL,
         MessageId.INFO_GETDESCRIPTION,
         MessageId.INFO_GETICONURL,
@@ -49,9 +50,14 @@ public class SplatPlastic
     protected ButtonModel acceptVOTableModel = new DefaultButtonModel();
 
     /**
-     * Model controlling whether spectra received as FITS are accepted.
+     * Model controlling whether spectra received as FITS lines are accepted.
      */
-    protected ButtonModel acceptFITSModel = new DefaultButtonModel();
+    protected ButtonModel acceptFITSLineModel = new DefaultButtonModel();
+
+    /**
+     * Model controlling whether spectra received as FITS images are accepted.
+     */
+    protected ButtonModel acceptFITSTableModel = new DefaultButtonModel();
 
     /**
      * Create a new plastic listener for SPLAT.
@@ -61,7 +67,8 @@ public class SplatPlastic
         super( "splat-vo", SUPPORTED_MESSAGES );
         this.browser = browser;
         acceptVOTableModel.setSelected( true );
-        acceptFITSModel.setSelected( true );
+        acceptFITSLineModel.setSelected( true );
+        acceptFITSTableModel.setSelected( false );
     }
 
     /**
@@ -86,13 +93,27 @@ public class SplatPlastic
             return "http://star-www.dur.ac.uk/~pdraper/splat/splat.gif";
         }
 
-        //  Load a spectrum from a FITS URL.
+        //  Load a spectrum from a FITS 1-d array.
         else if ( MessageId.FITS_LOADLINE.equals( message ) &&
                   checkArgs( args, new Class[] { Object.class } ) ) {
-            if ( acceptFITSModel.isSelected() ) {
+            if ( acceptFITSLineModel.isSelected() ) {
                 String location = args.get( 0 ).toString();
                 boolean success =
                     browser.addSpectrum( location, SpecDataFactory.FITS ); 
+                return Boolean.valueOf( success );
+            }
+            else {
+                return Boolean.FALSE;
+            }
+        }
+
+        //  Load a spectrum from a FITS table.
+        else if ( MessageId.FITS_LOADIMAGE.equals( message ) &&
+                  checkArgs( args, new Class[] { Object.class } ) ) {
+            if ( acceptFITSTableModel.isSelected() ) {
+                String location = args.get( 0 ).toString();
+                boolean success =
+                    browser.addSpectrum( location, SpecDataFactory.TABLE );
                 return Boolean.valueOf( success );
             }
             else {
@@ -137,9 +158,20 @@ public class SplatPlastic
      *
      * @param  model  button model
      */
-    public void setAcceptFITSModel( ButtonModel model )
+    public void setAcceptFITSLineModel( ButtonModel model )
     {
-        acceptFITSModel = model;
+        acceptFITSLineModel = model;
+    }
+
+    /**
+     * Sets the button model which determines whether incoming messages
+     * requesting load of a FITS table file will be acted on or ignored.
+     *
+     * @param  model  button model
+     */
+    public void setAcceptFITSTableModel( ButtonModel model )
+    {
+        acceptFITSTableModel = model;
     }
 
     /**
@@ -159,8 +191,19 @@ public class SplatPlastic
      *
      * @return  button model
      */
-    public ButtonModel getAcceptFITSModel()
+    public ButtonModel getAcceptFITSLineModel()
     {
-        return acceptFITSModel;
+        return acceptFITSLineModel;
+    }
+
+    /**
+     * Returns the button model which determines whether incoming messages
+     * requesting load of a FITS table will be acted on or ignored.
+     *
+     * @return  button model
+     */
+    public ButtonModel getAcceptFITSTableModel()
+    {
+        return acceptFITSTableModel;
     }
 }
