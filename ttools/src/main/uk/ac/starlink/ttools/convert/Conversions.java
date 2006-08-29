@@ -71,7 +71,7 @@ public class Conversions {
                  * Also trim it for good measure. */
                 units = unquote( units.trim() ).trim();
                 if ( ISO8601_UNIT_PATTERN.matcher( units ).matches() ) {
-                    return new Iso8601ToJulian( info );
+                    return new Iso8601ToDecimalYear( info );
                 }
                 else if ( DMS_UNIT_PATTERN.matcher( units ).matches() ) {
                     return new SexagesimalToDegrees( info, false );
@@ -85,7 +85,7 @@ public class Conversions {
             if ( ucd != null && ucd.trim().length() > 0 ) {
                 ucd = ucd.trim();
                 if ( ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
-                    return new Iso8601ToJulian( info );
+                    return new Iso8601ToDecimalYear( info );
                 }
                 else if ( DMS_UCD_PATTERN.matcher( ucd ).matches() ) {
                     return new SexagesimalToDegrees( info, false );
