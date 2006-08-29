@@ -46,6 +46,12 @@ import uk.ac.starlink.pal.Pal;
  *     years AD represented by the date.  Sometimes (but not here)
  *     represented by prefixing a 'B'.
  *     </p></dd>
+ * <dt>Decimal Year</dt>
+ * <dd><p>Fractional number of years AD represented by the date.
+ *     2000.0, or equivalently 1999.99recurring, is midnight at the start
+ *     of the first of January 2000.  Because of leap years, the size of
+ *     a unit depends on what year it is in.
+ *     </p></dd>
  * </dl>
  *
  * <p>Therefore midday on the 25th of October 2004 is 
@@ -208,6 +214,27 @@ public class Times {
     }
 
     /**
+     * Converts a Decimal Year to a Modified Julian Date.
+     * 
+     * @example   <code>decYearToMjd(2000.0) = 51544.0
+     *
+     * @param    decYear  decimal year
+     * @return   modified Julian Date
+     */
+    public static double decYearToMjd( double decYear ) {
+        int year = (int) Math.floor( decYear );
+        double frac = decYear - year;
+        Calendar cal = getKit().calendar_;
+        cal.clear();
+        cal.set( Calendar.YEAR, year );
+        long y0 = cal.getTimeInMillis();
+        cal.set( Calendar.YEAR, year + 1 );
+        long y1 = cal.getTimeInMillis();
+        long t = y0 + (long) Math.round( frac * ( y1 - y0 ) );
+        return unixMillisToMjd( t );
+    }
+
+    /**
      * Converts a Modified Julian Date value to an ISO 8601-format date-time
      * string.  The output format is <code>yyyy-mm-ddThh:mm:ss</code>.
      *
@@ -244,6 +271,28 @@ public class Times {
      */
     public static String mjdToTime( double mjd ) {
         return formatMjd( mjd, getKit().isoTimeFormat_ );
+    }
+
+    /**
+     * Converts a Modified Julian Date to Decimal Year.
+     *
+     * @example  <code>mjdToDecYear(0.0) = 1858.87671</code>
+     *
+     * @param   mjd  modified Julian Date
+     * @return  decimal year
+     */
+    public static double mjdToDecYear( double mjd ) {
+        Calendar cal = getKit().calendar_;
+        cal.clear();
+        long t = mjdToUnixMillis( mjd );
+        cal.setTimeInMillis( t );
+        int year = cal.get( Calendar.YEAR );
+        cal.clear();
+        cal.set( Calendar.YEAR, year );
+        long y0 = cal.getTimeInMillis();
+        cal.set( Calendar.YEAR, year + 1 );
+        long y1 = cal.getTimeInMillis();
+        return (double) year + (double) ( t - y0 ) / (double) ( y1 - y0 );
     }
 
     /**
