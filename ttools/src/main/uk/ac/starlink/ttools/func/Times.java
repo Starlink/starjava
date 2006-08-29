@@ -216,7 +216,7 @@ public class Times {
     /**
      * Converts a Decimal Year to a Modified Julian Date.
      * 
-     * @example   <code>decYearToMjd(2000.0) = 51544.0
+     * @example   <code>decYearToMjd(2000.0) = 51544.0</code>
      *
      * @param    decYear  decimal year
      * @return   modified Julian Date
