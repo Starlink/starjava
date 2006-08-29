@@ -4,6 +4,11 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLStreamHandlerFactory;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +44,9 @@ import java.util.regex.Pattern;
  * @author   Norman Gray (Starlink)
  */
 public class URLUtils {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.util" );
 
     /* Set up a URL representing the default context (the current directory). */
     private static URL defaultContext;
@@ -298,6 +306,57 @@ public class URLUtils {
         }
         else {
             return false;
+        }
+    }
+
+    /**
+     * Attempts to install additional URL protocol handlers suitable 
+     * for astronomy applications.  Currently installs handlers which 
+     * can supply MySpace connections using either "<code>ivo:</code>" or 
+     * "<code>myspace:</code>" protocols.
+     */
+    public static void installCustomHandlers() {
+
+        /* See if the system property which customises URL protocol handling
+         * has been set.  If so, don't attempt to mess about further with
+         * the configuration. */
+        String pkgProp = "java.protocol.handler.pkgs";
+        boolean hasPkgProp;
+        try {
+            hasPkgProp = System.getProperty( pkgProp, "" ).length() > 0;
+        }
+        catch ( SecurityException e ) {
+            hasPkgProp = false;
+        }
+        if ( hasPkgProp ) {
+            logger_.config( pkgProp + " is set - don't further configure " 
+                          + "URL protocol handlers" );
+            return;
+        }
+
+        /* Set up a handler factory which deals with myspace.  This is
+         * equivalent to setting the java.protocol.handler.pkgs system
+         * property to "uk.ac.starlink.astrogrid.protocols", but the 
+         * latter can only be done before starting up the JVM. */
+        Map handlerMap = new HashMap();
+        String[] protos = new String[] { "ivo", "myspace", };
+        for ( int i = 0; i < protos.length; i++ ) {
+            String proto = protos[ i ];
+            handlerMap.put( proto,
+                            "uk.ac.starlink.astrogrid.protocols."
+                            + proto + ".Handler" );
+        }
+        URLStreamHandlerFactory fact = 
+            new CustomURLStreamHandlerFactory( handlerMap );
+
+        /* Attempt to install the custom handler. */
+        try {
+            URL.setURLStreamHandlerFactory( fact );
+            logger_.config( "Set up URL custom protocol handlers " +
+                            Arrays.asList( protos ) );
+        }
+        catch ( Throwable e ) {
+            logger_.warning( "Can't set custom URL protocol handlers: " + e );
         }
     }
 }
