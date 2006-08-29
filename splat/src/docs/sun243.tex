@@ -26,11 +26,11 @@ Research Councils \& \\
 2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.12}
+\newcommand{\stardocnumber}    {243.13}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {17 Feburary 2006}
+\newcommand{\stardocdate}      {29 August 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.5-0}
+\newcommand{\stardocversion}   {3.5-1}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -723,7 +723,7 @@ in the following figure:
   (unless you untick the \labelitem{Display} control). You may open files
   that are already in the global list, this just creates a new entry.
   Normally the type of a spectrum is determined using the file extension,
-  but using this dialogue you can select a type.
+  but using this dialogue you can select a type, or ask that it be guessed.
 
   \item[\inline{location}] Download and display a spectrum from the Internet.
   If you have a URL for a spectrum to view then use this simple dialog.
@@ -737,6 +737,9 @@ in the following figure:
   it also allows you to look inside a file for any displayable components.
   This is useful for FITS files that contain extensions (spectral or table
   extensions can be opened), or HDS files that contain more than one NDF.
+  The file type guessing used here is the same as that used when you set
+  a type of \hitext{guess} (either on the command-line or by using the
+  open file dialogue).
 
   \clippedmainfigure{treeview}
 
@@ -2820,8 +2823,13 @@ the extension \hitext{.sdf}, FITS files usually have one of the extensions
 and NDX format spectra, when stored on disk, will have extension
 \hitext{.xml}. However, you can choose a specific format when opening a file
 using the \submenuitem{File}{Open} dialogue, so you can ask that a TEXT file
-is opened as a table, this allows you to select the columns. Alternatively you
-can specify a type for all the spectra opened on the command-line using the
+is opened as a table, this allows you to select the columns. There is also a
+special type known as \hitext{guess}. When you choose that attempts to open
+the spectrum as different types are made until one succeeds, or the
+possibilities are exhausted.
+
+You can specify a type for all the spectra opened on the command-line using
+the
 \verb|--type| argument. Valid values for \verb|--type| are:
 \begin{quote}
 \begin{verbatim}
@@ -2831,6 +2839,7 @@ can specify a type for all the spectra opened on the command-line using the
   hdx
   table
   line ids
+  guess
 \end{verbatim}
 \end{quote}
 You free to truncate these values as long as they remain unique (so
@@ -2886,7 +2895,8 @@ number in square brackets).
 
 An alternative to specifying the component information is to use the component
 browser window \inline{browse}, to see the contents of FITS and NDF files and
-choose the component to display directly.
+choose the component to display directly. This uses the same techniques as the
+special \hitext{guess} type.
 
 Internally all these formats are stored as double precision
 coordinates and data values. \SPLAT\ only requires that
@@ -3096,10 +3106,19 @@ research, contact Petr for further details).
 
 \section{Changes}
 
-\subsection{This release (3.4)}
+\subsection{This release (3.4-1)}
 
-Starlink SPLAT is now a tool for the Virtual Observatory and has been
-renamed to \SPLAT.
+The use of file type \hitext{guessing} has been extended beyond the 
+\submenuitem{File}{Browse} dialogue. This can now be selected from the
+command-line, or from the \submenuitem{File}{Open} dialogue. Guessing
+requires that the spectrum be opened for each candidate type, so is
+intrinsically slower than file extension based typing. Remote resources
+will, in general, be opened using guessing.
+
+\subsection{Release (3.4)}
+
+Starlink SPLAT is now a tool for the Virtual Observatory and has been renamed
+to \SPLAT.
 
 In this release Starlink \SPLAT\ has been enhanced to access prototype
 spectral data servers (so called SSAP servers) that are being registered on

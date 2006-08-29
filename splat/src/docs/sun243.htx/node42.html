@@ -20,26 +20,26 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html527"
+<A NAME="tex2html528"
  HREF="node43.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html525"
+<A NAME="tex2html526"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html519"
+<A NAME="tex2html520"
  HREF="node41.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html528"
+<B> Next:</B> <A NAME="tex2html529"
  HREF="node43.html">Handling 2 and 3D data</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html526"
+<B>Up:</B> <A NAME="tex2html527"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html520"
+<B> Previous:</B> <A NAME="tex2html521"
  HREF="node41.html">Region statistics window</A>
 <BR> <HR> <P>
 
@@ -67,8 +67,14 @@ the extension <TT>.sdf</TT>, FITS files usually have one of the extensions
 and NDX format spectra, when stored on disk, will have extension
 <TT>.xml</TT>. However, you can choose a specific format when opening a file
 using the <B>File-&gt;Open</B> dialogue, so you can ask that a TEXT file
-is opened as a table, this allows you to select the columns. Alternatively you
-can specify a type for all the spectra opened on the command-line using the
+is opened as a table, this allows you to select the columns. There is also a
+special type known as <TT>guess</TT>. When you choose that attempts to open
+the spectrum as different types are made until one succeeds, or the
+possibilities are exhausted.
+
+<P>
+You can specify a type for all the spectra opened on the command-line using
+the
 <code>--type</code> argument. Valid values for <code>--type</code> are:
 <BLOCKQUOTE>
 <PRE>
@@ -78,6 +84,7 @@ can specify a type for all the spectra opened on the command-line using the
   hdx
   table
   line ids
+  guess
 </PRE>
 </BLOCKQUOTE>
 You free to truncate these values as long as they remain unique (so
@@ -149,8 +156,9 @@ An alternative to specifying the component information is to use the component
 browser window <IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="browse.gif"
- ALT="2910">, to see the contents of FITS and NDF files and
-choose the component to display directly.
+ ALT="2915">, to see the contents of FITS and NDF files and
+choose the component to display directly. This uses the same techniques as the
+special <TT>guess</TT> type.
 
 <P>
 Internally all these formats are stored as double precision
@@ -164,37 +172,37 @@ when performing any analyses.
 <A NAME="CHILD_LINKS"></A>
 
 <UL>
-<LI><A NAME="tex2html529"
+<LI><A NAME="tex2html530"
  HREF="node43.html">Handling 2 and 3D data</A>
 </UL>
 <!--End of Table of Child-Links-->
 <BR> <HR>
-<A NAME="tex2html527"
+<A NAME="tex2html528"
  HREF="node43.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html525"
+<A NAME="tex2html526"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html519"
+<A NAME="tex2html520"
  HREF="node41.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html528"
+<B> Next:</B> <A NAME="tex2html529"
  HREF="node43.html">Handling 2 and 3D data</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html526"
+<B>Up:</B> <A NAME="tex2html527"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html520"
+<B> Previous:</B> <A NAME="tex2html521"
  HREF="node41.html">Region statistics window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>17 Feburary 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>29 August 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 
