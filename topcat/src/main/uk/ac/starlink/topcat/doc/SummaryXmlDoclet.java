@@ -87,17 +87,27 @@ public class SummaryXmlDoclet extends XmlDoclet {
     }
 
     protected boolean process() throws IOException {
-        out( "<dl>" );
+        if ( headOnly_ ) {
+            out( "<dl>" );
+        }
         boolean ret = super.process();
-        out( "</dl>" );
+        if ( headOnly_ ) {
+            out( "</dl>" );
+        }
         flush();
         return ret;
     }
 
     protected void startClass( ClassDoc clazz ) throws IOException {
         discardOutput_ = ! useClass( clazz );
-        out( "<dt>" + clazz.name() + "</dt>" );
-        out( "<dd>" );
+        if ( headOnly_ ) {
+            out( "<dt>" + clazz.name() + "</dt>" );
+            out( "<dd>" );
+        }
+        else {
+            out( "<subsubsect id=\"" + clazz.name() + "\">" );
+            out( "<subhead><title>" + clazz.name() + "</title></subhead>" );
+        }
         String comment = clazz.commentText();
         if ( comment != null ) {
             out( doctorText( comment ) );
@@ -115,7 +125,12 @@ public class SummaryXmlDoclet extends XmlDoclet {
             discardOutput_ = false;
             skipMembers_ = false;
         }
-        out( "</dd>" );
+        if ( headOnly_ ) {
+            out( "</dd>" );
+        }
+        else {
+            out( "</subsubsect>" );
+        }
         discardOutput_ = false;
     }
 

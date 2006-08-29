@@ -8456,7 +8456,7 @@ you expected.  Sorry.
 
 </sect>
 
-<sect>
+<sect id="funcs">
 <subhead><title>Algebraic Functions</title></subhead>
 
 <p>This appendix lists the functions which can be used in algebraic
@@ -8482,10 +8482,9 @@ an algebraic expression in TOPCAT.  They will typically be used for
 defining new synthetic columns or algebraically-defined row subsets.
 More complete documentation of them is available from within TOPCAT
 in the <ref id="MethodWindow">Available Functions Window</ref>.
+</p>
 
 &general.runtime.method.docs;
-
-</p>
 
 </subsect>
 
@@ -8501,10 +8500,9 @@ to give an indication of what happened (or didn't happen, or should
 have happened).
 More complete documentation of them is available from within TOPCAT
 in the <ref id="MethodWindow">Available Functions Window</ref>.
+</p>
 
 &activation.runtime.method.docs;
-
-</p>
 
 </subsect>
 
@@ -9566,6 +9564,8 @@ introduced since the last version:
         Decimal Year rather than Julian Epoch.  The numerical values are quite
         close, but Decimal Year is probably more what you'd intuitively 
         expect.</li>
+    <li>Improved listing for functions in section <ref id="funcs"/> 
+        (subsection for each function class).</li>
     </ul>
     </p></dd>
 
