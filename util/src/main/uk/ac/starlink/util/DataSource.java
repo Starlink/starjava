@@ -610,8 +610,13 @@ public abstract class DataSource {
             return new URLDataSource( url );
         }
         catch ( MalformedURLException e ) {
-            throw new FileNotFoundException( "Not extant file or valid URL: "
-                                           + name );
+            FileNotFoundException e2 =
+                new FileNotFoundException( "Not extant file or valid URL: "
+                                         + name );
+            if ( name.matches( "^[a-zA-Z0-9_\\-]+:.+" ) ) {
+                e2.initCause( e );
+            }
+            throw e2;
         }
     }
 
