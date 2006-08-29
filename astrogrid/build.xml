@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="AstroGrid"/>
   <property name="name" value="astrogrid"/>
-  <property name="version" value="0.1-1"/>
+  <property name="version" value="0.2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.astrogrid"/>
