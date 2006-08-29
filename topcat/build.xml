@@ -649,6 +649,7 @@
          <extension name="CONNECT" href="connect.jnlp"/>
          <extension name="ASTROGRID" href="astrogrid.jnlp"/>
          <extension name="SRB" href="srb.jnlp"/>
+         <extension name="PLASTIC" href="plastic.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
