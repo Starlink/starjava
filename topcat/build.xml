@@ -608,11 +608,11 @@
     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
           codebase="${webstart.codebase}">
       <information>
-         <title>TOPCAT - Tool for OPerations on Catalogues And Tables</title>
-         <vendor>Starlink UK</vendor>
+         <title>TOPCAT</title>
+         <vendor>Mark Taylor, Bristol University</vendor>
          <homepage href="${home.page}"/>
-         <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink TOPCAT - Webstart edition"</description>
+         <icon href="TopCat2.gif"/>
+         <description>"TOPCAT - Tool for OPerations on Catalogues And Tables"</description>
          <offline_allowed/>
        </information>
        <security>
