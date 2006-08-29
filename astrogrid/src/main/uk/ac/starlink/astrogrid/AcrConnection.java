@@ -72,8 +72,13 @@ public class AcrConnection extends Connection {
     }
 
     public boolean isConnected() {
-        /* Hmm, should perhaps do something smarter than this. */
-        return true;
+        try {
+            Object isConn = execute( "astrogrid.community.isLoggedIn", null );
+            return Boolean.TRUE.equals( isConn );
+        }
+        catch ( Throwable e ) {
+            return false;
+        }
     }
 
     public Branch getRoot() {
