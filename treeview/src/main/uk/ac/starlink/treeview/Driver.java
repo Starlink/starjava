@@ -39,6 +39,7 @@ import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.fits.FitsNdxHandler;
 import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.URLUtils;
 
 public class Driver {
     public final static String CMDNAME_PROPERTY =
@@ -55,6 +56,7 @@ public class Driver {
         /* Ensure that global preferences are installed. */
         Loader.loadProperties();
         Loader.tweakGuiForMac();
+        URLUtils.installCustomHandlers();
 
         /* Ensure we have best guesses for various properties. */
         guessProperties();

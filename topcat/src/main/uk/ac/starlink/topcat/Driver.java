@@ -33,6 +33,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.VOElementFactory;
 
 /**
@@ -308,6 +309,9 @@ public class Driver {
         /* Configure factory. */
         tabfact.getJDBCHandler()
                .setAuthenticator( new TextModelsAuthenticator() );
+
+        /* Install custom URL handlers. */
+        URLUtils.installCustomHandlers();
 
         /* Assemble pairs of (tables name, handler name) to be loaded. */
         List names = new ArrayList();

@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Top-level class for invoking tasks in the STILTS package.
@@ -30,6 +31,7 @@ public class Stilts {
      */
     public static void main( String[] args ) {
         Loader.loadProperties();
+        URLUtils.installCustomHandlers();
         new LineInvoker( "stilts", taskFactory_ ).invoke( args );
     }
 
