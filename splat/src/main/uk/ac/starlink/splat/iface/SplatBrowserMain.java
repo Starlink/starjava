@@ -15,6 +15,8 @@ import java.util.prefs.Preferences;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
+import uk.ac.starlink.splat.data.NameParser;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.ProxySetup;
@@ -112,6 +114,13 @@ public class SplatBrowserMain
 
             //  Everything else should be spectra.
             spectraArgs = parser.getRemainingArgs();
+
+            //  If a type hasn't been given then parse the first name and see
+            //  if it follows the usual extension type conventions, otherwise
+            //  switch on type guessing.
+            if ( defaultType == null && spectraArgs.length > 0 ) {
+                defaultType = guessType( spectraArgs[0] );
+            }
         }
 
         //  Need final versions for use in thread.
@@ -198,6 +207,49 @@ public class SplatBrowserMain
  
         //  Load the proxy server configuration, if set.
         ProxySetup.getInstance().restore();
+    }
+
+    /** 
+     * Guess the type of a spectrum. Does this by seeing if the default rules
+     * work, if not returns guess, otherwise returns null.
+     */
+    protected String guessType( String specspec )
+    {
+        String result = null;
+        try {
+            NameParser namer = new NameParser( specspec );
+            System.out.println( "Namer says:" + namer.getFormat() + ", " +
+                                namer.getType() + ", " + namer.getName() );
+            if ( "UNKNOWN".equals( namer.getFormat() ) ) {
+                result = "guess";
+            }
+            else if ( "NDF".equals( namer.getFormat() ) ) {
+                //  Files without extensions default to this. 
+                if ( namer.isRemote() ) {
+                    //  Remote file. If no extension then the best we can do
+                    //  is guess. Remote NDFs should have their file extension
+                    //  in the URL. We don't deal with HDS paths for remote
+                    //  NDFs.
+                    String ext = Utilities.getExtension( specspec );
+                    if ( ! ".sdf".equals( ext ) ) {
+                        result = "guess";
+                    }
+                }
+                else {
+                    //  If the file is local and doesn't exist, switch to
+                    //  guessing.
+                    if ( !namer.exists() ) {
+                        result = "guess";
+                    }
+                }
+            }
+        }
+        catch (SplatException e) {
+
+            //  Standard naming techniques failed, must use guessing.
+            result = "guess";
+        }
+        return result;
     }
 
     /**
