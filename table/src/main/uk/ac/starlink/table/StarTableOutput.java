@@ -9,6 +9,9 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -264,34 +267,49 @@ public class StarTableOutput {
      *          can be opened
      */
     public OutputStream getOutputStream( String location ) throws IOException {
+
+        /* Single minus sign indicates standard output. */
         if ( location.equals( "-" ) ) {
             return System.out;
         }
-        else {
-            File file = new File( location );
 
-            /* If the file exists, attempt to delete it before attempting
-             * to write to it.  This is potentially important since we 
-             * don't want to scribble all over a file which may already 
-             * be mapped - quite likely if we're overwriting mapped a 
-             * FITS file.
-             * On POSIX deleting (unlinking) a mapped file will keep its data
-             * safe until it's unmapped.  On Windows, deleting it will 
-             * fail - in this case we log a warning. */
-            if ( file.exists() ) {
-                if ( file.delete() ) {
-                    logger.info( "Deleting file \"" + location + 
-                                 "\" prior to overwriting" );
-                }
-                else {
-                    logger.warning( "Failed to delete \"" + location +
-                                           "\" prior to overwriting" );
-                }
-            }
-
-            /* Return a new stream which will write to the file. */
-            return new FileOutputStream( file );
+        /* Try to interpret it as a URL. */
+        try {
+            URL url = new URL( location );
+            URLConnection uconn = url.openConnection();
+            uconn.setDoInput( false );
+            uconn.setDoOutput( true );
+            uconn.connect();
+            return uconn.getOutputStream();
         }
+        catch ( MalformedURLException e ) {
+            // nope.
+        }
+
+        /* Otherwise, assume it's a filename. */
+        File file = new File( location );
+
+        /* If the file exists, attempt to delete it before attempting
+         * to write to it.  This is potentially important since we 
+         * don't want to scribble all over a file which may already 
+         * be mapped - quite likely if we're overwriting mapped a 
+         * FITS file.
+         * On POSIX deleting (unlinking) a mapped file will keep its data
+         * safe until it's unmapped.  On Windows, deleting it will 
+         * fail - in this case we log a warning. */
+        if ( file.exists() ) {
+            if ( file.delete() ) {
+                logger.info( "Deleting file \"" + location + 
+                             "\" prior to overwriting" );
+            }
+            else {
+                logger.warning( "Failed to delete \"" + location +
+                                       "\" prior to overwriting" );
+            }
+        }
+
+        /* Return a new stream which will write to the file. */
+        return new FileOutputStream( file );
     }
 
     /**
