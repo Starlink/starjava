@@ -177,4 +177,12 @@ public class NameParser
         }
         return pathParser.type();
     }
+
+    /**
+     *  Does the backing file exist?
+     */
+    public boolean exists()
+    {
+        return pathParser.exists();
+    }
 }
