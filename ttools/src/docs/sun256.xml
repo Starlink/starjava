@@ -3730,6 +3730,14 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
+        URLs now provided.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>

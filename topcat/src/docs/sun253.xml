@@ -9555,6 +9555,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
+        URLs now provided.</li>
     <li>Fixed bug in coordinate conversion that caused bad behaviour in the
         presence of malformed input coords.</li>
     <li>Fixed bug with plotting very large or very small axis labels in
