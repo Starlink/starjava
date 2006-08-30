@@ -898,18 +898,18 @@ These are often, but not always, filenames.  The possibilities are these:
     to them as well.  Some non-standard URL protocols are supported 
     as well as the usual ones.  The list is:
     <dl>
-    <dt><code>http</code></dt>
+    <dt><code>http:</code></dt>
     <dd><p>Read from HTTP resources.</p></dd>
-    <dt><code>ftp</code></dt>
+    <dt><code>ftp:</code></dt>
     <dd><p>Read from anonymous FTP resources.</p></dd>
-    <dt><code>file</code></dt>
+    <dt><code>file:</code></dt>
     <dd><p>Read from local files; not particularly useful since you can
         do much the same using just the filename.</p></dd>
-    <dt><code>jar</code></dt>
+    <dt><code>jar:</code></dt>
     <dd><p>Specialised protocol for looking inside Java Archive files -
         see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
                     >JarURLConnection</webref> documentation.</p></dd>
-    <dt><code>myspace</code></dt>
+    <dt><code>myspace:</code></dt>
     <dd><p>Accesses files in the AstroGrid "MySpace" virtual file store.
         These URLs look something like 
         "<code>myspace:/survey/iras_psc.xml</code>",
@@ -920,7 +920,7 @@ These are often, but not always, filenames.  The possibilities are these:
         WorkBench or similar must be running; if you're not currently
         logged in a dialogue will pop up to ask you for name and 
         password.</p></dd>
-    <dt><code>ivo</code></dt>
+    <dt><code>ivo:</code></dt>
     <dd><p>Understands ivo-type URLs which signify files in the
         AstroGrid "MySpace" virtual file store.  
         These URLs look something like
@@ -930,6 +930,10 @@ These are often, but not always, filenames.  The possibilities are these:
         WorkBench or similar must be running; if you're not currently
         logged in a dialogue will pop up to ask you for name and 
         password.</p></dd>
+    <dt><code>jdbc:</code></dt>
+    <dd><p>Used for communicating with SQL-compliant relational databases.
+        These are a bit different to normal URLs -
+        see section <ref id="jdbcConfig"/>.</p></dd>
     </dl>
     </p></dd>
 
