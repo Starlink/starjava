@@ -858,6 +858,99 @@ then you could avoid having to give the <code>-classpath</code> and
 
 
 <sect>
+<subhead><title>Table I/O</title></subhead>
+
+<p>Most of the tools in this package either read one or more tables as input, 
+or write one or more tables as output, or both.
+This section explains what kind of tables the tools can read and write,
+and how you tell them where to find the tables to operate on.
+</p>
+
+<p>In most cases input and output table specificcations are given
+by parameters with the following names (or similar ones):
+<dl>
+<dt><code>in</code></dt>
+<dd><p>Location of the input table</p></dd>
+<dt><code>ifmt</code></dt>
+<dd><p>Format of the input table</p></dd>
+<dt><code>out</code></dt>
+<dd><p>Location of the output table</p></dd>
+<dt><code>ofmt</code></dt>
+<dd><p>Format of the output table</p></dd>
+</dl>
+The values of these parameters are discussed in more detail below.
+</p>
+
+<subsect>
+<subhead><title>Table Locations</title></subhead>
+
+<p>The location of tables for input and output are usually given using
+the <code>in</code> and <code>out</code> parameters respectively.
+These are often, but not always, filenames.  The possibilities are these:
+<dl>
+<dt>Filename</dt>
+<dd><p>Very often, you will simply specify a filename as location, and
+    the tool will just read from/write to it in the usual way.
+    </p></dd>
+
+<dt>URL</dt>
+<dd><p>Tables can be read from URLs directly, and in some cases written
+    to them as well.  Some non-standard URL protocols are supported 
+    as well as the usual ones.  The list is:
+    <dl>
+    <dt><code>http</code></dt>
+    <dd><p>Read from HTTP resources.</p></dd>
+    <dt><code>ftp</code></dt>
+    <dd><p>Read from anonymous FTP resources.</p></dd>
+    <dt><code>file</code></dt>
+    <dd><p>Read from local files; not particularly useful since you can
+        do much the same using just the filename.</p></dd>
+    <dt><code>jar</code></dt>
+    <dd><p>Specialised protocol for looking inside Java Archive files -
+        see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
+                    >JarURLConnection</webref> documentation.</p></dd>
+    <dt><code>myspace</code></dt>
+    <dd><p>Accesses files in the AstroGrid "MySpace" virtual file store.
+        These URLs look something like 
+        "<code>myspace:/survey/iras_psc.xml</code>",
+        and can access files in the myspace are that the user is currently
+        logged into.
+        These URLs can be used for both input and output of tables.
+        To use them you must have an AstroGrid account and the AstroGrid
+        WorkBench or similar must be running; if you're not currently
+        logged in a dialogue will pop up to ask you for name and 
+        password.</p></dd>
+    <dt><code>ivo</code></dt>
+    <dd><p>Understands ivo-type URLs which signify files in the
+        AstroGrid "MySpace" virtual file store.  
+        These URLs look something like
+        "<code>ivo://uk.ac.le.star/filemanager#node-2583</code>".
+        These URLs can be used for both input and output of tables.
+        To use them you must have an AstroGrid account and the AstroGrid
+        WorkBench or similar must be running; if you're not currently
+        logged in a dialogue will pop up to ask you for name and 
+        password.</p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Minus sign ("<code>-</code>")</dt>
+<dd><p>The special location "-" (minus sign) indicates standard input 
+    (for reading) or standard output (for writing).
+    This allows you to use STILTS commands in a normal Unix pipeline.
+    </p></dd>
+</dl>
+</p>
+
+<p>In any of these cases, for input locations compression is taken care
+of automatically.  That means that you can give the filename or URL
+of a file which is compressed using <code>gzip</code>, <code>bzip2</code>
+or Unix <code>compress</code> and the program will uncompress it on the fly.
+</p>
+
+</subsect>
+
+
+<subsect>
 <subhead><title>Table Formats</title></subhead>
 
 <p>The generic table commands in STILTS 
@@ -893,7 +986,7 @@ future, and it is possible to install new ones at runtime - see
 the <docxref doc="sun252">STIL documentation</docxref> for details.
 </p>
 
-<subsect id="inFormats">
+<subsubsect id="inFormats">
 <subhead><title>Input Formats</title></subhead>
 
 <p>Some of the tools in this package ask you to specify the format
@@ -967,9 +1060,9 @@ and may lead to more helpful error messages in the case that the
 table can't be read correctly.
 </p>
 
-</subsect>
+</subsubsect>
 
-<subsect id="outFormats">
+<subsubsect id="outFormats">
 <subhead><title>Output Formats</title></subhead>
 
 <p>Some of the tools ask you to specify the format of output tables
@@ -1065,6 +1158,8 @@ For more details on these formats, see the descriptions in
 <p>In some cases the tools may guess what output format you want
 by looking at the extension of the output filename you have specified.
 </p>
+
+</subsubsect>
 
 </subsect>
 
