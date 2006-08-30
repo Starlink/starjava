@@ -243,6 +243,9 @@
     <!-- VO -->
     <pathelement location="${star.jar.dir}/vo/vo.jar"/>
 
+    <!-- PLASTIC -->
+    <pathelement location="${star.jar.dir}/plastic/plastic.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -272,6 +275,7 @@
     <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
     <pathelement location="${star.build.dir}/votable/lib/votable/votable.jar"/>
     <pathelement location="${star.build.dir}/vo/lib/vo/vo.jar"/>
+    <pathelement location="${star.build.dir}/plastic/lib/plastic/plastic.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -733,6 +737,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          <extension name="HELP" href="help.jnlp"/>
          <extension name="TABLE" href="table.jnlp"/>
          <extension name="VO" href="vo.jnlp"/>
+         <extension name="PLASTIC" href="plastic.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
