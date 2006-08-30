@@ -175,7 +175,7 @@
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}/"/>
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
@@ -611,7 +611,7 @@
          <title>TOPCAT</title>
          <vendor>Mark Taylor, Bristol University</vendor>
          <homepage href="${home.page}"/>
-         <icon href="TopCat2.gif"/>
+         <icon href="${home.page}TopCat2.gif"/>
          <description>"TOPCAT - Tool for OPerations on Catalogues And Tables"</description>
          <offline_allowed/>
        </information>
