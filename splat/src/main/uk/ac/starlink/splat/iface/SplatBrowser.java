@@ -972,6 +972,11 @@ public class SplatBrowser
         interopMenu.add( fitsTransmitter.createSendMenu() );
         interopMenu.add( votTransmitter.getBroadcastAction() );
         interopMenu.add( votTransmitter.createSendMenu() );
+
+        // Add help option.
+        interopMenu.addSeparator();
+        interopMenu.add( HelpFrame.getAction( "Help on interoperability",
+                                              "plastic" ) );
     } 
 
     /**
