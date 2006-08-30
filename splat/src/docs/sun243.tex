@@ -3073,6 +3073,97 @@ any of the three spectral line profiles supported by \SPLAT\ (Gaussian,
 Lorentz, Voigt). See the contents of this file for instructions on how to use
 it.
 
+\section{Tool interoperability using PLASTIC\xlabel{plastic}}
+
+\SPLAT\ can communicate with other desktop tools, for instance
+exchanging spectra with them, using a protocol called PLASTIC.
+These functions are controlled from the \menuitem{Interop} menu
+in the browser window, which looks like this:
+
+\mainfigure{interopmenu}
+
+\subheading{What is PLASTIC?}
+
+PLASTIC stands for the PLatform for AStronomical Tool InterConnection.
+It is a protocol which allows tools on the desktop to communicate
+with each other.  Briefly, the way it works is that applications
+can send messages to a central {\em hub process} which will
+then pass them on to other applications which can respond to them
+in some appropriate way.  
+The messages are things like ``load this spectrum''.
+Applications which currently talk PLASTIC include
+TOPCAT, GAIA and various tools from the AstroGrid project.
+
+You can find more information about how it works, what applications
+are compatible, and how it can be useful at the
+\htmladdnormallinkfoot{PLASTIC web site}{http://plastic.sourceforge.net/}.
+
+\subheading{How do I use PLASTIC with \SPLAT?}
+
+In order for PLASTIC communications to work, a PLASTIC hub must be
+running on your machine.  It is generally best to start this 
+outside of \SPLAT.  The recommended way to do this is
+currently to run the {\bf AstroGrid Workbench},
+which can be started using Java WebStart by following links on the
+\htmladdnormallinkfoot{AstroGrid web site}{http://software.astrogrid.org/}.
+It is possible however to start the hub using either the
+\menuitem{Start internal PLASTIC hub} or \menuitem{Start external PLASTIC hub}
+menu items.  The internal one will terminate when you exit \SPLAT,
+but the external one will continue running until it is explicitly stopped.
+
+If the hub is running when GAIA starts up, \SPLAT\ will connect to it
+(``register'') automatically.
+If you start the hub while \SPLAT\ is already running,
+you can connect to it by selecting the \menuitem{Register with PLASTIC}
+option from the \menuitem{Interop} menu.  When registered,
+\SPLAT\ will listen out for messages from other applications and act
+on them.  You will also be able to send messages to other applications.
+If you want to stop \SPLAT\ responding to any such messages,
+you can select \menuitem{Unregister with PLASTIC} from the same menu.
+
+The \menuitem{Show Registered Applications} menu item will display a
+little window that gives the names of applications currently registered.
+This will show you which other tools are in a position to send messages
+to or receive them from \SPLAT.
+
+\subheading{What PLASTIC facilities does \SPLAT\ support?}
+
+Currently, \SPLAT's PLASTIC interaction is confined to receiving
+spectra from, and sending spectra to, other applications.
+
+The \menuitem{Interop} menu has various \menuitem{Accept spectra as \ldots}
+checkboxes (some of these are set by default and some not).
+The ones which are set indicate that \SPLAT\ is listening out for
+messages from other applications which want to send data in that format.
+If another tool sends data in that format to \SPLAT\ or to all
+listening applications, then \SPLAT\ will attempt to load it as
+a spectrum and add it to the global list just as if you had 
+loaded it in the normal way.
+
+Unfortunately, there is no guarantee that data sent in this way by other
+tools actually represent a spectrum, so it is not always wise to 
+accept these things - for instance a VOTable being sent by another
+tool may represent a source catalogue rather than a spectrum,
+in which case attempting to display it as a spectrum wouldn't be very 
+useful.  These Load messages will normally arrive through the
+PLASTIC system only if you, the user, take some action to send them
+(e.g.\ click a ``Send table'' button in a different tool), so you
+shouldn't have to worry about receiving them from out of the blue, 
+but it is sometimes helpful to filter the ones which arrive
+using these checkboxes.
+
+You can also perform the opposite trick, take a spectrum which is
+displayed in \SPLAT\ and send it to one or all of the other tools
+currently registered with PLASTIC.  To do this select one of the
+\menuitem{Broadcast spectrum as \ldots} or \menuitem{Send spectrum as \ldots}
+items.  
+The Broadcast actions send the data to all listening tools.
+The Send actions send only to a single selected one; you choose it
+from the submenu to the right.  Only tools which know what to do
+with that kind of data will be listed; if none of the currently-registered
+tools is prepared to accept data in that format, the Send options
+will be unavailable.
+
 \section{Acknowledgements}
 
 \SPLAT\ is written in
