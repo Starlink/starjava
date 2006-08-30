@@ -648,6 +648,9 @@
       <xsl:attribute name="alt">
         <xsl:value-of select="$alt"/>
       </xsl:attribute>
+      <xsl:attribute name="align">
+        <xsl:text>middle</xsl:text>
+      </xsl:attribute>
       <xsl:if test="function-available('ImageIcon:getIconWidth')">
         <xsl:variable name="srcFile" select="File:new($BASEDIR,$src)"/>
         <xsl:variable name="srcLoc" select="string(java:toString($srcFile))"/>
