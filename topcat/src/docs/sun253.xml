@@ -668,6 +668,9 @@ whether they are currently visible is indicated by the (leftmost)
 </sect>
 
 <sect>
+<subhead><title>Table I/O</title></subhead>
+
+<subsect>
 <subhead><title>Table Formats</title></subhead>
 
 <p>TOPCAT supports a wide variety of tabular data formats.
@@ -697,7 +700,7 @@ and writing tables.  The two operations are separate, so not all the
 supported input formats have matching output formats and vice versa.
 </p>
 
-<subsect id="inFormats">
+<subsubsect id="inFormats">
 <subhead><title>Supported Input Formats</title></subhead>
 
 <p>Loading tables into TOPCAT is done either from the command line
@@ -720,7 +723,7 @@ a more detailed error message.
 
 <p>In either case, table locations may be given as filenames or
 as URLs, and any data compression (gzip, unix compress and bzip2)
-will be automatically detected and dealt with.
+will be automatically detected and dealt with - see <ref id="tableLocation"/>.
 </p>
 
 <p><strong>Note:</strong> in some earlier versions of TOPCAT, ASCII
@@ -732,7 +735,7 @@ ASCII table, for instance by typing "<code>topcat -f ascii table.txt</code>".
 
 <p>The following sections describe the table formats which TOPCAT can read.</p>
 
-<subsubsect>
+<subsubsubsect>
 <subhead><title>FITS</title></subhead>
 
 <p>FITS binary and ASCII table extensions can be read.
@@ -766,9 +769,9 @@ even in the absence of TOPCAT's <code>-disk</code> flag
 (<ref id="topcatArgs"/>).
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="inColfits">
+<subsubsubsect id="inColfits">
 <subhead><title>Column-oriented FITS</title></subhead>
 
 <p>As well as normal binary and ASCII FITS tables, STIL supports
@@ -802,9 +805,9 @@ metadata stored as a VOTable byte array in the primary HDU.
 uncompressed file in the file system (not, for instance, from a URL).
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="inVotable">
+<subsubsubsect id="inVotable">
 <subhead><title>VOTable</title></subhead>
 
 <p>VOTable is an XML-based format for tabular data endorsed by the
@@ -848,9 +851,9 @@ or "cats.xml#0", and the Galaxy Catalogue using the name
 "cats.xml#1".
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="inAscii">
+<subsubsubsect id="inAscii">
 <subhead><title>ASCII</title></subhead>
 
 <p>In many cases tables are stored in some sort of unstructured plain
@@ -966,9 +969,9 @@ You may find Perl or awk suitable languages for this sort of thing.
 you wish to load a table in <code>ascii</code> format.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="inIpac">
+<subsubsubsect id="inIpac">
 <subhead><title>IPAC</title></subhead>
 
 <p>CalTech's Infrared Processing and Analysis Center
@@ -994,9 +997,9 @@ things.  An example looks like this:
 </verbatim>
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="inCsv">
+<subsubsubsect id="inCsv">
 <subhead><title>Comma-Separated Values</title></subhead>
 
 <p>Comma-separated value ("CSV") format is a common semi-standard 
@@ -1036,9 +1039,9 @@ on which it was based was not obtained directly from Microsoft.
 you wish to load a table in <code>csv</code> format.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="inTst">
+<subsubsubsect id="inTst">
 <subhead><title>Tab-Separated Table</title></subhead>
 
 <p>Tab-Separated Table, or TST, is a text-based table format used
@@ -1082,10 +1085,10 @@ such as the "<code>#column-units:</code>" are not processed.
 ]]></verbatim>
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
 
-<subsubsect id="inSql">
+<subsubsubsect id="inSql">
 <subhead><title>SQL Database Queries</title></subhead>
 
 <p>With appropriate configuration, TOPCAT can be used to examine the
@@ -1124,9 +1127,9 @@ but be aware that such a query might be expensive on a large table.
 see <ref id="jdbcConfig"/>.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect>
+<subsubsubsect>
 <subhead><title>World Data Center</title></subhead>
 
 <p>Some support is provided for files produced by the
@@ -1152,12 +1155,12 @@ Support for WDC tables is experimental - it may not be very robust.
 you wish to load a table in <code>csv</code> format.
 </p>
 
+</subsubsubsect>
+
 </subsubsect>
 
-</subsect>
 
-
-<subsect id="outFormats">
+<subsubsect id="outFormats">
 <subhead><title>Supported Output Formats</title></subhead>
 
 <p>Writing out tables from TOPCAT is done 
@@ -1191,7 +1194,7 @@ If you want to write to a format which retains all metadata in a portable
 format, then one of the <ref id="outVotable"/> formats might be better.
 </p>
 
-<subsubsect id="outFits">
+<subsubsubsect id="outFits">
 <subhead><title>FITS</title></subhead>
 
 <p>When saving in FITS format a new file is written consisting of two HDUs
@@ -1238,9 +1241,9 @@ and not worry about which of these variants is being used - if
 <code>fits-plus</code> is being used you just get some hidden benefits.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="outColfits">
+<subsubsubsect id="outColfits">
 <subhead><title>Column-oriented FITS</title></subhead>
 
 <p>When saving in column-oriented FITS format a new file is written
@@ -1274,9 +1277,9 @@ there are two variants:
 </dl>
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="outVotable">
+<subsubsubsect id="outVotable">
 <subhead><title>VOTable</title></subhead>
 
 <p>When a table is saved to VOTable format, a document conforming to the
@@ -1317,9 +1320,9 @@ They can all be read by the
 <ref id="inVotable">VOTable input handler</ref>.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="outAscii">
+<subsubsubsect id="outAscii">
 <subhead><title>ASCII</title></subhead>
 
 <p>Tables can be written using a format which is compatible with
@@ -1344,10 +1347,10 @@ Here is an example of a short table written in this format:
 </verbatim>
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
 
-<subsubsect>
+<subsubsubsect>
 <subhead><title>Text</title></subhead>
 
 <p>Tables can be written to a simple text-based format which is
@@ -1369,9 +1372,9 @@ designed to be read by humans.  No reader exists for this format.
 </verbatim>
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="outCsv">
+<subsubsubsect id="outCsv">
 <subhead><title>Comma-Separated Values</title></subhead>
 
 <p>Tables can be written to the semi-standard comma-separated value (CSV) 
@@ -1395,9 +1398,9 @@ such as some spreadsheets or databases.
 
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="outTst">
+<subsubsubsect id="outTst">
 <subhead><title>Tab-Separated Table</title></subhead>
 
 <p>Tables can be written to TST format, which is described in more 
@@ -1405,9 +1408,9 @@ detail in <ref id="inTst"/>.  This can be useful for communicating
 with some other astronomical tools such as GAIA.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="outSql">
+<subsubsubsect id="outSql">
 <subhead><title>SQL Tables</title></subhead>
 
 <p>With appropriate configuration, TOPCAT can write out tables as
@@ -1437,9 +1440,9 @@ in putting it together.
 see <ref id="jdbcConfig"/>.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect>
+<subsubsubsect>
 <subhead><title>HTML</title></subhead>
 
 <p>A table can be written out as an HTML 3.2
@@ -1463,9 +1466,9 @@ suitable for use as a web page or insertion into one.
 </dl>
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect>
+<subsubsubsect>
 <subhead><title>LaTeX</title></subhead>
 
 <p>A table can be written out as a LaTeX <code>tabular</code> environment,
@@ -1493,9 +1496,9 @@ suitable for insertion into a document intended for publication.
 <p>Obviously, this isn't so suitable for very large tables.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="mirage">
+<subsubsubsect id="mirage">
 <subhead><title>Mirage Format</title></subhead>
 
 <p><webref url="http://www.bell-labs.com/project/mirage/index.html"
@@ -1530,11 +1533,11 @@ start up Mirage separately, and load the data in using the
 or closing its window will exit TOPCAT as well.
 </p>
 
+</subsubsubsect>
+
 </subsubsect>
 
-</subsect>
-
-<subsect id="customHandlers">
+<subsubsect id="customHandlers">
 <subhead><title>Custom I/O Formats</title></subhead>
 
 <p>It is in principle possible to configure TOPCAT to work with
@@ -1558,6 +1561,77 @@ table format in question.
 <p>Explaining how to write such handlers is beyond the scope of this
 document - see the user document and javadocs for 
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>.
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="tableLocation">
+<subhead><title>Table Locations</title></subhead>
+
+<p>In many cases loading and saving tables will be done using GUI
+dialogues such as the filestore 
+<ref id="FilestoreTableLoadDialog">load</ref> and 
+<ref id="FilestoreTableSaveDialog">save</ref> windows, where you 
+just need to click on a filename or directory to indicate the
+load/save location.  However in some cases, for instance
+specifying tables on the command line (<ref id="topcatArgs"/>) 
+or typing pathnames directly into the 
+<ref id="LoadQueryWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
+dialogue windows,
+you may want give the location of a table for input or output 
+using only a single string.
+</p>
+
+<p>Most of the time you will just want to type in a filename; either
+an absolute or relative pathname can be used.
+However, TOPCAT also supports direct use of URLs, including ones
+using some specialised protocols.  Here is the list of URL types
+allowed:
+<dl>
+    <dt><code>http:</code></dt>
+    <dd><p>Read from HTTP resources.</p></dd>
+    <dt><code>ftp:</code></dt>
+    <dd><p>Read from anonymous FTP resources.</p></dd>
+    <dt><code>file:</code></dt>
+    <dd><p>Read from local files; not particularly useful since you can
+        do much the same using just the filename.</p></dd>
+    <dt><code>jar:</code></dt>
+    <dd><p>Specialised protocol for looking inside Java Archive files -
+        see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
+                    >JarURLConnection</webref> documentation.</p></dd>
+    <dt><code>myspace:</code></dt>
+    <dd><p>Accesses files in the AstroGrid "MySpace" virtual file store.
+        These URLs look something like
+        "<code>myspace:/survey/iras_psc.xml</code>",
+        and can access files in the myspace are that the user is currently
+        logged into.
+        These URLs can be used for both input and output of tables.
+        To use them you must have an AstroGrid account and the AstroGrid
+        WorkBench or similar must be running; if you're not currently
+        logged in a dialogue will pop up to ask you for name and
+        password.</p></dd>
+    <dt><code>ivo:</code></dt>
+    <dd><p>Understands ivo-type URLs which signify files in the
+        AstroGrid "MySpace" virtual file store.
+        These URLs look something like
+        "<code>ivo://uk.ac.le.star/filemanager#node-2583</code>".
+        These URLs can be used for both input and output of tables.
+        To use them you must have an AstroGrid account and the AstroGrid
+        WorkBench or similar must be running; if you're not currently
+        logged in a dialogue will pop up to ask you for name and
+        password.</p></dd>
+    <dt><code>jdbc:</code></dt>
+    <dd><p>Used for communicating with SQL-compliant relational databases.
+        These are a bit different to normal URLs - see sections
+        <ref id="inSql"/> and <ref id="outSql"/>.</p></dd>
+</dl>
+</p>
+
+<p>As with the GUI-based load dialogues, data compression in any of the
+supported formats (gzip, bzip2, Unix compress) is detected and 
+dealt with automatically for input locations.
 </p>
 
 </subsect>
@@ -3002,6 +3076,8 @@ a given resource, so that for instance the location
 </verbatim>
 means the second extension in the multi-extension FITS file
 <code>/my/data/cat1.fits</code>.
+<ref id="tableLocation"/> describes in more detail the
+kinds of URLs which can be used here.
 </p>
 
 <p>Note that options to Java itself may also be specified on the command-line,
@@ -6548,6 +6624,7 @@ possibly followed by a '<code>#</code>' character and a
 'fragment identifier' to indicate where in the file or URL the table is
 located; the details of what such fragment identifiers mean can be
 found in the relevant subsection within <ref id="inFormats"/>.
+Allowed URL types are described in <ref id="tableLocation"/>.
 You should select the relevant table format from the 
 <label>Format</label> selector box - you can leave it on 
 <label>(auto)</label> for loading FITS tables or VOTables,
@@ -6984,7 +7061,9 @@ will be written.
 which are described in the following sections:
 <ul>
 <li>Type in the location directly in the 
-    <ref id="saveString" plaintextref="yes">Output Location field</ref></li>
+    <ref id="saveString" plaintextref="yes">Output Location field</ref>
+    as a filename or a URL as described in section 
+    <ref id="tableLocation"/></li>
 <li>Use the <label>Filestore Browser</label> button to get a
     <ref id="FilestoreTableSaveDialog" plaintextref="yes">browser</ref>
     that shows you local and remote files</li>
@@ -9554,7 +9633,8 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
-        URLs now provided.</li>
+        URLs now provided.  New <ref id="tableLocation"/> added to 
+        user document.</li>
     <li>Fixed bug in coordinate conversion that caused bad behaviour in the
         presence of malformed input coords.</li>
     <li>Fixed bug with plotting very large or very small axis labels in
@@ -9564,7 +9644,7 @@ introduced since the last version:
         Decimal Year rather than Julian Epoch.  The numerical values are quite
         close, but Decimal Year is probably more what you'd intuitively 
         expect.</li>
-    <li>Improved listing for functions in section <ref id="funcs"/> 
+    <li>Improved listing for functions in <ref id="funcs"/> 
         (subsection for each function class).</li>
     </ul>
     </p></dd>
