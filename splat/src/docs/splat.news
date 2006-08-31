@@ -1,6 +1,6 @@
 1 Starlink SPLAT news.
 
-   Release 3.4-2
+   Release 3.5-2
    =============
 
    The use of file type "guessing" has been extended beyond the File->Browse 
@@ -12,7 +12,7 @@
    SPLAT has also been extended so that it can now interoperate with 
    other VO-enabled desktop tools using the PLASTIC protocol.
 
-   Release 3.4
+   Release 3.5
    ===========
 
    In this release Starlink SPLAT has been enhanced to access prototype
