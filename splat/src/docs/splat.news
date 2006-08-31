@@ -1,6 +1,6 @@
 1 Starlink SPLAT news.
 
-   Release 3.4-1
+   Release 3.4-2
    =============
 
    The use of file type "guessing" has been extended beyond the File->Browse 
@@ -8,6 +8,9 @@
    File->Open dialogue. Guessing requires that the spectrum be opened for each
    candidate type, so is intrinsically slower than file extension based
    typing. Remote resources will, in general, be opened using guessing.
+
+   SPLAT has also been extended so that it can now interoperate with 
+   other VO-enabled desktop tools using the PLASTIC protocol.
 
    Release 3.4
    ===========

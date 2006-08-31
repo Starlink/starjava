@@ -26,11 +26,11 @@ Research Councils \& \\
 2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.13}
-\newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {29 August 2006}
+\newcommand{\stardocnumber}    {243.14}
+\newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
+\newcommand{\stardocdate}      {31 August 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.5-1}
+\newcommand{\stardocversion}   {3.5-2}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -387,6 +387,9 @@ spectra from a wide variety of sources can be easily compared and used to
 produce a spectral energy distribution.
 This is an important feature for supporting the heterogeneous data supplied
 in the Virtual Observatory.
+
+Finally, \SPLAT\ can interoperate with other VO enabled desktop tools using
+the PLASTIC protocol.
 
 % Not advertising this yet. Maybe big changes ahead.
 %Finally \SPLAT\ is extensible by the use of plugin code and
@@ -818,6 +821,11 @@ in the following figure:
  analysis later. Properties such as the line colours are restored, but any
  relationship between disk files and the spectra in the global list is
  lost. Data saved in a stack are compressed.
+
+ The \menuitem{Interop} menu contains items for communicating with other 
+ PLASTIC-aware desktop applications. This is described in the 
+ \htmlref{Tool interoperability using PLASTIC}{plastic} section
+ \latex{(\S\ref{plastic})}.
 
 \end{quote}
 
@@ -3073,7 +3081,7 @@ any of the three spectral line profiles supported by \SPLAT\ (Gaussian,
 Lorentz, Voigt). See the contents of this file for instructions on how to use
 it.
 
-\section{Tool interoperability using PLASTIC\xlabel{plastic}}
+\section{Tool interoperability using PLASTIC\label{plastic}\xlabel{plastic}}
 
 \SPLAT\ can communicate with other desktop tools, for instance
 exchanging spectra with them, using a protocol called PLASTIC.
@@ -3111,7 +3119,7 @@ It is possible however to start the hub using either the
 menu items.  The internal one will terminate when you exit \SPLAT,
 but the external one will continue running until it is explicitly stopped.
 
-If the hub is running when GAIA starts up, \SPLAT\ will connect to it
+If the hub is running when \SPLAT\ starts up, \SPLAT\ will connect to it
 (``register'') automatically.
 If you start the hub while \SPLAT\ is already running,
 you can connect to it by selecting the \menuitem{Register with PLASTIC}
@@ -3172,18 +3180,28 @@ will be unavailable.
 contains software from:
 \begin{itemize}
 \item The JDOM Project (\htmladdnormallink{http://www.jdom.org/}
-                        {http://www.jdom.org/}).
+                                          {http://www.jdom.org/}).
 \item The Apache Software Foundation
-      (\htmladdnormallink{http://www.apache.org/}{http://www.apache.org/} ).
+      (\htmladdnormallink{http://www.apache.org/}
+                         {http://www.apache.org/}).
 \item The DIVA project
-      (\htmladdnormallink{http://www.gigascale.org/diva/}
-                         {http://www.gigascale.org/diva/}).
+      (\htmladdnormallink{http://embedded.eecs.berkeley.edu/diva/}
+                         {http://embedded.eecs.berkeley.edu/diva/}).
 \item The COLT distribution
-      (\htmladdnormallink{http://http://hoschek.home.cern.ch/hoschek/colt/}
-                         {http://http://hoschek.home.cern.ch/hoschek/colt/}).
+      (\htmladdnormallink{http://hoschek.home.cern.ch/hoschek/colt/}
+                         {http://hoschek.home.cern.ch/hoschek/colt/}).
 \item JSci - A science API for Java
       (\htmladdnormallink{http://jsci.sourceforge.net/}
                          {http://jsci.sourceforge.net/}).
+\item TAMFITS - FITS data access library
+      (\htmladdnormallink{http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java}
+                         {http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java}).
+\item EPSGRAPHICS - Java EPS Graphics2D package (GPL version)
+      (\htmladdnormallink{http://www.jibble.org/epsgraphics}
+                         {http://www.jibble.org/epsgraphics}).
+\item JETTY - Java Web server
+      (\htmladdnormallink{http://jetty.mortbay.org/}
+                         {http://jetty.mortbay.org/}).
 \end{itemize}
 
 The BeanShell (remote control and scripting) is written by Pat
@@ -3194,6 +3212,15 @@ The flip toolbox and Hermitian interpolating polynomials are based on the
 similiar functionality in the SPEFO program, and were suggested by Petr Skoda
 (skoda@sunstel.asu.cas.cz, these features are particularly useful for hot star
 research, contact Petr for further details).
+
+This work has mainly been supported by the now closed
+\htmladdnormallink{Starlink Project}{http://www.starlink.ac.uk}, funded by
+the \htmladdnormallink{Particle Physics and Astronomy Research Council}{http://www.pparc.ac.uk}
+and more recently by the 
+\htmladdnormallink{Joint Astronomy Centre Hawaii}{http://www.jach.hawaii.edu}.
+Finally, many programmers working for Starlink have made contributions to the
+components used in \SPLAT, and many users have reported problems, as well as
+requests for useful features -- thanks to them all.
 
 \section{Changes}
 

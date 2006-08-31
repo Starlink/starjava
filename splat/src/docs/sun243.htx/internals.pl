@@ -30,6 +30,10 @@ $key = q/xref_plot_window/;
 $ref_files{$key} = "$dir".q|node9.html|; 
 $noresave{$key} = "$nosave";
 
+$key = q/xref_plastic/;
+$ref_files{$key} = "$dir".q|node45.html|; 
+$noresave{$key} = "$nosave";
+
 $key = q/xref_basic_control/;
 $ref_files{$key} = "$dir".q|node6.html|; 
 $noresave{$key} = "$nosave";
@@ -44,6 +48,10 @@ $noresave{$key} = "$nosave";
 
 $key = q/xref_displaying_more_than_one_spectrum/;
 $ref_files{$key} = "$dir".q|node5.html|; 
+$noresave{$key} = "$nosave";
+
+$key = q/plastic/;
+$ref_files{$key} = "$dir".q|node45.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_ssap_window/;

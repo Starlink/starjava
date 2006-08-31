@@ -47,6 +47,7 @@
    <tocitem target="flipper-window" text="Flip, shift or redshift window" />
    <tocitem target="stats-window" text="Region statistics window" />
    <tocitem target="data-formats" text="Supported data formats"/>
+   <tocitem target="plastic" text="Interoperability"/>
 
    <tocitem target="command-line" text="Command-line utilities" />
    <tocitem target="acknowledgements" text="Acknowledgements"/>
