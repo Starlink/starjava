@@ -643,7 +643,7 @@
        <resources>
          <j2se version="1.4+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
-         <extension name="TTOOLS" href="util.jnlp"/>
+         <extension name="TTOOLS" href="ttools.jnlp"/>
          <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
          <extension name="CONNECT" href="connect.jnlp"/>
