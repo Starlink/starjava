@@ -360,8 +360,10 @@ public class LineVisitor
      */
     public void clearStates()
     {
-        double[] coords = specData.getXData();
-        states = new Object[coords.length];
+        if ( specData != null ) {
+            double[] coords = specData.getXData();
+            states = new Object[coords.length];
+        }
     }
 
     //  Provide enabled so that children are affected.

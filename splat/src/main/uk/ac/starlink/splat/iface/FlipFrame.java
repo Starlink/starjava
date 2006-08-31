@@ -490,12 +490,18 @@ public class FlipFrame
         //  selected one.
         if ( spectrum == null ) {
             spectrum = getComparisonSpectrum();
+            if ( spectrum == null ) {
+                return;
+            }
         }
 
         //  Recover the stored properties, such as the original FrameSet
         //  (need this to avoid adding redundant frames and mappings) and
         //  Frame (defines coordinate system).
         StoredProperties storedProperties = getStoredProperties( spectrum );
+        if ( storedProperties == null ) {
+            return;
+        }
         FrameSet frameSet = storedProperties.getFrameSet();
         Frame frame = storedProperties.getFrame();
 
@@ -868,7 +874,12 @@ public class FlipFrame
     protected void closeWindowEvent()
     {
         globalList.removePlotListener( this );
-        flipTransform( 1.0, 0.0, null, redshiftBox.isSelected() );
+        try {
+            flipTransform( 1.0, 0.0, null, redshiftBox.isSelected() );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         visitor.clearStates();
         this.dispose();
     }
