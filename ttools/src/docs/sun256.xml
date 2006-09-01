@@ -3693,7 +3693,7 @@ but my thanks are especially due to the following:
         <ul>
         <li><code>stats</code> filter provides the same information as
             the old <code>stats</code> output mode, but allows much more
-            flexible use of the results.  It can also calculates many new
+            flexible use of the results.  It can also calculate many new
             quantities, including quantiles, skew and kurtosis.</li>
         <li><code>meta</code> filter provides the same information as
             the old <code>meta</code> output mode, but allows much more

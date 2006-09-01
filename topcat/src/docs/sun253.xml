@@ -9644,7 +9644,7 @@ introduced since the last version:
         Decimal Year rather than Julian Epoch.  The numerical values are quite
         close, but Decimal Year is probably more what you'd intuitively 
         expect.</li>
-    <li>Improved listing for functions in <ref id="funcs"/> 
+    <li>Improved listing for functions in <ref id="funcs"/> of user document
         (subsection for each function class).</li>
     </ul>
     </p></dd>
