@@ -204,10 +204,10 @@ public class PolyFitFrame
         layouter.add( degreeBox, false );
         layouter.add( Box.createHorizontalBox(), true );
         degreeBox.setToolTipText(
-           "Degree of the polynomial (1=constant, 2=straight-line etc.)" );
+           "Degree of the polynomial (0=constant, 1=straight-line etc.)" );
 
         //  Set the possible polynomial degrees.
-        for ( int i = 1; i < 15; i++ ) {
+        for ( int i = 0; i < 15; i++ ) {
             degreeBox.addItem( new Integer( i ) );
         }
 
@@ -465,7 +465,8 @@ public class PolyFitFrame
             fitter = new PolynomialFitter( getDegree(), newX, newY );
         }
         else {
-            fitter = new PolynomialFitter( getDegree(), newX, newY, weights );
+            fitter = new PolynomialFitter( getDegree(), newX, newY, 
+                                           weights );
         }
 
         //  Create the positions.
@@ -788,7 +789,7 @@ public class PolyFitFrame
         //  Remove any graphics and ranges.
         rangeList.deleteAllRanges();
 
-        //  Set polynomial degree to 1.
+        //  Set polynomial degree to 0.
         degreeBox.setSelectedIndex( 0 );
     }
 

@@ -23,7 +23,7 @@ public class PolynomialInterp
     /**
      * The degree of the polynomial being used. Quadratic by default.
      */
-    protected int degree = 3;
+    protected int degree = 4;
 
     /**
      * The PolynomialFitter. Does the real work.
@@ -119,7 +119,7 @@ public class PolynomialInterp
 
     public double interpolate( double xp )
     {
-        if ( x.length >= degree ) {
+        if ( x.length > degree ) {
             return fitter.evalYData( xp );
         }
         return super.interpolate( xp );
@@ -127,7 +127,7 @@ public class PolynomialInterp
 
     public double[] evalYDataArray( double[] xps )
     {
-        if ( x.length >= degree ) {
+        if ( x.length > degree ) {
             return fitter.evalYDataArray( xps );
         }
         return super.evalYDataArray( xps );

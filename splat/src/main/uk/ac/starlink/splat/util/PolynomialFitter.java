@@ -15,7 +15,7 @@ import cern.jet.stat.Gamma;
 import uk.ac.starlink.splat.data.AnalyticSpectrum;
 
 /**
- * PolynomialFitter fits a polynomial of given degree to an set of
+ * PolynomialFitter fits a polynomial of given degree to a set of
  * data points using a weighted least squares fit.
  *
  * To use this class create an instance with the data to be
@@ -42,7 +42,7 @@ public class PolynomialFitter
     /**
      * Fit a polynomial of a given degree to unweighted data points.
      *
-     * @param degree the degree of the polynomial (1 = constant, 2 =
+     * @param degree the degree of the polynomial (0 = constant, 1 =
      *               straight line etc.).
      * @param x array of positions along X. These are assumed precise.
      * @param y array of positions along Y. These are assumed precise.
@@ -54,13 +54,13 @@ public class PolynomialFitter
         for (int i = 0; i < x.length; i++ ) {
             w[i] = 1.0;
         }
-        doFit( degree, x, y, w );
+        doFit( degree + 1, x, y, w );
     }
 
     /**
      * Fit a polynomial of given degree to weighted data points.
      *
-     * @param degree the degree of the polynomial (1 = constant, 2 =
+     * @param degree the degree of the polynomial (0 = constant, 1 =
      *               straight line etc.).
      * @param x array of positions along X. These are assumed precise.
      * @param y array of positions along Y.
@@ -70,24 +70,25 @@ public class PolynomialFitter
      */
     public PolynomialFitter( int degree, double[] x, double[] y, double[] w )
     {
-        doFit( degree, x, y, w );
+        doFit( degree + 1, x, y, w );
     }
 
     /**
-     * Perform the fit of the data by a polynomial of given degree.
-     * The technique uses a QR decomposition of the normal equations.
+     * Perform the fit of the data by a polynomial of given number of terms
+     * (degree + 1). The technique uses a QR decomposition of the normal
+     * equations. 
      *
-     * @param degree the degree of the polynomial (1 = constant, 2 =
-     *               straight line etc.).
+     * @param nterms the number of possible terms in the polynomial 
+     *               (0 = constant, 1 = straight line etc.).
      * @param x array of positions along X. These are assumed precise.
      * @param y array of positions along Y.
      * @param w weights for Y values (0.0 for ignore).
      */
-    protected void doFit( int degree, double[] x, double[] y, double[] w )
+    protected void doFit( int nterms, double[] x, double[] y, double[] w )
     {
         int ndata = x.length;
-        double[] p = new double[degree];
-        DenseDoubleMatrix2D A = new DenseDoubleMatrix2D( ndata, degree );
+        double[] p = new double[nterms];
+        DenseDoubleMatrix2D A = new DenseDoubleMatrix2D( ndata, nterms );
         DenseDoubleMatrix2D B = new DenseDoubleMatrix2D( ndata, 1 );
 
         //  Create the design matrix A and the data matrix B (Ax=B).
@@ -95,12 +96,12 @@ public class PolynomialFitter
 
             //  Generate polynomial elements for this row.
             p[0] = 1.0;
-            for ( int k = 1; k < degree; k++ ) {
+            for ( int k = 1; k < nterms; k++ ) {
                 p[k] = p[k-1] * x[i];
             }
 
             //  Add weighted matrix terms for x.
-            for ( int j = 0; j < degree; j++ ) {
+            for ( int j = 0; j < nterms; j++ ) {
                 A.setQuick( i, j, p[j] * w[i] );
             }
 
@@ -122,8 +123,8 @@ public class PolynomialFitter
         DoubleMatrix2D X = qrd.solve( B );
 
         //  Extract required coefficients from X.
-        coeffs = new double[degree];
-        for ( int i = 0; i < degree; i++ ) {
+        coeffs = new double[nterms];
+        for ( int i = 0; i < nterms; i++ ) {
             coeffs[i] = X.get( i, 0 );
         }
 
@@ -230,7 +231,7 @@ public class PolynomialFitter
     {
         StringBuffer buffer = 
             new StringBuffer( "PolynomialFitter[" );
-        buffer.append ( "degree = " + coeffs.length );
+        buffer.append ( "degree = " + ( coeffs.length - 1 ) );
         buffer.append( ", coefficients = " + coeffs[1] );
         for ( int i = 1; i < coeffs.length; i++ ) {
             buffer.append( ", " + coeffs[i] );
