@@ -115,7 +115,7 @@ public abstract class Iso8601Converter implements ValueConverter {
      * Converts from this converter's public date value to 
      * Modified Julian Date.
      *
-     * @param    date value
+     * @param   number date value
      * @return   date as MJD
      */
     protected abstract double toMjd( double number );
