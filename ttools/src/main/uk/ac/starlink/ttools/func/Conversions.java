@@ -205,4 +205,29 @@ public class Conversions {
     public static double toDouble( double value ) {
         return value;
     }
+
+    /**
+     * Converts the integer argument to hexadecimal form.
+     *
+     * @example  <code>toHex(42) = "2a"</code>
+     *
+     * @param  value  integer value
+     * @return  hexadecimal representation of <code>value</code>
+     */
+    public static String toHex( long value ) {
+        return Long.toHexString( value );
+    }
+
+    /**
+     * Converts a string representing a hexadecimal number to its
+     * integer value.
+     *
+     * @example   <code>fromHex("2a") = 42</code>
+     *
+     * @param  hexVal  hexadecimal representation of value
+     * @return   integer value represented by <code>hexVal</code>
+     */
+    public static int fromHex( String hexVal ) {
+        return Integer.parseInt( hexVal, 16 );
+    }
 }

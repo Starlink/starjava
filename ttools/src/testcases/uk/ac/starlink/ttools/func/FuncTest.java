@@ -127,6 +127,9 @@ public class FuncTest extends TestCase {
         assertEquals( "101", Conversions.toString( (long) 101 ) );
         assertEquals( "101", Conversions.toString( (float) 101 ) );
         assertEquals( "101", Conversions.toString( (double) 101 ) );
+
+        assertEquals( "2a", Conversions.toHex( 42 ) );
+        assertEquals( 42, Conversions.fromHex( "2a" ) );
     }
 
     public void testFluxes() {
