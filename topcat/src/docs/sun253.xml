@@ -9640,6 +9640,8 @@ introduced since the last version:
     <li>Fixed bug with plotting very large or very small axis labels in
         3-d plots.</li>
     <li>Time conversion functions added to/from Decimal Year.</li>
+    <li>Added <code>toHex</code> and <code>fromHex</code> numeric
+        conversion functions.</li>
     <li>ISO-8601 column numerical values (e.g. in plots) are now by default
         Decimal Year rather than Julian Epoch.  The numerical values are quite
         close, but Decimal Year is probably more what you'd intuitively 

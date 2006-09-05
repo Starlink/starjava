@@ -3835,6 +3835,8 @@ but my thanks are especially due to the following:
     <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
         URLs now provided.</li>
     <li>Time conversion functions added to/from Decimal Year.</li>
+    <li>Added <code>toHex</code> and <code>fromHex</code> numeric 
+        conversion functions.</li>
     </ul>
     </p></dd>
 
