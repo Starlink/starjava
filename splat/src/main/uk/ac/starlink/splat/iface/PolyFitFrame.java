@@ -14,6 +14,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -70,6 +72,10 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 public class PolyFitFrame
     extends JFrame
 {
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( PolyFitFrame.class );
+
     /**
      * List of spectra that we have created.
      */
@@ -239,13 +245,67 @@ public class PolyFitFrame
         subtractGroup.add( subtractNothing );
         subtractGroup.add( subtractFromBelow );
         subtractGroup.add( subtractFromAbove );
-        subtractNothing.setSelected( true );
+
+        //  Retrieve user prefs for this group.
+        int which = prefs.getInt( "PolyFitFrame_subtract", 1 );
+        if ( which == 2 ) {
+            subtractFromBelow.setSelected( true );
+        }
+        else if ( which == 3 ) {
+            subtractFromAbove.setSelected( true );
+        }
+        else {
+            subtractNothing.setSelected( true );
+        }
+
+        //  Record any new preferences.
+        subtractNothing.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( subtractNothing.isSelected() ) {
+                        prefs.putInt( "PolyFitFrame_subtract", 1 );
+                    }
+                }
+            });
+
+        subtractFromBelow.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( subtractFromBelow.isSelected() ) {
+                        prefs.putInt( "PolyFitFrame_subtract", 2 );
+                    }
+                }
+            });
+
+        subtractFromAbove.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( subtractFromAbove.isSelected() ) {
+                        prefs.putInt( "PolyFitFrame_subtract", 3 );
+                    }
+                }
+            });
 
         //  Decide if we should generate and display a divided
         //  version of the spectrum.
         divideSpectrum.setToolTipText( "Divide spectrum by fit" );
         layouter.add( new JLabel( "Divide spectrum by fit:" ), false );
         layouter.add( divideSpectrum, true );
+
+        //  Retrieve user prefs.
+        boolean state = prefs.getBoolean( "PolyFitFrame_divide", false );
+        divideSpectrum.setSelected( state );
+        divideSpectrum.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = divideSpectrum.isSelected();
+                    prefs.putBoolean( "PolyFitFrame_divide", state );
+                }
+            });
 
         //  List of regions of spectrum to fit.
         rangeList = new XGraphicsRangesView( plot.getPlot().getPlot() );
