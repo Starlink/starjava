@@ -5,7 +5,6 @@
  *     05-SEP-2006 (Peter W. Draper):
  *       Original version.
  */
-
 package uk.ac.starlink.splat.util;
 
 /**
@@ -31,14 +30,24 @@ public class NumericIntegrator
 {
     private double[] xtab;
     private double[] ytab;
+    private double integral = Double.MIN_VALUE;
 
     /**
-     *  Create an instance.
+     *  Create an instance. Note use the {@link setData} method to define the
+     *  values to integrate and {@link getIntegral} to determine the value.
+     */
+    public NumericIntegrator()
+    {
+        //  Nothing to do.
+    }
+
+    /**
+     * Set the coordinates and data values to be used.
      *
      *  @param coords the array of coordinates, one for each data value.
      *  @param data the array of data values associated with each coordinate.
      */
-    public NumericIntegrator( double[] coords, double[] data )
+    public void setData( double[] coords, double[] data )
     {
         if ( coords.length != data.length ) {
             throw new
@@ -50,20 +59,28 @@ public class NumericIntegrator
         }
 
         //  Coordinates must be monotonic for this function.
-        for ( int i = 0; i < coords.length - 1; i++ ) {
-            if ( coords[ i ] >= coords[ i + 1 ] ) {
-                throw new RuntimeException( "Coordinates are not monotonic" );
+        //  ?? And increasing ??
+        if ( coords[0] < coords[1] ) {
+            for ( int i = 0; i < coords.length - 1; i++ ) {
+                if ( coords[ i ] >= coords[ i + 1 ] ) {
+                    throw new
+                        RuntimeException( "Coordinates are not monotonic" );
+                }
             }
         }
-
-        xtab = new double[coords.length + 1];
-        ytab = new double[coords.length + 1];
-
-        //  Offset arrays by 1 element for Fortran indexing.
-        for ( int i = 0; i < coords.length; i++ ) {
-            xtab[i+1] = coords[i];
-            ytab[i+1] = data[i];
+        else {
+            for ( int i = 0; i < coords.length - 1; i++ ) {
+                if ( coords[ i ] <= coords[ i + 1 ] ) {
+                    throw new
+                        RuntimeException( "Coordinates are not monotonic" );
+                }
+            }
         }
+        xtab = coords;
+        ytab = data;
+
+        //  Change of data so need a new value for integral.
+        integral = Double.MIN_VALUE;
     }
 
     /**
@@ -71,6 +88,16 @@ public class NumericIntegrator
      */
     public double getIntegral()
     {
+        //  Check that setData has been called.
+        if ( xtab == null || ytab == null ) { 
+            return 0.0;
+        }
+
+        //  If already calculated avoid doing this again.
+        if ( integral != Double.MIN_VALUE ) {
+            return integral;
+        }
+
         double a = 0.0;
         double b = 0.0;
         double ba = 0.0;
@@ -79,10 +106,6 @@ public class NumericIntegrator
         double ca = 0.0;
         double cb = 0.0;
         double cc = 0.0;
-        double fa = 0.0;
-        double fb = 0.0;
-        double result = 0.0;
-        double slope = 0.0;
         double syl2 = 0.0;
         double syl3 = 0.0;
         double syl = 0.0;
@@ -100,41 +123,29 @@ public class NumericIntegrator
         double x2 = 0.0;
         double x3 = 0.0;
         int i = 0;
-        int inlft = 0;
-        int inrt = 0;
         int istart = 0;
         int istop = 0;
         int ntab = 0;
 
-        ntab = xtab.length - 1;
-        result = 0.0;
-        a = xtab[1];
-        b = xtab[ntab];
+        ntab = xtab.length;
 
         //  Special case for 2 elements.
         if ( ntab == 2 ) {
-            slope = ( ytab[2] - ytab[1] ) / ( xtab[2] - xtab[1] );
-            fa = ytab[1] + slope * ( a - xtab[1] );
-            fb = ytab[2] + slope * ( b - xtab[2] );
-            result = 0.5 * ( fa + fb ) * ( b - a );
+            integral = 0.5 * ( ytab[0] + ytab[1] ) * ( xtab[1] - xtab[0] );
+
+            //  Correct for coordinates running backwards.
+            if ( xtab[0] > xtab[1] ) {
+                integral = -integral;
+            }
+            return integral;
         }
 
-        inlft = 1;   //  Lower index.
-        inrt = ntab; // Upper index.
+        integral = 0.0;
+        a = xtab[0];
+        b = xtab[ntab-1];
 
-        if ( inlft == 1 ) {
-            istart = 2;
-        }
-        else {
-            istart = inlft;
-        }
-
-        if ( inrt == ntab ) {
-            istop = ntab - 1;
-        }
-        else {
-            istop = inrt;
-        }
+        istart = 1;
+        istop = ntab - 1;
 
         total = 0.0;
 
@@ -194,11 +205,15 @@ public class NumericIntegrator
         syu2 = syu * syu;
         syu3 = syu2 * syu;
 
-        result = total + ca * ( syu3 - syl3 ) / 3.0 +
-                         cb * ( syu2 - syl2 ) / 2.0 +
-                         cc * ( syu  - syl  );
+        integral = total + ca * ( syu3 - syl3 ) / 3.0 +
+                           cb * ( syu2 - syl2 ) / 2.0 +
+                           cc * ( syu  - syl  );
 
-        return result;
+        //  Coordinates running backwards gives negative value.
+        if ( xtab[0] > xtab[1] ) {
+            integral = -integral;
+        }
+        return integral;
     }
 
     public String toString()
@@ -208,36 +223,66 @@ public class NumericIntegrator
 
     public static void main( String[] args )
     {
-        double[] values = new double[100];
-        double[] coords = new double[100];
+        double[] values = new double[101];
+        double[] coords = new double[101];
 
-        GaussianGenerator g = new GaussianGenerator( 10.0, 50.0, 10.0 );
+        GaussianGenerator g = new GaussianGenerator( 100.0, 50.0, 10.0 );
 
         //  Even spacing.
         System.out.println( "Even spacing" );
-        for ( int i = 0; i < coords.length; i++ ) { 
+        for ( int i = 0; i < coords.length; i++ ) {
             coords[i] = (double) i;
             values[i] = g.evalYData( coords[i] );
         }
 
-        NumericIntegrator integrator = new NumericIntegrator( coords, values );
+        NumericIntegrator integrator = new NumericIntegrator();
+        integrator.setData( coords, values );
         double integ = integrator.getIntegral();
         System.out.println( "Integral = " + integ );
-        double flux = g.getFlux(); 
+        double flux = g.getFlux();
+        System.out.println( "Flux = " + flux );
+        System.out.println( "Error = " + ( flux - integ ) );
+
+        //  Uneven spacing.
+        System.out.println( "Uneven spacing" );
+        for ( int i = 0; i < coords.length; i++ ) {
+            coords[i] = (double) ( i ) * Math.sqrt( i );
+            values[i] = g.evalYData( coords[i] );
+        }
+
+        integrator.setData( coords, values );
+        integ = integrator.getIntegral();
+        System.out.println( "Integral = " + integ );
+        flux = g.getFlux();
         System.out.println( "Flux = " + flux );
         System.out.println( "Error = " + ( flux - integ ) );
 
         //  Very uneven spacing.
-        System.out.println( "Uneven spacing" );
-        for ( int i = 0; i < coords.length; i++ ) { 
+        System.out.println( "Very uneven spacing" );
+        for ( int i = 0; i < coords.length; i++ ) {
             coords[i] = (double) ( i * i );
             values[i] = g.evalYData( coords[i] );
         }
 
-        integrator = new NumericIntegrator( coords, values );
+        integrator.setData( coords, values );
         integ = integrator.getIntegral();
         System.out.println( "Integral = " + integ );
-        flux = g.getFlux(); 
+        flux = g.getFlux();
+        System.out.println( "Flux = " + flux );
+        System.out.println( "Error = " + ( flux - integ ) );
+
+        //  Even spacing, coords running backwards.
+        System.out.println( "Even spacing, coords backwards" );
+        for ( int i = 0, j = coords.length - 1; i < coords.length; i++, j-- ) {
+            coords[i] = (double) j;
+            values[i] = g.evalYData( coords[i] );
+        }
+
+        integrator = new NumericIntegrator();
+        integrator.setData( coords, values );
+        integ = integrator.getIntegral();
+        System.out.println( "Integral = " + integ );
+        flux = g.getFlux();
         System.out.println( "Flux = " + flux );
         System.out.println( "Error = " + ( flux - integ ) );
     }
