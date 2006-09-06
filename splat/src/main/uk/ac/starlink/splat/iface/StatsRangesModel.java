@@ -8,6 +8,7 @@
 
 package uk.ac.starlink.splat.iface;
 
+import java.util.Iterator;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.ast.gui.AstDouble;
 
@@ -25,18 +26,55 @@ public class StatsRangesModel
     /** Associated PlotControl instance. */
     private PlotControl control = null;
 
+    /** Are we showing the Flux value too */
+    private boolean showFlux = false;
+
     /** Names of the statistics columns */
     private static final String[] names = {
-        "Mean", "Std dev", "Min", "Max"
+        "Mean", "Std dev", "Min", "Max", "Flux"
     };
 
     /**
      * Create an instance of this class.
+     * 
+     * @param control a {@link PlotControl} instance displaying the current
+     *                spectrum.
+     * @param showFlux whether to include a integrated flux estimate in stats.
      */
-    public StatsRangesModel( PlotControl control )
+    public StatsRangesModel( PlotControl control, boolean showFlux )
     {
         super( control.getPlot() );
+        setShowFlux( showFlux );
         setPlotControl( control );
+    }
+
+    /**
+     * Set whether we're showing an integrated flux, or not.
+     */
+    protected void setShowFlux( boolean showFlux )
+    {
+        if ( this.showFlux != showFlux ) {
+            this.showFlux = showFlux;
+            
+            //  Get an update of all the Fluxes, if needed.
+            if ( showFlux ) {
+                Iterator i = rangeIterator();
+                while ( i.hasNext() ) {
+                    ((StatsRange) i.next()).updateStats();
+                }
+            }
+
+            fireTableStructureChanged();
+        }
+        this.showFlux = showFlux;
+    }
+
+    /**
+     * Get whether we're showing an integrated flux, or not.
+     */
+    protected boolean getShowFlux()
+    {
+        return showFlux;
     }
 
     /**
@@ -49,12 +87,17 @@ public class StatsRangesModel
     }
 
     /**
-     * Return the number of columns. This has extra four columns, mean, std
-     * dev, min and max.
+     * Return the number of columns. This has extra four or five columns,
+     * mean, std dev, min and max, maybe flux..
      */
     public int getColumnCount()
     {
-        return super.getColumnCount() + 4;
+        if ( showFlux ) {
+            return super.getColumnCount() + 5;
+        }
+        else {
+            return super.getColumnCount() + 4;
+        }
     }
 
     /**
@@ -82,9 +125,11 @@ public class StatsRangesModel
             else if ( column == base + 3 ) {
                 value = statsRange.getMax();
             }
+            else if ( showFlux && ( column == base + 4 ) ) {
+                value = statsRange.getFlux();
+            }
         }
         return new AstDouble( value, plot.getMapping(), 2 );
-        //return new Double( value );
     }
 
     /**

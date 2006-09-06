@@ -8,16 +8,16 @@
 
 package uk.ac.starlink.splat.iface;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -39,9 +39,9 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.Statistics;
+import uk.ac.starlink.splat.util.NumericIntegrator;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
-
 
 /**
  * Interactively display the statistics of a region of the current
@@ -50,10 +50,14 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
+ */
 public class StatsFrame
     extends JFrame
 {
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( StatsFrame.class );
+
     /** Content pane of frame */
     protected JPanel contentPane = null;
 
@@ -67,10 +71,14 @@ public class StatsFrame
     protected JTextArea statsResults = null;
 
     /** Ranges of data. */
-    protected StatsRangesView rangeList = null;
+    protected StatsRangesView rangesView = null;
+    protected StatsRangesModel rangesModel = null;
 
     /** Level of full stats reported */
     protected JCheckBoxMenuItem fullStatsBox = null;
+
+    /** Include an estimate of the integrated flux in the fast readout */
+    protected JCheckBoxMenuItem fluxBox = null;
 
     /**
      * Create an instance.
@@ -118,18 +126,19 @@ public class StatsFrame
         contentPane.add( centre, BorderLayout.CENTER );
 
         //  The ranges.
-        StatsRangesModel model = new StatsRangesModel( control );
-        rangeList = new StatsRangesView( control, model );
-        layouter.add( rangeList, true );
+        boolean showFlux = prefs.getBoolean( "StatsFrame_flux", true );
+        rangesModel = new StatsRangesModel( control, showFlux );
+        rangesView = new StatsRangesView( control, rangesModel );
+        layouter.add( rangesView, true );
 
-        //  Text pane to show report on statistics. Use this so that 
+        //  Text pane to show report on statistics. Use this so that
         //  previous reports can be reviewed.
         JPanel statsPanel = new JPanel();
         statsPanel.setBorder
             ( BorderFactory.createTitledBorder( "Full stats log:" ) );
-        GridBagLayouter gbl = 
+        GridBagLayouter gbl =
             new GridBagLayouter( statsPanel, GridBagLayouter.SCHEME4 );
-        
+
         statsResults = new JTextArea();
         JScrollPane scrollPane = new JScrollPane( statsResults );
         gbl.add( scrollPane, true );
@@ -142,7 +151,7 @@ public class StatsFrame
         gbl.add( saveButton, false );
 
         //  Button for clearing log area.
-        LocalAction clearAction = 
+        LocalAction clearAction =
             new LocalAction( LocalAction.CLEARSTATS, "Clear log",
                              "Clear log window of all content" );
         JButton clearButton = new JButton( clearAction );
@@ -154,7 +163,7 @@ public class StatsFrame
         //  Menubar and toolbars.
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar( menuBar );
-        
+
         //  File menu.
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
@@ -177,8 +186,8 @@ public class StatsFrame
             new ImageIcon( ImageHolder.class.getResource( "save.gif" ) );
 
         //  Statistics on the selected ranges.
-        LocalAction selectedAction = 
-            new LocalAction( LocalAction.SELECTEDSTATS, 
+        LocalAction selectedAction =
+            new LocalAction( LocalAction.SELECTEDSTATS,
                              "Selected stats", statsImage,
                              "Statistics for selected ranges" );
         fileMenu.add( selectedAction );
@@ -187,8 +196,8 @@ public class StatsFrame
         actionBar.add( selectedButton );
 
         //  Statistics on all ranges.
-        LocalAction allAction = 
-            new LocalAction( LocalAction.ALLSTATS, 
+        LocalAction allAction =
+            new LocalAction( LocalAction.ALLSTATS,
                              "All stats", statsImage,
                              "Statistics for all ranges" );
         fileMenu.add( allAction );
@@ -197,28 +206,28 @@ public class StatsFrame
         actionBar.add( allButton );
 
         //  Statistics on the full current spectrum.
-        LocalAction wholeAction = 
+        LocalAction wholeAction =
             new LocalAction( LocalAction.WHOLESTATS, "Whole stats", statsImage,
                              "Statistics for whole spectrum" );
         fileMenu.add( wholeAction );
         JButton wholeButton = new JButton( wholeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( wholeButton );
-        
+
         actionBar.add( Box.createGlue() );
         contentPane.add( actionBar, BorderLayout.SOUTH );
 
         //  Read and write ranges to disk file.
-        Action readAction = rangeList.getReadAction( "Read ranges", 
+        Action readAction = rangesView.getReadAction( "Read ranges",
                                                      readImage );
         fileMenu.add( readAction );
-        Action writeAction = rangeList.getWriteAction( "Save ranges", 
+        Action writeAction = rangesView.getWriteAction( "Save ranges",
                                                        saveImage );
         fileMenu.add( writeAction );
 
 
         //  Add an action to close the window.
-        LocalAction closeAction = new LocalAction( LocalAction.CLOSE, 
+        LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
                                                    "Close", closeImage,
                                                    "Close window" );
         fileMenu.add( closeAction );
@@ -229,6 +238,32 @@ public class StatsFrame
         //  Option to control quantity of stats shown.
         fullStatsBox = new JCheckBoxMenuItem( "Show extra stats" );
         optionsMenu.add( fullStatsBox );
+        fullStatsBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = fullStatsBox.isSelected();
+                    prefs.putBoolean( "StatsFrame_extra", state );
+                }
+            });
+
+        //  User setting for this value.
+        boolean state = prefs.getBoolean( "StatsFrame_extra", false );
+        fullStatsBox.setSelected( state );
+
+        //  Option to control whether flux is shown in the fast readouts.
+        fluxBox = new JCheckBoxMenuItem( "Show flux integral" );
+        optionsMenu.add( fluxBox );
+        fluxBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = fluxBox.isSelected();
+                    rangesModel.setShowFlux( state );
+                    prefs.putBoolean( "StatsFrame_flux", state );
+                }
+            });
+
+        //  User setting for this value.
+        fluxBox.setSelected( showFlux );
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "stats-window", "Help on window",
@@ -247,24 +282,25 @@ public class StatsFrame
     }
 
     /**
-     * Calculate statistics and update interface.
+     * Calculate longer statistics and update interface.
      */
     public void calcStats( int type )
     {
         SpecData currentSpectrum = control.getCurrentSpectrum();
         double[] yData = currentSpectrum.getYData();
-        if ( type == LocalAction.SELECTEDSTATS || 
+        double[] xData = currentSpectrum.getXData();
+
+        if ( type == LocalAction.SELECTEDSTATS ||
              type == LocalAction.ALLSTATS ) {
 
-            double[] xData = currentSpectrum.getXData();
-            int[] ranges = 
-                rangeList.extractRanges( type == LocalAction.SELECTEDSTATS, 
+            int[] ranges =
+                rangesView.extractRanges( type == LocalAction.SELECTEDSTATS,
                                          true, xData );
             if ( ranges == null || ranges.length == 0 ) {
                 //  No ranges... nothing to do.
                 return;
             }
-            
+
             //  Test for presence of BAD values in the data.
             int count = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
@@ -274,34 +310,47 @@ public class StatsFrame
                     if ( yData[j] != SpecData.BAD ) count++;
                 }
             }
-            
+
             //  Now allocate the necessary memory and copy in the data.
             double[] cleanData = new double[count];
+            double[] cleanCoords = new double[count];
             count = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 int low = ranges[i];
                 int high = Math.min( ranges[i+1], yData.length - 1 );
                 for ( int j = low; j <= high; j++ ) {
                     if ( yData[j] != SpecData.BAD ) {
-                        cleanData[count++] = yData[j];
+                        cleanData[count] = yData[j];
+                        cleanCoords[count] = xData[j];
+                        count++;
                     }
                 }
             }
 
+            //  1D stats.
             Statistics stats = new Statistics( cleanData );
             StringBuffer buffer = new StringBuffer();
             buffer.append( "Statistics of " + currentSpectrum.getShortName() +
                            " over ranges: \n" );
-            double[] coordRanges = 
-                rangeList.getRanges( type == LocalAction.SELECTEDSTATS );
+            double[] coordRanges =
+                rangesView.getRanges( type == LocalAction.SELECTEDSTATS );
             for ( int i = 0; i < coordRanges.length; i += 2 ) {
-                buffer.append( "  -->" + coordRanges[i] + 
+                buffer.append( "  -->" + coordRanges[i] +
                                " : " + coordRanges[i+1] + "\n" );
             }
             buffer.append( "\n" );
             reportStats( buffer.toString(), stats );
+
+
+            //  2D stats
+            NumericIntegrator integ = new NumericIntegrator();
+            integ.setData( cleanCoords, cleanData );
+            statsResults.append( "  Integrated flux: " +
+                                 integ.getIntegral() + "\n" );
+            statsResults.append( "\n" );
         }
         else if ( type == LocalAction.WHOLESTATS ) {
+
             //  Remove all BAD values, if needed.
             int count = 0;
             for ( int i = 0; i < yData.length; i++ ) {
@@ -311,18 +360,30 @@ public class StatsFrame
             //  Don't make a clean copy if there are no BAD values.
             if ( count != yData.length ) {
                 double[] cleanData = new double[count];
+                double[] cleanCoords = new double[count];
                 count = 0;
                 for ( int i = 0; i < yData.length; i++ ) {
                     if ( yData[i] != SpecData.BAD ) {
-                        cleanData[count++] = yData[i];
+                        cleanData[count] = yData[i];
+                        cleanCoords[count] = xData[i];
+                        count++;
                     }
                 }
                 yData = cleanData;
+                xData = cleanCoords;
             }
+
+            //  1D stats.
             Statistics stats = new Statistics( yData );
-            String desc = 
+            String desc =
                 "Statistics of " + currentSpectrum.getShortName() + ":\n";
             reportStats( desc, stats );
+
+            //  2D stats.
+            NumericIntegrator integ = new NumericIntegrator();
+            integ.setData( xData, yData );
+            statsResults.append( "  Integrated flux: " + integ.getIntegral() );
+            statsResults.append( "\n\n" );
         }
     }
 
@@ -342,7 +403,7 @@ public class StatsFrame
     {
         BufferedWriter writer = null;
         try {
-            writer = 
+            writer =
                 new BufferedWriter( new FileWriter( "SPLATstats.log", true ) );
             statsResults.write( writer );
             writer.write( "\n" );
@@ -350,7 +411,7 @@ public class StatsFrame
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog( this, e.getMessage(),
-                                           "Failed writing SPEFO log",
+                                           "Failed writing SPLATstats log",
                                            JOptionPane.ERROR_MESSAGE );
         }
 
@@ -370,7 +431,7 @@ public class StatsFrame
      */
     protected void closeWindowEvent()
     {
-        rangeList.deleteAllRanges();
+        rangesView.deleteAllRanges();
         this.dispose();
     }
 
@@ -380,7 +441,7 @@ public class StatsFrame
     protected class LocalAction
         extends AbstractAction
     {
-        
+
         //  Types of action.
         public static final int CLOSE = 0;
         public static final int WHOLESTATS = 1;
@@ -405,7 +466,7 @@ public class StatsFrame
             putValue( SHORT_DESCRIPTION, help );
         }
 
-        public LocalAction( int actionType, String name, Icon icon, 
+        public LocalAction( int actionType, String name, Icon icon,
                             String help )
         {
             this( actionType, name, icon );

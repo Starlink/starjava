@@ -14,10 +14,11 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.Statistics;
+import uk.ac.starlink.splat.util.NumericIntegrator;
 
 /**
- * StatsRange extends the {@link XGraphicsRange} class to add four new rows
- * that contain statistics values for the spectrum being drawn over (the
+ * StatsRange extends the {@link XGraphicsRange} class to add four or five new
+ * rows that contain statistics values for the spectrum being drawn over (the
  * current spectrum of a {@link PlotControl}).
  *
  * @author Peter W. Draper
@@ -31,6 +32,9 @@ public class StatsRange
 
     /** The Statistics instance. */
     protected Statistics stats = new Statistics( new double[] {0.0} );
+
+    /** The NumericIntegrator instance */
+    protected NumericIntegrator integ = new NumericIntegrator();
 
     /**
      * Create a range interactively or non-interactively.
@@ -110,12 +114,43 @@ public class StatsRange
                 }
 
                 //  Now allocate the necessary memory and copy in the data.
+                boolean showFlux = ((StatsRangesModel)model).getShowFlux();
                 double[] rangeData = new double[n];
-                n = 0;
-                for ( int i = low; i <= high; i++ ) {
-                    if ( data[i] != SpecData.BAD ) {
-                        rangeData[n] = data[i];
-                        n++;
+                double[] rangeCoords = null;
+                if ( showFlux ) { 
+                    rangeCoords = new double[n];
+                    if ( n > 1 ) {
+                        double[] coords = currentSpectrum.getXData();
+                        n = 0;
+                        for ( int i = low; i <= high; i++ ) {
+                            if ( data[i] != SpecData.BAD ) {
+                                rangeData[n] = data[i];
+                                rangeCoords[n] = coords[i];
+                                n++;
+                            }
+                        }
+                        
+                        //  Set up for flux estimates.
+                        integ.setData( rangeCoords, rangeData );
+                    }
+                    else {
+                        // No flux for one point.
+                        rangeData = new double[2];
+                        rangeCoords = new double[2];
+                        rangeData[0] = 0.0;
+                        rangeData[1] = 0.0;
+                        rangeCoords[0] = 0.0;
+                        rangeCoords[1] = 1.0;
+                        integ.setData( rangeCoords, rangeData );
+                    }
+                }
+                else {
+                    n = 0;
+                    for ( int i = low; i <= high; i++ ) {
+                        if ( data[i] != SpecData.BAD ) {
+                            rangeData[n] = data[i];
+                            n++;
+                        }
                     }
                 }
 
@@ -155,6 +190,14 @@ public class StatsRange
     public double getMax()
     {
         return stats.getMaximum();
+    }
+
+    /**
+     * Get the flux estimate of the spectrum in this range.
+     */
+    public double getFlux()
+    {
+        return integ.getIntegral();
     }
 
     //

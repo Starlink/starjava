@@ -152,7 +152,6 @@ public class Statistics
                 }
             }
         }
-        buf.append( "\n" );
         return buf.toString();
     }
 

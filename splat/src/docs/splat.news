@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   Release 3.5-3
+   =============
+
+   An integrated flux option has been added to the statistics toolbox.
+   This can be used to estimate the flux in line of a background subtracted
+   spectrum.
+
    Release 3.5-2
    =============
 
