@@ -115,9 +115,10 @@ public class StatsRange
 
                 //  Now allocate the necessary memory and copy in the data.
                 boolean showFlux = ((StatsRangesModel)model).getShowFlux();
+                boolean monotonic = currentSpectrum.isMonotonic();
                 double[] rangeData = new double[n];
                 double[] rangeCoords = null;
-                if ( showFlux ) { 
+                if ( showFlux && monotonic ) { 
                     rangeCoords = new double[n];
                     if ( n > 1 ) {
                         double[] coords = currentSpectrum.getXData();
