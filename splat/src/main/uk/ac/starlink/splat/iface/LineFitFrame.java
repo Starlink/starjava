@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -86,6 +87,10 @@ public class LineFitFrame
     extends JFrame
     implements PlotListener, ActionListener
 {
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( LineFitFrame.class );
+
     /**
      * The list of all the spectra that we've created.
      */
@@ -253,21 +258,26 @@ public class LineFitFrame
         fitGaussians.setAction( gaussAction );
         fitGaussians.setToolTipText( "Select to fit Gaussians" );
         layouter.add( fitGaussians, false );
-        fitGaussians.setSelected( true );
+        boolean state = prefs.getBoolean( "LineFitFrame_fitg", true );
+        fitGaussians.setSelected( state );
         changeGaussianFitsEvent();
 
         LorentzAction lorentzAction = new LorentzAction();
         fitLorentzians.setAction( lorentzAction );
         fitLorentzians.setToolTipText( "Select to fit Lorentzians" );
         layouter.add( fitLorentzians, false );
-        fitLorentzians.setSelected( false );
+        state = prefs.getBoolean( "LineFitFrame_fitl", false );
+        fitLorentzians.setSelected( state );
         changeLorentzFitsEvent();
 
         VoigtAction voigtAction = new VoigtAction();
         fitVoigts.setAction( voigtAction );
         fitVoigts.setToolTipText( "Select to fit Voigt profiles" );
         layouter.add( fitVoigts, false );
+        state = prefs.getBoolean( "LineFitFrame_fitv", false );
+        fitVoigts.setSelected( state );
         changeVoigtFitsEvent();
+
         layouter.add( Box.createHorizontalBox(), true );
 
         // The type of background, use a constant or other spectrum.
@@ -312,12 +322,23 @@ public class LineFitFrame
 
         //  Add controls for setting the background value. Should be decimal.
         backgroundValueLabel.setText( "Background value:" );
-        backgroundValue.addItem( new Integer( 1 ) );
-        backgroundValue.addItem( new Integer( 0 ) );
+        backgroundValue.addItem( new Double( 1 ) );
+        backgroundValue.addItem( new Double( 0 ) );
         ScientificFormat format = new ScientificFormat();
         DecimalComboBoxEditor editor = new DecimalComboBoxEditor( format );
         backgroundValue.setEditor( editor );
         backgroundValue.setEditable( true );
+
+        double userpref = prefs.getDouble( "LineFitFrame_backvalue", 0 );
+        backgroundValue.setSelectedItem( new Double( userpref ) );
+        backgroundValue.addActionListener( new ActionListener() 
+            {
+                public void actionPerformed( ActionEvent e ) 
+                {
+                    double d = getBackgroundValue();
+                    prefs.putDouble( "LineFitFrame_backvalue", d );
+                }
+            });
 
         layouter.add( backgroundValueLabel, false );
         layouter.add( backgroundValue, true );
@@ -1229,12 +1250,14 @@ public class LineFitFrame
      */
     protected void changeGaussianFitsEvent()
     {
-        if ( fitGaussians.isSelected() ) {
+        boolean selected = fitGaussians.isSelected();
+        if ( selected ) {
             lineView.addView( LineProperties.GAUSS );
         }
         else {
             lineView.removeView( LineProperties.GAUSS );
         }
+        prefs.putBoolean( "LineFitFrame_fitg", selected );
     }
 
     /**
@@ -1242,12 +1265,14 @@ public class LineFitFrame
      */
     protected void changeLorentzFitsEvent()
     {
-        if ( fitLorentzians.isSelected() ) {
+        boolean selected = fitLorentzians.isSelected();
+        if ( selected ) {
             lineView.addView( LineProperties.LORENTZ );
         }
         else {
             lineView.removeView( LineProperties.LORENTZ );
         }
+        prefs.putBoolean( "LineFitFrame_fitl", selected );
     }
 
     /**
@@ -1255,12 +1280,14 @@ public class LineFitFrame
      */
     protected void changeVoigtFitsEvent()
     {
-        if ( fitVoigts.isSelected() ) {
+        boolean selected = fitVoigts.isSelected();
+        if ( selected ) {
             lineView.addView( LineProperties.VOIGT );
         }
         else {
             lineView.removeView( LineProperties.VOIGT );
         }
+        prefs.putBoolean( "LineFitFrame_fitv", selected );
     }
 
     /**
