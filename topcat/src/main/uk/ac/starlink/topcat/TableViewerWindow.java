@@ -71,7 +71,7 @@ public class TableViewerWindow extends AuxWindow
      * Constructs a new TableViewer to view a given table.
      * The given table must provide random access.
      *      
-     * @param  startab   a star table, or <tt>null</tt>
+     * @param  tcModel   model of the table
      * @param  parent    a window for positioning relative to; the new
      *         one will generally come out a bit lower and to the right
      *         of <tt>sibling</tt>.  May be <tt>null</tt>

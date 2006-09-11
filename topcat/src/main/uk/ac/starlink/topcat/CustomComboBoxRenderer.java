@@ -55,7 +55,7 @@ public class CustomComboBoxRenderer implements ListCellRenderer {
     /**
      * Returns the representation for the <tt>null</tt> value.
      *
-     * @param  null representation
+     * @return  null representation
      */
     public Object getNullRepresentation() {
         return nullRep_;

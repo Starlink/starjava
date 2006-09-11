@@ -284,7 +284,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     /**
      * Returns the currently selected table.
      *
-     * @param  topcat model of the currently selected table
+     * @return  topcat model of the currently selected table
      */
     public TopcatModel getTable() {
         return tcModel_;

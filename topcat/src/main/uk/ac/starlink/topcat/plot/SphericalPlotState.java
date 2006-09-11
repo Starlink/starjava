@@ -41,7 +41,7 @@ public class SphericalPlotState extends Plot3DState {
      * Sets whether the radial dimension should be plotted on a logarithmic
      * scale.  This is only relevant for spherical plots.
      *
-     * @param  logRadius  true for logarithmic treatment of the radial
+     * @param  radialLog  true for logarithmic treatment of the radial
      *         coordinate, false for linear
      */
     public void setRadialLog( boolean radialLog ) {

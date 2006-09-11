@@ -88,7 +88,7 @@ public class CutChooser extends JPanel {
     /**
      * Sets the lower cut value.
      *
-     * @param   frac  value (coerced to between minimum and 0.5)
+     * @param   val  value (coerced to between minimum and 0.5)
      */
     public void setLowValue( double val ) {
         val = Math.min( Math.max( val, min_ ), 0.5 );
@@ -98,7 +98,7 @@ public class CutChooser extends JPanel {
     /**
      * Sets the upper cut value
      *
-     * @param  frac   value (coerced to between 0.5 and maximum)
+     * @param  val   value (coerced to between 0.5 and maximum)
      */
     public void setHighValue( double val ) {
         val = Math.min( Math.max( val, 0.5 ), 1.0 - min_ );

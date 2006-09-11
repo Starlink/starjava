@@ -190,7 +190,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     /**
      * Sets the string in the UCD selector.
      *
-     * @param   UCD string
+     * @param  ucd  UCD string
      */
     public void setUCD( String ucd ) {
         ucdField.setID( ucd );
@@ -288,9 +288,8 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * one will be given a new 'retirement' name.
      *
      * @param  tcModel  topcat model
+     * @param  baseCol     column to be replaced
      * @param  parent   parent window, used for positioning
-     * @param  jcol     index into the ColumnList of the column to be
-     *                  replaced
      * @return   a window ready for user interaction 
      */
     public static SyntheticColumnQueryWindow replaceColumnDialog(

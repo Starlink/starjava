@@ -99,7 +99,7 @@ public class LinesPlotState extends PlotState {
      * normally means that the limit should be determined dynamically
      * (by assessing the range of the available data points).
      *
-     * @param   ranges   array of (low,high) fixed range limits
+     * @param   yRanges   array of (low,high) fixed range limits
      */
     public void setYRanges( double[][] yRanges ) {
         yRanges_ = yRanges;
@@ -223,7 +223,7 @@ public class LinesPlotState extends PlotState {
      * The <i>i</i>'th element of the array gives the index of the 
      * graph that subset <i>i</i> will be displayed in.
      *
-     * @param   graphIndicies  subset to graph mapping
+     * @param   graphIndices  subset to graph mapping
      */
     public void setGraphIndices( int[] graphIndices ) {
         graphIndices_ = graphIndices;

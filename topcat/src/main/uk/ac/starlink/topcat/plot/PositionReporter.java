@@ -81,8 +81,8 @@ public abstract class PositionReporter implements MouseMotionListener {
      * Turns the numeric values of graphics space coordinates into
      * strings giving the positions in data space.
      *
-     * @param   graphics space X coordinate
-     * @param   graphics space Y coordinate
+     * @param   px  graphics space X coordinate
+     * @param   py  graphics space Y coordinate
      * @return  2-element (x,y) array giving formatted data space coords,
      *          or null
      */

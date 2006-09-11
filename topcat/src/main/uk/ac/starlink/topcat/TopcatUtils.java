@@ -94,7 +94,7 @@ public class TopcatUtils {
      * as the description, except for synthetic columns, where it
      * doesn't contain a respresentation of the algebraic expression.
      *
-     * @param  column info
+     * @param  info  column info
      * @return  base description of <tt>colinfo</tt>
      */
     public static String getBaseDescription( ColumnInfo info ) {
@@ -175,7 +175,7 @@ public class TopcatUtils {
      * the given <tt>baseSuffix</tt> to it.
      *
      * @param  colList  column list within which distinct naming is required
-     * @param  oldName  initial name
+     * @param  origName  initial name
      * @param  baseSuffix  suffix used for deduplication
      * @return  a name resembling <tt>origName</tt> which is not the same
      *          as any existing column names in <tt>colList</tt>

@@ -97,7 +97,7 @@ public class Matrices {
      * Calculates the modulus of a vector.
      *
      * @param  v  input vector
-     * @param  |v|
+     * @return  <code>|v|
      */
     public static double mod( double[] v ) {
         double m2 = 0;
@@ -111,7 +111,7 @@ public class Matrices {
      * Normalises a vector.
      *
      * @param  v  input vector
-     * @return  v/|v|
+     * @return  <code>|v|</code>
      */
     public static double[] normalise( double[] v ) {
         return mult( v, 1.0 / mod( v ) );

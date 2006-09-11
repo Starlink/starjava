@@ -26,7 +26,7 @@ public class IntSelector extends JPanel implements ItemListener {
      * Constructs a new selector with a set of preselected options.
      * Other options can be chosen by the user.
      *
-     * @param  initial selections
+     * @param options initial selections
      */
     public IntSelector( int[] options ) {
         super( new BorderLayout() );

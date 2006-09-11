@@ -243,7 +243,7 @@ public class TopcatModel {
      * at one and increasing for every model created in this topcat instance.
      * It's used for identifying the model to the user.
      *
-     * @param  numeric ID
+     * @return  numeric ID
      */
     public int getID() {
         return id_;
@@ -449,7 +449,7 @@ public class TopcatModel {
      * Returns the most recently selected row subset.
      * This is the one which defines the apparent table.
      *
-     * @param  current row subset
+     * @return  current row subset
      */
     public RowSubset getSelectedSubset() {
         return (RowSubset) subsetSelectionModel_.getSelectedItem();
@@ -459,7 +459,7 @@ public class TopcatModel {
      * Returns the most recently selected sort order.
      * This is the one which defines the apparent table.
      *
-     * @param  current sort order
+     * @return  current sort order
      */
     public SortOrder getSelectedSort() {
         return (SortOrder) sortSelectionModel_.getSelectedItem();
@@ -727,7 +727,7 @@ public class TopcatModel {
      * N scalar-valued columns.  More precisely, it adds N new columns
      * after the original and then hides the original.
      *
-     * @param   vector-valued column
+     * @param  tcol  vector-valued column
      */
     public void explodeColumn( StarTableColumn tcol ) {
         ColumnInfo baseInfo = tcol.getColumnInfo();

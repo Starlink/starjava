@@ -365,7 +365,7 @@ public class TopcatPlasticListener extends HubManager {
      *
      * @param   tcModel   topcat model of table to broadcast
      * @param   lrow      row index within tcModel
-     * @param  array of plastic IDs for target applications;
+     * @param   recipients  array of plastic IDs for target applications;
      *         if null, broadcast will be to all
      * @return  true iff message was broadcast successfully
      */
@@ -449,7 +449,7 @@ public class TopcatPlasticListener extends HubManager {
      *
      * @param  ra2000  right ascension J2000.0 in degrees
      * @param  dec2000 declination J2000.0 in degrees
-     * @param  array of plastic IDs for target applications;
+     * @param  recipients  array of plastic IDs for target applications;
      *         if null, broadcast will be to all
      */
     public void pointAt( double ra2000, double dec2000, URI[] recipients )

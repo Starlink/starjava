@@ -21,7 +21,7 @@ public class BitsRowSubset implements RowSubset {
       *
       * @param   name  subset name
       * @param   bits  flag vector
-      * @param   inver  whether to invert the bits from the BitSet
+      * @param   invert  whether to invert the bits from the BitSet
       */
      public BitsRowSubset( String name, BitSet bits, boolean invert ) {
          this.name = name;

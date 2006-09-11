@@ -60,7 +60,6 @@ public abstract class MatchSpec extends JPanel {
      * is called.  A check should be made that it is sensible to call
      * calculate; if not an exception should be thrown.
      *
-     * @param  parent  window controlling the invocation
      * @throws IllegalStateException (with a message suitable for presentation
      *         to the user) if <tt>calculate</tt> cannot be called in the
      *         current state

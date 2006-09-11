@@ -119,7 +119,7 @@ public class TupleSelector extends JPanel {
     /**
      * Returns the currently selected table.
      *
-     * @param  topcat model of the currently selected table
+     * @return  topcat model of the currently selected table
      */
     public TopcatModel getTable() {
         return tcModel;

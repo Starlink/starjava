@@ -17,8 +17,8 @@ public interface BinnedData {
      * submitted value.
      * 
      * @param  value  value for inclusion
-     * @param  array of flags, one for each subset; true for inclusion,
-     *         false for exclusion
+     * @param  setFlags  array of flags, one for each subset;
+     *         true for inclusion, false for exclusion
      */
     void submitDatum( double value, boolean[] setFlags );
 

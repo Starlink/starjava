@@ -35,7 +35,8 @@ public class DashComboBox extends RenderingComboBox {
     /**
      * Constructs a dash selector with a given set of dash patterns.
      *
-     * @param   dash patterns for selection.  Null is OK for a solid line.
+     * @param  dashes  dash patterns for selection; 
+     *                 null is OK for a solid line.
      */
     public DashComboBox( float[][] dashes ) {
         dashes = (float[][]) dashes.clone();

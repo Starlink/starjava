@@ -20,7 +20,7 @@ public class ValueStorePoints implements Points {
      * Constructs a new points object.
      *
      * @param  ndim  dimensionality
-     * @param  number of points
+     * @param  npoint number of points
      */
     public ValueStorePoints( int ndim, int npoint ) {
         ndim_ = ndim;

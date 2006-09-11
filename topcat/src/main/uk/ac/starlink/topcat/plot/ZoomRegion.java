@@ -65,7 +65,7 @@ public abstract class ZoomRegion {
     /** 
      * Sets a custom cursor for use in the target region.
      *
-     * @param  custom cursor
+     * @param  cursor  custom cursor
      */
     public void setCursor( Cursor cursor ) {
         cursor_ = cursor;

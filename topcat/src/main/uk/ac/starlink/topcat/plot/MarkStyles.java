@@ -154,7 +154,7 @@ public class MarkStyles {
      * Returns an icon which represents a given marker style set. 
      * It consists of a row of example legends corresponding to the set.
      *
-     * @param   styles   style set
+     * @param   styleSet   style set
      * @return  icon for <code>styles</code>
      */
     public static Icon getIcon( final StyleSet styleSet ) {

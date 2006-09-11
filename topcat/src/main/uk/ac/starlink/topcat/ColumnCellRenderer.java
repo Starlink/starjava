@@ -73,7 +73,7 @@ public class ColumnCellRenderer implements ListCellRenderer {
      * for an object in the box's model.
      *
      * @param  value  input value
-     * @param  object to which <tt>value</tt> is mapped
+     * @return to which <tt>value</tt> is mapped
      */
     public Object mapValue( Object value ) {
         return value instanceof StarTableColumn 

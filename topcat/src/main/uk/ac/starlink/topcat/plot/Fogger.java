@@ -150,7 +150,7 @@ public class Fogger {
      * Returns a fogged version of a given colour at a given depth.
      *
      * @param  z       distance at which the colour is being viewed
-     * @param  color   rgba colour components; these will be modified on
+     * @param  rgba    rgba colour components; these will be modified on
      *                 exit to represent the fogged value
      */
     public void fogAt( double z, int[] rgba ) {
@@ -167,7 +167,7 @@ public class Fogger {
      * using normalised components.
      *
      * @param  z       distance at which the colour is being viewed
-     * @param  color   normalised rgba colour components; these will 
+     * @param  rgba    normalised rgba colour components; these will 
      *                 be modified on exit to represent the fogged value
      */
     public void fogAt( double z, float[] rgba ) {
@@ -183,7 +183,6 @@ public class Fogger {
      * Returns a fogged version of a given colour at a given depth.
      *
      * @param  z       distance at which the colour is being viewed
-     * @param  color   argb packed colour value for the original colour
      * @return   argb packed colour value for the fogged colour
      */
     public int fogAt( double z, int argb ) {

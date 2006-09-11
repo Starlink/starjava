@@ -103,7 +103,8 @@ public class ViewerTableModel extends AbstractTableModel {
      * Sets the mapping from row index visible in this model to 
      * row index in the base table.
      *
-     * @param  row mapping; may be <tt>null</tt> to indicate a unit map
+     * @param  rowMap  row mapping;
+     *                 may be <tt>null</tt> to indicate a unit map
      */
     public void setRowMap( int[] rowMap ) {
         this.rowMap = rowMap;

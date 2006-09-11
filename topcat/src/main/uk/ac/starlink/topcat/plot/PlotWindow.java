@@ -91,7 +91,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     /**
      * Constructs a new PlotWindow.
      *
-     * @param  tcModel  data model whose data the window will plot
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( Component parent ) {

@@ -151,7 +151,7 @@ public class BlobPanel extends JComponent
     /**
      * Indicates whether this blob is currently active.
      *
-     * @param   true iff this blob is active (visible and drawing)
+     * @return   true iff this blob is active (visible and drawing)
      */
     public boolean isActive() {
         return isActive_;
