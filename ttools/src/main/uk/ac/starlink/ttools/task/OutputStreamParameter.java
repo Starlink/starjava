@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -42,9 +43,10 @@ public class OutputStreamParameter extends Parameter {
     public void setValueFromString( Environment env, String sval )
             throws TaskException {
         if ( "-".equals( sval ) ) {
+            final PrintStream out = env.getOutputStream();
             destination_ = new Destination() {
                 public OutputStream createStream() {
-                    return System.out;
+                    return out;
                 }
             };
         }
