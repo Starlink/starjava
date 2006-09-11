@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.task;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.BooleanParameter;
@@ -14,6 +15,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.lint.DoctypeInterpolator;
 import uk.ac.starlink.ttools.lint.LintContext;
 import uk.ac.starlink.ttools.lint.Linter;
@@ -30,6 +32,7 @@ public class VotLint implements Task {
     private final InputStreamParameter inParam_;
     private final BooleanParameter validParam_;
     private final Parameter versionParam_;
+    private final OutputStreamParameter outParam_;
 
     public VotLint() {
         inParam_ = new InputStreamParameter( "votable" );
@@ -77,6 +80,16 @@ public class VotLint implements Task {
             "element; if it is and it conflicts with the value specified",
             "by this flag, a warning is issued.",
         } );
+
+        outParam_ = new OutputStreamParameter( "out" );
+        outParam_.setPrompt( "File for output messages" );
+        outParam_.setUsage( "<location>" );
+        outParam_.setDefault( "-" );
+        outParam_.setPreferExplicit( false );
+        outParam_.setDescription( new String[] {
+            "Destination file for output messages.",
+            "May be a filename or \"-\" to indicate standard output.",
+        } );
     }
 
     public Parameter[] getParameters() {
@@ -84,6 +97,7 @@ public class VotLint implements Task {
             inParam_,
             validParam_,
             versionParam_,
+            outParam_,
         };
     }
 
@@ -94,7 +108,6 @@ public class VotLint implements Task {
         boolean validate = validParam_.booleanValue( env );
         final LintContext context = new LintContext( version );
         context.setValidating( validate );
-        context.setOutput( env.getOutputStream() );
         if ( env instanceof TableEnvironment ) {
             context.setDebug( ((TableEnvironment) env).isDebug() );
         }
@@ -102,6 +115,19 @@ public class VotLint implements Task {
         /* Get basic input stream. */
         String sysid = inParam_.stringValue( env );
         InputStream in = inParam_.inputStreamValue( env );
+
+        /* Get output stream. */
+        PrintStream out;
+        try {
+            out = new PrintStream( outParam_.destinationValue( env )
+                                            .createStream() );
+        }
+        catch ( IOException e ) {
+            throw new UsageException( "Can't open \""
+                                     + outParam_.stringValue( env )
+                                     + "\" for output: " + e.getMessage(), e );
+        }
+        context.setOutput( out );
 
         return new VotLintExecutable( in, validate, context, sysid );
     }
