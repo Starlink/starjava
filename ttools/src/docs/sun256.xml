@@ -3837,6 +3837,7 @@ but my thanks are especially due to the following:
     <li>Time conversion functions added to/from Decimal Year.</li>
     <li>Added <code>toHex</code> and <code>fromHex</code> numeric 
         conversion functions.</li>
+    <li>Add new <code>out</code> parameter to <code>votlint</code>.</li>
     </ul>
     </p></dd>
 
