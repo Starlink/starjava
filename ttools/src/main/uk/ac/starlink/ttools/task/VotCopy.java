@@ -118,14 +118,14 @@ public class VotCopy implements Task {
         } );
         baseParam_.setDescription( new String[] {
             "Determines the name of external output files written when the",
-            "<code>-" + hrefParam_.getName() + "</code> flag is true.",
+            "<code>" + hrefParam_.getName() + "</code> flag is true.",
             "Normally these are given names based on the name of the",
             "output file.",
             "But if this flag is given, the names will be based on the",
             "<code>&lt;location&gt;</code> string.",
             "This flag is compulsory if",
             "<code>" + hrefParam_.getName() + "</code> is true",
-            "and no <code>out=-</code> (output is to standard out),",
+            "and <code>out=-</code> (output is to standard out),",
             "since in this case there is no default base name to use.",
         } );
     }
