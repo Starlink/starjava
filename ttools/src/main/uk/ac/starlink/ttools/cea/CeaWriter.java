@@ -43,8 +43,8 @@ public class CeaWriter extends XmlWriter {
      * @param   ceaAppName  name by which the described application
      *          will be known to the CEA
      */
-    private CeaWriter( PrintStream out, CeaTask[] tasks, String appPath,
-                       String ceaAppName ) {
+    CeaWriter( PrintStream out, CeaTask[] tasks, String appPath,
+               String ceaAppName ) {
         super( out );
         tasks_ = tasks;
         appPath_ = appPath;
@@ -57,7 +57,7 @@ public class CeaWriter extends XmlWriter {
      *
      * @param   cmdline  invocation string for command
      */
-    private void writeConfig( String cmdline ) throws SAXException {
+    void writeConfig( String cmdline ) throws SAXException {
 
         /* Intro. */
         writeDeclaration();
@@ -283,7 +283,7 @@ public class CeaWriter extends XmlWriter {
      *
      * @return   task array
      */
-    private static CeaTask[] getTasks() throws LoadException {
+    static CeaTask[] getTasks() throws LoadException {
         ObjectFactory taskFactory = Stilts.getTaskFactory();
         List appList = new ArrayList();
 
