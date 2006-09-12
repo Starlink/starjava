@@ -113,6 +113,15 @@ public class XmlWriter {
     }
 
     /**
+     * Sets the destination stream for this writer.
+     *
+     * @param  out  new destination stream
+     */
+    public void setOut( PrintStream out ) {
+        out_ = out;
+    }
+
+    /**
      * Outputs a literal string in the output followed by a newline character.
      *
      * @param  txt  literal text
