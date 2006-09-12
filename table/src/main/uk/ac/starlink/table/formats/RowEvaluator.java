@@ -401,7 +401,7 @@ public class RowEvaluator {
      * Interface for an object that can turn a string into a cell content
      * object.
      */
-    public abstract class Decoder {
+    public static abstract class Decoder {
         public abstract Object decode( String value );
     }
 
