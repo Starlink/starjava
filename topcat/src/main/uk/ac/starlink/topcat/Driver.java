@@ -621,7 +621,9 @@ public class Driver {
            .append( p2 )
            .append( "-classpath jar1:jar2..  specify additional classes" )
            .append( p2 )
-           .append( "-XmxnnnM                use nnn megabytes of memory" );
+           .append( "-XmxnnnM                use nnn megabytes of memory" )
+           .append( p2 )
+           .append( "-Dname=value            set system property" );
 
         /* Auto-detected formats. */
         buf.append( p1 + "Auto-detected formats: " )
