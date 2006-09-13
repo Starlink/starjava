@@ -104,6 +104,10 @@ public class HubTest extends TestCase {
                 Icon icon = new ImageIcon( iconUrl );
                 assertEquals( 19, icon.getIconWidth() );
             }
+            else {
+                System.out.println( "Skipping network-dependent tests "
+                                  + "(tests.withnet not set)" );
+            }
         }
         finally {
             htest.dispose();
