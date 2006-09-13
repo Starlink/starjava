@@ -100,6 +100,7 @@ abstract class FileColumnStore implements ColumnStore {
             FileInputStream in = new FileInputStream( file_ );
             int bufsiz = 64 * 1024;
             byte[] buf = new byte[ bufsiz ];
+            long start = System.currentTimeMillis();
             try {
                 for ( long nbyte = getDataLength(); nbyte > 0; ) {
                     int count = in.read( buf, 0,
@@ -114,6 +115,10 @@ abstract class FileColumnStore implements ColumnStore {
             finally {
                 in.close();
             }
+            logger_.config( "Dump data rate: "
+                          + ( 1e-3f * getDataLength() 
+                                    / ( System.currentTimeMillis() - start) )
+                          + " Mbyte/sec" );
         }
         else {
             // Note: a DataInputStream on a BufferedInputStream is slow.
