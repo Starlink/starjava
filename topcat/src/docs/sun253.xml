@@ -9648,6 +9648,8 @@ introduced since the last version:
         expect.</li>
     <li>Improved listing for functions in <ref id="funcs"/> of user document
         (subsection for each function class).</li>
+    <li>Fixed PLASTIC bug which was ignoring ID argument of
+        <code>ivo://votech.org/votable/loadFromURL</code> message.</li>
     </ul>
     </p></dd>
 
