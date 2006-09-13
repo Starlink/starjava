@@ -37,6 +37,7 @@ public class PlasticRequest {
      * things that look like doubles are turned into Doubles, things that
      * look like integers are turned into Integers, and the rest are Strings.
      * You can surround a literal in quotes to force stringiness.
+     * Lists can be generated using the construction "(item1, item2, ...)".
      * This application does not claim to make it possible to execute 
      * requests of arbitrary complexity from the command line.
      *
@@ -271,22 +272,38 @@ public class PlasticRequest {
             String inArg = (String) it.next();
             int leng = inArg.length();
             Object outArg;
+
+            /* Forced string (single or double quoted). */
             if ( ( inArg.charAt( 0 ) == '"' &&
                    inArg.charAt( leng - 1 ) == '"' ) ||
                  ( inArg.charAt( 0 ) == '\'' &&
                    inArg.charAt( leng - 1 ) == '\'' ) ) {
-                outArg = inArg.substring( 1, leng - 2 );
+                outArg = inArg.substring( 1, leng - 1 );
             }
+
+            /* List (parenthesised and comma-separated). */
+            else if ( ( inArg.charAt( 0 ) == '(' &&
+                        inArg.charAt( leng - 1 ) == ')' ) ) {
+                String[] items = inArg.substring( 1, leng - 1 )
+                                .split( " *, *" );
+                outArg = decodeArgs( Arrays.asList( items ) );
+            }
+
+            /* Boolean. */
             else if ( "true".equals( inArg ) ) {
                 outArg = Boolean.TRUE;
             }
             else if ( "false".equals( inArg ) ) {
                 outArg = Boolean.FALSE;
             }
+
+            /* Try integer. */
             else {
                 try {
                     outArg = Integer.valueOf( inArg );
                 }
+
+                /* Try double. */
                 catch ( NumberFormatException e1 ) {
                     try {
                         outArg = Double.valueOf( inArg );
@@ -296,6 +313,8 @@ public class PlasticRequest {
                     }
                 }
             }
+
+            /* Otherwise, it's an unquoted. */
             outList.add( outArg );
         }
         return outList;
