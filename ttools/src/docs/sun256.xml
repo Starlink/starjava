@@ -688,6 +688,20 @@ flags etc, but if you want to do that sort of thing
 you probably don't need me to tell you about it.
 </p>
 
+<p>If you are using the <code>stilts</code> command-line script,
+any flags to it starting <code>-D</code> or <code>-X</code> are passed
+directly to the <code>java</code> executable.  
+You can pass other flags to Java with the <code>stilts</code> script's
+<code>-J</code> flag; for instance:
+<verbatim>
+   stilts -Xmx4M -J-verbose:gc calc 'mjdToIso(0)'
+</verbatim>
+is equivalent to
+<verbatim>
+   java -Xmx4M -verbose:gc -jar stilts.jar calc 'mjdToIso(0)'
+</verbatim>
+</p>
+
 </subsect>
 
 
@@ -3838,6 +3852,10 @@ but my thanks are especially due to the following:
     <li>Added <code>toHex</code> and <code>fromHex</code> numeric 
         conversion functions.</li>
     <li>Add new <code>out</code> parameter to <code>votlint</code>.</li>
+    <li>Fixed erroneous complaints from <code>votlint</code> about 
+        <code>utype</code> attribute on RESOURCE elements.</li>
+    <li>Added <code>-J</code> flag to <code>stilts</code> script for passing
+        flags directly to Java.</li>
     </ul>
     </p></dd>
 

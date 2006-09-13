@@ -17,8 +17,8 @@
 #        it will be added to the application classpath
 #
 #     2. any command-line arguments which look like they are destined
-#        for java itself (starting with -D or -X) will be sent to java,
-#        and the others will be sent to the application
+#        for java itself (starting with -D or -X, or prefixed with -J) will
+#        be sent to java, and the others will be sent to the application
 
 #  Requisites:
 #     - java should be on the path.
@@ -69,6 +69,8 @@ while test "$1"
 do
    if echo $1 | grep -- '^-[XD]' >/dev/null; then
       javaArgs="$javaArgs "\'$1\'
+   elif echo $1 | grep -- '^-J' >/dev/null; then
+      javaArgs="$javaArgs "\'`echo $1 | sed s/^-J//`\'
    elif [ "$1" = "-classpath" -a -n "$2" ]; then
       shift
       export CLASSPATH="$1"

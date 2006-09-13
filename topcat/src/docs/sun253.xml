@@ -2873,6 +2873,8 @@ If that directory (and java) is on your path then you can write:
 </verbatim>
 In this case any arguments which start <code>-D</code> or <code>-X</code>
 are assumed to be arguments to the java command,
+any arguments which start <code>-J</code> are stripped of the <code>-J</code>
+and then passed as arguments to the java command,
 a <code>-classpath</code> <var>path</var> defines a class path to
 be used in addition to the TOPCAT classes,
 and any remaining arguments are used by TOPCAT.
@@ -9650,6 +9652,8 @@ introduced since the last version:
         (subsection for each function class).</li>
     <li>Fixed PLASTIC bug which was ignoring ID argument of
         <code>ivo://votech.org/votable/loadFromURL</code> message.</li>
+    <li>Added <code>-J</code> flag to <code>topcat</code> script for passing
+        flags directly to Java.</li>
     </ul>
     </p></dd>
 
