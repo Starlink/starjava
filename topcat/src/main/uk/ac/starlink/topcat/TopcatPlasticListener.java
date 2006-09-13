@@ -103,7 +103,7 @@ public class TopcatPlasticListener extends HubManager {
             String id = url;
             if ( args.size() > 1 ) {
                 id = args.get( 1 ) instanceof String
-                   ? (String) args.get( 0 )
+                   ? (String) args.get( 1 )
                    : args.get( 0 ).toString();
             }
             votableLoadFromURL( sender, url, id );
