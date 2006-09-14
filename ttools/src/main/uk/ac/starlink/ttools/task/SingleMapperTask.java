@@ -3,7 +3,9 @@ package uk.ac.starlink.ttools.task;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 
 /**
@@ -61,8 +63,9 @@ public class SingleMapperTask extends MapperTask {
         setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
     }
 
-    protected InputSpec[] getInputSpecs() {
-        return new InputSpec[] { new InputSpec( inTableParam_,
+    protected InputSpec[] getInputSpecs( Environment env )
+            throws TaskException {
+        return new InputSpec[] { new InputSpec( inTableParam_.tableValue( env ),
                                                 inFilterParam_ ) };
     }
 }

@@ -3,7 +3,9 @@ package uk.ac.starlink.ttools.task;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 
 /**
@@ -78,11 +80,12 @@ public class FixedMapperTask extends MapperTask {
         setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
     }
 
-    protected InputSpec[] getInputSpecs() {
+    protected InputSpec[] getInputSpecs( Environment env )
+            throws TaskException {
         int nIn = inTableParams_.length;
         InputSpec[] specs = new InputSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
-            specs[ i ] = new InputSpec( inTableParams_[ i ],
+            specs[ i ] = new InputSpec( inTableParams_[ i ].tableValue( env ),
                                         inFilterParams_[ i ] );
         }
         return specs;

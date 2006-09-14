@@ -86,19 +86,21 @@ public abstract class MapperTask implements Task {
      * Returns an array of InputSpec objects describing the input tables
      * used by this task.
      *
+     * @param    env  execution environment
      * @return   input table specifiers
      */
-    protected abstract InputSpec[] getInputSpecs();
+    protected abstract InputSpec[] getInputSpecs( Environment env )
+            throws TaskException;
 
     public Executable createExecutable( Environment env ) throws TaskException {
 
-        InputSpec[] inSpecs = getInputSpecs();
+        InputSpec[] inSpecs = getInputSpecs( env );
         final int nIn = inSpecs.length;
 
         /* Get raw input tables. */
         final StarTable[] inTables = new StarTable[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
-            inTables[ i ] = inSpecs[ i ].getTableParameter().tableValue( env );
+            inTables[ i ] = inSpecs[ i ].getTable();
         }
 
         /* Get a sequence of pre-processing steps for each input table. */
@@ -199,18 +201,17 @@ public abstract class MapperTask implements Task {
      */
     protected static class InputSpec {
 
-        private final InputTableParameter tableParam_;
+        private final StarTable table_;
         private final FilterParameter filterParam_;
 
         /**
          * Constructor.
          *
-         * @param  tableParam  input table parameter
-         * @param  filterParam  input filter parameter
+         * @param  table        table
+         * @param  filterParam  filter parameter
          */
-        public InputSpec( InputTableParameter tableParam,
-                          FilterParameter filterParam ) {
-            tableParam_ = tableParam;
+        public InputSpec( StarTable table, FilterParameter filterParam ) {
+            table_ = table;
             filterParam_ = filterParam;
         }
 
@@ -219,8 +220,8 @@ public abstract class MapperTask implements Task {
          *
          * @param  input table parameter
          */
-        public InputTableParameter getTableParameter() {
-            return tableParam_;
+        public StarTable getTable() {
+            return table_;
         }
 
         /**
