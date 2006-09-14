@@ -94,22 +94,8 @@ public abstract class MapperTask implements Task {
 
     public Executable createExecutable( Environment env ) throws TaskException {
 
-        InputSpec[] inSpecs = getInputSpecs( env );
-        final int nIn = inSpecs.length;
-
-        /* Get raw input tables. */
-        final StarTable[] inTables = new StarTable[ nIn ];
-        for ( int i = 0; i < nIn; i++ ) {
-            inTables[ i ] = inSpecs[ i ].getTable();
-        }
-
-        /* Get a sequence of pre-processing steps for each input table. */
-        final ProcessingStep[][] inSteps = new ProcessingStep[ nIn ][];
-        for ( int i = 0; i < nIn; i++ ) {
-            FilterParameter fp = inSpecs[ i ].getFilterParameter();
-            inSteps[ i ] = fp != null ? fp.stepsValue( env )
-                                      : new ProcessingStep[ 0 ];
-        }
+        /* Get raw input tables and input processing pipelines. */
+        final InputSpec[] inSpecs = getInputSpecs( env );
 
         /* Get the mapping which defines the actual processing done by
          * this task. */
@@ -144,10 +130,16 @@ public abstract class MapperTask implements Task {
             public void execute() throws IOException, TaskException {
 
                 /* Perform any required pre-filtering of input tables. */
+                int nIn = inSpecs.length;
+                StarTable[] inTables = new StarTable[ nIn ];
                 for ( int i = 0; i < nIn; i++ ) {
-                    for ( int j = 0; j < inSteps[ i ].length; j++ ) {
-                        inTables[ i ] = inSteps[ i ][ j ].wrap( inTables[ i ] );
+                    InputSpec inSpec = inSpecs[ i ];
+                    StarTable inTable = inSpec.getTable();
+                    ProcessingStep[] inSteps = inSpec.getSteps();
+                    for ( int j = 0; j < inSteps.length; j++ ) {
+                        inTable = inSteps[ j ].wrap( inTable );
                     }
+                    inTables[ i ] = inTable;
                 }
 
                 /* Finally, execute the pipeline. */
@@ -166,7 +158,7 @@ public abstract class MapperTask implements Task {
     }
 
     /**
-     * Returnst this task's output mode.
+     * Returns this task's output mode.
      *
      * @return  output mode
      */
@@ -202,17 +194,17 @@ public abstract class MapperTask implements Task {
     protected static class InputSpec {
 
         private final StarTable table_;
-        private final FilterParameter filterParam_;
+        private final ProcessingStep[] steps_;
 
         /**
          * Constructor.
          *
-         * @param  table        table
-         * @param  filterParam  filter parameter
+         * @param  table  table
+         * @param  steps  processing pipeline
          */
-        public InputSpec( StarTable table, FilterParameter filterParam ) {
+        public InputSpec( StarTable table, ProcessingStep[] steps ) {
             table_ = table;
-            filterParam_ = filterParam;
+            steps_ = steps == null ? new ProcessingStep[ 0 ] : steps;
         }
 
         /**
@@ -229,8 +221,8 @@ public abstract class MapperTask implements Task {
          *
          * @param   input filter parameter (may be null)
          */
-        public FilterParameter getFilterParameter() {
-            return filterParam_;
+        public ProcessingStep[] getSteps() {
+            return steps_;
         }
     }
 }
