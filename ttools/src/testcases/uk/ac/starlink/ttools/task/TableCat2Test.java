@@ -6,9 +6,9 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
 
-public class TableCatTest extends TableTestCase {
+public class TableCat2Test extends TableTestCase {
 
-    public TableCatTest( String name ) {
+    public TableCat2Test( String name ) {
         super( name );
     }
 
@@ -26,7 +26,7 @@ public class TableCatTest extends TableTestCase {
         MapEnvironment env = new MapEnvironment()
                             .setValue( "in1", t1 )
                             .setValue( "in2", t2 );
-        new TableCat().createExecutable( env ).execute();
+        new TableCat2().createExecutable( env ).execute();
         StarTable out = env.getOutputTable( "omode" );
 
         Tables.checkTable( out );

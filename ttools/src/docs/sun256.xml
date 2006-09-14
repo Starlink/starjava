@@ -20,7 +20,7 @@
   <!ENTITY calc-purpose 'Calculator'>
   <!ENTITY multicone-purpose 'Multiple Cone-Search Querier'>
   <!ENTITY regquery-purpose 'Registry Querier'>
-  <!ENTITY tcat-purpose 'Table Concatenater'>
+  <!ENTITY tcat2-purpose 'Table Concatenater'>
   <!ENTITY tcopy-purpose 'Table Format Converter'>
   <!ENTITY tcube-purpose 'N-dimensional Histogram Calculator'>
   <!ENTITY tmatch2-purpose 'Pair Crossmatcher'>
@@ -38,7 +38,7 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
-  <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
+  <!ENTITY tcat2-summary SYSTEM 'tcat2-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
@@ -158,8 +158,8 @@ table manipulation:
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
     </li>
-<li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
-    &tcat-purpose;
+<li><ref id="tcat2" plaintextref="yes"><code>tcat2</code></ref>:
+    &tcat2-purpose;
     </li>
 <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
     &tcube-purpose;
@@ -348,7 +348,7 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>multicone</code></li>
 <li><code>regquery</code></li>
-<li><code>tcat</code></li>
+<li><code>tcat2</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
 <li><code>tmatch2</code></li>
@@ -974,7 +974,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
 <p>The generic table commands in STILTS 
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
-           <ref id="tcat"><code>tcat</code></ref>,
+           <ref id="tcat2"><code>tcat2</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="multicone"><code>multicone</code></ref> and
@@ -1241,7 +1241,7 @@ have parameters with names like "<code>cmd</code>" which you
 use to specify processing steps.
 Tasks with multiple input tables
 (<ref id="tmatch2"><code>tmatch2</code></ref>,
- <ref id="tcat"><code>tcat</code></ref>)
+ <ref id="tcat2"><code>tcat2</code></ref>)
 have parameters called <code>icmd1</code>, <code>icmd2</code>, ...
 for preprocessing the different input tables and
 <code>ocmd</code> for postprocessing the output table.
@@ -2288,7 +2288,7 @@ VOTable containing the objects it knows about in the specified region;
 hopefully the columns will be the same or very similar for
 all the different queries since they are using the same service.
 The response tables aren stitched together top-to-bottom 
-(in the same way as <ref id="tcat"><code>tcat</code></ref>)
+(in the same way as <ref id="tcat2"><code>tcat2</code></ref>)
 and the result is output.
 </p>
 
@@ -2485,44 +2485,46 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
-<subsect id="tcat">
-<subhead><title><code>tcat</code>: &tcat-purpose;</title></subhead>
+<subsect id="tcat2">
+<subhead><title><code>tcat2</code>: &tcat2-purpose;</title></subhead>
 
-<p><code>tcat</code> is a tool for concatenating tables one after the other.
+<p><code>tcat2</code> is a tool for concatenating two tables 
+one after the other.
 If you have two tables T1 and T2 which contain similar columns, and you 
-want to treat them as a single table, you can use <code>tcat</code>
+want to treat them as a single table, you can use <code>tcat2</code>
 to produce a new table whose metadata (row headings etc) comes from T1
-and whose data consists of all the rows of T1 followed by all the rows
-of T2.  This will only work if the columns of the two tables to be
-joined have the same or compatible types in the same order; 
-if they do not, you must use the <code>icmd</code> parameters to 
-preprocess the input tables so that the column sequences are compatible.
+and whose data consists of all the rows of T1 followed by all the rows of T2.
 </p>
 
-<p>In the current release of STILTS, <code>tcat</code> is rather 
-rudimentary: you can only join two tables at once, you must arrange
-for the columns to be in the right order, and you may end up with
-an unhelpful error if the columns in matching positions are not of
-compatible types.  Behaviour will be improved in a future release.
+<p>For this concatenation to make sense, each column of T1 must be
+compatible with the corresponding column of T2 - they must have 
+compatible types and, presumably, meanings.
+If this is not the case for the tables that you wish to concatenate,
+for instance the columns are in different orders, or the units 
+differ between a column in T1 and its opposite number in T2,
+you can use the <code>icmd1</code> and/or <code>icmd2</code>
+parameters to manipulate the input tables so that the
+column sequences are compatible.  See <ref id="tcat2-examples"/> for
+some examples.
 </p>
 
-&tcat-summary;
+&tcat2-summary;
 
-<subsubsect>
+<subsubsect id="tcat2-examples">
 <subhead><title>Examples</title></subhead>
 
 <p>Here are some examples of <code>tcopy</code>:
 <dl>
 
 <dt><verbatim>
-stilts tcat obs1.fits obs2.fits out=combined.fits
+stilts tcat2 obs1.fits obs2.fits out=combined.fits
 </verbatim></dt>
 <dd><p>Concatenates two similar observation catalogues to form a combined one.
     In this case, both input and output tables are FITS files.
     </p></dd>
 
 <dt><verbatim>
-stilts tcat ifmt1=ascii in1=obs1.txt ifmt2=ascii in2=ob2.txt omode=stats
+stilts tcat2 ifmt1=ascii in1=obs1.txt ifmt2=ascii in2=ob2.txt omode=stats
 </verbatim></dt>
 <dd><p>Again two similar catalogues are joined, but in this case both
     are in ASCII format, and instead of writing the result to an
@@ -2531,7 +2533,7 @@ stilts tcat ifmt1=ascii in1=obs1.txt ifmt2=ascii in2=ob2.txt omode=stats
     </p></dd>
 
 <dt><verbatim>
-stilts tcat in1=survey.vot.gz ifmt2=csv in2=more_data.csv
+stilts tcat2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
             icmd1='addskycoords fk5 galactic RA2000 DEC2000 GLON GLAT' \
             icmd1='keepcols "OBJ_ID GLON GLAT"' \
             icmd2='keepcols "ident gal_long gal_lat"' \
@@ -2552,7 +2554,7 @@ stilts tcat in1=survey.vot.gz ifmt2=csv in2=more_data.csv
     The second table contains such columns to start with,
     but the first table requires an initial step to convert 
     FK5 J2000.0 coordinates to galactic ones.
-    <code>tcat</code> joins the two doctored tables together, to produce
+    <code>tcat2</code> joins the two doctored tables together, to produce
     a table which contains only these three columns, with all the rows
     from both input tables, and sends the result directly 
     to a new or running instance of TOPCAT.
@@ -3858,6 +3860,7 @@ but my thanks are especially due to the following:
         flags directly to Java.</li>
     <li>Add sample (as opposed to population) Standard Deviation/Variance
         calculation options to the <code>stats</code> filter.</li>
+    <li>Renamed <code>tcat</code> to <code>tcat2</code>.</li>
     </ul>
     </p></dd>
 
