@@ -7,8 +7,8 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    4 Jul 2006
  */
-public class MultiCone extends MapperTask {
+public class MultiCone extends SingleMapperTask {
     public MultiCone() {
-        super( new MultiConeMapper(), 1, new ChoiceMode(), true, true );
+        super( new MultiConeMapper(), new ChoiceMode(), true, true );
     }
 }

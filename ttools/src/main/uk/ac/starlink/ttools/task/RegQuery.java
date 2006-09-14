@@ -6,7 +6,7 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    6 Jul 2006
  */
-public class RegQuery extends MapperTask {
+public class RegQuery extends FixedMapperTask {
     public RegQuery() {
         super( new RegQueryMapper(), 0, new ChoiceMode(), false, true );
     }

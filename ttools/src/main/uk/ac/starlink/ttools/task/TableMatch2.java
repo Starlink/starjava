@@ -6,7 +6,7 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    2 Sep 2005
  */
-public class TableMatch2 extends MapperTask {
+public class TableMatch2 extends FixedMapperTask {
     public TableMatch2() {
         super( new Match2Mapper(), 2, new ChoiceMode(), true, true );
     }

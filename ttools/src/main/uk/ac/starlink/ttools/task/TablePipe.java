@@ -6,8 +6,8 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
-public class TablePipe extends MapperTask {
+public class TablePipe extends SingleMapperTask {
     public TablePipe() {
-        super( new PipeMapper(), 1, new ChoiceMode(), false, false );
+        super( new PipeMapper(), new ChoiceMode(), false, false );
     }
 }

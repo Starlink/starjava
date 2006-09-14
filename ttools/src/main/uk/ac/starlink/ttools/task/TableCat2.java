@@ -14,7 +14,7 @@ import uk.ac.starlink.ttools.TableConsumer;
  * @author   Mark Taylor
  * @since    27 Sep 2005
  */
-public class TableCat2 extends MapperTask {
+public class TableCat2 extends FixedMapperTask {
 
     public TableCat2() {
         super( new Cat2Mapper(), 2, new ChoiceMode(), true, true );

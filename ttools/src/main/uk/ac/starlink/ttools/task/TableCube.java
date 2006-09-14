@@ -9,12 +9,12 @@ import uk.ac.starlink.ttools.mode.CubeMode;
  * @author   Mark Taylor
  * @since    3 May 2006
  */
-public class TableCube extends MapperTask {
+public class TableCube extends SingleMapperTask {
 
     private final WordsParameter colsParam_;
 
     public TableCube() {
-        super( new TrivialMapper( 1 ), 1, new CubeMode(), true, false );
+        super( new TrivialMapper( 1 ), new CubeMode(), true, false );
         CubeMode mode = (CubeMode) getOutputMode();
         colsParam_ = new WordsParameter( "cols" );
         colsParam_.setWordUsage( "<col-id>" );

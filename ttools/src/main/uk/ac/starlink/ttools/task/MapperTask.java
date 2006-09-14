@@ -7,13 +7,10 @@ import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
-import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.LoadException;
-import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
@@ -27,110 +24,32 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
-public class MapperTask implements Task {
+public abstract class MapperTask implements Task {
 
     private final TableMapper mapper_;
-    private final int nIn_;
-    private final InputTableParameter[] inTableParams_;
-    private final FilterParameter[] inFilterParams_;
     private final FilterParameter outFilterParam_;
     private final ProcessingMode outMode_;
-    private final Parameter[] params_;
+    private Parameter[] params_;
 
     /**
      * Constructor.
      *
      * @param   mapper   object which defines mapping transformation
-     * @param   nIn      number of tables on the input end of the mapper
      * @param   outMode  processing mode which determines the destination of
      *          the processed table
-     * @param   useInFilters  allow specification of filters for input tables
-     * @param   useOutFilters allow specification of filters for output tables
+     * @param   useOutFilter allow specification of filters for output table
      */
-    public MapperTask( TableMapper mapper, int nIn, ProcessingMode outMode,
-                       boolean useInFilters, boolean useOutFilters ) {
+    public MapperTask( TableMapper mapper, ProcessingMode outMode,
+                       boolean useOutFilter ) {
         mapper_ = mapper;
-        nIn_ = nIn;
+        outMode_ = outMode;
         List paramList = new ArrayList();
-
-        /* Input parameters. */
-        inTableParams_ = new InputTableParameter[ nIn_ ];
-        if ( nIn_ == 1 ) {
-            inTableParams_[ 0 ] = new InputTableParameter( "in" );
-            inTableParams_[ 0 ].setUsage( "<table>" );
-            inTableParams_[ 0 ].setPrompt( "Location of input table" );
-            paramList.add( inTableParams_[ 0 ].getFormatParameter() );
-            paramList.add( inTableParams_[ 0 ].getStreamParameter() );
-            paramList.add( inTableParams_[ 0 ] );
-        }
-        else {
-            for ( int i = 0; i < nIn_; i++ ) {
-                int i1 = i + 1;
-                String ord = getOrdinal( i1 );
-                InputTableParameter inParam =
-                    new InputTableParameter( "in" + i1 );
-                inTableParams_[ i ] = inParam;
-                inParam.setUsage( "<table" + i1 + ">" );
-                inParam.setPrompt( "Location of " + ord + " input table" );
-                inParam.setDescription( inParam.getDescription()
-                                       .replaceFirst( "the input table",
-                                                      "the " + ord + 
-                                                      " input table" ) );
-                InputFormatParameter fmtParam = 
-                    inTableParams_[ i ].getFormatParameter();
-                fmtParam.setDescription( fmtParam.getDescription()
-                                        .replaceFirst( "the input table",
-                                                       "the " + ord + 
-                                                       " input table" ) );
-                paramList.add( fmtParam );
-                paramList.add( inParam );
-            }
-        }
-        for ( int i = 0; i < nIn_; i++ ) {
-            inTableParams_[ i ].setPosition( i + 1 );
-        }
-
-        /* Input filters. */
-        if ( useInFilters ) {
-            inFilterParams_ = new FilterParameter[ nIn_ ];
-            if ( nIn_ == 1 ) {
-                FilterParameter fp = new FilterParameter( "icmd" );
-                inFilterParams_[ 0 ] = fp;
-                fp.setPrompt( "Processing command(s) for input table" );
-                fp.setDescription( new String[] {
-                    "Commands to operate on the input table,",
-                    "before any other processing takes place.",
-                    fp.getDescription(),
-                } );
-            }
-            else {
-                for ( int i = 0; i < nIn_; i++ ) {
-                    int i1 = i + 1;
-                    FilterParameter fp = new FilterParameter( "icmd" + i1 );
-                    inFilterParams_[ i ] = fp;
-                    fp.setPrompt( "Processing command(s) for input table "
-                                + i1 );
-                    fp.setDescription( new String[] {
-                        "Commands to operate on the",
-                        getOrdinal( i1 ) + " input table, before any other",
-                        "processing takes place.", 
-                        fp.getDescription(),
-                    } );
-                }
-            }
-            for ( int i = 0; i < nIn_; i++ ) {
-                paramList.add( inFilterParams_[ i ] );
-            }
-        }
-        else {
-            inFilterParams_ = null;
-        }
 
         /* Processing parameters. */
         paramList.addAll( Arrays.asList( mapper.getParameters() ) );
 
         /* Output filter. */
-        if ( useOutFilters ) {
+        if ( useOutFilter ) {
             outFilterParam_ = new FilterParameter( "ocmd" );
             outFilterParam_.setPrompt( "Processing command(s) " 
                                      + "for output table" );
@@ -145,32 +64,49 @@ public class MapperTask implements Task {
             outFilterParam_ = null;
         }
 
-        /* Output parameters. */
-        outMode_ = outMode;
+        /* Set output parameter list. */
         paramList.addAll( Arrays.asList( outMode.getAssociatedParameters() ) );
-
-        /* Fix output parameter list. */
-        params_ = (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
     }
 
     public Parameter[] getParameters() {
         return params_;
     }
 
+    /**
+     * Sets the list of parameters for this task.
+     *
+     * @param   params  parameter array
+     */
+    protected void setParameters( Parameter[] params ) {
+        params_ = params;
+    }
+
+    /**
+     * Returns an array of InputSpec objects describing the input tables
+     * used by this task.
+     *
+     * @return   input table specifiers
+     */
+    protected abstract InputSpec[] getInputSpecs();
+
     public Executable createExecutable( Environment env ) throws TaskException {
 
+        InputSpec[] inSpecs = getInputSpecs();
+        final int nIn = inSpecs.length;
+
         /* Get raw input tables. */
-        final StarTable[] inTables = new StarTable[ nIn_ ];
-        for ( int i = 0; i < nIn_; i++ ) {
-            inTables[ i ] = inTableParams_[ i ].tableValue( env );
+        final StarTable[] inTables = new StarTable[ nIn ];
+        for ( int i = 0; i < nIn; i++ ) {
+            inTables[ i ] = inSpecs[ i ].getTableParameter().tableValue( env );
         }
 
         /* Get a sequence of pre-processing steps for each input table. */
-        final ProcessingStep[][] inSteps = new ProcessingStep[ nIn_ ][];
-        for ( int i = 0; i < nIn_; i++ ) {
-            inSteps[ i ] = inFilterParams_ != null
-                         ? inFilterParams_[ i ].stepsValue( env )
-                         : new ProcessingStep[ 0 ];
+        final ProcessingStep[][] inSteps = new ProcessingStep[ nIn ][];
+        for ( int i = 0; i < nIn; i++ ) {
+            FilterParameter fp = inSpecs[ i ].getFilterParameter();
+            inSteps[ i ] = fp != null ? fp.stepsValue( env )
+                                      : new ProcessingStep[ 0 ];
         }
 
         /* Get the mapping which defines the actual processing done by
@@ -206,7 +142,7 @@ public class MapperTask implements Task {
             public void execute() throws IOException, TaskException {
 
                 /* Perform any required pre-filtering of input tables. */
-                for ( int i = 0; i < nIn_; i++ ) {
+                for ( int i = 0; i < nIn; i++ ) {
                     for ( int j = 0; j < inSteps[ i ].length; j++ ) {
                         inTables[ i ] = inSteps[ i ][ j ].wrap( inTables[ i ] );
                     }
@@ -258,20 +194,42 @@ public class MapperTask implements Task {
     }
 
     /**
-     * Returns the string representation of the ordinal number corresponding
-     * to a given integer.
-     *
-     * @param  i  number
-     * @return   ordinal
+     * Struct-type class which provides specifications for a single 
+     * input table for a task.
      */
-    private static String getOrdinal( int i ) {
-        switch ( i ) {
-            case 1: return "first";
-            case 2: return "second";
-            case 3: return "third";
-            case 4: return "fourth";
-            case 5: return "fifth";
-            default: return "next";
+    protected static class InputSpec {
+
+        private final InputTableParameter tableParam_;
+        private final FilterParameter filterParam_;
+
+        /**
+         * Constructor.
+         *
+         * @param  tableParam  input table parameter
+         * @param  filterParam  input filter parameter
+         */
+        public InputSpec( InputTableParameter tableParam,
+                          FilterParameter filterParam ) {
+            tableParam_ = tableParam;
+            filterParam_ = filterParam;
+        }
+
+        /**
+         * Returns input table parameter.
+         *
+         * @param  input table parameter
+         */
+        public InputTableParameter getTableParameter() {
+            return tableParam_;
+        }
+
+        /**
+         * Returns the input filter parameter.
+         *
+         * @param   input filter parameter (may be null)
+         */
+        public FilterParameter getFilterParameter() {
+            return filterParam_;
         }
     }
 }
