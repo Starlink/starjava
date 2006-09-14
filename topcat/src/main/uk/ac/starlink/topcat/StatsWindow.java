@@ -380,25 +380,49 @@ public class StatsWindow extends AuxWindow {
             }
         } );
 
-        /* Standard Deviation. */
+        /* Population Standard Deviation. */
         metas.add( new MetaColumn( "S.D.", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
                 return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.sdevs[ jcol ] ) 
+                     ? new Float( lastCalc.popsdevs[ jcol ] ) 
                      : null;
             }
         } );
 
-        /* Variance. */
+        /* Population Variance. */
         hideColumns.set( metas.size() );
         metas.add( new MetaColumn( "Variance", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
                 return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.vars[ jcol ] )
+                     ? new Float( lastCalc.popvars[ jcol ] )
+                     : null;
+            }
+        } );
+
+        /* Sample Standard Deviation. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Sample S.D.", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ]
+                     ? new Float( lastCalc.sampsdevs[ jcol ] ) 
+                     : null;
+            }
+        } );
+
+        /* Sample Variance. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Sample Variance", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ]
+                     ? new Float( lastCalc.sampvars[ jcol ] )
                      : null;
             }
         } );
@@ -549,8 +573,10 @@ public class StatsWindow extends AuxWindow {
         long[] nbads;
         long[] ntrues;
         double[] means;
-        double[] sdevs;
-        double[] vars;
+        double[] popsdevs;
+        double[] popvars;
+        double[] sampsdevs;
+        double[] sampvars;
         double[] skews;
         double[] kurts;
         double[] sums;
@@ -636,8 +662,10 @@ public class StatsWindow extends AuxWindow {
             nbads = new long[ ncol ];
             ntrues = new long[ ncol ];
             means = new double[ ncol ];
-            sdevs = new double[ ncol ];
-            vars = new double[ ncol ];
+            popsdevs = new double[ ncol ];
+            popvars = new double[ ncol ];
+            sampsdevs = new double[ ncol ];
+            sampvars = new double[ ncol ];
             skews = new double[ ncol ];
             kurts = new double[ ncol ];
             sums = new double[ ncol ];
@@ -842,8 +870,16 @@ public class StatsWindow extends AuxWindow {
                         double mean = sum1 / dcount;
                         double nvar = ( sum2 - sum1 * sum1 / dcount );
                         means[ icol ] = mean;
-                        vars[ icol ] = nvar / dcount;
-                        sdevs[ icol ] = Math.sqrt( vars[ icol ] );
+                        popvars[ icol ] = nvar / dcount;
+                        popsdevs[ icol ] = Math.sqrt( popvars[ icol ] );
+                        if ( ngood > 1 ) {
+                            sampvars[ icol ] = nvar / ( dcount - 1 );
+                            sampsdevs[ icol ] = Math.sqrt( sampvars[ icol ] );
+                        }
+                        else {
+                            sampvars[ icol ] = Double.NaN;
+                            sampsdevs[ icol ] = Double.NaN;
+                        }
                         skews[ icol ] =
                             Math.sqrt( dcount ) / Math.pow( nvar, 1.5 ) *
                             ( + 1 * sum3 
@@ -875,8 +911,10 @@ public class StatsWindow extends AuxWindow {
                 }
                 else {
                     means[ icol ] = Double.NaN;
-                    sdevs[ icol ] = Double.NaN;
-                    vars[ icol ] = Double.NaN;
+                    popsdevs[ icol ] = Double.NaN;
+                    popvars[ icol ] = Double.NaN;
+                    sampvars[ icol ] = Double.NaN;
+                    sampsdevs[ icol ] = Double.NaN;
                     skews[ icol ] = Double.NaN;
                     kurts[ icol ] = Double.NaN;
                 }

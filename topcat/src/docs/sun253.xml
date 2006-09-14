@@ -4928,7 +4928,7 @@ The following columns are shown by default:
     </p></dd>
 
 <dt>S.D.</dt>
-<dd><p>The standard deviation of the good cells.
+<dd><p>The population standard deviation of the good cells.
     </p></dd>
 
 <dt>Minimum</dt>
@@ -4967,7 +4967,15 @@ You can reveal these by using the <label>Display</label> menu:
     </p></dd>
 
 <dt>Variance</dt>
-<dd><p>The variance of the good cells.
+<dd><p>The population variance of the good cells.
+    </p></dd>
+
+<dt>Sample S.D.</dt>
+<dd><p>The sample standard deviation of the good cells.
+    </p></dd>
+
+<dt>Sample Variance</dt>
+<dd><p>The sample variance of the good cells.
     </p></dd>
 
 <dt>Skew</dt>
@@ -9654,6 +9662,8 @@ introduced since the last version:
         <code>ivo://votech.org/votable/loadFromURL</code> message.</li>
     <li>Added <code>-J</code> flag to <code>topcat</code> script for passing
         flags directly to Java.</li>
+    <li>Added sample (as opposed to population) Standard Deviation/Variance
+        calculation options to the Statistics Window.</li>
     </ul>
     </p></dd>
 
