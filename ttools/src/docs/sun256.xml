@@ -3856,6 +3856,8 @@ but my thanks are especially due to the following:
         <code>utype</code> attribute on RESOURCE elements.</li>
     <li>Added <code>-J</code> flag to <code>stilts</code> script for passing
         flags directly to Java.</li>
+    <li>Add sample (as opposed to population) Standard Deviation/Variance
+        calculation options to the <code>stats</code> filter.</li>
     </ul>
     </p></dd>
 
