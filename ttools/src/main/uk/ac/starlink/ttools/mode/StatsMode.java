@@ -15,6 +15,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.KeepColumnFilter;
+import uk.ac.starlink.ttools.filter.StatsFilter;
 
 /**
  * Processing mode for calculating statistics on a table.
@@ -35,8 +36,11 @@ public class StatsMode implements ProcessingMode {
         return new StringBuffer()
        .append( "Calculates and displays univariate statistics for each\n" )
        .append( "of the numeric columns in the table.\n" )
-       .append( "Mean, standard deviation, minimum, maximum and number of\n" )
-       .append( "good rows are shown.\n" )
+       .append( "Mean, population standard deviation, minimum, maximum and\n" )
+       .append( "number of non-null entries are shown.\n" )
+       .append( "See the <code>" + new StatsFilter().getName() + "</code> " )
+       .append( "filter in <ref id='filterSteps'/>\n" )
+       .append( "for more flexible statistical calculations.\n" )
        .toString();
     }
 
