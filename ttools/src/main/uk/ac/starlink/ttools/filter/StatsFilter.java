@@ -38,8 +38,10 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo NGOOD_INFO;
     private static final ValueInfo NBAD_INFO;
     private static final ValueInfo MEAN_INFO;
-    private static final ValueInfo STDEV_INFO;
-    private static final ValueInfo VARIANCE_INFO;
+    private static final ValueInfo POPSD_INFO;
+    private static final ValueInfo POPVAR_INFO;
+    private static final ValueInfo SAMPSD_INFO;
+    private static final ValueInfo SAMPVAR_INFO;
     private static final ValueInfo SKEW_INFO;
     private static final ValueInfo KURT_INFO;
     private static final ValueInfo MIN_INFO;
@@ -61,10 +63,14 @@ public class StatsFilter extends BasicFilter {
                                           "Number of blank cells" ),
         MEAN_INFO = new DefaultValueInfo( "Mean", Float.class, 
                                           "Average" ),
-        STDEV_INFO = new DefaultValueInfo( "StDev", Float.class,
-                                           "Standard deviation" ),
-        VARIANCE_INFO = new DefaultValueInfo( "Variance", Float.class,
-                                              "Variance" ),
+        POPSD_INFO = new DefaultValueInfo( "StDev", Float.class,
+                                           "Population Standard deviation" ),
+        POPVAR_INFO = new DefaultValueInfo( "Variance", Float.class,
+                                            "Population Variance" ),
+        SAMPSD_INFO = new DefaultValueInfo( "SampStDev", Float.class,
+                                            "Sample Standard Deviation" ),
+        SAMPVAR_INFO = new DefaultValueInfo( "SampVariance", Float.class,
+                                             "Sample Variance" ),
         SKEW_INFO = new DefaultValueInfo( "Skew", Float.class,
                                           "Gamma 1 skewness measure" ),
         KURT_INFO = new DefaultValueInfo( "Kurtosis", Float.class,
@@ -102,7 +108,7 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo[] DEFAULT_INFOS = new ValueInfo[] {
         MetadataFilter.NAME_INFO,
         MEAN_INFO,
-        STDEV_INFO,
+        POPSD_INFO,
         MIN_INFO,
         MAX_INFO,
         NGOOD_INFO,
@@ -269,7 +275,8 @@ public class StatsFilter extends BasicFilter {
                 double sum4 = stats.getSum4();
                 double mean = sum1 / dcount;
                 double nvar = ( sum2 - sum1 * sum1 / dcount );
-                double variance = nvar / dcount;
+                double popvar = nvar / dcount;
+                double sampvar = nvar / ( dcount - 1 );
               
                 double skew = Math.sqrt( dcount ) / Math.pow( nvar, 1.5 )
                             * ( + 1 * sum3
@@ -295,11 +302,20 @@ public class StatsFilter extends BasicFilter {
                 if ( isFinite( mean ) ) {
                     map.put( MEAN_INFO, new Float( (float) mean ) );
                 }
-                if ( isFinite( variance ) ) {
-                    map.put( STDEV_INFO,
-                             new Float( (float) Math.sqrt( variance ) ) );
-                    map.put( VARIANCE_INFO, new Float( (float) variance ) );
+                if ( isFinite( popvar ) ) {
+                    map.put( POPSD_INFO,
+                             new Float( (float) Math.sqrt( popvar ) ) );
+                    map.put( POPVAR_INFO, new Float( (float) popvar ) );
+                }
+                if ( isFinite( sampvar ) ) {
+                    map.put( SAMPSD_INFO,
+                             new Float( (float) Math.sqrt( sampvar ) ) );
+                    map.put( SAMPVAR_INFO, new Float( (float) sampvar ) );
+                }
+                if ( isFinite( skew ) ) {
                     map.put( SKEW_INFO, new Float( (float) skew ) );
+                }
+                if ( isFinite( kurtosis ) ) {
                     map.put( KURT_INFO, new Float( (float) kurtosis ) );
                 }
                 if ( min instanceof Number &&
