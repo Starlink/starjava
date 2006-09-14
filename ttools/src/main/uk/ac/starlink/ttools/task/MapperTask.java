@@ -41,15 +41,16 @@ public class MapperTask implements Task {
      * Constructor.
      *
      * @param   mapper   object which defines mapping transformation
+     * @param   nIn      number of tables on the input end of the mapper
      * @param   outMode  processing mode which determines the destination of
      *          the processed table
      * @param   useInFilters  allow specification of filters for input tables
      * @param   useOutFilters allow specification of filters for output tables
      */
-    public MapperTask( TableMapper mapper, ProcessingMode outMode,
+    public MapperTask( TableMapper mapper, int nIn, ProcessingMode outMode,
                        boolean useInFilters, boolean useOutFilters ) {
         mapper_ = mapper;
-        nIn_ = mapper.getInCount();
+        nIn_ = nIn;
         List paramList = new ArrayList();
 
         /* Input parameters. */

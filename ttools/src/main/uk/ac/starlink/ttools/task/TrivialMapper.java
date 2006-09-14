@@ -26,10 +26,6 @@ public class TrivialMapper implements TableMapper, TableMapping {
         nTable_ = nTable;
     }
 
-    public int getInCount() {
-        return nTable_;
-    }
-
     public Parameter[] getParameters() {
         return new Parameter[ 0 ];
     }

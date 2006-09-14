@@ -93,10 +93,6 @@ public class Match2Mapper implements TableMapper {
         joinParam_.setPrompt( "Selection criteria for output rows" );
     }
 
-    public int getInCount() {
-        return 2;
-    }
-
     public Parameter[] getParameters() {
         return new Parameter[] {
             matcherParam_,

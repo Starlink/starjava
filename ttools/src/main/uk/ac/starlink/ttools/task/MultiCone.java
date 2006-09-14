@@ -9,6 +9,6 @@ package uk.ac.starlink.ttools.task;
  */
 public class MultiCone extends MapperTask {
     public MultiCone() {
-        super( new MultiConeMapper(), new ChoiceMode(), true, true );
+        super( new MultiConeMapper(), 1, new ChoiceMode(), true, true );
     }
 }

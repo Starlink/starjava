@@ -72,10 +72,6 @@ public class RegQueryMapper implements TableMapper {
         };
     }
 
-    public int getInCount() {
-        return 0;
-    }
-
     public TableMapping createMapping( Environment env )
             throws TaskException {
         String queryText = queryParam_.stringValue( env );

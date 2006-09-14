@@ -63,10 +63,6 @@ public class PipeMapper implements TableMapper {
         } );
     }
 
-    public int getInCount() {
-        return 1;
-    }
-
     public Parameter[] getParameters() {
         return new Parameter[] {
             scriptParam_,

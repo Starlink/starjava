@@ -17,16 +17,12 @@ import uk.ac.starlink.ttools.TableConsumer;
 public class TableCat extends MapperTask {
 
     public TableCat() {
-        super( new Cat2Mapper(), new ChoiceMode(), true, true );
+        super( new Cat2Mapper(), 2, new ChoiceMode(), true, true );
     }
 
     private static class Cat2Mapper implements TableMapper {
 
         public Cat2Mapper() {
-        }
-
-        public int getInCount() {
-            return 2;
         }
 
         public Parameter[] getParameters() {

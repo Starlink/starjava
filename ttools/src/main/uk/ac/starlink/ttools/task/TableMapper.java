@@ -15,13 +15,6 @@ import uk.ac.starlink.task.TaskException;
 public interface TableMapper {
 
     /**
-     * Returns the number of tables required for input.
-     *
-     * @return   input table count
-     */
-    int getInCount();
-
-    /**
      * Returns the parameters defined by this mapper.
      *
      * @return  parameter array

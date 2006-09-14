@@ -8,6 +8,6 @@ package uk.ac.starlink.ttools.task;
  */
 public class TableMatch2 extends MapperTask {
     public TableMatch2() {
-        super( new Match2Mapper(), new ChoiceMode(), true, true );
+        super( new Match2Mapper(), 2, new ChoiceMode(), true, true );
     }
 }

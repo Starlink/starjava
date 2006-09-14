@@ -14,7 +14,7 @@ public class TableCube extends MapperTask {
     private final WordsParameter colsParam_;
 
     public TableCube() {
-        super( new TrivialMapper( 1 ), new CubeMode(), true, false );
+        super( new TrivialMapper( 1 ), 1, new CubeMode(), true, false );
         CubeMode mode = (CubeMode) getOutputMode();
         colsParam_ = new WordsParameter( "cols" );
         colsParam_.setWordUsage( "<col-id>" );
