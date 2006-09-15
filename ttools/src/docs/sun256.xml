@@ -20,7 +20,8 @@
   <!ENTITY calc-purpose 'Calculator'>
   <!ENTITY multicone-purpose 'Multiple Cone-Search Querier'>
   <!ENTITY regquery-purpose 'Registry Querier'>
-  <!ENTITY tcat2-purpose 'Table Concatenater'>
+  <!ENTITY tcat-purpose 'Multiple Table Concatenater'>
+  <!ENTITY tcat2-purpose '2-Table Concatenater'>
   <!ENTITY tcopy-purpose 'Table Format Converter'>
   <!ENTITY tcube-purpose 'N-dimensional Histogram Calculator'>
   <!ENTITY tmatch2-purpose 'Pair Crossmatcher'>
@@ -38,6 +39,7 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
+  <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcat2-summary SYSTEM 'tcat2-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
@@ -157,6 +159,9 @@ table manipulation:
     </li>
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
+    </li>
+<li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
+    &tcat-purpose;
     </li>
 <li><ref id="tcat2" plaintextref="yes"><code>tcat2</code></ref>:
     &tcat2-purpose;
@@ -348,6 +353,7 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>multicone</code></li>
 <li><code>regquery</code></li>
+<li><code>tcat</code></li>
 <li><code>tcat2</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
@@ -974,6 +980,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
 <p>The generic table commands in STILTS 
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
+           <ref id="tcat"><code>tcat</code></ref>,
            <ref id="tcat2"><code>tcat2</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
@@ -1242,7 +1249,7 @@ use to specify processing steps.
 Tasks with multiple input tables
 (<ref id="tmatch2"><code>tmatch2</code></ref>,
  <ref id="tcat2"><code>tcat2</code></ref>)
-have parameters called <code>icmd1</code>, <code>icmd2</code>, ...
+may have parameters called <code>icmd1</code>, <code>icmd2</code>, ...
 for preprocessing the different input tables and
 <code>ocmd</code> for postprocessing the output table.
 <ref id="tpipe"><code>tpipe</code></ref> does nothing except
@@ -2287,8 +2294,8 @@ For each of these queries the service should respond with a
 VOTable containing the objects it knows about in the specified region; 
 hopefully the columns will be the same or very similar for
 all the different queries since they are using the same service.
-The response tables aren stitched together top-to-bottom 
-(in the same way as <ref id="tcat2"><code>tcat2</code></ref>)
+The response tables are stitched together top-to-bottom 
+(in the same way as <ref id="tcat"><code>tcat</code></ref>)
 and the result is output.
 </p>
 
@@ -2485,11 +2492,83 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
+<subsect id="tcat">
+<subhead><title><code>tcat</code>: &tcat-purpose;</title></subhead>
+
+<p><code>tcat</code> is a tool for concatenating any number of 
+similar tables one after the other.
+The tables must be of similar form to each other (same number and
+types of column).  Preprocessing of the tables may be done using
+the <code>icmd</code> parameter, but this will operate in the same
+way on all the input tables.  Table parameters of the output table
+will be taken from the first of the input tables.
+</p>
+
+<p>If you have two heterogeneous tables
+which require different preprocessing steps from each other before
+they can be concatenated, use <code><ref id="tcat2">tcat2</ref></code>.
+</p>
+
+&tcat-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tcat</code>:
+<dl>
+
+<dt><verbatim>
+stilts tcat ifmt=ascii in=t1.txt in=t2.txt in=t3.txt out=table.txt
+</verbatim></dt>
+<dd><p>Concatenates the three named ASCII format tables to produce
+    an output table.  All three must have compatible numbers and types 
+    of columns.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat ifmt=ascii in="t1.txt t2.txt t3.txt" out=table.txt
+</verbatim></dt>
+<dd><p>Exactly the same as the previous example.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in=r368776.fits#1 in=r368776#2 in=r368776.fits#3 in=r368776.fits#4
+            out=r368776_all.fits icmd=progress
+</verbatim></dt>
+<dd><p>Concatenates the contents of four tables (the first four extension HDUs)
+    from a multi-extension FITS file to produce a single FITS table.
+    Progress through each of the input files is reported to the console.
+    Many Unix shells (csh, bash) will allow you to list the input files
+    using the following shorthand: "<code>in=r368776.fits#{1,2,3,4}</code>".
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in='r1.csv r2.csv r3.csv' ifmt=csv \
+            icmd='keepcols "RA DEC FLUX"' icmd='sorthead 10 FLUX' \
+            ocmd='sort FLUX'
+</verbatim></dt>
+<dd><p>Takes the 10 rows with highest FLUX values from each of three input
+    tables (in comma-separated value format) and joins them together to
+    produce a 30-row output table.  This is then sorted in FLUX order, 
+    and the resulting table is output to the console in text format.
+    Only the columns RA, DEC and FLUX are output; any other columns 
+    are discarded.  The input tables don't need to have identical forms
+    to each other, but each must have at least an RA, DEC and FLUX column.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="tcat2">
 <subhead><title><code>tcat2</code>: &tcat2-purpose;</title></subhead>
 
 <p><code>tcat2</code> is a tool for concatenating two tables 
-one after the other.
+one after the other.  Each table can be manipulated separately 
+prior to the concatenatation.
 If you have two tables T1 and T2 which contain similar columns, and you 
 want to treat them as a single table, you can use <code>tcat2</code>
 to produce a new table whose metadata (row headings etc) comes from T1
@@ -2506,6 +2585,10 @@ you can use the <code>icmd1</code> and/or <code>icmd2</code>
 parameters to manipulate the input tables so that the
 column sequences are compatible.  See <ref id="tcat2-examples"/> for
 some examples.
+</p>
+
+<p>To concatenate more than two tables at a time,
+use <code><ref id="tcat">tcat</ref></code>.
 </p>
 
 &tcat2-summary;
@@ -3860,7 +3943,10 @@ but my thanks are especially due to the following:
         flags directly to Java.</li>
     <li>Add sample (as opposed to population) Standard Deviation/Variance
         calculation options to the <code>stats</code> filter.</li>
-    <li>Renamed <code>tcat</code> to <code>tcat2</code>.</li>
+    <li><code><ref id="tcat">tcat</ref></code> now concatenates multiple 
+        tables, not just two, and the syntax has changed.
+        The <code><ref id="tcat2">tcat2</ref></code> command now does what
+        <code>tcat</code> used to do.</li>
     </ul>
     </p></dd>
 
