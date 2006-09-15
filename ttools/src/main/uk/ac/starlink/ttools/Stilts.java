@@ -73,6 +73,7 @@ public class Stilts {
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "multicone", taskPkg + "MultiCone" );
         taskFactory_.register( "regquery", taskPkg + "RegQuery" );
+        taskFactory_.register( "tcat", taskPkg + "TableCat" );
         taskFactory_.register( "tcat2", taskPkg + "TableCat2" );
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );
         taskFactory_.register( "tcube", taskPkg + "TableCube" );
