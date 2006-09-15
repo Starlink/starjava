@@ -38,6 +38,10 @@ public class FilterParameter extends Parameter
         } );
     }
 
+    public char getValueSeparator() {
+        return ';';
+    }
+
     public void setValueFromString( Environment env, String sval )
             throws TaskException {
         if ( sval != null ) {

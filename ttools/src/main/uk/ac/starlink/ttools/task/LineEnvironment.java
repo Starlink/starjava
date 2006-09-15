@@ -112,6 +112,7 @@ public class LineEnvironment extends TableEnvironment {
         /* If it's a multiparameter, concatenate all the appearances
          * on the command line. */
         if ( param instanceof MultiParameter ) {
+            char separator = ((MultiParameter) param).getValueSeparator();
             StringBuffer val = new StringBuffer();
             int igot = 0;
             for ( int i = 0; i < arguments_.length; i++ ) {
@@ -120,7 +121,7 @@ public class LineEnvironment extends TableEnvironment {
                      ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) ) {
                     arg.used_ = true;
                     if ( igot++ > 0 ) {
-                        val.append( ';' );
+                        val.append( separator );
                     }
                     val.append( arg.value_ );
                 }
