@@ -17,17 +17,8 @@
          </p></dd>'>
 
   <!-- Short descriptions for each command. -->
-  <!ENTITY calc-purpose 'Calculator'>
-  <!ENTITY multicone-purpose 'Multiple Cone-Search Querier'>
-  <!ENTITY regquery-purpose 'Registry Querier'>
-  <!ENTITY tcat-purpose 'Multiple Table Concatenater'>
-  <!ENTITY tcat2-purpose '2-Table Concatenater'>
-  <!ENTITY tcopy-purpose 'Table Format Converter'>
-  <!ENTITY tcube-purpose 'N-dimensional Histogram Calculator'>
-  <!ENTITY tmatch2-purpose 'Pair Crossmatcher'>
-  <!ENTITY tpipe-purpose 'Generic Table Pipeline Utility'>
-  <!ENTITY votcopy-purpose 'VOTable Encoding Translator'>
-  <!ENTITY votlint-purpose 'VOTable Validity Checker'>
+  <!ENTITY % purpose-defs SYSTEM "purpose-defs.xml">
+  %purpose-defs;
 
   <!-- Description of processing filters. -->
   <!ENTITY filter-docs SYSTEM 'filter-docs.xml'>
@@ -3947,6 +3938,8 @@ but my thanks are especially due to the following:
         tables, not just two, and the syntax has changed.
         The <code><ref id="tcat2">tcat2</ref></code> command now does what
         <code>tcat</code> used to do.</li>
+    <li>Improved CEA description file output - now contains details of all
+        tasks as well as various improvements in documentation etc.</li>
     </ul>
     </p></dd>
 
