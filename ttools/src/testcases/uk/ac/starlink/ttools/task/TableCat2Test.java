@@ -23,20 +23,28 @@ public class TableCat2Test extends TableTestCase {
             col( "atkname", new String[] { "charlotte", "jonathon", } ),
         } );
 
-        MapEnvironment env = new MapEnvironment()
-                            .setValue( "in1", t1 )
-                            .setValue( "in2", t2 );
-        new TableCat2().createExecutable( env ).execute();
-        StarTable out = env.getOutputTable( "omode" );
+        MapEnvironment env2 = new MapEnvironment()
+                             .setValue( "in1", t1 )
+                             .setValue( "in2", t2 );
+        new TableCat2().createExecutable( env2 ).execute();
+        StarTable out2 = env2.getOutputTable( "omode" );
 
-        Tables.checkTable( out );
+        MapEnvironment envN = new MapEnvironment()
+                             .setValue( "in", new StarTable[] { t1, t2, } );
+        new TableCat().createExecutable( envN ).execute();
+        StarTable outN = envN.getOutputTable( "omode" );
+
+        Tables.checkTable( out2 );
+        Tables.checkTable( outN );
+
+        assertSameData( out2, outN );
 
         assertArrayEquals( new String[] { "index", "name" },
-                           getColNames( out ) );
+                           getColNames( out2 ) );
         assertArrayEquals( box( new int[] { 1, 2, 1, 2, } ),
-                           getColData( out, 0 ) );
+                           getColData( out2, 0 ) );
         assertArrayEquals( new Object[] { "milo", "theo",
                                           "charlotte", "jonathon", },
-                           getColData( out, 1 ) );
+                           getColData( out2, 1 ) );
     }
 }
