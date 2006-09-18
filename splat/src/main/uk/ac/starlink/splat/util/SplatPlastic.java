@@ -9,13 +9,19 @@ package uk.ac.starlink.splat.util;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
-import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.iface.SplatBrowser;
+
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.plastic.MessageId;
+import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.iface.SplatBrowser;
+import uk.ac.starlink.splat.iface.SpectrumIO;
 
 /**
  * Implements the PlasticListener interface on behalf of the SPLAT
@@ -43,6 +49,11 @@ public class SplatPlastic
      * Controlling browser object.
      */
     protected SplatBrowser browser;
+
+    /**
+     * SpecDataFactory instance.
+     */
+    protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
 
     /**
      * Model controlling whether spectra received as VOTables are accepted.
@@ -99,7 +110,7 @@ public class SplatPlastic
             if ( acceptFITSLineModel.isSelected() ) {
                 String location = args.get( 0 ).toString();
                 boolean success =
-                    browser.addSpectrum( location, SpecDataFactory.FITS ); 
+                    browser.addSpectrum( location, SpecDataFactory.FITS );
                 return Boolean.valueOf( success );
             }
             else {
@@ -205,5 +216,70 @@ public class SplatPlastic
     public ButtonModel getAcceptFITSTableModel()
     {
         return acceptFITSTableModel;
+    }
+
+    /**
+     * Load a spectrum from a URL with the given Map of properties.
+     */
+    protected void loadSpectrum( String location, Map meta )
+    {
+        SpectrumIO.Props[] propList = new SpectrumIO.Props[1];
+        propList[0] = getProps( location, meta );
+        browser.threadLoadSpectra( propList );
+    }
+
+    /**
+     * Convert a spectrum specification (a URL and Map of SSAP metadata) into
+     * a SpectrumIO.Prop instance.
+     *
+     * @param location URL of spectrum.
+     * @param meta a key-value map of SSAP metadata that describes the
+     *             spectrum to be accessed.
+     */
+    protected SpectrumIO.Props getProps( String location, Map meta )
+    {
+        SpectrumIO.Props props = new SpectrumIO.Props( location );
+        if ( meta != null && meta.size() > 0 ) {
+            Set keys = meta.keySet();
+            Iterator i = keys.iterator();
+            String key;
+            String value;
+            String axes[];
+            String units[];
+            while( i.hasNext() ) {
+                key = (String) i.next();
+                key = key.toLowerCase();
+                value = (String) meta.get( key ); // ?is this always String?
+
+                //  UTYPEs and UCDs, maybe UTYPES should be sdm:ssa.xxx.
+                //  Many of the SSAP response UTYPEs don't seem documented yet.
+                if ( key.equals( "vox:spectrum_format" ) ||
+                     key.equals( "access.format" ) ) {
+                    props.setType( specDataFactory.mimeToSPLATType( value ) );
+                }
+                else if ( key.equals( "vox:image_title" ) ||
+                          key.equals( "target.name" ) ) {
+                    props.setShortName( value );
+                }
+                //  Suspect these will be separate UTYPEs,
+                //  data.spectralaxis.value and data.fluxaxis.value.
+                else if ( key.equals( "vox:spectrum_axes" ) ) {
+                    axes = value.split( "\\s" );
+                    props.setCoordColumn( axes[0] );
+                    props.setDataColumn( axes[1] );
+                    if ( axes.length == 3 ) {
+                        props.setErrorColumn( axes[2] );
+                    }
+                }
+                //  Suspect these will be separate UTYPEs,
+                //  data.spectralaxis.unit and data.fluxaxis.unit.
+                else if ( key.equals( "vox:spectrum_units" ) ) {
+                    units = value.split("\\s");
+                    props.setCoordUnits( units[0] );
+                    props.setDataUnits( units[1] );
+                }
+            }
+        }
+        return props;
     }
 }
