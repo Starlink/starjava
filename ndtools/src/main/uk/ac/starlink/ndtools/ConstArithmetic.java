@@ -31,6 +31,7 @@ class ConstArithmetic implements Task {
     private ExistingNdxParameter inpar;
     private NewNdxParameter outpar;
     private DoubleParameter constpar;
+    private String purpose;
 
     public Parameter[] getParameters() {
         return new Parameter[] { inpar, outpar, constpar };
@@ -44,10 +45,12 @@ class ConstArithmetic implements Task {
      *                  constant arithmetic
      * @param  vworker  a SumDoer that handles variance component image 
      *                  constant arithmetic
+     * @param  purpose  short desription of the task's purpose
      */
-    public ConstArithmetic( SumDoer iworker, SumDoer vworker ) {
+    public ConstArithmetic( SumDoer iworker, SumDoer vworker, String purpose ) {
         this.iworker = iworker;
         this.vworker = vworker;
+        this.purpose = purpose;
 
         inpar = new ExistingNdxParameter( "in" );
         inpar.setPrompt( "Input NDX" );
@@ -60,6 +63,10 @@ class ConstArithmetic implements Task {
         constpar = new DoubleParameter( "const" );
         constpar.setPrompt( "Constant value" );
         constpar.setPosition( 3 );
+    }
+
+    public String getPurpose() {
+        return purpose;
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {

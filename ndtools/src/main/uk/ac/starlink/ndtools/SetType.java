@@ -39,6 +39,10 @@ class SetType implements Task {
         typepar.setPosition( 3 );
     }
 
+    public String getPurpose() {
+        return "Sets the numeric type of an NDX";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { inpar, outpar, typepar };
     }

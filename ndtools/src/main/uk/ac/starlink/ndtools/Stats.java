@@ -34,6 +34,10 @@ class Stats implements Task {
         inpar.setPosition( 1 );
     }
 
+    public String getPurpose() {
+        return "Calculates statistics for the pixels of an NDX";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { inpar };
     }

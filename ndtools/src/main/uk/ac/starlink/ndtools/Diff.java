@@ -46,6 +46,10 @@ class Diff implements Task {
         ndiffpar.setDefault( "4" );
     }
 
+    public String getPurpose() {
+        return "Reports the differences between two NDXs";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { ndx1par, ndx2par, ndiffpar };
     }

@@ -42,6 +42,10 @@ class Window implements Task {
         shapepar.setPosition( 3 );
     }
 
+    public String getPurpose() {
+        return "Creates a rectangular window on an existing NDX";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { inpar, outpar, shapepar };
     }

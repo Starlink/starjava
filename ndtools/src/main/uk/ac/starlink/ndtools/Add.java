@@ -46,6 +46,10 @@ class Add implements Task {
         ndx3par.setPrompt( "Output NDX" );
     }
 
+    public String getPurpose() {
+        return "Adds two NDXs pixel-by-pixel";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { ndx1par, ndx2par, ndx3par };
     }

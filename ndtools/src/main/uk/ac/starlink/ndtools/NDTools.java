@@ -82,10 +82,17 @@ class NDTools {
         tasks.put( "add", new Combine( "Sum", adder, adder ) );
         tasks.put( "sub", new Combine( "Difference", subtractor, adder ) );
         tasks.put( "window", new Window() );
-        tasks.put( "cadd", new ConstArithmetic( cAdd, null ) );
-        tasks.put( "csub", new ConstArithmetic( cSub, null ) );
-        tasks.put( "cmult", new ConstArithmetic( cMult, cMult ) );
-        tasks.put( "cdiv", new ConstArithmetic( cDiv, cDiv ) );
+        tasks.put( "cadd", new ConstArithmetic( cAdd, null,
+                                                "Adds a constant to an NDX" ) );
+        tasks.put( "csub", new ConstArithmetic( cSub, null,
+                                                "Subtracts a constant " +
+                                                "from an NDX" ) );
+        tasks.put( "cmult", new ConstArithmetic( cMult, cMult,
+                                                 "Multiplies an NDX " +
+                                                 "by a constant" ) );
+        tasks.put( "cdiv", new ConstArithmetic( cDiv, cDiv,
+                                                "Divides an NDX " +
+                                                "by a constant" ) );
         tasks.put( "diff", new Diff() );
         // tasks.put( "block", new SlowBlock() );
 

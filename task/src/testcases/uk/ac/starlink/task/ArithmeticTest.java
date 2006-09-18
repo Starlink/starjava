@@ -70,5 +70,9 @@ public class ArithmeticTest extends TestCase {
                 }
             };
         }
+
+        public String getPurpose() {
+            return "Adds two numbers";
+        }
     }
 }

@@ -33,4 +33,11 @@ public interface Task {
      *           some subclass
      */
     Executable createExecutable( Environment env ) throws TaskException;
+
+    /**
+     * Returns a short (one-line) description of the purpose of this task.
+     *
+     * @return  plain text description of this task's purpose
+     */
+    String getPurpose();
 }

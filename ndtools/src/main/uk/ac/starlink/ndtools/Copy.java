@@ -28,6 +28,10 @@ class Copy implements Task {
         outpar.setPosition( 2 );
     }
 
+    public String getPurpose() {
+        return "Copies one NDX to another";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { inpar, outpar };
     }

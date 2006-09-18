@@ -71,6 +71,10 @@ class Combine implements Task {
         ndx3par.setPosition( 3 );
     }
 
+    public String getPurpose() {
+        return description + " combination of two NDXs.";
+    }
+
     public Executable createExecutable( Environment env ) throws TaskException {
         return new CombineExecutable( ndx1par.ndxValue( env ),
                                       ndx2par.ndxValue( env ),
