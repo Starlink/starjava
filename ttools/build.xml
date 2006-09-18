@@ -1061,6 +1061,11 @@
 
     <!-- Write XML files containing per-task usage information
      !   for inclusion in the user document. -->
+    <java classname="uk.ac.starlink.ttools.build.PurposeWriter"
+          failonerror="yes"
+          output="${build.docs}/purpose-defs.xml"
+          logerror="yes"
+          classpathref="classpath"/>
     <java classname="uk.ac.starlink.ttools.build.UsageWriter"
           failonerror="yes"
           fork="yes"
