@@ -23,14 +23,16 @@ public class SingleMapperTask extends MapperTask {
      * Constructor.
      *
      * @param   mapper   object which defines mapping transformation
+     * @param   purpose  one-line description of the purpose of the task
      * @param   outMode  processing mode which determines the destination of
      *          the processed table
      * @param   useInFilter  allow specification of filters for input table
      * @param   useOutFilter allow specification of filters for output table
      */
-    public SingleMapperTask( TableMapper mapper, ProcessingMode outMode,
-                             boolean useInFilter, boolean useOutFilter ) {
-        super( mapper, outMode, useOutFilter );
+    public SingleMapperTask( TableMapper mapper, String purpose,
+                             ProcessingMode outMode, boolean useInFilter,
+                             boolean useOutFilter ) {
+        super( mapper, purpose, outMode, useOutFilter );
 
         List paramList = new ArrayList();
 

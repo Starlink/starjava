@@ -92,6 +92,10 @@ public class VotLint implements Task {
         } );
     }
 
+    public String getPurpose() {
+        return "Validates VOTable documents";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] {
             inParam_,

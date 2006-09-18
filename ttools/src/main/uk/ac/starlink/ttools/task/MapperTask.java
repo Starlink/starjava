@@ -29,19 +29,22 @@ public abstract class MapperTask implements Task {
     private final TableMapper mapper_;
     private final FilterParameter outFilterParam_;
     private final ProcessingMode outMode_;
+    private final String purpose_;
     private Parameter[] params_;
 
     /**
      * Constructor.
      *
      * @param   mapper   object which defines mapping transformation
+     * @param   purpose  one-line description of the task
      * @param   outMode  processing mode which determines the destination of
      *          the processed table
      * @param   useOutFilter allow specification of filters for output table
      */
-    public MapperTask( TableMapper mapper, ProcessingMode outMode,
-                       boolean useOutFilter ) {
+    public MapperTask( TableMapper mapper, String purpose, 
+                       ProcessingMode outMode, boolean useOutFilter ) {
         mapper_ = mapper;
+        purpose_ = purpose;
         outMode_ = outMode;
         List paramList = new ArrayList();
 
@@ -67,6 +70,10 @@ public abstract class MapperTask implements Task {
         /* Set output parameter list. */
         paramList.addAll( Arrays.asList( outMode.getAssociatedParameters() ) );
         setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
+    }
+
+    public String getPurpose() {
+        return purpose_;
     }
 
     public Parameter[] getParameters() {

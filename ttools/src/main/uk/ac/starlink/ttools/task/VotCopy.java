@@ -130,6 +130,10 @@ public class VotCopy implements Task {
         } );
     }
 
+    public String getPurpose() {
+        return "Transforms between VOTable encodings";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] {
             inParam_,

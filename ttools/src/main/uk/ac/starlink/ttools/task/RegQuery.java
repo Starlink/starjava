@@ -8,6 +8,7 @@ package uk.ac.starlink.ttools.task;
  */
 public class RegQuery extends FixedMapperTask {
     public RegQuery() {
-        super( new RegQueryMapper(), 0, new ChoiceMode(), false, true );
+        super( new RegQueryMapper(), "Queries the VO registry", 0,
+               new ChoiceMode(), false, true );
     }
 };

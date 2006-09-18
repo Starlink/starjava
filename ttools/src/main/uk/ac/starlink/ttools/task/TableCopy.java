@@ -40,6 +40,10 @@ public class TableCopy implements Task {
         ofmtParam_.setName( "ofmt" );
     }
 
+    public String getPurpose() {
+        return "Converts between table formats";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] {
             inParam_,

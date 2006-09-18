@@ -8,6 +8,7 @@ package uk.ac.starlink.ttools.task;
  */
 public class TablePipe extends SingleMapperTask {
     public TablePipe() {
-        super( new PipeMapper(), new ChoiceMode(), false, false );
+        super( new PipeMapper(), "Performs pipeline processing on a table",
+               new ChoiceMode(), false, false );
     }
 }

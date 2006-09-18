@@ -9,6 +9,8 @@ package uk.ac.starlink.ttools.task;
  */
 public class MultiCone extends SingleMapperTask {
     public MultiCone() {
-        super( new MultiConeMapper(), new ChoiceMode(), true, true );
+        super( new MultiConeMapper(),
+               "Makes multiple cone search queries to the same service",
+               new ChoiceMode(), true, true );
     }
 }

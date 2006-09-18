@@ -37,6 +37,10 @@ public class Calc implements Task {
         } );
     }
 
+    public String getPurpose() {
+        return "Evaluates expressions";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] { exprParam_ };
     }

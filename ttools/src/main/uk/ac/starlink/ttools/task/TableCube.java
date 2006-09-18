@@ -14,7 +14,8 @@ public class TableCube extends SingleMapperTask {
     private final WordsParameter colsParam_;
 
     public TableCube() {
-        super( new TrivialMapper( 1 ), new CubeMode(), true, false );
+        super( new TrivialMapper( 1 ), "Calculates N-dimensional histograms",
+               new CubeMode(), true, false );
         CubeMode mode = (CubeMode) getOutputMode();
         colsParam_ = new WordsParameter( "cols" );
         colsParam_.setWordUsage( "<col-id>" );
