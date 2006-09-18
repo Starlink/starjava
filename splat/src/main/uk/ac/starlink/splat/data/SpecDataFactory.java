@@ -1152,6 +1152,38 @@ public class SpecDataFactory
         return spectra;
     }
 
+    /**
+     * Convert a of mime types into the equivalent SPLAT type (these are
+     * int constants defined in SpecDataFactory).
+     */
+    public int mimeToSPLATType( String type )
+    {
+        int stype = SpecDataFactory.DEFAULT;
+        String simpleType = type.toLowerCase();
+        if ( simpleType.equals( "application/fits" ) ) {
+            //  FITS format, is that image or table?
+            stype = SpecDataFactory.FITS;
+        }
+        else if ( simpleType.equals( "spectrum/fits" ) ) {
+            //  FITS format, is that image or table? Don't know who
+            //  thought this was a mime-type?
+            stype = SpecDataFactory.FITS;
+        }
+        else if ( simpleType.equals( "text/plain" ) ) {
+            //  ASCII table of some kind.
+            stype = SpecDataFactory.TABLE;
+        }
+        else if ( simpleType.equals( "application/x-votable+xml" ) ) {
+            // VOTable spectrum.
+            stype = SpecDataFactory.TABLE;
+        }
+        else if ( simpleType.equals( "spectrum/votable" ) ) {
+            // VOTable spectrum or SED (from SDSS?)...
+            stype = SpecDataFactory.SED;
+        }
+        return stype;
+    }
+
     //
     //  DataNode guessing.
     //
