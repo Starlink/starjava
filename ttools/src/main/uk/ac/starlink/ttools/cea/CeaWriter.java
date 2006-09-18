@@ -4,8 +4,10 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
@@ -31,7 +33,7 @@ public class CeaWriter extends XmlWriter {
     private final String appPath_;
     private final String ceaAppName_;
     private final Formatter formatter_;
-    private String sun256url_ = "http://www.starlink.ac.uk/stilts/sun256/";
+    private String docUrl_ = "http://www.starlink.ac.uk/stilts/sun256/";
 
     /**
      * Constructs a CeaWriter.
@@ -89,7 +91,8 @@ public class CeaWriter extends XmlWriter {
                + "<!-- Application name set from " + getClass().getName()
                + " command-line flag. -->" );
         startElement( "Application",
-                      formatAttribute( "name", ceaAppName_ ) );
+                      formatAttribute( "name", ceaAppName_ ) 
+                    + formatAttribute( "version", Stilts.getVersion() ) );
 
         /* Write all the parameters for all tasks.  They are given 
          * reference names qualified by their task names so that they can
@@ -121,6 +124,7 @@ public class CeaWriter extends XmlWriter {
         addElement( "LongName", "",
                     "STILTS - "
                   + "Starlink Tables Infrastructure Library Tool Set" );
+        addElement( "Version", "", Stilts.getVersion() );
         startElement( "Description" );
         println( "STILTS is a package which provides a number of table " +
                  "manipulation functions." );
@@ -128,10 +132,10 @@ public class CeaWriter extends XmlWriter {
         for ( int i = 0; i < tasks_.length; i++ ) {
             CeaTask task = tasks_[ i ];
             println( "   " + task.getName() + ":" );
-            println( "      " + task.getDescription() );
+            println( "      " + task.getPurpose() );
         }
         endElement( "Description" );
-        addElement( "ReferenceURL", "", sun256url_ );
+        addElement( "ReferenceURL", "", docUrl_ );
 
         /* Outro. */
         endElement( "Application" );
@@ -175,6 +179,12 @@ public class CeaWriter extends XmlWriter {
                                                                     : "false" )
                         + formatAttribute( "switchType", "keyword" ) );
             addElement( "agpd:UI_Name", "", param.getName() );
+
+            /* Note that although the CEA v1 schema documentation gives 
+             * UI_Description content as type "agpd:xhtmlDocumentation",
+             * at time of writing, it only treats it as plain text, 
+             * meaning that tags come out as angle brackets etc.
+             * So translate to plain text here. */
             addElement( "agpd:UI_Description", "",
                         xmlToCdata( param.getDescription() ) );
             String dflt = param.getDefault();
@@ -258,7 +268,7 @@ public class CeaWriter extends XmlWriter {
      * @return  output, maybe containing XML entity references, but no tags
      */
     private String xmlToCdata( String xmlText ) throws SAXException {
-        return formatText( formatter_.formatXML( xmlText ) );
+        return formatText( formatter_.formatXML( xmlText, 0 ) );
     }
 
     /**
@@ -284,44 +294,40 @@ public class CeaWriter extends XmlWriter {
      * @return   task array
      */
     static CeaTask[] getTasks() throws LoadException {
+
+        /* Get a map containing each of the known STILTS tasks keyed by
+         * name. */
         ObjectFactory taskFactory = Stilts.getTaskFactory();
-        List appList = new ArrayList();
+        String[] taskNames = taskFactory.getNickNames();
+        Map appMap = new HashMap();
+        for ( int i = 0; i < taskNames.length; i++ ) {
+            String name = taskNames[ i ];
+            Task task = (Task) taskFactory.createObject( name );
+            appMap.put( name, new CeaTask( task, name ) );
+        }
 
-        CeaTask tcopy =
-            new CeaTask( (Task) taskFactory.createObject( "tcopy" ),
-                         "tcopy",
-                         "Translates tables between formats." );
-        appList.add( tcopy );
-
-        CeaTask tpipe =
-            new CeaTask( (Task) taskFactory.createObject( "tpipe" ),
-                         "tpipe",
-                         "Performs flexible pipeline processing on tables." );
+        /* Doctor some of the specific tasks as required; small changes
+         * to parameters etc are required for sensible use in a CEA
+         * environment. */
+        CeaTask tpipe = (CeaTask) appMap.get( "tpipe" );
         tpipe.removeParameter( "script" );
         tpipe.removeParameter( "istream" );
-        appList.add( tpipe );
 
-        CeaTask tmatch2 =
-            new CeaTask( (Task) taskFactory.createObject( "tmatch2" ),
-                         "tmatch2",
-                         "Performs flexible crossmatching on a pair "
-                       + "of tables." );
-        appList.add( tmatch2 );
-
-        CeaTask votcopy =
-            new CeaTask( (Task) taskFactory.createObject( "votcopy" ),
-                         "votcopy",
-                         "Transforms VOTables between different encodings." );
-        appList.add( votcopy );
+        CeaTask votcopy = (CeaTask) appMap.get( "votcopy" );
         votcopy.getParameter( "out" ).setOutput( true );
 
-        CeaTask votlint =
-            new CeaTask( (Task) taskFactory.createObject( "votlint" ),
-                         "votlint",
-                         "Validates VOTable documents." );
-        appList.add( votlint );
+        CeaTask votlint = (CeaTask) appMap.get( "votlint" );
+        votlint.getParameter( "out" ).setOutput( true );
 
-        return (CeaTask[]) appList.toArray( new CeaTask[ 0 ] );
+        /* Prepare and return an array of CeaTask objects sorted by name. */
+        String[] appNames = (String[]) new ArrayList( appMap.keySet() )
+                                      .toArray( new String[ 0 ] );
+        Arrays.sort( appNames );
+        CeaTask[] tasks = new CeaTask[ appNames.length ];
+        for ( int i = 0; i < appNames.length; i++ ) {
+            tasks[ i ] = (CeaTask) appMap.get( appNames[ i ] );
+        }
+        return tasks;
     }
 
     /**
@@ -339,12 +345,14 @@ public class CeaWriter extends XmlWriter {
                      + " [-help]"
                      + " -path stilts-path"
                      + " -auth cea-auth"
+                     + " [-docurl docurl]"
                      + "\n";
 
         /* Process arguments. */
         List argList = new ArrayList( Arrays.asList( args ) );
         String appPath = null;
         String ceaAuth = "astrogrid.cam";
+        String docUrl = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-path" ) && it.hasNext() ) {
@@ -352,9 +360,14 @@ public class CeaWriter extends XmlWriter {
                 appPath = (String) it.next();
                 it.remove();
             }
-            if ( arg.equals( "-auth" ) && it.hasNext() ) {
+            else if ( arg.equals( "-auth" ) && it.hasNext() ) {
                 it.remove();
                 ceaAuth = (String) it.next();
+                it.remove();
+            }
+            else if ( arg.equals( "-docurl" ) && it.hasNext() ) {
+                it.remove();
+                docUrl = (String) it.next();
                 it.remove();
             }
             else if ( arg.startsWith( "-h" ) ) {
@@ -373,6 +386,9 @@ public class CeaWriter extends XmlWriter {
         /* Prepare writer object. */
         CeaWriter ceaWriter = new CeaWriter( System.out, getTasks(), appPath,
                                              ceaAuth + "/stilts" );
+        if ( docUrl != null ) {
+            ceaWriter.docUrl_ = docUrl;
+        }
 
         /* Prepare command line. */
         StringBuffer cbuf = new StringBuffer( ceaWriter.getClass().getName() );
