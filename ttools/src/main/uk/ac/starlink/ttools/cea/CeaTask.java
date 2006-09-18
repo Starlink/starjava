@@ -18,16 +18,16 @@ class CeaTask {
 
     private List paramList_;
     private final String name_;
-    private final String description_;
+    private final String purpose_;
 
     /**
      * Constructs a CeaTask.
      *
      * @param   task  ttools task object
      * @param   name  public name of the task
-     * @param   description   shortish description of the task
+     * @param   purpose   shortish description of the task
      */
-    public CeaTask( Task task, String name, String description ) {
+    public CeaTask( Task task, String name ) {
         paramList_  = new ArrayList();
         Parameter[] params = task.getParameters();
         for ( int i = 0; i < params.length; i++ ) {
@@ -37,7 +37,7 @@ class CeaTask {
             }
         }
         name_ = name;
-        description_ = description;
+        purpose_ = task.getPurpose();
     }
 
     /**
@@ -50,12 +50,12 @@ class CeaTask {
     }
 
     /**
-     * Returns task description.
+     * Returns task purpose.
      *
-     * @return  task description
+     * @return  task purpose
      */
-    public String getDescription() {
-        return description_;
+    public String getPurpose() {
+        return purpose_;
     }
 
     /**
