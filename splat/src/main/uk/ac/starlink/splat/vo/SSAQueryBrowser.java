@@ -102,16 +102,15 @@ public class SSAQueryBrowser
     extends JFrame
     implements ActionListener, MouseListener
 {
-    /**
-     * The object holding the list of servers that we should use for SSA
-     * querys.
-     */
+    /** The object holding the list of servers that we should use for SSA
+     *  queries. */
     private SSAServerList serverList = null;
 
-    /**
-     * The instance of SPLAT we're associated with.
-     */
+    /** The instance of SPLAT we're associated with. */
     private SplatBrowser browser = null;
+
+    /** The SpecDataFactory.*/
+    private SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
 
     /** File chooser used for saving and restoring queries. */
     protected BasicFileChooser fileChooser = null;
@@ -869,7 +868,8 @@ public class SSAQueryBrowser
                             props = new SpectrumIO.Props( value );
                             if ( typecol != -1 ) {
                                 value = ((String)rseq.getCell(typecol)).trim();
-                                props.setType( mimeToSPLATType( value ) );
+                                props.setType( specDataFactory
+                                               .mimeToSPLATType( value ) );
                             }
                             if ( namecol != -1 ) {
                                 value = ((String)rseq.getCell(namecol)).trim();
@@ -912,7 +912,8 @@ public class SSAQueryBrowser
                                 if ( typecol != -1 ) {
                                     value =
                                         ((String)rseq.getCell(typecol)).trim();
-                                    props.setType( mimeToSPLATType( value ) );
+                                    props.setType( specDataFactory
+                                                   .mimeToSPLATType( value ) );
                                 }
                                 if ( namecol != -1 ) {
                                     value =
@@ -960,38 +961,6 @@ public class SSAQueryBrowser
                 }
             }
         }
-    }
-
-    /**
-     * Convert a of mime types into the equivalent SPLAT type (these are
-     * int constants defined in SpecDataFactory).
-     */
-    private int mimeToSPLATType( String type )
-    {
-        int stype = SpecDataFactory.DEFAULT;
-        String simpleType = type.toLowerCase();
-        if ( simpleType.equals( "application/fits" ) ) {
-            //  FITS format, is that image or table?
-            stype = SpecDataFactory.FITS;
-        }
-        else if ( simpleType.equals( "spectrum/fits" ) ) {
-            //  FITS format, is that image or table? Don't know who
-            //  thought this was a mime-type?
-            stype = SpecDataFactory.FITS;
-        }
-        else if ( simpleType.equals( "text/plain" ) ) {
-            //  ASCII table of some kind.
-            stype = SpecDataFactory.TABLE;
-        }
-        else if ( simpleType.equals( "application/x-votable+xml" ) ) {
-            // VOTable spectrum.
-            stype = SpecDataFactory.TABLE;
-        }
-        else if ( simpleType.equals( "spectrum/votable" ) ) {
-            // VOTable spectrum or SED (from SDSS?)...
-            stype = SpecDataFactory.SED;
-        }
-        return stype;
     }
 
     /**
