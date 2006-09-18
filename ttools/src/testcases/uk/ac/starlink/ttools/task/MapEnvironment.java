@@ -149,6 +149,11 @@ public class MapEnvironment extends TableEnvironment {
             ((InputTableParameter) param)
                                   .setValueFromTable( (StarTable) value );
         }
+        else if ( param instanceof InputTablesParameter &&
+                  value instanceof StarTable[] ) {
+            ((InputTablesParameter) param)
+                                   .setValueFromTables( (StarTable[]) value );
+        }
         else if ( param instanceof InputTableParameter &&
                   value instanceof String &&
                   ((String) value).indexOf( '/' ) < 0 ) {
