@@ -56,7 +56,7 @@ public class ParameterTest extends TestCase {
                     param.getDefault() != null ||
                     param.isNullPermitted() ||
                     noDefaults.contains( param.getName() ) );
-        formatter_.formatXML( param.getDescription() );
+        formatter_.formatXML( param.getDescription(), 0 );
     }
 
     private ProcessingMode[] getModes() throws LoadException {
