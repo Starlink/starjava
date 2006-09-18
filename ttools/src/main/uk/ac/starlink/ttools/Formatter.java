@@ -41,9 +41,10 @@ public class Formatter {
      * A few elements, such as p, code, ul, ref etc may be treated specially.
      *
      * @param   xml  XML text
+     * @param   indent  number of spaces to indent every line
      */
-    public String formatXML( String xml ) throws SAXException {
-        return formatDOM( readDOM( xml ) );
+    public String formatXML( String xml, int indent ) throws SAXException {
+        return formatDOM( readDOM( xml ), indent );
     }
 
     /**
@@ -52,9 +53,10 @@ public class Formatter {
      * A few elements, such as p, code, ul, ref etc may be treated specially.
      *
      * @param  doc  document
+     * @param   indent  number of spaces to indent every line
      */
-    private String formatDOM( Document doc ) {
-        Result result = new Result();
+    private String formatDOM( Document doc, int indent ) {
+        Result result = new Result( indent );
         appendChildren( result, doc );
         return result.getText();
     }
@@ -141,14 +143,18 @@ public class Formatter {
 
         StringBuffer sbuf_ = new StringBuffer();
         StringBuffer line_;
-        int level_ = 2;
         int leng_ = 75;
+        int level_;
+        int indent_;
         String pad1_ = "   ";
 
         /**
          * Constructor.
+         *
+         * @param   indent  number of spaces to indent every line
          */
-        Result() {
+        Result( int indent ) {
+            indent_ = indent;
             newLine();
         }
 
@@ -222,6 +228,9 @@ public class Formatter {
                 sbuf_.append( '\n' );
             }
             line_ = new StringBuffer();
+            for ( int i = 0; i < indent_; i++ ) {
+                line_.append( ' ' );
+            }
             for ( int i = 0; i < level_; i++ ) {
                 line_.append( pad1_ );
             }

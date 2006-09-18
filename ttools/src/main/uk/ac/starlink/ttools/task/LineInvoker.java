@@ -522,7 +522,8 @@ public class LineInvoker {
             .append( param.getPrompt() )
             .append( "\n\n   Description:\n" );
         try {
-            sbuf.append( new Formatter().formatXML( param.getDescription() ) );
+            sbuf.append( new Formatter()
+                        .formatXML( param.getDescription(), 6 ) );
         }
         catch ( SAXException e ) {
             sbuf.append( "      ???" );
