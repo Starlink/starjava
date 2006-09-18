@@ -7,6 +7,7 @@ import uk.ac.starlink.task.InputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.MultiParameter;
+import uk.ac.starlink.ttools.task.OutputStreamParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
 
 /**
@@ -38,14 +39,16 @@ class CeaParameter {
         dflt_ = taskParam.getDefault();
         isNullPermitted_ = taskParam.isNullPermitted();
         type_ = "text";
-        if ( taskParam instanceof OutputTableParameter ) {
+        if ( taskParam instanceof OutputTableParameter ||
+             taskParam instanceof OutputStreamParameter ) {
             setOutput( true );
         }
         if ( taskParam instanceof InputTableParameter ||
              taskParam instanceof InputStreamParameter ) {
+            isRef_ = true;
             dflt_ = null;
             isNullPermitted_ = false;
-            isRef_ = true;
+            truncateDescription();
         }
         if ( taskParam instanceof ChoiceParameter ) {
             options_ = ((ChoiceParameter) taskParam).getOptions();
@@ -103,6 +106,7 @@ class CeaParameter {
             isRef_ = true;
             dflt_ = null;
             isNullPermitted_ = false;
+            truncateDescription();
         }
     }
 
@@ -151,5 +155,16 @@ class CeaParameter {
      */
     public Object[] getOptions() {
         return options_;
+    }
+
+    /**
+     * Truncates this parameter's description to its first sentence.
+     * This is a hack which (with luck) has the effect of cutting out
+     * bits of the parameter description which are not relevant to CEA use.
+     */
+    public void truncateDescription() {
+        int dot1 = description_.indexOf( '.' );
+        description_ = dot1 > 0 ? description_.substring( 0, dot1 + 1 )
+                                : description_;
     }
 }
