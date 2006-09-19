@@ -15,6 +15,7 @@ public class InputTablesParameter extends AbstractInputTableParameter
                                   implements MultiParameter {
 
     private StarTable[] tables_;
+    private String[] locs_;
 
     /**
      * Constructor.
@@ -51,6 +52,12 @@ public class InputTablesParameter extends AbstractInputTableParameter
         return '\u00a0';  // non-breaking space
     }
 
+    /**
+     * Returns the array of tables specified by this parameter.
+     *
+     * @param  env  execution environment
+     * @return   array of input tables
+     */
     public StarTable[] tablesValue( Environment env ) throws TaskException {
         checkGotValue( env );
         if ( tables_ == null ) {
@@ -67,13 +74,41 @@ public class InputTablesParameter extends AbstractInputTableParameter
             for ( int i = 0; i < nloc; i++ ) {
                 tables[ i ] = makeTable( env, locs[ i ] );
             }
+            locs_ = locs;
             tables_ = tables;
         }
         return tables_;
     }
 
+    /**
+     * Returns an array of table locations representing the input tables
+     * specified by this parameter.
+     *
+     * @param   env  execution environment
+     * @return   input table locations
+     */
+    public String[] stringsValue( Environment env ) throws TaskException {
+        tablesValue( env );
+        return locs_;
+    }
+
+    /**
+     * Sets the value of this parameter from an array of tables.
+     *
+     * @param  tables  input table array
+     */
     public void setValueFromTables( StarTable[] tables ) {
         tables_ = tables;
+        locs_ = new String[ tables.length ];
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < tables.length; i++ ) {
+            locs_[ i ] = tables[ i ].getName();
+            if ( i > 0 ) {
+                sbuf.append( ' ' );
+            }
+            sbuf.append( locs_[ i ] );
+        }
+        setStringValue( sbuf.toString() );
         setGotValue( true );
     }
 }
