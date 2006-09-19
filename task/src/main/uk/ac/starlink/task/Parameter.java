@@ -282,8 +282,21 @@ public class Parameter {
          if ( stringval == null && ! isNullPermitted() ) {
              throw new NullPointerException();
          }
-         this.stringValue = stringval;
+         setStringValue( stringval );
          setGotValue( true );
+    }
+
+    /**
+     * Sets the string value of this parameter without any additional
+     * checking or side effects.  Should only normally be invoked by
+     * subclasses if they have set the parameter in some way other than
+     * using a string, in order to maintain some string representation
+     * of the value.  Use with care.
+     *
+     * @param  stringVal  new string value
+     */
+    protected void setStringValue( String stringValue ) {
+         this.stringValue = stringValue;
     }
 
     /**
