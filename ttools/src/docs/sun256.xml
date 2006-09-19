@@ -2524,17 +2524,20 @@ stilts tcat ifmt=ascii in="t1.txt t2.txt t3.txt" out=table.txt
 
 <dt><verbatim>
 stilts tcat in=r368776.fits#1 in=r368776#2 in=r368776.fits#3 in=r368776.fits#4
-            out=r368776_all.fits icmd=progress
+            out=r368776_all.fits icmd=progress seqcol=ID
 </verbatim></dt>
 <dd><p>Concatenates the contents of four tables (the first four extension HDUs)
     from a multi-extension FITS file to produce a single FITS table.
     Progress through each of the input files is reported to the console.
+    An additional column "ID" will be appended to the output which 
+    contains 1 for all the rows from the first input table, 2 for the 
+    rows from the second one and so on.
     Many Unix shells (csh, bash) will allow you to list the input files
     using the following shorthand: "<code>in=r368776.fits#{1,2,3,4}</code>".
     </p></dd>
 
 <dt><verbatim>
-stilts tcat in='r1.csv r2.csv r3.csv' ifmt=csv \
+stilts tcat in='rA.csv rB.csv rC.csv' ifmt=csv \
             icmd='keepcols "RA DEC FLUX"' icmd='sorthead 10 FLUX' \
             ocmd='sort FLUX'
 </verbatim></dt>
@@ -2611,6 +2614,7 @@ stilts tcat2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
             icmd1='addskycoords fk5 galactic RA2000 DEC2000 GLON GLAT' \
             icmd1='keepcols "OBJ_ID GLON GLAT"' \
             icmd2='keepcols "ident gal_long gal_lat"' \
+            loccol=FILENAME
             omode=topcat
 </verbatim></dt>
 <dd><p>In this case we are trying to concatenate results from two tables
@@ -2632,6 +2636,10 @@ stilts tcat2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
     a table which contains only these three columns, with all the rows
     from both input tables, and sends the result directly 
     to a new or running instance of TOPCAT.
+    An additional column called FILENAME is appended to the table
+    before sending it; this contains "survey.vot.gz" for all the columns
+    from the first table and "more_data.csv" for all the columns from
+    the second one.
     </p></dd>
 
 </dl>
@@ -3937,7 +3945,9 @@ but my thanks are especially due to the following:
     <li><code><ref id="tcat">tcat</ref></code> now concatenates multiple 
         tables, not just two, and the syntax has changed.
         The <code><ref id="tcat2">tcat2</ref></code> command now does what
-        <code>tcat</code> used to do.</li>
+        <code>tcat</code> used to do.
+        Both commands now permit appending additional columns to indicate
+        which input table each output row comes from.</li>
     <li>Improved CEA description file output - now contains details of all
         tasks as well as various improvements in documentation etc.</li>
     </ul>
