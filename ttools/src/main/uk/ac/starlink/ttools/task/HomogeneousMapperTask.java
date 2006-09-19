@@ -43,10 +43,11 @@ public class HomogeneousMapperTask extends MapperTask {
 
         /* Input tables parameter. */
         inTablesParam_ = new InputTablesParameter( "in" );
-        inTablesParam_.setPosition( 1 );
         inTablesParam_.setUsage( "<table> [<table> ...]" );
         inTablesParam_.setPrompt( "Location of input table(s)" );
         paramList.add( inTablesParam_ );
+        paramList.add( inTablesParam_.getFormatParameter() );
+        paramList.add( inTablesParam_.getStreamParameter() );
 
         /* Input filter parameter. */
         if ( useInFilter ) {
