@@ -75,10 +75,11 @@ public class HomogeneousMapperTask extends MapperTask {
                                ? null
                                : inFilterParam_.stepsValue( env );
         StarTable[] tables = inTablesParam_.tablesValue( env );
+        String[] locs = inTablesParam_.stringsValue( env );
         int nIn = tables.length;
         InputSpec[] specs = new InputSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
-            specs[ i ] = new InputSpec( tables[ i ], steps );
+            specs[ i ] = new InputSpec( tables[ i ], steps, locs[ i ] );
         }
         return specs;
     }

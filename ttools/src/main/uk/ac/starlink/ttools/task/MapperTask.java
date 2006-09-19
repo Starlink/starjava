@@ -202,16 +202,20 @@ public abstract class MapperTask implements Task {
 
         private final StarTable table_;
         private final ProcessingStep[] steps_;
+        private final String loc_;
 
         /**
          * Constructor.
          *
          * @param  table  table
          * @param  steps  processing pipeline
+         * @param  loc    original table location
          */
-        public InputSpec( StarTable table, ProcessingStep[] steps ) {
+        public InputSpec( StarTable table, ProcessingStep[] steps,
+                          String loc ) {
             table_ = table;
             steps_ = steps == null ? new ProcessingStep[ 0 ] : steps;
+            loc_ = loc;
         }
 
         /**
@@ -230,6 +234,15 @@ public abstract class MapperTask implements Task {
          */
         public ProcessingStep[] getSteps() {
             return steps_;
+        }
+
+        /**
+         * Returns input table location as specified in the parameter value.
+         *
+         * @param  input table location
+         */
+        public String getLocation() {
+            return loc_;
         }
     }
 }

@@ -91,7 +91,8 @@ public class FixedMapperTask extends MapperTask {
                 new InputSpec( inTableParams_[ i ].tableValue( env ),
                                inFilterParams_[ i ] == null
                                    ? null
-                                   : inFilterParams_[ i ].stepsValue( env ) );
+                                   : inFilterParams_[ i ].stepsValue( env ),
+                               inTableParams_[ i ].stringValue( env ) );
         }
         return specs;
     }

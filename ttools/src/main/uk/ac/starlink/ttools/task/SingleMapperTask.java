@@ -71,7 +71,8 @@ public class SingleMapperTask extends MapperTask {
             new InputSpec( inTableParam_.tableValue( env ),
                            inFilterParam_ == null
                                ? null
-                               : inFilterParam_.stepsValue( env ) )
+                               : inFilterParam_.stepsValue( env ),
+                           inTableParam_.stringValue( env ) )
         };
     }
 }
