@@ -10,5 +10,6 @@ public class TableCat2 extends FixedMapperTask {
     public TableCat2() {
         super( new CatMapper(), "Concatenates 2 tables", 2,
                new ChoiceMode(), true, true );
+        ((CatMapper) getMapper()).setTask( this );
     }
 }
