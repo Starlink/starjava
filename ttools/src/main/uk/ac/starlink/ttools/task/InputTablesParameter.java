@@ -38,13 +38,13 @@ public class InputTablesParameter extends AbstractInputTableParameter
         getStreamParameter().setDescription( new String[] {
             getStreamParameter().getDescription(),
             "The same streaming flag applies to all the tables specified by",
-            "<code>" + getName() + "</code>",
+            "<code>" + getName() + "</code>.",
         } );
 
         getFormatParameter().setDescription( new String[] {
             getFormatParameter().getDescription(),
             "The same format parameter applies to all the tables specified by",
-            "<code>" + getName() + "</code>",
+            "<code>" + getName() + "</code>.",
         } );
     }
 
