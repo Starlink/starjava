@@ -947,9 +947,9 @@ public class SplatBrowser
 
         // Add spectrum type acceptance options.
         JMenuItem acceptSpectrum =
-            new JCheckBoxMenuItem( "Accept Load Spectrum messages", true );
+            new JCheckBoxMenuItem( "Accept spectra", true );
         JMenuItem acceptFITSLine = 
-            new JCheckBoxMenuItem( "Accept Load 1d FITS messages", true );
+            new JCheckBoxMenuItem( "Accept 1d FITS", true );
         plasticServer.setAcceptSpectrumModel( acceptSpectrum.getModel() );
         plasticServer.setAcceptFITSLineModel( acceptFITSLine.getModel() );
         interopMenu.addSeparator();
