@@ -13,9 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
+import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.plastic.MessageId;
@@ -38,9 +40,8 @@ public class SplatPlastic
      * List of application-specific PLASTIC messages supported by this class.
      */
     protected static final URI[] SUPPORTED_MESSAGES = new URI[] {
+        MessageId.SPECTRUM_LOADURL,
         MessageId.FITS_LOADLINE,
-        MessageId.FITS_LOADIMAGE,
-        MessageId.VOT_LOADURL,
         MessageId.INFO_GETDESCRIPTION,
         MessageId.INFO_GETICONURL,
     };
@@ -56,19 +57,15 @@ public class SplatPlastic
     protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
 
     /**
-     * Model controlling whether spectra received as VOTables are accepted.
+     * Model controlling whether spectra received as spectrum messages are
+     * accepted.
      */
-    protected ButtonModel acceptVOTableModel = new DefaultButtonModel();
+    protected ButtonModel acceptSpectrumModel = new DefaultButtonModel();
 
     /**
      * Model controlling whether spectra received as FITS lines are accepted.
      */
     protected ButtonModel acceptFITSLineModel = new DefaultButtonModel();
-
-    /**
-     * Model controlling whether spectra received as FITS images are accepted.
-     */
-    protected ButtonModel acceptFITSTableModel = new DefaultButtonModel();
 
     /**
      * Create a new plastic listener for SPLAT.
@@ -77,9 +74,8 @@ public class SplatPlastic
     {
         super( "splat-vo", SUPPORTED_MESSAGES );
         this.browser = browser;
-        acceptVOTableModel.setSelected( true );
+        acceptSpectrumModel.setSelected( true );
         acceptFITSLineModel.setSelected( true );
-        acceptFITSTableModel.setSelected( false );
     }
 
     /**
@@ -104,42 +100,29 @@ public class SplatPlastic
             return "http://star-www.dur.ac.uk/~pdraper/splat/splat.gif";
         }
 
+        //  Load a spectrum from a spectrum message.
+        else if ( MessageId.SPECTRUM_LOADURL.equals( message ) &&
+                  checkArgs( args, new Class[] { String.class, String.class,
+                                                 Map.class, } ) ) {
+            if ( acceptSpectrumModel.isSelected() ) {
+                String location = args.get( 0 ).toString();
+                String id = args.get( 1 ).toString();
+                Map meta = (Map) args.get( 2 );
+                SpectrumIO.Props props = getProps( location, meta );
+                return Boolean.valueOf( addSpectrum( props ) );
+            }
+            else {
+                return Boolean.FALSE;
+            }
+        }
+
         //  Load a spectrum from a FITS 1-d array.
         else if ( MessageId.FITS_LOADLINE.equals( message ) &&
                   checkArgs( args, new Class[] { Object.class } ) ) {
             if ( acceptFITSLineModel.isSelected() ) {
                 String location = args.get( 0 ).toString();
-                boolean success =
-                    browser.addSpectrum( location, SpecDataFactory.FITS );
-                return Boolean.valueOf( success );
-            }
-            else {
-                return Boolean.FALSE;
-            }
-        }
-
-        //  Load a spectrum from a FITS table.
-        else if ( MessageId.FITS_LOADIMAGE.equals( message ) &&
-                  checkArgs( args, new Class[] { Object.class } ) ) {
-            if ( acceptFITSTableModel.isSelected() ) {
-                String location = args.get( 0 ).toString();
-                boolean success =
-                    browser.addSpectrum( location, SpecDataFactory.TABLE );
-                return Boolean.valueOf( success );
-            }
-            else {
-                return Boolean.FALSE;
-            }
-        }
-
-        //  Load a spectrum from a VOTable.
-        else if ( MessageId.VOT_LOADURL.equals( message ) &&
-                  checkArgs( args, new Class[] { Object.class } ) ) {
-            if ( acceptVOTableModel.isSelected() ) {
-                String location = args.get( 0 ).toString();
-                boolean success =
-                    browser.addSpectrum( location, SpecDataFactory.TABLE );
-                return Boolean.valueOf( success );
+                return Boolean.valueOf( addSpectrum( location,
+                                                     SpecDataFactory.FITS ) );
             }
             else {
                 return Boolean.FALSE;
@@ -154,78 +137,24 @@ public class SplatPlastic
 
     /**
      * Sets the button model which determines whether incoming messages
-     * requesting load of a VOTable will be acted on or ignored.
+     * requesting load of a spectrum as such will be acted on or ignored.
      *
-     * @param  model  button model
+     * @param model  button model
      */
-    public void setAcceptVOTableModel( ButtonModel model )
+    public void setAcceptSpectrumModel( ButtonModel model )
     {
-        acceptVOTableModel = model;
+        acceptSpectrumModel = model;
     }
 
     /**
      * Sets the button model which determines whether incoming messages
      * requesting load of a 1-d FITS file will be acted on or ignored.
      *
-     * @param  model  button model
+     * @param model  button model
      */
     public void setAcceptFITSLineModel( ButtonModel model )
     {
         acceptFITSLineModel = model;
-    }
-
-    /**
-     * Sets the button model which determines whether incoming messages
-     * requesting load of a FITS table file will be acted on or ignored.
-     *
-     * @param  model  button model
-     */
-    public void setAcceptFITSTableModel( ButtonModel model )
-    {
-        acceptFITSTableModel = model;
-    }
-
-    /**
-     * Returns the button model which determines whether incoming messages
-     * requesting load of a VOTable will be acted on or ignored.
-     *
-     * @return  button model
-     */
-    public ButtonModel getAcceptVOTableModel()
-    {
-        return acceptVOTableModel;
-    }
-
-    /**
-     * Returns the button model which determines whether incoming messages
-     * requesting load of a 1-d FITS file will be acted on or ignored.
-     *
-     * @return  button model
-     */
-    public ButtonModel getAcceptFITSLineModel()
-    {
-        return acceptFITSLineModel;
-    }
-
-    /**
-     * Returns the button model which determines whether incoming messages
-     * requesting load of a FITS table will be acted on or ignored.
-     *
-     * @return  button model
-     */
-    public ButtonModel getAcceptFITSTableModel()
-    {
-        return acceptFITSTableModel;
-    }
-
-    /**
-     * Load a spectrum from a URL with the given Map of properties.
-     */
-    protected void loadSpectrum( String location, Map meta )
-    {
-        SpectrumIO.Props[] propList = new SpectrumIO.Props[1];
-        propList[0] = getProps( location, meta );
-        browser.threadLoadSpectra( propList );
     }
 
     /**
@@ -248,8 +177,8 @@ public class SplatPlastic
             String units[];
             while( i.hasNext() ) {
                 key = (String) i.next();
+                value = String.valueOf( meta.get( key ) );
                 key = key.toLowerCase();
-                value = (String) meta.get( key ); // ?is this always String?
 
                 //  UTYPEs and UCDs, maybe UTYPES should be sdm:ssa.xxx.
                 //  Many of the SSAP response UTYPEs don't seem documented yet.
@@ -281,5 +210,99 @@ public class SplatPlastic
             }
         }
         return props;
+    }
+
+    /**
+     * Adds a spectrum to the browser given a name and type.
+     * This invokes a suitable method on the SplatBrowser synchronously
+     * on the event dispatch thread and returns a success flag.
+     *
+     * @param name the name (i.e. file specification) of the spectrum
+     *             to add.
+     * @param usertype index of the type of spectrum, 0 for default
+     *                 based on file extension, otherwise this is an
+     *                 index of the knownTypes array in
+     *                 {@link SpecDataFactory}.
+     * @return  true  iff the load was successful
+     */
+    private boolean addSpectrum( final String name, final int usertype )
+    {
+        if ( SwingUtilities.isEventDispatchThread() ) {
+            throw new IllegalStateException(
+                "Don't call from event dispatch thread" );
+        }
+        final Boolean[] result = new Boolean[ 1 ];
+        try {
+            SwingUtilities.invokeAndWait( new Runnable() {
+                public void run() {
+                    boolean success;
+                    try {
+                        browser.tryAddSpectrum( name, usertype );
+                        success = true;
+                    }
+                    catch ( SplatException e ) {
+                        success = false;
+                    }
+                    catch ( Throwable e ) {
+                        e.printStackTrace();
+                        success = false;
+                    }
+                    result[ 0 ] = Boolean.valueOf( success );
+                }
+            } );
+        }
+        catch ( InterruptedException e ) {
+            result[ 0 ] = Boolean.FALSE;
+        }
+        catch ( InvocationTargetException e ) {
+            result[ 0 ] = Boolean.FALSE;
+        }
+        assert result[ 0 ] != null;
+        return result[ 0 ].booleanValue();
+    }
+
+    /**
+     * Adds a spectrum to the browser given a spectral properties object.
+     * This invokes a suitable method on the SplatBrowser synchronously 
+     * on the event dispatch thread and returns a success flag.
+     *
+     * @param props a container class for the spectrum properties, including
+     *              the specification (i.e. file name etc.) of the spectrum
+     * @return  true  iff the load was successful
+     */
+    private boolean addSpectrum( final SpectrumIO.Props props )
+    {
+        if ( SwingUtilities.isEventDispatchThread() ) {
+            throw new IllegalStateException(
+                "Don't call from event dispatch thread" );
+        }
+        final Boolean[] result = new Boolean[ 1 ];
+        try {
+            SwingUtilities.invokeAndWait( new Runnable() {
+                public void run() {
+                    boolean success;
+                    try {
+                        browser.tryAddSpectrum( props );
+                        success = true;
+                    }
+                    catch ( SplatException e ) {
+                        success = false;
+                    }
+                    catch ( Throwable e ) {
+                        e.printStackTrace();
+                        success = false;
+                    }
+                    result[ 0 ] = Boolean.valueOf( success );
+                }
+            } );
+        }
+        catch ( InterruptedException e ) {
+            result[ 0 ] = Boolean.FALSE;
+        }
+        catch ( InvocationTargetException e ) {
+            result[ 0 ] = Boolean.FALSE;
+        }
+        assert result[ 0 ] != null;
+        return result[ 0 ].booleanValue();
     }
 }
