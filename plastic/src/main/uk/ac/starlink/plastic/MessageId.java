@@ -35,7 +35,10 @@ public class MessageId {
     public static final URI FITS_LOADLINE;
     public static final URI FITS_LOADIMAGE;
     public static final URI FITS_LOADCUBE;
+
     public static final URI SKY_POINT;
+
+    public static final URI SPECTRUM_LOADURL;
 
     /** Array of all messages known by this class.  */
     static final URI[] KNOWN_MESSAGES = new URI[] {
@@ -63,7 +66,10 @@ public class MessageId {
         FITS_LOADLINE = createURI( "ivo://votech.org/fits/line/loadFromURL" ),
         FITS_LOADIMAGE = createURI( "ivo://votech.org/fits/image/loadFromURL" ),
         FITS_LOADCUBE = createURI( "ivo://votech.org/fits/cube/loadFromURL" ),
+
         SKY_POINT = createURI( "ivo://votech.org/sky/pointAtCoords" ),
+
+        SPECTRUM_LOADURL = createURI( "ivo://votech.org/spectrum/loadFromURL" ),
     };
 
     /**

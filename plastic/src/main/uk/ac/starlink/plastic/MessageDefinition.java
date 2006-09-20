@@ -41,6 +41,7 @@ public class MessageDefinition {
     public static final MessageDefinition FITS_LOADIMAGE;
     public static final MessageDefinition FITS_LOADCUBE;
     public static final MessageDefinition SKY_POINT;
+    public static final MessageDefinition SPECTRUM_LOADURL;
     private static final Map MESSAGE_MAP;
 
     /** Known message definition list. */
@@ -128,6 +129,13 @@ public class MessageDefinition {
             new MessageDefinition( MessageId.SKY_POINT.toString(),
                                    new ValueType[] { ValueType.DOUBLE,
                                                      ValueType.DOUBLE },
+                                   ValueType.BOOLEAN ),
+
+        SPECTRUM_LOADURL =
+            new MessageDefinition( MessageId.SPECTRUM_LOADURL.toString(),
+                                   new ValueType[] { ValueType.STRING_URL,
+                                                     ValueType.STRING,
+                                                     ValueType.MAP },
                                    ValueType.BOOLEAN ),
     };
     static {
