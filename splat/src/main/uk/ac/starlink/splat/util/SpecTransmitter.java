@@ -12,8 +12,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JList;
@@ -36,6 +38,12 @@ import uk.ac.starlink.util.URLUtils;
  * data formats.  Static factory methods are provided to construct
  * instances for particular formats.
  *
+ * <p>The implementation of this class is currently somewhat complicated
+ * because it provides options for transmitting spectra using 
+ * a number of different PLASTIC messages.  If it is decided that only
+ * one of these is required, it would be possible to simplify the
+ * implementation a bit.
+ *
  * @author   Mark Taylor
  * @version  $Id$
  */
@@ -57,7 +65,7 @@ public abstract class SpecTransmitter
     /**
      * PLASTIC message identifier that this transmitter deals with.
      */
-    private URI msgId;
+    protected URI msgId;
 
     /**
      * Constructor.
@@ -66,15 +74,15 @@ public abstract class SpecTransmitter
      * @param   specList global list of spectra; the current selection 
      *          determines what spectrum is transmitted (transmission will
      *          only be enabled if there is a unique selection)
-     * @param   formatName   human-readable name for the spectrum transmission
-     *          format (used in action names etc)
      * @param   msgId  PLASTIC identifier for the message that this 
      *          transmitter deals with
+     * @param   sendType  short string representing the type of object
+     *          which is transmitted
      */
-    protected SpecTransmitter( HubManager hubman, JList specList, 
-                               String formatName, URI msgId )
+    protected SpecTransmitter( HubManager hubman, JList specList, URI msgId,
+                               String sendType )
     {
-        super( hubman, msgId, "spectrum as " + formatName );
+        super( hubman, msgId, sendType );
         this.specList = specList;
         this.msgId = msgId;
         specList.addListSelectionListener( this );
@@ -82,33 +90,10 @@ public abstract class SpecTransmitter
     }
 
     /**
-     * Returns the location (URL or filename) of existing storage for
-     * a given spectrum.  This must reference the data in a format 
-     * appropriate for the data type used by this transmitter.
-     * If no such correctly-typed storage exists, null is returned.
-     *
-     * @param  spec   spectrum data
-     * @return  file or URL where <code>spec</code>'s typed data can be found
+     * Implements message transmission.
      */
-    protected abstract String getTypedLocation( SpecData spec );
-
-    /**
-     * Creates and returns a new SpecData object with data obtained from
-     * an existing one which can be serialized using its <code>save</code>
-     * method into the data type used by this transmitter.
-     *
-     * @param  spec   spectrum data
-     * @return   typed clone of <code>spec</code>
-     */
-    protected abstract SpecData createTypedClone( SpecData spec )
-        throws SplatException, IOException;
-
-    /**
-     * Implements actual transmission of the message.
-     */
-    protected void transmit( final PlasticHubListener hub,
-                             final URI clientId,
-                             final ApplicationItem app )
+    protected void transmit( PlasticHubListener hub, URI clientId,
+                             ApplicationItem app )
         throws IOException
     {
 
@@ -123,73 +108,23 @@ public abstract class SpecTransmitter
         SpecData spec = GlobalSpecPlotList.getInstance()
                                           .getSpectrum( selectedIndex );
 
-        //  See if there is a suitable ready-made URL for transmission.
-        String location = getTypedLocation( spec );
-        URL locUrl = null;
-        File locFile = null;
-        if ( location != null ) {
-            locFile = new File( location );
-            if ( locFile.exists() ) {
-                locUrl = URLUtils.makeFileURL( new File( location ) );
-            }
-            else {
-                try {
-                    locUrl = new URL( location );
-                }
-                catch ( MalformedURLException e ) {
-                    locUrl = null;
-                }
-            }
-        }
-
-        //  Set up a URL and (possibly) a temporary file which we will use
-        //  for the transmission.
-        final String url;
-        final File tmpFile;
-        if ( locUrl != null ) {
-
-            //  Use a URL pointing to existing data if available.
-            url = locUrl.toString();
-            tmpFile = null;
-        }
-        else {
-
-            //  Otherwise write to a temporary file and the the URL of that.
-            File tf;
-            try {
-                SpecData target = createTypedClone( spec );
-                tf = new File( target.getFullName() );
-                tf.deleteOnExit();
-                target.save();
-                assert tf.exists() : tf;
-            }
-            catch ( IOException e ) {
-                throw e;
-            }
-            catch ( Throwable e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
-            tmpFile = tf;
-            url = URLUtils.makeFileURL( tmpFile ).toString();
-        }
-       
-        //  Send the message to the hub.
-        //  This is done in a separate thread so as not to block the GUI.
-        new Thread( "PLASTIC spectrum transmitter" ) {
-            public void run() {
-                List argList = Arrays.asList( new Object[] { url, url } );
-                Map responses = app == null
-                    ? hub.request( clientId, msgId, argList )
-                    : hub.requestToSubset( clientId, msgId, argList,
-                                           Collections
-                                          .singletonList( app.getId() ) );
-                if ( tmpFile != null ) {
-                    tmpFile.delete();
-                }
-            }
-        }.start();
+        //  Transmit it.
+        transmitSpectrum( hub, clientId, app, spec );
     }
+
+    /**
+     * Given a spectrum to transmit, transmits it in the appropriate way
+     * for this Transmitter.
+     *
+     * @param  hub  hub
+     * @param  clientId  registered ID for this application
+     * @param  app    target for the transmssion; if null broadcast to all
+     * @param  spec  the spectrum to transmit
+     */
+    protected abstract void transmitSpectrum( PlasticHubListener hub,
+                                              URI clientId, ApplicationItem app,
+                                              SpecData spec )
+        throws IOException;
 
     /**
      * Implement ListSelectionListener interface to ensure that this object
@@ -213,6 +148,22 @@ public abstract class SpecTransmitter
 
     /**
      * Constructs and returns a SpecTransmitter which transmits spectra 
+     * using the format-neutral PLASTIC spectrum transmission message.
+     *
+     * @param   hubman   object controlling connection to a PLASTIC hub
+     * @param   specList global list of spectra; the current selection 
+     *          determines what spectrum is transmitted (transmission will
+     *          only be enabled if there is a unique selection)
+     * @return  new transmitter 
+     */
+    public static SpecTransmitter createSpectrumTransmitter( HubManager hubman,
+                                                             JList specList )
+    {
+        return new SpectrumSpecTransmitter( hubman, specList );
+    }
+
+    /**
+     * Constructs and returns a SpecTransmitter which transmits spectra 
      * as 1-d FITS files.
      *
      * @param   hubman   object controlling connection to a PLASTIC hub
@@ -224,8 +175,8 @@ public abstract class SpecTransmitter
     public static SpecTransmitter createFitsTransmitter( HubManager hubman,
                                                          JList specList )
     {
-        return new SpecTransmitter( hubman, specList, "FITS",
-                                    MessageId.FITS_LOADLINE ) {
+        return new TypedSpecTransmitter( hubman, specList,
+                                         MessageId.FITS_LOADLINE, "FITS" ) {
 
             protected String getTypedLocation( SpecData spec ) 
             {
@@ -258,8 +209,8 @@ public abstract class SpecTransmitter
     public static SpecTransmitter createVOTableTransmitter( HubManager hubman,
                                                             JList specList )
     {
-        return new SpecTransmitter( hubman, specList, "VOTable",
-                                    MessageId.VOT_LOADURL ) {
+        return new TypedSpecTransmitter( hubman, specList,
+                                         MessageId.VOT_LOADURL, "VOTable" ) {
 
             protected String getTypedLocation( SpecData spec )
             {
@@ -278,5 +229,231 @@ public abstract class SpecTransmitter
                                  "votable" );
             }
         };
+    }
+
+    /**
+     * Returns a URL corresponding to an existing resource given by a 
+     * location string, if possible.  If <code>loc</code> is an 
+     * <em>existing</em> file, a file-type URL is returned.  
+     * Otherwise, if <code>loc</code> can be parsed as a URL, 
+     * that is returned.  Otherwise, <code>null</code> is returned.
+     *
+     * @param   loc  string pointing to resource (URL or filename)
+     * @return   URL describing <code>loc</code>, or null
+     */
+    private static URL getUrl( String loc )
+    {
+        if ( loc == null ) {
+            return null;
+        }
+        File locFile = new File( loc );
+        if ( locFile.exists() ) {
+            return URLUtils.makeFileURL( locFile );
+        }
+        else {
+            try {
+                return new URL( loc );
+            }
+            catch ( MalformedURLException e ) {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * SpecTransmitter implementation which sends spectra using the
+     * format-neutral PLASTIC spectrum transmission message.
+     */
+    private static class SpectrumSpecTransmitter
+        extends SpecTransmitter
+    {
+        SpectrumSpecTransmitter( HubManager hubman, JList specList )
+        {
+            super( hubman, specList, MessageId.SPECTRUM_LOADURL, "spectrum" );
+        }
+
+        protected void transmitSpectrum( final PlasticHubListener hub,
+                                         final URI clientId,
+                                         final ApplicationItem app,
+                                         SpecData spec )
+            throws IOException
+        {
+            String fmt = spec.getDataFormat();
+            String mime = null;
+            URL locUrl = null;
+            File tmpFile = null;
+
+            //  See if there is a FITS or VOTable spectrum ready to send.
+            if ( "FITS".equals( fmt ) ) {
+                mime = "application/fits";
+                locUrl = getUrl( spec.getFullName() );
+            }
+
+            //  See if there is a VOTable spectrum ready to send.
+            else if ( "VOTable".equals( fmt ) ) {
+                mime = "application/x-votable+xml";
+                locUrl = getUrl( spec.getFullName() );
+            }
+
+            //  Otherwise, write it as a FITS spectrum and use that.
+            if ( locUrl == null ) {
+                tmpFile = File.createTempFile( "spec", ".fits" );
+                tmpFile.deleteOnExit();
+                locUrl = URLUtils.makeFileURL( tmpFile );
+                mime = "application/fits";
+                try {
+                    spec = SpecDataFactory.getInstance()
+                          .getClone( spec, tmpFile.toString(),
+                                     SpecDataFactory.FITS, "" );
+                    spec.save();
+                    assert tmpFile.exists() : tmpFile;
+                }
+                catch ( Throwable e ) {
+                    throw (IOException) new IOException( e.getMessage() )
+                                       .initCause( e );
+                }
+            }
+            assert mime != null;
+            assert locUrl != null;
+
+            //  Prepare a metadata map describing the spectrum.
+            //  There should probably be more items in here.
+            Map meta = new HashMap();
+            meta.put( "Access.Reference", locUrl.toString() );
+            meta.put( "Access.Format", mime );
+            String shortName = spec.getShortName();
+            if ( shortName != null && shortName.trim().length() > 0 ) {
+                meta.put( "vox:image_title", shortName );
+                meta.put( "Target.Name", shortName );
+            }
+
+            //  Prepare message argument list.
+            final List argList = new ArrayList();
+            argList.add( locUrl.toString() );
+            argList.add( locUrl.toString() );
+            argList.add( meta );
+
+            //  Send the message to the hub.
+            final File tmpFile0 = tmpFile;
+            new Thread( "PLASTIC spectrum transmitter" ) {
+                public void run() {
+                    Map responses = app == null
+                        ? hub.request( clientId, msgId, argList )
+                        : hub.requestToSubset( clientId, msgId, argList,
+                                               Collections
+                                              .singletonList( app.getId() ) );
+                    if ( tmpFile0 != null ) {
+                        tmpFile0.delete();
+                    }
+                }
+            }.start();
+        }
+    }
+
+    /**
+     * SpecTransmitter implementation which sends spectra using a message
+     * that requires a particular serialization type.
+     */
+    private abstract static class TypedSpecTransmitter
+        extends SpecTransmitter
+    {
+
+        /**
+         * Constructor.
+         *
+         * @param   hubman   object controlling connection to a PLASTIC hub
+         * @param   specList global list of spectra; the current selection 
+         *          determines what spectrum is transmitted (transmission will
+         *          only be enabled if there is a unique selection)
+         * @param   msgId  PLASTIC identifier for the message that this 
+         *          transmitter deals with
+         * @param   formatName   human-readable name for the spectrum
+         *          transmission format (used in action names etc)
+         */
+        TypedSpecTransmitter( HubManager hubman, JList specList, URI msgId,
+                              String formatName )
+        {
+            super( hubman, specList, msgId, "spectrum as " + formatName );
+        }
+
+        /**
+         * Returns the location (URL or filename) of existing storage for
+         * a given spectrum.  This must reference the data in a format 
+         * appropriate for the data type used by this transmitter.
+         * If no such correctly-typed storage exists, null is returned.
+         *
+         * @param  spec   spectrum data
+         * @return  file or URL where <code>spec</code>'s typed data
+         *          can be found
+         */
+        protected abstract String getTypedLocation( SpecData spec );
+
+        /**
+         * Creates and returns a new SpecData object with data obtained from
+         * an existing one which can be serialized using its <code>save</code>
+         * method into the data type used by this transmitter.
+         *
+         * @param  spec   spectrum data
+         * @return   typed clone of <code>spec</code>
+         */
+        protected abstract SpecData createTypedClone( SpecData spec )
+            throws SplatException, IOException;
+
+        protected void transmitSpectrum( final PlasticHubListener hub,
+                                         final URI clientId,
+                                         final ApplicationItem app,
+                                         SpecData spec )
+            throws IOException
+        {
+
+            //  Set up a URL and (possibly) a temporary file which we will use
+            //  for the transmission.
+            final String url;
+            final File tmpFile;
+
+            //  See if there is a suitable ready-made URL for transmission.
+            URL locUrl = getUrl( getTypedLocation( spec ) );
+            if ( locUrl != null ) {
+                url = locUrl.toString();
+                tmpFile = null;
+            }
+
+            //  Otherwise write to a temporary file and the the URL of that.
+            else {
+                File tf;
+                try {
+                    SpecData target = createTypedClone( spec );
+                    tf = new File( target.getFullName() );
+                    tf.deleteOnExit();
+                    target.save();
+                    assert tf.exists() : tf;
+                }
+                catch ( IOException e ) {
+                    throw e;
+                }
+                catch ( Throwable e ) {
+                    throw (IOException) new IOException( e.getMessage() )
+                                       .initCause( e );
+                }
+                tmpFile = tf;
+                url = URLUtils.makeFileURL( tmpFile ).toString();
+            }
+       
+            //  Send the message to the hub.
+            //  This is done in a separate thread so as not to block the GUI.
+            new Thread( "PLASTIC spectrum transmitter" ) {
+                public void run() {
+                    List argList = Arrays.asList( new Object[] { url, url } );
+                    Map responses = app == null
+                        ? hub.request( clientId, msgId, argList )
+                        : hub.requestToSubset( clientId, msgId, argList,
+                                               Collections
+                                              .singletonList( app.getId() ) );
+                    if ( tmpFile != null ) {
+                        tmpFile.delete();
+                    }
+                }
+            }.start();
+        }
     }
 }
