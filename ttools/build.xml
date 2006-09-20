@@ -110,7 +110,7 @@
   <property name="src.docs" value="${src.dir}/docs"/>
   <property name="user.doc" value="sun256"/>
   <property name="coverimage" value="ttools.gif"/>
-  <property name="docs.lib" value="${star.build.dir}/topcat/src/docs"/>
+  <property name="xdoc.etc" value="${star.dir}/etc/xdoc"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
@@ -1011,7 +1011,7 @@
     <!-- Copy required source files there. -->
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" includes="${user.doc}.xml"/>
-      <fileset dir="${docs.lib}" includes="docs.dtd"/>
+      <fileset dir="${xdoc.etc}" includes="docs.dtd"/>
     </copy>
 
     <!-- Construct XML documentation for the JEL-accessible classes.
@@ -1104,7 +1104,7 @@
     <copy todir="${build.docs}/${user.doc}" file="${src.docs}/${coverimage}"/>
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}/${user.doc}.html"
-          style="${docs.lib}/toHTML1.xslt">
+          style="${xdoc.etc}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="${coverimage}"/>
@@ -1117,7 +1117,7 @@
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-style"/> <arg value="${docs.lib}/toHTML.xslt"/>
+      <arg value="-style"/> <arg value="${xdoc.etc}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="-param"/> <arg value="COVERIMAGE=${coverimage}"/>
@@ -1128,7 +1128,7 @@
     <!-- Transform the user document XML to a PDF document via XSL-FO. -->
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}.fo"
-          style="${docs.lib}/toFo.xslt">
+          style="${xdoc.etc}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="${coverimage}"/>
@@ -1137,7 +1137,7 @@
           failonerror="yes"
           fork="yes">
       <classpath>
-        <fileset dir="${docs.lib}" includes="*.jar"/>
+        <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
       <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-q"/>
