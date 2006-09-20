@@ -946,32 +946,37 @@ public class SplatBrowser
         interopMenu.add( plasticServer.getHubWatchAction() );
 
         // Add spectrum type acceptance options.
+        JMenuItem acceptSpectrum =
+            new JCheckBoxMenuItem( "Accept Load Spectrum messages", true );
         JMenuItem acceptFITSLine = 
-            new JCheckBoxMenuItem( "Accept spectra as 1d FITS", true );
-        JMenuItem acceptVOTable =
-            new JCheckBoxMenuItem( "Accept spectra as VOTable", true );
-        JMenuItem acceptFITSTable =
-            new JCheckBoxMenuItem( "Accept spectra as FITS table", false );
+            new JCheckBoxMenuItem( "Accept Load 1d FITS messages", true );
+        plasticServer.setAcceptSpectrumModel( acceptSpectrum.getModel() );
         plasticServer.setAcceptFITSLineModel( acceptFITSLine.getModel() );
-        plasticServer.setAcceptVOTableModel( acceptVOTable.getModel() );
-        plasticServer.setAcceptFITSTableModel( acceptFITSTable.getModel() );
         interopMenu.addSeparator();
+        interopMenu.add( acceptSpectrum );
         interopMenu.add( acceptFITSLine );
-        interopMenu.add( acceptVOTable );
-        interopMenu.add( acceptFITSTable );
   
-        // Set up an object which can transmit spectra over PLASTIC.
-        SpecTransmitter fitsTransmitter =
-            SpecTransmitter.createFitsTransmitter( plasticServer, specList );
-        SpecTransmitter votTransmitter =
-            SpecTransmitter.createVOTableTransmitter( plasticServer, specList );
 
-        // Add spectrum transmit menus.
+        // Add spectrum transmit menus items.
         interopMenu.addSeparator();
-        interopMenu.add( fitsTransmitter.getBroadcastAction() );
-        interopMenu.add( fitsTransmitter.createSendMenu() );
-        interopMenu.add( votTransmitter.getBroadcastAction() );
-        interopMenu.add( votTransmitter.createSendMenu() );
+        SpecTransmitter specTransmitter = SpecTransmitter
+            .createSpectrumTransmitter( plasticServer, specList );
+        interopMenu.add( specTransmitter.getBroadcastAction() );
+        interopMenu.add( specTransmitter.createSendMenu() );
+
+        // Could add facilities to transmit as FITS and VOTable here.
+        // Don't currently provide this as it clutters the menu and it's
+        // not clear whether it is useful or not.
+        if ( false ) {
+            SpecTransmitter fitsTransmitter = SpecTransmitter
+                .createFitsTransmitter( plasticServer, specList );
+            interopMenu.add( fitsTransmitter.getBroadcastAction() );
+            interopMenu.add( fitsTransmitter.createSendMenu() );
+            SpecTransmitter votTransmitter = SpecTransmitter
+                .createVOTableTransmitter( plasticServer, specList );
+            interopMenu.add( votTransmitter.getBroadcastAction() );
+            interopMenu.add( votTransmitter.createSendMenu() );
+        }
 
         // Add help option.
         interopMenu.addSeparator();
