@@ -542,13 +542,13 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
     <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
 <!--
+    <mkdir dir="${dist.bin.pkg}"/>
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
@@ -569,9 +569,11 @@
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+<!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+ -->
 
   </target>
 
@@ -772,6 +774,7 @@
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
+<!--
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -784,14 +787,13 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
+-->
 
     <loggedcopy todir="${star.etc}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
-      <fileset dir="${dist.etc}">
-        <include name="**/*.xslt"/>
-      </fileset>
+                logfileAppend="false">
+      <fileset dir="${dist.etc}"/>
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.etc.pkg}
 </echo>
