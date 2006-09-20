@@ -1101,13 +1101,17 @@
 
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
-    <copy todir="${build.docs}/${user.doc}" file="${src.docs}/${coverimage}"/>
+    <copy todir="${build.docs}/${user.doc}">
+      <fileset dir="${src.docs}" includes="${coverimage}"/>
+      <fileset dir="${xdoc.etc}" includes="sun-style.css"/>
+    </copy>
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}/${user.doc}.html"
           style="${xdoc.etc}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="${coverimage}"/>
+      <param name="CSS_HREF" expression="sun-style.css"/>
     </xslt>
 
     <!-- Transform the user document to a multi-page HTML document. -->
@@ -1121,6 +1125,7 @@
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="-param"/> <arg value="COVERIMAGE=${coverimage}"/>
+      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>
