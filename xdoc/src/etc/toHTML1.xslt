@@ -11,12 +11,14 @@
   <xsl:param name="VERSION" select="'???'"/>
   <xsl:param name="BASEDIR" select="'.'"/>
   <xsl:param name="COVERIMAGE" select="''"/>
+  <xsl:param name="CSS_HREF" select="''"/>
 
   <!-- Top level element -->
 
   <xsl:template match="sun">
     <html>
       <head>
+        <xsl:call-template name="cssStylesheet"/>
         <title>
           <xsl:apply-templates select="docinfo/title"/>
         </title>
@@ -669,6 +671,18 @@
         </xsl:if>
       </xsl:if>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="cssStylesheet">
+    <xsl:if test="$CSS_HREF">
+      <xsl:element name="link">
+        <xsl:attribute name="rel">stylesheet</xsl:attribute>
+        <xsl:attribute name="type">text/css</xsl:attribute>
+        <xsl:attribute name="href">
+          <xsl:value-of select="$CSS_HREF"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
   </xsl:template>
 
 </xsl:stylesheet>

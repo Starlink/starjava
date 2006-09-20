@@ -51,6 +51,7 @@
       </xsl:attribute>
       <html>
         <head>
+          <xsl:call-template name="cssStylesheet"/>
           <title> 
             <xsl:apply-templates select="docinfo/title"/>
           </title>
@@ -81,6 +82,7 @@
       </xsl:attribute>
       <html>
         <head>
+          <xsl:call-template name="cssStylesheet"/>
           <title>
             <xsl:apply-templates mode="nameref" select="."/>
           </title>

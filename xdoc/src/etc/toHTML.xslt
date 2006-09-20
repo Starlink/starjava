@@ -21,6 +21,7 @@
         <html>
           <xsl:text>&#x0a;</xsl:text>
           <head>
+            <xsl:call-template name="cssStylesheet"/>
             <title>
               <xsl:apply-templates select="docinfo/title"/>
             </title>
@@ -53,6 +54,7 @@
       <html>
         <xsl:text>&#x0a;</xsl:text>
         <head>
+          <xsl:call-template name="cssStylesheet"/>
           <title>
             <xsl:apply-templates mode="nameref" select="."/>
           </title>
