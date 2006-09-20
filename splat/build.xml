@@ -1144,6 +1144,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
+             source="${source.version}"
              classpathref="classpath">
 
       <doclet name="com.sun.tools.doclets.standard.Standard">
