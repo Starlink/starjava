@@ -8,13 +8,14 @@ import javax.xml.transform.stream.StreamSource;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.xdoc.LinkChecker;
 
 public class DocTest extends TestCase {
 
     private static final String basedir = System.getProperty( "basedir" );
     public static final String DOC_NAME = "sun253";
     public static final String DOC_BUILD_DIR = basedir + "/build/docs";
-    public static final String DOC_SRC_DIR = basedir + "/src/docs";
+    public static final String XSLT_DIR = System.getProperty( "xdoc.etc" );
 
     File docFile = new File( DOC_BUILD_DIR, DOC_NAME + ".xml" );
     
@@ -29,8 +30,8 @@ public class DocTest extends TestCase {
 
     public void testLinks() 
             throws TransformerException, MalformedURLException {
-        File docXslt1 = new File( DOC_SRC_DIR, "toHTML1.xslt" );
-        File docXslt = new File( DOC_SRC_DIR, "toHTML.xslt" );
+        File docXslt1 = new File( XSLT_DIR, "toHTML1.xslt" );
+        File docXslt = new File( XSLT_DIR, "toHTML.xslt" );
         File context = new File( DOC_BUILD_DIR, DOC_NAME );
         assertTrue( docXslt1.isFile() );
         assertTrue( docXslt.isFile() );

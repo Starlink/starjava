@@ -107,8 +107,9 @@
   <property name="java.dir" value="${src.dir}/main"/>
 
   <!-- Directory containing miscellaneous docs -->
-  <property name="src.docs" value="${src.dir}/docs"/>
   <property name="user.doc" value="sun253"/>
+  <property name="src.docs" value="${src.dir}/docs"/>
+  <property name="xdoc.etc" value="${star.dir}/etc/xdoc"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
@@ -293,6 +294,7 @@
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
     <pathelement location="${tests.etc.dir}"/>
+    <pathelement location="${star.jar.dir}/xdoc/xdoc.jar"/>
     <path refid="classpath"/>
   </path>
 
@@ -1194,15 +1196,19 @@
           unless="docs.notrequired"
           description="-> creates the user documentation">
 
+    <property name="ttools.java" value="${java.dir}/../../../ttools/src/main"/>
+
     <!-- Make destination directory for built files. -->
     <mkdir dir="${build.docs}"/>
 
     <!-- Copy required source files there. -->
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" 
-               includes="${user.doc}.xml docs.dtd figures/* multishot.gif"/>
+               includes="${user.doc}.xml figures/* multishot.gif"/>
       <fileset dir="${src.dir}/resources/uk/ac/starlink/topcat/"
                includes="images/*"/>
+      <fileset dir="${xdoc.etc}"
+               includes="docs.dtd"/>
     </copy>
 
     <!-- Write a file containing entity definitions for all the image files
@@ -1223,7 +1229,7 @@
              failonerror="true"
              public="true"
              additionalparam="-gen -o ${build.docs}/general-javadocs.xml" 
-             sourcepath="${java.dir}/../../../ttools/src/main"
+             sourcepath="${ttools.java}"
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
@@ -1241,7 +1247,7 @@
              failonerror="true"
              public="true"
              additionalparam="-gen -headonly -o ${build.docs}/general-classes-javadocs.xml"
-             sourcepath="${java.dir}/../../../ttools/src/main"
+             sourcepath="${ttools.java}"
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
@@ -1264,7 +1270,7 @@
              public="true"
              additionalparam="-headings"
              destdir="${build.classes}"
-             sourcepath="${java.dir}:${java.dir}/../../../ttools/src/main"
+             sourcepath="${java.dir}:${ttools.java}"
              packagenames="uk.ac.starlink.ttools.func,
                            uk.ac.starlink.topcat.func"
              classpathref="classpath"
@@ -1287,7 +1293,7 @@
     <mkdir dir="${build.docs}/${user.doc}"/>
     <xslt in="${build.docs}/${user.doc}.xml" 
           out="${build.docs}/${user.doc}/${user.doc}.html"
-          style="${src.docs}/toHTML1.xslt">
+          style="${xdoc.etc}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="../figures/multishot-mini.gif"/>
@@ -1296,7 +1302,7 @@
     <!-- Transform the user document XML to a PDF document via XSL-FO. -->
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}.fo"
-          style="${src.docs}/toFo.xslt">
+          style="${xdoc.etc}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="../multishot.gif"/>
@@ -1306,7 +1312,7 @@
           fork="yes"
           maxmemory="128M">
       <classpath>
-        <fileset dir="${src.docs}" includes="*.jar"/>
+        <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
       <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-q"/>
@@ -1321,7 +1327,7 @@
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-style"/> <arg value="${src.docs}/toHTML.xslt"/>
+      <arg value="-style"/> <arg value="${xdoc.etc}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="-param"/> 
@@ -1337,7 +1343,7 @@
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-style"/> <arg value="${src.docs}/toHelp.xslt"/>
+      <arg value="-style"/> <arg value="${xdoc.etc}/toHelp.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
@@ -1444,6 +1450,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="basedir" value="${basedir}"/>
+      <sysproperty key="xdoc.etc" value="${xdoc.etc}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="brief" usefile="false"/>
@@ -1474,6 +1481,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="basedir" value="${basedir}"/>
+      <sysproperty key="xdoc.etc" value="${xdoc.etc}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
