@@ -1291,12 +1291,16 @@
 
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
+    <copy todir="${build.docs}/${user.doc}">
+      <fileset dir="${xdoc.etc}" includes="sun-style.css"/>
+    </copy>
     <xslt in="${build.docs}/${user.doc}.xml" 
           out="${build.docs}/${user.doc}/${user.doc}.html"
           style="${xdoc.etc}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="../figures/multishot-mini.gif"/>
+      <param name="CSS_HREF" expression="sun-style.css"/>
     </xslt>
 
     <!-- Transform the user document XML to a PDF document via XSL-FO. -->
@@ -1332,6 +1336,7 @@
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
       <arg value="-param"/> 
                        <arg value="COVERIMAGE=../figures/multishot-mini.gif"/>
+      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>
@@ -1346,6 +1351,7 @@
       <arg value="-style"/> <arg value="${xdoc.etc}/toHelp.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
+      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.classes}/uk/ac/starlink/topcat/help"/>
     </java>
@@ -1353,7 +1359,8 @@
     <!-- Copy the image icons themselves into the help directory where they
      !   will be referenced from the HTML. -->
     <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
-      <fileset dir="${build.docs}/${user.doc}" includes="${user.doc}.html"/>
+      <fileset dir="${build.docs}/${user.doc}"
+               includes="${user.doc}.html sun-style.css"/>
     </copy>
   </target>
 
