@@ -1246,6 +1246,9 @@ public class ControlWindow extends AuxWindow
         if ( sindex > 0 && sindex < label.length() - 1 ) {
             label = label.substring( sindex + 1 );
         }
+        if ( label.length() > 48 ) {
+            label = label.substring( 0, 48 ) + "...";
+        }
         return label;
     }
 
