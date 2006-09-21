@@ -9664,6 +9664,7 @@ introduced since the last version:
         flags directly to Java.</li>
     <li>Added sample (as opposed to population) Standard Deviation/Variance
         calculation options to the Statistics Window.</li>
+    <li>Modified presentation of HTML version of SUN/253 using CSS.</li>
     </ul>
     </p></dd>
 

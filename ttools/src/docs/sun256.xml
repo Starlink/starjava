@@ -3950,6 +3950,7 @@ but my thanks are especially due to the following:
         which input table each output row comes from.</li>
     <li>Improved CEA description file output - now contains details of all
         tasks as well as various improvements in documentation etc.</li>
+    <li>Modified presentation of HTML version of SUN/256 using CSS.</li>
     </ul>
     </p></dd>
 
