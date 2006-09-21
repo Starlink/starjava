@@ -101,13 +101,14 @@ public class ASTFITSChan
      */
     public boolean write( FrameSet frameset )
     {
+        int nwrite = 0;
         try {
-            fitsChan.write( frameset );
+            nwrite = fitsChan.write( frameset );
         }
         catch (AstException e) {
             return false;
         }
-        return true;
+        return ( nwrite != 0 );
     }
 
     /**
