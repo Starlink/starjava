@@ -268,7 +268,8 @@ public class ColumnSelectorModel {
 
         /* Make the model. */
         ComboBoxModel model = 
-            new ColumnDataComboBoxModel( tcModel, argInfo.isNullable() );
+            new ColumnDataComboBoxModel( tcModel, argInfo.getContentClass(),
+                                         argInfo.isNullable() );
 
         /* Have a guess what will be a good value for the initial
          * selection.  There is scope for doing this better. */

@@ -155,7 +155,9 @@ public class DefaultPointSelector extends PointSelector {
         else {
             for ( int i = 0; i < ndim_; i++ ) {
                 colSelectors_[ i ]
-                    .setModel( new ColumnDataComboBoxModel( tcModel, true ) );
+                    .setModel( new ColumnDataComboBoxModel( tcModel,
+                                                            Number.class,
+                                                            true ) );
                 colSelectors_[ i ].setEnabled( true );
             }
         }

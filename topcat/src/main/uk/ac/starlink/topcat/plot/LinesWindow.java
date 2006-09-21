@@ -866,7 +866,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
              * X axis column selector. */
             if ( tcModel != null ) {
                 getColumnSelector( 0 )
-               .setModel( new ColumnDataComboBoxModel( tcModel, true, true ) );
+               .setModel( new ColumnDataComboBoxModel( tcModel, Number.class,
+                                                       true, true ) );
             }
         }
 

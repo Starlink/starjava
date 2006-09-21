@@ -49,6 +49,7 @@ public class ColumnDataComboBoxModel
     private final TableColumnModel colModel_;
     private final boolean hasNone_;
     private final boolean hasIndex_;
+    private final Class dataClazz_;
     private List activeColumns_;
     private List modelColumns_;
     private ColumnData selected_;
@@ -61,16 +62,18 @@ public class ColumnDataComboBoxModel
      * the magic 'index' column.
      *
      * @param   tcModel   table model containing columns
+     * @param   dataClazz content class of permitted columns
      * @param   hasNone   true iff you want a null entry in the selector model
      * @param   hasIndex  true iff you want an index column entry in the
      *                    selector model
      */
-    public ColumnDataComboBoxModel( TopcatModel tcModel, boolean hasNone,
-                                    boolean hasIndex ) {
+    public ColumnDataComboBoxModel( TopcatModel tcModel, Class dataClazz, 
+                                    boolean hasNone, boolean hasIndex ) {
         tcModel_ = tcModel;
         colModel_ = tcModel.getColumnModel();
         hasNone_ = hasNone;
         hasIndex_ = hasIndex;
+        dataClazz_ = dataClazz;
 
         /* Listen to the table's column model so that we can update the
          * contents of this model.  Do it using a weak reference so that
@@ -105,25 +108,21 @@ public class ColumnDataComboBoxModel
      * @param   tcModel   table model containing columns
      * @param   hasNone   true iff you want a null entry in the selector model
      */
-    public ColumnDataComboBoxModel( TopcatModel tcModel, boolean hasNone ) {
-        this( tcModel, hasNone, false );
+    public ColumnDataComboBoxModel( TopcatModel tcModel, Class dataClazz,
+                                    boolean hasNone ) {
+        this( tcModel, dataClazz, hasNone, false );
     }
 
     /**
      * Determines whether a given class is acceptable for the content of
      * the expressions contained in this model 
      * (<code>DataColumn.getColumnInfo().getContentClass()</code>).
-     * This method can be overridden to change the classes which are 
-     * permitted, however be careful since this method is called in
-     * the constructor.
-     *
-     * <p>The default implementation OKs Number or any of its subclasses.
      *
      * @param   clazz  class for possible inclusion
      * @return  true iff clazz is OK as a data column type for this model
      */
-    public boolean acceptType( Class clazz ) {
-        return Number.class.isAssignableFrom( clazz );
+    private boolean acceptType( Class clazz ) {
+        return dataClazz_.isAssignableFrom( clazz );
     }
 
     public Object getElementAt( int index ) {

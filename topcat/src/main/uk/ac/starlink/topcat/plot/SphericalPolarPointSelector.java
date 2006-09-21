@@ -178,7 +178,9 @@ public class SphericalPolarPointSelector extends PointSelector {
         else {
             phiSelector_.setTable( tcModel );
             thetaSelector_.setTable( tcModel );
-            rSelector_.setModel( new ColumnDataComboBoxModel( tcModel, true ) );
+            rSelector_.setModel( new ColumnDataComboBoxModel( tcModel,
+                                                              Number.class,
+                                                              true ) );
         }
         phiSelector_.setEnabled( tcModel != null );
         thetaSelector_.setEnabled( tcModel != null );
