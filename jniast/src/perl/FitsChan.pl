@@ -191,9 +191,10 @@ public class FitsChan extends Channel {
      * Writes an AST object to this channel.  
      *
      * @param    obj  an <code>AstObject</code> to be written
+     * @return   number of objects written (1 on success)
      * @throws   AstException  if an error occurs in the AST library
      */
-    public native void write( AstObject obj );
+    public native int write( AstObject obj );
 
     /**
      * Stores a double complex value for a named keyword within this

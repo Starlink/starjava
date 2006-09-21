@@ -117,7 +117,7 @@ public class AstTest extends TestCase {
     }
 
     private void exerciseChannel( Channel chan ) throws IOException {
-        chan.write( new FrameSet( frm ) );
+        assertEquals( 1, chan.write( new FrameSet( frm ) ) );
         FrameSet f2 = (FrameSet) chan.read();
         assertEquals( f2.getNframe(), 1 );
         assertEquals( frm.getNaxes(), f2.getFrame( 1 ).getNaxes() );
@@ -139,7 +139,7 @@ public class AstTest extends TestCase {
 
     public void testFitsChan() throws IOException {
         FitsChan fchan = new FitsChan();
-        fchan.write( wcs );
+        assertEquals( 1, fchan.write( wcs ) );
         int nc = fchan.getNcard();
         assertTrue( "Enough cards", nc > 10 );
         fchan.setCard( 11 );
@@ -552,14 +552,14 @@ public class AstTest extends TestCase {
         assertArrayEquals( new double[] { 400, 800, 1200 }, resulta[ 1 ] );
 
         Channel mc = new TestChannel();
-        mc.write( imap );
+        assertEquals( 1, mc.write( imap ) );
         Mapping jmap = (Mapping) mc.read();
         double[][] resultb = jmap.tran2( 3, xina, yina, true );
         assertArrayEquals( resulta[ 0 ], resultb[ 0 ] );
         assertArrayEquals( resulta[ 1 ], resultb[ 1 ] );
 
         FitsChan fc = new FitsChan();
-        fc.write( jmap );
+        assertEquals( 1, fc.write( jmap ) );
         fc.setCard( 1 );
         Mapping kmap = (Mapping) fc.read();
         double[][] resultc = kmap.tran2( 3, xina, yina, true );
@@ -567,7 +567,7 @@ public class AstTest extends TestCase {
         assertArrayEquals( resulta[ 1 ], resultc[ 1 ] );
 
         XmlChan xc = new MemoryXmlChan();
-        xc.write( kmap );
+        assertEquals( 1, xc.write( kmap ) );
         Mapping lmap = (Mapping) xc.read();
         double[][] resultd = lmap.tran2( 3, xina, yina, true );
         assertArrayEquals( resulta[ 0 ], resultd[ 0 ] );

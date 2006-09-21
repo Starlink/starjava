@@ -58,7 +58,8 @@ public class XAstWriter {
     public Source makeSource( AstObject obj ) {
         xmlChan.clear();
         try {
-            xmlChan.write( obj );
+            int nwrite = xmlChan.write( obj );
+            assert nwrite == 1;
         }
         catch ( IOException e ) {
             throw new AssertionError( "That shouldn't happen." );

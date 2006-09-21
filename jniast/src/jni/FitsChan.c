@@ -240,7 +240,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_FitsChan_read(
    return newobj;
 }
 
-JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
+JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
    jobject item          /* AstObject to write */
@@ -248,6 +248,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
    AstPointer pointer = jniastGetPointerField( env, this );
    AstPointer itempointer;
    int needchan;
+   int nwrite = 0;
 
    if ( jniastCheckNotNull( env, item ) ) {
 
@@ -265,13 +266,16 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
 
       /* Call the AST routine to do the work. */
       ASTCALL(
-         astWrite( pointer.FitsChan, itempointer.AstObject );
+         nwrite = astWrite( pointer.FitsChan, itempointer.AstObject );
       )
 
       /* Reverse possible destructive effects of Channelize. */
       if ( needchan && ! (*env)->ExceptionCheck( env ) ) {
          (*env)->CallVoidMethod( env, item, UnChannelizeMethodID );
       }
+
+      /* Return number of objects written. */
+      return (jint) nwrite;
    }
 }
 

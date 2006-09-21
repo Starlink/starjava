@@ -143,7 +143,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Channel_read(
 }
 
 
-JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_write(
+JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Channel_write(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
    jobject item          /* AstObject to write */
@@ -151,6 +151,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_write(
    AstPointer pointer = jniastGetPointerField( env, this );
    AstPointer itempointer;
    int needchan;
+   int nwrite = 0;
 
    if ( jniastCheckNotNull( env, item ) ) {
 
@@ -176,13 +177,16 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_write(
       /* Call the AST function to do the work.  This will in turn invoke 
        * sinkWrap() which will invoke the (non-native) sink instance method. */
       ASTCALL(
-         astWrite( pointer.Channel, itempointer.AstObject );
+         nwrite = astWrite( pointer.Channel, itempointer.AstObject );
       )
 
       /* Reverse possible destructive effects of Channelize. */
       if ( needchan && ! (*env)->ExceptionCheck( env ) ) {
          (*env)->CallVoidMethod( env, item, UnChannelizeMethodID );
       }
+
+      /* Return number of items written. */
+      return (jint) nwrite;
    }
 }
 
