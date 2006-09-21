@@ -1,2 +1,1 @@
-pre {color: brown}
-code {color: brown}
+p > code, dd > code, body > code, li > code {color: #663300;}
