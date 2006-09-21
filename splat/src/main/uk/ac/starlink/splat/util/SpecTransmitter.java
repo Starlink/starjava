@@ -285,14 +285,22 @@ public abstract class SpecTransmitter
 
             //  See if there is a FITS or VOTable spectrum ready to send.
             if ( "FITS".equals( fmt ) ) {
-                mime = "application/fits";
-                locUrl = getUrl( spec.getFullName() );
+                tmpFile = new File( spec.getFullName() );
+                if ( tmpFile.exists() ) {
+                    mime = "application/fits";
+                    locUrl = getUrl( spec.getFullName() );
+                }
+                tmpFile = null;
             }
 
             //  See if there is a VOTable spectrum ready to send.
             else if ( "VOTable".equals( fmt ) ) {
-                mime = "application/x-votable+xml";
-                locUrl = getUrl( spec.getFullName() );
+                tmpFile = new File( spec.getFullName() );
+                if ( tmpFile.exists() ) {
+                    mime = "application/x-votable+xml";
+                    locUrl = getUrl( spec.getFullName() );
+                }
+                tmpFile = null;
             }
 
             //  Otherwise, write it as a FITS spectrum and use that.
@@ -325,6 +333,22 @@ public abstract class SpecTransmitter
             if ( shortName != null && shortName.trim().length() > 0 ) {
                 meta.put( "vox:image_title", shortName );
                 meta.put( "Target.Name", shortName );
+            }
+
+            //  Units.
+            String dataUnits = spec.getDataUnits();
+            String coordUnits = spec.getFrameSet().getUnit( 1 );
+            if ( dataUnits != null && coordUnits != null ) {
+                meta.put( "vox:spectrum_units", coordUnits + " " + dataUnits );
+            }
+
+            //  Columns for tables.
+            if ( "VOTable".equals( fmt ) ) {
+                String xColName = spec.getXDataColumnName();
+                String yColName = spec.getYDataColumnName();
+                if ( xColName != null && yColName != null ) {
+                    meta.put( "vox:spectrum_axes", xColName + " " + yColName );
+                }
             }
 
             //  Prepare message argument list.
