@@ -195,9 +195,11 @@ public class SplatPlastic
                 else if ( key.equals( "vox:spectrum_axes" ) ) {
                     axes = value.split( "\\s" );
                     props.setCoordColumn( axes[0] );
-                    props.setDataColumn( axes[1] );
-                    if ( axes.length == 3 ) {
-                        props.setErrorColumn( axes[2] );
+                    if ( axes.length >= 2 ) {
+                        props.setDataColumn( axes[1] );
+                        if ( axes.length == 3 ) {
+                            props.setErrorColumn( axes[2] );
+                        }
                     }
                 }
                 //  Suspect these will be separate UTYPEs,
@@ -205,7 +207,9 @@ public class SplatPlastic
                 else if ( key.equals( "vox:spectrum_units" ) ) {
                     units = value.split("\\s");
                     props.setCoordUnits( units[0] );
-                    props.setDataUnits( units[1] );
+                    if ( units.length >= 2 ) {
+                        props.setDataUnits( units[1] );
+                    }
                 }
             }
         }
