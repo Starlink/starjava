@@ -382,15 +382,16 @@ public class StarJTable extends JTable {
                         isamp4_ = 0;
                         iseg_++;
                     }
+                    int is4 = isamp4_++;
                     switch ( iseg_ ) {
                         case 0:
-                            return isamp4_;
+                            return is4;
                         case 1:
-                            return ( ( isamp4_ / NS4 ) * NR4 ) + NR4;
+                            return ( ( is4 / NS4 ) * NR4 ) + NR4;
                         case 2:
-                            return ( ( isamp4_ / NS4 ) * NR4 ) + ( NR4 * 2 );
+                            return ( ( is4 / NS4 ) * NR4 ) + ( NR4 * 2 );
                         case 3:
-                            return nrow - 1 - isamp4_;
+                            return nrow - 1 - is4;
                         default:
                             return -1;
                     }
