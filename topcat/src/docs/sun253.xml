@@ -9667,6 +9667,8 @@ introduced since the last version:
     <li>Modified presentation of HTML version of SUN/253 using CSS.</li>
     <li>Fixed bug (introduced at v2.2-1) which made table display and adding
         columns slow, and column widths the wrong size.</li>
+    <li>Fixed bug (introduced at v2.0) which prevented Exact matches using 
+        non-numeric columns.</li>
     </ul>
     </p></dd>
 
