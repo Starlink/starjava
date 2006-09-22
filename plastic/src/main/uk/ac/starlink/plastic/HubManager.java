@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -573,18 +574,43 @@ public abstract class HubManager implements PlasticListener {
      */
     public static boolean checkArgs( List args, Class[] types )
             throws IOException {
+        String msg = null;
         if ( args.size() < types.length ) {
-            throw new IOException( "Not enough arguments in PLASTIC message" );
+            msg = "Not enough arguments";
         }
-        for ( int i = 0; i < types.length; i++ ) {
-            Object arg = args.get( i );
-            if ( arg != null &&
-                 ! types[ i ].isAssignableFrom( arg.getClass() ) ) {
-                throw new IOException( "Wrong type of arguments in "
-                                     + "PLASTIC message" );
+        else {
+            for ( int i = 0; i < types.length; i++ ) {
+                Object arg = args.get( i );
+                if ( arg != null &&
+                     ! types[ i ].isAssignableFrom( arg.getClass() ) ) {
+                    msg = "Wrong type of arguments";
+                }
             }
         }
-        return true;
+        if ( msg == null ) {
+            return true;
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer( "PLASTIC: " )
+                .append( msg )
+                .append( "; (" );
+            for ( Iterator it = args.iterator(); it.hasNext(); ) {
+                Object arg = it.next();
+                sbuf.append( arg == null ? "null" : arg.getClass().getName() );
+                if ( it.hasNext() ) {
+                    sbuf.append( ", " );
+                }
+            }
+            sbuf.append( ") != (" );
+            for ( int i = 0; i < types.length; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( types[ i ].getName() );
+            }
+            sbuf.append( ')' );
+            throw new IOException( sbuf.toString() );
+        }
     }
 
     /**
