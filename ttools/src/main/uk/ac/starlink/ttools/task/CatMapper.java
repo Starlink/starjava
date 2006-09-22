@@ -39,6 +39,9 @@ public class CatMapper implements TableMapper {
         new DefaultValueInfo( "uloc", String.class,
                               "Unique part of input table location " +
                               "from concatenation operation" );
+    static {
+        ((DefaultValueInfo) SEQ_INFO).setNullable( false );
+    }
 
     /**
      * Constructor.
@@ -209,6 +212,21 @@ public class CatMapper implements TableMapper {
                 throws IOException {
             int nTable = inTables.length;
 
+            /* Work out length of fixed-length columns.  This can prevent
+             * an additional pass to find it out for some output modes. */
+            int locLeng = 0;
+            if ( locCol_ != null ) {
+                for ( int i = 0; i < nTable; i++ ) {
+                    locLeng = Math.max( locLeng, locations_[ i ].length() );
+                }
+            }
+            int ulocLeng = 0;
+            if ( ulocCol_ != null ) {
+                for ( int i = 0; i < nTable; i++ ) {
+                    ulocLeng = Math.max( ulocLeng, ulocs_[ i ].length() );
+                }
+            }
+
             /* Append additional columns to the input tables as required. */
             for ( int i = 0; i < nTable; i++ ) {
                 final StarTable inTable = inTables[ i ];
@@ -226,12 +244,14 @@ public class CatMapper implements TableMapper {
                 if ( locCol_ != null ) {
                     ColumnInfo locInfo = new ColumnInfo( LOC_INFO );
                     locInfo.setName( locCol_ );
+                    locInfo.setElementSize( locLeng );
                     String loc = locations_[ i ];
                     addTable.addColumn( new ConstantColumn( locInfo, loc ) );
                 }
                 if ( ulocCol_ != null ) {
                     ColumnInfo ulocInfo = new ColumnInfo( ULOC_INFO );
                     ulocInfo.setName( ulocCol_ );
+                    ulocInfo.setElementSize( ulocLeng );
                     String uloc = ulocs_[ i ];
                     addTable.addColumn( new ConstantColumn( ulocInfo, uloc ) );
                 }
