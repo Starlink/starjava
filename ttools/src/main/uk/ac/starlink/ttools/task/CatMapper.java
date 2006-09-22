@@ -1,11 +1,13 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
+import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.ConcatStarTable;
 import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -79,9 +81,16 @@ public class CatMapper implements TableMapper {
             "which will contain the unique part of the location",
             "(as specified in the input parameter(s))",
             "of the input table from which each row originated.",
-            "If the input tables are, for instance \"/data/cat_a1.fits\"",
-            "and \"/data/cat_b2.fits\" then rows from the first will",
-            "contain \"a1\" and rows from the second will contain \"b2\".",
+            "If not null, parameters will also be added to the output table",
+            "giving the pre- and post-fix string common to all the locations.",
+            "For example, if the input tables are \"/data/cat_a1.fits\"",
+            "and \"/data/cat_b2.fits\" then the output table will contain",
+            "a new column &lt;colname&gt; which takes the value",
+            "\"a1\" for rows from the first table and",
+            "\"b2\" for rows from the second, and new parameters",
+            "\"" + prefixParamName( "&lt;colname&gt;" ) + "\" and",
+            "\"" + postfixParamName( "&lt;colname&gt;" ) + "\"",
+            "with the values \"/data/cat_\" and \".fits\" respectively.",
         } );
     }
 
@@ -129,53 +138,23 @@ public class CatMapper implements TableMapper {
     }
 
     /**
-     * Returns the unique parts of a set of location strings.
-     * Any part which is common to all strings at the start and end 
-     * is stripped off.
+     * Name of a parameter to describe the prefix applied to a given column.
      *
-     * @param   locs  input strings
-     * @return  output strings
+     * @param  colName  column name
+     * @return  prefix parameter name
      */
-    static String[] getUniqueParts( String[] locs ) {
+    private static String prefixParamName( String colName ) {
+        return colName + "_prefix";
+    }
 
-        /* Find minimum common length. */
-        int nloc = locs.length;
-        String loc0 = locs[ 0 ];
-        int leng = loc0.length();
-        for ( int iloc = 0; iloc < nloc; iloc++ ) {
-            leng = Math.min( leng, locs[ iloc ].length() );
-        }
-
-        /* Find length of maximum common prefix string. */
-        int npre = -1;
-        for ( int ic = 0; ic < leng && npre < 0; ic++ ) {
-            char c = loc0.charAt( ic );
-            for ( int iloc = 0; iloc < nloc; iloc++ ) {
-                if ( locs[ iloc ].charAt( ic ) != c ) {
-                    npre = ic;
-                }
-            }
-        }
-
-        /* Find length of maximum common postfix string. */
-        int npost = -1;
-        for ( int ic = 0; ic < leng && npost < 0; ic++ ) {
-            char c = loc0.charAt( loc0.length() - 1 - ic );
-            for ( int iloc = 0; iloc < nloc; iloc++ ) {
-                if ( locs[ iloc ].charAt( locs[ iloc ].length() - 1 - ic )
-                     != c ) {
-                    npost = ic;
-                }
-            }
-        }
-
-        /* Pick out and return unique parts. */
-        String[] uparts = new String[ nloc ];
-        for ( int iloc = 0; iloc < nloc; iloc++ ) {
-            String loc = locs[ iloc ];
-            uparts[ iloc ] = loc.substring( npre, loc.length() - npost );
-        }
-        return uparts;
+    /**
+     * Name of a parameter to describe the postfix applied to a given column.
+     *
+     * @param  colName  column name
+     * @return  postfix parameter name
+     */
+    private static String postfixParamName( String colName ) {
+        return colName + "_postfix";
     }
 
     /**
@@ -187,7 +166,7 @@ public class CatMapper implements TableMapper {
         private final String locCol_;
         private final String ulocCol_;
         private final String[] locations_;
-        private final String[] ulocs_;
+        private final Trimmer trimmer_;
 
         /**
          * Constructor.
@@ -204,8 +183,7 @@ public class CatMapper implements TableMapper {
             locCol_ = locCol;
             ulocCol_ = ulocCol;
             locations_ = locations;
-            ulocs_ = ulocCol == null ? null
-                                     : getUniqueParts( locations );
+            trimmer_ = ulocCol == null ? null : new Trimmer( locations );
         }
 
         public void mapTables( StarTable[] inTables, TableConsumer[] consumers )
@@ -215,15 +193,15 @@ public class CatMapper implements TableMapper {
             /* Work out length of fixed-length columns.  This can prevent
              * an additional pass to find it out for some output modes. */
             int locLeng = 0;
-            if ( locCol_ != null ) {
-                for ( int i = 0; i < nTable; i++ ) {
-                    locLeng = Math.max( locLeng, locations_[ i ].length() );
-                }
-            }
             int ulocLeng = 0;
-            if ( ulocCol_ != null ) {
-                for ( int i = 0; i < nTable; i++ ) {
-                    ulocLeng = Math.max( ulocLeng, ulocs_[ i ].length() );
+            for ( int i = 0; i < nTable; i++ ) {
+                String loc = locations_[ i ];
+                if ( locCol_ != null ) {
+                    locLeng = Math.max( locLeng, loc.length() );
+                }
+                if ( ulocCol_ != null ) {
+                    ulocLeng = Math.max( ulocLeng,
+                                         trimmer_.trim( loc ).length() );
                 }
             }
 
@@ -252,7 +230,7 @@ public class CatMapper implements TableMapper {
                     ColumnInfo ulocInfo = new ColumnInfo( ULOC_INFO );
                     ulocInfo.setName( ulocCol_ );
                     ulocInfo.setElementSize( ulocLeng );
-                    String uloc = ulocs_[ i ];
+                    String uloc = trimmer_.trim( locations_[ i ] );
                     addTable.addColumn( new ConstantColumn( ulocInfo, uloc ) );
                 }
                 if ( addTable.getColumnCount() > 0 ) {
@@ -264,8 +242,122 @@ public class CatMapper implements TableMapper {
 
             /* Perform the concatenation on the (possibly doctored) input 
              * tables. */
-            consumers[ 0 ].consume( new ConcatStarTable( inTables[ 0 ],
-                                                         inTables ) );
+            StarTable out = new ConcatStarTable( inTables[ 0 ], inTables );
+
+            /* Add parameters describing the unique column name truncation
+             * if appropriate. */
+            if ( ulocCol_ != null ) {
+                String preDesc = "String prepended to " + ulocCol_
+                               + " column to form source table location";
+                String postDesc = "String appended to " + ulocCol_ +
+                                  " column to form source table location";
+                ValueInfo preInfo =
+                    new DefaultValueInfo( prefixParamName( ulocCol_ ), 
+                                          String.class, preDesc );
+                ValueInfo postInfo = 
+                    new DefaultValueInfo( postfixParamName( ulocCol_ ),
+                                          String.class, postDesc );
+                String pre = trimmer_.getPrefix();
+                String post = trimmer_.getPostfix();
+                List outParams = out.getParameters();
+                if ( pre.trim().length() > 0 ) {
+                    outParams.add( new DescribedValue( preInfo, pre ) );
+                }
+                if ( post.trim().length() > 0 ) {
+                    outParams.add( new DescribedValue( postInfo, post ) );
+                }
+            }
+
+            /* Hand the output table on for processing. */
+            consumers[ 0 ].consume( out );
+        }
+    }
+
+    /**
+     * Utility class which identifies common pre- and post-fixes of a 
+     * set of strings.
+     */
+    private static class Trimmer {
+
+        private final String pre_;
+        private final String post_;
+
+        /**
+         * Constructor.
+         *
+         * @param   locs  array of strings with the same pre- and post-fixes
+         */
+        public Trimmer( String[] locs ) {
+
+            /* Find minimum common length. */
+            int nloc = locs.length;
+            String loc0 = locs[ 0 ];
+            int leng = loc0.length();
+            for ( int iloc = 0; iloc < nloc; iloc++ ) {
+                leng = Math.min( leng, locs[ iloc ].length() );
+            }
+
+            /* Find length of maximum common prefix string. */
+            int npre = -1;
+            for ( int ic = 0; ic < leng && npre < 0; ic++ ) {
+                char c = loc0.charAt( ic );
+                for ( int iloc = 0; iloc < nloc; iloc++ ) {
+                    if ( locs[ iloc ].charAt( ic ) != c ) {
+                        npre = ic;
+                    }
+                }
+            }
+            pre_ = loc0.substring( 0, npre );
+
+            /* Find length of maximum common postfix string. */
+            int npost = -1;
+            for ( int ic = 0; ic < leng && npost < 0; ic++ ) {
+                char c = loc0.charAt( loc0.length() - 1 - ic );
+                for ( int iloc = 0; iloc < nloc; iloc++ ) {
+                    if ( locs[ iloc ].charAt( locs[ iloc ].length() - 1 - ic )
+                         != c ) {
+                        npost = ic;
+                    }
+                }
+            }
+            post_ = loc0.substring( loc0.length() - npost );
+        }
+
+        /**
+         * Returns the common prefix.
+         *
+         * @return  prefix
+         */
+        public String getPrefix() {
+            return pre_;
+        }
+
+        /**
+         * Returns the common postfix.
+         *
+         * @return  postfix
+         */
+        public String getPostfix() {
+            return post_;
+        }
+
+        /**
+         * Returns a string trimmed of the common pre- and post-fix.
+         * Any of the strings submitted to the constructor can be 
+         * thus processed without error.
+         *
+         * @param   loc  input string
+         * @return  trimmed string
+         * @throws  IllegalArgumentException if loc doesn't have the right form
+         */
+        public String trim( String loc ) {
+            if ( loc.startsWith( pre_ ) && loc.endsWith( post_ ) ) {
+                return loc.substring( pre_.length(),
+                                      loc.length() - post_.length() );
+            }
+            else {
+                throw new IllegalArgumentException();
+            }
         }
     }
 }
