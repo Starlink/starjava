@@ -97,6 +97,18 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
          * of the table. */
         boolean[] hasNulls = new boolean[ ncol ];
         if ( hasVarShapes || hasNullableInts || nrow < 0 ) {
+            StringBuffer sbuf = new StringBuffer( "First pass needed: " );
+            if ( hasVarShapes ) {
+                sbuf.append( "(variable array shapes) " );
+            }
+            if ( hasNullableInts ) {
+                sbuf.append( "(nullable ints) " );
+            }
+            if ( nrow < 0 ) {
+                sbuf.append( "(unknown row count) " );
+            }
+            logger.config( sbuf.toString() );
+       
             int[] maxElements = new int[ ncol ];
             nrow = 0L;
 
