@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
@@ -16,6 +17,9 @@ public class InputTablesParameter extends AbstractInputTableParameter
 
     private StarTable[] tables_;
     private String[] locs_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
@@ -72,6 +76,8 @@ public class InputTablesParameter extends AbstractInputTableParameter
             int nloc = locs.length;
             StarTable[] tables = new StarTable[ nloc ];
             for ( int i = 0; i < nloc; i++ ) {
+                logger_.config( "Input table " + i + "/" + nloc + " "
+                              + locs[ i ] );
                 tables[ i ] = makeTable( env, locs[ i ] );
             }
             locs_ = locs;
