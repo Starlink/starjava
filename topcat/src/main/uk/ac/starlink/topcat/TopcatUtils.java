@@ -256,6 +256,7 @@ public class TopcatUtils {
                 "",
                 "TOPCAT Version " + getVersion(),
                 "STIL Version " + getSTILVersion(),
+                "Java Version " + getJavaVersion(),
                 "SPLAT: " + ( canSplat() ? "available" : "absent" ),
                 "SoG: " + ( canSog() ? "available" : "absent" ),
                 "",
@@ -419,6 +420,20 @@ public class TopcatUtils {
      */
     public static String getSTILVersion() {
         return IOUtils.getResourceContents( StarTable.class, "stil.version" );
+    }
+
+    /**
+     * Returns the version string for the current JVM's JRE version.
+     *
+     * @return   java version string
+     */
+    public static String getJavaVersion() {
+        try {
+            return System.getProperty( "java.version" );
+        }
+        catch ( SecurityException e ) {
+            return "???";
+        }
     }
 
     /**
