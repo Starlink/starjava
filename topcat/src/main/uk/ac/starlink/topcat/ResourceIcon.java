@@ -53,10 +53,13 @@ public class ResourceIcon implements Icon {
 
         /* Adverts. */
         TOPCAT = makeIcon( "TopCat2.gif" ),
-        TOPCAT_LOGO = makeIcon( "tc3.gif" ),
         STARLINK = makeIcon( "starlinklogo3.gif" ),
-        STAR_LOGO = makeIcon( "starlinklogo1b.gif" ),
         TABLE = makeIcon( "browser1.gif" ),
+        TOPCAT_LOGO = makeIcon( "tc3.gif" ),
+        STAR_LOGO = makeIcon( "starlink48.gif" ),
+        ASTROGRID_LOGO = makeIcon( "ag48.gif" ),
+        BRISTOL_LOGO = makeIcon( "bris48.gif" ),
+        VOTECH_LOGO = makeIcon( "votech48.gif" ),
 
         /* Generic actions. */
         CLOSE = makeIcon( "multiply4.gif"),
