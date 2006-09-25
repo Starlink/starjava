@@ -9472,12 +9472,10 @@ introduced since the last version:
         can provide similar functionality.
         </p></dd>
 
-<!--
- !  <dt>Logo fade</dt>
- !  <dd><p>The Starlink logo at the top of every window is set to fade
- !      out gradually over the period 1-APR-2006 to 1-SEP-2006.
- !      </p></dd>
- !-->
+    <dt>Logo fade</dt>
+    <dd><p>The Starlink logo at the top of every window is set to fade
+        out gradually over the period 1-APR-2006 to 1-SEP-2006.
+        </p></dd>
 
     <dt>Bug fixes and minor alterations</dt>
     <dd><p>
@@ -9669,6 +9667,8 @@ introduced since the last version:
         columns slow, and column widths the wrong size.</li>
     <li>Fixed bug (introduced at v2.0) which prevented Exact matches using 
         non-numeric columns.</li>
+    <li>Removed Starlink logo from the top right corner of all TOPCAT windows,
+        including screenshots in documentation.</li>
     </ul>
     </p></dd>
 
