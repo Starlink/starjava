@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
@@ -501,6 +502,39 @@ public class AuxWindow extends JFrame {
     }
 
     /**
+     * Returns a component containing logos for the various organisations
+     * which have sponsored TOPCAT development.
+     *
+     * @return   logo bar
+     */
+    private static Component getSponsorLogos() {
+        Box box = Box.createHorizontalBox();
+        int igap = 20;
+        box.add( Box.createHorizontalGlue() );
+        JLabel starLogo = new JLabel( ResourceIcon.STAR_LOGO );
+        starLogo.setToolTipText( "Starlink project (deceased): "
+                               + "http://www.starlink.ac.uk/" );
+        box.add( starLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
+        JLabel agLogo = new JLabel( ResourceIcon.ASTROGRID_LOGO );
+        agLogo.setToolTipText( "AstroGrid project: "
+                             + "http://www.astrogrid.org/" );
+        box.add( agLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
+        JLabel brisLogo = new JLabel( ResourceIcon.BRISTOL_LOGO );
+        brisLogo.setToolTipText( "Bristol University, Astrophysics group: "
+                               + "http://www.star.bris.ac.uk/" );
+        box.add( brisLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
+        JLabel votechLogo = new JLabel( ResourceIcon.VOTECH_LOGO );
+        votechLogo = new JLabel( ResourceIcon.VOTECH_LOGO );
+        votechLogo.setToolTipText( "VO-Tech project: "
+                                 + "http://www.eurovotech.org/" );
+        box.add( votechLogo );
+        return box;
+    }
+
+    /**
      * Implementation of actions for this class.
      */
     private class AuxAction extends BasicAction {
@@ -520,8 +554,14 @@ public class AuxWindow extends JFrame {
                 ControlWindow.getInstance().makeVisible();
             }
             else if ( this == aboutAct ) {
+          
+                Object[] msg = new Object[] {
+                    TopcatUtils.getAbout(),
+                    Box.createVerticalStrut( 10 ), 
+                    getSponsorLogos(),
+                };
                 JOptionPane.showMessageDialog( AuxWindow.this, 
-                                               TopcatUtils.getAbout(),
+                                               msg,
                                                "About TOPCAT",
                                                JOptionPane.INFORMATION_MESSAGE,
                                                ResourceIcon.TOPCAT_LOGO );
