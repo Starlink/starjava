@@ -13,6 +13,10 @@
   <xsl:param name="COVERIMAGE" select="''"/>
   <xsl:param name="CSS_HREF" select="''"/>
 
+  <!-- Gives a node list of nodes which should not have their children
+   !   listed in table-of-content mode. -->
+  <xsl:param name="TOCLEAF" select="/none[false()]"/>
+
   <!-- Top level element -->
 
   <xsl:template match="sun">
@@ -386,10 +390,12 @@
         <xsl:apply-templates mode="toc" select="subhead/title"/>
       </xsl:element>
     </li>
-    <xsl:if test="subsect">
-      <ul>
-        <xsl:apply-templates mode="toc" select="subsect"/>
-      </ul>
+    <xsl:if test="not($TOCLEAF[.=current()])">
+      <xsl:if test="subsect">
+        <ul>
+          <xsl:apply-templates mode="toc" select="subsect"/>
+        </ul>
+      </xsl:if>
     </xsl:if>
   </xsl:template>
 
@@ -404,10 +410,12 @@
         <xsl:apply-templates mode="toc" select="subhead/title"/>
       </xsl:element>
     </li>
-    <xsl:if test="subsubsect">
-      <ul>
-        <xsl:apply-templates mode="toc" select="subsubsect"/>
-      </ul>
+    <xsl:if test="not($TOCLEAF[.=current()])">
+      <xsl:if test="subsubsect">
+        <ul>
+          <xsl:apply-templates mode="toc" select="subsubsect"/>
+        </ul>
+      </xsl:if>
     </xsl:if>
   </xsl:template>
 
@@ -422,10 +430,12 @@
         <xsl:apply-templates mode="toc" select="subhead/title"/>
       </xsl:element>
     </li>
-    <xsl:if test="subsubsubsect">
-      <ul>
-        <xsl:apply-templates mode="toc" select="subsubsubsect"/>
-      </ul>
+    <xsl:if test="not($TOCLEAF[.=current()])">
+      <xsl:if test="subsubsubsect">
+        <ul>
+          <xsl:apply-templates mode="toc" select="subsubsubsect"/>
+        </ul>
+      </xsl:if>
     </xsl:if>
   </xsl:template>
 
