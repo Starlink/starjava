@@ -1,5 +1,19 @@
 1 Starlink SPLAT news.
 
+   Release 3.5-4
+   =============
+
+   A bug when reading text files that use whitespace column separators,
+   other than simple spaces, has been fixed and the previous behaviour
+   should be restored.
+
+   The set of automatically chosen colours are now dimmed slightly so that
+   they are always distinguishable from overlay graphics elements.
+
+   The percentile autocut now just applies to the data within the X 
+   range, when the X range is not being autoranged. When autoranged it
+   applies to all the data.
+
    Release 3.5-3
    =============
 

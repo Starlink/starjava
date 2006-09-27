@@ -26,11 +26,11 @@ Research Councils \& \\
 2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.15}
+\newcommand{\stardocnumber}    {243.16}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {6 September 2006}
+\newcommand{\stardocdate}      {27 September 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.5-3}
+\newcommand{\stardocversion}   {3.5-4}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -941,7 +941,9 @@ the display area.\\
  The \labelitem{Y limits (\%):} drop down list provides a series of
  quick cuts for setting the limits of the Y axis. Normally this is the
  full range, but using a percentage cut can usefully clip the range to
- reject extreme outlier data values.
+ reject extreme outlier data values. The data values used are restricted
+ to the limits of then X coordinates (all when automatic ranging is used, 
+ the default ).
 
  The \labelitem{Wavelength:} entry control has two functions. The
  first is to show the current wavelength. The second is to allow you
@@ -1964,7 +1966,8 @@ Other useful options are the checkboxes \labelitem{Fit X range:} and
 \labelitem{Fit Y range:} that also make the ranges that you supply
 fit the visible display area exactly (these are like the fitwidth and
 fitheight options in the plot window) and \labelitem{Y auto cut:} which
-applies limits to the Y axis using percentile cuts.
+applies limits to the Y axis using percentile cuts (the data used to estimate
+the limits lies within the current X coordinate range).
 
 The \labelitem{Update to current} button sets the X and Y limits to
 those of the full plot (these are the values shown initially).
