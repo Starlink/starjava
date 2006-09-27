@@ -211,7 +211,7 @@ public class TXTSpecDataImpl
                          || raw.charAt(0) == '*' ) {
                         continue;
                     }
-                    words = raw.split( " ", 3 );
+                    words = raw.trim().split( "\\s+", 3 );
                     key = words[1];
                     value = words[2];
                     if ( "sideband".equalsIgnoreCase( key ) ) {
@@ -257,7 +257,7 @@ public class TXTSpecDataImpl
                 else {
                     // Read at least one or two floating numbers from line
                     // and no more than 3.
-                    words = raw.split( " " );
+                    words = raw.trim().split( "\\s+" );
                     count = Math.min( words.length, 3 );
                     nwords = Math.max( count, nwords );
                     for ( int i = 0; i < count; i++ ) {
