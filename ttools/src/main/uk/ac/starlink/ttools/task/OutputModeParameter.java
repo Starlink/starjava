@@ -78,33 +78,13 @@ public class OutputModeParameter extends Parameter
         for ( int i = 0; i < names.length; i++ ) {
             String name = names[ i ];
             try {
-                ProcessingMode mode = (ProcessingMode)
-                                      modeFactory.createObject( name );
-                StringBuffer line = new StringBuffer()
-                    .append( "      " )
-                    .append( getName() )
-                    .append( '=' )
-                    .append( name );
-                String pad = line.toString().replaceAll( ".", " " );
-                Parameter[] params = mode.getAssociatedParameters();
-                for ( int j = 0; j < params.length; j++ ) {
-                    Parameter param = params[ j ];
-                    String word = 
-                        " " + param.getName() + "=" + param.getUsage();
-                    if ( line.length() + word.length() > 78 ) {
-                        sbuf.append( line )
-                            .append( '\n' );
-                        line = new StringBuffer( pad );
-                    }
-                    line.append( word );
-                }
-                sbuf.append( line )
-                    .append( '\n' );
+                sbuf.append( getModeUsage( names[ i ], "      " ) );
             }
             catch ( LoadException e ) {
                 if ( env.isDebug() ) {
                     sbuf.append( "    ( " )
-                        .append( "mode=" )
+                        .append( getName() )
+                        .append( '=' )
                         .append( name )
                         .append( " - not available: " )
                         .append( e )
@@ -116,6 +96,41 @@ public class OutputModeParameter extends Parameter
         sbuf.append( '\n' )
             .append( new OutputFormatParameter( "ofmt" )
                     .getExtraUsage( env ) );
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns a usage message for a given processing mode.
+     *
+     * @param  modeName  name of the mode
+     * @param  prefix  prefix for each line of output (e.g. padding spaces)
+     * @return   usage message
+     */
+    public String getModeUsage( String modeName, String prefix )
+            throws LoadException {
+        ProcessingMode mode = (ProcessingMode)
+                              Stilts.getModeFactory().createObject( modeName );
+        StringBuffer sbuf = new StringBuffer();
+        StringBuffer line = new StringBuffer()
+            .append( prefix )
+            .append( getName() )
+            .append( '=' )
+            .append( modeName );
+        String pad = prefix + line.substring( prefix.length() )
+                                  .toString().replaceAll( ".", " " );
+        Parameter[] params = mode.getAssociatedParameters();
+        for ( int i = 0; i < params.length; i++ ) {
+            Parameter param = params[ i ];
+            String word = " " + param.getName() + "=" + param.getUsage();
+            if ( line.length() + word.length() > 78 ) {
+                sbuf.append( line )
+                    .append( '\n' );
+                line = new StringBuffer( pad );
+            }
+            line.append( word );
+        }
+        sbuf.append( line )
+            .append( '\n' );
         return sbuf.toString();
     }
 
