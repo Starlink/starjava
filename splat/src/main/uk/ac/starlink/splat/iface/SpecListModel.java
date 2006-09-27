@@ -114,7 +114,12 @@ public class SpecListModel
         if ( showShortNames ) {
             return globalList.getShortName( index );
         }
-        return globalList.getFullName( index );
+        String fullname = globalList.getFullName( index );
+        if ( fullname == null || "".equals( fullname ) ) {
+            //  No fullname (memory spectrum).
+            return globalList.getShortName( index );
+        }
+        return fullname;
     }
 
 //
