@@ -1096,7 +1096,8 @@ public class RowMatcher {
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     if ( isComparable[ icol ] ) {
                         Object cell = row[ icol ];
-                        if ( cell instanceof Comparable ) {
+                        if ( cell instanceof Comparable &&
+                             ! Tables.isBlank( cell ) ) {
                             Comparable val = (Comparable) cell;
                             if ( mins[ icol ] == null || 
                                  mins[ icol ].compareTo( val ) > 0 ) {
