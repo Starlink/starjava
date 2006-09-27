@@ -1172,14 +1172,13 @@ public class SplatBrowser
 
     /**
      *  Colourize, that is automatically set the colour of all spectra.
-     *  The colours applied depend on the number of spectra shown.
      */
     protected void colourizeSpectra()
     {
         int size = globalList.specCount();
         int rgb;
         for ( int i = 0; i < size; i++ ) {
-            rgb = MathUtils.getRandomRGB( (float) size );
+            rgb = MathUtils.getRandomRGB( COLOUR_SAMPLE );
             globalList.setKnownNumberProperty(
                              (SpecData) globalList.getSpectrum( i ),
                              SpecData.LINE_COLOUR,
