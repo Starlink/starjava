@@ -1310,9 +1310,10 @@ this document:
 </ul>
 </p>
 
-<p>
-&filter-docs;
+<p>The available filters are described in the following subsections.
 </p>
+
+&filter-docs;
 
 </subsect>
 
@@ -1426,12 +1427,11 @@ an input one, you will write it out by specifying
 <code>out</code> is the default).  However, you can do other things
 such as calculate statistics, display metadata, etc.  In some of
 these cases, additional parameters are required.  The different 
-output modes are listed below.
+output modes, with their associated parameters, are described in
+the following subsections.
 </p>
 
-<p>
 &mode-docs;
-</p>
 
 </subsect>
 
@@ -2226,7 +2226,7 @@ commands in the package.  For each one a description of its purpose,
 a list of its command-line arguments, and some examples are given.
 </p>
 
-<subsect id="calc">
+<subsect id="calc" tocleaf="yes">
 <subhead><title><code>calc</code>: &calc-purpose;</title></subhead>
 
 <p><code>calc</code> is a very simple utility for evaluating expressions.
@@ -2269,7 +2269,7 @@ stilts calc 'isoToMjd("2005-12-25T00:00:00")'
 
 </subsect>
 
-<subsect id="multicone">
+<subsect id="multicone" tocleaf="yes">
 <subhead><title><code>multicone</code>: &multicone-purpose;</title></subhead>
 
 <p><code>multicone</code> is a utility which performs a cone search
@@ -2413,7 +2413,7 @@ stilts multicone serviceurl='http://archive.stsci.edu/iue/search.php?' \
 
 </subsect>
 
-<subsect id="regquery">
+<subsect id="regquery" tocleaf="yes">
 <subhead><title><code>regquery</code>: &regquery-purpose;</title></subhead>
 
 <p><code>regquery</code> submits a query to the Virtual Observatory 
@@ -2483,7 +2483,7 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
-<subsect id="tcat">
+<subsect id="tcat" tocleaf="yes">
 <subhead><title><code>tcat</code>: &tcat-purpose;</title></subhead>
 
 <p><code>tcat</code> is a tool for concatenating any number of 
@@ -2557,7 +2557,7 @@ stilts tcat in='rA.csv rB.csv rC.csv' ifmt=csv \
 
 </subsect>
 
-<subsect id="tcat2">
+<subsect id="tcat2" tocleaf="yes">
 <subhead><title><code>tcat2</code>: &tcat2-purpose;</title></subhead>
 
 <p><code>tcat2</code> is a tool for concatenating two tables 
@@ -2650,7 +2650,7 @@ stilts tcat2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
 </subsect>
 
 
-<subsect id="tcopy">
+<subsect id="tcopy" tocleaf="yes">
 <subhead><title><code>tcopy</code>: &tcopy-purpose;</title></subhead>
 
 <p><code>tcopy</code> is a table copying tool.
@@ -2744,7 +2744,7 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
 
 </subsect>
 
-<subsect id="tcube">
+<subsect id="tcube" tocleaf="yes">
 <subhead><title><code>tcube</code>: &tcube-purpose;</title></subhead>
 
 <p><code>tcube</code> constructs an N-dimensional histogram, or density map, 
@@ -2814,7 +2814,7 @@ stilts tcube in=iras_psc.vot out=iras_psc_map.fits \
 </subsubsect>
 </subsect>
 
-<subsect id="tmatch2">
+<subsect id="tmatch2" tocleaf="yes">
 <subhead><title><code>tmatch2</code>: &tmatch2-purpose;</title></subhead>
 
 <p><code>tmatch2</code> is an efficient and highly configurable 
@@ -2931,7 +2931,7 @@ stilts tmatch2 in1=mgc.fits in2=6dfgs.xml join=1and2 find=all \
 
 </subsect>
 
-<subsect id="tpipe">
+<subsect id="tpipe" tocleaf="yes">
 <subhead><title><code>tpipe</code>: &tpipe-purpose;</title></subhead>
 
 <p><code>tpipe</code> performs all kinds of general purpose manipulations
@@ -3213,7 +3213,7 @@ stilts tpipe USNOB.FITS cmd='every 1000000' omode=stats
 </subsect>
 
 
-<subsect id="votcopy">
+<subsect id="votcopy" tocleaf="yes">
 <subhead><title><code>votcopy</code>: &votcopy-purpose;</title></subhead>
 
 <p>The VOTable standard provides for three basic encodings
@@ -3395,7 +3395,7 @@ if required.
 
 </subsect>
 
-<subsect id="votlint">
+<subsect id="votlint" tocleaf="yes">
 <subhead><title><code>votlint</code>: &votlint-purpose;</title></subhead>
 
 <p>The VOTable standard, while not hugely complicated, has a number
@@ -3951,6 +3951,11 @@ but my thanks are especially due to the following:
     <li>Improved CEA description file output - now contains details of all
         tasks as well as various improvements in documentation etc.</li>
     <li>Modified presentation of HTML version of SUN/256 using CSS.</li>
+    <li>Matching improvements: <code>exact</code> match mode now copes with
+        array-valued columns.  Also fixed a couple of minor matching bugs.</li>
+    <li>Added <code>force</code> parameter to 
+        <code><ref id="multicone">multicone</ref></code> task as a workaround
+        for some broken services.</li>
     </ul>
     </p></dd>
 
