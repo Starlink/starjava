@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.ttools.task.OutputModeParameter;
 
 /**
  * Writes a section of XML text documenteding all the known ProcessingModes.
@@ -28,14 +29,29 @@ public class ModeDoc {
         ObjectFactory modeFact = Stilts.getModeFactory();
         String[] mnames = modeFact.getNickNames();
         Arrays.sort( mnames );
-        out_.println( "<dl>" );
+        OutputModeParameter omodeParam = new OutputModeParameter( "omode" );
         for ( int i = 0; i < mnames.length; i++ ) {
             String name = mnames[ i ];
             ProcessingMode mode = (ProcessingMode)
                                   modeFact.createObject( name );
-            out_.println( "<dt><code>omode=" + name + "</code></dt>" );
-            out_.println( "<dd>" );
-            out_.println( "<p>" + mode.getDescription() + "</p>" );
+            out_.println( "<subsubsect id=\"mode-" + name + "\">" );
+            out_.println( "<subhead><title><code>" + name 
+                        + "</code></title></subhead>" );
+            out_.print( "<p>" );
+            out_.println( "<strong>Usage:</strong>" );
+            out_.print( "<verbatim>" );
+            out_.print( "<![CDATA[" );
+            out_.print( omodeParam.getModeUsage( name, "   " ) );
+            out_.print( "]]>" );
+            out_.print( "</verbatim>" );
+            out_.print( "</p>" );
+            out_.println();
+            String descrip = mode.getDescription();
+            if ( descrip == null ) {
+                throw new IllegalArgumentException(
+                    "No description for mode " + name );
+            }
+            out_.print( descrip );
             Parameter[] params = mode.getAssociatedParameters();
             if ( params.length > 0 ) {
                 out_.println( "<p>Additional parameters for this output mode "
@@ -45,9 +61,8 @@ public class ModeDoc {
                 }
                 out_.println( "</dl></p>" );
             }
-            out_.println( "</dd>" );
+            out_.println( "</subsubsect>" );
         }
-        out_.println( "</dl>" );
     }
 
     public static void main( String[] args ) throws LoadException {

@@ -27,30 +27,35 @@ public class FilterDoc {
         ObjectFactory stepFact = StepFactory.getInstance().getFilterFactory();
         String[] fnames = stepFact.getNickNames();
         Arrays.sort( fnames );
-        out_.println( "<dl>" );
         for ( int i = 0; i < fnames.length; i++ ) {
             String name = fnames[ i ];
             ProcessingFilter filter = (ProcessingFilter)
                                       stepFact.createObject( name );
-            out_.print( "<dt><verbatim>" + name );
+            out_.println( "<subsubsect id=\"" + name + "\">" );
+            out_.println( "<subhead><title><code>" + name
+                        + "</code></title></subhead>" );
+            out_.print( "<p>" );
+            out_.println( "<strong>Usage:</strong>" );
+            out_.print( "<verbatim>" + "   " + name );
+            String pad = "   " + name.replaceAll( ".", " " );
             String usage = filter.getUsage();
-            String pad = name.replaceAll( ".", " " );
             if ( usage != null ) {
                 out_.print( " " + usage.replaceAll( "<", "&lt;" )
                                        .replaceAll( ">", "&gt;" )
                                        .replaceAll( "\n", "\n " + pad ) );
             }
-            out_.println( "</verbatim></dt>" );
-            out_.println( "<dd><p>" );
+            out_.print( "</verbatim>" );
+            out_.print( "</p>" );
+            out_.println();
             String descrip = filter.getDescription();
             if ( descrip == null ) {
                 throw new IllegalArgumentException(
                     "No description for filter " + name );
             }
             out_.print( descrip );
-            out_.println( "</p></dd>" );
+            out_.println( "</subsubsect>" );
+            out_.println();
         }
-        out_.println( "</dl>" );
     }
 
     public static void main( String[] args ) throws LoadException {
