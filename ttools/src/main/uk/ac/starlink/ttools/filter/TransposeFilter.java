@@ -36,13 +36,14 @@ public class TransposeFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Transposes the input table so that columns become rows",
+            "<p>Transposes the input table so that columns become rows",
             "and vice versa.",
             "The <code>-namecol</code> flag can be used to specify a column",
             "in the input table which will provide the column names for",
             "the output table.",
             "The first column of the output table will contain the",
             "column names of the input table.",
+            "</p>",
         };
     }
 

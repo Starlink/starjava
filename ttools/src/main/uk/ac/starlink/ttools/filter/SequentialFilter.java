@@ -22,8 +22,10 @@ public class SequentialFilter extends BasicFilter implements ProcessingStep {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Ensures that steps downstream see the table as sequential access.",
+            "<p>Ensures that steps downstream see the table",
+            "as sequential access.",
             "Only useful for debugging.",
+            "</p>",
         };
     }
 

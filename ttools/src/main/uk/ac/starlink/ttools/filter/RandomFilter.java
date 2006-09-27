@@ -24,8 +24,9 @@ public class RandomFilter extends BasicFilter implements ProcessingStep {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Ensures that steps downstream see the table as random access.",
+            "<p>Ensures that steps downstream see the table as random access.",
             "Only useful for debugging.",
+            "</p>",
         };
     }
 

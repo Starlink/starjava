@@ -14,6 +14,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.util.MapGroup;
 
 /**
@@ -76,24 +77,30 @@ public class MetadataFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Provides information about the metadata for each column.",
+            "<p>Provides information about the metadata for each column.",
             "This filter turns the table sideways, so that each row",
             "of the output corresponds to a column of the input.",
             "The columns of the output table contain metadata items",
             "such as column name, units, UCD etc corresponding to each",
             "column of the input table.",
-            "</p><p>By default the output table contains columns for the",
-            "items " + listInfos( DEFAULT_INFOS ) + ",",
+            "</p>",
+            "<p>By default the output table contains columns for the",
+            "following items:",
+            DocUtils.listInfos( DEFAULT_INFOS ),
             "as well as any table-specific column metadata items that",
             "the table contains.",
-            "The output may be customised however by supplying one or more",
-            "<code>&lt;item&gt;</code> headings.  These may be selected",
-            "from the list " + listInfos( KNOWN_INFOS ) + ",",
+            "</p>",
+            "<p>However, the output may be customised by supplying",
+            "one or more <code>&lt;item&gt;</code> headings.",
+            "These may be selected from the following:",
+            DocUtils.listInfos( KNOWN_INFOS ),
             "as well as any table-specific metadata.  It is not an error",
             "to specify an item for which no metadata exists in any of",
-            "the columns.",
-            "</p><p>Any table parameters of the input table are propagated",
+            "the columns (such entries will result in empty columns).",
+            "</p>",
+            "<p>Any table parameters of the input table are propagated",
             "to the output one.",
+            "</p>",
         };
     }
 
@@ -120,27 +127,6 @@ public class MetadataFilter extends BasicFilter {
                 return table;
             }
         };
-    }
-
-    /**
-     * Returns an string listing the supplied array of metadata objects.
-     * The returned string should be suitable for inserting into XML text.
-     *
-     * @param  infos  array of infos 
-     * @return  string listing <code>infos</code> by name
-     */
-    public static String listInfos( ValueInfo[] infos ) {
-        StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < infos.length; i++ ) {
-            if ( i > 0 && i == infos.length - 1 ) {
-                sbuf.append( " and " );
-            }
-            else if ( i > 0 ) {
-                sbuf.append( ", " );
-            }
-            sbuf.append( infos[ i ].getName() );
-        }
-        return sbuf.toString();
     }
 
     /**

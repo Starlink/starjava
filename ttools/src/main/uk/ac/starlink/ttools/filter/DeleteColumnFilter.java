@@ -20,8 +20,9 @@ public class DeleteColumnFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Delete the specified columns.",
+            "<p>Delete the specified columns.",
             "The same column may harmlessly be specified more than once.",
+            "</p>",
         };
     }
 

@@ -17,8 +17,11 @@ public class TailFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Include only the last <code>&lt;nrows&gt;</code> rows",
+            "<p>Include only the last <code>&lt;nrows&gt;</code> rows",
             "of the table.",
+            "If the table has fewer than <code>&lt;nrows&gt;</code> rows",
+            "then it will be unchanged.",
+            "</p>",
         };
     }
 

@@ -19,6 +19,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.util.MapGroup;
 
 /**
@@ -95,6 +96,12 @@ public class StatsFilter extends BasicFilter {
         Q3_INFO = new QuantileInfo( 0.75, "Quartile3", "Third quartile" ),
     };
 
+    /** Example Q.* infos for documentation only. */
+    private static final ValueInfo[] QEX_INFOS = new ValueInfo[] {
+        new DefaultValueInfo( "Q.25", Number.class, "First quartile" ),
+        new DefaultValueInfo( "Q.625", Number.class, "Fifth octile" ),
+    };
+
     /** All known per-column quantities (statistical and metadata). */
     private static final ValueInfo[] ALL_KNOWN_INFOS;
     static {
@@ -123,28 +130,35 @@ public class StatsFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Calculates statistics on the data in the table.",
+            "<p>Calculates statistics on the data in the table.",
             "This filter turns the table sideways, so that each row",
             "of the output corresponds to a column of the input.",
             "The columns of the output table contain statistical items",
             "such as mean, standard deviation etc corresponding to each",
             "column of the input table.",
             "</p><p>By default the output table contains columns for the",
-            "items " + MetadataFilter.listInfos( DEFAULT_INFOS ) + ".",
-            "The output may be customised however by supplying one or more",
+            "following items:",
+            DocUtils.listInfos( DEFAULT_INFOS ),
+            "</p>",
+            "<p>However, the output may be customised by supplying one or more",
             "<code>&lt;item&gt;</code> headings.  These may be selected",
-            "from the list " + MetadataFilter.listInfos( KNOWN_INFOS ) + ",",
-            "or have the form \"Q.<em>nn</em>\" to represent the quantile",
-            "corresponding to the proportion 0.<em>nn</em>; for instance",
-            "Q.5 is an alias for Median, and Q.25 for Quartile1.",
-            "</p><p>Any parameters of the input table are propagated",
+            "from the following:",
+            DocUtils.listInfos( KNOWN_INFOS ),
+            "Additionally, the form \"Q.<em>nn</em>\" may be used to",
+            "represent the quantile corresponding to the proportion",
+            "0.<em>nn</em>, e.g.:",
+            DocUtils.listInfos( QEX_INFOS ),
+            "</p>",
+            "<p>Any parameters of the input table are propagated",
             "to the output one.",
-            "</p><p>Note that quantile calculations (including median and",
+            "</p>",
+            "<p>Note that quantile calculations (including median and",
             "quartiles) can be expensive on memory.  If you want to calculate",
             "quantiles for large tables, it may be wise to reduce the",
             "number of columns to only those you need the quantiles for",
             "earlier in the pipeline.",
             "No interpolation is performed when calculating quantiles.",
+            "</p>",
         };
     }
 
@@ -172,7 +186,7 @@ public class StatsFilter extends BasicFilter {
                 else {
                     throw new ArgException( "Unknown quantity " + name + "; " 
                         + "must be one of " 
-                        + MetadataFilter.listInfos( ALL_KNOWN_INFOS )
+                        + DocUtils.listInfos( ALL_KNOWN_INFOS )
                         + ", or Q.nn" );
                 }
             }

@@ -19,10 +19,11 @@ public class SelectFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Include in the output table only rows for which the",
+            "<p>Include in the output table only rows for which the",
             "expression <code>&lt;expr&gt;</code> evaluates to true.",
             "<code>&lt;expr&gt;</code> must be an expression which",
             "evaluates to a boolean value (true/false).",
+            "</p>",
         };
     }
 

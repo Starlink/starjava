@@ -36,7 +36,7 @@ public class SortHeadFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Performs a sort on the table according to the value of",
+            "<p>Performs a sort on the table according to the value of",
             "one or more algebraic expressions, retaining only",
             "<code>&lt;nrows&gt;</code> rows at the head",
             "of the resulting sorted table.",
@@ -45,22 +45,27 @@ public class SortHeadFilter extends BasicFilter {
             "in <code>&lt;key-list&gt;</code>; sorting is done on the",
             "first expression first, but if that results in a tie then",
             "the second one is used, and so on.",
-            "If the <code>-tail</code> flag is used, then the",
+            "Each expression must evaluate to a type that",
+            "it makes sense to sort, for instance numeric.",
+            "</p>",
+            "<p>If the <code>-tail</code> flag is used, then the",
             "last <code>&lt;nrows&gt;</code> rows rather than the first",
             "ones are retained.",
-            "If the <code>-down</code> flag is used the sort order is",
+            "</p>",
+            "<p>If the <code>-down</code> flag is used the sort order is",
             "descending rather than ascending.",
-            "Blank entries are usually considered to come at the end",
+            "</p>",
+            "<p>Blank entries are usually considered to come at the end",
             "of the collation sequence, but if the <code>-nullsfirst</code>",
             "flag is given then they are considered to come at the start",
             "instead.",
-            "Each expression must evaluate to a type that",
-            "it makes sense to sort, for instance numeric.",
-            "This filter is functionally equivalent to using",
+            "</p>",
+            "<p>This filter is functionally equivalent to using",
             "<code>sort</code> followed by <code>head</code>,",
             "but it can be done in one pass and is usually cheaper",
             "on memory and faster, as long as <code>&lt;nrows&gt;</code>",
             "is significantly lower than the size of the table.",
+            "</p>",
         };
     }
 

@@ -20,12 +20,13 @@ public class KeepColumnFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Select the columns from the input table which will be",
+            "<p>Select the columns from the input table which will be",
             "included in the output table.",
             "The output table will include only those columns listed in",
             "<code>&lt;colid-list&gt;</code>, in that order.",
             "The same column may be listed more than once,",
             "in which case it will appear in the output table more than once.",
+            "</p>",
         };
     }
 

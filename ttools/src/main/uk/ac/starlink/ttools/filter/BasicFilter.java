@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.filter;
 
+import uk.ac.starlink.ttools.DocUtils;
+
 /**
  * Basic implementation of ProcessingFilter methods.
  * Utility superclass for implementing concrete ProcessingFilter.
@@ -32,13 +34,7 @@ public abstract class BasicFilter implements ProcessingFilter {
     }
 
     public String getDescription() {
-        String[] lines = getDescriptionLines();
-        StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < lines.length; i++ ) {
-            sbuf.append( lines[ i ] )
-                .append( '\n' );
-        }
-        return sbuf.toString();
+        return DocUtils.join( getDescriptionLines() );
     }
 
     protected abstract String[] getDescriptionLines();

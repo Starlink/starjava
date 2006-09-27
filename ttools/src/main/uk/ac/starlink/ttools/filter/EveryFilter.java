@@ -11,8 +11,9 @@ public class EveryFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Include only every <code>&lt;step&gt;</code>'th row in the",
+            "<p>Include only every <code>&lt;step&gt;</code>'th row in the",
             "result, starting with the first row.",
+            "</p>",
         };
     }
 

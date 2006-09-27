@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.DocUtils;
 
 /**
  * Filter for replacing a given value with another one in a list of columns.
@@ -20,12 +21,15 @@ public class ReplaceValueFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "For each column specified in <code>&lt;colid-list&gt;</code>",
+            "<p>For each column specified in <code>&lt;colid-list&gt;</code>",
             "any instance of <code>&lt;old-val&gt;</code> is replaced by",
             "<code>&lt;new-val&gt;</code>.",
             "The value string '<code>null</code>' can be used for either",
             "<code>&lt;old-value&gt;</code> or <code>&lt;new-value&gt;</code>",
-            "to indicate a blank value.",
+            "to indicate a blank value",
+            "(but see also the " + DocUtils.filterRef( new BadValueFilter() ),
+            "filter).",
+            "</p>",
         };
     }
 

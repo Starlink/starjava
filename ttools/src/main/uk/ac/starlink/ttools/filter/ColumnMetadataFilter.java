@@ -27,12 +27,13 @@ public class ColumnMetadataFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Modifies the metadata of one or more columns.",
+            "<p>Modifies the metadata of one or more columns.",
             "Some or all of the name, units, ucd and description of ",
             "the column(s), identified by <code>&lt;colid-list&gt;</code>",
             "can be set by using some or all of the listed flags.",
             "Typically, <code>&lt;colid-list&gt;</code> will simply be",
             "the name of a single column.",
+            "</p>",
         };
     }
 

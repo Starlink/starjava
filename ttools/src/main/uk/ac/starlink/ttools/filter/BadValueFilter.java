@@ -20,9 +20,10 @@ public class BadValueFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "For each column specified in <code>&lt;colid-list&gt;</code>",
+            "<p>For each column specified in <code>&lt;colid-list&gt;</code>",
             "any occurrence of the value <code>&lt;bad-val&gt;</code>",
             "is replaced by a blank entry.",
+            "</p>",
         };
     }
 

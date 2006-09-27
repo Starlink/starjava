@@ -30,18 +30,20 @@ public class UniqueFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Eliminates adjacent rows which have the same values.",
+            "<p>Eliminates adjacent rows which have the same values.",
             "If used with no arguments, then any row which has identical",
             "values to its predecessor is removed.",
-            "If the <code>&lt;colid-list&gt;</code> parameter is given",
+            "</p>",
+            "<p>If the <code>&lt;colid-list&gt;</code> parameter is given",
             "then only the values in the specified columns must be equal",
             "in order for the row to be removed.",
-            "</p><p>",
-            "If the <code>-count</code> flag is given, then an additional",
+            "</p>",
+            "<p>If the <code>-count</code> flag is given, then an additional",
             "column with the name " + COUNT_INFO.getName() + " will be",
             "prepended to the table giving a count of the number of duplicated",
             "input rows represented by each output row.  A unique row",
             "has a " + COUNT_INFO.getName() + " value of 1.",
+            "</p>",
         };
     }
 

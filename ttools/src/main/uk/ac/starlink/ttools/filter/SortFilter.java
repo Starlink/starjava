@@ -34,21 +34,24 @@ public class SortFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Sorts the table according to the value of one or more algebraic",
-            "expressions.",
+            "<p>Sorts the table according to the value of one or more",
+            "algebraic expressions.",
             "The sort key expressions appear,",
             "as separate (space-separated) words,",
             "in <code>&lt;key-list&gt;</code>; sorting is done on the",
             "first expression first, but if that results in a tie then",
             "the second one is used, and so on.",
-            "Each expression must evaluate to a type that",
+            "</p>",
+            "<p>Each expression must evaluate to a type that",
             "it makes sense to sort, for instance numeric.",
             "If the <code>-down</code> flag is used, the sort order is",
             "descending rather than ascending.",
-            "Blank entries are usually considered to come at the end",
+            "</p>",
+            "<p>Blank entries are usually considered to come at the end",
             "of the collation sequence, but if the <code>-nullsfirst</code>",
             "flag is given then they are considered to come at the start",
             "instead.",
+            "</p>",
         };
     }
 

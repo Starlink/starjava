@@ -24,7 +24,7 @@ public class SetParameterFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Sets a named parameter in the table to a given value.",
+            "<p>Sets a named parameter in the table to a given value.",
             "The parameter named <code>&lt;pname&gt;</code> is set",
             "to the value <code>&lt;pval&gt;</code>.",
             "By default the type of the parameter is determined automatically",
@@ -32,6 +32,7 @@ public class SetParameterFilter extends BasicFilter {
             "but this can be overridden using the <code>-type</code> flag.",
             "The parameter description may be set using the",
             "<code>-descrip</code> flag.",
+            "</p>",
         };
     }
 

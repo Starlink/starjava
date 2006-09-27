@@ -26,7 +26,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
 
     public String[] getDescriptionLines() {
         return new String[] {
-            "Add new columns to the table representing position on the sky.",
+            "<p>Add new columns to the table representing position on the sky.",
             "The values are determined by converting a sky position",
             "whose coordinates are contained in existing columns.",
             "The <code>&lt;col-id&gt;</code> arguments give identifiers for",
@@ -55,6 +55,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
             "<p>For certain conversions, the value specified by the ",
             "<code>-epoch</code> flag is of significance.",
             "Where significant its value defaults to 2000.0.",
+            "</p>",
         };
     }
 

@@ -17,7 +17,8 @@ public class NameFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Sets the table's name attribute to the given string.",
+            "<p>Sets the table's name attribute to the given string.",
+            "</p>",
         };
     }
 

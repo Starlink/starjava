@@ -17,8 +17,11 @@ public class HeadFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Include only the first <code>&lt;nrows&gt;</code> rows of",
+            "<p>Include only the first <code>&lt;nrows&gt;</code> rows of",
             "the table.",
+            "If the table has fewer than <code>&lt;nrows&gt;</code>",
+            "then it will be unchanged.",
+            "</p>",
         };
     }
 

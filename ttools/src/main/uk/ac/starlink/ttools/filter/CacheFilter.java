@@ -24,7 +24,7 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Stores in memory or on disk a temporary copy of the table at",
+            "<p>Stores in memory or on disk a temporary copy of the table at",
             "this point in the pipeline.",
             "This can provide improvements in efficiency if there is",
             "an expensive step upstream and a step which requires",
@@ -32,6 +32,7 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
             "If you see an error like \"Can't re-read data from stream\"",
             "then adding this step near the start of the filters",
             "might help.",
+            "</p>",
         };
     }
 

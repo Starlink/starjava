@@ -19,7 +19,7 @@ public class ReplaceColumnFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Replaces the content of a column with the value of an",
+            "<p>Replaces the content of a column with the value of an",
             "algebraic expression.",
             "The old values are discarded in favour of the result of",
             "evaluating <code>&lt;expr&gt;</code>.",
@@ -28,10 +28,12 @@ public class ReplaceColumnFilter extends BasicFilter {
             "and <code>-desc</code> flags; for any of these items which you",
             "do not specify, they will take the values from the column",
             "being replaced.",
-            "You can reference the replaced column in the expression,",
-            "so for example",
-            "\"<code>replacecol pixsize pixsize*2</code>\" just multiplies",
-            "the values in column <code>pixsize</code> by 2.",
+            "</p>",
+            "<p>It is legal to reference the replaced column in the",
+            "expression,",
+            "so for example \"<code>replacecol pixsize pixsize*2</code>\"",
+            "just multiplies the values in column <code>pixsize</code> by 2.",
+            "</p>",
         };
     }
 

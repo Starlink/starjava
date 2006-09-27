@@ -24,15 +24,17 @@ public class ClearParameterFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Clears the value of one or more named parameters.",
+            "<p>Clears the value of one or more named parameters.",
             "Each of the <code>&lt;pname&gt;</code> values supplied may be",
             "either a parameter name or a simple wildcard expression",
             "matching parameter names.  Currently the only wildcarding",
             "is a \"<code>*</code>\" to match any sequence of characters.",
             "<code>clearparams *</code> will clear all the parameters",
             "in the table.",
-            "It is not an error to supply <code>&lt;pname&gt;</code>s",
+            "</p>",
+            "<p>It is not an error to supply <code>&lt;pname&gt;</code>s",
             "which do not exist in the table - these have no effect.",
+            "</p>",
         };
     }
 

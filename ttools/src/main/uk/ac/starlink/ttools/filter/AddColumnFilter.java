@@ -24,7 +24,7 @@ public class AddColumnFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Add a new column called <code>&lt;col-name&gt;</code> defined",
+            "<p>Add a new column called <code>&lt;col-name&gt;</code> defined",
             "by the algebraic expression <code>&lt;expr&gt;</code>.",
             "By default the new column appears after the last column",
             "of the table, but you can position it either before or",
@@ -33,6 +33,7 @@ public class AddColumnFilter extends BasicFilter {
             "The <code>-units</code>, <code>-ucd</code> and",
             "<code>-desc</code> flags can be used to define",
             "metadata values for the new column.",
+            "</p>",
         };
     }
 

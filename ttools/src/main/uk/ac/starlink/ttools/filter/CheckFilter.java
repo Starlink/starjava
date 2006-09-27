@@ -20,9 +20,10 @@ public class CheckFilter extends BasicFilter implements ProcessingStep {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Runs checks on the table at the indicated point in the",
+            "<p>Runs checks on the table at the indicated point in the",
             "processing pipeline.  This is strictly a debugging measure,",
             "and may be time-consuming for large tables.",
+            "</p>",
         };
     }
 

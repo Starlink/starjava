@@ -20,9 +20,10 @@ public class ExplodeAllFilter extends BasicFilter {
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "Replaces any column which is an N-element array with",
+            "<p>Replaces any column which is an N-element array with",
             "N scalar columns.",
             "Only columns with fixed array sizes are affected.",
+            "</p>",
         };
     }
 
