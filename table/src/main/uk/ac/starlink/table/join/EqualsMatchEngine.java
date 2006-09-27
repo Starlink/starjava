@@ -1,5 +1,7 @@
 package uk.ac.starlink.table.join;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
@@ -7,9 +9,15 @@ import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Match engine which considers two rows matched if they contain objects
- * which are non-blank and equal 
- * (in the sense of {@link java.lang.Object#equals}).  These will typically
+ * which are non-blank and equal.  The objects will typically
  * be strings, but could equally be something else.
+ * Match scores are always either 0.0 (equal) or -1.0 (unequal).
+ *
+ * <p>The equality is roughly in the sense of {@link java.lang.Object#equals},
+ * but some additional work is done, so that for instance (multi-dimensional)
+ * arrays are compared (recursively) on their contents, and blank objects
+ * are compared in the sense used in the rest of STIL.  A blank value is
+ * not considered equal to anything, including another blank value.
  *
  * @author   Mark Taylor (Starlink)
  * @since    25 Mar 2004
@@ -17,11 +25,14 @@ import uk.ac.starlink.table.ValueInfo;
 public class EqualsMatchEngine implements MatchEngine {
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        Object o1 = tuple1[ 0 ];
-        Object o2 = tuple2[ 0 ];
-        return ( ! Tables.isBlank( o1 ) && 
-                 ! Tables.isBlank( o2 ) &&
-                 o1.equals( o2 ) ) ? 0.0 : -1.0; 
+        return isEqual( tuple1[ 0 ], tuple2[ 0 ] ) ? 0.0 : -1.0;
+    }
+
+    public Object[] getBins( Object[] tuple ) {
+        Object obj = tuple[ 0 ];
+        return Tables.isBlank( obj )
+             ? NO_BINS
+             : new Object[] { new Integer( getHash( obj ) ) };
     }
 
     /**
@@ -32,11 +43,6 @@ public class EqualsMatchEngine implements MatchEngine {
      */
     public ValueInfo getMatchScoreInfo() {
         return null;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        Object obj = tuple[ 0 ];
-        return Tables.isBlank( obj ) ? NO_BINS : new Object[] { obj };
     }
 
     public ValueInfo[] getTupleInfos() {
@@ -61,5 +67,90 @@ public class EqualsMatchEngine implements MatchEngine {
 
     public String toString() {
         return "Exact Value";
+    }
+
+    /**
+     * Determines whether two objects are equal or not.
+     *
+     * @param   o1   object 1
+     * @param   o2   object 2
+     * @return  true iff <code>o1</code> is equals to <code>o2</code>
+     */
+    private static boolean isEqual( Object o1, Object o2 ) {
+        if ( Tables.isBlank( o1 ) || Tables.isBlank( o2 ) ) {
+            return false;
+        }
+        else if ( o1.getClass().isArray() && o2.getClass().isArray() ) {
+            Class clazz = o1.getClass().getComponentType();
+            if ( clazz == byte.class ) {
+                return Arrays.equals( (byte[]) o1, (byte[]) o2 );
+            }
+            else if ( clazz == short.class ) {
+                return Arrays.equals( (short[]) o1, (short[]) o2 );
+            }
+            else if ( clazz == int.class ) {
+                return Arrays.equals( (int[]) o1, (int[]) o2 );
+            }
+            else if ( clazz == long.class ) {
+                return Arrays.equals( (long[]) o1, (long[]) o2 );
+            }
+            else if ( clazz == float.class ) {
+                return Arrays.equals( (float[]) o1, (float[]) o2 );
+            }
+            else if ( clazz == double.class ) {
+                return Arrays.equals( (double[]) o1, (double[]) o2 );
+            }
+            else if ( clazz == boolean.class ) {
+                return Arrays.equals( (boolean[]) o1, (boolean[]) o2 );
+            }
+            else if ( clazz == char.class ) {
+                return Arrays.equals( (char[]) o1, (char[]) o2 );
+            }
+            else {
+                assert Object.class.isAssignableFrom( clazz );
+                Object[] a1 = (Object[]) o1;
+                Object[] a2 = (Object[]) o2;
+                int n1 = a1.length;
+                int n2 = a2.length;
+                if ( n1 != n2 ) {
+                    return false;
+                }
+                else {
+                    for ( int i = 0; i < n1; i++ ) {
+                        if ( ! isEqual( a1[ i ], a2[ i ] ) ) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+        else {
+            return o1.equals( o2 );
+        }
+    }
+
+    /**
+     * Returns a hash code for an object.  This matches the sense of 
+     * equality used by {@link #isEquals}.
+     *
+     * @param   obj  object; null is permitted
+     * @return  hash code
+     */
+    private static int getHash( Object obj ) {
+        if ( Tables.isBlank( obj ) ) {
+            return 0;
+        }
+        else if ( obj.getClass().isArray() ) {
+            int leng = Array.getLength( obj );
+            int hash = 17;
+            for ( int i = 0; i < leng; i++ ) {
+                hash = 23 * hash + getHash( Array.get( obj, i ) );
+            }
+            return hash;
+        }
+        else {
+            return obj.hashCode();
+        }
     }
 }
