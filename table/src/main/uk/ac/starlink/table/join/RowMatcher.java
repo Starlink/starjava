@@ -1057,16 +1057,16 @@ public class RowMatcher {
      */
     private Comparable[][] getBounds( int tIndex )
             throws IOException, InterruptedException {
+        StarTable table = tables[ tIndex ];
+        int ncol = table.getColumnCount();
 
         /* We can only do anything useful the match engine knows how to
          * calculate bounds. */
         if ( ! engine.canBoundMatch() ) {
-            return new Comparable[ 2 ][];
+            return new Comparable[ 2 ][ ncol ];
         }
 
         /* See which columns are comparable. */
-        StarTable table = tables[ tIndex ];
-        int ncol = table.getColumnCount();
         boolean[] isComparable = new boolean[ ncol ];
         int ncomp = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -1079,7 +1079,7 @@ public class RowMatcher {
 
         /* If none of the columns are comparable, there's no point. */
         if ( ncomp == 0 ) {
-            return new Comparable[ 2 ][];
+            return new Comparable[ 2 ][ ncol ];
         }
 
         /* Go through each row finding the minimum and maximum value 
