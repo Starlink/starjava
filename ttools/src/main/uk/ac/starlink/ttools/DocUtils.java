@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools;
 
+import uk.ac.starlink.ttools.filter.BasicFilter;
+
 /**
  * Utilities used for automatically-generated documentation.
  *
@@ -32,13 +34,13 @@ public class DocUtils {
     }
 
     /**
-     * Provides a snippet of XML which references a named 
-     * {@link uk.ac.starlink.ttools.filter.ProcessingFilter}.
+     * Provides a snippet of XML which references a processing filter.
      *
-     * @param  name  filter  name
+     * @param  filter  processing filter
      * @return  filter reference
      */
-    public static String filterRef( String name ) {
+    public static String filterRef( BasicFilter filter ) {
+        String name = filter.getName();
         return new StringBuffer()
             .append( "<code>" )
             .append( "<ref id=\"" )
