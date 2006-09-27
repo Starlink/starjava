@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools;
 
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.filter.BasicFilter;
 
 /**
@@ -15,7 +16,6 @@ public class DocUtils {
      */
     private DocUtils() {
     }
-
 
     /**
      * Concatenates an array of strings, appending a carriage return
@@ -69,5 +69,28 @@ public class DocUtils {
             .append( "</ref>" )
             .append( "</code>" )
             .toString();
+    }
+
+    /**
+     * Returns an string listing the supplied array of metadata objects.
+     * The returned string should be suitable for inserting into XML text.
+     *
+     * @param  infos  array of infos
+     * @return  string listing <code>infos</code> by name
+     */
+    public static String listInfos( ValueInfo[] infos ) {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<ul>\n" );
+        for ( int i = 0; i < infos.length; i++ ) {
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( infos[ i ].getName() )
+                .append( "</code>" )
+                .append( ": " )
+                .append( infos[ i ].getDescription() )
+                .append( "</li>" );
+        }
+        sbuf.append( "</ul>\n" );
+        return sbuf.toString();
     }
 }
