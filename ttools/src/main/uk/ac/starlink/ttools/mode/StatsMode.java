@@ -13,6 +13,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.formats.TextTableWriter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.KeepColumnFilter;
 import uk.ac.starlink.ttools.filter.StatsFilter;
@@ -33,15 +34,22 @@ public class StatsMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Calculates and displays univariate statistics for each\n" )
-       .append( "of the numeric columns in the table.\n" )
-       .append( "Mean, population standard deviation, minimum, maximum and\n" )
-       .append( "number of non-null entries are shown.\n" )
-       .append( "See the <code>" + new StatsFilter().getName() + "</code> " )
-       .append( "filter in <ref id='filterSteps'/>\n" )
-       .append( "for more flexible statistical calculations.\n" )
-       .toString();
+        return DocUtils.join( new String[] {
+            "<p>Calculates and displays univariate statistics for each",
+            "of the numeric columns in the table.",
+            "The following entries are shown for each column as appropriate:",
+            "<ul>",
+            "<li>mean</li>",
+            "<li>population standard deviation</li>",
+            "<li>minimum</li>",
+            "<li>maximum</li>",
+            "<li>number of non-null entries</li>",
+            "</ul>",
+            "</p>",
+            "<p>See the " + DocUtils.filterRef( new StatsFilter() ) + " filter",
+            "for more flexible statistical calculations.",
+            "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env ) {

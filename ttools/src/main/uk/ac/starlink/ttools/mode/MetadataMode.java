@@ -9,6 +9,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.MetadataFilter;
 
@@ -25,14 +26,15 @@ public class MetadataMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Prints the table metadata to standard output.\n" )
-       .append( "The name and type etc of each column is tabulated,\n" )
-       .append( "and table parameters are also shown.\n" )
-       .append( "See the <code>" + new MetadataFilter().getName() + "</code> " )
-       .append( "filter in <ref id='filterSteps'/>\n" )
-       .append( "for more flexible output of table metadata.\n" )
-       .toString();
+        return DocUtils.join( new String[] {
+           "<p>Prints the table metadata to standard output.",
+           "The name and type etc of each column is tabulated,",
+           "and table parameters are also shown.",
+           "</p>",
+           "<p>See the " + DocUtils.filterRef( new MetadataFilter() ),
+           "filter for more flexible output of table metadata.",
+           "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env ) {

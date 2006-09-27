@@ -7,6 +7,7 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 
 /**
@@ -103,12 +104,13 @@ public class JdbcMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Writes a new table to an SQL database.\n" )
-       .append( "You need the appropriate JDBC drivers and\n" )
-       .append( "<code>-Djdcb.drivers</code> set as usual\n" )
-       .append( "(see <ref id=\"jdbcConfig\"/>).\n" )
-       .toString();
+        return DocUtils.join( new String[] {
+            "<p>Writes a new table to an SQL database.",
+            "You need the appropriate JDBC drivers and",
+            "<code>-Djdcb.drivers</code> set as usual",
+            "(see <ref id=\"jdbcConfig\"/>).",
+            "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env )

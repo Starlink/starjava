@@ -11,6 +11,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.OutputStreamParameter;
 import uk.ac.starlink.ttools.task.WordParser;
@@ -134,10 +135,13 @@ public class CubeMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Makes an N-dimensional histogram of the columns in the\n" )
-       .append( "input table" )
-       .toString();
+        return DocUtils.join( new String[] {
+           "<p>Makes an N-dimensional histogram of the columns in the",
+           "input table.",
+           "The result is an N-dimensional array which is output as a",
+           "FITS file.",
+           "</p>",
+        } );
     }
 
     public Parameter[] getAssociatedParameters() {

@@ -10,6 +10,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
@@ -39,7 +40,10 @@ public class CopyMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return "Writes a new table.";
+        return DocUtils.join( new String[] {
+            "<p>Writes a new table.",
+            "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env ) 

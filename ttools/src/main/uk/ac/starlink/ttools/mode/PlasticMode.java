@@ -26,6 +26,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.util.URLUtils;
@@ -59,12 +60,15 @@ public class PlasticMode implements ProcessingMode {
     public final static URI MSG_BYURL = MessageId.VOT_LOADURL;
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Broadcasts the table to any registered Plastic-aware\n" )
-       .append( "applications.  PLASTIC, the PLatform for AStronomical\n" )
-       .append( "Tool InterConnection, is a tool interoperability protocol.\n" )
-       .append( "A Plastic hub must be running in order for this to work.\n" )
-       .toString();
+        return DocUtils.join( new String[] {
+            "<p>Broadcasts the table to any registered Plastic-aware",
+            "applications.",
+            "<webref url='http://plastic.sourceforge.net/'>PLASTIC</webref>,",
+            "the PLatform for AStronomical Tool InterConnection,",
+            "is a tool interoperability protocol.",
+            "A <em>Plastic hub</em> must be running in order for this to work.",
+            "</p>",
+        } );
     }
 
     public PlasticMode() {

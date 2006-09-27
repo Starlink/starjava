@@ -5,7 +5,9 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.filter.AssertFilter;
 
 /**
  * Processing mode which reads all data and disposes of it.
@@ -20,12 +22,13 @@ public class NullMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Reads all the data in the table in sequential mode\n" )
-       .append( "and discards it.\n" )
-       .append( "May be useful in conjunction with the <code>assert</code>\n" )
-       .append( "filter." )
-       .toString();
+        return DocUtils.join( new String[] {
+           "<p>Reads all the data in the table in sequential mode",
+           "and discards it.",
+           "May be useful in conjunction with",
+           "the " + DocUtils.filterRef( new AssertFilter() ) + " filter.",
+           "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env ) {

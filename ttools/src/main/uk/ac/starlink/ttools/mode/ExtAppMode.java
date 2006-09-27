@@ -17,6 +17,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.AddJELColumnTable;
 import uk.ac.starlink.votable.VOTableWriter;
@@ -58,10 +59,14 @@ public class ExtAppMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Talks to TOPCAT as a CDS-style ExtApp " )
-       .append( " - used for TOPCAT ExtApp implementation testing purposes." )
-       .toString();
+        return DocUtils.join( new String[] {
+            "<p>Talks to TOPCAT as a CDS-style <code>ExtApp</code>,",
+            "used for TOPCAT ExtApp implementation testing purposes.",
+            "</p>",
+            "<p>ExtApp functionality is moribund, having more or less",
+            "been superceded by PLASTIC.",
+            "</p>",
+       } );
     }
 
     public TableConsumer createConsumer( Environment env )

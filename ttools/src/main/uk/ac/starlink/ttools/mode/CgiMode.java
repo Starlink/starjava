@@ -10,6 +10,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
@@ -42,14 +43,14 @@ public class CgiMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Writes a table to standard output in a way suitable for\n" )
-       .append( "use as output from a CGI (Common Gateway Interface) " )
-       .append( "program.\n" )
-       .append( "This is very much like <code>out</code> mode\n" )
-       .append( "but a short CGI header giving the MIME Content-Type\n" )
-       .append( "is prepended to the output." )
-       .toString();
+        return DocUtils.join( new String[] {
+           "<p>Writes a table to standard output in a way suitable for",
+           "use as output from a CGI (Common Gateway Interface) program.",
+           "This is very much like " + DocUtils.modeRef( "out" ) + " mode",
+           "but a short CGI header giving the MIME Content-Type",
+           "is prepended to the output",
+           "</p>",
+       } );
     }
 
     public TableConsumer createConsumer( Environment env )

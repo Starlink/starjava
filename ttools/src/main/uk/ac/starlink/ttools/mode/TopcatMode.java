@@ -22,6 +22,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.votable.soap.VOTableSerialization;
@@ -54,23 +55,23 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
     }
 
     public String getDescription() {
-        return new StringBuffer()
-       .append( "Displays the output table directly in\n" )
-       .append( "<webref url=\"http://www.starlink.ac.uk/topcat/\"\n" )
-       .append( ">TOPCAT</webref>.\n" )
-       .append( "If a TOPCAT instance (version 1.6 or later) is already\n" )
-       .append( "running on the local host, the table will be opened in\n" )
-       .append( "that, otherwise a new TOPCAT instance will be launched\n" )
-       .append( "for display.\n" )
-       .append( "The latter mode only works if the TOPCAT classes are\n" )
-       .append( "on the class path.\n" )
-       .append( "A variety of mechanisms (e.g. PLASTIC and SOAP) are\n" )
-       .append( "attempted to transfer the table, depending on what\n" )
-       .append( "running instances of TOPCAT can be found.\n" )
-       .append( "Depending on the transport mechanism used,\n" )
-       .append( "there may be limits to the size of table\n" )
-       .append( "that can be transmitted to the application in this way.\n" )
-       .toString();
+        return DocUtils.join( new String[] {
+            "<p>Displays the output table directly in",
+            "<webref url='http://www.starlink.ac.uk/topcat/'>TOPCAT</webref>.",
+            "If a TOPCAT instance (version 1.6 or later) is already",
+            "running on the local host, the table will be opened in that,",
+            "otherwise a new TOPCAT instance will be launched for display.",
+            "The latter mode only works if the TOPCAT classes are",
+            "on the class path.",
+            "</p>",
+            "<p>A variety of mechanisms (e.g. PLASTIC and SOAP) are attempted",
+            "to transfer the table, depending on what running instances",
+            "of TOPCAT can be found.",
+            "Depending on the transport mechanism used, there may be limits",
+            "to the size of table which can be transmitted to the application",
+            "in this way.",
+            "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env ) {

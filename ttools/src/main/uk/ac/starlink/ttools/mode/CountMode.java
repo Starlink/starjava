@@ -7,6 +7,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 
 /**
@@ -23,8 +24,11 @@ public class CountMode implements ProcessingMode {
     }
 
     public String getDescription() {
-        return "Counts the number of rows and columns and writes the result "
-             + "to standard output.";
+        return DocUtils.join( new String[] {
+            "<p>Counts the number of rows and columns",
+            "and writes the result to standard output.",
+            "</p>",
+        } );
     }
 
     public TableConsumer createConsumer( Environment env ) {
