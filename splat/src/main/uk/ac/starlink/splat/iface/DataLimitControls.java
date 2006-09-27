@@ -716,7 +716,16 @@ public class DataLimitControls
         //  And set this as a limit.
         SpecData spec = control.getCurrentSpectrum();
         if ( spec != null ) {
-            Percentile percEngine = new Percentile( spec.getYData() );
+            double data[] = spec.getYData();
+            if ( ! dataLimits.isXAutoscaled() ) {
+                //  Just use the data within the selected limits.
+                double range[] = new double[2];
+                range[0] = dataLimits.getXLower();
+                range[1] = dataLimits.getXUpper();
+                SpecData slice = spec.getSect( "tmp", range );
+                data = slice.getYData();
+            }
+            Percentile percEngine = new Percentile( data );
             double upper = percEngine.get( perc );
             double lower = percEngine.get( 100.0 - perc );
             dataLimits.setYUpper( upper );
