@@ -9,6 +9,7 @@
 package uk.ac.starlink.splat.util;
 
 import java.awt.Color;
+import java.util.Random;
 import uk.ac.starlink.util.PhysicalConstants;
 
 /**
@@ -58,21 +59,7 @@ public class MathUtils
     // Spectral colouring routines.
     //
 
-    private static java.util.Random generator = null;
-    /**
-     *  Get a random colour from a set of a given size.
-     *
-     *  @param res number of expected colours in rainbow (i.e. number
-     *             you want to select from).
-     */
-    public static Color getRandomColour( float res )
-    {
-        if ( generator == null ) {
-            generator = new java.util.Random();
-        }
-        float h = generator.nextFloat() * res;
-        return Color.getHSBColor( h, 1.0F, 1.0F );
-    }
+    private static Random generator = null;
 
     /**
      *  Get a rainbow colour as an RGB integer from a set of a given
@@ -84,9 +71,33 @@ public class MathUtils
     public static int getRandomRGB( float res )
     {
         if ( generator == null ) {
-            generator = new java.util.Random();
+            generator = new Random();
         }
-        float h = generator.nextFloat() * res;
-        return Color.HSBtoRGB( h, 1.0F, 1.0F );
+
+        //  Hue is an float between 0 and 1, which will be scaled to the range
+        //  0 to 360 (so the fractional part determines the actual hue
+        //  used). So scale to res, quantise that and then rescale back to 0
+        //  to 1.
+        float h = ((float) Math.floor( generator.nextFloat() * res ) ) / res;
+
+        //  Keep brightness down a little so that these are distinguishable
+        //  from all the primary colours (which are used for overlay graphics).
+        return Color.HSBtoRGB( h, 1.0F, 0.9F );
+    }
+
+    /**
+     *  Get a random colour from a set of a given size.
+     *
+     *  @param res number of expected colours in rainbow (i.e. number
+     *             you want to select from).
+     */
+    public static Color getRandomColour( float res )
+    {
+        //  Same ideas as getRandomRBG, just returns a Color.
+        if ( generator == null ) {
+            generator = new Random();
+        }
+        float h = ((float) Math.floor( generator.nextFloat() * res ) ) / res;
+        return Color.getHSBColor( h, 1.0F, 0.9F );
     }
 }
