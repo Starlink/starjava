@@ -46,6 +46,7 @@ public class MultiConeMapper implements TableMapper {
     private final ChoiceParameter verbParam_;
     private final Parameter copycolsParam_;
     private final BooleanParameter zmetaParam_;
+    private final BooleanParameter forceParam_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -142,6 +143,25 @@ public class MultiConeMapper implements TableMapper {
             "from the first non-empty data request.  This is less likely",
             "to fail, but doesn't stream data so well on output.",
         } );
+
+        forceParam_ = new BooleanParameter( "force" );
+        forceParam_.setDefault( "false" );
+        forceParam_.setPrompt( "Continue connection attempts "
+                             + "even after errors?" );
+        forceParam_.setDescription( new String[] {
+            "Controls whether a workaround is used for services with broken",
+            "metadata requests.",
+            "Normally, before performing the main queries, an initial",
+            "query is made to the service with search radius zero,",
+            "to test that the service is alive and possibly also to",
+            "obtain result metadata",
+            "(see <code>" + zmetaParam_.getName() + "</code>).",
+            "Some (broken) services refuse to honour this initial request,",
+            "making it look like they don't work when in fact they do.",
+            "If this parameter is set <code>true</code> then even if the",
+            "initial query fails, the task will continue to attempt the",
+            "data queries.",
+        } );
     }
 
     public Parameter[] getParameters() {
@@ -153,6 +173,7 @@ public class MultiConeMapper implements TableMapper {
             verbParam_,
             copycolsParam_,
             zmetaParam_,
+            forceParam_,
         };
     }
 
@@ -168,6 +189,7 @@ public class MultiConeMapper implements TableMapper {
         String sverb = verbParam_.stringValue( env );
         final int verb = sverb == null ? -1 : Integer.parseInt( sverb );
         final boolean zmeta = zmetaParam_.booleanValue( env );
+        final boolean force = forceParam_.booleanValue( env );
         final String copyColIdList = copycolsParam_.stringValue( env );
         final StarTableFactory tfact = TableEnvironment.getTableFactory( env );
         final String raString = raParam_.stringValue( env );
@@ -191,7 +213,7 @@ public class MultiConeMapper implements TableMapper {
                                    compileDouble( raString, lib ),
                                    compileDouble( decString, lib ),
                                    compileDouble( srString, lib ),
-                                   verb, iCopyCols, zmeta );
+                                   verb, iCopyCols, zmeta, force );
                     out[ 0 ].consume( outTable );
                 }
                 finally {
@@ -220,15 +242,16 @@ public class MultiConeMapper implements TableMapper {
      * @param   iCopyCols  array of column indices from <code>in</code>
      *          to copy to the output table
      * @param   zmeta   if true, get the metadata from an initial SR=0 query
+     * @param   force   if true, ignore failour of initial SR=0 query
      */
-    private static StarTable multiCone( StarTable in, final ConeSearch coner,
-                                        final StarTableFactory tfact,
-                                        final SequentialJELRowReader jelReader,
-                                        final CompiledExpression raExpr,
-                                        final CompiledExpression decExpr,
-                                        final CompiledExpression srExpr,
-                                        final int verb, final int[] iCopyCols,
-                                        boolean zmeta )
+    private StarTable multiCone( StarTable in, final ConeSearch coner,
+                                 final StarTableFactory tfact,
+                                 final SequentialJELRowReader jelReader,
+                                 final CompiledExpression raExpr,
+                                 final CompiledExpression decExpr,
+                                 final CompiledExpression srExpr,
+                                 final int verb, final int[] iCopyCols,
+                                 boolean zmeta, boolean force )
             throws IOException, TaskException {
 
         /* Create array of column metadata objects for the columns which are
@@ -248,10 +271,19 @@ public class MultiConeMapper implements TableMapper {
             coneMeta = coner.performSearch( 0., 0., 0., verb, tfact );
         }
         catch ( IOException e ) {
-            throw (IOException)
-                  new IOException( "Error response while retrieving metadata: "
-                                 + e.getMessage() )
-                 .initCause( e );
+            String forceName = forceParam_.getName();
+            String msg = "Error response retrieving metadata: "
+                       + e.getMessage();
+            if ( force ) {
+                coneMeta = null;
+                logger_.warning( msg );
+                logger_.warning( "Continue processing despite metadata query "
+                               + "error (" + forceName + "=true)" );
+            }
+            else {
+                msg += " (could try " + forceName + "=true?)";
+                throw (IOException) new IOException( msg ).initCause( e );
+            }
         }
 
         /* Construct an iterator which will iterate over the rows of the 
