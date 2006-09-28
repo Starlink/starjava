@@ -624,7 +624,7 @@ public class DefaultValueInfo implements ValueInfo {
             return rep;
         }
         else {
-            throw new UnsupportedOperationException(
+            throw new IllegalArgumentException(
                 "No unformatter available for " + clazz.getName() );
         }
     }
