@@ -4854,6 +4854,21 @@ can be edited by double-clicking on them in the normal way.
     to allow you to define a new subset algebraically.
     </p></dd>
 
+<dt>&IMG.SAMPLE; Add Sample Subset</dt>
+<dd><p>Pops up a dialogue window to allow you to define a new subset
+    consisting of every <m>N</m>'th row of the table.
+    </p></dd>
+
+<dt>&IMG.HEAD; Add Head Subset</dt>
+<dd><p>Pops up a dialogue window to allow you to define a new subset
+    consisting of the first <m>N</m> rows of the table.
+    </p></dd>
+
+<dt>&IMG.TAIL; Add Tail Subset</dt>
+<dd><p>Pops up a dialogue window to allow you to define a new subset
+    consisting of the last <m>N</m> rows of the table.
+    </p></dd>
+
 <dt>&IMG.INVERT; Invert Subset</dt>
 <dd><p>Creates a new subset which is the complement of the selected one.
     The new one will include all the rows which are excluded by the
@@ -9671,6 +9686,11 @@ introduced since the last version:
     <li>Fixed a couple of other minor matching bugs.</li>
     <li>Removed Starlink logo from the top right corner of all TOPCAT windows,
         including screenshots in documentation.</li>
+    <li>Added new <label>Add Sample Subset</label>,
+                  <label>Add Head Subset</label> and
+                  <label>Add Tail Subset</label>
+        utility tool buttons to the
+        <ref id="SubsetsWindow">Subsets Window</ref>.</li>
     </ul>
     </p></dd>
 
