@@ -3961,6 +3961,8 @@ but my thanks are especially due to the following:
     <li>Added <code>force</code> parameter to 
         <code><ref id="multicone">multicone</ref></code> task as a workaround
         for some broken services.</li>
+    <li>Added <code>-ifndim</code> and <code>-ifshape</code> flags to
+        <ref id="explodeall">explodeall</ref> filter.</li>
     </ul>
     </p></dd>
 
