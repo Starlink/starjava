@@ -29,9 +29,6 @@
           <xsl:text>&#x0a;</xsl:text>
           <body>
             <xsl:apply-templates select="docinfo"/>
-            <h2>
-              <a href="http://www.starlink.ac.uk/">Starlink Project</a>
-            </h2>
             <hr/>
             <h2>Contents</h2>
             <xsl:apply-templates select="docbody" mode="toc"/>

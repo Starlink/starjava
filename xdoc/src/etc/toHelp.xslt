@@ -58,9 +58,6 @@
         </head>
         <body>
           <xsl:apply-templates select="docinfo"/>
-          <h2>
-            <a href="http://www.starlink.ac.uk/">Starlink Project</a>
-          </h2>
           <h2>Contents</h2>
           <xsl:apply-templates mode="toc" select="docbody"/>
         </body>
