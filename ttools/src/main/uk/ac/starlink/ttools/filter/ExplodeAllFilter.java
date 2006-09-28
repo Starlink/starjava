@@ -105,17 +105,21 @@ public class ExplodeAllFilter extends BasicFilter {
                     ColumnInfo info = base.getColumnInfo( icol );
                     boolean explode;
                     if ( info.isArray() ) {
-                        explode = true;
                         int[] shape = info.getShape();
-                        if ( reqNdim >= 0 ) {
-                            explode = explode
-                                   && shape != null 
-                                   && shape.length == reqNdim;
-                        }
-                        if ( reqShape != null ) {
-                            explode = explode
-                                   && shape != null
+                        explode = shape != null;
+                        if ( shape != null ) {
+                            if ( shape.length == 0 ||
+                                 shape[ shape.length - 1 ] < 0 ) {
+                                explode = false;
+                            }
+                            if ( reqNdim >= 0 ) {
+                                explode = explode
+                                       && shape.length == reqNdim;
+                            }
+                            if ( reqShape != null ) {
+                                explode = explode
                                    && Arrays.equals( shape, reqShape );
+                            }
                         }
                     }
                     else {
