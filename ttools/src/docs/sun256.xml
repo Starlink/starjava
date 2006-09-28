@@ -1213,7 +1213,7 @@ send it straight to TOPCAT or some other table viewing application
 for interactive analysis.
 </p>
 
-<p>Clearly, you could achieve the same effect by using multiple
+<p>Clearly, you could achieve the same effect by running multiple
 applications: preprocess your 
 original input tables to write intermediate files on disk, 
 run the main processing application which reads those files
@@ -1284,9 +1284,10 @@ The effect is the same.
 
 <p>It's important to note that each command in the sequence of
 processing steps acts on the table at that point in the sequence.
-Thus
+Thus either of the two identical invocations:
 <verbatim>
    stilts tpipe cmd='delcols 1; delcols 1; delcols 1'
+   stilts tpipe cmd='delcols 1' cmd='delcols 1' cmd='delcols 1'
 </verbatim>
 has the same effect as
 <verbatim>
@@ -1326,7 +1327,7 @@ it means you must give a string which identifies one of the
 existing columns in a table.
 </p>
 
-<p>There are three ways you can specify a column in this context:
+<p>There are two ways you can specify a column in this context:
 <dl>
 <dt>Column Name</dt>
 <dd><p>The name of the column may be used if it contains no spaces
@@ -1364,7 +1365,7 @@ have to surround it in single or double quotes to ensure
 that it is treated as a single argument and not several of them.
 </p>
 
-<p>Each token in the <code>colid-list</code> string may be one of
+<p>Each token in the <code>&lt;colid-list&gt;</code> string may be one of
 the following:
 <dl>
 <dt>Column Name</dt>
@@ -3951,6 +3952,10 @@ but my thanks are especially due to the following:
     <li>Improved CEA description file output - now contains details of all
         tasks as well as various improvements in documentation etc.</li>
     <li>Modified presentation of HTML version of SUN/256 using CSS.</li>
+    <li>Modified SUN/256 structure somewhat 
+        (each <ref id="outModes">output mode</ref> and
+        <ref id="filterSteps">processing filter</ref> 
+        now gets its own section).</li>
     <li>Matching improvements: <code>exact</code> match mode now copes with
         array-valued columns.  Also fixed a couple of minor matching bugs.</li>
     <li>Added <code>force</code> parameter to 
