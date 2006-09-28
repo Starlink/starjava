@@ -199,12 +199,7 @@ public class LineInvoker {
                 System.exit( 1 );
             }
             catch ( RuntimeException e ) {
-                if ( env.isDebug() ) {
-                    e.printStackTrace();
-                }
-                else {
-                    System.err.println( "\n" + e + "\n" );
-                }
+                e.printStackTrace();
                 System.exit( 1 );
             }
             catch ( IOException e ) {
