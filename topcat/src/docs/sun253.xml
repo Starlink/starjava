@@ -9666,7 +9666,9 @@ introduced since the last version:
     <li>Fixed bug (introduced at v2.2-1) which made table display and adding
         columns slow, and column widths the wrong size.</li>
     <li>Fixed bug (introduced at v2.0) which prevented Exact matches using 
-        non-numeric columns.</li>
+        non-numeric columns.  Exact match now also deals with array-valued
+        columns.</li>
+    <li>Fixed a couple of other minor matching bugs.</li>
     <li>Removed Starlink logo from the top right corner of all TOPCAT windows,
         including screenshots in documentation.</li>
     </ul>
