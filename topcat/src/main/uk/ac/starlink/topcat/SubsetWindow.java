@@ -45,6 +45,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Action tocolAct;
     private final Action countAct;
     private final Action invertAct;
+    private final Action sampleAct;
+    private final Action headAct;
+    private final Action tailAct;
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
@@ -117,6 +120,21 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                       "Create new subset complementary to " +
                                       "selected subset" );
 
+        /* Action for creating a new subset representing a regular sample. */
+        sampleAct = new SubsetAction( "Add sample subset", ResourceIcon.SAMPLE,
+                                      "Create new subset containing a " +
+                                      "regular sample of the rows" );
+
+        /* Action for creating a new subset from the head of the table. */
+        headAct = new SubsetAction( "Add head subset", ResourceIcon.HEAD,
+                                    "Create new subset containing the first " +
+                                    "N rows" );
+
+        /* Action for creating a new subset from the tail of the table. */
+        tailAct = new SubsetAction( "Add tail subset", ResourceIcon.TAIL,
+                                    "Create new subset containing the last " +
+                                    "N rows" );
+
         /* Transmitter for broadcasting subset via PLASTIC. */
         final PlasticTransmitter subsetTransmitter = 
             ControlWindow.getInstance().getPlasticServer()
@@ -168,6 +186,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
  
         /* Toolbar. */
         getToolBar().add( addAct );
+        getToolBar().add( sampleAct );
+        getToolBar().add( headAct );
+        getToolBar().add( tailAct );
+        getToolBar().addSeparator();
         getToolBar().add( invertAct );
         getToolBar().add( tocolAct );
         getToolBar().add( countAct );
@@ -178,6 +200,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         JMenu subsetsMenu = new JMenu( "Subsets" );
         subsetsMenu.setMnemonic( KeyEvent.VK_S );
         subsetsMenu.add( addAct );
+        subsetsMenu.add( sampleAct );
+        subsetsMenu.add( headAct );
+        subsetsMenu.add( tailAct );
         subsetsMenu.add( invertAct );
         subsetsMenu.add( tocolAct );
         subsetsMenu.add( countAct );
@@ -413,6 +438,43 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             else if ( this == invertAct ) {
                 int irow = jtab.getSelectedRow();
                 subsets.add( new InverseRowSubset( getSubset( irow ) ) );
+            }
+
+            else if ( this == sampleAct ) {
+                new IntegerSubsetQueryWindow( tcModel, parent,
+                                              "New Subset from " +
+                                              "Regular Sample", 
+                                              "Sample Interval" ) {
+                    protected void configureFields( int num ) {
+                        getNameField().setText( "every_" + num );
+                        getExpressionField().setText( "$0 % " + num + " == 0" );
+                    }
+                }.setVisible( true );
+            }
+
+            else if ( this == headAct ) {
+                new IntegerSubsetQueryWindow( tcModel, parent,
+                                              "New Subset from First Rows",
+                                              "Row Count" ) {
+                    protected void configureFields( int num ) {
+                        getNameField().setText( "head_" + num );
+                        getExpressionField().setText( "$0 <= " + num );
+                    }
+                }.setVisible( true );
+            }
+
+            else if ( this == tailAct ) {
+                new IntegerSubsetQueryWindow( tcModel, parent,
+                                              "New Subset from Last Rows",
+                                              "Row Count" ) {
+                    protected void configureFields( int num ) {
+                        getNameField().setText( "tail_" + num );
+                        long nrow = tcModel.getDataModel().getRowCount();
+                        String expr = nrow + " - $0 < " + num;
+                        getExpressionField().setText( expr );
+                    }
+                }.setVisible( true );
+
             }
 
             else {
