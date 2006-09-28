@@ -566,7 +566,9 @@
       <fo:leader leader-pattern="dots"/>
       <fo:page-number-citation ref-id="{generate-id()}"/>
     </fo:block>
-    <xsl:apply-templates mode="toc" select="subsect"/>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:apply-templates mode="toc" select="subsect"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template mode="toc" match="docbody/sect
@@ -578,7 +580,9 @@
       <fo:leader leader-pattern="dots"/>
       <fo:page-number-citation ref-id="{generate-id()}"/>
     </fo:block>
-    <xsl:apply-templates mode="toc" select="subsect|subsubsect"/>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:apply-templates mode="toc" select="subsect|subsubsect"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template mode="toc" match="docbody/sect/subsect
@@ -590,7 +594,9 @@
       <fo:leader leader-pattern="dots"/>
       <fo:page-number-citation ref-id="{generate-id()}"/>
     </fo:block>
-    <xsl:apply-templates mode="toc" select="subsubsect|subsubsubsect"/>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:apply-templates mode="toc" select="subsubsect|subsubsubsect"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template mode="toc"
@@ -603,7 +609,9 @@
       <fo:leader leader-pattern="dots"/>
       <fo:page-number-citation ref-id="{generate-id()}"/>
     </fo:block>
-    <xsl:apply-templates mode="toc" select="subsubsubsect"/>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:apply-templates mode="toc" select="subsubsubsect"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template mode="toc"

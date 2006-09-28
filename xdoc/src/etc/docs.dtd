@@ -22,6 +22,8 @@
                              | var | label | img
                            )*">
 
+  <!ENTITY % sectatts "tocleaf ( yes | no ) #IMPLIED">
+
   <!ELEMENT sun ( docinfo?, docbody )>
   <!ELEMENT docinfo ( title?, 
                       authorlist?,
@@ -108,14 +110,18 @@
                     codetext CDATA #IMPLIED>
 
   <!ELEMENT sect ( subhead?, ( p | figure | subsect )* )>
-  <!ATTLIST sect id ID #IMPLIED>
+  <!ATTLIST sect id ID #IMPLIED
+                 %sectatts;>
 
   <!ELEMENT subsect ( subhead?, ( p | figure | subsubsect )* )>
-  <!ATTLIST subsect id ID #IMPLIED>
+  <!ATTLIST subsect id ID #IMPLIED
+                    %sectatts;>
 
   <!ELEMENT subsubsect ( subhead?, ( p | figure | subsubsubsect )* )>
-  <!ATTLIST subsubsect id ID #IMPLIED>
+  <!ATTLIST subsubsect id ID #IMPLIED
+                       %sectatts;>
 
   <!ELEMENT subsubsubsect ( subhead?, ( p | figure )* )>
-  <!ATTLIST subsubsubsect id ID #IMPLIED>
+  <!ATTLIST subsubsubsect id ID #IMPLIED
+                          %sectatts;>
 
