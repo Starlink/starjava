@@ -80,7 +80,7 @@ public abstract class QueryWindow extends AuxWindow {
          * buttons. */
         JPanel queryControls = getControlPanel();
         if ( ok ) {
-           queryControls.add( new JButton( okAction ) );
+            queryControls.add( new JButton( okAction ) );
         }
         if ( cancel ) {
             queryControls.add( new JButton( cancelAction ) );
