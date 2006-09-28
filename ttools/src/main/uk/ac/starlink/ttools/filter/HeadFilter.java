@@ -19,7 +19,7 @@ public class HeadFilter extends BasicFilter {
         return new String[] {
             "<p>Include only the first <code>&lt;nrows&gt;</code> rows of",
             "the table.",
-            "If the table has fewer than <code>&lt;nrows&gt;</code>",
+            "If the table has fewer than <code>&lt;nrows&gt;</code> rows",
             "then it will be unchanged.",
             "</p>",
         };
