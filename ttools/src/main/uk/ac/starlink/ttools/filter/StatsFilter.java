@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.filter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -129,6 +130,10 @@ public class StatsFilter extends BasicFilter {
     }
 
     protected String[] getDescriptionLines() {
+        Collection extras = new ArrayList( Arrays.asList( KNOWN_INFOS ) );
+        extras.removeAll( Arrays.asList( DEFAULT_INFOS ) );
+        ValueInfo[] extraKnownInfos =
+            (ValueInfo[]) extras.toArray( new ValueInfo[ 0 ] );
         return new String[] {
             "<p>Calculates statistics on the data in the table.",
             "This filter turns the table sideways, so that each row",
@@ -142,8 +147,8 @@ public class StatsFilter extends BasicFilter {
             "</p>",
             "<p>However, the output may be customised by supplying one or more",
             "<code>&lt;item&gt;</code> headings.  These may be selected",
-            "from the following:",
-            DocUtils.listInfos( KNOWN_INFOS ),
+            "from the above as well as the following:",
+            DocUtils.listInfos( extraKnownInfos ),
             "Additionally, the form \"Q.<em>nn</em>\" may be used to",
             "represent the quantile corresponding to the proportion",
             "0.<em>nn</em>, e.g.:",

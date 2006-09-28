@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +59,7 @@ public class MetadataFilter extends BasicFilter {
     };
 
     /** Metadata items listed by default. */
-    private static final ValueInfo[] DEFAULT_INFOS =new ValueInfo[] {
+    private static final ValueInfo[] DEFAULT_INFOS = new ValueInfo[] {
         INDEX_INFO,
         NAME_INFO,
         CLASS_INFO,
@@ -76,6 +77,10 @@ public class MetadataFilter extends BasicFilter {
     }
 
     protected String[] getDescriptionLines() {
+        Collection extras = new ArrayList( Arrays.asList( KNOWN_INFOS ) );
+        extras.removeAll( Arrays.asList( DEFAULT_INFOS ) );
+        ValueInfo[] extraKnownInfos =
+            (ValueInfo[]) extras.toArray( new ValueInfo[ 0 ] );
         return new String[] {
             "<p>Provides information about the metadata for each column.",
             "This filter turns the table sideways, so that each row",
@@ -92,8 +97,8 @@ public class MetadataFilter extends BasicFilter {
             "</p>",
             "<p>However, the output may be customised by supplying",
             "one or more <code>&lt;item&gt;</code> headings.",
-            "These may be selected from the following:",
-            DocUtils.listInfos( KNOWN_INFOS ),
+            "These may be selected from the above as well as the following:",
+            DocUtils.listInfos( extraKnownInfos ),
             "as well as any table-specific metadata.  It is not an error",
             "to specify an item for which no metadata exists in any of",
             "the columns (such entries will result in empty columns).",

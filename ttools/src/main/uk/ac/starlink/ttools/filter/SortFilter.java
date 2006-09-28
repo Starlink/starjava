@@ -47,7 +47,7 @@ public class SortFilter extends BasicFilter {
             "If the <code>-down</code> flag is used, the sort order is",
             "descending rather than ascending.",
             "</p>",
-            "<p>Blank entries are usually considered to come at the end",
+            "<p>Blank entries are by default considered to come at the end",
             "of the collation sequence, but if the <code>-nullsfirst</code>",
             "flag is given then they are considered to come at the start",
             "instead.",
