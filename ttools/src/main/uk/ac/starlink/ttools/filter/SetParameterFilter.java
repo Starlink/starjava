@@ -18,7 +18,7 @@ public class SetParameterFilter extends BasicFilter {
     public SetParameterFilter() {
         super( "setparam",
                "[-type byte|short|int|long|float|double|boolean|string]\n" +
-               "[-desc <descrip>] " +
+               "[-desc <descrip>] [-unit <units>] [-ucd <ucd>]\n" +
                "<pname> <pval>" );
     }
 
@@ -31,7 +31,7 @@ public class SetParameterFilter extends BasicFilter {
             "(if it looks like an integer it's an integer etc)", 
             "but this can be overridden using the <code>-type</code> flag.",
             "The parameter description may be set using the",
-            "<code>-descrip</code> flag.",
+            "<code>-desc</code> flag.",
             "</p>",
         };
     }
@@ -41,6 +41,8 @@ public class SetParameterFilter extends BasicFilter {
         String pname = null;
         String pval = null;
         String pdesc = null;
+        String pucd = null;
+        String punits = null;
         while ( argIt.hasNext() ) {
             String arg = (String) argIt.next();
             if ( "-type".equals( arg ) && type == null && argIt.hasNext() ) {
@@ -52,6 +54,18 @@ public class SetParameterFilter extends BasicFilter {
                       argIt.hasNext() ) {
                 argIt.remove();
                 pdesc = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-ucd" ) && pucd == null &&
+                      argIt.hasNext() ) {
+                argIt.remove();
+                pucd = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.startsWith( "-unit" ) && punits == null &&
+                      argIt.hasNext() ) {
+                argIt.remove();
+                punits = (String) argIt.next();
                 argIt.remove();
             }
             else if ( pname == null ) {
@@ -72,11 +86,13 @@ public class SetParameterFilter extends BasicFilter {
         final String name = pname;
         final String value = pval;
         final String descrip = pdesc;
+        final String ucd = pucd;
+        final String units = punits;
         final Class clazz = type == null ? null : getClass( type );
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
                 base.setParameter( createDescribedValue( name, value, descrip,
-                                                         clazz ) );
+                                                         ucd, units, clazz ) );
                 return base;
             }
         };
@@ -122,12 +138,16 @@ public class SetParameterFilter extends BasicFilter {
      * @param   name  parameter name
      * @param   sval  string representation of parameter value
      * @param   descrip  parameter description, or null
+     * @param   ucd   parameter UCD, or null
+     * @param   units  parameter units, or null
      * @param   clazz  class of parameter type, or null for automatic
      *          determination
      */
     private static DescribedValue createDescribedValue( String name,
                                                         String sval,
                                                         String descrip,
+                                                        String ucd,
+                                                        String units,
                                                         Class clazz )
             throws IOException {
         Object value = null;
@@ -210,7 +230,13 @@ public class SetParameterFilter extends BasicFilter {
         assert clazz != null;
 
         /* Construct and return the described value. */
-        ValueInfo info = new DefaultValueInfo( name, clazz, descrip );
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
+        if ( ucd != null && ucd.trim().length() > 0 ) {
+            info.setUCD( ucd );
+        }
+        if ( units != null && units.trim().length() > 0 ) {
+            info.setUnitString( units );
+        }
         return new DescribedValue( info, value );
     }
 }
