@@ -160,8 +160,10 @@ public class StepFactory {
                     .append( "Usage: " )
                     .append( cmd );
                 String pad = ( "Usage: " + cmd + " " ).replaceAll( ".", " " );
-                String fusage = filter.getUsage()
-                                      .replaceAll( "\n", "\n" + pad );
+                String fusage = filter.getUsage();
+                if ( fusage != null ) {
+                    fusage = fusage.replaceAll( "\n", "\n" + pad );
+                }
                 if ( fusage != null ) {
                     sbuf.append( ' ' )
                         .append( fusage );
