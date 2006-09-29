@@ -65,10 +65,10 @@ public class SingleMapperTask extends MapperTask {
         setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
     }
 
-    protected InputSpec[] getInputSpecs( Environment env )
+    protected InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException {
-        return new InputSpec[] {
-            new InputSpec( inTableParam_.tableValue( env ),
+        return new InputTableSpec[] {
+            new InputTableSpec( inTableParam_.tableValue( env ),
                            inFilterParam_ == null
                                ? null
                                : inFilterParam_.stepsValue( env ),

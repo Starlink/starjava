@@ -129,7 +129,7 @@ public class CatMapper implements TableMapper {
      * @return  input table location strings
      */
     private String[] getInputLocations( Environment env ) throws TaskException {
-        MapperTask.InputSpec[] inSpecs = task_.getInputSpecs( env );
+        InputTableSpec[] inSpecs = task_.getInputSpecs( env );
         String[] locs = new String[ inSpecs.length ];
         for ( int i = 0; i < inSpecs.length; i++ ) {
             locs[ i ] = inSpecs[ i ].getLocation();

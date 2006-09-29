@@ -70,7 +70,7 @@ public class HomogeneousMapperTask extends MapperTask {
         setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
     }
 
-    public InputSpec[] getInputSpecs( Environment env )
+    public InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException {
         ProcessingStep[] steps = inFilterParam_ == null
                                ? null
@@ -78,9 +78,9 @@ public class HomogeneousMapperTask extends MapperTask {
         StarTable[] tables = inTablesParam_.tablesValue( env );
         String[] locs = inTablesParam_.stringsValue( env );
         int nIn = tables.length;
-        InputSpec[] specs = new InputSpec[ nIn ];
+        InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
-            specs[ i ] = new InputSpec( tables[ i ], steps, locs[ i ] );
+            specs[ i ] = new InputTableSpec( tables[ i ], steps, locs[ i ] );
         }
         return specs;
     }

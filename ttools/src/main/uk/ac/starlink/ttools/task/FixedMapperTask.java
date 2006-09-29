@@ -82,13 +82,13 @@ public class FixedMapperTask extends MapperTask {
         setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
     }
 
-    protected InputSpec[] getInputSpecs( Environment env )
+    protected InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException {
         int nIn = inTableParams_.length;
-        InputSpec[] specs = new InputSpec[ nIn ];
+        InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
             specs[ i ] =
-                new InputSpec( inTableParams_[ i ].tableValue( env ),
+                new InputTableSpec( inTableParams_[ i ].tableValue( env ),
                                inFilterParams_[ i ] == null
                                    ? null
                                    : inFilterParams_[ i ].stepsValue( env ),

@@ -90,19 +90,19 @@ public abstract class MapperTask implements Task {
     }
 
     /**
-     * Returns an array of InputSpec objects describing the input tables
+     * Returns an array of InputTableSpec objects describing the input tables
      * used by this task.
      *
      * @param    env  execution environment
      * @return   input table specifiers
      */
-    protected abstract InputSpec[] getInputSpecs( Environment env )
+    protected abstract InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException;
 
     public Executable createExecutable( Environment env ) throws TaskException {
 
         /* Get raw input tables and input processing pipelines. */
-        final InputSpec[] inSpecs = getInputSpecs( env );
+        final InputTableSpec[] inSpecs = getInputSpecs( env );
 
         /* Get the mapping which defines the actual processing done by
          * this task. */
@@ -140,13 +140,7 @@ public abstract class MapperTask implements Task {
                 int nIn = inSpecs.length;
                 StarTable[] inTables = new StarTable[ nIn ];
                 for ( int i = 0; i < nIn; i++ ) {
-                    InputSpec inSpec = inSpecs[ i ];
-                    StarTable inTable = inSpec.getTable();
-                    ProcessingStep[] inSteps = inSpec.getSteps();
-                    for ( int j = 0; j < inSteps.length; j++ ) {
-                        inTable = inSteps[ j ].wrap( inTable );
-                    }
-                    inTables[ i ] = inTable;
+                    inTables[ i ] = inSpecs[ i ].getWrappedTable();
                 }
 
                 /* Finally, execute the pipeline. */
@@ -191,58 +185,6 @@ public abstract class MapperTask implements Task {
                         "when omode=out" );
                 }
             }
-        }
-    }
-
-    /**
-     * Struct-type class which provides specifications for a single 
-     * input table for a task.
-     */
-    protected static class InputSpec {
-
-        private final StarTable table_;
-        private final ProcessingStep[] steps_;
-        private final String loc_;
-
-        /**
-         * Constructor.
-         *
-         * @param  table  table
-         * @param  steps  processing pipeline
-         * @param  loc    original table location
-         */
-        public InputSpec( StarTable table, ProcessingStep[] steps,
-                          String loc ) {
-            table_ = table;
-            steps_ = steps == null ? new ProcessingStep[ 0 ] : steps;
-            loc_ = loc;
-        }
-
-        /**
-         * Returns input table parameter.
-         *
-         * @param  input table parameter
-         */
-        public StarTable getTable() {
-            return table_;
-        }
-
-        /**
-         * Returns the input filter parameter.
-         *
-         * @param   input filter parameter (may be null)
-         */
-        public ProcessingStep[] getSteps() {
-            return steps_;
-        }
-
-        /**
-         * Returns input table location as specified in the parameter value.
-         *
-         * @param  input table location
-         */
-        public String getLocation() {
-            return loc_;
         }
     }
 }
