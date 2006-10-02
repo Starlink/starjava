@@ -32,7 +32,7 @@ abstract class Agent {
      *          interested in; an empty array means all messages
      */
     public Agent( int iseq, String name, URI[] supportedMessages ) {
-        id_ = PlasticHub.createId( this, name, iseq );
+        id_ = MinimalHub.createId( this, name, iseq );
         name_ = name;
         supportedMessages_ = new HashSet( Arrays.asList( supportedMessages ) );
         label_ = name + "-" + iseq;
