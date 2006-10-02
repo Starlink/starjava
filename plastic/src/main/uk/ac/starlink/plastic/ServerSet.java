@@ -203,7 +203,7 @@ class ServerSet {
         props.setProperty( SERVER_ID_KEY, serverIdValue_ );
         OutputStream out = new FileOutputStream( configFile );
         try {
-            props.store( out, "PLASTIC server " + PlasticHub.class.getName() );
+            props.store( out, "PLASTIC server " + this.getClass().getName() );
         }
         finally {
             out.close();
