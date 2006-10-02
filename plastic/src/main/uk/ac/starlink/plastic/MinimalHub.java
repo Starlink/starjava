@@ -1,5 +1,6 @@
 package uk.ac.starlink.plastic;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -550,5 +551,29 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
         catch ( URISyntaxException e ) {
             throw new AssertionError( e );
         }
+    }
+
+    /**
+     * Main method.  Starts the hub.  Nothing fancy.
+     * For more configurability and usability features, see
+     * {@link PlasticHub#main}.
+     */
+    public static void main( String[] args )
+            throws IOException, RemoteException {
+        if ( args.length > 0 ) {
+            System.err.println( "Usage: " + MinimalHub.class.getName() );
+            System.err.println( "See uk.ac.starlink.plastic.PlasticHub "
+                              + "for fancy options"  );
+            System.exit( 1 );
+        }
+        final ServerSet servers =
+            new ServerSet( new File( System.getProperty( "user.home" ),
+                           PlasticHubListener.PLASTIC_CONFIG_FILENAME ) );
+        final MinimalHub hub = new MinimalHub( servers );
+        Runtime.getRuntime().addShutdownHook( new Thread() {
+            public void run() {
+                hub.stop();
+            }
+        } );
     }
 }
