@@ -52,7 +52,7 @@ public class ColumnSelectionMapper implements TableMapper {
         final String[] colids = colsParam_.wordsValue( env );
         return new TableMapping() {
             public StarTable mapTables( InputTableSpec[] inSpecs )
-                    throws IOException {
+                    throws IOException, TaskException {
                 StarTable in = inSpecs[ 0 ].getWrappedTable();
                 ColumnIdentifier colIdent = new ColumnIdentifier( in );   
                 int ncol = colids.length;

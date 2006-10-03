@@ -184,7 +184,7 @@ public class CatMapper implements TableMapper {
         }
 
         public StarTable mapTables( InputTableSpec[] inSpecs )
-                throws IOException {
+                throws IOException, TaskException {
             int nTable = inSpecs.length;
 
             /* Get a list of the table locations. */
@@ -213,15 +213,21 @@ public class CatMapper implements TableMapper {
                     public Object next() {
                         InputTableSpec inSpec = (InputTableSpec) specIt.next();
                         final int ix = index++;
+                        Throwable error;
                         try {
                             return getTable( inSpec, ix, trimmer );
                         }
                         catch ( IOException e ) {
-                            logger_.warning( "Table load failed for \"" +
-                                             inSpec.getLocation() + "\": " +
-                                             e.getMessage() );
-                            return new EmptyStarTable();
+                            error = e;
                         }
+                        catch ( TaskException e ) {
+                            error = e;
+                        }
+                        assert error != null;
+                        logger_.warning( "Table load failed for \"" +
+                                         inSpec.getLocation() + "\": " +
+                                         error.getMessage() );
+                        return new EmptyStarTable();
                     }
                     public void remove() {
                         throw new UnsupportedOperationException();
@@ -275,7 +281,7 @@ public class CatMapper implements TableMapper {
          */
         private StarTable getTable( InputTableSpec inSpec, int index,
                                     Trimmer trimmer ) 
-                throws IOException {
+                throws IOException, TaskException {
             final StarTable inTable = inSpec.getWrappedTable();
             ColumnStarTable addTable = new ColumnStarTable( inTable ) {
                 public long getRowCount() {
