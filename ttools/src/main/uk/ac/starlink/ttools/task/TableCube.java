@@ -1,6 +1,10 @@
 package uk.ac.starlink.ttools.task;
 
+import java.util.ArrayList;
+import java.util.List;
+import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.mode.CubeMode;
 
 /**
@@ -14,9 +18,11 @@ public class TableCube extends SingleMapperTask {
     private final WordsParameter colsParam_;
 
     public TableCube() {
-        super( new TrivialMapper( 1 ), "Calculates N-dimensional histograms",
-               new CubeMode(), true, false );
+        super( "Calculates N-dimensional histograms", new CubeMode(),
+               false, true );
         CubeMode mode = (CubeMode) getOutputMode();
+        List paramList = new ArrayList();
+
         colsParam_ = new WordsParameter( "cols" );
         colsParam_.setWordUsage( "<col-id>" );
         colsParam_.setPrompt( "Space-separated list of input columns" );
@@ -31,13 +37,13 @@ public class TableCube extends SingleMapperTask {
              "data cube.",
         } );
         mode.setColumnsParameter( colsParam_ );
+        paramList.add( colsParam_ );
+
+        getParameterList().addAll( 0, paramList );
     }
 
-    public Parameter[] getParameters() {
-        Parameter[] sps = super.getParameters();
-        Parameter[] params = new Parameter[ sps.length + 1 ];
-        System.arraycopy( sps, 0, params, 0, sps.length );
-        params[ sps.length ] = colsParam_;
-        return params;
+    protected TableProducer createProducer( Environment env )
+            throws TaskException {
+        return super.createInputProducer( env );
     }
 }

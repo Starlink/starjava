@@ -8,8 +8,8 @@ package uk.ac.starlink.ttools.task;
  */
 public class TableCat2 extends FixedMapperTask {
     public TableCat2() {
-        super( new CatMapper(), "Concatenates 2 tables", 2,
-               new ChoiceMode(), true, true );
+        super( "Concatenates 2 tables", new ChoiceMode(), true,
+               new CatMapper(), 2, true );
         ((CatMapper) getMapper()).setTask( this );
     }
 }

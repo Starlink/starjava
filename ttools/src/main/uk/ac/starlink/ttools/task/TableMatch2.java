@@ -8,7 +8,7 @@ package uk.ac.starlink.ttools.task;
  */
 public class TableMatch2 extends FixedMapperTask {
     public TableMatch2() {
-        super( new Match2Mapper(), "Crossmatches 2 tables", 2,
-               new ChoiceMode(), true, true );
+        super( "Crossmatches 2 tables", new ChoiceMode(), true,
+               new Match2Mapper(), 2, true );
     }
 }
