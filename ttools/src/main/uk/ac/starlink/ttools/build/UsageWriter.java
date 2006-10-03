@@ -92,17 +92,17 @@ public class UsageWriter {
                     .replaceAll( "<", "&lt;" )
                     .replaceAll( ">", "&gt;" ) )
             .append( "</code></dt>\n" )
-            .append( "<dd><p>" )
+            .append( "<dd>" )
             .append( param.getDescription().toString() );
         String dflt = param.getDefault();
         if ( dflt != null && dflt.length() > 0 ) {
-            sbuf.append( " [Default: <code>" )
+            sbuf.append( "<p>[Default: <code>" )
                 .append( dflt.replaceAll( "&", "&amp;" )
                              .replaceAll( "<", "&lt;" )
                              .replaceAll( ">", "&gt;" ) )
-                .append( "</code>]" );
+                .append( "</code>]</p>" );
         }
-        sbuf.append( "</p></dd>" );
+        sbuf.append( "</dd>" );
         return sbuf.toString();
     }
 

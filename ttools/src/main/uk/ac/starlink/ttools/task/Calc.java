@@ -32,8 +32,9 @@ public class Calc implements Task {
         exprParam_.setUsage( "<expr>" );
         exprParam_.setPrompt( "Expression to evaluate" );
         exprParam_.setDescription( new String[] {
-            "An expression to evaluate.",
+            "<p>An expression to evaluate.",
             "The functions in <ref id='staticMethods'/> can be used.",
+            "</p>",
         } );
     }
 

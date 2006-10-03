@@ -44,7 +44,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
         streamParam_ = new BooleanParameter( "istream" + suffix );
 
         setDescription( new String[] {
-            "The location of the input table.",
+            "<p>The location of the input table.",
             "This is usually a filename or URL, and may point to a file",
             "compressed in one of the supported compression formats",
             "(Unix compress, gzip or bzip2).",
@@ -52,10 +52,11 @@ public abstract class AbstractInputTableParameter extends Parameter {
             "the input table will be read from standard input.",
             "In this case the input format must be given explicitly",
             "using the <code>" + formatParam_.getName() + "</code> parameter.",
+            "</p>",
         } );
 
         streamParam_.setDescription( new String[] {
-            "If set true, the <code>" + getName() + "</code> table",
+            "<p>If set true, the <code>" + getName() + "</code> table",
             "will be read as a stream.",
             "It is necessary to give the ",
             "<code>" + formatParam_.getName() + "</code> parameter",
@@ -68,6 +69,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
             "if that is the best thing to do.",
             "However it can sometimes result in less resource usage when",
             "processing large files in certain formats (such as VOTable).",
+            "</p>",
         } );
     }
 

@@ -50,8 +50,9 @@ public abstract class ConsumerTask implements Task {
             outFilterParam_.setPrompt( "Processing command(s) " 
                                      + "for output table" );
             outFilterParam_.setDescription( new String[] {
-                "Commands to operate on the output table,",
+                "<p>Commands to operate on the output table,",
                 "after all other processing has taken place.",
+                "</p>",
                 outFilterParam_.getDescription(),
             } );
             paramList_.add( outFilterParam_ );

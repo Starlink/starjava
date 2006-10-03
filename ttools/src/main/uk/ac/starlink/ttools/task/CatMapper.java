@@ -66,11 +66,12 @@ public class CatMapper implements TableMapper {
         seqParam_.setNullPermitted( true );
         seqParam_.setDefault( null );
         seqParam_.setDescription( new String[] {
-            "Name of a column to be added to the output table",
+            "<p>Name of a column to be added to the output table",
             "which will contain the sequence number of the input table",
             "from which each row originated.",
             "This column will contain 1 for the rows from the first",
             "concatenated table, 2 for the second, and so on.",
+            "</p>",
         } );
 
         locParam_ = new Parameter( "loccol" );
@@ -78,10 +79,11 @@ public class CatMapper implements TableMapper {
         locParam_.setNullPermitted( true );
         locParam_.setDefault( null );
         locParam_.setDescription( new String[] {
-            "Name of a column to be added to the output table",
+            "<p>Name of a column to be added to the output table",
             "which will contain the location",
             "(as specified in the input parameter(s))",
             "of the input table from which each row originated.",
+            "</p>",
         } );
 
         ulocParam_ = new Parameter( "uloccol" );
@@ -89,7 +91,7 @@ public class CatMapper implements TableMapper {
         ulocParam_.setNullPermitted( true );
         ulocParam_.setDefault( null );
         ulocParam_.setDescription( new String[] {
-            "Name of a column to be added to the output table",
+            "<p>Name of a column to be added to the output table",
             "which will contain the unique part of the location",
             "(as specified in the input parameter(s))",
             "of the input table from which each row originated.",
@@ -103,18 +105,20 @@ public class CatMapper implements TableMapper {
             "\"" + prefixParamName( "&lt;colname&gt;" ) + "\" and",
             "\"" + postfixParamName( "&lt;colname&gt;" ) + "\"",
             "with the values \"/data/cat_\" and \".fits\" respectively.",
+            "</p>",
         } );
 
         lazyParam_ = new BooleanParameter( "lazy" );
         lazyParam_.setDefault( "false" );
         lazyParam_.setDescription( new String[] {
-            "Whether to perform table resolution lazily.",
+            "<p>Whether to perform table resolution lazily.",
             "If true, each table is only accessed when the time comes to",
             "add its rows to the output; if false, then all the tables are",
             "accessed up front.  This is mostly a tuning parameter,",
             "and on the whole it doesn't matter much how it is set,",
             "but for joining an enormous number of tables setting it true",
             "may avoid running out of resources.",
+            "</p>",
         } );
     }
 

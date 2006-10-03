@@ -23,10 +23,11 @@ public class OutputTableParameter extends Parameter
         setDefault( "-" );
 
         setDescription( new String[] {
-            "The location of the output table.  This is usually a filename",
+            "<p>The location of the output table.  This is usually a filename",
             "to write to.",
             "If it is equal to the special value \"-\" (the default)",
             "the output table will be written to standard output.",
+            "</p>",
         } );
     }
 

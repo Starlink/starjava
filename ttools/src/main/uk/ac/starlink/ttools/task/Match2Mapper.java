@@ -53,7 +53,7 @@ public class Match2Mapper implements TableMapper {
             tupleParams_[ i ].setPrompt( "Expressions for match values " +
                                          "from table " + i1 );
             tupleParams_[ i ].setDescription( new String[] {
-                "Defines the values from table " + i1,
+                "<p>Defines the values from table " + i1,
                 "which are used to determine whether a match has occurred.",
                 "These will typically be coordinate values such as RA and Dec",
                 "and perhaps some per-row error values as well, though exactly",
@@ -68,6 +68,7 @@ public class Match2Mapper implements TableMapper {
                 "Elements of the expression list are commonly just column",
                 "names, but may be algebraic expressions calculated from",
                 "zero or more columns as explained in <ref id='jel'/>.",
+                "</p>",
             } );
         }
 
@@ -77,7 +78,7 @@ public class Match2Mapper implements TableMapper {
         modeParam_.setDefault( "best" );
         modeParam_.setPrompt( "Type of match to perform" );
         modeParam_.setDescription( new String[] {
-            "Determines which matches are retained.",
+            "<p>Determines which matches are retained.",
             "If <code>best</code> is selected, then only the best match",
             "between the two tables will be retained; in this case",
             "the data from a row of either input table will appear in",
@@ -85,6 +86,7 @@ public class Match2Mapper implements TableMapper {
             "If <code>all</code> is selected, then all pairs of rows",
             "from the two input tables which match the input criteria",
             "will be represented in the output table.",
+            "</p>",
         } );
 
         joinParam_ = new JoinTypeParameter( "join" );

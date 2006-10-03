@@ -63,10 +63,11 @@ public class VotCopy implements Task {
         inParam_.setUsage( "<location>" );
         inParam_.setDefault( "-" );
         inParam_.setDescription( new String[] {
-            "Location of the input VOTable.",
+            "<p>Location of the input VOTable.",
             "May be a URL, filename, or \"-\" to indicate standard input.",
             "The input table may be compressed using one of the known",
             "compression formats (Unix compress, gzip or bzip2).",
+            "</p>",
         } );
 
         outParam_ = new Parameter( "out" );
@@ -75,8 +76,9 @@ public class VotCopy implements Task {
         outParam_.setUsage( "<location>" );
         outParam_.setDefault( "-" );
         outParam_.setDescription( new String[] {
-            "Location of the output VOTable.",
+            "<p>Location of the output VOTable.",
             "May be a filename or \"-\" to indicate standard output.",
+            "</p>",
         } );
 
         formatParam_ = new VotFormatParameter( "format" );
@@ -88,10 +90,11 @@ public class VotCopy implements Task {
         cacheParam_ = new BooleanParameter( "cache" );
         cacheParam_.setPrompt( "Read data into cache before copying?" );
         cacheParam_.setDescription( new String[] {
-            "Determines whether the input tables are read into a cache",
+            "<p>Determines whether the input tables are read into a cache",
             "prior to being written out.", 
             "The default is selected automatically depending on the input",
             "table; so you should normally leave this flag alone.",
+            "</p>",
         } );
 
         hrefParam_ = new BooleanParameter( "href" );
@@ -104,7 +107,7 @@ public class VotCopy implements Task {
         baseParam_.setNullPermitted( true );
 
         hrefParam_.setDescription( new String[] {
-            "In the case of BINARY or FITS encoding, this determines",
+            "<p>In the case of BINARY or FITS encoding, this determines",
             "whether the STREAM elements output will contain their data",
             "inline or externally.",
             "If set true, the output document will be self-contained,",
@@ -115,9 +118,10 @@ public class VotCopy implements Task {
             "The name of these files is usually determined by the name",
             "of the main output file; but see also the <code>",
             baseParam_.getName() + "</code> flag.",
+            "</p>",
         } );
         baseParam_.setDescription( new String[] {
-            "Determines the name of external output files written when the",
+            "<p>Determines the name of external output files written when the",
             "<code>" + hrefParam_.getName() + "</code> flag is true.",
             "Normally these are given names based on the name of the",
             "output file.",
@@ -127,6 +131,7 @@ public class VotCopy implements Task {
             "<code>" + hrefParam_.getName() + "</code> is true",
             "and <code>out=-</code> (output is to standard out),",
             "since in this case there is no default base name to use.",
+            "</p>",
         } );
     }
 

@@ -56,8 +56,9 @@ public class HomogeneousMapperTask extends MapperTask {
             inFilterParam_.setPrompt( "Processing command(s) "
                                     + "for each input table" );
             inFilterParam_.setDescription( new String[] {
-                "Commands which will operate on each of the input tables,",
+                "<p>Commands which will operate on each of the input tables,",
                 "before any other processing takes place.",
+                "</p>",
                 inFilterParam_.getDescription(),
             } );
             paramList.add( inFilterParam_ );

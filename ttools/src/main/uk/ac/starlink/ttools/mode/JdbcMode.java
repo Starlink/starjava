@@ -34,12 +34,13 @@ public class JdbcMode implements ProcessingMode {
         protoParam_.setPrompt( "Subprotocol for JDBC connection (e.g. mysql)" );
         protoParam_.setUsage( "<jdbc-protocol>" );
         protoParam_.setDescription( new String[] {
-            "The driver-specific sub-protocol specifier for the JDBC",
+            "<p>The driver-specific sub-protocol specifier for the JDBC",
             "connection.",
             "For MySQL's Connector/J driver, this is <code>mysql</code>,",
             "and for PostgreSQL's driver it is <code>postgres</code>.",
             "For other drivers, you may have to consult the driver",
             "documentation.",
+            "</p>",
         } );
 
         hostParam_ = new Parameter( "host" );
@@ -47,24 +48,27 @@ public class JdbcMode implements ProcessingMode {
         hostParam_.setPrompt( "<hostname>" );
         hostParam_.setDefault( "localhost" );
         hostParam_.setDescription( new String[] {
-            "The host which is acting as a database server.",
+            "<p>The host which is acting as a database server.",
+            "</p>",
         } );
 
         dbParam_ = new Parameter( "database" );
         dbParam_.setPrompt( "Name of database on database server" );
         dbParam_.setUsage( "<db-name>" );
         dbParam_.setDescription( new String[] {
-            "The name of the database on the server into which the",
+            "<p>The name of the database on the server into which the",
             "new table will be written.",
+            "</p>",
         } );
 
         tableParam_ = new Parameter( "newtable" );
         tableParam_.setPrompt( "Name of new table to write to database" );
         tableParam_.setUsage( "<table-name>" );
         tableParam_.setDescription( new String[] {
-            "The name of the new table which will be written to the",
+            "<p>The name of the new table which will be written to the",
             "database.",
             "If a table by this name already exists, it may be overwritten.",
+            "</p>",
         } );
 
         userParam_ = new Parameter( "user" ); 
@@ -79,7 +83,8 @@ public class JdbcMode implements ProcessingMode {
             // no default - OK
         }
         userParam_.setDescription( new String[] {
-            "User name for the SQL connection to the database.",
+            "<p>User name for the SQL connection to the database.",
+            "</p>",
         } );
 
         passwdParam_ = new Parameter( "password" );
@@ -88,7 +93,8 @@ public class JdbcMode implements ProcessingMode {
         passwdParam_.setNullPermitted( true );
         passwdParam_.setPreferExplicit( true );
         passwdParam_.setDescription( new String[] { 
-            "Password for the SQL connection to the database.",
+            "<p>Password for the SQL connection to the database.",
+            "</p>",
         } );
     }
 

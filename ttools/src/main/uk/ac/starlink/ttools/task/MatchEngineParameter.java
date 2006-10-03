@@ -49,7 +49,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         setUsage( "<matcher-name>" );
         setPrompt( "Name of matching algorithm" );
         setDescription( new String[] {
-            "Defines the nature of the matching that will be performed.",
+            "<p>Defines the nature of the matching that will be performed.",
             "Depending on the name supplied, this may be positional",
             "matching using celestial or Cartesian coordinates,",
             "exact matching on the value of a string column,",
@@ -60,17 +60,19 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "of the values required by the ",
             "<code>" + paramsParam_.getName() + "</code>,",
             "<code>values1</code> and <code>values2</code> parameters.",
+            "</p>",
         } );
 
         paramsParam_.setPrompt( "Match parameters" );
         paramsParam_.setDescription( new String[] {
-            "Determines the parameters of this match.",
+            "<p>Determines the parameters of this match.",
             "This is typically one or more tolerances such as error radii.",
             "It may contain zero or more values; the values that are",
             "required depend on the match type selected by the",
             "<code>" + getName() + "</code> parameter.",
             "If it contains multiple values, they must be separated by spaces;",
             "values which contain a space can be 'quoted' or \"quoted\".",
+            "</p>",
         } );
         paramsParam_.setUsage( "<match-params>" );
     }

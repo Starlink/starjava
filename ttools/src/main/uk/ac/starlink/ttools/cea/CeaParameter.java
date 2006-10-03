@@ -166,5 +166,8 @@ class CeaParameter {
         int dot1 = description_.indexOf( '.' );
         description_ = dot1 > 0 ? description_.substring( 0, dot1 + 1 )
                                 : description_;
+        if ( description_.startsWith( "<p>" ) ) {
+            description_ = description_.substring( 3 );
+        }
     }
 }

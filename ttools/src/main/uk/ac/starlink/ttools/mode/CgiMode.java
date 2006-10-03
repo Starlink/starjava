@@ -30,9 +30,10 @@ public class CgiMode implements ProcessingMode {
         formatParam_.setDefault( "votable" );
         formatParam_.setNullPermitted( false );
         formatParam_.setDescription( new String[] {
-            "Specifies the format in which the output table will be written",
+            "<p>Specifies the format in which the output table will be written",
             "(one of the ones in <ref id='outFormats'/> - matching is",
             "case-insensitive and you can use just the first few letters).",
+            "</p>",
         } );
     }
 

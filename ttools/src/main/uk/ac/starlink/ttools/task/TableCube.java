@@ -27,14 +27,16 @@ public class TableCube extends SingleMapperTask {
         colsParam_.setWordUsage( "<col-id>" );
         colsParam_.setPrompt( "Space-separated list of input columns" );
         colsParam_.setDescription( new String[] {
-            "Columns to use for this task.",
+            "<p>Columns to use for this task.",
             "One or more <code>&lt;col-id&gt;</code> elements, ",
             "separated by spaces, should be given.",
             "Each one represents a column in the table, using either its",
             "name or index.",
-             "The number of columns listed in the value of this",
-             "parameter defines the dimensionality of the output",
-             "data cube.",
+            "</p>",
+            "<p>The number of columns listed in the value of this",
+            "parameter defines the dimensionality of the output",
+            "data cube.",
+            "</p>",
         } );
         mode.setColumnsParameter( colsParam_ );
         paramList.add( colsParam_ );

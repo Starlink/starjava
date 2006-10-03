@@ -33,10 +33,11 @@ public class OutputStreamParameter extends Parameter {
         setPreferExplicit( true );
 
         setDescription( new String[] {
-            "The location of the output file.  This is usually a filename",
+            "<p>The location of the output file.  This is usually a filename",
             "to write to.",
             "If it is equal to the special value \"-\"",
             "the output will be written to standard output.",
+            "</p>",
         } );
     }
 

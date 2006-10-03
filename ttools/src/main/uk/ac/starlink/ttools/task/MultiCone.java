@@ -63,14 +63,16 @@ public class MultiCone extends SingleMapperTask {
         urlParam_ = new Parameter( "serviceurl" );
         urlParam_.setPrompt( "Base URL for query returning VOTable" );
         urlParam_.setDescription( new String[] {
-            "The base part of a URL which defines the queries to be made.",
+            "<p>The base part of a URL which defines the queries to be made.",
             "Additional parameters will be appended to this using CGI syntax",
             "(\"<code>name=value</code>\", separated by '&amp;' characters).",
             "If this value does not end in either a '?' or a '&amp;',",
             "one will be added as appropriate.",
-            "Note that the <ref id='regquery'><code>regquery</code></ref>",
+            "</p>",
+            "<p>Note that the <ref id='regquery'><code>regquery</code></ref>",
             "command can be used to locate the service URL for cone search",
             "services.",
+            "</p>",
         } );
         paramList.add( urlParam_ );
 
@@ -78,11 +80,12 @@ public class MultiCone extends SingleMapperTask {
         raParam_.setUsage( "<expr>" );
         raParam_.setPrompt( "Right Ascension expression in degrees (J2000)" );
         raParam_.setDescription( new String[] {
-            "Expression which evaluates to the right ascension in degrees",
+            "<p>Expression which evaluates to the right ascension in degrees",
             "in the J2000 coordinate system",
             "for the request at each row of the input table.",
             "This will usually be the name or ID of a column in the",
             "input table, or a function involving one.",
+            "</p>",
         } );
         paramList.add( raParam_ );
 
@@ -90,11 +93,12 @@ public class MultiCone extends SingleMapperTask {
         decParam_.setUsage( "<expr>" );
         decParam_.setPrompt( "Declination expression in degrees (J2000)" );
         decParam_.setDescription( new String[] {
-            "Expression which evaluates to the declination in degrees",
+            "<p>Expression which evaluates to the declination in degrees",
             "in the J2000 coordinate system",
             "for the request at each row of the input table.",
             "This will usually be the name or ID of a column in the",
             "input table, or a function involving one.",
+            "</p>",
         } );
         paramList.add( decParam_ );
 
@@ -102,11 +106,12 @@ public class MultiCone extends SingleMapperTask {
         srParam_.setUsage( "<expr>" );
         srParam_.setPrompt( "Search radius in degrees" );
         srParam_.setDescription( new String[] {
-            "Expression which evaluates to the search radius in degrees",
+            "<p>Expression which evaluates to the search radius in degrees",
             "for the request at each row of the input table.",
             "This will often be a constant numerical value, but may be",
             "the name or ID of a column in the input table,",
             "or a function involving one.",
+            "</p>",
         } );
         paramList.add( srParam_ );
 
@@ -115,9 +120,10 @@ public class MultiCone extends SingleMapperTask {
         verbParam_.setNullPermitted( true );
         verbParam_.setPrompt( "Verbosity level of search responses (1..3)" );
         verbParam_.setDescription( new String[] {
-            "Verbosity level of the tables returned by the query service.",
+            "<p>Verbosity level of the tables returned by the query service.",
             "A value of 1 indicates the bare minimum and",
             "3 indicates all available information.",
+            "</p>",
         } );
         paramList.add( verbParam_ );
 
@@ -126,13 +132,14 @@ public class MultiCone extends SingleMapperTask {
         copycolsParam_.setNullPermitted( true );
         copycolsParam_.setPrompt( "Columns to be copied from input table" );
         copycolsParam_.setDescription( new String[] {
-            "List of columns from the input table which are to be copied",
+            "<p>List of columns from the input table which are to be copied",
             "to the output table.",
             "Each column identified here will be prepended to the",
             "columns of the combined output table,",
             "and its value for each row taken from the input table row",
             "which provided the parameters of the query which produced it.",
             "See <ref id='colid-list'/> for list syntax.",
+            "</p>",
         } );
         paramList.add( copycolsParam_ );
 
@@ -141,7 +148,7 @@ public class MultiCone extends SingleMapperTask {
         zmetaParam_.setPrompt( "Acquire service metadata using initial "
                              + "SR=0 query?" );
         zmetaParam_.setDescription( new String[] {
-            "Determines where the metadata for the output table comes from.",
+            "<p>Determines where the metadata for the output table comes from.",
             "If true, an initial query is made to the service",
             "with search radius set to zero.  Cone search services are",
             "supposed to respond to such requests with a metadata-only",
@@ -153,6 +160,7 @@ public class MultiCone extends SingleMapperTask {
             "The default setting of false instead picks up the metadata",
             "from the first non-empty data request.  This is less likely",
             "to fail, but doesn't stream data so well on output.",
+            "</p>",
         } );
         paramList.add( zmetaParam_ );
 
@@ -161,7 +169,7 @@ public class MultiCone extends SingleMapperTask {
         forceParam_.setPrompt( "Continue connection attempts "
                              + "even after errors?" );
         forceParam_.setDescription( new String[] {
-            "Controls whether a workaround is used for services with broken",
+            "<p>Controls whether a workaround is used for services with broken",
             "metadata requests.",
             "Normally, before performing the main queries, an initial",
             "query is made to the service with search radius zero,",
@@ -173,6 +181,7 @@ public class MultiCone extends SingleMapperTask {
             "If this parameter is set <code>true</code> then even if the",
             "initial query fails, the task will continue to attempt the",
             "data queries.",
+            "</p>",
         } );
         paramList.add( forceParam_ );
 

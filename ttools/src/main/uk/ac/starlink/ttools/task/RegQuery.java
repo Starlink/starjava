@@ -36,7 +36,7 @@ public class RegQuery extends ConsumerTask {
         queryParam_ = new Parameter( "query" );
         queryParam_.setPrompt( "Text of registry query" );
         queryParam_.setDescription( new String[] {
-            "Text of an SQL WHERE clause defining which resource records",
+            "<p>Text of an SQL WHERE clause defining which resource records",
             "you wish to retrieve from the registry.",
             "Some examples are:",
             "<ul>",
@@ -48,7 +48,8 @@ public class RegQuery extends ConsumerTask {
             "The special value \"ALL\" will attempt to retrieve all the",
             "records in the registry",
             "(though this is not necessarily a sensible thing to do).",
-            "A full description of SQL syntax is beyond the scope of this",
+            "</p>",
+            "<p>A full description of SQL syntax is beyond the scope of this",
             "documentation, but in general you want to use",
             "<code>&lt;field-name&gt; like '&lt;value&gt;</code>",
             "where '<code>%</code>' is a wildcard character.",
@@ -57,6 +58,7 @@ public class RegQuery extends ConsumerTask {
             "You can find the various <code>&lt;field-name&gt;</code>s",
             "by executing one of the queries above and looking at the",
             "column names in the returned table.",
+            "</p>",
         } );
         paramList.add( queryParam_ );
 
@@ -64,8 +66,9 @@ public class RegQuery extends ConsumerTask {
         urlParam_.setPrompt( "URL of registry service" );
         urlParam_.setDefault( RegistryInterrogator.DEFAULT_URL.toString() );
         urlParam_.setDescription( new String[] {
-            "The URL of a SOAP endpoint which provides suitable",
+            "<p>The URL of a SOAP endpoint which provides suitable",
             "registry query services.",
+            "</p>",
         } );
         paramList.add( urlParam_ );
 

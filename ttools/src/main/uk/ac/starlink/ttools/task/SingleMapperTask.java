@@ -48,8 +48,9 @@ public abstract class SingleMapperTask extends ConsumerTask {
             inFilterParam_ = new FilterParameter( "icmd" );
             inFilterParam_.setPrompt( "Processing command(s) for input table" );
             inFilterParam_.setDescription( new String[] {
-                "Commands to operate on the input table,",
+                "<p>Commands to operate on the input table,",
                 "before any other processing takes place.",
+                "</p>",
                 inFilterParam_.getDescription(),
             } );
             paramList.add( inFilterParam_ );

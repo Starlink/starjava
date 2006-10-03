@@ -26,15 +26,24 @@ public class FilterParameter extends Parameter
         setUsage( "<cmds>" );
         setNullPermitted( true );
 
+        String indir = String.valueOf( LineEnvironment.INDIRECTION_CHAR );
         setDescription( new String[] {
-            "The value of this parameter is one or more of the filter commands",
-            "described in <ref id=\"filterSteps\"/>.",
+            "<p>The value of this parameter is one or more of the filter",
+            "commands described in <ref id=\"filterSteps\"/>.",
             "If more than one is given, they must be separated by",
             "semicolon characters (\";\").",
             "This parameter can be repeated multiple times on the same",
             "command line to build up a list of processing steps.",
             "The sequence of commands given in this way",
             "defines the processing pipeline which is performed on the table.",
+            "</p>",
+            "<p>Commands may alteratively be supplied in an external file,",
+            "by using the indirection character '" + indir + "'.",
+            "Thus \"<code>" + getName() + "=" + indir + "filename</code>\"",
+            "causes the file <code>filename</code> to be read for a list",
+            "of filter commands to execute.  The commands in the file",
+            "may be separated by newline characters and/or semicolons.",
+            "</p>",
         } );
     }
 

@@ -38,7 +38,7 @@ public class JoinTypeParameter extends ChoiceParameter {
                  .append( "</li>\n" );
         }
         setDescription( new String[] {
-            "Determines which rows are included in the output table.",
+            "<p>Determines which rows are included in the output table.",
             "The matching algorithm determines which of the rows from",
             "the first table correspond to which rows from the second.",
             "This parameter determines what to do with that information.",
@@ -52,6 +52,7 @@ public class JoinTypeParameter extends ChoiceParameter {
             "<ul>",
             items.toString(),
             "</ul>",
+            "</p>",
         } );
         setUsage( "<join-type>" );
     }

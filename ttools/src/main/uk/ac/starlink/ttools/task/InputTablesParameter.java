@@ -30,25 +30,37 @@ public class InputTablesParameter extends AbstractInputTableParameter
         super( name );
         setUsage( "<table> ..." );
 
+        String indir = String.valueOf( LineEnvironment.INDIRECTION_CHAR );
         setDescription( new String[] {
-            "Locations of the input tables.",
+            "<p>Locations of the input tables.",
             "Either specify the parameter multiple times, or supply the",
             "input tables as a space-separated list within a single use.",
             "Each table location may be a filename or URL, and may point",
             "to data compressed in one of the supported compression formats",
             "(Unix compress, gzip or bzip2).",
+            "</p>",
+            "<p>A list of input table locations may be given in an external",
+            "file by using the indirction character '" + indir + "'.",
+            "'" + LineEnvironment.INDIRECTION_CHAR + "'.",
+            "Thus \"<code>" + getName() + "=" + indir + "filename</code>\"",
+            "causes the file <code>filename</code> to be read for a list",
+            "of input table locations.  The locations in the file should",
+            "each be on a separate line.",
+            "</p>",
         } );
 
         getStreamParameter().setDescription( new String[] {
             getStreamParameter().getDescription(),
-            "The same streaming flag applies to all the tables specified by",
+            "<p>The same streaming flag applies to all the tables specified by",
             "<code>" + getName() + "</code>.",
+            "</p>",
         } );
 
         getFormatParameter().setDescription( new String[] {
             getFormatParameter().getDescription(),
-            "The same format parameter applies to all the tables specified by",
-            "<code>" + getName() + "</code>.",
+            "<p>The same format parameter applies to all the tables",
+            "specified by <code>" + getName() + "</code>.",
+            "</p>",
         } );
     }
 

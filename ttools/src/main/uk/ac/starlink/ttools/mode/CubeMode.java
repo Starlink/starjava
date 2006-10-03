@@ -51,7 +51,7 @@ public class CubeMode implements ProcessingMode {
         boundsParam_.setWordUsage( "[<lo>]:[<hi>]" );
         boundsParam_.setPrompt( "Data bounds for each dimension" );
         boundsParam_.setDescription( new String[] {
-           "Gives the bounds for each dimension of the cube in data",
+           "<p>Gives the bounds for each dimension of the cube in data",
            "coordinates.  The form of the value is a space-separated list",
            "of words, each giving an optional lower bound, then a colon,",
            "then an optional upper bound, for instance",
@@ -63,10 +63,12 @@ public class CubeMode implements ProcessingMode {
            "range of the data in the table.",
            "A null value for the parameter indicates that all bounds should",
            "be determined automatically for all the dimensions.",
-           "If any of the bounds need to be determined automatically",
+           "</p>",
+           "<p>If any of the bounds need to be determined automatically",
            "in this way, two passes through the data will be required,",
            "the first to determine bounds and the second",
            "to populate the cube.",
+           "</p>",
         } );
 
         binsizeParam_ = new WordsParameter( "binsizes" );
@@ -74,12 +76,13 @@ public class CubeMode implements ProcessingMode {
         binsizeParam_.setWordUsage( "<size>" );
         binsizeParam_.setPrompt( "Extent of bins in each dimension" );
         binsizeParam_.setDescription( new String[] {
-            "Gives the extent of of the data bins (cube pixels) in each",
+            "<p>Gives the extent of of the data bins (cube pixels) in each",
             "dimension in data coordinates.",
             "The form of the value is a space-separated list of values,",
             "giving a list of extents for the first, second, ... dimension.",
             "Either this parameter or the <code>nbins</code> parameter",
             "must be supplied.",
+            "</p>",
         } );
     
         nbinParam_ = new WordsParameter( "nbins" );
@@ -88,31 +91,37 @@ public class CubeMode implements ProcessingMode {
         nbinParam_.setNullPermitted( true );
         nbinParam_.setPrompt( "Number of bins in each dimension" );
         nbinParam_.setDescription( new String[] {
-            "Gives the number of bins (cube pixels) in each dimension.",
+            "<p>Gives the number of bins (cube pixels) in each dimension.",
             "The form of the value is a space-separated list of integers,",
             "giving the number of pixels for the output cube in the",
             "first, second, ... dimension.",
             "Either this parameter or the <code>binsizes</code> parameter",
             "must be supplied.",
+            "</p>",
         } );
 
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPrompt( "Location of output FITS file" );
-        outParam_.setDescription( outParam_.getDescription() + "\n" +
-            "The output cube is currently written as a single-HDU FITS file." );
+        outParam_.setDescription( new String[] {
+            outParam_.getDescription(),
+            "<p>The output cube is currently written as",
+            "a single-HDU FITS file.",
+            "</p>",
+        } );
 
         typeParam_ = new ChoiceParameter( "otype", OUT_TYPES );
         typeParam_.setNullPermitted( true );
         typeParam_.setDefault( null );
         typeParam_.setPrompt( "Type of output array elements" );
         typeParam_.setDescription( new String[] {
-            "The type of numeric value which will fill the output array.",
+            "<p>The type of numeric value which will fill the output array.",
             "If no selection is made, the output type will be",
             "determined automatically as the shortest type required to hold",
             "all the values in the array.",
             "Currently, integers are always signed (no BSCALE/BZERO),",
             "so for instance the largest value that can be recorded",
             "in 8 bits is 127.",
+            "</p>",
         } );
 
         scaleParam_ = new Parameter( "scale" );
@@ -121,7 +130,7 @@ public class CubeMode implements ProcessingMode {
         scaleParam_.setDefault( null );
         scaleParam_.setPrompt( "Value by which to scale counts" );
         scaleParam_.setDescription( new String[] {
-            "Optionally gives a value by which the count in each bin is",
+            "<p>Optionally gives a value by which the count in each bin is",
             "scaled.",
             "If this value is <code>null</code> (the default) then for each",
             "row that falls within the bounds of a pixel, the pixel value",
@@ -131,6 +140,7 @@ public class CubeMode implements ProcessingMode {
             "The effect of this is that the output image contains the mean",
             "of the given column for the rows corresponding to each pixel",
             "rather than just a count of them.",
+            "</p>",
         } );
     }
 

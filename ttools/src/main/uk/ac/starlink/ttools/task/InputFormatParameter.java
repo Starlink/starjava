@@ -24,7 +24,7 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
         setDefault( StarTableFactory.AUTO_HANDLER );
 
         setDescription( new String[] {
-            "Specifies the format of the input table",
+            "<p>Specifies the format of the input table",
             "(one of the known formats listed in <ref id='inFormats'/>).",
             "This flag can be used if you know what format your input",
             "table is in.",
@@ -35,6 +35,7 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
             "This cannot always be done correctly however, in which case",
             "the program will exit with an error explaining which",
             "formats were attempted.",
+            "</p>",
         } );
     }
 

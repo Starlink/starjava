@@ -70,8 +70,9 @@ public class FixedMapperTask extends MapperTask {
                 inFilterParams_[ i ] = fp;
                 fp.setPrompt( "Processing command(s) for input table " + i1 );
                 fp.setDescription( new String[] {
-                    "Commands to operate on the " + getOrdinal( i1 ),
+                    "<p>Commands to operate on the " + getOrdinal( i1 ),
                     "input table, before any other processing takes place.",
+                    "</p>",
                     fp.getDescription(),
                 } );
                 paramList.add( fp );

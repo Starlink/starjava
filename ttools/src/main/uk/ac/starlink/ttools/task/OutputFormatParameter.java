@@ -21,7 +21,7 @@ public class OutputFormatParameter extends Parameter
         setNullPermitted( false );
 
         setDescription( new String[] {
-            "Specifies the format in which the output table will be written",
+            "<p>Specifies the format in which the output table will be written",
             "(one of the ones in <ref id='outFormats'/> - matching is",
             "case-insensitive and you can use just the first few letters).",
             "If it has the special value",
@@ -32,6 +32,7 @@ public class OutputFormatParameter extends Parameter
             "usually by looking at the extension.",
             "If it's not obvious from the filename what output format is",
             "intended, an error will result.",
+            "</p>",
         } );
     }
 

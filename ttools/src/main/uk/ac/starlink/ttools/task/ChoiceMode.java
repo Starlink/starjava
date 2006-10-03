@@ -101,9 +101,10 @@ public class ChoiceMode implements ProcessingMode {
         for ( int i = 0; i < resultParams.length; i++ ) {
             resultParams[ i ].setDescription( new String[] {
                 resultParams[ i ].getDescription(),
-                "This parameter must only be given if",
+                "<p>This parameter must only be given if",
                 "<code>" + modeParam.getName() + "</code>",
                 "has its default value of \"<code>" + modeName + "</code>\".",
+                "</p>",
             } );
         }
         return resultParams;

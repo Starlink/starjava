@@ -27,10 +27,11 @@ public class XmlEncodingParameter extends Parameter
         setNullPermitted( true );
 
         setDescription( new String[] {
-            "Selects the Unicode encoding used for the output XML.",
+            "<p>Selects the Unicode encoding used for the output XML.",
             "The available options and default are dependent on your JVM,",
             "but the default probably corresponds to UTF-8.",
             "Use <code>help=" + getName() + "</code> for a full listing.",
+            "</p>",
         } );
     }
 

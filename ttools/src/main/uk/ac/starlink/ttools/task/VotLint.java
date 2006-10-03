@@ -40,18 +40,20 @@ public class VotLint implements Task {
         inParam_.setPosition( 1 );
         inParam_.setPrompt( "VOTable location" );
         inParam_.setDescription( new String[] {
-            "Location of the VOTable to be checked.",
+            "<p>Location of the VOTable to be checked.",
             "This may be a filename, URL or \"-\" (the default),", 
             "to indicate standard input.",
             "The input may be compressed using one of the known",
             "compression formats (Unix compress, gzip or bzip2).",
+            "</p>",
         } );
 
         validParam_ = new BooleanParameter( "validate" );
         validParam_.setDefault( true );
         validParam_.setPrompt( "Validate against VOTable DTD?" );
         validParam_.setDescription( new String[] {
-            "Whether to validate the input document aganist the VOTable DTD.",
+            "<p>Whether to validate the input document aganist",
+            "the VOTable DTD.",
             "If true (the default), then as well as",
             "<code>votlint</code>'s own checks,",
             "it is validated against an appropriate version of the VOTable",
@@ -65,6 +67,7 @@ public class VotLint implements Task {
             "own checks are performed.",
             "In this case many violations of the VOTable standard",
             "concerning document structure will go unnoticed.",
+            "</p>",
         } );
 
         versionParam_ = new ChoiceParameter( "version",
@@ -72,13 +75,14 @@ public class VotLint implements Task {
         versionParam_.setNullPermitted( true );
         versionParam_.setPrompt( "VOTable standard version" );
         versionParam_.setDescription( new String[] {
-            "Selects the version of the VOTable standard which the input",
+            "<p>Selects the version of the VOTable standard which the input",
             "table is supposed to exemplify.",
             "Currently the version can be 1.0 or 1.1.",
             "The version may also be specified within the document",
             "using the \"version\" attribute of the document's VOTABLE",
             "element; if it is and it conflicts with the value specified",
             "by this flag, a warning is issued.",
+            "</p>",
         } );
 
         outParam_ = new OutputStreamParameter( "out" );
@@ -87,8 +91,9 @@ public class VotLint implements Task {
         outParam_.setDefault( "-" );
         outParam_.setPreferExplicit( false );
         outParam_.setDescription( new String[] {
-            "Destination file for output messages.",
+            "<p>Destination file for output messages.",
             "May be a filename or \"-\" to indicate standard output.",
+            "</p>",
         } );
     }
 

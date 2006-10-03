@@ -74,7 +74,7 @@ public class PlasticMode implements ProcessingMode {
     public PlasticMode() {
         transportParam_ = new ChoiceParameter( "transport", TRANSPORTS );
         transportParam_.setDescription( new String[] {
-            "Determines the method (PLASTIC <em>message</em>) used",
+            "<p>Determines the method (PLASTIC <em>message</em>) used",
             "to perform the PLASTIC communication.  The choices are",
             "<ul>",
             "<li><code>string</code>:",
@@ -90,18 +90,20 @@ public class PlasticMode implements ProcessingMode {
             "</ul>",
             "If no value is set (<code>null</code>) then a decision will",
             "be taken based on the apparent size of the table.",
+            "</p>",
         } );
         transportParam_.setNullPermitted( true );
         transportParam_.setPrompt( "PLASTIC transport mechanism" );
 
         clientParam_ = new Parameter( "client" );
         clientParam_.setDescription( new String[] {
-            "Gives the name of a PLASTIC listener application which is to",
+            "<p>Gives the name of a PLASTIC listener application which is to",
             "receive the broadcast table.",
             "If a non-null value is given, then only the first registered",
             "application which reports its application name as that value",
             "will receive the message.  If no value is supplied, the",
             "broadcast will be to all listening applications.",
+            "</p>",
         } );
         clientParam_.setNullPermitted( true );
         clientParam_.setPrompt( "Recipient application" );
