@@ -15,7 +15,7 @@ import uk.ac.starlink.task.TaskException;
 public class InputTablesParameter extends AbstractInputTableParameter
                                   implements MultiParameter {
 
-    private StarTable[] tables_;
+    private TableProducer[] tables_;
     private String[] locs_;
 
     private static final Logger logger_ =
@@ -62,18 +62,21 @@ public class InputTablesParameter extends AbstractInputTableParameter
      * @param  env  execution environment
      * @return   array of input tables
      */
-    public StarTable[] tablesValue( Environment env ) throws TaskException {
+    public TableProducer[] tablesValue( final Environment env )
+            throws TaskException {
         checkGotValue( env );
         if ( tables_ == null ) {
             String[] locs = stringsValue( env );
             int nloc = locs.length;
-            StarTable[] tables = new StarTable[ nloc ];
+            TableProducer[] tables = new TableProducer[ nloc ];
             for ( int i = 0; i < nloc; i++ ) {
-                logger_.config( "Input table " + i + "/" + nloc + " "
-                              + locs[ i ] );
-                tables[ i ] = makeTable( env, locs[ i ] );
+                final String loc = locs[ i ];
+                tables[ i ] = new TableProducer() {
+                    public StarTable getTable() throws TaskException {
+                        return makeTable( env, loc );
+                    }
+                };
             }
-            locs_ = locs;
             tables_ = tables;
         }
         return tables_;
@@ -107,12 +110,12 @@ public class InputTablesParameter extends AbstractInputTableParameter
      *
      * @param  tables  input table array
      */
-    public void setValueFromTables( StarTable[] tables ) {
+    public void setValueFromTables( TableProducer[] tables ) {
         tables_ = tables;
         locs_ = new String[ tables.length ];
         StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < tables.length; i++ ) {
-            locs_[ i ] = tables[ i ].getName();
+            locs_[ i ] = "table_" + ( i + 1 );
             if ( i > 0 ) {
                 sbuf.append( ' ' );
             }
