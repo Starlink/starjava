@@ -51,14 +51,16 @@ public class ColumnSelectionMapper implements TableMapper {
     public TableMapping createMapping( Environment env ) throws TaskException {
         final String[] colids = colsParam_.wordsValue( env );
         return new TableMapping() {
-            public StarTable mapTables( StarTable[] in ) throws IOException {
-                ColumnIdentifier colIdent = new ColumnIdentifier( in[ 0 ] );   
+            public StarTable mapTables( InputTableSpec[] inSpecs )
+                    throws IOException {
+                StarTable in = inSpecs[ 0 ].getWrappedTable();
+                ColumnIdentifier colIdent = new ColumnIdentifier( in );   
                 int ncol = colids.length;
                 int[] colMap = new int[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     colMap[ icol ] = colIdent.getColumnIndex( colids[ icol ] );
                 }
-                return new ColumnPermutedStarTable( in[ 0 ], colMap );
+                return new ColumnPermutedStarTable( in, colMap );
             }
         };
     }

@@ -16,8 +16,9 @@ public interface TableMapping {
     /**
      * Perform table mapping.
      *
-     * @param  in  table sources
-     * @param  out  table sinks
+     * @param  in  input tables
+     * @return   result of processing input tables
      */
-    StarTable mapTables( StarTable[] in ) throws IOException, TaskException;
+    StarTable mapTables( InputTableSpec[] in )
+           throws IOException, TaskException;
 }

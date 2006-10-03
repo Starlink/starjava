@@ -52,11 +52,7 @@ public abstract class MapperTask extends ConsumerTask {
         final TableMapping mapping = mapper_.createMapping( env );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
-                StarTable[] inTables = new StarTable[ inSpecs.length ];
-                for ( int i = 0; i < inSpecs.length; i++ ) {
-                    inTables[ i ] = inSpecs[ i ].getWrappedTable();
-                }
-                return mapping.mapTables( inTables );
+                return mapping.mapTables( inSpecs );
             }
         };
     }

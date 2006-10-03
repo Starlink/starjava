@@ -190,8 +190,10 @@ public class Match2Mapper implements TableMapper {
             logStrm_ = logStrm;
         }
 
-        public StarTable mapTables( StarTable[] inTables )
+        public StarTable mapTables( InputTableSpec[] inSpecs )
                 throws IOException, TaskException {
+            StarTable[] inTables = { inSpecs[ 0 ].getWrappedTable(), 
+                                     inSpecs[ 1 ].getWrappedTable(), };
 
             /* Attempt to create the tables containing the tuples with which
              * the match will be done.  This is a dry run, intended to
