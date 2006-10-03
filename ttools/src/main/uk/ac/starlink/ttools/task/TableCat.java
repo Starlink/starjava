@@ -10,6 +10,5 @@ public class TableCat extends HomogeneousMapperTask {
     public TableCat() {
         super( "Concatenates multiple tables", new ChoiceMode(), true,
                new CatMapper(), true );
-        ((CatMapper) getMapper()).setTask( this );
     }
 }
