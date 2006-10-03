@@ -65,14 +65,7 @@ public class InputTablesParameter extends AbstractInputTableParameter
     public StarTable[] tablesValue( Environment env ) throws TaskException {
         checkGotValue( env );
         if ( tables_ == null ) {
-            String locset = stringValue( env );
-            String[] locs;
-            if ( locset.indexOf( getValueSeparator() ) >= 0 ) {
-                locs = locset.split( "\\" + getValueSeparator() );
-            }
-            else {
-                locs = locset.trim().split( " +" );
-            }
+            String[] locs = stringsValue( env );
             int nloc = locs.length;
             StarTable[] tables = new StarTable[ nloc ];
             for ( int i = 0; i < nloc; i++ ) {
@@ -94,7 +87,18 @@ public class InputTablesParameter extends AbstractInputTableParameter
      * @return   input table locations
      */
     public String[] stringsValue( Environment env ) throws TaskException {
-        tablesValue( env );
+        checkGotValue( env );
+        if ( locs_ == null ) {
+            String locset = stringValue( env );
+            String[] locs;
+            if ( locset.indexOf( getValueSeparator() ) >= 0 ) {
+                locs = locset.split( "\\" + getValueSeparator() );
+            }
+            else {
+                locs = locset.trim().split( " +" );
+            }
+            locs_ = locs;
+        }
         return locs_;
     }
 
