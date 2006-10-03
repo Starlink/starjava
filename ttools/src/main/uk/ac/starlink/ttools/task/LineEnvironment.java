@@ -1,9 +1,16 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
@@ -30,6 +37,7 @@ public class LineEnvironment extends TableEnvironment {
     private List acquiredValues_ = new ArrayList();
 
     private static final String NULL_STRING = "";
+    public static final char INDIRECTION_CHAR = '@';
 
     /**
      * Initializes the input data for this environment from a list of
@@ -107,26 +115,52 @@ public class LineEnvironment extends TableEnvironment {
      * @param   param  parameter to locate
      * @return  string value for <tt>param</tt>
      */
-    private String findValue( Parameter param ) {
+    private String findValue( Parameter param ) throws TaskException {
 
         /* If it's a multiparameter, concatenate all the appearances
          * on the command line. */
         if ( param instanceof MultiParameter ) {
             char separator = ((MultiParameter) param).getValueSeparator();
-            StringBuffer val = new StringBuffer();
-            int igot = 0;
+            List valueList = new ArrayList();
             for ( int i = 0; i < arguments_.length; i++ ) {
                 Argument arg = arguments_[ i ];
                 if ( param.getName().equals( arg.name_ ) ||
                      ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) ) {
                     arg.used_ = true;
-                    if ( igot++ > 0 ) {
-                        val.append( separator );
-                    }
-                    val.append( arg.value_ );
+                    valueList.add( arg.value_ );
                 }
             }
-            if ( igot > 0 ) {
+            if ( valueList.size() == 1 ) {
+                String value = (String) valueList.get( 0 );
+                if ( value.charAt( 0 ) == INDIRECTION_CHAR ) {
+                    String[] lines;
+                    try { 
+                        lines = readLines( value.substring( 1 ) );
+                    }
+                    catch ( IOException e ) {
+                        throw new TaskException( e.getMessage(), e );
+                    }
+                    StringBuffer val = new StringBuffer();
+                    for ( int i = 0; i < lines.length; i++ ) {
+                        if ( i > 0 ) {
+                            val.append( separator );
+                        }
+                        val.append( lines[ i ].trim() );
+                    }
+                    return val.toString();
+                }
+                else {
+                    return value;
+                }
+            }
+            else if ( valueList.size() > 1 ) {
+                StringBuffer val = new StringBuffer();
+                for ( Iterator it = valueList.iterator(); it.hasNext(); ) {
+                    val.append( (String) it.next() );
+                    if ( it.hasNext() ) {
+                        val.append( separator );
+                    }
+                }
                 return val.toString();
             }
         }
@@ -412,6 +446,28 @@ public class LineEnvironment extends TableEnvironment {
         else {
             return sval;
         }
+    }
+
+    /**
+     * Reads a file, providing the result as an array of lines.
+     *
+     * @param   location  filename
+     * @return   array of lines from <code>location</code>
+     */
+    private static String[] readLines( String location ) throws IOException {
+        InputStream istrm = new FileInputStream( new File( location ) );
+        BufferedReader rdr = 
+           new BufferedReader( new InputStreamReader( istrm ) );
+        List lineList = new ArrayList();
+        try {
+            for ( String line; ( line = rdr.readLine() ) != null; ) {
+                lineList.add( line );
+            }
+        }
+        finally {
+            rdr.close();
+        }
+        return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
     /**
