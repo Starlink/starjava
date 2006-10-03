@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   Release 3.5-5
+   =============
+
+   When deleting spectra in the global list the selection now remains
+   set at the next spectrum in the list (rather than selecting the
+   first spectrum).
+
    Release 3.5-4
    =============
 
