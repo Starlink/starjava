@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +15,7 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
  * @author   Mark Taylor
  * @since    14 Sep 2006
  */
-public class SingleMapperTask extends MapperTask {
+public abstract class SingleMapperTask extends ConsumerTask {
 
     private final InputTableParameter inTableParam_;
     private final FilterParameter inFilterParam_;
@@ -22,18 +23,15 @@ public class SingleMapperTask extends MapperTask {
     /**
      * Constructor.
      *
-     * @param   mapper   object which defines mapping transformation
      * @param   purpose  one-line description of the purpose of the task
      * @param   outMode  processing mode which determines the destination of
      *          the processed table
-     * @param   useInFilter  allow specification of filters for input table
      * @param   useOutFilter allow specification of filters for output table
+     * @param   useInFilter  allow specification of filters for input table
      */
-    public SingleMapperTask( TableMapper mapper, String purpose,
-                             ProcessingMode outMode, boolean useInFilter,
-                             boolean useOutFilter ) {
-        super( mapper, purpose, outMode, useOutFilter );
-
+    public SingleMapperTask( String purpose, ProcessingMode outMode, 
+                             boolean useOutFilter, boolean useInFilter ) {
+        super( purpose, outMode, useOutFilter );
         List paramList = new ArrayList();
 
         /* Input table parameter. */
@@ -60,19 +58,18 @@ public class SingleMapperTask extends MapperTask {
             inFilterParam_ = null;
         }
 
-        /* Store full parameter list. */
-        paramList.addAll( Arrays.asList( super.getParameters() ) );
-        setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
+        getParameterList().addAll( 0, paramList );
     }
 
-    protected InputTableSpec[] getInputSpecs( Environment env )
+    /**
+     * Returns an object provides which provides the (possibly filtered)
+     * input table.
+     *
+     * @param   env  execution environment
+     * @return  input table producer
+     */
+    protected TableProducer createInputProducer( Environment env )
             throws TaskException {
-        return new InputTableSpec[] {
-            new InputTableSpec( inTableParam_.tableValue( env ),
-                           inFilterParam_ == null
-                               ? null
-                               : inFilterParam_.stepsValue( env ),
-                           inTableParam_.stringValue( env ) )
-        };
+        return createProducer( env, inFilterParam_, inTableParam_ );
     }
 }
