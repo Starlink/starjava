@@ -310,7 +310,6 @@ public class CeaWriter extends XmlWriter {
          * to parameters etc are required for sensible use in a CEA
          * environment. */
         CeaTask tpipe = (CeaTask) appMap.get( "tpipe" );
-        tpipe.removeParameter( "script" );
         tpipe.removeParameter( "istream" );
 
         CeaTask votcopy = (CeaTask) appMap.get( "votcopy" );
