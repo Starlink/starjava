@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,17 +70,27 @@ public class HomogeneousMapperTask extends MapperTask {
         getParameterList().addAll( 0, paramList );
     }
 
-    public InputTableSpec[] getInputSpecs( Environment env )
+    public InputTableSpec[] getInputSpecs( final Environment env )
             throws TaskException {
         ProcessingStep[] steps = inFilterParam_ == null
                                ? null
                                : inFilterParam_.stepsValue( env );
-        StarTable[] tables = inTablesParam_.tablesValue( env );
         String[] locs = inTablesParam_.stringsValue( env );
-        int nIn = tables.length;
+        TableProducer[] tprods = inTablesParam_.tablesValue( env );
+        int nIn = tprods.length;
         InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
-            specs[ i ] = new InputTableSpec( tables[ i ], steps, locs[ i ] );
+            final TableProducer tprod = tprods[ i ];
+            specs[ i ] = new InputTableSpec( locs[ i ], steps ) {
+                public StarTable getInputTable() throws TaskException {
+                    try {
+                        return tprod.getTable();
+                    }
+                    catch ( IOException e ) {
+                        throw new TaskException( e.getMessage(), e );
+                    }
+                }
+            };
         }
         return specs;
     }

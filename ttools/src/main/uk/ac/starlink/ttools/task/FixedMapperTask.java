@@ -87,12 +87,14 @@ public class FixedMapperTask extends MapperTask {
         int nIn = inTableParams_.length;
         InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
+            InputTableParameter tableParam = inTableParams_[ i ];
+            FilterParameter filterParam = inFilterParams_[ i ];
             specs[ i ] =
-                new InputTableSpec( inTableParams_[ i ].tableValue( env ),
-                               inFilterParams_[ i ] == null
-                                   ? null
-                                   : inFilterParams_[ i ].stepsValue( env ),
-                               inTableParams_[ i ].stringValue( env ) );
+                InputTableSpec
+               .createSpec( tableParam.stringValue( env ),
+                            filterParam == null ? null
+                                                : filterParam.stepsValue( env ),
+                            tableParam.tableValue( env ) );
         }
         return specs;
     }

@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
 
 /**
@@ -10,24 +11,20 @@ import uk.ac.starlink.ttools.filter.ProcessingStep;
  * @author   Mark Taylor
  * @since    29 Sep 2006
  */
-public class InputTableSpec {
+public abstract class InputTableSpec {
 
-    private final StarTable table_;
     private final ProcessingStep[] steps_;
     private final String loc_;
 
     /**
      * Constructor.
      *
-     * @param  table  table
-     * @param  steps  processing pipeline
      * @param  loc    original table location
+     * @param  steps  processing pipeline
      */
-    public InputTableSpec( StarTable table, ProcessingStep[] steps,
-                           String loc ) {
-        table_ = table;
-        steps_ = steps == null ? new ProcessingStep[ 0 ] : steps;
+    public InputTableSpec( String loc, ProcessingStep[] steps ) {
         loc_ = loc;
+        steps_ = steps == null ? new ProcessingStep[ 0 ] : steps;
     }
 
     /**
@@ -35,9 +32,7 @@ public class InputTableSpec {
      *
      * @param  input table
      */
-    public StarTable getInputTable() {
-        return table_;
-    }
+    public abstract StarTable getInputTable() throws TaskException;
 
     /**
      * Returns the input filter parameter.
@@ -63,12 +58,29 @@ public class InputTableSpec {
      *
      * @return   pre-processed table
      */
-    public StarTable getWrappedTable() throws IOException {
+    public StarTable getWrappedTable() throws IOException, TaskException {
         ProcessingStep[] steps = getSteps();
         StarTable table = getInputTable();
         for ( int i = 0; i < steps.length; i++ ) {
             table = steps[ i ].wrap( table );
         }
         return table;
+    }
+
+    /**
+     * Returns an InputTableSpec with a fixed table value.
+     *
+     * @param  loc    original table location
+     * @param  steps  processing pipeline
+     * @param  table  input table
+     * @return  new table spec 
+     */
+    public static InputTableSpec createSpec( String loc, ProcessingStep[] steps,
+                                             final StarTable table ) {
+        return new InputTableSpec( loc, steps ) {
+            public StarTable getInputTable() {
+                return table;
+            }
+        };
     }
 }
