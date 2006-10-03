@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
  * system, the choice about what mode to use.
  * This mode is not intended for use as one amongst many, but as the 
  * only ProcessingMode for a processing sequence, for instance 
- * as the parameter to the {@link MapperTask} constructor.
+ * as the parameter to the {@link ConsumerTask} constructor.
  *
  * @author   Mark Taylor
  * @since    3 May 2006
