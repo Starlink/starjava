@@ -151,8 +151,18 @@ public class MapEnvironment extends TableEnvironment {
         }
         else if ( param instanceof InputTablesParameter &&
                   value instanceof StarTable[] ) {
-            ((InputTablesParameter) param)
-                                   .setValueFromTables( (StarTable[]) value );
+            StarTable[] tables = (StarTable[]) value;
+            int nTable = tables.length;
+            TableProducer[] tablePs = new TableProducer[ nTable ];
+            for ( int i = 0; i < nTable; i++ ) {
+                final StarTable table = tables[ i ];
+                tablePs[ i ] = new TableProducer() {
+                    public StarTable getTable() {
+                        return table;
+                    }
+                };
+            }
+            ((InputTablesParameter) param).setValueFromTables( tablePs );
         }
         else if ( param instanceof InputTableParameter &&
                   value instanceof String &&
