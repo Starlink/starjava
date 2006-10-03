@@ -492,7 +492,7 @@ public class SplatBrowser
                       extractDescription.startsWith( caselessAction ) ) {
                 this.ndAction = SpecDataFactory.EXTRACT;
             }
-            else if ( "vectorize".startsWith( caselessAction ) || 
+            else if ( "vectorize".startsWith( caselessAction ) ||
                       vectorizeDescription.startsWith( caselessAction ) ) {
                 this.ndAction = SpecDataFactory.VECTORIZE;
             }
@@ -778,7 +778,7 @@ public class SplatBrowser
         editMenu.add( createSpectrumAction );
 
         //  Remove any spectra that have no data or invalid coordinates.
-        LocalAction purgeSpectraAction = 
+        LocalAction purgeSpectraAction =
             new LocalAction( LocalAction.PURGE_SPECTRA,
                              "Purge empty spectra", null,
                              "Remove spectra that cannot be autoranged from" +
@@ -911,11 +911,11 @@ public class SplatBrowser
         showShortNamesItem.addItemListener( this );
 
         //  Whether global list shows simple short names.
-        showSimpleShortNamesItem = 
+        showSimpleShortNamesItem =
             new JCheckBoxMenuItem( "Simple short names" );
         optionsMenu.add( showSimpleShortNamesItem );
         showSimpleShortNamesItem.setToolTipText
-            ( "Show simplified short names in global list, " + 
+            ( "Show simplified short names in global list, " +
               "when they are same as long names" );
         showSimpleShortNamesItem.addItemListener( this );
 
@@ -933,11 +933,11 @@ public class SplatBrowser
     {
         JMenu interopMenu = new JMenu( "Interop" );
         menuBar.add( interopMenu );
-  
+
         // Add server registration options.
         interopMenu.add( plasticServer.getRegisterAction( true ) );
         interopMenu.add( plasticServer.getRegisterAction( false ) );
-  
+
         // Add hub start options.
         interopMenu.add( plasticServer.getHubStartAction( true ) );
         interopMenu.add( plasticServer.getHubStartAction( false ) );
@@ -948,14 +948,14 @@ public class SplatBrowser
         // Add spectrum type acceptance options.
         JMenuItem acceptSpectrum =
             new JCheckBoxMenuItem( "Accept spectra", true );
-        JMenuItem acceptFITSLine = 
+        JMenuItem acceptFITSLine =
             new JCheckBoxMenuItem( "Accept 1d FITS", true );
         plasticServer.setAcceptSpectrumModel( acceptSpectrum.getModel() );
         plasticServer.setAcceptFITSLineModel( acceptFITSLine.getModel() );
         interopMenu.addSeparator();
         interopMenu.add( acceptSpectrum );
         interopMenu.add( acceptFITSLine );
-  
+
 
         // Add spectrum transmit menus items.
         interopMenu.addSeparator();
@@ -982,7 +982,7 @@ public class SplatBrowser
         interopMenu.addSeparator();
         interopMenu.add( HelpFrame.getAction( "Help on interoperability",
                                               "plastic" ) );
-    } 
+    }
 
     /**
      * Set the vertical or horizontal split.
@@ -1046,7 +1046,7 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state = 
+            boolean state =
                 prefs.getBoolean( "SplatBrowser_showsimpleshortnames", false );
             showSimpleShortNamesItem.setSelected( state );
         }
@@ -1758,7 +1758,7 @@ public class SplatBrowser
     /**
      * Add a new spectrum, with a possibly pre-defined set of characteristics
      * as defined in a {@link SpectrumIO.Props} instance.  If successful this
-     * becomes the current spectrum. If an error occurs a 
+     * becomes the current spectrum. If an error occurs a
      * {@link SplatException} is thrown.
      *
      *  @param props a container class for the spectrum properties, including
@@ -1769,7 +1769,7 @@ public class SplatBrowser
     {
         if ( props.getType() == SpecDataFactory.SED ) {
             //  Could be a source of several spectra.
-            SpecData spectra[] = 
+            SpecData spectra[] =
                 specDataFactory.expandXMLSED( props.getSpectrum() );
             for ( int i = 0; i < spectra.length; i++ ) {
                 addSpectrum( spectra[i] );
@@ -1786,8 +1786,8 @@ public class SplatBrowser
             catch (SEDSplatException e) {
                 //  Could be a FITS table with an SED representation.
                 if ( props.getType() == SpecDataFactory.FITS ) {
-                    SpecData spectra[] = 
-                        specDataFactory.expandFITSSED( props.getSpectrum(), 
+                    SpecData spectra[] =
+                        specDataFactory.expandFITSSED( props.getSpectrum(),
                                                        e.getRows() );
                     for ( int i = 0; i < spectra.length; i++ ) {
                         addSpectrum( spectra[i] );
@@ -2296,9 +2296,13 @@ public class SplatBrowser
                 globalList.removeSpectrum( indices[i] );
             }
 
-            //  Make the first spectrum the selected one. Needed to
-            //  progate changes to all listeners (even when now empty).
-            globalList.setCurrentSpectrum( 0 );
+            //  Try to keep the selection next to the "current" position.
+            //  Make this the index nearest to the one at the bottom of the
+            //  selection.
+            int selbot = indices[0];
+            int nspec = specList.getModel().getSize() - 1;
+            int selection = Math.min( nspec, selbot );
+            globalList.setCurrentSpectrum( selection );
         }
     }
 
