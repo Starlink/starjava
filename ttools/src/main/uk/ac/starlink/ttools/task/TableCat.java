@@ -9,6 +9,6 @@ package uk.ac.starlink.ttools.task;
 public class TableCat extends HomogeneousMapperTask {
     public TableCat() {
         super( "Concatenates multiple tables", new ChoiceMode(), true,
-               new CatMapper(), true );
+               new CatMapper( true ), true );
     }
 }

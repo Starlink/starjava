@@ -1,16 +1,22 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.ConcatStarTable;
 import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
@@ -26,6 +32,8 @@ public class CatMapper implements TableMapper {
     private final Parameter seqParam_;
     private final Parameter locParam_;
     private final Parameter ulocParam_;
+    private final BooleanParameter lazyParam_;
+    private final boolean hasLazy_;
 
     private static final ValueInfo SEQ_INFO =
         new DefaultValueInfo( "iseq", Short.class,
@@ -39,14 +47,20 @@ public class CatMapper implements TableMapper {
         new DefaultValueInfo( "uloc", String.class,
                               "Unique part of input table location " +
                               "from concatenation operation" );
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
     static {
         ((DefaultValueInfo) SEQ_INFO).setNullable( false );
     }
 
     /**
      * Constructor.
+     *
+     * @param  hasLazy  whether this mapper is to make use of a lazy parameter
      */
-    public CatMapper() {
+    public CatMapper( boolean hasLazy ) {
+        hasLazy_ = hasLazy;
+
         seqParam_ = new Parameter( "seqcol" );
         seqParam_.setUsage( "<colname>" );
         seqParam_.setNullPermitted( true );
@@ -90,21 +104,38 @@ public class CatMapper implements TableMapper {
             "\"" + postfixParamName( "&lt;colname&gt;" ) + "\"",
             "with the values \"/data/cat_\" and \".fits\" respectively.",
         } );
+
+        lazyParam_ = new BooleanParameter( "lazy" );
+        lazyParam_.setDefault( "false" );
+        lazyParam_.setDescription( new String[] {
+            "Whether to perform table resolution lazily.",
+            "If true, each table is only accessed when the time comes to",
+            "add its rows to the output; if false, then all the tables are",
+            "accessed up front.  This is mostly a tuning parameter,",
+            "and on the whole it doesn't matter much how it is set,",
+            "but for joining an enormous number of tables setting it true",
+            "may avoid running out of resources.",
+        } );
     }
 
     public Parameter[] getParameters() {
-        return new Parameter[] {
-            seqParam_,
-            locParam_,
-            ulocParam_,
-        };
+        List paramList = new ArrayList();
+        paramList.add( seqParam_ );
+        paramList.add( locParam_ );
+        paramList.add( ulocParam_ );
+        if ( hasLazy_ ) {
+            paramList.add( lazyParam_ );
+        }
+        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
     public TableMapping createMapping( Environment env ) throws TaskException {
         String seqCol = seqParam_.stringValue( env );
         String locCol = locParam_.stringValue( env );
         String ulocCol = ulocParam_.stringValue( env );
-        return new CatMapping( seqCol, locCol, ulocCol );
+        boolean lazy = hasLazy_ ? lazyParam_.booleanValue( env )
+                                : false;
+        return new CatMapping( seqCol, locCol, ulocCol, lazy );
     }
 
     /**
@@ -135,6 +166,7 @@ public class CatMapper implements TableMapper {
         private final String seqCol_;
         private final String locCol_;
         private final String ulocCol_;
+        private final boolean lazy_;
 
         /**
          * Constructor.
@@ -143,10 +175,12 @@ public class CatMapper implements TableMapper {
          * @param  locCol  name of location column to be added, or null
          * @param  ulocCol name of unique location to be added, or null
          */
-        CatMapping( String seqCol, String locCol, String ulocCol ) {
+        CatMapping( String seqCol, String locCol, String ulocCol,
+                    boolean lazy ) {
             seqCol_ = seqCol;
             locCol_ = locCol;
             ulocCol_ = ulocCol;
+            lazy_ = lazy;
         }
 
         public StarTable mapTables( InputTableSpec[] inSpecs )
@@ -158,68 +192,50 @@ public class CatMapper implements TableMapper {
             for ( int i = 0; i < nTable; i++ ) {
                 locations[ i ] = inSpecs[ i ].getLocation();
             }
-            Trimmer trimmer = ulocCol_ == null ? null
-                                               : new Trimmer( locations );
 
-            /* Work out length of fixed-length columns.  This can prevent
-             * an additional pass to find it out for some output modes. */
-            int locLeng = 0;
-            int ulocLeng = 0;
-            for ( int i = 0; i < nTable; i++ ) {
-                String loc = locations[ i ];
-                if ( locCol_ != null ) {
-                    locLeng = Math.max( locLeng, loc.length() );
-                }
-                if ( ulocCol_ != null ) {
-                    ulocLeng = Math.max( ulocLeng,
-                                         trimmer.trim( loc ).length() );
-                }
-            }
-
-            /* Get the input tables. */
-            StarTable[] inTables = new StarTable[ nTable ];
-            for ( int i = 0; i < nTable; i++ ) {
-                inTables[ i ] = inSpecs[ i ].getWrappedTable();
-            }
-
-            /* Append additional columns to the input tables as required. */
-            for ( int i = 0; i < nTable; i++ ) {
-                final StarTable inTable = inTables[ i ];
-                ColumnStarTable addTable = new ColumnStarTable( inTable ) {
-                    public long getRowCount() {
-                        return inTable.getRowCount();
-                    }
-                };
-                if ( seqCol_ != null ) {
-                    ColumnInfo seqInfo = new ColumnInfo( SEQ_INFO );
-                    seqInfo.setName( seqCol_ );
-                    Short iseq = new Short( (short) ( i + 1 ) );
-                    addTable.addColumn( new ConstantColumn( seqInfo, iseq ) );
-                }
-                if ( locCol_ != null ) {
-                    ColumnInfo locInfo = new ColumnInfo( LOC_INFO );
-                    locInfo.setName( locCol_ );
-                    locInfo.setElementSize( locLeng );
-                    String loc = locations[ i ];
-                    addTable.addColumn( new ConstantColumn( locInfo, loc ) );
-                }
-                if ( ulocCol_ != null ) {
-                    ColumnInfo ulocInfo = new ColumnInfo( ULOC_INFO );
-                    ulocInfo.setName( ulocCol_ );
-                    ulocInfo.setElementSize( ulocLeng );
-                    String uloc = trimmer.trim( locations[ i ] );
-                    addTable.addColumn( new ConstantColumn( ulocInfo, uloc ) );
-                }
-                if ( addTable.getColumnCount() > 0 ) {
-                    inTables[ i ] =
-                        new JoinStarTable( new StarTable[] { inTables[ i ],
-                                                             addTable } );
-                }
-            }
+            /* Prepare an object which knows about common pre- and post-fixes
+             * of locations. */
+            final Trimmer trimmer = ulocCol_ == null
+                                  ? null
+                                  : new Trimmer( locations );
 
             /* Perform the concatenation on the (possibly doctored) input 
              * tables. */
-            StarTable out = new ConcatStarTable( inTables[ 0 ], inTables );
+            StarTable out;
+            if ( lazy_ ) {
+                StarTable meta = getTable( inSpecs[ 0 ], 0, trimmer );
+                final Iterator specIt = Arrays.asList( inSpecs ).iterator();
+                Iterator tableIt = new Iterator() {
+                    int index;
+                    public boolean hasNext() {
+                        return specIt.hasNext();
+                    }
+                    public Object next() {
+                        InputTableSpec inSpec = (InputTableSpec) specIt.next();
+                        final int ix = index++;
+                        try {
+                            return getTable( inSpec, ix, trimmer );
+                        }
+                        catch ( IOException e ) {
+                            logger_.warning( "Table load failed for \"" +
+                                             inSpec.getLocation() + "\": " +
+                                             e.getMessage() );
+                            return new EmptyStarTable();
+                        }
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+                out = new ConcatStarTable( meta, tableIt );
+            }
+            else {
+                StarTable[] inTables = new StarTable[ nTable ];
+                for ( int i = 0; i < nTable; i++ ) {
+                    inTables[ i ] = getTable( inSpecs[ i ], i, trimmer );
+                }
+                out = new ConcatStarTable( inTables[ 0 ], inTables );
+            }
 
             /* Add parameters describing the unique column name truncation
              * if appropriate. */
@@ -248,6 +264,48 @@ public class CatMapper implements TableMapper {
             /* Hand the output table on for processing. */
             return out;
         }
+
+        /**
+         * Obtains a StarTable from an InputTableSpec.
+         *
+         * @param  inSpec  table specification
+         * @param  index   index of the table into the list of tables
+         * @param  trimmer  table location trimmer
+         * @return  table described by <code>inSpec</code>
+         */
+        private StarTable getTable( InputTableSpec inSpec, int index,
+                                    Trimmer trimmer ) 
+                throws IOException {
+            final StarTable inTable = inSpec.getWrappedTable();
+            ColumnStarTable addTable = new ColumnStarTable( inTable ) {
+                public long getRowCount() {
+                    return inTable.getRowCount();
+                }
+            };
+            if ( seqCol_ != null ) {
+                ColumnInfo seqInfo = new ColumnInfo( SEQ_INFO );
+                seqInfo.setName( seqCol_ );
+                Short iseq = new Short( (short) ( index + 1 ) );
+                addTable.addColumn( new ConstantColumn( seqInfo, iseq ) );
+            }
+            if ( locCol_ != null ) {
+                ColumnInfo locInfo = new ColumnInfo( LOC_INFO );
+                locInfo.setName( locCol_ );
+                locInfo.setElementSize( trimmer.getLocLength() );
+                String loc = inSpec.getLocation();
+                addTable.addColumn( new ConstantColumn( locInfo, loc ) );
+            }
+            if ( ulocCol_ != null ) {
+                ColumnInfo ulocInfo = new ColumnInfo( ULOC_INFO );
+                ulocInfo.setName( ulocCol_ );
+                ulocInfo.setElementSize( trimmer.getTrimmedLocLength() );
+                String uloc = trimmer.trim( inSpec.getLocation() );
+                addTable.addColumn( new ConstantColumn( ulocInfo, uloc ) );
+            }
+            return addTable.getColumnCount() > 0
+                 ? new JoinStarTable( new StarTable[] { inTable, addTable } )
+                 : inTable;
+        }
     }
 
     /**
@@ -258,6 +316,8 @@ public class CatMapper implements TableMapper {
 
         private final String pre_;
         private final String post_;
+        private final int locLeng_;
+        private final int ulocLeng_;
 
         /**
          * Constructor.
@@ -300,6 +360,17 @@ public class CatMapper implements TableMapper {
             }
             post_ = npost >= 0 ? loc0.substring( loc0.length() - npost )
                                : "";
+
+            /* Store max loc and uloc lengths. */
+            int locLeng = 0;
+            int ulocLeng = 0;
+            for ( int i = 0; i < nloc; i++ ) {
+                String loc = locs[ i ];
+                locLeng = Math.max( locLeng, loc.length() );
+                ulocLeng = Math.max( ulocLeng, trim( loc ).length() );
+            }
+            locLeng_ = locLeng;
+            ulocLeng_ = ulocLeng;
         }
 
         /**
@@ -318,6 +389,26 @@ public class CatMapper implements TableMapper {
          */
         public String getPostfix() {
             return post_;
+        }
+
+        /**
+         * Returns the maximum length of any of the locations this trimmer
+         * knows about.
+         *
+         * @param  maximum loc length
+         */
+        public int getLocLength() {
+            return locLeng_;
+        }
+
+        /**
+         * Returns the maximum length of the trimmed version of any of the
+         * locations this trimmer knows about.
+         *
+         * @return maximum trimmed loc length
+         */
+        public int getTrimmedLocLength() {
+            return ulocLeng_;
         }
 
         /**
