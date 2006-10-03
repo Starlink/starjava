@@ -3963,6 +3963,10 @@ but my thanks are especially due to the following:
         for some broken services.</li>
     <li>Added <code>-ifndim</code> and <code>-ifshape</code> flags to
         <ref id="explodeall">explodeall</ref> filter.</li>
+    <li>Parameter <code>script</code> withdrawn from <code>tpipe</code> -
+        you can now use the indirection facility of the <code>cmd</code>
+        parameter instead
+        (<code>cmd=@file</code> replaces <code>script=file</code>).</li>
     </ul>
     </p></dd>
 
