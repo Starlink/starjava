@@ -24,17 +24,18 @@ public class FixedMapperTask extends MapperTask {
     /**
      * Constructor.
      *
-     * @param   mapper   object which defines mapping transformation
      * @param   purpose  one-line description of the purpose of the task
-     * @param   nIn      number of input tables
      * @param   outMode  processing mode which determines the destination of
      *          the processed table
      * @param   useOutFilter allow specification of filters for output table
+     * @param   mapper   object which defines mapping transformation
+     * @param   nIn      number of input tables
+     * @param   useInFilters  whether to use input filter parameters
      */
-    public FixedMapperTask( TableMapper mapper, String purpose, int nIn, 
-                            ProcessingMode outMode, boolean useInFilters,
-                            boolean useOutFilter ) {
-        super( mapper, purpose, outMode, useOutFilter );
+    public FixedMapperTask( String purpose, ProcessingMode outMode,
+                            boolean useOutFilter, TableMapper mapper,
+                            int nIn, boolean useInFilters ) {
+        super( purpose, outMode, useOutFilter, mapper );
         List paramList = new ArrayList();
 
         /* Input table parameters. */
@@ -78,8 +79,7 @@ public class FixedMapperTask extends MapperTask {
         }
 
         /* Store full parameter list. */
-        paramList.addAll( Arrays.asList( super.getParameters() ) );
-        setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
+        getParameterList().addAll( 0, paramList );
     }
 
     protected InputTableSpec[] getInputSpecs( Environment env )

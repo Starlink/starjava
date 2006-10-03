@@ -29,16 +29,16 @@ public class HomogeneousMapperTask extends MapperTask {
     /**
      * Constructor.
      *
-     * @param   mapper   table mapper
      * @param   purpose  one-line description of the purpose of the task
      * @param   outMode  output mode
-     * @param   useInFilter  whether preprocessing filters are permitted
      * @param   useOutFilter  whether a postprocessing filter is permitted
+     * @param   mapper   table mapper
+     * @param   useInFilter  whether preprocessing filters are permitted
      */
-    public HomogeneousMapperTask( TableMapper mapper, String purpose,
-                                  ProcessingMode outMode, boolean useInFilter,
-                                  boolean useOutFilter ) {
-        super( mapper, purpose, outMode, useOutFilter );
+    public HomogeneousMapperTask( String purpose, ProcessingMode outMode,
+                                  boolean useOutFilter, TableMapper mapper,
+                                  boolean useInFilter) {
+        super( purpose, outMode, useOutFilter, mapper );
         List paramList = new ArrayList();
 
         /* Input tables parameter. */
@@ -66,8 +66,7 @@ public class HomogeneousMapperTask extends MapperTask {
         }
 
         /* Store full parameter list. */
-        paramList.addAll( Arrays.asList( super.getParameters() ) );
-        setParameters( (Parameter[]) paramList.toArray( new Parameter[ 0 ] ) );
+        getParameterList().addAll( 0, paramList );
     }
 
     public InputTableSpec[] getInputSpecs( Environment env )
