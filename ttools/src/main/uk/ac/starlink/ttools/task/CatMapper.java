@@ -14,7 +14,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * TableMapper which concatenates tables top to bottom.
@@ -186,8 +185,7 @@ public class CatMapper implements TableMapper {
             trimmer_ = ulocCol == null ? null : new Trimmer( locations );
         }
 
-        public void mapTables( StarTable[] inTables, TableConsumer[] consumers )
-                throws IOException {
+        public StarTable mapTables( StarTable[] inTables ) throws IOException {
             int nTable = inTables.length;
 
             /* Work out length of fixed-length columns.  This can prevent
@@ -269,7 +267,7 @@ public class CatMapper implements TableMapper {
             }
 
             /* Hand the output table on for processing. */
-            consumers[ 0 ].consume( out );
+            return out;
         }
     }
 

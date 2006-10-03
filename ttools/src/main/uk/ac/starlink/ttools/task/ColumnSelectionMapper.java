@@ -7,7 +7,6 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.ColumnIdentifier;
-import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * Mapper which operates on a user-supplied selection of the columns of
@@ -52,16 +51,14 @@ public class ColumnSelectionMapper implements TableMapper {
     public TableMapping createMapping( Environment env ) throws TaskException {
         final String[] colids = colsParam_.wordsValue( env );
         return new TableMapping() {
-            public void mapTables( StarTable[] in, TableConsumer[] out )
-                    throws IOException {
+            public StarTable mapTables( StarTable[] in ) throws IOException {
                 ColumnIdentifier colIdent = new ColumnIdentifier( in[ 0 ] );   
                 int ncol = colids.length;
                 int[] colMap = new int[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     colMap[ icol ] = colIdent.getColumnIndex( colids[ icol ] );
                 }
-                out[ 0 ].consume( new ColumnPermutedStarTable( in[ 0 ],
-                                                               colMap ) );
+                return new ColumnPermutedStarTable( in[ 0 ], colMap );
             }
         };
     }

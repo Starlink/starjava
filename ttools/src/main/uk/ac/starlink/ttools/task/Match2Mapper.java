@@ -24,7 +24,6 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.JELTable;
-import uk.ac.starlink.ttools.TableConsumer;
 
 /**
  * TableMapper which does the work for pair matching (tmatch2).
@@ -191,7 +190,7 @@ public class Match2Mapper implements TableMapper {
             logStrm_ = logStrm;
         }
 
-        public void mapTables( StarTable[] inTables, TableConsumer[] consumers )
+        public StarTable mapTables( StarTable[] inTables )
                 throws IOException, TaskException {
 
             /* Attempt to create the tables containing the tuples with which
@@ -222,19 +221,15 @@ public class Match2Mapper implements TableMapper {
                 throw new ExecutionException( e.getMessage(), e );  
             }
 
-             /* Create a new table from the result. */
+             /* Create a new table from the result and return. */
             JoinFixAction[] fixActs = new JoinFixAction[] {
                 JoinFixAction.makeRenameDuplicatesAction( "_1" ),
                 JoinFixAction.makeRenameDuplicatesAction( "_2" ),
             };
             ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
-            StarTable out = MatchStarTables
-                           .makeJoinTable( inTables[ 0 ], inTables[ 1 ],
-                                           matches, join_, ! bestOnly_,
-                                           fixActs, scoreInfo );
-
-            /* Dispose of the resulting matched table. */
-            consumers[ 0 ].consume( out );
+            return MatchStarTables.makeJoinTable( inTables[ 0 ], inTables[ 1 ],
+                                                  matches, join_, ! bestOnly_,
+                                                  fixActs, scoreInfo );
         }
 
         /**
