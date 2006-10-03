@@ -26,7 +26,6 @@ public class CatMapper implements TableMapper {
     private final Parameter seqParam_;
     private final Parameter locParam_;
     private final Parameter ulocParam_;
-    private MapperTask task_;
 
     private static final ValueInfo SEQ_INFO =
         new DefaultValueInfo( "iseq", Short.class,
@@ -105,35 +104,7 @@ public class CatMapper implements TableMapper {
         String seqCol = seqParam_.stringValue( env );
         String locCol = locParam_.stringValue( env );
         String ulocCol = ulocParam_.stringValue( env );
-        return new CatMapping( seqCol, locCol, ulocCol,
-                               getInputLocations( env ) );
-    }
-
-    /**
-     * Sets the task with which this mapper is associated.
-     * Required so that we can interrogate it to find out input table
-     * locations which are needed unders some circumstances.
-     *
-     * @param   task  mapper task
-     */
-    public void setTask( MapperTask task ) {
-        task_ = task;
-    }
-
-    /**
-     * Returns the locations of the input tables for this mapping.
-     * The task must be set ({@link #setTask}) for this to work.
-     *
-     * @param   env  execution environment
-     * @return  input table location strings
-     */
-    private String[] getInputLocations( Environment env ) throws TaskException {
-        InputTableSpec[] inSpecs = task_.getInputSpecs( env );
-        String[] locs = new String[ inSpecs.length ];
-        for ( int i = 0; i < inSpecs.length; i++ ) {
-            locs[ i ] = inSpecs[ i ].getLocation();
-        }
-        return locs;
+        return new CatMapping( seqCol, locCol, ulocCol );
     }
 
     /**
@@ -164,8 +135,6 @@ public class CatMapper implements TableMapper {
         private final String seqCol_;
         private final String locCol_;
         private final String ulocCol_;
-        private final String[] locations_;
-        private final Trimmer trimmer_;
 
         /**
          * Constructor.
@@ -173,34 +142,44 @@ public class CatMapper implements TableMapper {
          * @param  seqCol  name of sequence column to be added, or null
          * @param  locCol  name of location column to be added, or null
          * @param  ulocCol name of unique location to be added, or null
-         * @param  locations  location strings for each of the input tables
-         *         which will be presented
          */
-        CatMapping( String seqCol, String locCol, String ulocCol,
-                    String[] locations ) {
+        CatMapping( String seqCol, String locCol, String ulocCol ) {
             seqCol_ = seqCol;
             locCol_ = locCol;
             ulocCol_ = ulocCol;
-            locations_ = locations;
-            trimmer_ = ulocCol == null ? null : new Trimmer( locations );
         }
 
-        public StarTable mapTables( StarTable[] inTables ) throws IOException {
-            int nTable = inTables.length;
+        public StarTable mapTables( InputTableSpec[] inSpecs )
+                throws IOException {
+            int nTable = inSpecs.length;
+
+            /* Get a list of the table locations. */
+            String[] locations = new String[ nTable ];
+            for ( int i = 0; i < nTable; i++ ) {
+                locations[ i ] = inSpecs[ i ].getLocation();
+            }
+            Trimmer trimmer = ulocCol_ == null ? null
+                                               : new Trimmer( locations );
 
             /* Work out length of fixed-length columns.  This can prevent
              * an additional pass to find it out for some output modes. */
             int locLeng = 0;
             int ulocLeng = 0;
             for ( int i = 0; i < nTable; i++ ) {
-                String loc = locations_[ i ];
+                String loc = locations[ i ];
                 if ( locCol_ != null ) {
                     locLeng = Math.max( locLeng, loc.length() );
                 }
                 if ( ulocCol_ != null ) {
                     ulocLeng = Math.max( ulocLeng,
-                                         trimmer_.trim( loc ).length() );
+                                         trimmer.trim( loc ).length() );
                 }
+            }
+
+            /* Get the input tables. */
+            StarTable[] inTables = new StarTable[ nTable ];
+            for ( int i = 0; i < nTable; i++ ) {
+                inTables[ i ] = inSpecs[ i ].getWrappedTable();
             }
 
             /* Append additional columns to the input tables as required. */
@@ -221,14 +200,14 @@ public class CatMapper implements TableMapper {
                     ColumnInfo locInfo = new ColumnInfo( LOC_INFO );
                     locInfo.setName( locCol_ );
                     locInfo.setElementSize( locLeng );
-                    String loc = locations_[ i ];
+                    String loc = locations[ i ];
                     addTable.addColumn( new ConstantColumn( locInfo, loc ) );
                 }
                 if ( ulocCol_ != null ) {
                     ColumnInfo ulocInfo = new ColumnInfo( ULOC_INFO );
                     ulocInfo.setName( ulocCol_ );
                     ulocInfo.setElementSize( ulocLeng );
-                    String uloc = trimmer_.trim( locations_[ i ] );
+                    String uloc = trimmer.trim( locations[ i ] );
                     addTable.addColumn( new ConstantColumn( ulocInfo, uloc ) );
                 }
                 if ( addTable.getColumnCount() > 0 ) {
@@ -255,8 +234,8 @@ public class CatMapper implements TableMapper {
                 ValueInfo postInfo = 
                     new DefaultValueInfo( postfixParamName( ulocCol_ ),
                                           String.class, postDesc );
-                String pre = trimmer_.getPrefix();
-                String post = trimmer_.getPostfix();
+                String pre = trimmer.getPrefix();
+                String post = trimmer.getPostfix();
                 List outParams = out.getParameters();
                 if ( pre.trim().length() > 0 ) {
                     outParams.add( new DescribedValue( preInfo, pre ) );
@@ -305,7 +284,8 @@ public class CatMapper implements TableMapper {
                     }
                 }
             }
-            pre_ = loc0.substring( 0, npre );
+            pre_ = npre >= 0 ? loc0.substring( 0, npre )
+                             : "";
 
             /* Find length of maximum common postfix string. */
             int npost = -1;
@@ -318,7 +298,8 @@ public class CatMapper implements TableMapper {
                     }
                 }
             }
-            post_ = loc0.substring( loc0.length() - npost );
+            post_ = npost >= 0 ? loc0.substring( loc0.length() - npost )
+                               : "";
         }
 
         /**
