@@ -20,8 +20,8 @@ public class TableCatTest extends TableTestCase {
 
     public TableCatTest( String name ) {
         super( name );
-        t1_.setName( "table1" );
-        t2_.setName( "table2" );
+        t1_.setName( "table_1" );
+        t2_.setName( "table_2" );
     }
 
     public void test2() throws Exception {
@@ -37,10 +37,18 @@ public class TableCatTest extends TableTestCase {
         new TableCat().createExecutable( envN ).execute();
         StarTable outN = envN.getOutputTable( "omode" );
 
+        MapEnvironment envL = new MapEnvironment()
+                             .setValue( "in", new StarTable[] { t1_, t2_, } )
+                             .setValue( "lazy", "true" );
+        new TableCat().createExecutable( envL ).execute();
+        StarTable outL = envL.getOutputTable( "omode" );
+
         Tables.checkTable( out2 );
         Tables.checkTable( outN );
+        Tables.checkTable( outL );
 
         assertSameData( out2, outN );
+        assertSameData( outL, outN );
 
         assertArrayEquals( new String[] { "index", "name" },
                            getColNames( out2 ) );
@@ -72,6 +80,18 @@ public class TableCatTest extends TableTestCase {
         StarTable outN = envN.getOutputTable( "omode" );
         assertArrayEquals( box( new int[] { 2, 3, 2 } ),
                            getColData( outN, 1 ) );
+
+        MapEnvironment envL = new MapEnvironment()
+                             .setValue( "in",
+                                        new StarTable[] { t1_, t2_, t1_, } )
+                             .setValue( "icmd", "tail 1" )
+                             .setValue( "ocmd", "keepcols '2 1'" )
+                             .setValue( "lazy", "true" );
+        new TableCat().createExecutable( envL ).execute();
+        StarTable outL = envL.getOutputTable( "omode" );
+        assertArrayEquals( box( new int[] { 2, 3, 2 } ),
+                           getColData( outL, 1 ) );
+        assertSameData( outL, outN );
     }
 
     public void testAddCols() throws Exception {
@@ -92,6 +112,16 @@ public class TableCatTest extends TableTestCase {
         new TableCat().createExecutable( envN ).execute();
         StarTable outN = envN.getOutputTable( "omode" );
 
+        MapEnvironment envL = new MapEnvironment()
+                             .setValue( "in", new StarTable[] { t1_, t2_, } )
+                             .setValue( "seqcol", "seq" )
+                             .setValue( "loccol", "loc" )
+                             .setValue( "uloccol", "uloc" )
+                             .setValue( "lazy", "true" );
+        new TableCat().createExecutable( envL ).execute();
+        StarTable outL = envL.getOutputTable( "omode" );
+        assertSameData( outL, outN );
+
         assertSameData( out2, outN );
         assertArrayEquals(
             new String[] { "index", "name", "seq", "loc", "uloc"  },
@@ -103,8 +133,8 @@ public class TableCatTest extends TableTestCase {
         Short s2 = new Short( (short) 2 );
         assertArrayEquals( new Object[] { s1, s1, s2, s2, s2 },
                            getColData( out2, 2 ) );
-        String t1 = "table1";
-        String t2 = "table2";
+        String t1 = "table_1";
+        String t2 = "table_2";
         assertArrayEquals( new Object[] { t1, t1, t2, t2, t2, },
                            getColData( outN, 3 ) );
         String n1 = "1";
