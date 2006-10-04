@@ -16,6 +16,7 @@ import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -33,6 +34,7 @@ public class CatMapper implements TableMapper {
     private final Parameter locParam_;
     private final Parameter ulocParam_;
     private final BooleanParameter lazyParam_;
+    private final BooleanParameter countParam_;
     private final boolean hasLazy_;
 
     private static final ValueInfo SEQ_INFO =
@@ -120,6 +122,21 @@ public class CatMapper implements TableMapper {
             "may avoid running out of resources.",
             "</p>",
         } );
+
+        countParam_ = new BooleanParameter( "countrows" );
+        countParam_.setDefault( "false" );
+        countParam_.setDescription( new String[] {
+            "<p>Whether to count the rows in the table before starting",
+            "the output.  This is essentially a tuning parameter -",
+            "if writing to an output format which requires the number",
+            "of rows up front (such as normal FITS) it may result in",
+            "skipping the number of passes through the input files required",
+            "for processing.  Unless you have a good understanding of",
+            "the internals of the software, your best bet for working",
+            "out whether to set this true or false is to try it both",
+            "ways",
+            "</p>",
+        } );
     }
 
     public Parameter[] getParameters() {
@@ -130,6 +147,7 @@ public class CatMapper implements TableMapper {
         if ( hasLazy_ ) {
             paramList.add( lazyParam_ );
         }
+        paramList.add( countParam_ );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
@@ -139,7 +157,8 @@ public class CatMapper implements TableMapper {
         String ulocCol = ulocParam_.stringValue( env );
         boolean lazy = hasLazy_ ? lazyParam_.booleanValue( env )
                                 : false;
-        return new CatMapping( seqCol, locCol, ulocCol, lazy );
+        boolean countRows = countParam_.booleanValue( env );
+        return new CatMapping( seqCol, locCol, ulocCol, lazy, countRows );
     }
 
     /**
@@ -171,6 +190,7 @@ public class CatMapper implements TableMapper {
         private final String locCol_;
         private final String ulocCol_;
         private final boolean lazy_;
+        private final boolean countRows_;
 
         /**
          * Constructor.
@@ -178,13 +198,17 @@ public class CatMapper implements TableMapper {
          * @param  seqCol  name of sequence column to be added, or null
          * @param  locCol  name of location column to be added, or null
          * @param  ulocCol name of unique location to be added, or null
+         * @param  lazy   whether to defer constituent table construction
+         *         until absolutely necessary
+         * @param  countRows  whether to count the rows before starting
          */
         CatMapping( String seqCol, String locCol, String ulocCol,
-                    boolean lazy ) {
+                    boolean lazy, boolean countRows ) {
             seqCol_ = seqCol;
             locCol_ = locCol;
             ulocCol_ = ulocCol;
             lazy_ = lazy;
+            countRows_ = countRows;
         }
 
         public StarTable mapTables( final InputTableSpec[] inSpecs )
@@ -229,6 +253,24 @@ public class CatMapper implements TableMapper {
                     inTables[ i ] = tProds[ i ].getTable();
                 }
                 out = new ConcatStarTable( inTables[ 0 ], inTables );
+            }
+
+            /* Work out the table row count if required. */
+            if ( out.getRowCount() < 0L && countRows_ ) {
+                long nr = 0L;
+                for ( int i = 0; i < nTable && nr >= 0L; i++ ) {
+                    long n = tProds[ i ].getTable().getRowCount();
+                    nr = n >= 0 ? nr + n
+                                : -1L;
+                }
+                if ( nr >= 0L ) {
+                    final long nrow = nr;
+                    out = new WrapperStarTable( out ) {
+                        public long getRowCount() {
+                            return nrow;
+                        }
+                    };
+                }
             }
 
             /* Add parameters describing the unique column name truncation
