@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -26,6 +27,8 @@ public class HomogeneousMapperTask extends MapperTask {
 
     public InputTablesParameter inTablesParam_;
     public FilterParameter inFilterParam_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
@@ -78,13 +81,16 @@ public class HomogeneousMapperTask extends MapperTask {
                                : inFilterParam_.stepsValue( env );
         String[] locs = inTablesParam_.stringsValue( env );
         TableProducer[] tprods = inTablesParam_.tablesValue( env );
-        int nIn = tprods.length;
+        final int nIn = tprods.length;
         InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
+            final int index = i;
             final TableProducer tprod = tprods[ i ];
             specs[ i ] = new InputTableSpec( locs[ i ], steps ) {
                 public StarTable getInputTable() throws TaskException {
                     try {
+                        logger_.config( "Input table " + ( index + 1 ) 
+                                      + "/" + nIn );
                         return tprod.getTable();
                     }
                     catch ( IOException e ) {
