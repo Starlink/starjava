@@ -187,7 +187,7 @@ public class CatMapper implements TableMapper {
             lazy_ = lazy;
         }
 
-        public StarTable mapTables( InputTableSpec[] inSpecs )
+        public StarTable mapTables( final InputTableSpec[] inSpecs )
                 throws IOException, TaskException {
             int nTable = inSpecs.length;
 
@@ -203,46 +203,30 @@ public class CatMapper implements TableMapper {
                                   ? null
                                   : new Trimmer( locations );
 
+            /* Prepare an array of table producers for the input tables. */
+            TableProducer[] tProds = new TableProducer[ nTable ];
+            for ( int i = 0; i < nTable; i++ ) {
+                final int index = i;
+                tProds[ i ] = new TableProducer() {
+                    public StarTable getTable()
+                            throws IOException, TaskException {
+                        return CatMapping.this.getTable( inSpecs[ index ],
+                                                         index, trimmer );
+                    }
+                };
+            }
+
             /* Perform the concatenation on the (possibly doctored) input 
              * tables. */
             StarTable out;
             if ( lazy_ ) {
-                StarTable meta = getTable( inSpecs[ 0 ], 0, trimmer );
-                final Iterator specIt = Arrays.asList( inSpecs ).iterator();
-                Iterator tableIt = new Iterator() {
-                    int index;
-                    public boolean hasNext() {
-                        return specIt.hasNext();
-                    }
-                    public Object next() {
-                        InputTableSpec inSpec = (InputTableSpec) specIt.next();
-                        final int ix = index++;
-                        Throwable error;
-                        try {
-                            return getTable( inSpec, ix, trimmer );
-                        }
-                        catch ( IOException e ) {
-                            error = e;
-                        }
-                        catch ( TaskException e ) {
-                            error = e;
-                        }
-                        assert error != null;
-                        logger_.warning( "Table load failed for \"" +
-                                         inSpec.getLocation() + "\": " +
-                                         error.getMessage() );
-                        return new EmptyStarTable();
-                    }
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-                out = new ConcatStarTable( meta, tableIt );
+                StarTable meta = tProds[ 0 ].getTable();
+                out = new SeqConcatStarTable( meta, tProds );
             }
             else {
                 StarTable[] inTables = new StarTable[ nTable ];
                 for ( int i = 0; i < nTable; i++ ) {
-                    inTables[ i ] = getTable( inSpecs[ i ], i, trimmer );
+                    inTables[ i ] = tProds[ i ].getTable();
                 }
                 out = new ConcatStarTable( inTables[ 0 ], inTables );
             }
