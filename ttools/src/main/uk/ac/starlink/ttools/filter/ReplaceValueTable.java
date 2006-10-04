@@ -180,10 +180,10 @@ public class ReplaceValueTable extends WrapperStarTable {
                     oldVal = info.unformatString( oldStr );
                 }
                 catch ( IllegalArgumentException e ) {
-                    logger_.warning( "No replacements in column " 
-                                   + info.getName() + " (" + oldStr + " not "
-                                   + info.formatClass( info.getContentClass() )
-                                   + ")" );
+                    logger_.info( "No replacements in column " 
+                                + info.getName() + " (" + oldStr + " not "
+                                + info.formatClass( info.getContentClass() )
+                                + ")" );
                     return unitReplacer_;
                 }
                 return new Replacer() {
