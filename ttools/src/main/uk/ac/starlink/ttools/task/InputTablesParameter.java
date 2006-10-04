@@ -78,6 +78,16 @@ public class InputTablesParameter extends AbstractInputTableParameter
             throws TaskException {
         checkGotValue( env );
         if ( tables_ == null ) {
+
+            /* Acquire the values of the associated parameters from the
+             * environment.  Although we don't use them yet, this is 
+             * necessary so that the environment knows that we are going
+             * to use them, and doesn't count them as orphaned. */
+            getFormatParameter().stringValue( env );
+            getStreamParameter().stringValue( env );
+
+            /* Get an array of TableProducers representing the value of
+             * this parameter. */
             String[] locs = stringsValue( env );
             int nloc = locs.length;
             TableProducer[] tables = new TableProducer[ nloc ];
@@ -89,6 +99,8 @@ public class InputTablesParameter extends AbstractInputTableParameter
                     }
                 };
             }
+
+            /* Store it. */
             tables_ = tables;
         }
         return tables_;
