@@ -23,6 +23,7 @@ public class DeleteColumnFilter extends BasicFilter {
             "<p>Delete the specified columns.",
             "The same column may harmlessly be specified more than once.",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

@@ -52,6 +52,7 @@ public class SortFilter extends BasicFilter {
             "flag is given then they are considered to come at the start",
             "instead.",
             "</p>",
+            explainSyntax( new String[] { "key-list", } ),
         };
     }
 

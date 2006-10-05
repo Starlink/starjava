@@ -28,6 +28,7 @@ public class ExplodeColsFilter extends BasicFilter {
             "though not all the arrays need to have the same number",
             "of elements.",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

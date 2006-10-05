@@ -24,6 +24,7 @@ public class SelectFilter extends BasicFilter {
             "<code>&lt;expr&gt;</code> must be an expression which",
             "evaluates to a boolean value (true/false).",
             "</p>",
+            explainSyntax( new String[] { "expr", } ),
         };
     }
 

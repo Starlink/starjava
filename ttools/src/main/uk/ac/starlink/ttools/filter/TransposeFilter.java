@@ -44,6 +44,7 @@ public class TransposeFilter extends BasicFilter {
             "The first column of the output table will contain the",
             "column names of the input table.",
             "</p>",
+            explainSyntax( new String[] { "col-id", } ),
         };
     }
 

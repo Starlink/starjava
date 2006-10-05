@@ -56,6 +56,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
             "<code>-epoch</code> flag is of significance.",
             "Where significant its value defaults to 2000.0.",
             "</p>",
+            explainSyntax( new String[] { "expr", "col-id1", "col-id2", } ),
         };
     }
 

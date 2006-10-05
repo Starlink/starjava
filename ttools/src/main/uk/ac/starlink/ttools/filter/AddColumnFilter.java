@@ -34,6 +34,7 @@ public class AddColumnFilter extends BasicFilter {
             "<code>-desc</code> flags can be used to define",
             "metadata values for the new column.",
             "</p>",
+            explainSyntax( new String[] { "expr", "col-id", } ),
         };
     }
 

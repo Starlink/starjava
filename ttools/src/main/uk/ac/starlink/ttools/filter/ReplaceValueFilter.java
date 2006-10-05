@@ -30,6 +30,7 @@ public class ReplaceValueFilter extends BasicFilter {
             "(but see also the " + DocUtils.filterRef( new BadValueFilter() ),
             "filter).",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

@@ -27,6 +27,7 @@ public class KeepColumnFilter extends BasicFilter {
             "The same column may be listed more than once,",
             "in which case it will appear in the output table more than once.",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

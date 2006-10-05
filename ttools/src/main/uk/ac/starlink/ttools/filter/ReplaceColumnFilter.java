@@ -34,6 +34,7 @@ public class ReplaceColumnFilter extends BasicFilter {
             "so for example \"<code>replacecol pixsize pixsize*2</code>\"",
             "just multiplies the values in column <code>pixsize</code> by 2.",
             "</p>",
+            explainSyntax( new String[] { "col-id", "expr", } ),
         };
     }
 

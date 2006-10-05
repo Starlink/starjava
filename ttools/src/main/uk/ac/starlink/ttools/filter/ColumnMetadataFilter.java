@@ -34,6 +34,7 @@ public class ColumnMetadataFilter extends BasicFilter {
             "Typically, <code>&lt;colid-list&gt;</code> will simply be",
             "the name of a single column.",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

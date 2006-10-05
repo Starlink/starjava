@@ -24,6 +24,7 @@ public class BadValueFilter extends BasicFilter {
             "any occurrence of the value <code>&lt;bad-val&gt;</code>",
             "is replaced by a blank entry.",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

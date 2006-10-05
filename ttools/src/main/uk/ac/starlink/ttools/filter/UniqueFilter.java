@@ -44,6 +44,7 @@ public class UniqueFilter extends BasicFilter {
             "input rows represented by each output row.  A unique row",
             "has a " + COUNT_INFO.getName() + " value of 1.",
             "</p>",
+            explainSyntax( new String[] { "colid-list", } ),
         };
     }
 

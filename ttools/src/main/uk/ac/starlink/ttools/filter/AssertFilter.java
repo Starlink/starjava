@@ -43,6 +43,7 @@ public class AssertFilter extends BasicFilter {
             "although that is not usually obvious if you are running from",
             "the shell in the usual way.",
             "</p>",
+            explainSyntax( new String[] { "expr" } ),
         };
     }
 

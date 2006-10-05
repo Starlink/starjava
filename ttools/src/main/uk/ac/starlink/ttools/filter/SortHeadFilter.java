@@ -66,6 +66,7 @@ public class SortHeadFilter extends BasicFilter {
             "on memory and faster, as long as <code>&lt;nrows&gt;</code>",
             "is significantly lower than the size of the table.",
             "</p>",
+            explainSyntax( new String[] { "key-list", } ),
         };
     }
 
