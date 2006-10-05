@@ -879,11 +879,54 @@ public class LineFitFrame
                 }
             }
         }
+
+        //  If the coordinates run backwards, swap them around, the fitting
+        //  algorithms require this. Assumes monotonic. Could use a sort
+        //  algorithm if that wasn't true.
+        if ( XSpecXData[0] > XSpecXData[XSpecXData.length-1] ) {
+            double tmp2[];
+            double tmp[] = new double[XSpecXData.length];
+
+            reverseArray( XSpecXData, tmp );
+            tmp2 = XSpecXData;
+            XSpecXData = tmp;
+            tmp = tmp2;
+
+            reverseArray( XSpecYData, tmp );
+            tmp2 = XSpecYData;
+            XSpecYData = tmp;
+            tmp = tmp2;
+
+            if ( XSpecYDataWeights != null ) {
+                reverseArray( XSpecYDataWeights, tmp );
+                tmp2 = XSpecYDataWeights;
+                XSpecYDataWeights = tmp;
+                tmp = tmp2;
+            }
+
+            if ( XBackYData != null ) {
+                reverseArray( XBackYData, tmp );
+                tmp2 = XBackYData;
+                XBackYData = tmp;
+                tmp = tmp2;
+            }
+        }
         extracts.add( 0, XSpecXData );
         extracts.add( 1, XSpecYData );
         extracts.add( 2, XSpecYDataWeights );
         extracts.add( 3, XBackYData );
         return n;
+    }
+
+    /**
+     * Copy an array to another array, reversing the order of the values.
+     */
+    protected void reverseArray( double[] inarray, double outarray[] ) 
+    {
+        int n = inarray.length;
+        for ( int i = 0, j = n - 1; i < n; i++, j-- ) {
+            outarray[i] = inarray[j];
+        }
     }
 
     /**
