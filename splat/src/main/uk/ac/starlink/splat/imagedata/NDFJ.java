@@ -693,14 +693,18 @@ public class NDFJ
             try {
                 String[] astArray = new String[1];
                 ASTChannel chan = new ASTChannel( astArray );
-                chan.write( wcs );
-
-                //  The dummy channel now knows how much space is
-                //  required.
-                astArray = new String[chan.getIndex()];
-                chan.setArray( astArray );
-                chan.write( wcs );
-                nSetAstArray( ident, astArray );
+                int nwrite = chan.write( wcs );
+                if ( nwrite > 0 ) {
+                    //  The dummy channel now knows how much space is
+                    //  required.
+                    astArray = new String[chan.getIndex()];
+                    chan.setArray( astArray );
+                    nwrite = chan.write( wcs );
+                    nSetAstArray( ident, astArray );
+                }
+                if ( nwrite == 0 ) {
+                    logger.warning( "Failed to save WCS to NDF" );
+                }
             }
             catch (Exception e) {
                 e.printStackTrace();
