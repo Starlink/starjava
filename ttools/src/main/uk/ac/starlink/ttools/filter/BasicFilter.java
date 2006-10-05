@@ -94,9 +94,9 @@ public abstract class BasicFilter implements ProcessingFilter {
                 .append( "&gt;" )
                 .append( "</code>" );
             if ( nUsage > 1 ) {
-                sbuf.append( "</ref>" )
-                    .append( " " );
+                sbuf.append( "</ref>" );
             }
+            sbuf.append( " " );
         }
         if ( nUsage == 1 ) {
             sbuf.append( "argument" )
