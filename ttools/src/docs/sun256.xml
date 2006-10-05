@@ -3,6 +3,7 @@
 
   <!-- Define some character constants. -->
   <!ENTITY column.id.char '$'>
+  <!ENTITY indirection.char '@'>
 
   <!-- Define automatically generated text entities. -->
   <!ENTITY jel.func.docs SYSTEM "jel-javadocs.xml">
@@ -71,7 +72,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>3 August 2006</docdate>
+<docdate>5 October 2006</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -1302,15 +1303,6 @@ of the <code>delcols</code> command is interpreted as one argument not
 three separate words.
 </p>
 
-<p>The syntax of some of these arguments is described elsewhere in 
-this document:
-<ul>
-<li><code>&lt;col-id&gt;</code>: see <ref id="col-id"/></li>
-<li><code>&lt;colid-list&gt;</code>: see <ref id="colid-list"/></li>
-<li><code>&lt;expr&gt;</code>: see <ref id="jel"/></li>
-</ul>
-</p>
-
 <p>The available filters are described in the following subsections.
 </p>
 
@@ -2530,7 +2522,7 @@ stilts tcat ifmt=ascii in="t1.txt t2.txt t3.txt" out=table.txt
     </p></dd>
 
 <dt><verbatim>
-stilts tcat ifmt=ascii in=@inlist out=table.txt
+stilts tcat ifmt=ascii in=&indirection.char;inlist out=table.txt
 </verbatim></dt>
 <dd><p>This will have the same effect as the previous two examples if a
     file name "inlist" in the current directory contains three lines,
@@ -3121,7 +3113,7 @@ stilts tpipe 2dfgrs_ngp.fits \
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe omode=meta cmd=@commands.lis http://archive.org/data/survey.vot.Z
+stilts tpipe omode=meta cmd=&indirection.char;commands.lis http://archive.org/data/survey.vot.Z
 </verbatim></dt>
 <dd><p>Outputs column and table metadata about a table.
     In this case the table is a compressed VOTable at the end of a URL.
@@ -3947,47 +3939,99 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 1.3 (5 October 2006)</dt>
 <dd><p>
-    <ul>
-    <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
-        URLs now provided.</li>
-    <li>Time conversion functions added to/from Decimal Year.</li>
-    <li>Added <code>toHex</code> and <code>fromHex</code> numeric 
-        conversion functions.</li>
-    <li>Add new <code>out</code> parameter to <code>votlint</code>.</li>
-    <li>Fixed erroneous complaints from <code>votlint</code> about 
-        <code>utype</code> attribute on RESOURCE elements.</li>
-    <li>Added <code>-J</code> flag to <code>stilts</code> script for passing
-        flags directly to Java.</li>
-    <li>Add sample (as opposed to population) Standard Deviation/Variance
-        calculation options to the <code>stats</code> filter.</li>
-    <li><code><ref id="tcat">tcat</ref></code> now concatenates multiple 
-        tables, not just two, and the syntax has changed.
-        The <code><ref id="tcatn">tcatn</ref></code> command now does what
-        <code>tcat</code> used to do.
-        Both commands now permit appending additional columns to indicate
-        which input table each output row comes from.</li>
-    <li>Improved CEA description file output - now contains details of all
-        tasks as well as various improvements in documentation etc.</li>
-    <li>Modified presentation of HTML version of SUN/256 using CSS.</li>
-    <li>Modified SUN/256 structure somewhat 
-        (each <ref id="outModes">output mode</ref> and
-        <ref id="filterSteps">processing filter</ref> 
-        now gets its own section).</li>
-    <li>Matching improvements: <code>exact</code> match mode now copes with
-        array-valued columns.  Also fixed a couple of minor matching bugs.</li>
-    <li>Added <code>force</code> parameter to 
-        <code><ref id="multicone">multicone</ref></code> task as a workaround
-        for some broken services.</li>
-    <li>Added <code>-ifndim</code> and <code>-ifshape</code> flags to
-        <ref id="explodeall">explodeall</ref> filter.</li>
-    <li>Parameter <code>script</code> withdrawn from <code>tpipe</code> -
-        you can now use the indirection facility of the <code>cmd</code>
-        parameter instead
-        (<code>cmd=@file</code> replaces <code>script=file</code>).</li>
-    </ul>
-    </p></dd>
+    <dl>
+
+    <dt>Table Concatenation</dt>
+    <dd><p>The old <code>tcat</code> command has been replaced by more capable 
+        <ref id="tcat"><code>tcat</code></ref> and
+        <ref id="tcatn"><code>tcatn</code></ref> commands.
+        Between them these provide concatenation of an unlimited number of
+        homogeneous or heterogeneous input tables.
+        Additional columns may be added to indicate which of the input tables
+        given output rows originated from.
+        </p></dd>
+
+    <dt>Parameter value indirection</dt>
+    <dd><p>Certain parameters 
+        (<code>in</code> in <ref id="tcat"><code>tcat</code></ref>,
+        <code>cmd</code> and friends)
+        may now be specified in the form "&indirection.char;filename".
+        This indicates that the value for the parameter is to be obtained
+        by reading it from the named file.
+        This is useful if a very long value is required for the parameter
+        in question.  The <code>script</code> parameter of
+        <ref id="tpipe"><code>tpipe</code></ref> has therefore been
+        withdrawn, since it did just the same thing.
+        </p></dd>
+
+    <dt>MySpace access</dt>
+    <dd><p>Direct access to the MySpace virtual file system is now provided
+        by use of <code>ivo:</code>- or <code>myspace:</code>-type URLs.
+        </p></dd>
+
+    <dt>Conversion functions</dt>
+    <dd><p>
+        <ul>
+        <li>Time conversion functions between MJD and Decimal Year have
+            been added
+            (<ref id="uk.ac.starlink.ttools.func.Times"/>).</li>
+        <li><code>toHex</code> and <code>fromHex</code> numeric conversion
+            functions have been added
+            (<ref id="uk.ac.starlink.ttools.func.Conversions"/>).</li>
+        </ul>
+        </p></dd>
+
+    <dt>Documentation improvements</dt>
+    <dd><p>
+        <ul>
+        <li>The HTML version of SUN/256 now uses CSS to provide better 
+            highlighting of <code>commands</code> etc.</li>
+        <li>The <ref id="outModes">Output Modes</ref> and
+            <ref id="filterSteps">Processing Filter</ref> sections are
+            now split into subsections to make the table of contents
+            clearer.</li>
+        <li>The <ref id="cmdUsage">Command Reference</ref> section now 
+            has only one level of subsection listed in the table of
+            contents to make it clearer.</li>
+        </ul>
+        </p></dd>
+
+    <dt>Other new features and improvements</dt>
+    <dd><p>
+        <ul>
+        <li>Added <code>-J</code> flag to <code>stilts</code> script
+            for passing flags directly to Java.</li>
+        <li>Added new <code>out</code> parameter to <code>votlint</code>.</li>
+        <li>Added <code>-ifndim</code> and <code>-ifshape</code> flags to
+            <ref id="explodeall">explodeall</ref> filter.</li>
+        <li>The <code>exact</code> match mode in 
+            <ref id="tmatch2"><code>tmatch2</code></ref>
+            now copes with array-valued columns.</li>
+        <li>Added <code>force</code> parameter to 
+            <code><ref id="multicone">multicone</ref></code> task 
+            as a workaround for some broken services.</li>
+        <li>Added Sample (as opposed to Population) Standard Deviation/Variance
+            calculation options to the <code>stats</code> filter.</li>
+        <li>Improved CEA description file output - now contains details of 
+            all tasks rather than just a few, as well as various 
+            improvements in documentation etc.</li>
+        </ul>
+        </p></dd>
+
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed erroneous complaints from <code>votlint</code> about 
+            <code>utype</code> attribute on RESOURCE elements.</li>
+        <li>Fixed a couple of minor crossmatching bugs (which wouldn't
+            have affected results).</li>
+        </ul>
+        </p></dd>
+
+    </dl>
+</p></dd>
 
 </dl>
 </p>
