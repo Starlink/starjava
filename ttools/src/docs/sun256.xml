@@ -31,7 +31,7 @@
   <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
-  <!ENTITY tcat2-summary SYSTEM 'tcat2-summary.xml'>
+  <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
@@ -154,8 +154,8 @@ table manipulation:
 <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
     &tcat-purpose;
     </li>
-<li><ref id="tcat2" plaintextref="yes"><code>tcat2</code></ref>:
-    &tcat2-purpose;
+<li><ref id="tcatn" plaintextref="yes"><code>tcatn</code></ref>:
+    &tcatn-purpose;
     </li>
 <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
     &tcube-purpose;
@@ -345,7 +345,7 @@ the available tasks are:
 <li><code>multicone</code></li>
 <li><code>regquery</code></li>
 <li><code>tcat</code></li>
-<li><code>tcat2</code></li>
+<li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
 <li><code>tmatch2</code></li>
@@ -972,7 +972,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>,
-           <ref id="tcat2"><code>tcat2</code></ref>,
+           <ref id="tcatn"><code>tcatn</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="multicone"><code>multicone</code></ref> and
@@ -1239,7 +1239,7 @@ have parameters with names like "<code>cmd</code>" which you
 use to specify processing steps.
 Tasks with multiple input tables
 (<ref id="tmatch2"><code>tmatch2</code></ref>,
- <ref id="tcat2"><code>tcat2</code></ref>)
+ <ref id="tcatn"><code>tcatn</code></ref>)
 may have parameters called <code>icmd1</code>, <code>icmd2</code>, ...
 for preprocessing the different input tables and
 <code>ocmd</code> for postprocessing the output table.
@@ -2490,15 +2490,21 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 <p><code>tcat</code> is a tool for concatenating any number of 
 similar tables one after the other.
 The tables must be of similar form to each other (same number and
-types of column).  Preprocessing of the tables may be done using
-the <code>icmd</code> parameter, but this will operate in the same
+types of columns).  Preprocessing of the tables may be done using
+the <code>icmd</code> parameter, which will operate in the same
 way on all the input tables.  Table parameters of the output table
 will be taken from the first of the input tables.
 </p>
 
-<p>If you have two heterogeneous tables
-which require different preprocessing steps from each other before
-they can be concatenated, use <code><ref id="tcat2">tcat2</ref></code>.
+<p>Subject to some constraints on the details of the input and output
+formats and processing, <code>tcat</code> is capable of joining
+an unlimited number of tables together to produce an output table of
+unlimited length, without large memory requirements.
+</p>
+
+<p>If you have heterogeneous tables, in different formats of
+requiring different preprocessing steps from each other before
+they can be concatenated, use <code><ref id="tcatn">tcatn</ref></code>.
 </p>
 
 &tcat-summary;
@@ -2520,7 +2526,15 @@ stilts tcat ifmt=ascii in=t1.txt in=t2.txt in=t3.txt out=table.txt
 <dt><verbatim>
 stilts tcat ifmt=ascii in="t1.txt t2.txt t3.txt" out=table.txt
 </verbatim></dt>
-<dd><p>Exactly the same as the previous example.
+<dd><p>Has exactly the same effect as the previous example.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat ifmt=ascii in=@inlist out=table.txt
+</verbatim></dt>
+<dd><p>This will have the same effect as the previous two examples if a
+    file name "inlist" in the current directory contains three lines,
+    "t1.txt", "t2.txt" and "t3.txt".
     </p></dd>
 
 <dt><verbatim>
@@ -2558,14 +2572,14 @@ stilts tcat in='rA.csv rB.csv rC.csv' ifmt=csv \
 
 </subsect>
 
-<subsect id="tcat2" tocleaf="yes">
-<subhead><title><code>tcat2</code>: &tcat2-purpose;</title></subhead>
+<subsect id="tcatn" tocleaf="yes">
+<subhead><title><code>tcatn</code>: &tcatn-purpose;</title></subhead>
 
-<p><code>tcat2</code> is a tool for concatenating two tables 
+<p><code>tcatn</code> is a tool for concatenating two tables 
 one after the other.  Each table can be manipulated separately 
 prior to the concatenatation.
 If you have two tables T1 and T2 which contain similar columns, and you 
-want to treat them as a single table, you can use <code>tcat2</code>
+want to treat them as a single table, you can use <code>tcatn</code>
 to produce a new table whose metadata (row headings etc) comes from T1
 and whose data consists of all the rows of T1 followed by all the rows of T2.
 </p>
@@ -2578,45 +2592,48 @@ for instance the columns are in different orders, or the units
 differ between a column in T1 and its opposite number in T2,
 you can use the <code>icmd1</code> and/or <code>icmd2</code>
 parameters to manipulate the input tables so that the
-column sequences are compatible.  See <ref id="tcat2-examples"/> for
+column sequences are compatible.  See <ref id="tcatn-examples"/> for
 some examples.
 </p>
 
-<p>To concatenate more than two tables at a time,
-use <code><ref id="tcat">tcat</ref></code>.
+<p>If the tables are similar to each other 
+(same format, same columns, same preprocessing stages required if any),
+you may find it easier to use <code><ref id="tcat">tcat</ref></code> instead.
 </p>
 
-&tcat2-summary;
+&tcatn-summary;
 
-<subsubsect id="tcat2-examples">
+<subsubsect id="tcatn-examples">
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of <code>tcopy</code>:
+<p>Here are some examples of <code>tcatn</code>:
 <dl>
 
 <dt><verbatim>
-stilts tcat2 obs1.fits obs2.fits out=combined.fits
+stilts tcatn nin=2 in1=obs1.fits in2=obs2.fits out=combined.fits
 </verbatim></dt>
 <dd><p>Concatenates two similar observation catalogues to form a combined one.
     In this case, both input and output tables are FITS files.
     </p></dd>
 
 <dt><verbatim>
-stilts tcat2 ifmt1=ascii in1=obs1.txt ifmt2=ascii in2=ob2.txt omode=stats
+stilts tcatn nin=3 omode=stats in1=obs1.txt ifmt1=ascii
+                               in2=obs2.xml ifmt2=votable
+                               in3=obs3.fit ifmt3=fits
 </verbatim></dt>
-<dd><p>Again two similar catalogues are joined, but in this case both
-    are in ASCII format, and instead of writing the result to an
-    output file, the resulting joined catalogue is examined to calculate
+<dd><p>Three catalogues with similar forms but in different data formats
+    are joined.  Instead of writing the result to an output file, 
+    the resulting joined catalogue is examined to calculate
     its statistics, which are written to standard output.
     </p></dd>
 
 <dt><verbatim>
-stilts tcat2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
-            icmd1='addskycoords fk5 galactic RA2000 DEC2000 GLON GLAT' \
-            icmd1='keepcols "OBJ_ID GLON GLAT"' \
-            icmd2='keepcols "ident gal_long gal_lat"' \
-            loccol=FILENAME
-            omode=topcat
+stilts tcatn nin=2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
+             icmd1='addskycoords fk5 galactic RA2000 DEC2000 GLON GLAT' \
+             icmd1='keepcols "OBJ_ID GLON GLAT"' \
+             icmd2='keepcols "ident gal_long gal_lat"' \
+             loccol=FILENAME
+             omode=topcat
 </verbatim></dt>
 <dd><p>In this case we are trying to concatenate results from two tables
     which are quite dissimilar to each other.  In the first place,
@@ -2633,7 +2650,7 @@ stilts tcat2 in1=survey.vot.gz ifmt2=csv in2=more_data.csv
     The second table contains such columns to start with,
     but the first table requires an initial step to convert 
     FK5 J2000.0 coordinates to galactic ones.
-    <code>tcat2</code> joins the two doctored tables together, to produce
+    <code>tcatn</code> joins the two doctored tables together, to produce
     a table which contains only these three columns, with all the rows
     from both input tables, and sends the result directly 
     to a new or running instance of TOPCAT.
@@ -3104,10 +3121,12 @@ stilts tpipe 2dfgrs_ngp.fits \
     </p></dd>
 
 <dt><verbatim>
-stilts tpipe omode=meta http://archive.org/data/survey.vot.Z
+stilts tpipe omode=meta cmd=@commands.lis http://archive.org/data/survey.vot.Z
 </verbatim></dt>
 <dd><p>Outputs column and table metadata about a table.
     In this case the table is a compressed VOTable at the end of a URL.
+    Processing is performed according to the commands contained in a
+    file named "commands.lis" in the current directory.
     </p></dd>
 
 <dt><verbatim>
@@ -3945,7 +3964,7 @@ but my thanks are especially due to the following:
         calculation options to the <code>stats</code> filter.</li>
     <li><code><ref id="tcat">tcat</ref></code> now concatenates multiple 
         tables, not just two, and the syntax has changed.
-        The <code><ref id="tcat2">tcat2</ref></code> command now does what
+        The <code><ref id="tcatn">tcatn</ref></code> command now does what
         <code>tcat</code> used to do.
         Both commands now permit appending additional columns to indicate
         which input table each output row comes from.</li>
