@@ -39,4 +39,79 @@ public abstract class BasicFilter implements ProcessingFilter {
 
     protected abstract String[] getDescriptionLines();
 
+    /**
+     * Returns a snippet of XML explaining use of the syntax of some given
+     * usage-type example arguments.
+     * These may be one of the following:
+     * <ul>
+     * <li>expr</li>
+     * <li>col-id</li>
+     * <li>colid-list</li>
+     * </ul>
+     * either alone or followed by a number.
+     *
+     * @param  usages  array of formal arguments to be explained
+     * @return XML explanation
+     */
+    public static String explainSyntax( String[] usages ) {
+        int nUsage = usages.length;
+        if ( nUsage == 0 ) {
+            return "";
+        }
+        StringBuffer sbuf = new StringBuffer()
+            .append( "<p>" )
+            .append( "Syntax for the " );
+        String[] refids = new String[ nUsage ];
+        for ( int i = 0; i < nUsage; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( ( i == nUsage - 1 ) ? " and " : ", " );
+            }
+            String usage = usages[ i ];
+            String refid;
+            if ( usage.startsWith( "expr" ) ||
+                 usage.startsWith( "key-list" ) ) {
+                refid = "jel";
+            }
+            else if ( usage.startsWith( "col-id" ) ) {
+                refid = "col-id";
+            }
+            else if ( usage.startsWith( "colid-list" ) ) {
+                refid = "colid-list";
+            }
+            else {
+                throw new IllegalArgumentException(
+                    "Unknown usage type " + usage );
+            }
+            refids[ i ] = refid;
+            if ( nUsage > 1 ) {
+                sbuf.append( "<ref id=\"" )
+                    .append( refid )
+                    .append( "\">" );
+            }
+            sbuf.append( "<code>" )
+                .append( "&lt;" )
+                .append( usage )
+                .append( "&gt;" )
+                .append( "</code>" );
+            if ( nUsage > 1 ) {
+                sbuf.append( "</ref>" )
+                    .append( " " );
+            }
+        }
+        if ( nUsage == 1 ) {
+            sbuf.append( "argument" )
+                .append( " is described in " )
+                .append( "<ref id=\"" )
+                .append( refids[ 0 ] )
+                .append( "\"/>" );
+        }
+        else {
+            sbuf.append( "arguments" )
+                .append( " is described in " )
+                .append( "the manual" );
+        }
+        sbuf.append( ".\n" )
+            .append( "</p>\n" );
+        return sbuf.toString();
+    }
 }
