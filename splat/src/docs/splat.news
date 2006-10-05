@@ -1,4 +1,11 @@
 1 Starlink SPLAT news.
+   
+   Release 3.5-6
+   =============
+
+   When fitting spectral lines of spectra whose coordinate systems run
+   high to low, rather than low to high, the widths etc. are now correctly
+   reported as positive values.
 
    Release 3.5-5
    =============
