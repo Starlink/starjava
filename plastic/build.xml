@@ -562,7 +562,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,microhub,javadocs,webstart"
+          depends="build,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -853,7 +853,7 @@
    !   =============================
    !-->
   <target name="www"
-          depends="dist"
+          depends="dist,microhub"
           description="-> Prepare files for distribution web page">
     <mkdir dir="${dist.www}"/>
 
