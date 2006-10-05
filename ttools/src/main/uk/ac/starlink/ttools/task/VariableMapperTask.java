@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
  * input format and filter parameters and so on.
  *
  * <p>This task constructs its list of parameters on the fly within its
- * {@link #getExecutable} method.  The {@link #getParameters} method 
+ * {@link #createExecutable} method.  The {@link #getParameters} method 
  * returns a list which is suitable for documentation purposes only.
  * Execution environments which need the <code>getParameters</code>
  * call to return the actual list of parameters to be used may not
