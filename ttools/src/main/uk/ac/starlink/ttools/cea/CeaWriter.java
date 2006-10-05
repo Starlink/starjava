@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.ttools.task.VariableMapperTask;
 import uk.ac.starlink.util.XmlWriter;
 
 /**
@@ -303,7 +304,12 @@ public class CeaWriter extends XmlWriter {
         for ( int i = 0; i < taskNames.length; i++ ) {
             String name = taskNames[ i ];
             Task task = (Task) taskFactory.createObject( name );
-            appMap.put( name, new CeaTask( task, name ) );
+
+            /* VariableMapperTasks won't work because they construct their
+             * argument lists on the fly from other variables. */
+            if ( ! ( task instanceof VariableMapperTask ) ) {
+                appMap.put( name, new CeaTask( task, name ) );
+            }
         }
 
         /* Doctor some of the specific tasks as required; small changes
