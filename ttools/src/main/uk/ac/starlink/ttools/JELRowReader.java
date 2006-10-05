@@ -219,6 +219,9 @@ public abstract class JELRowReader extends DVMap {
             else if ( clazz.equals( double[].class ) ) {
                 return "DoubleArray";
             }
+            else if ( clazz.equals( Number.class ) ) {
+                return "Number";
+            }
             else if ( clazz.equals( String.class ) ) {
                 return "String";
             }
@@ -596,6 +599,10 @@ public abstract class JELRowReader extends DVMap {
     }
     public double[] getDoubleArrayProperty( int icol ) {
         return (double[]) getValue( icol );
+    }
+    public double getNumberProperty( int icol ) {
+        Number value = (Number) getValue( icol );
+        return value == null ? Double.NaN : value.doubleValue();
     }
     public String getStringProperty( int icol ) {
         return (String) getValue( icol );
