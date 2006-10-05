@@ -474,10 +474,10 @@ public class ASTJ
         Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
 
         // See how many axes the current frame has.
-        int nax = cfrm.getI( "Naxes" );
+        int nax = cfrm.getNaxes();
 
         // And how many input coordinates the base frame needs (ideally 1).
-        int nin = astRef.getI( "Nin" );
+        int nin = astRef.getNin();
         Mapping xmap = null;
         if ( nax != 1 || nin != 1 ) {
 
@@ -822,7 +822,7 @@ public class ASTJ
         //  Created a SpecFrame, also need to attach this to the current
         //  FrameSet.
         Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
-        int nax = cfrm.getI( "Naxes" );
+        int nax = cfrm.getNaxes();
         if ( nax == 1 ) {
             astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( 1 ), result );
         }
@@ -873,8 +873,8 @@ public class ASTJ
     {
         // Determine the current number of input and output axes and
         // take a copy of the input frameset
-        int nin = frameset.getI( "Nin" );
-        int nout = frameset.getI( "Nout" );
+        int nin = frameset.getNin();
+        int nout = frameset.getNout();
         FrameSet framecopy = (FrameSet) frameset.copy();
 
         // The requested axis must be valid, if not we adopt the
