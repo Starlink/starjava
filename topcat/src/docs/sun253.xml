@@ -88,7 +88,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>3 August 2006</docdate>
+<docdate>5 October 2006</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -9652,45 +9652,51 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.3 (5 October 2006)</dt>
 <dd><p>
+    Various modifications and improvements:
     <ul>
-    <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
-        URLs now provided.  New <ref id="tableLocation"/> added to 
-        user document.</li>
-    <li>Fixed bug in coordinate conversion that caused bad behaviour in the
-        presence of malformed input coords.</li>
-    <li>Fixed bug with plotting very large or very small axis labels in
-        3-d plots.</li>
-    <li>Time conversion functions added to/from Decimal Year.</li>
-    <li>Added <code>toHex</code> and <code>fromHex</code> numeric
-        conversion functions.</li>
-    <li>ISO-8601 column numerical values (e.g. in plots) are now by default
-        Decimal Year rather than Julian Epoch.  The numerical values are quite
-        close, but Decimal Year is probably more what you'd intuitively 
-        expect.</li>
-    <li>Improved listing for functions in <ref id="funcs"/> of user document
-        (subsection for each function class).</li>
-    <li>Fixed PLASTIC bug which was ignoring ID argument of
-        <code>ivo://votech.org/votable/loadFromURL</code> message.</li>
-    <li>Added <code>-J</code> flag to <code>topcat</code> script for passing
-        flags directly to Java.</li>
-    <li>Added sample (as opposed to population) Standard Deviation/Variance
-        calculation options to the Statistics Window.</li>
-    <li>Modified presentation of HTML version of SUN/253 using CSS.</li>
-    <li>Fixed bug (introduced at v2.2-1) which made table display and adding
-        columns slow, and column widths the wrong size.</li>
-    <li>Fixed bug (introduced at v2.0) which prevented Exact matches using 
-        non-numeric columns.  Exact match now also deals with array-valued
-        columns.</li>
-    <li>Fixed a couple of other minor matching bugs.</li>
     <li>Removed Starlink logo from the top right corner of all TOPCAT windows,
-        including screenshots in documentation.</li>
+        including screenshots in documentation.
+        New logos (Starlink, Astrogrid, VOTech, Bristol) 
+        are added in <strong>About</strong> window.</li>
     <li>Added new <label>Add Sample Subset</label>,
                   <label>Add Head Subset</label> and
                   <label>Add Tail Subset</label>
         utility tool buttons to the
         <ref id="SubsetWindow">Subset Window</ref>.</li>
+    <li>Direct MySpace access using <code>ivo:</code> or <code>myspace:</code>
+        URLs is now provided - see new <ref id="tableLocation"/>.</li>
+    <li>Added time conversion functions between MJD and Decimal Year.</li>
+    <li>ISO-8601 column numerical values (e.g. in plots) are now by default
+        Decimal Year rather than Julian Epoch.  The numerical values are quite
+        close, but Decimal Year is probably more what you'd intuitively 
+        expect.</li>
+    <li>Added <code>toHex</code> and <code>fromHex</code> numeric
+        conversion functions.</li>
+    <li>Added <code>-J</code> flag to <code>topcat</code> startup script
+        for passing flags directly to Java.</li>
+    <li>Added Sample (as opposed to Population) Standard Deviation/Variance
+        calculation options to the Statistics Window.</li>
+    <li>Improved listing for functions in <ref id="funcs"/> of user document
+        (subsection for each function class).</li>
+    <li>Modified presentation of HTML version of user document using CSS.</li>
+    </ul>
+    Bug fixes:
+    <ul>
+    <li>Fixed bug (introduced at v2.2-1) which made table display and adding
+        columns slow, and column widths the wrong size.</li>
+    <li>Fixed bug (introduced at v2.0) which prevented Exact matches using 
+        non-numeric columns.  Exact match now also deals with array-valued
+        columns.</li>
+    <li>Fixed PLASTIC bug which was ignoring ID argument of
+        <code>ivo://votech.org/votable/loadFromURL</code> message.</li>
+    <li>Fixed bug in coordinate conversion that caused bad behaviour in the
+        presence of malformed input coords.</li>
+    <li>Fixed bug with plotting very large or very small axis labels in
+        3-d plots.</li>
+    <li>Fixed a couple of minor crossmatching bugs (which would not have
+        affected results).</li>
     </ul>
     </p></dd>
 
