@@ -27,9 +27,10 @@ public class TableCatTest extends TableTestCase {
     public void test2() throws Exception {
 
         MapEnvironment env2 = new MapEnvironment()
+                             .setValue( "nin", "2" )
                              .setValue( "in1", t1_ )
                              .setValue( "in2", t2_ );
-        new TableCat2().createExecutable( env2 ).execute();
+        new TableCatN().createExecutable( env2 ).execute();
         StarTable out2 = env2.getOutputTable( "omode" );
 
         MapEnvironment envN = new MapEnvironment()
@@ -61,12 +62,13 @@ public class TableCatTest extends TableTestCase {
 
     public void testFilter() throws Exception {
         MapEnvironment env2 = new MapEnvironment()
+                             .setValue( "nin", "2" )
                              .setValue( "in2", t2_ )
                              .setValue( "in1", t1_ )
                              .setValue( "icmd1", "tail 1" )
                              .setValue( "icmd2", "tail 1" )
                              .setValue( "ocmd", "keepcols '2 1'" );
-        new TableCat2().createExecutable( env2 ).execute();
+        new TableCatN().createExecutable( env2 ).execute();
         StarTable out2 = env2.getOutputTable( "omode" );
         assertArrayEquals( box( new int[] { 2, 3, } ),
                            getColData( out2, 1 ) );
@@ -96,12 +98,13 @@ public class TableCatTest extends TableTestCase {
 
     public void testAddCols() throws Exception {
         MapEnvironment env2 = new MapEnvironment()
+                             .setValue( "nin", "2" )
                              .setValue( "in1", t1_ )
                              .setValue( "in2", t2_ )
                              .setValue( "seqcol", "seq" )
                              .setValue( "loccol", "loc" )
                              .setValue( "uloccol", "uloc" );
-        new TableCat2().createExecutable( env2 ).execute();
+        new TableCatN().createExecutable( env2 ).execute();
         StarTable out2 = env2.getOutputTable( "omode" );
 
         MapEnvironment envN = new MapEnvironment()
