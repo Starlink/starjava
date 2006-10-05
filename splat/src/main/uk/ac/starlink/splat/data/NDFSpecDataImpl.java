@@ -132,7 +132,7 @@ public class NDFSpecDataImpl
 
     /**
      * Save the spectrum to disk-file. Assumes that the spectrum hasn't
-     * already been saved and is resident in a temporary NDF.  
+     * already been saved and is resident in a temporary NDF.
      * TODO: deal with situation when above isn't true.
      */
     public void save()
@@ -242,11 +242,11 @@ public class NDFSpecDataImpl
         if ( theNDF.open( fileName ) ) {
             fullName = fileName;
             if ( theNDF.has( "units" ) ) {
-                setDataUnits( theNDF.getCharComp( "units" ) ); 
-            }    
+                setDataUnits( theNDF.getCharComp( "units" ) );
+            }
             if ( theNDF.has( "label" ) ) {
-                setDataLabel( theNDF.getCharComp( "label" ) ); 
-            }    
+                setDataLabel( theNDF.getCharComp( "label" ) );
+            }
         }
         else {
             throw new SplatException( "Failed to open NDF: " + fileName );
@@ -327,13 +327,17 @@ public class NDFSpecDataImpl
         }
 
         //  Set the AST component, note we get this from the implementation
-        //  not the SpecData. Not written to NDF until saved. XXX
-        //  dimensionality, if it is 1 then we'd be better off using the
+        //  not the SpecData. Not written to NDF until saved.  If the
+        //  dimensionality is not 1 then we pick out the first axis of the
         //  SpecData WCS.
-        theNDF.setAst( source.getFrameSet() );
+        FrameSet frameSet = source.getAst().getRef();
+        FrameSet backingFrameSet = source.getFrameSet();
+        if ( backingFrameSet.getNaxes() != 1 ) {
+            backingFrameSet = ASTJ.get1DFrameSet( frameSet, 1 );
+        }
+        theNDF.setAst( backingFrameSet );
 
         //  Set the Units and Label if we can.
-        FrameSet frameSet = source.getAst().getRef();
         String label = frameSet.getC( "Label(2)" );
         String unit = frameSet.getC( "Unit(2)" );
         if ( label != null && ( ! label.equals( "" ) ) ) {
