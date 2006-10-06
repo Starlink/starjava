@@ -26,6 +26,7 @@ import org.votech.plastic.PlasticHubListener;
  */
 public class PlasticHub extends MinimalHub {
 
+    private final Map agentMap_;
     private PrintStream logOut_;
     private PrintStream warnOut_;
     private boolean verbose_;
@@ -41,6 +42,7 @@ public class PlasticHub extends MinimalHub {
      */
     public PlasticHub( ServerSet servers ) throws RemoteException {
         super( servers );
+        agentMap_ = getAgentMap();  // synchronized map
     }
 
     void register( Agent agent ) {
@@ -78,7 +80,7 @@ public class PlasticHub extends MinimalHub {
     }
 
     public void unregister( URI id ) {
-        Agent agent = (Agent) getAgentMap().get( id );
+        Agent agent = (Agent) agentMap_.get( id );
         if ( agent != null ) {
             if ( listModel_ != null ) {
                 listModel_.unregister( id );
@@ -129,12 +131,16 @@ public class PlasticHub extends MinimalHub {
 
             /* Prepare an intial list of applications. */
             List appList = new ArrayList();
-            for ( Iterator it = getAgentMap().entrySet().iterator();
-                  it.hasNext(); ) {
-                Agent agent = (Agent) ((Map.Entry) it.next()).getValue();
-                List msgList = Arrays.asList( agent.getSupportedMessages() );
-                appList.add( new ApplicationItem( agent.getId(),
-                                                  agent.getName(), msgList ) );
+            synchronized ( agentMap_ ) {
+                for ( Iterator it = agentMap_.entrySet().iterator();
+                      it.hasNext(); ) {
+                    Agent agent = (Agent) ((Map.Entry) it.next()).getValue();
+                    List msgList =
+                        Arrays.asList( agent.getSupportedMessages() );
+                    appList.add( new ApplicationItem( agent.getId(),
+                                                      agent.getName(),
+                                                      msgList ) );
+                }
             }
             ApplicationItem[] apps =
                 (ApplicationItem[]) appList.toArray( new ApplicationItem[ 0 ] );
@@ -293,7 +299,7 @@ public class PlasticHub extends MinimalHub {
             return "null";
         }
         else if ( value instanceof URI ) {
-            Object agent = getAgentMap().get( value );
+            Object agent = agentMap_.get( value );
             if ( agent instanceof Agent ) {
                 return "id:" + agent.toString();
             }
@@ -337,7 +343,7 @@ public class PlasticHub extends MinimalHub {
      * @param  id  client ID
      */
     private boolean isRegistered( URI id ) {
-        return getAgentMap().containsKey( id );
+        return agentMap_.containsKey( id );
     }
 
     /**

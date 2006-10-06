@@ -47,7 +47,7 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
      */
     public MinimalHub( ServerSet servers ) throws RemoteException {
         servers_ = servers;
-        agentMap_ = new HashMap();
+        agentMap_ = Collections.synchronizedMap( new HashMap() );
 
         /* Listen for PLASTIC requests on RMI server. */
         servers_.getRmiServer()
@@ -78,7 +78,12 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
      * Returns a map which maps the IDs of currently registered applications
      * to their Agent objects.
      *
+     * <p>Note that this map is <strong>synchronized</strong>, and use of
+     * any iterator obtained from it must be contained in a 
+     * <code>synchronized</code> block.
+     *
      * @return   URI->Agent map for registered listeners
+     * @see     java.util.Collections#synchronizedMap
      */
     Map getAgentMap() {
         return agentMap_;
@@ -150,16 +155,19 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
 
     public List getMessageRegisteredIds( URI message ) {
         List supporters = new ArrayList();
-        for ( Iterator it = agentMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            URI id = (URI) entry.getKey();
-            Agent agent = (Agent) entry.getValue();
-            URI[] messages = agent.getSupportedMessages();
-            boolean add = ( messages == null || messages.length == 0 )
-                        ? isPre05()
-                        : Arrays.asList( messages ).contains( message );
-            if ( add ) {
-                supporters.add( id );
+        synchronized ( agentMap_ ) {
+            for ( Iterator it = agentMap_.entrySet().iterator();
+                  it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                URI id = (URI) entry.getKey();
+                Agent agent = (Agent) entry.getValue();
+                URI[] messages = agent.getSupportedMessages();
+                boolean add = ( messages == null || messages.length == 0 )
+                            ? isPre05()
+                            : Arrays.asList( messages ).contains( message );
+                if ( add ) {
+                    supporters.add( id );
+                }
             }
         }
         return supporters;
@@ -304,12 +312,14 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
      */
     private Agent[] getOtherAgents( URI excluded ) {
         List agentList = new ArrayList();
-        for ( Iterator it = agentMap_.keySet().iterator(); it.hasNext(); ) {
-            URI id = (URI) it.next();
-            if ( id != null && ! id.equals( excluded ) ) {
-                Agent agent = (Agent) agentMap_.get( id );
-                if ( agent != null ) {
-                    agentList.add( agent );
+        synchronized ( agentMap_ ) {
+            for ( Iterator it = agentMap_.keySet().iterator(); it.hasNext(); ) {
+                URI id = (URI) it.next();
+                if ( id != null && ! id.equals( excluded ) ) {
+                    Agent agent = (Agent) agentMap_.get( id );
+                    if ( agent != null ) {
+                        agentList.add( agent );
+                    }
                 }
             }
         }
