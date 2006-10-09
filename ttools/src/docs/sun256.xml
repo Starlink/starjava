@@ -3647,7 +3647,17 @@ are welcomed.
 <subhead><title>Acknowledgements</title></subhead>
 
 <p>The initial development of STILTS was done under the UK's 
-now-deceased Starlink project, without which it would not have been written.
+<webref url="http://en.wikipedia.org/wiki/Starlink_Project"
+        >Starlink project</webref> (1980-2005, R.I.P.),
+without which it would not have been written.
+From July 2005 until June 2006, it was supported
+by grant PP/D002486/1 from the UK's 
+Particle Physics and Astronomy Research Council.  
+Its author is funded from July 2006 until (at least) June 2007 by the
+European <webref url="http://eurovotech.org/">VOTech project</webref> 
+within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
+and it is expected that support and development of the software will
+continue over that time.
 </p>
 
 <p>Apart from the excellent Java 2 Standard Edition itself,
@@ -4032,6 +4042,13 @@ but my thanks are especially due to the following:
 
     </dl>
 </p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Modified parameter handling slightly for <code>votlint</code>.</li>
+    </ul>
+    </p></dd>
 
 </dl>
 </p>
