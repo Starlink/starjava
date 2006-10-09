@@ -28,6 +28,7 @@ public class ParameterTest extends TestCase {
         "cols", "binsizes",
         "serviceurl", "ra", "dec", "sr",
         "query",
+        "cache", "href",
     } ) );
 
     public ParameterTest( String name ) {

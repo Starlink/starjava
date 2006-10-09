@@ -47,7 +47,8 @@ public class VotCopyTest extends TableTestCase {
         MapEnvironment env = new MapEnvironment( map );
         File file = File.createTempFile( "votcopy", ".vot" );
         file.deleteOnExit();
-        env.setValue( "out", file.toString() ); 
+        env.setValue( "out", file.toString() )
+           .setValue( "href", "false" );
         new VotCopy().createExecutable( env ).execute();
         return file.toURL();
     }
