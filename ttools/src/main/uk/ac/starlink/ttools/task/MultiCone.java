@@ -144,7 +144,7 @@ public class MultiCone extends SingleMapperTask {
         paramList.add( copycolsParam_ );
 
         zmetaParam_ = new BooleanParameter( "zerometa" );
-        zmetaParam_.setDefault( "false" );
+        zmetaParam_.setDefault( false );
         zmetaParam_.setPrompt( "Acquire service metadata using initial "
                              + "SR=0 query?" );
         zmetaParam_.setDescription( new String[] {
@@ -165,7 +165,7 @@ public class MultiCone extends SingleMapperTask {
         paramList.add( zmetaParam_ );
 
         forceParam_ = new BooleanParameter( "force" );
-        forceParam_.setDefault( "false" );
+        forceParam_.setDefault( false );
         forceParam_.setPrompt( "Continue connection attempts "
                              + "even after errors?" );
         forceParam_.setDescription( new String[] {

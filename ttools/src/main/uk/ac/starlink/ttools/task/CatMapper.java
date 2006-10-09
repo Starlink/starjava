@@ -111,7 +111,7 @@ public class CatMapper implements TableMapper {
         } );
 
         lazyParam_ = new BooleanParameter( "lazy" );
-        lazyParam_.setDefault( "false" );
+        lazyParam_.setDefault( false );
         lazyParam_.setDescription( new String[] {
             "<p>Whether to perform table resolution lazily.",
             "If true, each table is only accessed when the time comes to",
@@ -124,7 +124,7 @@ public class CatMapper implements TableMapper {
         } );
 
         countParam_ = new BooleanParameter( "countrows" );
-        countParam_.setDefault( "false" );
+        countParam_.setDefault( false );
         countParam_.setDescription( new String[] {
             "<p>Whether to count the rows in the table before starting",
             "the output.  This is essentially a tuning parameter -",

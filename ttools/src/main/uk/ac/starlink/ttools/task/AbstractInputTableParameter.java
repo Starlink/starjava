@@ -42,6 +42,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
         String suffix = name.startsWith( "in" ) ? name.substring( 2 ) : "";
         formatParam_ = new InputFormatParameter( "ifmt" + suffix );
         streamParam_ = new BooleanParameter( "istream" + suffix );
+        streamParam_.setDefault( false );
 
         setDescription( new String[] {
             "<p>The location of the input table.",
