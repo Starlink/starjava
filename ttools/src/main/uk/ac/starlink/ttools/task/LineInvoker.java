@@ -81,6 +81,7 @@ public class LineInvoker {
                         "STIL version "
                         + IOUtils.getResourceContents( StarTable.class,
                                                        "stil.version" ),
+                        "Java version " + getJavaVersion(),
                         "",
                         "Author: Mark Taylor",
                         "WWW: http://www.starlink.ac.uk/stilts/",
@@ -588,5 +589,19 @@ public class LineInvoker {
         /* Filter out an annoying message that Axis issues. */
         Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
               .setLevel( Level.SEVERE );
+    }
+
+    /**
+     * Returns the JVM version, without throwing any exceptions.
+     *
+     * @return   java version
+     */
+    private static String getJavaVersion() {
+        try {
+            return System.getProperty( "java.version" );
+        }
+        catch ( SecurityException e ) {
+            return "???";
+        }
     }
 }
