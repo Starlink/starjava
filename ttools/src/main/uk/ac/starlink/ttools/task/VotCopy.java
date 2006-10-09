@@ -84,6 +84,7 @@ public class VotCopy implements Task {
         formatParam_ = new VotFormatParameter( "format" );
         formatParam_.setPosition( 3 );
         formatParam_.setPrompt( "Output votable format" );
+        formatParam_.setPreferExplicit( true );
 
         xencParam_ = new XmlEncodingParameter( "charset" );
 
@@ -110,9 +111,9 @@ public class VotCopy implements Task {
             "<p>In the case of BINARY or FITS encoding, this determines",
             "whether the STREAM elements output will contain their data",
             "inline or externally.",
-            "If set true, the output document will be self-contained,",
+            "If set false, the output document will be self-contained,",
             "with STREAM data inline as base64-encoded characters.",
-            "If false, then for each TABLE in the document the binary",
+            "If true, then for each TABLE in the document the binary",
             "data will be written to a separate file and referenced",
             "by an href attribute on the corresponding STREAM element.",
             "The name of these files is usually determined by the name",
@@ -154,9 +155,26 @@ public class VotCopy implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
+        DataFormat format = formatParam_.formatValue( env );
+        cacheParam_.setDefault( format == DataFormat.FITS );
         PrintStream pstrm = env.getOutputStream();
-        Charset xenc = xencParam_.charsetValue( env );
-        boolean inline = ! hrefParam_.booleanValue( env );
+        boolean inline;
+        if ( format == DataFormat.TABLEDATA ||
+             format == null ) {
+            inline = true;
+        }
+        else {
+            if ( format == DataFormat.BINARY ) {
+                hrefParam_.setDefault( "false" );
+            }
+            else if ( format == DataFormat.FITS ) {
+                hrefParam_.setDefault( "true" );
+            }
+            else {
+                assert false;
+            }
+            inline = ! hrefParam_.booleanValue( env );
+        }
         String base;
         if ( ! inline ) {
             baseParam_.setNullPermitted( false );
@@ -169,10 +187,7 @@ public class VotCopy implements Task {
         else {
             base = null;
         }
-        DataFormat format = formatParam_.formatValue( env );
-        if ( format == DataFormat.FITS ) {
-            cacheParam_.setDefault( true );
-        }
+        Charset xenc = xencParam_.charsetValue( env );
         boolean strict = TableEnvironment.isStrictVotable( env );
         boolean cache = cacheParam_.booleanValue( env );
         StoragePolicy policy = TableEnvironment.getStoragePolicy( env );
