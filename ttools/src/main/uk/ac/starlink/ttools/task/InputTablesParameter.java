@@ -41,7 +41,6 @@ public class InputTablesParameter extends AbstractInputTableParameter
             "</p>",
             "<p>A list of input table locations may be given in an external",
             "file by using the indirction character '" + indir + "'.",
-            "'" + LineEnvironment.INDIRECTION_CHAR + "'.",
             "Thus \"<code>" + getName() + "=" + indir + "filename</code>\"",
             "causes the file <code>filename</code> to be read for a list",
             "of input table locations.  The locations in the file should",
