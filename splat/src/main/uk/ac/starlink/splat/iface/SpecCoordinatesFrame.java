@@ -322,7 +322,7 @@ public class SpecCoordinatesFrame
         sourceStdOfRest.put( "Local group", "Local_group" );
 
         //stdDependOn = new LinkedHashMap( 8 );
-        //stdDependOn.put( "Topocentric", "Epoch GeoLat GeoLon RefRA RefDec" );
+        //stdDependOn.put( "Topocentric", "Epoch ObsLat ObsLon RefRA RefDec" );
         //stdDependOn.put( "Geocentric", "Epoch RefRA RefDec" );
         //stdDependOn.put( "Barycentric", "Epoch RefRA RefDec" );
         //stdDependOn.put( "Heliocentric", "RefRA RefDec" );
@@ -638,10 +638,10 @@ public class SpecCoordinatesFrame
                 Observatory obs = palReference.Obs( id );
                 // Longitude is west-positive, should be east-positive
                 // for AST. Note we use AST to format the value.
-                aSpecFrame.setD( "GeoLon", -1.0 * obs.getLong() * Pal.R2D );
-                aSpecFrame.setD( "GeoLat", obs.getLat() * Pal.R2D );
-                obsLong.setText( aSpecFrame.getC( "GeoLon") );
-                obsLat.setText( aSpecFrame.getC( "GeoLat") );
+                aSpecFrame.setD( "ObsLon", -1.0 * obs.getLong() * Pal.R2D );
+                aSpecFrame.setD( "ObsLat", obs.getLat() * Pal.R2D );
+                obsLong.setText( aSpecFrame.getC( "ObsLon") );
+                obsLat.setText( aSpecFrame.getC( "ObsLat") );
             }
             catch (Exception e) {
                 obsLong.setText( "" );
@@ -720,12 +720,12 @@ public class SpecCoordinatesFrame
 
         value = obsLong.getText();
         if ( isValid( value ) ) {
-            buffer.append( ",GeoLon=" + value );
+            buffer.append( ",ObsLon=" + value );
         }
 
         value = obsLat.getText();
         if ( isValid( value ) ) {
-            buffer.append( ",GeoLat=" + value );
+            buffer.append( ",ObsLat=" + value );
         }
 
         value = sourceRA.getText();
@@ -926,8 +926,8 @@ public class SpecCoordinatesFrame
             String system = frameSet.getC( "System" );
             String unit = frameSet.getC( "Unit(1)" );
             String stdofrest = "";
-            String geolon = "";
-            String geolat = "";
+            String obslon = "";
+            String obslat = "";
             String refra = "";
             String refdec = "";
             String restfreq = "";
@@ -942,8 +942,8 @@ public class SpecCoordinatesFrame
                 system = picked.getC( "System" );
                 unit = picked.getC( "Unit" );
                 stdofrest = picked.getC( "StdOfRest" );
-                geolon = picked.getC( "GeoLon" );
-                geolat = picked.getC( "GeoLat" );
+                obslon = picked.getC( "ObsLon" );
+                obslat = picked.getC( "ObsLat" );
                 refra = picked.getC( "RefRA" );
                 refdec = picked.getC( "RefDec" );
                 restfreq = picked.getC( "RestFreq" );
@@ -961,8 +961,8 @@ public class SpecCoordinatesFrame
                         unit = picked.getC( "Unit" );
                         stdofrest = checkAttr( picked, stdofrest,
                                                "StdOfRest" );
-                        geolon = checkAttr( picked, geolon, "GeoLon" );
-                        geolat = checkAttr( picked, geolat, "GeoLat" );
+                        obslon = checkAttr( picked, obslon, "ObsLon" );
+                        obslat = checkAttr( picked, obslat, "ObsLat" );
                         refra = checkAttr( picked, refra, "RefRA" );
                         refdec = checkAttr( picked, refdec, "RefDec" );
                         restfreq = checkAttr( picked, restfreq, "RestFreq" );
@@ -977,8 +977,8 @@ public class SpecCoordinatesFrame
                         system = "Unknown";
                         unit = "";
                         stdofrest = "";
-                        geolon = "";
-                        geolat = "";
+                        obslon = "";
+                        obslat = "";
                         refra = "";
                         refdec = "";
                         restfreq = "";
@@ -994,7 +994,7 @@ public class SpecCoordinatesFrame
             }
 
             // Set the values.
-            setInterface( system, unit, stdofrest, geolon, geolat, refra,
+            setInterface( system, unit, stdofrest, obslon, obslat, refra,
                           refdec, restfreq, sourcevrf, sourcevel,
                           epoch );
         }
@@ -1010,8 +1010,8 @@ public class SpecCoordinatesFrame
      * which should be set to "Unknown".
      */
     public void setInterface( String system, String unit,
-                              String stdofrest, String geolon,
-                              String geolat, String refra, String refdec,
+                              String stdofrest, String obslon,
+                              String obslat, String refra, String refdec,
                               String restfreq, String sourcevrf,
                               String sourcevel, String epoch )
     {
@@ -1030,11 +1030,11 @@ public class SpecCoordinatesFrame
             stdOfRestBox.setSelectedItem( value );
         }
 
-        if ( geolon != null ) {
-            obsLong.setText( geolon );
+        if ( obslon != null ) {
+            obsLong.setText( obslon );
         }
-        if ( geolat != null ) {
-            obsLat.setText( geolat );
+        if ( obslat != null ) {
+            obsLat.setText( obslat );
         }
 
         if ( refra != null ) {
