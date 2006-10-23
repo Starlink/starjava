@@ -63,6 +63,19 @@
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
+#  Mac OS X systems:
+#  =================
+#  Mac PPC
+#  -------
+            ppc_MacOSX)
+               BLD_SHR='f() { g77 -dynamiclib -single_module -flat_namespace -undefined suppress -o $$1 $$2 -lm -lgcc -lc;}; f'
+               CC='gcc'
+               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
+               SHARE='.jnilib'
+               JAVA_SYSTEM='ppc'
+               echo "mk: Environment variables defined for $SYSTEM system"
+               ;;
+
 #  Issue a warning if SYSTEM is not recognised.
             *)
                SOURCE_VARIANT='unknown'
