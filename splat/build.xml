@@ -620,6 +620,16 @@
       <arg line="${mk.action}"/>
     </exec>
 
+    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X">
+      <env key="SYSTEM" value="ppc_MacOSX"/>
+      <env key="STARLINK" value="${stardev}"/>
+      <env key="JAVA_SYSTEM" value="ppc"/>
+      <env key="JAVA_HOME" value="${java.home}/.."/>
+      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
+      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <arg line="${mk.action}"/>
+    </exec>
+
   </target>
 
   <!-- Inverse of above, use to report that execute_mk_script_real has not
