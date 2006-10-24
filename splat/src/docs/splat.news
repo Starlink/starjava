@@ -1,4 +1,9 @@
 1 Starlink SPLAT news.
+
+   Release 3.5-7
+   =============
+
+   Add a filter that rebins a spectrum to reduce its resolution.
    
    Release 3.5-6
    =============
