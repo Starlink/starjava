@@ -115,6 +115,11 @@ public class SpecFilterFrame
     protected DecimalField averageWidth = null;
 
     /**
+     * The rebin filter width.
+     */
+    protected DecimalField rebinWidth = null;
+
+    /**
      * The median filter width.
      */
     protected DecimalField medianWidth = null;
@@ -264,6 +269,7 @@ public class SpecFilterFrame
         splitPane.setRightComponent( initRegionUI() );
 
         initAverageUI();
+        initBinUI();
         initMedianUI();
         initProfilesUI();
         initWaveletUI();
@@ -290,6 +296,25 @@ public class SpecFilterFrame
         panel.add( averageWidth );
 
         tabbedPane.addTab( "Average", panel );
+    }
+
+    /**
+     * Add controls for the rebin filter.
+     */
+    protected void initBinUI()
+    {
+        JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+
+        //  Just need to get the rebin width size.
+        JLabel widthLabel = new JLabel( "Width:   " );
+        ScientificFormat scientificFormat = new ScientificFormat();
+        rebinWidth = new DecimalField( 5, 5, scientificFormat );
+        rebinWidth.setToolTipText( "Number of values per new value" );
+
+        panel.add( widthLabel );
+        panel.add( rebinWidth );
+
+        tabbedPane.addTab( "Rebin", panel );
     }
 
     /**
@@ -572,19 +597,25 @@ public class SpecFilterFrame
             }
             break;
             case 1: {
+                // Rebin.
+                newSpec = filter.rebinFilter( currentSpectrum,
+                                              rebinWidth.getIntValue() );
+            }
+            break;
+            case 2: {
                 // Median
                 newSpec = filter.medianFilter( currentSpectrum,
                                                medianWidth.getIntValue(),
                                                ranges, include );
             }
             break;
-            case 2: {
+            case 3: {
                 // Profile
                 newSpec = applyCurrentProfile( currentSpectrum, filter,
                                                ranges, include );
             }
             break;
-            case 3: {
+            case 4: {
                 // Wavelet.
                 double percent =
                     ((Double)waveletPercent.getValue()).doubleValue();
@@ -594,7 +625,7 @@ public class SpecFilterFrame
                                           percent, ranges, include );
             }
             break;
-            case 4: {
+            case 5: {
                 // Another spectrum.
                 newSpec = applySpectrumProfile( currentSpectrum, filter,
                                                 ranges, include );

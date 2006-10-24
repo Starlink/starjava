@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     1-JAN-2003 (Peter W. Draper):
@@ -7,14 +8,20 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.WinMap;
+
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.AverageFilter;
+import uk.ac.starlink.splat.util.BinFilter;
 import uk.ac.starlink.splat.util.KernelFactory;
 import uk.ac.starlink.splat.util.KernelFilter;
 import uk.ac.starlink.splat.util.MedianFilter;
 import uk.ac.starlink.splat.util.Sort;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.WaveletFilter;
 
 /**
@@ -71,6 +78,57 @@ public class SpecFilter
                                                   width );
         return updateSpectrum( localSpec, filter.eval(),
                                makeName( "Average", spectrum ) );
+    }
+
+    /**
+     * Rebin a spectrum. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to rebin.
+     * @param width the width used for rebinning.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData rebinFilter( SpecData spectrum, int width )
+    {
+
+        //  Odd filter as uses full spectrum.
+        BinFilter binFilter = new BinFilter( spectrum.getYData(), width );
+        double[] newData = binFilter.eval();
+
+        try {
+            EditableSpecData newSpec = SpecDataFactory.getInstance().
+                createEditable( spectrum.getShortName(), spectrum );
+            globalList.add( newSpec );
+
+            //  Need to update AST frameset to shift to centre of new bin and
+            //  have a scale factor...
+            FrameSet frameSet = newSpec.getFrameSet();
+            Frame newFrame = frameSet.getFrame( FrameSet.AST__BASE );
+            double outa[] = new double[1];
+            double outb[] = new double[1];
+            double ina[] = new double[1];
+            double inb[] = new double[1];
+            ina[0] = 0.5 + 0.5 * (double) width;
+            inb[0] = ina[0] + (double) width;
+            outa[0] = 1.0;
+            outb[0] = 2.0;
+            WinMap winMap = new WinMap( 1, ina, inb, outa, outb );
+            int current = frameSet.getCurrent();
+            frameSet.addFrame( FrameSet.AST__BASE, winMap, newFrame );
+            int base = frameSet.getCurrent();
+
+            //  Restore current frame and set new base frame.
+            frameSet.setCurrent( current );
+            frameSet.setBase( base );
+
+            return updateSpectrum( newSpec, newData,
+                                   makeName( "Rebin", spectrum ) );
+        }
+        catch (SplatException e) {
+            //  Do nothing.
+        }
+        return null;
     }
 
     /**
@@ -279,7 +337,7 @@ public class SpecFilter
      * global list and a reference to it is returned (null for failure).
      *
      * @param spectrum the spectrum to filter.
-     * @param wavelet the name of the wavelet filter 
+     * @param wavelet the name of the wavelet filter
      *                (from WaveletFilter.WAVELETS)
      * @param percent the percentage of wavelet coefficients to remove.
      * @param ranges a series of coordinate ranges to include or
@@ -315,12 +373,12 @@ public class SpecFilter
     {
         KernelFilter filter = new KernelFilter( spectrum.getYData(),
                                                 kernel );
-        return updateSpectrum( spectrum, filter.eval(), 
+        return updateSpectrum( spectrum, filter.eval(),
                                makeName( name, spectrum ) );
     }
 
     /**
-     * Update a spectrum with a new data component. Also gives it 
+     * Update a spectrum with a new data component. Also gives it
      * a hopefully useful name.
      */
     protected SpecData updateSpectrum( EditableSpecData newSpec,
@@ -360,7 +418,7 @@ public class SpecFilter
      * spectrum. If no changes are needed than return an editable copy
      * of the original spectrum.
      */
-    protected EditableSpecData applyRanges( SpecData spectrum, 
+    protected EditableSpecData applyRanges( SpecData spectrum,
                                             double[] ranges, boolean include )
     {
         try {
