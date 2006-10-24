@@ -218,8 +218,6 @@ public class SplatBrowserMain
         String result = null;
         try {
             NameParser namer = new NameParser( specspec );
-            System.out.println( "Namer says:" + namer.getFormat() + ", " +
-                                namer.getType() + ", " + namer.getName() );
             if ( "UNKNOWN".equals( namer.getFormat() ) ) {
                 result = "guess";
             }
