@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 1999-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     02-SEP-1999 (Peter W. Draper):
@@ -100,6 +101,9 @@ public class NDFJ
                               " JNI library" ) );
             logger.warning( "No native NDF support available" );
         }
+
+        //  Initialise NDF library.
+        nInit();
     }
 
     /**
@@ -820,6 +824,11 @@ public class NDFJ
     //
     //  Notes: these are all synchronized as NDF has loads of global
     //  data areas that should not be accessed by different Threads.
+
+    /**
+     * One-off runtime initialisation of NDF library.
+     */
+    protected synchronized static native void nInit();
 
     /**
      * Open an existing NDF by name

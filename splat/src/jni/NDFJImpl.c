@@ -83,6 +83,35 @@ static const char *ArraySource( void )
 
 /*
  *  Name:
+ *     Java_uk_ac_starlink_splat_imagedata_NDFJ_nInit
+ *
+ *  Purpose:
+ *     One time initialisation of the NDF library.
+ *
+ *  Params:
+ *     none
+ */
+JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nInit
+   ( JNIEnv *env, jclass class )
+{
+    /*  Local variables */
+    int status;          /*  NDF library status */
+
+    fprintf( stderr, "Initialised NDF library\n" );
+
+    /* No command-line arguments so make sure NDF knows this. */
+    errMark();
+    status = SAI__OK;
+    ndfInit( 0, NULL, &status );
+    if ( status != SAI__OK ) {
+        errAnnul( &status );
+    }
+    errRlse();
+    return;
+}
+
+/*
+ *  Name:
  *     Java_uk_ac_starlink_splat_imagedata_NDFJ_nOpen
  *
  *  Purpose:

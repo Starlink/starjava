@@ -7,8 +7,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* Inaccessible static: logger */
-/* Inaccessible static: supported */
 #undef uk_ac_starlink_splat_imagedata_NDFJ_serialVersionUID
 #define uk_ac_starlink_splat_imagedata_NDFJ_serialVersionUID 7112558037504787639LL
 #undef uk_ac_starlink_splat_imagedata_NDFJ_BADF
@@ -31,6 +29,14 @@ extern "C" {
 #define uk_ac_starlink_splat_imagedata_NDFJ_SHORT 3L
 #undef uk_ac_starlink_splat_imagedata_NDFJ_BYTE
 #define uk_ac_starlink_splat_imagedata_NDFJ_BYTE 4L
+/*
+ * Class:     uk_ac_starlink_splat_imagedata_NDFJ
+ * Method:    nInit
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nInit
+  (JNIEnv *, jclass);
+
 /*
  * Class:     uk_ac_starlink_splat_imagedata_NDFJ
  * Method:    nOpen
