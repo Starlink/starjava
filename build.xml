@@ -21,6 +21,7 @@
  !      export-full-docs   -> exports monolithic docs archive
  !      test           -> run any JUnit tests in the system
  !      keystore       -> generate a keystore for signing jar files
+ !      system         -> make report of JVM system properties
  !
  !   Authors:
  !      Peter W. Draper (2-JUL-2002)
@@ -151,7 +152,7 @@
 
     <echo message="Executing DIVA target: ${what}"/>
     <ant dir="./diva" target="${what}"/>
-    
+
     <echo message="Executing HELP target: ${what}"/>
     <ant dir="./help" target="${what}"/>
 
@@ -217,10 +218,10 @@
 
  <!--   <echo message="Executing StarTask target: ${what}"/> -->
  <!--   <ant dir="./startask" target="${what}"/> -->
- 
+
  <!--   <echo message="Executing JNIKAPPA target: ${what}"/> -->
  <!--   <ant dir="./jnikappa" target="${what}"/> -->
-       
+
     <echo message="Executing SOG target: ${what}"/>
     <ant dir="./sog" target="${what}"/>
 
@@ -668,7 +669,7 @@
            keypass="${webstart.keypass}"
            dname="CN=${webstart.signer}, O=${FullName}, L=RAL, C=UK"/>
 
-     <!-- dname format: 
+     <!-- dname format:
       !      CN=cName, OU=orgUnit, O=org, L=city, S=state, C=countryCode-->
 
      <!-- Probably a good time to sign ANT -->
@@ -676,9 +677,9 @@
 
   </target>
 
-  <!-- 
+  <!--
    !   ===================
-   !   Sign ANTs jar files 
+   !   Sign ANTs jar files
    !   ===================
    !   Can only do this once a keystore has been created..., so must
    !   be done after ANT has been built
@@ -722,5 +723,43 @@
 
   </target>
 
-</project>
+  <!--
+   !   ========================
+   !   Report system properties
+   !   ========================
+   !-->
+  <target name="system"
+          description="--> report system properties">
 
+    <echo message="System properties:"/>
+    <echo message=" java.version = ${java.version}"/>
+    <echo message=" java.vendor = ${java.vendor}"/>
+    <echo message=" java.vendor.url = ${java.vendor.url}"/>
+    <echo message=" java.home = ${java.home}"/>
+    <echo message=" java.vm.specification.version = ${java.vm.specification.version}"/>
+    <echo message=" java.vm.specification.vendor = ${java.vm.specification.vendor}"/>
+    <echo message=" java.vm.specification.name = ${java.vm.specification.name}"/>
+    <echo message=" java.vm.version = ${java.vm.version}"/>
+    <echo message=" java.vm.vendor = ${java.vm.vendor}"/>
+    <echo message=" java.vm.name = ${java.vm.name}"/>
+    <echo message=" java.specification.version = ${java.specification.version}"/>
+    <echo message=" java.specification.vendor = ${java.specification.vendor}"/>
+    <echo message=" java.specification.name = ${java.specification.name}"/>
+    <echo message=" java.class.version = ${java.class.version}"/>
+    <echo message=" java.class.path = ${java.class.path}"/>
+    <echo message=" java.library.path = ${java.library.path}"/>
+    <echo message=" java.io.tmpdir = ${java.io.tmpdir}"/>
+    <echo message=" java.compiler = ${java.compiler}"/>
+    <echo message=" java.ext.dirs = ${java.ext.dirs}"/>
+    <echo message=" os.name = ${os.name}"/>
+    <echo message=" os.arch = ${os.arch}"/>
+    <echo message=" os.version = ${os.version}"/>
+    <echo message=" file.separator = ${file.separator}"/>
+    <echo message=" path.separator = ${path.separator}"/>
+    <echo message=" line.separator = ${line.separator}"/>
+    <echo message=" user.name = ${user.name}"/>
+    <echo message=" user.home = ${user.home}"/>
+    <echo message=" user.dir = ${user.dir}"/>
+  </target>
+
+</project>
