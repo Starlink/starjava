@@ -237,11 +237,6 @@ public class FITSSpecDataImpl
     protected boolean cloned = false;
 
     /**
-     * Reference to cloned coordinates.
-     */
-    protected double[] coords = null;
-
-    /**
      * Reference to cloned data values.
      */
     protected double[] data = null;
@@ -440,7 +435,6 @@ public class FITSSpecDataImpl
         //  No longer a memory clone, backing file is created.
         cloned = false;
         data = null;
-        coords = null;
         errors = null;
         clonedHeader = null;
 
@@ -833,7 +827,6 @@ public class FITSSpecDataImpl
         cloned = true;
         shortName = source.getShortName();
         data = source.getYData();
-        coords = source.getXData();
         errors = source.getYDataErrors();
         astref = source.getFrameSet();
 
