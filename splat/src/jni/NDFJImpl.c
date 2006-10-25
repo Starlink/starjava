@@ -75,6 +75,16 @@ static const char *ArraySource( void )
    return utfBuffer;
 }
 
+
+/**
+ * On Mac OS X fake the xargv and xargc globals. These are not resolved
+ * for g77 dl-loaded libraries.
+ */
+#if __APPLE__
+int    f__xargc;
+char **f__xargv;
+#endif
+
 /*
  *  =====================
  *  Java Native Interface

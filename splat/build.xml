@@ -578,11 +578,15 @@
     <!-- Local and installed versions of any shareable libraries that we
      !   require to resolve against in a form for the UNIX "ld" command
      !-->
-    <property name="jniast.share"
-        value="-L${star.jar.dir}/${os.arch}
-               -L${star.build.dir}/jniast/lib/${os.arch} -ljniast"/>
+    <property name="jniast.share" 
+              value="-L${star.jar.dir}/${os.arch} -ljniast"/>
+    <!-- OSX needs the full path, as JNI uses .jnilib not .dylib so -l fails-->
+    <property name="jniast.share.osx"
+              value="${star.build.dir}/jniast/lib/${os.arch}/libjniast.jnilib"/>
 
     <property name="java.shareables" value="${jniast.share}"/>
+    <property name="java.shareables.osx" value="${jniast.share.osx}"/>
+
 
     <mkdir dir="${dist.lib.arch}"/>
 
@@ -625,7 +629,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="JAVA_SYSTEM" value="ppc"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
-      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
+      <env key="JAVA_SHAREABLES" value="${java.shareables.osx}"/>
       <env key="TARGET_LIB" value="${dist.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
