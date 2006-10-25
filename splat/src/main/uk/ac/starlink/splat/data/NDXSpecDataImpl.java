@@ -18,20 +18,26 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.Source;
 
 import uk.ac.starlink.ast.FrameSet;
-////import uk.ac.starlink.hdx.HdxContainer;
-////import uk.ac.starlink.hdx.HdxContainerFactory;
-////import uk.ac.starlink.hdx.Ndx;
+import nom.tam.fits.Header;
 
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
-import uk.ac.starlink.array.Requirements;
+import uk.ac.starlink.array.ArrayArrayImpl;
 import uk.ac.starlink.array.BadHandler;
+import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.HDSReference;
+import uk.ac.starlink.hds.NDFNdxHandler;
+import uk.ac.starlink.hds.NdfMaker;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.NdxIO;
+import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 
 import uk.ac.starlink.splat.util.SplatException;
@@ -45,7 +51,7 @@ import uk.ac.starlink.splat.util.UnitUtilities;
  * @version $Id$
  * @see "The Bridge Design Pattern"
  */
-public class NDXSpecDataImpl 
+public class NDXSpecDataImpl
     extends AbstractSpecDataImpl
 {
 
@@ -123,8 +129,9 @@ public class NDXSpecDataImpl
         throws SplatException
     {
         super( hdxName );
-        throw new SplatException
-            ( "Duplication of NDX spectra not implemented" );
+        makeMemoryClone( source );
+        this.fullName = hdxName;
+        this.shortName = hdxName;
     }
 
     /**
@@ -148,18 +155,19 @@ public class NDXSpecDataImpl
      */
     public int[] getDims()
     {
-        int[] dims = null;
-        try {
-            long[] ldims =  ndx.getImage().getShape().getDims();
-            dims = new int[ldims.length];
-            for ( int i = 0; i < dims.length; i++ ) {
-                dims[i] = (int) ldims[i];
+        if ( dims == null ) {
+            try {
+                long[] ldims =  ndx.getImage().getShape().getDims();
+                dims = new int[ldims.length];
+                for ( int i = 0; i < dims.length; i++ ) {
+                    dims[i] = (int) ldims[i];
+                }
             }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            dims = new int[0];
-            dims[0] = 0;
+            catch (Exception e) {
+                e.printStackTrace();
+                dims = new int[0];
+                dims[0] = 0;
+            }
         }
         return dims;
     }
@@ -185,16 +193,17 @@ public class NDXSpecDataImpl
      */
     public FrameSet getAst()
     {
-        try {
-            FrameSet frameSet = Ndxs.getAst( ndx );
-            frameSet.setUnit
-                ( 1, UnitUtilities.fixUpUnits( frameSet.getUnit( 1 ) ) );
-            return frameSet;
+        if ( astref == null ) {
+            try {
+                astref = Ndxs.getAst( ndx );
+                astref.setUnit
+                    ( 1, UnitUtilities.fixUpUnits( astref.getUnit( 1 ) ) );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return astref;
     }
 
     /**
@@ -208,10 +217,10 @@ public class NDXSpecDataImpl
     /**
      * Save the spectrum to disk-file.
      */
-    public void save() 
+    public void save()
         throws SplatException
     {
-        throw new SplatException( "Saving NDX spectra is not implemented" );
+        saveToFile();
     }
 
     /**
@@ -271,6 +280,26 @@ public class NDXSpecDataImpl
     private static int counter = 0;
 
     /**
+     * The AST FrameSet, cached from NDX access or set by clone.
+     */
+    private FrameSet astref = null;
+
+    /**
+     * True when object is cloned, but not yet saved.
+     */
+    private boolean cloned = false;
+
+    /**
+     * FITS headers of cloned object.
+     */
+    private Header clonedHeader = null;
+
+    /**
+     * Cached dimensions of the NDX.
+     */
+    private int[] dims = null;
+
+    /**
      * Open an HDX description and locate the NDX.
      *
      * @param hdxName HDX description of the NDX (could be a simple
@@ -281,7 +310,7 @@ public class NDXSpecDataImpl
         throws SplatException
     {
         try {
-            // Check for a local file first. Windows doesn't like 
+            // Check for a local file first. Windows doesn't like
             // using a "file:." for these.
             URL url = null;
             File infile = new File( hdxName );
@@ -371,7 +400,7 @@ public class NDXSpecDataImpl
 
     //  Match names to title of the ndx, or generate a unique title from
     //  a prefix.
-    protected void setNames( String defaultPrefix, boolean unique ) 
+    protected void setNames( String defaultPrefix, boolean unique )
     {
         String title = ndx.hasTitle() ? ndx.getTitle() : "";
         if ( title == null || title.equals( "" ) ) {
@@ -398,7 +427,7 @@ public class NDXSpecDataImpl
         // double precision and using our BAD data value.
         Requirements req = new Requirements();
         req.setType( Type.DOUBLE );
-        BadHandler badHandler = 
+        BadHandler badHandler =
             BadHandler.getHandler( Type.DOUBLE, new Double(SpecData.BAD) );
         req.setBadHandler( badHandler );
         OrderedNDShape oshape = ndx.getImage().getShape();
@@ -462,7 +491,7 @@ public class NDXSpecDataImpl
      * Finalise object. Free any resources associated with member
      * variables.
      */
-    protected void finalize() 
+    protected void finalize()
         throws Throwable
     {
         if ( imAccess != null ) {
@@ -473,4 +502,93 @@ public class NDXSpecDataImpl
         }
         super.finalize();
     }
+
+    /**
+     * Set up this object as a clone of another spectrum. The resultant state
+     * is a memory-only resident one, until the save method is called, when
+     * the actual file is created and the contents are written.
+     */
+    protected void makeMemoryClone( SpecData source )
+    {
+        cloned = true;
+        shortName = source.getShortName();
+        data = source.getYData();
+        errors = source.getYDataErrors();
+        astref = source.getFrameSet();
+        dataLabel = source.getDataLabel();
+        dataUnits = source.getDataUnits();
+        dims = new int[1];
+        dims[0] = data.length;
+
+        //  If the source spectrum provides access to a set of FITS
+        //  headers then we should preserve them.
+        if ( source.getSpecDataImpl().isFITSHeaderSource() ) {
+            clonedHeader =
+                ((FITSHeaderSource) source.getSpecDataImpl()).getFitsHeaders();
+        }
+    }
+
+    /**
+     * Create a new NDX as a HDS representation using the current
+     * configuration to populate it. Will only succeed for clone spectra.
+     */
+    protected void saveToFile()
+        throws SplatException
+    {
+        //  Parse the name to extract the container file name. 
+        PathParser namer = new PathParser( fullName );
+        String container = null;
+        if ( namer.type().equals( ".sdf" ) && ! namer.path().equals( "" ) ) {
+            container = namer.ndfname();
+        }
+        else {
+            container = namer.fullname();
+        }
+
+        try {
+            //  Create an NDX from the existing state.
+            Number bad = new Double( SpecData.BAD );
+            long[] dims = new long[1];
+            dims[0] = (long) data.length;
+            OrderedNDShape shape = new OrderedNDShape( dims, null );
+            ArrayArrayImpl aai = new ArrayArrayImpl( data, shape, bad );
+
+            NDArray ndArray = new BridgeNDArray( aai, null );
+            MutableNdx tmpNdx = new DefaultMutableNdx( ndArray);
+            tmpNdx.setWCS( astref );
+            if ( errors != null ) {
+                double[] vars = new double[errors.length];
+                for ( int i = 0; i < errors.length; i++ ) { 
+                    vars[i] = errors[i] * errors[i];
+                }
+                aai = new ArrayArrayImpl( vars, shape, bad );
+                ndArray = new BridgeNDArray( aai, null );
+                tmpNdx.setVariance( ndArray );
+            }
+            tmpNdx.setTitle( shortName );
+            tmpNdx.setLabel( dataLabel );
+            tmpNdx.setUnits( dataUnits );
+
+            //  Create the new HDS file.
+            HDSReference href = new NdfMaker().makeNDF( tmpNdx, container );
+            HDSObject hobj = href.getObject( "WRITE" );
+            NDFNdxHandler handler = NDFNdxHandler.getInstance();
+            URL url = new URL( fullName );
+            Ndx newNdx = handler.makeNdx( hobj, url, AccessMode.WRITE );
+            
+            //  No longer a memory clone, backing file is created.
+            cloned = false;
+            data = null;
+            errors = null;
+            clonedHeader = null;
+            dims = null;
+
+            //  So open properly.
+            open( newNdx );
+        }
+        catch (Exception e) {
+            throw new SplatException( "Failed saving NDX to an NDF", e );
+        }
+    }
 }
+
