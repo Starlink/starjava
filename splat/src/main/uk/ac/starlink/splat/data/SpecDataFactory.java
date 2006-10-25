@@ -15,15 +15,16 @@
 package uk.ac.starlink.splat.data;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileInputStream;
+import java.net.MalformedURLException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.net.MalformedURLException;
+import java.util.logging.Logger;
 
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
@@ -72,6 +73,10 @@ import uk.ac.starlink.votable.VOTableBuilder;
  */
 public class SpecDataFactory
 {
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.data.SpecDataFactory" );
+
     //
     // Enumeration of the "types" of spectrum that can be created.
     //
@@ -380,6 +385,9 @@ public class SpecDataFactory
         }
 
         //  No native NDF available, use NDX access.
+        logger.info
+            ("No native NDF support, using less efficient NDX/JNIHDS access");
+
         URL url = null;
         try {
             url = new URL( "file:" + specspec + ".sdf" );
@@ -560,7 +568,6 @@ public class SpecDataFactory
     {
         NameParser namer = new NameParser( specspec );
         String targetType = namer.getFormat();
-        String sourceType = source.getDataFormat();
 
         //  Create an implementation object using the source to
         //  provide the content (TODO: could be more efficient?).
@@ -571,7 +578,12 @@ public class SpecDataFactory
                                               (LineIDSpecData) source );
         }
         else if ( targetType.equals( "NDF" ) ) {
-            impl = new NDFSpecDataImpl( namer.getName(), source );
+            if ( NDFJ.supported() ) {
+                impl = new NDFSpecDataImpl( namer.getName(), source );
+            }
+            else {
+                impl = new NDXSpecDataImpl( namer.getName(), source );
+            }
         }
         if ( targetType.equals( "FITS" ) ) {
             impl = new FITSSpecDataImpl( namer.getName(), source );
@@ -603,8 +615,6 @@ public class SpecDataFactory
                               String format )
         throws SplatException
     {
-        String sourceType = source.getDataFormat();
-
         //  Create an implementation object using the source to
         //  provide the content (TODO: could be more efficient?).
         SpecDataImpl impl = null;
@@ -621,7 +631,12 @@ public class SpecDataFactory
                }
                break;
                case HDS: {
-                   impl = new NDFSpecDataImpl( specspec, source );
+                   if ( NDFJ.supported() ) {
+                       impl = new NDFSpecDataImpl( specspec, source );
+                   }
+                   else {
+                       impl = new NDXSpecDataImpl( specspec, source );
+                   }
                }
                break;
                case TEXT: {
@@ -670,11 +685,16 @@ public class SpecDataFactory
     }
 
     /**
-     * Return a list of the supported table formats.
+     * Return a list of the supported table formats. Extended to exclude "jdbc"
+     * and add a first type of "default". A StarTable saved using default
+     * requires a file extension.
      */
     public List getKnownTableFormats()
     {
-        return TableSpecDataImpl.getKnownFormats();
+        List list = TableSpecDataImpl.getKnownFormats();
+        list.add( 0, "default" );
+        list.remove( "jdbc" );
+        return list;
     }
 
     /**
@@ -829,6 +849,39 @@ public class SpecDataFactory
             throw new SplatException( "Failed to re-open spectrum", e );
         }
     }
+
+    /** 
+     * Return the "types" of a given {@link SpecData} instance.
+     * The types are the local data type constant, DEFAULT etc., and the table
+     * index, if the underlying representation is a table.
+     */
+    public int[] getTypes( SpecData specData )
+    {
+        int[] result = new int[1];
+        SpecDataImpl impl = specData.getSpecDataImpl();
+
+        if ( impl instanceof LineIDSpecDataImpl ) {
+            result[0] = IDS;
+        }
+        else if ( impl instanceof FITSSpecDataImpl ) {
+            result[0] = FITS;
+        }
+        else if ( impl instanceof NDFSpecDataImpl ) {
+            result[0] = HDS;
+        }
+        else if ( impl instanceof TXTSpecDataImpl ) {
+            result[0] = TEXT;
+        }
+        else if ( impl instanceof NDXSpecDataImpl ) {
+            result[0] = HDX;
+        }
+        else if ( impl instanceof TableSpecDataImpl ) {
+            result[0] = TABLE;
+            //result[1] = ????; // What type of TABLE is this?
+        }
+        return result;
+    }
+
 
     /**
      * Given a URL for a remote resource make a local, temporary, copy. The
@@ -1206,4 +1259,5 @@ public class SpecDataFactory
         }
         return specData;
     }
+
 }
