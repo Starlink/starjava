@@ -103,7 +103,9 @@ public class NDFJ
         }
 
         //  Initialise NDF library.
-        nInit();
+        if ( supported ) {
+            nInit();
+        }
     }
 
     /**
