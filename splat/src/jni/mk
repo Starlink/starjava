@@ -10,7 +10,7 @@
       export CFLAGS
       export SHARE
 
-#  Java system exports.
+#  Java system exports (set by build.xml).
       export JAVA_SYSTEM
       export JAVA_HOME
 
@@ -35,7 +35,6 @@
                CC='cc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -pthread'
                SHARE='.so'
-               JAVA_SYSTEM='alpha'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
@@ -46,7 +45,6 @@
                CC='cc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -K PIC'
                SHARE='.so'
-               JAVA_SYSTEM='solaris'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
@@ -59,20 +57,18 @@
                CC='gcc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -fPIC'
                SHARE='.so'
-               JAVA_SYSTEM='linux'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
 #  Mac OS X systems:
 #  =================
-#  Mac PPC
-#  -------
-            ppc_MacOSX)
+#  Mac PPC & Intel
+#  ---------------
+            MacOSX)
                BLD_SHR='f() { g77 -dynamiclib -single_module -flat_namespace -undefined suppress -o $$1 $$2 -lm -lgcc -lc -lcc_dynamic; }; f'
                CC='gcc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
                SHARE='.jnilib'
-               JAVA_SYSTEM='ppc'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
