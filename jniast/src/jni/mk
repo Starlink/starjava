@@ -172,6 +172,7 @@
 #     BLY: M.J.Bly (Starlink, RAL)
 #     AJC: A.J.Chipperfield (Starlink, RAL)
 #     PWD: Peter W. Draper (Starlink, Durham University)
+#     BC:  Brad Cavanagh (Joint Astronomy Centre)
 #     {enter_new_authors_here}
 #
 #  History:
@@ -196,6 +197,8 @@
 #        Linux case added.
 #     23-OCT-2001 (PWD):
 #        Now for SPLAT.
+#     25-OCT-2006 (BC):
+#        Added i386_MacOSX.
 #     {enter_further_changes_here}
 #
 #  Bugs:
@@ -277,6 +280,25 @@
                JAVA_SYSTEM='linux'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
+
+#  Intel PC running Mac OS X.
+#  -------------------------
+            i386_MacOSX)
+               AR_IN='ar r'
+               BLD_SHR='f() { gcc -dynamiclib -single_module -o $$1 $$2 ;}; f'
+               CC='gcc'
+               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O'
+               LINK='ln -s'
+               RANLIB='ranlib'
+               SHARE='.jnilib'
+               TAR_IN='tar -cvhf'
+               TAR_OUT='tar -xf'
+               JAVA_SYSTEM='i386'
+               JAVA_INCLUDE='$(JDK)/Headers'
+               echo "mk: Environment variables defined for $SYSTEM system"
+               ;;
+
+
 
 #  PPC systems:
 #  ===========
