@@ -107,8 +107,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nInit
     /*  Local variables */
     int status;          /*  NDF library status */
 
-    fprintf( stderr, "Initialised NDF library\n" );
-
     /* No command-line arguments so make sure NDF knows this. */
     errMark();
     status = SAI__OK;
