@@ -39,6 +39,7 @@ import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.XMLNdxHandler;
+import uk.ac.starlink.util.URLUtils;
 
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.UnitUtilities;
@@ -537,13 +538,9 @@ public class NDXSpecDataImpl
     {
         //  Parse the name to extract the container file name. 
         PathParser namer = new PathParser( fullName );
-        String container = null;
-        if ( namer.type().equals( ".sdf" ) && ! namer.path().equals( "" ) ) {
-            container = namer.ndfname();
-        }
-        else {
-            container = namer.fullname();
-        }
+        String container = namer.ndfname();
+        System.out.println( "container = " + container + "(" + fullName +")" );
+        
 
         try {
             //  Create an NDX from the existing state.
@@ -573,7 +570,7 @@ public class NDXSpecDataImpl
             HDSReference href = new NdfMaker().makeNDF( tmpNdx, container );
             HDSObject hobj = href.getObject( "WRITE" );
             NDFNdxHandler handler = NDFNdxHandler.getInstance();
-            URL url = new URL( fullName );
+            URL url = URLUtils.makeURL( fullName );
             Ndx newNdx = handler.makeNdx( hobj, url, AccessMode.WRITE );
             
             //  No longer a memory clone, backing file is created.
