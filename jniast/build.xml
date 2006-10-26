@@ -712,6 +712,13 @@
           depends="assemble_jni"
           description="-> builds native library from C sources">
 
+    <!-- Extract the existing libraries from the jar file. There may
+     !   be more than one library per architecture (i386 Linux and OS X)
+     !   and we want to keep the other libraries. The datestamps should 
+     !   be in the past otherwise this will fail
+     !-->
+    <unjar src="${src.lib.arch}/${name}_libs.jar" dest="${build.lib.arch}"/>
+
     <!-- Build the library -->
     <antcall target="execute_mk_script">
       <param name="mk.action" value="shared"/>
