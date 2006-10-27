@@ -236,7 +236,7 @@ class ErrorDialog extends JDialog {
         dialog.pack();
 
         /* Display the modal dialogue. */
-        dialog.show();
+        dialog.setVisible( true );
     }
 
     /**
