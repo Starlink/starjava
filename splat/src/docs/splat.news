@@ -4,6 +4,8 @@
    =============
 
    Add a filter that rebins a spectrum to reduce its resolution.
+   When native NDF support is not available spectra are opened as NDXs.
+   NDF/NDX spectra can now also be saved to NDF using NDX support.
    
    Release 3.5-6
    =============
