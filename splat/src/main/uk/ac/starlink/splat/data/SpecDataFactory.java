@@ -591,9 +591,18 @@ public class SpecDataFactory
         if ( targetType.equals( "TEXT" ) ) {
             impl = new TXTSpecDataImpl( namer.getName(), source );
         }
-        SpecData specData = makeSpecDataFromImpl( impl, false, null );
-        specData.setType( source.getType() );
-        return specData;
+        if ( targetType.equals( "XML" ) ) {
+            impl = new NDXSpecDataImpl( namer.getName(), source );
+        }
+        if ( impl != null ) {
+            SpecData specData = makeSpecDataFromImpl( impl, false, null );
+            specData.setType( source.getType() );
+            return specData;
+        }
+        else {
+            throw new SplatException( "Cannot create a spectrum using name: "
+                                      + specspec );
+        }
     }
 
     /**

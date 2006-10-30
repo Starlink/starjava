@@ -538,10 +538,15 @@ public class NDXSpecDataImpl
     {
         //  Parse the name to extract the container file name. 
         PathParser namer = new PathParser( fullName );
-        String container = namer.ndfname();
-        System.out.println( "container = " + container + "(" + fullName +")" );
-        
-
+        String container = namer.diskfile();
+        if ( container.endsWith( ".sdf" ) ) {
+            container = container.substring(0, container.length()-4);
+        }
+        String path = namer.path();
+        if ( namer.format().equals( "XML" ) ) {
+            path = ".xml";
+            container = container.substring(0, container.length()-4);
+        }
         try {
             //  Create an NDX from the existing state.
             Number bad = new Double( SpecData.BAD );
@@ -570,7 +575,17 @@ public class NDXSpecDataImpl
             HDSReference href = new NdfMaker().makeNDF( tmpNdx, container );
             HDSObject hobj = href.getObject( "WRITE" );
             NDFNdxHandler handler = NDFNdxHandler.getInstance();
-            URL url = URLUtils.makeURL( fullName );
+
+            //  Full URL for HDS component is 
+            //  file://localhost/container.sdf#hds_path.
+            URL url = null;
+            if ( path == null || "".equals( path ) ) {
+                url = new URL( "file://localhost/" + container + ".sdf" );
+            }
+            else {
+                url = new URL( "file://localhost/" + container + ".sdf#" + 
+                               path.substring( 1 ) );
+            }
             Ndx newNdx = handler.makeNdx( hobj, url, AccessMode.WRITE );
             
             //  No longer a memory clone, backing file is created.
@@ -584,6 +599,7 @@ public class NDXSpecDataImpl
             open( newNdx );
         }
         catch (Exception e) {
+            e.printStackTrace();
             throw new SplatException( "Failed saving NDX to an NDF", e );
         }
     }
