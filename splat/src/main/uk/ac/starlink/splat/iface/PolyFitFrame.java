@@ -47,6 +47,7 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PolynomialFitter;
 import uk.ac.starlink.splat.util.Sort;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -91,6 +92,7 @@ public class PolyFitFrame
      */
     protected JPanel actionBarContainer = new JPanel();
     protected JPanel topActionBar = new JPanel();
+    protected JPanel midActionBar = new JPanel();
     protected JPanel botActionBar = new JPanel();
 
     /**
@@ -161,6 +163,11 @@ public class PolyFitFrame
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
+     *  The current spectrum last removed, if done.
+     */
+    protected SpecData removedCurrentSpectrum = null;
+
+    /**
      * Create an instance.
      */
     public PolyFitFrame( PlotControlFrame plot )
@@ -216,6 +223,10 @@ public class PolyFitFrame
         for ( int i = 0; i < 15; i++ ) {
             degreeBox.addItem( new Integer( i ) );
         }
+
+        //  Restore the old degree value, if set.
+        int degree = prefs.getInt( "PolyFitFrame_degree", 0 );
+        degreeBox.setSelectedItem( new Integer( degree ) );
 
         //  Decide if we should use errors (if available) during fit.
         layouter.add( new JLabel( "Use errors as weights:" ), false );
@@ -329,7 +340,7 @@ public class PolyFitFrame
         setTitle( Utilities.getTitle( "Fit polynomial to a spectrum" ));
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         contentPane.add( actionBarContainer, BorderLayout.SOUTH );
-        setSize( new Dimension( 550, 500 ) );
+        setSize( new Dimension( 600, 500 ) );
         setVisible( true );
     }
 
@@ -339,7 +350,9 @@ public class PolyFitFrame
     public int getDegree()
     {
         Integer degree = (Integer) degreeBox.getSelectedItem();
-        return degree.intValue();
+        int value = degree.intValue();
+        prefs.putInt( "PolyFitFrame_degree", value );
+        return value;
     }
 
     /**
@@ -355,6 +368,12 @@ public class PolyFitFrame
                                                BoxLayout.X_AXIS ) );
         topActionBar.setBorder( BorderFactory.
                                 createEmptyBorder( 3, 3, 3, 3 ) );
+
+        midActionBar.setLayout( new BoxLayout( midActionBar,
+                                               BoxLayout.X_AXIS ) );
+        midActionBar.setBorder( BorderFactory.
+                                createEmptyBorder( 3, 3, 3, 3 ) );
+
         botActionBar.setLayout( new BoxLayout( botActionBar,
                                                BoxLayout.X_AXIS ) );
         botActionBar.setBorder( BorderFactory.
@@ -390,7 +409,7 @@ public class PolyFitFrame
                                                       saveImage );
         fileMenu.add( saveAction );
 
-        //  Add action to do the fit.
+        //  Add actions to do the fit to all data.
         FitAction fitAction = new FitAction( "Fit", fitImage );
         fileMenu.add( fitAction );
         JButton fitButton = new JButton( fitAction );
@@ -398,7 +417,16 @@ public class PolyFitFrame
         topActionBar.add( fitButton );
         fitButton.setToolTipText( "Fit the polynomial" );
 
-        //  Add action to do the fit to selected.
+        FitReplaceAction fitReplaceAction =
+            new FitReplaceAction( "Fit (Replace)", fitImage );
+        fileMenu.add( fitReplaceAction );
+        JButton fitReplaceButton = new JButton( fitReplaceAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( fitReplaceButton );
+        fitReplaceButton.setToolTipText
+            ( "Fit the polynomial and replace current spectrum" );
+
+        //  Add actions to do the fit to selected.
         FitSelectedAction fitSelectedAction =
             new FitSelectedAction( "Fit selected", fitImage );
         fileMenu.add( fitSelectedAction );
@@ -408,12 +436,31 @@ public class PolyFitFrame
         fitSelectedButton.setToolTipText
             ( "Fit polynomial to selected ranges" );
 
+        FitReplaceSelectedAction fitReplaceSelectedAction =
+            new FitReplaceSelectedAction( "Fit selected (Replace)", fitImage );
+        fileMenu.add( fitReplaceSelectedAction );
+        JButton fitReplaceSelectedButton = 
+            new JButton( fitReplaceSelectedAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( fitReplaceSelectedButton );
+        fitReplaceSelectedButton.setToolTipText
+            ("Fit polynomial to selected ranges and replace current spectrum");
+
+        //  Add action to reset after a replace.
+        ResetReplaceAction resetReplaceAction = 
+            new ResetReplaceAction( "Reset (Replace)", resetImage );
+        fileMenu.add( resetReplaceAction );
+        JButton resetReplaceButton = new JButton( resetReplaceAction );
+        midActionBar.add( Box.createGlue() );
+        midActionBar.add( resetReplaceButton );
+        resetReplaceButton.setToolTipText( "Reset after a Fit (Replace)" );
+
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
         fileMenu.add( resetAction );
         JButton resetButton = new JButton( resetAction );
-        topActionBar.add( Box.createGlue() );
-        topActionBar.add( resetButton );
+        midActionBar.add( Box.createGlue() );
+        midActionBar.add( resetButton );
         resetButton.setToolTipText
             ( "Reset all values and clear all generated fits" );
 
@@ -422,8 +469,8 @@ public class PolyFitFrame
             new DeleteFitsAction( "Delete fits", deleteImage );
         fileMenu.add( deleteFitsAction );
         JButton deleteFitsButton = new JButton( deleteFitsAction );
-        topActionBar.add( Box.createGlue() );
-        topActionBar.add( deleteFitsButton );
+        midActionBar.add( Box.createGlue() );
+        midActionBar.add( deleteFitsButton );
         deleteFitsButton.setToolTipText( "Delete all generated fits" );
 
         //  Add an action to close the window.
@@ -435,16 +482,16 @@ public class PolyFitFrame
         closeButton.setToolTipText( "Close window" );
 
         topActionBar.add( Box.createGlue() );
+        midActionBar.add( Box.createGlue() );
         botActionBar.add( Box.createGlue() );
         actionBarContainer.setLayout( new BorderLayout() );
         actionBarContainer.add( topActionBar, BorderLayout.NORTH );
+        actionBarContainer.add( midActionBar, BorderLayout.CENTER );
         actionBarContainer.add( botActionBar, BorderLayout.SOUTH );
 
         //  Create the Help menu.
         HelpFrame.createHelpMenu( "polynomial-fit-window", "Help on window",
                                   menuBar, null );
-
-
     }
 
     /**
@@ -452,8 +499,10 @@ public class PolyFitFrame
      *  ones.
      *
      *  @param selected true if we should just fit to selected ranges.
+     *  @param replace if fitted spectrum should replace the current
+     *                 spectrum (which will be removed from the plot).
      */
-    public void fitPoly( boolean selected )
+    public void fitPoly( boolean selected, boolean replace )
     {
         //  Extract all ranges, obtain current spectrum, set up solver
         //  and do it. Add fit as a new spectrum and display.
@@ -466,7 +515,7 @@ public class PolyFitFrame
         double[] oldErr = currentSpectrum.getYDataErrors();
 
         int[] ranges = rangeList.extractRanges( selected, true, oldX );
-        if ( ranges.length == 0 ) {
+        if ( ranges == null || ranges.length == 0 ) {
             return; // No ranges, so nothing to do.
         }
 
@@ -525,7 +574,7 @@ public class PolyFitFrame
             fitter = new PolynomialFitter( getDegree(), newX, newY );
         }
         else {
-            fitter = new PolynomialFitter( getDegree(), newX, newY, 
+            fitter = new PolynomialFitter( getDegree(), newX, newY,
                                            weights );
         }
 
@@ -533,20 +582,40 @@ public class PolyFitFrame
         double[] fitY = fitter.evalYDataArray( oldX );
 
         //  Check for extreme outliers. These happen when the fit isn't
-        //  realistic. We arbitrarily make these some multiple of the 
+        //  realistic. We arbitrarily make these some multiple of the
         //  limits of the spectrum we're fitting.
         clipYData( fitY, currentSpectrum.getRange() );
 
-        //  And finally display these as a new spectrum.
+        //  Decide what we're going to display. If replace has been selected,
+        //  that's a cue to display one spectrum, if sensible. Displaying the
+        //  polynomial by itself make's little sense, so when that's true we
+        //  ignore replace.
+        boolean displayFit = true;
+        boolean displaySubtract = ( ! subtractNothing.isSelected() );
+        boolean displayDivide = divideSpectrum.isSelected();
+        if ( replace && ( displaySubtract || displayDivide ) ) {
+            displayFit = false;
+        }
+
+        //  Display the polynomial fit, unless we're replacing the current
+        //  spectrum and either subtracting or dividing.
         String name = "Polynomial Fit: " + (++fitCounter);
-        displayFit( name, currentSpectrum, fitY, null );
+        displayFit( name, currentSpectrum, fitY, displayFit );
 
-        //  Also create and display the subtracted form of the
-        //  spectrum.
-        subtractAndDisplayFit( currentSpectrum, name, fitY );
+        //  Create and display the subtracted form of the spectrum. This
+        //  replaces current spectrum, if we're replacing and subtracting.
+        boolean replaceCurrent = ( replace && displaySubtract );
+        if ( displaySubtract ) {
+            subtractAndDisplayFit( currentSpectrum, name, fitY,
+                                   replaceCurrent );
+        }
 
-        //  And the normalized form.
-        divideAndDisplayFit( currentSpectrum, name, fitY );
+        //  Create and display the normalised form of the spectrum. This
+        //  replaces current spectrum, if we're replacing and not subtracting.
+        if ( displayDivide ) {
+            replaceCurrent = ( ( ! replaceCurrent ) && displayDivide );
+            divideAndDisplayFit( currentSpectrum, name, fitY, replaceCurrent );
+        }
 
         //  Make a report of the fit results.
         reportResults( name, fitter, newX, newY, ( weights != null ),
@@ -554,23 +623,25 @@ public class PolyFitFrame
     }
 
     /**
-     * Create and display a new spectrum with the fit data values.
+     * Create and optionally display a new spectrum with the fit data values.
      */
-    protected void displayFit( String name, SpecData spectrum, 
-                               double[] data, double[] errors )
+    protected void displayFit( String name, SpecData spectrum,
+                               double[] data, boolean display )
     {
-        SpecData newSpec = createNewSpectrum( name, spectrum, data, errors );
+        SpecData newSpec = createNewSpectrum( name, spectrum, data, null );
         if ( newSpec != null ) {
             try {
                 newSpec.setType( SpecData.POLYNOMIAL );
                 newSpec.setUseInAutoRanging( false );
-                globalList.addSpectrum( plot.getPlot(), newSpec );
+                if ( display ) {
+                    globalList.addSpectrum( plot.getPlot(), newSpec );
+                }
 
                 //  Default line is red and dot-dash.
                 globalList.setKnownNumberProperty
                     ( newSpec, SpecData.LINE_COLOUR,
                       new Integer( Color.red.getRGB() ) );
-                globalList.setKnownNumberProperty( newSpec, 
+                globalList.setKnownNumberProperty( newSpec,
                                                    SpecData.LINE_STYLE,
                                                    new Integer( 6 ) );
             }
@@ -583,20 +654,20 @@ public class PolyFitFrame
 
     /**
      * Create a new spectrum with the given data and errors.
-     * 
+     *
      * @param name the short name for the new spectrum
      * @param spectrum a spectrum that this new spectrum is related
      *                 (i.e. has same coordinates).
      * @param data the new data values.
      * @param errors the new errors (if any, null for none).
      */
-    protected SpecData createNewSpectrum( String name, SpecData spectrum, 
+    protected SpecData createNewSpectrum( String name, SpecData spectrum,
                                           double[] data, double[] errors )
     {
         try {
-            EditableSpecData newSpec = 
+            EditableSpecData newSpec =
                 SpecDataFactory.getInstance().createEditable( name );
-            FrameSet frameSet = 
+            FrameSet frameSet =
                 ASTJ.get1DFrameSet( spectrum.getAst().getRef(), 1 );
             if ( errors == null ) {
                 newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
@@ -623,11 +694,13 @@ public class PolyFitFrame
 
     /**
      * Display the current spectrum, minus the fit in the current
-     * plot. The subtracted spectrum is created as a memory spectrum
+     * plot. Replaces the current spectrum if requesed.
+     *
+     * The subtracted spectrum is created as a memory spectrum.
      * The default line colour is yellow.
      */
     protected void subtractAndDisplayFit( SpecData spectrum, String polyName,
-                                          double[] fitData )
+                                          double[] fitData, boolean replace )
     {
         if ( subtractNothing.isSelected() ) return;
 
@@ -650,12 +723,16 @@ public class PolyFitFrame
         if ( newSpec != null ) {
             try {
                 globalList.addSpectrum( plot.getPlot(), newSpec );
+                if ( replace ) {
+                    removedCurrentSpectrum = spectrum;
+                    plot.getPlot().removeSpectrum( spectrum );
+                }
 
                 //  Default line is gray.
                 globalList.setKnownNumberProperty
                     ( newSpec, SpecData.LINE_COLOUR,
                       new Integer( Color.darkGray.getRGB() ) );
-                
+
                 //  Get the plot to scale itself to fit in Y.
                 plot.getPlot().fitToHeight();
             }
@@ -704,11 +781,13 @@ public class PolyFitFrame
 
     /**
      * Display the current spectrum divided by the current fit if
-     * requested.  The new spectrum is created as a memory spectrum
+     * requested. Replaces the current spectrum if requesed.
+     *
+     * The new spectrum is created as a memory spectrum.
      * The default line colour is cyan.
      */
     protected void divideAndDisplayFit( SpecData spectrum, String polyName,
-                                        double[] fit )
+                                        double[] fit, boolean replace )
     {
         if ( ! divideSpectrum.isSelected() ) return;
 
@@ -727,12 +806,16 @@ public class PolyFitFrame
         if ( newSpec != null ) {
             try {
                 globalList.addSpectrum( plot.getPlot(), newSpec );
+                if ( replace ) {
+                    removedCurrentSpectrum = spectrum;
+                    plot.getPlot().removeSpectrum( spectrum );
+                }
 
                 //  Default line is cyan.
                 globalList.setKnownNumberProperty
                     ( newSpec, SpecData.LINE_COLOUR,
                       new Integer( Color.cyan.getRGB() ) );
-            
+
                 //  Get the plot to scale itself to fit in Y.
                 plot.getPlot().fitToHeight();
             }
@@ -755,7 +838,7 @@ public class PolyFitFrame
             for ( int i = 0; i < inData.length; i++ ) {
                 if ( inData[i] != SpecData.BAD &&
                      divData[i] != SpecData.BAD && divData[i] != 0.0 &&
-                     inErrors[i] != SpecData.BAD 
+                     inErrors[i] != SpecData.BAD
                    ) {
                     outData[i] = inData[i] / divData[i];
                     outErrors[i] = inErrors[i] / divData[i];
@@ -769,7 +852,7 @@ public class PolyFitFrame
         else {
             for ( int i = 0; i < inData.length; i++ ) {
                 if ( inData[i] != SpecData.BAD &&
-                     divData[i] != SpecData.BAD && divData[i] != 0.0 
+                     divData[i] != SpecData.BAD && divData[i] != 0.0
                    ) {
                     outData[i] = inData[i] / divData[i];
                 }
@@ -835,22 +918,46 @@ public class PolyFitFrame
     }
 
     /**
-     * Reset all controls and dispose of all associated fits.
+     * Reset after a Replace fits. Disposes of all associated fits and
+     * restores the current spectrum.
      */
-    protected void resetActionEvent()
+    protected void resetReplaceActionEvent()
     {
-        //  Remove any spectra.
+        //  Remove any fitted spectra.
         deleteFits();
 
         //  Clear results description.
         fitResults.selectAll();
         fitResults.cut();
 
+        //  Restore the current spectrum, if needed.
+        if ( removedCurrentSpectrum != null ) {
+            if ( ! plot.getPlot().isDisplayed( removedCurrentSpectrum )  ) {
+                try {
+                    plot.getPlot().addSpectrum( removedCurrentSpectrum );
+                }
+                catch (SplatException e) {
+                    //  Do nothing, not important.
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Reset all controls and dispose of all associated fits. Restore the
+     * current spectrum, if recorded and not present.
+     */
+    protected void resetActionEvent()
+    {
+        resetReplaceActionEvent();
+
         //  Remove any graphics and ranges.
         rangeList.deleteAllRanges();
 
-        //  Set polynomial degree to 0.
-        degreeBox.setSelectedIndex( 0 );
+        //  Set polynomial degree to default.
+        int degree = prefs.getInt( "PolyFitFrame_degree", 0 );
+        degreeBox.setSelectedItem( new Integer( degree ) );
     }
 
     /**
@@ -862,7 +969,20 @@ public class PolyFitFrame
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            fitPoly( false );
+            fitPoly( false, false );
+        }
+    }
+
+    /**
+     * Fit action. Performs fit to all ranges and replaces current spectrum.
+     */
+    protected class FitReplaceAction extends AbstractAction
+    {
+        public FitReplaceAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            fitPoly( false, true );
         }
     }
 
@@ -875,7 +995,21 @@ public class PolyFitFrame
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            fitPoly( true );
+            fitPoly( true, false );
+        }
+    }
+
+    /**
+     * Fit selected action. Performs fit to the selected ranges and
+     * replaces current spectrum.
+     */
+    protected class FitReplaceSelectedAction extends AbstractAction
+    {
+        public FitReplaceSelectedAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            fitPoly( true, true );
         }
     }
 
@@ -889,6 +1023,19 @@ public class PolyFitFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindowEvent();
+        }
+    }
+
+    /**
+     * Inner class defining action for resetting after a replace.
+     */
+    protected class ResetReplaceAction extends AbstractAction
+    {
+        public ResetReplaceAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            resetReplaceActionEvent();
         }
     }
 
