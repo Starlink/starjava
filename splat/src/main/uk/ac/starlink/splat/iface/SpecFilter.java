@@ -76,7 +76,7 @@ public class SpecFilter
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
         AverageFilter filter = new AverageFilter( localSpec.getYData(),
                                                   width );
-        return updateSpectrum( localSpec, filter.eval(),
+        return updateSpectrum( localSpec, filter.eval(), null,
                                makeName( "Average", spectrum ) );
     }
 
@@ -92,9 +92,14 @@ public class SpecFilter
     public SpecData rebinFilter( SpecData spectrum, int width )
     {
 
-        //  Odd filter as uses full spectrum.
-        BinFilter binFilter = new BinFilter( spectrum.getYData(), width );
+        //  Odd filter as uses full spectrum and handles errors (for most
+        //  filters errors become correlated, so just as well to have none,
+        //  rebinning doesn't have that problem).
+        BinFilter binFilter = new BinFilter( spectrum.getYData(), 
+                                             spectrum.getYDataErrors(),
+                                             width );
         double[] newData = binFilter.eval();
+        double[] newDataErrors = binFilter.errors();
 
         try {
             EditableSpecData newSpec = SpecDataFactory.getInstance().
@@ -122,7 +127,7 @@ public class SpecFilter
             frameSet.setCurrent( current );
             frameSet.setBase( base );
 
-            return updateSpectrum( newSpec, newData,
+            return updateSpectrum( newSpec, newData, newDataErrors,
                                    makeName( "Rebin", spectrum ) );
         }
         catch (SplatException e) {
@@ -150,7 +155,7 @@ public class SpecFilter
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
         MedianFilter filter = new MedianFilter( localSpec.getYData(),
                                                 width );
-        return updateSpectrum( localSpec, filter.eval(),
+        return updateSpectrum( localSpec, filter.eval(), null,
                                makeName( "Median", spectrum ) );
     }
 
@@ -353,7 +358,7 @@ public class SpecFilter
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
         WaveletFilter filter = new WaveletFilter( localSpec.getYData(),
                                                   wavelet, percent );
-        return updateSpectrum( localSpec, filter.eval(),
+        return updateSpectrum( localSpec, filter.eval(), null,
                                makeName( wavelet, spectrum ) );
     }
 
@@ -373,22 +378,30 @@ public class SpecFilter
     {
         KernelFilter filter = new KernelFilter( spectrum.getYData(),
                                                 kernel );
-        return updateSpectrum( spectrum, filter.eval(),
+        return updateSpectrum( spectrum, filter.eval(), null,
                                makeName( name, spectrum ) );
     }
 
     /**
-     * Update a spectrum with a new data component. Also gives it
-     * a hopefully useful name.
+     * Update a spectrum with a new data component and optional associated
+     * errors. Also gives it a hopefully useful name.
      */
     protected SpecData updateSpectrum( EditableSpecData newSpec,
-                                       double[] newData,
+                                       double[] newData, 
+                                       double[] newDataErrors,
                                        String newName )
     {
         try {
-            newSpec.setFullDataQuick( newSpec.getFrameSet(),
-                                      newSpec.getCurrentDataUnits(),
-                                      newData );
+            if ( newDataErrors == null ) {
+                newSpec.setFullDataQuick( newSpec.getFrameSet(),
+                                          newSpec.getCurrentDataUnits(),
+                                          newData );
+            }
+            else {
+                newSpec.setFullDataQuick( newSpec.getFrameSet(),
+                                          newSpec.getCurrentDataUnits(),
+                                          newData, newDataErrors );
+            }
             newSpec.setShortName( newName );
             return newSpec;
         }

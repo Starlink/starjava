@@ -24,9 +24,19 @@ public class BinFilter
     private double[] data = null;
 
     /**
+     * The data errors to be rebinned.
+     */
+    private double[] errors = null;
+
+    /**
      * The rebinned data.
      */
     private double[] binnedData = null;
+
+    /**
+     * The rebinned data errors, if done.
+     */
+    private double[] binnedDataErrors = null;
 
     /**
      * The width of a bin.
@@ -38,13 +48,15 @@ public class BinFilter
      *  number of data elements in each new data element.
      *
      *  @param data the array of values to be rebinned.
+     *  @param errors the errors of the data values, if available. Set to null
+     *                if not.
      *  @param width the number of positions that are used for each output
      *               value.
      */
-    public BinFilter( double[] data, int width )
+    public BinFilter( double[] data, double[] errors, int width )
     {
         setWidth( width );
-        setData( data );
+        setData( data, errors );
     }
 
     /**
@@ -54,6 +66,7 @@ public class BinFilter
     {
         this.width = Math.max( 1, width );
         binnedData = null;
+        binnedDataErrors = null;
     }
 
     /**
@@ -67,9 +80,10 @@ public class BinFilter
     /**
      * Set the data to be used for rebinning.
      */
-    public void setData( double[] data )
+    public void setData( double[] data, double[] errors )
     {
         this.data = data;
+        this.errors = errors;
     }
 
     /**
@@ -78,15 +92,26 @@ public class BinFilter
     public double[] eval()
     {
         if ( binnedData == null ) {
-            doCalc( data, width );
+            doCalc( data, errors, width );
         }
         return binnedData;
     }
 
     /**
+     * Get the binned data errors.
+     */
+    public double[] errors()
+    {
+        if ( binnedData == null ) {
+            doCalc( data, errors, width );
+        }
+        return binnedDataErrors;
+    }
+
+    /**
      * Perform the binning calculations.
      */
-    protected void doCalc( double[] data, int width )
+    protected void doCalc( double[] data, double[] errors, int width )
     {
         int nout = data.length / width;
 
@@ -95,22 +120,51 @@ public class BinFilter
         }
         binnedData = new double[nout];
 
-        double sum;
-        int count;
-        for ( int k = 0, i = 0; k < nout; k++, i += width ) {
-            sum = 0.0;
-            count = 0;
-            for ( int j = 0; j < width; j++ ) {
-                if ( data[i+j] != SpecData.BAD ) {
-                    sum += data[i+j];
-                    count++;
+        if ( errors == null ) {
+            binnedDataErrors = null;
+            double sum;
+            int count;
+            for ( int k = 0, i = 0; k < nout; k++, i += width ) {
+                sum = 0.0;
+                count = 0;
+                for ( int j = 0; j < width; j++ ) {
+                    if ( data[i+j] != SpecData.BAD ) {
+                        sum += data[i+j];
+                        count++;
+                    }
+                }
+                if ( count > 0 ) {
+                    binnedData[k] = sum / (double) count;
+                }
+                else {
+                    binnedData[k] = SpecData.BAD;
                 }
             }
-            if ( count > 0 ) {
-                binnedData[k] = sum / (double) count;
-            }
-            else {
-                binnedData[k] = SpecData.BAD;
+        }
+        else {
+            binnedDataErrors = new double[nout];
+            double sum;
+            double vsum;
+            int count;
+            for ( int k = 0, i = 0; k < nout; k++, i += width ) {
+                sum = 0.0;
+                vsum = 0.0;
+                count = 0;
+                for ( int j = 0; j < width; j++ ) {
+                    if ( data[i+j] != SpecData.BAD ) {
+                        sum += data[i+j];
+                        vsum += ( errors[i+j] * errors[i+j] );
+                        count++;
+                    }
+                }
+                if ( count > 0 ) {
+                    binnedData[k] = sum / (double) count;
+                    binnedDataErrors[k] = Math.sqrt( vsum ) / (double) count;
+                }
+                else {
+                    binnedData[k] = SpecData.BAD;
+                    binnedDataErrors[k] = SpecData.BAD;
+                }
             }
         }
     }
@@ -128,7 +182,7 @@ public class BinFilter
             System.out.println( "Length of array = " + data.length );
 
             for ( int b = 1; b < m+10; b++ ) {
-                BinFilter f = new BinFilter( data, b );
+                BinFilter f = new BinFilter( data, null, b );
                 double binnedData[] = f.eval();
                 
                 System.out.println( "Bin size = " + b );
