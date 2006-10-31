@@ -20,26 +20,26 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html460"
+<A NAME="tex2html461"
  HREF="node35.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html458"
+<A NAME="tex2html459"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html452"
+<A NAME="tex2html453"
  HREF="node33.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html461"
+<B> Next:</B> <A NAME="tex2html462"
  HREF="node35.html">The generate spectra from interpolated lines window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html459"
+<B>Up:</B> <A NAME="tex2html460"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html453"
+<B> Previous:</B> <A NAME="tex2html454"
  HREF="node33.html">The cutter window</A>
 <BR> <HR> <P>
 
@@ -59,9 +59,9 @@ to fitting spectral lines.
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="357" HEIGHT="328" ALIGN="BOTTOM" BORDER="0"
+ WIDTH="397" HEIGHT="333" ALIGN="BOTTOM" BORDER="0"
  SRC="polynomialfitwindow.gif"
- ALT="2266">
+ ALT="2281">
  
 </DIV>
 
@@ -151,7 +151,7 @@ To clear any fits created by this window press the <B>Delete
 <P>
 <B><FONT SIZE="+1">Fit status</FONT></B>
 <BLOCKQUOTE>
- The <A NAME="Fitstatus"></A> text area shows some facts and figures about
+ The <B>Fit status</B> text area shows some facts and figures about
  the fitting process. The <TT>RMS</TT> value is the root mean square
  difference between the fit and the spectra data <I>i.e.</I>:
  <BR><P></P>
@@ -183,34 +183,76 @@ Where <I>s</I><SUB><I>i</I></SUB> and <I>f</I><SUB><I>i</I></SUB> are the data v
 </BLOCKQUOTE>
 
 <P>
+<B><FONT SIZE="+1">Command Buttons</FONT></B>
+
+<P>
+
+<UL><LI><B>Fit</B> Performs a fit on all the regions you've defined and displays
+the fit and any subtracted or divided spectra in the plot.
+
+<P>
+
+<LI><B>Fit (Replace)</B> Same as <B>Fit</B>, except that if you've
+opted to subtract or divide the fit into the displayed spectrum, then that
+spectrum will be removed and you'll only see the subtracted and/or divided
+result. If you haven't opted to subtract or divide then the results are
+exactly the same as for <B>Fit</B>.
+
+<P>
+
+<LI><B>Fit selected</B> Performs a fit on only the currently selected
+regions. The results are displayed in the way as the <B>Fit</B> command.
+
+<P>
+
+<LI><B>Fit selected (Replace)</B> Same as <B>Fit (Replace)</B>,
+except only the selected regions are used for fitting.
+
+<P>
+
+<LI><B>Reset</B> Removes all fit spectra (from the plot and global list)
+and erases the ranges. The polynomial degree is set to the default (which will
+be the last value used in any polynomial toolbox).
+
+<P>
+
+<LI><B>Reset (Replace)</B> Also removes all fit spectra, but keeps the
+ranges and replaces the spectrum first removed by a <B>Fit (Replace)</B>.
+Effectively undoes a <B>Fit (Replace)</B>.
+
+<P>
+
+</UL>
+
+<P>
 
 <BR> <HR>
-<A NAME="tex2html460"
+<A NAME="tex2html461"
  HREF="node35.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html458"
+<A NAME="tex2html459"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html452"
+<A NAME="tex2html453"
  HREF="node33.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html461"
+<B> Next:</B> <A NAME="tex2html462"
  HREF="node35.html">The generate spectra from interpolated lines window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html459"
+<B>Up:</B> <A NAME="tex2html460"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html453"
+<B> Previous:</B> <A NAME="tex2html454"
  HREF="node33.html">The cutter window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 August 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 October 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 

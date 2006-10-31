@@ -20,26 +20,26 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html499"
+<A NAME="tex2html500"
  HREF="node39.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html497"
+<A NAME="tex2html498"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html491"
+<A NAME="tex2html492"
  HREF="node37.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html500"
+<B> Next:</B> <A NAME="tex2html501"
  HREF="node39.html">Quick change of coordinate or data units window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html498"
+<B>Up:</B> <A NAME="tex2html499"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html492"
+<B> Previous:</B> <A NAME="tex2html493"
  HREF="node37.html">Saving the results</A>
 <BR> <HR> <P>
 
@@ -56,9 +56,9 @@ displayed in a plot.
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="487" HEIGHT="198" ALIGN="BOTTOM" BORDER="0"
+ WIDTH="488" HEIGHT="198" ALIGN="BOTTOM" BORDER="0"
  SRC="filterwindow.gif"
- ALT="2673">
+ ALT="2737">
  
 </DIV>
 
@@ -68,6 +68,9 @@ The various options are:
 <UL><LI><TT>Average</TT> take the running average value over a
         number of positions.
 
+<LI><TT>Rebin</TT> rebin a spectrum so that one output value
+        equals the mean of a number of input values.
+
 <LI><TT>Median</TT> take the running median value over a
         number of positions.
 
@@ -75,46 +78,83 @@ The various options are:
         to typical line shapes, Gaussian, Lorentzian and Voigt and
         the standard Hanning, Hamming, Welch and Barlett filters.
 
-<LI><TT>Spectrum</TT> smooth the values using a profile
-        defined in another spectrum (allows you to create kernels
-        that match some shape, rather than just the standard profiles).
-
 <LI><TT>Wavelet</TT> use various wavelet filters to convert the
         spectrum into multi-resolution coefficients, removing a
         fraction of the coefficients, thus <I>denoising</I> the
         spectrum.
+
+<LI><TT>Spectrum</TT> smooth the values using a profile
+        defined in another spectrum (allows you to create kernels
+        that match some shape, rather than just the standard profiles).
+
+</UL>
+
+<P>
+You can define ranges of the spectrum to apply the filter over (except for
+<B>Rebin</B>, that always applies to the whole spectrum, which is what
+happens for all filters if you've not defined any ranges).  Depending on
+whether you've selected <B>Filter inside ranges</B> or not the ranges are
+used to define the parts of the spectrum to filter, or not to filter. Parts
+which are not filtered do not form part of the result spectrum.
+
+<P>
+<B><FONT SIZE="+1">Command Buttons</FONT></B>
+
+<P>
+
+<UL><LI><B>Filter</B> Filters the spectrum and displays the result in the 
+plot.
+
+<P>
+
+<LI><B>Filter (Replace)</B> Same as <B>Filter</B>, except the
+current spectrum is removed so you only see the filtered one.
+
+<P>
+
+<LI><B>Reset</B> Removes all filtered spectra (from the plot and global
+list) and erases the ranges. 
+
+<P>
+
+<LI><B>Reset (Replace)</B> Also removes all filtered spectra, but
+restores the spectrum first removed by <B>Filter (Replace)</B>
+Effectively undoes the first <B>Filter (Replace)</B>, since the last
+<B>Reset (Replace)</B>
+
+<P>
 
 </UL>
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html499"
+<A NAME="tex2html500"
  HREF="node39.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html497"
+<A NAME="tex2html498"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html491"
+<A NAME="tex2html492"
  HREF="node37.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html500"
+<B> Next:</B> <A NAME="tex2html501"
  HREF="node39.html">Quick change of coordinate or data units window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html498"
+<B>Up:</B> <A NAME="tex2html499"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html492"
+<B> Previous:</B> <A NAME="tex2html493"
  HREF="node37.html">Saving the results</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 August 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 October 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 

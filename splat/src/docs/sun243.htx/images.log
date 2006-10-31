@@ -1,9 +1,9 @@
-This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2003.2.18)  19 JAN 2005 16:31
+This is TeX, Version 3.14159 (Web2C 7.4.5) (format=latex 2006.1.26)  31 OCT 2006 17:12
 **./images.tex
 (./images.tex
 LaTeX2e <2001/06/01>
-Babel <v3.7h> and hyphenation patterns for american, french, german, ngerman, i
-talian, nohyphenation, loaded.
+Babel <v3.7h> and hyphenation patterns for american, french, german, ngerman, n
+ohyphenation, loaded.
 
 (/usr/share/texmf/tex/latex/base/article.cls
 Document Class: article 2001/04/21 v1.4e Standard LaTeX document class
@@ -21,9 +21,10 @@ File: size11.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
 \abovecaptionskip=\skip41
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
-) (/loc/pwdc/pdraper/java/cvs/java/source/splat/src/docs/sun243_htx/html.sty)
-(/loc/pwdc/pdraper/java/cvs/java/source/splat/src/docs/sun243_htx/star2html.sty
-) (/usr/share/texmf/tex/latex/graphics/graphicx.sty
+) (/loc/pwda/pdraper/java/amd64/java/source/splat/src/docs/sun243_htx/html.sty)
+
+(/loc/pwda/pdraper/java/amd64/java/source/splat/src/docs/sun243_htx/star2html.s
+ty) (/usr/share/texmf/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 (/usr/share/texmf/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
@@ -32,7 +33,9 @@ Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
 (/usr/share/texmf/tex/latex/graphics/trig.sty
 Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
-) (/usr/share/texmf/tex/latex/config/graphics.cfg)
+) (/usr/share/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2001/08/31 v1.1 graphics configuration of teTeX/TeXLive
+)
 Package graphics Info: Driver file: dvips.def on input line 80.
 (/usr/share/texmf/tex/latex/graphics/dvips.def
 File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
@@ -51,7 +54,7 @@ Package: inputenc 2001/07/10 v0.99a Input encoding file
 (/usr/share/texmf/tex/latex/base/latin1.def
 File: latin1.def 2001/07/10 v0.99a Input encoding file 
 )) (/usr/share/texmf/tex/latex/ae/ae.sty
-Package: ae 1998/11/17 1.0 Almost European Computer Modern
+Package: ae 2001/02/12 1.3 Almost European Computer Modern
 (/usr/share/texmf/tex/latex/base/fontenc.sty
 Package: fontenc 2001/06/05 v1.94 Standard LaTeX package
 (/usr/share/texmf/tex/latex/base/t1enc.def
@@ -62,7 +65,7 @@ LaTeX Font Info:    Try loading font information for T1+aer on input line 95.
 (/usr/share/texmf/tex/latex/ae/t1aer.fd
 File: t1aer.fd 1997/11/16 Font definitions for T1/aer.
 ))) (/usr/share/texmf/tex/latex/cmbright/cmbright.sty
-Package: cmbright 1999/05/12 v7.0 (WaS)
+Package: cmbright 2002/05/25 v7.1 (WaS)
 LaTeX Font Info:    Redeclaring symbol font `operators' on input line 30.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
 (Font)                  OT1/cmr/m/n --> OT1/cmbr/m/n on input line 30.
@@ -123,34 +126,36 @@ LaTeX Font Info:    Redeclaring math symbol \varpi on input line 63.
 LaTeX Font Info:    Redeclaring math symbol \varrho on input line 64.
 LaTeX Font Info:    Redeclaring math symbol \varsigma on input line 65.
 LaTeX Font Info:    Redeclaring math symbol \varphi on input line 66.
-LaTeX Font Info:    Try loading font information for T1+cmbr on input line 128.
+LaTeX Font Info:    Try loading font information for T1+cmbr on input line 131.
 
 (/usr/share/texmf/tex/latex/cmbright/t1cmbr.fd
 File: t1cmbr.fd 1999/05/12 v7.3 (WaS)
 )) (/usr/share/texmf/tex/latex/graphics/color.sty
 Package: color 1999/02/16 v1.0i Standard LaTeX Color (DPC)
-(/usr/share/texmf/tex/latex/config/color.cfg)
+(/usr/share/texmf/tex/latex/config/color.cfg
+File: color.cfg 2001/08/31 v1.1 color configuration of teTeX/TeXLive
+)
 Package color Info: Driver file: dvips.def on input line 125.
 (/usr/share/texmf/tex/latex/graphics/dvipsnam.def
 File: dvipsnam.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
 ))
 \sizebox=\box26
 \lthtmlwrite=\write3
-No file images.aux.
+(./images.aux)
 \openout1 = `images.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 131.
-LaTeX Font Info:    ... okay on input line 131.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 131.
-LaTeX Font Info:    ... okay on input line 131.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 131.
-LaTeX Font Info:    ... okay on input line 131.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 131.
-LaTeX Font Info:    ... okay on input line 131.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 131.
-LaTeX Font Info:    ... okay on input line 131.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 131.
-LaTeX Font Info:    ... okay on input line 131.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 132.
+LaTeX Font Info:    ... okay on input line 132.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 132.
+LaTeX Font Info:    ... okay on input line 132.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 132.
+LaTeX Font Info:    ... okay on input line 132.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 132.
+LaTeX Font Info:    ... okay on input line 132.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 132.
+LaTeX Font Info:    ... okay on input line 132.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 132.
+LaTeX Font Info:    ... okay on input line 132.
 
 latex2htmlLength hsize=451.0pt
 
@@ -174,90 +179,40 @@ latex2htmlLength oddsidemargin=0.0pt
 
 latex2htmlLength evensidemargin=0.0pt
 
-LaTeX Font Info:    Try loading font information for OT1+cmbr on input line 172
+LaTeX Font Info:    Try loading font information for OT1+cmbr on input line 180
 .
 (/usr/share/texmf/tex/latex/cmbright/ot1cmbr.fd
 File: ot1cmbr.fd 1999/05/12 v7.3 (WaS)
 )
-LaTeX Font Info:    Try loading font information for OML+cmbrm on input line 17
-2.
+LaTeX Font Info:    Try loading font information for OML+cmbrm on input line 18
+0.
 (/usr/share/texmf/tex/latex/cmbright/omlcmbrm.fd
 File: omlcmbrm.fd 1999/05/12 v7.3 (WaS)
 )
-LaTeX Font Info:    Try loading font information for OMS+cmbrs on input line 17
-2.
+LaTeX Font Info:    Try loading font information for OMS+cmbrs on input line 18
+0.
 (/usr/share/texmf/tex/latex/cmbright/omscmbrs.fd
 File: omscmbrs.fd 1999/05/12 v7.3 (WaS)
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 172.
+(Font)              <10.95> on input line 180.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 172.
+(Font)              <8> on input line 180.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 172.
-l2hSize :tex2html_wrap_inline1364:8.25626pt::8.25626pt::9.09158pt.
+(Font)              <6> on input line 180.
+l2hSize :displaymath2311:49.40045pt::0.0pt::451.0pt.
 [1
 
 
 
-]
-l2hSize :displaymath1844:49.40045pt::0.0pt::451.0pt.
-[2
-
-
-]
-l2hSize :tex2html_wrap_inline2097:8.25626pt::8.25626pt::14.84027pt.
-[3
-
-
-]
-l2hSize :displaymath2081:31.00029pt::0.0pt::451.0pt.
-[4
-
-
-]
-l2hSize :tex2html_wrap_inline2109:7.75626pt::0.0pt::7.31345pt.
-[5
-
-
-]
-l2hSize :displaymath2082:27.70619pt::0.0pt::451.0pt.
-[6
-
-
-]
-l2hSize :displaymath2083:14.42545pt::0.0pt::451.0pt.
-[7
-
-
-]
-l2hSize :displaymath2084:27.57591pt::0.0pt::451.0pt.
-[8
-
-
-]
-l2hSize :displaymath2085:25.00023pt::0.0pt::451.0pt.
-[9
-
-
-]
-l2hSize :displaymath2086:25.00023pt::0.0pt::451.0pt.
-[10
-
-
-]
-l2hSize :displaymath2087:16.13333pt::0.0pt::451.0pt.
-[11
-
-
-] (images.aux) ) 
+] (./images.aux) ) 
 Here is how much of TeX's memory you used:
- 1194 strings out of 20880
- 15009 string characters out of 196184
- 56508 words of memory out of 350001
- 4160 multiletter control sequences out of 10000+15000
- 8944 words of font info for 26 fonts, out of 400000 for 1000
- 14 hyphenation exceptions out of 10000
- 28i,5n,21p,388b,239s stack positions out of 3000i,100n,1500p,50000b,4000s
+ 1229 strings out of 95847
+ 16282 string characters out of 1195948
+ 56936 words of memory out of 1000001
+ 4167 multiletter control sequences out of 10000+50000
+ 8944 words of font info for 26 fonts, out of 500000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 28i,5n,21p,405b,237s stack positions out of 1500i,500n,5000p,200000b,5000s
 
-Output written on images.dvi (11 pages, 3708 bytes).
+Output written on images.dvi (1 page, 816 bytes).

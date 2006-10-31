@@ -90,7 +90,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.5-7"/>
+  <property name="version" value="3.5-8"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -418,34 +418,34 @@
      !   that require the package version, current date and/or time -->
     <filterchain id="filters">
       <replacetokens>
-        <token key="VERSION" value="${version}"/>
-        <token key="DATE" value="${TODAY}"/>
-        <token key="TIME" value="${TSTAMP}"/>
-      </replacetokens>
-    </filterchain>
+		<token key="VERSION" value="${version}"/>
+		<token key="DATE" value="${TODAY}"/>
+		<token key="TIME" value="${TSTAMP}"/>
+	      </replacetokens>
+	    </filterchain>
 
-  </target>
+	  </target>
 
-  <!--
-   !   ==============
-   !   Build the code
-   !   ==============
-   !
-   !  The results of the compilation are placed in the build.classes
-   !  directory. Other files that are also needed in the classes tree
-   !  (i.e. resources like images) should also be copied into place here.
-   !-->
-  <target name="build"
-          depends="prepare, check_packages, build_examples"
-          unless="runonly.install"
-          description="-> compiles the source code">
+	  <!--
+	   !   ==============
+	   !   Build the code
+	   !   ==============
+	   !
+	   !  The results of the compilation are placed in the build.classes
+	   !  directory. Other files that are also needed in the classes tree
+	   !  (i.e. resources like images) should also be copied into place here.
+	   !-->
+	  <target name="build"
+		  depends="prepare, check_packages, build_examples"
+		  unless="runonly.install"
+		  description="-> compiles the source code">
 
-    <javac srcdir="${java.dir}"
-           destdir="${build.classes}"
-           debug="${debug}"
-           deprecation="${deprecation}"
-           optimize="${optimize}"
-           source="${source.version}">
+	    <javac srcdir="${java.dir}"
+		   destdir="${build.classes}"
+		   debug="${debug}"
+		   deprecation="${deprecation}"
+		   optimize="${optimize}"
+		   source="${source.version}">
 
       <classpath refid="classpath"/>
 

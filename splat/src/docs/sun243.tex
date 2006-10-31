@@ -26,11 +26,11 @@ Research Councils \& \\
 2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.16}
+\newcommand{\stardocnumber}    {243.17}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {27 September 2006}
+\newcommand{\stardocdate}      {31 October 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.5-4}
+\newcommand{\stardocversion}   {3.5-8}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -2305,7 +2305,7 @@ plotted in a new window before fitting the lines.
 
 \subheading{Fit status}
 \begin{quote}
- The \label{Fit status} text area shows some facts and figures about
+ The \labelitem{Fit status} text area shows some facts and figures about
  the fitting process. The \hitext{RMS} value is the root mean square
  difference between the fit and the spectra data \ie:
  \[
@@ -2317,6 +2317,35 @@ plotted in a new window before fitting the lines.
  fit (possibly interchanged) and $N$ the number of positions in the
  spectrum.
 \end{quote}
+
+\subheading{Command Buttons}
+
+\begin{itemize}
+
+\item \labelitem{Fit} Performs a fit on all the regions you've defined and displays
+the fit and any subtracted or divided spectra in the plot.
+
+\item \labelitem{Fit (Replace)} Same as \labelitem{Fit}, except that if you've
+opted to subtract or divide the fit into the displayed spectrum, then that
+spectrum will be removed and you'll only see the subtracted and/or divided
+result. If you haven't opted to subtract or divide then the results are
+exactly the same as for \labelitem{Fit}.
+
+\item \labelitem{Fit selected} Performs a fit on only the currently selected
+regions. The results are displayed in the way as the \labelitem{Fit} command.
+
+\item \labelitem{Fit selected (Replace)} Same as \labelitem{Fit (Replace)},
+except only the selected regions are used for fitting.
+
+\item \labelitem{Reset} Removes all fit spectra (from the plot and global list)
+and erases the ranges. The polynomial degree is set to the default (which will
+be the last value used in any polynomial toolbox).
+
+\item \labelitem{Reset (Replace)} Also removes all fit spectra, but keeps the
+ranges and replaces the spectrum first removed by a \labelitem{Fit (Replace)}.
+Effectively undoes a \labelitem{Fit (Replace)}.
+
+\end{itemize}
 
 \newpage
 \subsection{The generate spectra from interpolated lines window}
@@ -2564,19 +2593,49 @@ The various options are:
 \begin{itemize}
   \item \hitext{Average} take the running average value over a
         number of positions.
+  \item \hitext{Rebin} rebin a spectrum so that one output value
+        equals the mean of a number of input values.
   \item \hitext{Median} take the running median value over a
         number of positions.
   \item \hitext{Profile} smooth the values using a profile matched
         to typical line shapes, Gaussian, Lorentzian and Voigt and
         the standard Hanning, Hamming, Welch and Barlett filters.
-  \item \hitext{Spectrum} smooth the values using a profile
-        defined in another spectrum (allows you to create kernels
-        that match some shape, rather than just the standard profiles).
   \item \hitext{Wavelet} use various wavelet filters to convert the
         spectrum into multi-resolution coefficients, removing a
         fraction of the coefficients, thus \textit{denoising} the
         spectrum.
+  \item \hitext{Spectrum} smooth the values using a profile
+        defined in another spectrum (allows you to create kernels
+        that match some shape, rather than just the standard profiles).
 \end{itemize}
+
+You can define ranges of the spectrum to apply the filter over (except for
+\labelitem{Rebin}, that always applies to the whole spectrum, which is what
+happens for all filters if you've not defined any ranges).  Depending on
+whether you've selected \labelitem{Filter inside ranges} or not the ranges are
+used to define the parts of the spectrum to filter, or not to filter. Parts
+which are not filtered do not form part of the result spectrum.
+
+\subheading{Command Buttons}
+
+\begin{itemize}
+
+\item \labelitem{Filter} Filters the spectrum and displays the result in the 
+plot.
+
+\item \labelitem{Filter (Replace)} Same as \labelitem{Filter}, except the
+current spectrum is removed so you only see the filtered one.
+
+\item \labelitem{Reset} Removes all filtered spectra (from the plot and global
+list) and erases the ranges. 
+
+\item \labelitem{Reset (Replace)} Also removes all filtered spectra, but
+restores the spectrum first removed by \labelitem{Filter (Replace)}
+Effectively undoes the first \labelitem{Filter (Replace)}, since the last
+\labelitem{Reset (Replace)}
+
+\end{itemize}
+
 
 \newpage
 \subsection{Quick change of coordinate or data units window}
@@ -3225,25 +3284,66 @@ requests for useful features -- thanks to them all.
 
 \section{Changes}
 
-\subsection{Release (3.5-2)}
+\subsection{Release 3.5-8}
 
-An integrated flux option has been added to the statistics toolbox.
+Changes in this release.
+
+\begin{itemize}
+
+\item An integrated flux option has been added to the statistics toolbox.
 This can be used to estimate the flux in line of a background subtracted
 spectrum.
 
-\subsection{Release (3.5-2)}
+\item Some useful UI defaults in the filter toolbox are now saved between
+sessions.
+   
+\item New controls for replacing the currently displayed spectrum with
+the result spectrum have been added to the polynomial and filter toolboxes.
 
-The use of file type \hitext{guessing} has been extended beyond the 
-\submenuitem{File}{Browse} dialogue. This can now be selected from the
-command-line, or from the \submenuitem{File}{Open} dialogue. Guessing
-requires that the spectrum be opened for each candidate type, so is
-intrinsically slower than file extension based typing. Remote resources
-will, in general, be opened using guessing.
+\item The order of the polynomial is now saved as a UI default.
+
+\item A new filter that rebins a spectrum to reduce its resolution has been
+added.
+
+\item NDF/NDX spectra can now also be saved to NDF using NDX support. This is
+useful on platforms that do not have native NDF support.
+   
+\item When fitting spectral lines of spectra whose coordinate systems run
+high to low, rather than low to high, the widths etc. are now correctly
+reported as positive values.
+
+\item When deleting spectra in the global list the selection now remains
+set at the next spectrum in the list (rather than selecting the
+first spectrum).
+
+\item A bug when reading text files that use whitespace column separators,
+other than simple spaces, has been fixed and the previous behaviour
+should be restored.
+
+\item The set of automatically chosen colours are now dimmed slightly so that
+they are always distinguishable from overlay graphics elements.
+
+\item The percentile autocut now just applies to the data within the X 
+range, when the X range is not being autoranged. When autoranged it
+applies to all the data.
+
+\item An integrated flux option has been added to the statistics toolbox.
+This can be used to estimate the flux in line of a background subtracted
+spectrum.
+
+\item The use of file type "guessing" has been extended beyond the
+\labelitem{File->Browse} dialogue. This can now be selected from the
+command-line, or from the  
+\labelitem{File->Open} dialogue. Guessing requires that the spectrum be opened
+for each candidate type, so is intrinsically slower than file extension based 
+typing. Remote resources will, in general, be opened using guessing.
 
 \SPLAT\ has also been extended so that it can now interoperate with 
 other VO-enabled desktop tools using the PLASTIC protocol.
 
-\subsection{Release (3.5)}
+\end{itemize}
+
+\subsection{Release 3.5}
 
 Starlink SPLAT is now a tool for the Virtual Observatory and has been renamed
 to \SPLAT.

@@ -1,28 +1,41 @@
 1 Starlink SPLAT news.
 
-   Release 3.5-7
-   =============
+   3.5-8
+   =====
+
+   Save and restores some UI defaults for filter toolbox.
+   
+   Add new controls for replacing displayed spectrum with subtracted
+   or divided polynomial fit. 
+
+   Add new controls for replacing displayed spectrum with filtered
+   spectrum.
+
+   Save order of polynomial as a UI default.
+
+   3.5-7
+   =====
 
    Add a filter that rebins a spectrum to reduce its resolution.
    When native NDF support is not available spectra are opened as NDXs.
    NDF/NDX spectra can now also be saved to NDF using NDX support.
    
-   Release 3.5-6
-   =============
+   3.5-6
+   =====
 
    When fitting spectral lines of spectra whose coordinate systems run
    high to low, rather than low to high, the widths etc. are now correctly
    reported as positive values.
 
-   Release 3.5-5
-   =============
+   3.5-5
+   =====
 
    When deleting spectra in the global list the selection now remains
    set at the next spectrum in the list (rather than selecting the
    first spectrum).
 
-   Release 3.5-4
-   =============
+   3.5-4
+   =====
 
    A bug when reading text files that use whitespace column separators,
    other than simple spaces, has been fixed and the previous behaviour
@@ -35,15 +48,15 @@
    range, when the X range is not being autoranged. When autoranged it
    applies to all the data.
 
-   Release 3.5-3
-   =============
+   3.5-3
+   =====
 
    An integrated flux option has been added to the statistics toolbox.
    This can be used to estimate the flux in line of a background subtracted
    spectrum.
 
-   Release 3.5-2
-   =============
+   3.5-2
+   =====
 
    The use of file type "guessing" has been extended beyond the File->Browse 
    dialogue. This can now be selected from the command-line, or from the 

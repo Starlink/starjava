@@ -20,32 +20,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html566"
+<A NAME="tex2html567"
  HREF="node46.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html564"
+<A NAME="tex2html565"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html558"
+<A NAME="tex2html559"
  HREF="node44.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html567"
+<B> Next:</B> <A NAME="tex2html568"
  HREF="node46.html">Acknowledgements</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html565"
+<B>Up:</B> <A NAME="tex2html566"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html559"
+<B> Previous:</B> <A NAME="tex2html560"
  HREF="node44.html">Command-line control and tools</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00070000000000000000"></A><A NAME="plastic"></A>
+<H1><A NAME="SECTION00070000000000000000"></A><A NAME="plastic"></A><A NAME="xref_plastic"></A>
 <BR>
 Tool interoperability using PLASTIC
 </H1>
@@ -59,9 +59,9 @@ in the browser window, which looks like this:
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="355" HEIGHT="294" ALIGN="BOTTOM" BORDER="0"
+ WIDTH="385" HEIGHT="236" ALIGN="BOTTOM" BORDER="0"
  SRC="interopmenu.gif"
- ALT="3131">
+ ALT="3233">
  
 </DIV>
 
@@ -126,69 +126,55 @@ Currently, <I>SPLAT-VO</I>'s PLASTIC interaction is confined to receiving
 spectra from, and sending spectra to, other applications.
 
 <P>
-The <B>Interop</B> menu has various <B>Accept spectra as ...</B>
-checkboxes (some of these are set by default and some not).
-The ones which are set indicate that <I>SPLAT-VO</I> is listening out for
-messages from other applications which want to send data in that format.
-If another tool sends data in that format to <I>SPLAT-VO</I> or to all
-listening applications, then <I>SPLAT-VO</I> will attempt to load it as
-a spectrum and add it to the global list just as if you had 
-loaded it in the normal way.
-
-<P>
-Unfortunately, there is no guarantee that data sent in this way by other
-tools actually represent a spectrum, so it is not always wise to 
-accept these things - for instance a VOTable being sent by another
-tool may represent a source catalogue rather than a spectrum,
-in which case attempting to display it as a spectrum wouldn't be very 
-useful.  These Load messages will normally arrive through the
-PLASTIC system only if you, the user, take some action to send them
-(e.g. click a ``Send table'' button in a different tool), so you
-shouldn't have to worry about receiving them from out of the blue, 
-but it is sometimes helpful to filter the ones which arrive
-using these checkboxes.
+Normally, if another PLASTIC application sends spectral data to <I>SPLAT-VO</I>,
+it will respond by attempting to add it to the global list
+just as if you had loaded it in the usual way.
+This is usually what you want to happen, but two checkbox items
+are provided on the <B>Interop</B> menu which allow you to turn this 
+behaviour off: <B>Accept spectra</B> and <B>Accept 1d FITS</B>.
+If you uncheck these, then incoming requests to load
+spectral data or 1-dimensional FITS files respectively will be ignored.
 
 <P>
 You can also perform the opposite trick, take a spectrum which is
 displayed in <I>SPLAT-VO</I> and send it to one or all of the other tools
 currently registered with PLASTIC.  To do this select one of the
-<B>Broadcast spectrum as ...</B> or <B>Send spectrum as ...</B>
-items.  
-The Broadcast actions send the data to all listening tools.
-The Send actions send only to a single selected one; you choose it
-from the submenu to the right.  Only tools which know what to do
-with that kind of data will be listed; if none of the currently-registered
-tools is prepared to accept data in that format, the Send options
-will be unavailable.
+<B>Broadcast spectrum</B> or <B>Send spectrum to ...</B> items.  
+The Broadcast action sends the data to all listening tools.
+The Send action sends only to a single selected tool; you choose it
+from the submenu to the right.  Only tools which (claim they) know 
+what to do with spectral data will be listed; if none of the 
+currently-registered tools is prepared to accept data in that format, 
+the Send options will be unavailable.
 
 <P>
 <BR> <HR>
-<A NAME="tex2html566"
+<A NAME="tex2html567"
  HREF="node46.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html564"
+<A NAME="tex2html565"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html558"
+<A NAME="tex2html559"
  HREF="node44.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html567"
+<B> Next:</B> <A NAME="tex2html568"
  HREF="node46.html">Acknowledgements</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html565"
+<B>Up:</B> <A NAME="tex2html566"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html559"
+<B> Previous:</B> <A NAME="tex2html560"
  HREF="node44.html">Command-line control and tools</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 August 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 October 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils \& \
 

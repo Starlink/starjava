@@ -6,12 +6,20 @@ $key = q/xref_abstract/;
 $external_labels{$key} = "$URL/" . q|node1.html|; 
 $noresave{$key} = "$nosave";
 
+$key = q/Fit_Replace_/;
+$external_labels{$key} = "$URL/" . q|node34.html|; 
+$noresave{$key} = "$nosave";
+
 $key = q/stardoccontents/;
 $external_labels{$key} = "$URL/" . q|sun243.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/Displaying:/;
 $external_labels{$key} = "$URL/" . q|node9.html|; 
+$noresave{$key} = "$nosave";
+
+$key = q/Fitselected/;
+$external_labels{$key} = "$URL/" . q|node34.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_help_window_individual/;
@@ -46,6 +54,10 @@ $key = q/xref_getting_started/;
 $external_labels{$key} = "$URL/" . q|node3.html|; 
 $noresave{$key} = "$nosave";
 
+$key = q/Fit/;
+$external_labels{$key} = "$URL/" . q|node34.html|; 
+$noresave{$key} = "$nosave";
+
 $key = q/xref_displaying_more_than_one_spectrum/;
 $external_labels{$key} = "$URL/" . q|node5.html|; 
 $noresave{$key} = "$nosave";
@@ -54,16 +66,24 @@ $key = q/plastic/;
 $external_labels{$key} = "$URL/" . q|node45.html|; 
 $noresave{$key} = "$nosave";
 
-$key = q/xref_ssap_window/;
-$external_labels{$key} = "$URL/" . q|node11.html|; 
-$noresave{$key} = "$nosave";
-
 $key = q/Fitstatus/;
 $external_labels{$key} = "$URL/" . q|node34.html|; 
 $noresave{$key} = "$nosave";
 
+$key = q/xref_ssap_window/;
+$external_labels{$key} = "$URL/" . q|node11.html|; 
+$noresave{$key} = "$nosave";
+
 $key = q/xref_/;
 $external_labels{$key} = "$URL/" . q|sun243.html|; 
+$noresave{$key} = "$nosave";
+
+$key = q/Fitselected_Replace_/;
+$external_labels{$key} = "$URL/" . q|node34.html|; 
+$noresave{$key} = "$nosave";
+
+$key = q/Reset_Replace_/;
+$external_labels{$key} = "$URL/" . q|node34.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_browser_window/;
@@ -72,6 +92,10 @@ $noresave{$key} = "$nosave";
 
 $key = q/xref_data_formats/;
 $external_labels{$key} = "$URL/" . q|node42.html|; 
+$noresave{$key} = "$nosave";
+
+$key = q/Reset/;
+$external_labels{$key} = "$URL/" . q|node34.html|; 
 $noresave{$key} = "$nosave";
 
 1;
