@@ -8,7 +8,7 @@ import java.awt.Rectangle;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.util.AbstractList;
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 import javax.swing.OverlayLayout;
 import uk.ac.starlink.topcat.RowSubset;
 
@@ -34,7 +34,7 @@ import uk.ac.starlink.topcat.RowSubset;
  * @author   Mark Taylor
  * @since    11 Nov 2005
  */
-public abstract class SurfacePlot extends JPanel implements Printable {
+public abstract class SurfacePlot extends JComponent implements Printable {
 
     private Points points_;
     private PlotState state_;
@@ -51,7 +51,6 @@ public abstract class SurfacePlot extends JPanel implements Printable {
         zoomer_ = new Zoomer();
         zoomer_.setRegions( zoomRegions_ );
         zoomer_.setCursorComponent( this );
-        setOpaque( false );
     }
 
     /**
