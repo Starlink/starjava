@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -64,6 +65,10 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 public class SpecFilterFrame
     extends JFrame
 {
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( SpecFilterFrame.class );
+
     /**
      * List of spectra that we have created.
      */
@@ -289,7 +294,8 @@ public class SpecFilterFrame
         //  regions or not.
         JLabel widthLabel = new JLabel( "Window width:   " );
         ScientificFormat scientificFormat = new ScientificFormat();
-        averageWidth = new DecimalField( 5, 5, scientificFormat );
+        int value = prefs.getInt( "SpecFilterFrame_averagewindow", 5 );
+        averageWidth = new DecimalField( value, 5, scientificFormat );
         averageWidth.setToolTipText( "Width of region to average over" );
 
         panel.add( widthLabel );
@@ -308,7 +314,8 @@ public class SpecFilterFrame
         //  Just need to get the rebin width size.
         JLabel widthLabel = new JLabel( "Width:   " );
         ScientificFormat scientificFormat = new ScientificFormat();
-        rebinWidth = new DecimalField( 5, 5, scientificFormat );
+        int value = prefs.getInt( "SpecFilterFrame_rebinwidth", 5 );
+        rebinWidth = new DecimalField( value, 5, scientificFormat );
         rebinWidth.setToolTipText( "Number of values per new value" );
 
         panel.add( widthLabel );
@@ -328,7 +335,8 @@ public class SpecFilterFrame
         //  regions or not.
         JLabel widthLabel = new JLabel( "Window width:   " );
         ScientificFormat scientificFormat = new ScientificFormat();
-        medianWidth = new DecimalField( 5, 5, scientificFormat );
+        int value = prefs.getInt( "SpecFilterFrame_medianwidth", 5 );
+        medianWidth = new DecimalField( value, 5, scientificFormat );
         medianWidth.setToolTipText( "Width of region to median over" );
 
         panel.add( widthLabel );
@@ -454,7 +462,8 @@ public class SpecFilterFrame
 
         JLabel widthLabel = new JLabel( "Profile evaluation width:   " );
         ScientificFormat scientificFormat = new ScientificFormat();
-        profileWidth = new DecimalField( 50.0, 5, scientificFormat );
+        double value = prefs.getDouble( "SpecFilterFrame_profilewidth", 50.0 );
+        profileWidth = new DecimalField( value, 5, scientificFormat );
         profileWidth.setToolTipText( "Width used to evaluate profile " +
                                      "(should be at least several widths)" );
 
@@ -463,7 +472,8 @@ public class SpecFilterFrame
 
         gWidthLabel = new JLabel( "Gaussian FWHM/width:   " );
         scientificFormat = new ScientificFormat();
-        gWidth = new DecimalField( 5, 5, scientificFormat );
+        value = prefs.getDouble( "SpecFilterFrame_gausswidth", 5.0 );
+        gWidth = new DecimalField( value, 5, scientificFormat );
         gWidth.setToolTipText( "FWHM of gaussian or gaussian width" );
 
         gbl.add( gWidthLabel, false );
@@ -471,7 +481,8 @@ public class SpecFilterFrame
 
         lWidthLabel = new JLabel( "Lorentzian width:   " );
         scientificFormat = new ScientificFormat();
-        lWidth = new DecimalField( 5, 5, scientificFormat );
+        value = prefs.getDouble( "SpecFilterFrame_lorentzwidth", 5.0 );
+        lWidth = new DecimalField( value, 5, scientificFormat );
         lWidth.setToolTipText( "The Lorentzian width" );
 
         gbl.add( lWidthLabel, false );
@@ -499,8 +510,9 @@ public class SpecFilterFrame
 
         JLabel percentLabel = new JLabel( "Threshold (percent):   " );
         ScientificFormat scientificFormat = new ScientificFormat();
+        double value = prefs.getDouble("SpecFilterFrame_waveletpercent", 50.0);
         waveletPercent = new ScientificSpinner
-            ( new SpinnerNumberModel( 50, 0.0, 100.0, 1.0 ) );
+            ( new SpinnerNumberModel( value, 0.0, 100.0, 1.0 ) );
         waveletPercent.setToolTipText( "Percentage of signal to remove" );
 
         gbl.add( waveletLabel, false );
@@ -591,21 +603,24 @@ public class SpecFilterFrame
         switch ( tabbedPane.getSelectedIndex() ) {
             case 0: {
                 // Average.
-                newSpec = filter.averageFilter( currentSpectrum,
-                                                averageWidth.getIntValue(),
+                int value = averageWidth.getIntValue();
+                prefs.putInt( "SpecFilterFrame_averagewindow", value );
+                newSpec = filter.averageFilter( currentSpectrum, value,
                                                 ranges, include );
             }
             break;
             case 1: {
                 // Rebin.
-                newSpec = filter.rebinFilter( currentSpectrum,
-                                              rebinWidth.getIntValue() );
+                int value = rebinWidth.getIntValue();
+                prefs.putInt( "SpecFilterFrame_rebinwidth", value );
+                newSpec = filter.rebinFilter( currentSpectrum, value );
             }
             break;
             case 2: {
                 // Median
-                newSpec = filter.medianFilter( currentSpectrum,
-                                               medianWidth.getIntValue(),
+                int value = medianWidth.getIntValue();
+                prefs.putInt( "SpecFilterFrame_medianwidth", value );
+                newSpec = filter.medianFilter( currentSpectrum, value,
                                                ranges, include );
             }
             break;
@@ -619,6 +634,7 @@ public class SpecFilterFrame
                 // Wavelet.
                 double percent =
                     ((Double)waveletPercent.getValue()).doubleValue();
+                prefs.putDouble( "SpecFilterFrame_waveletpercent", percent );
                 newSpec =
                     filter.waveletFilter( currentSpectrum,
                                           (String)waveletBox.getSelectedItem(),
@@ -661,6 +677,13 @@ public class SpecFilterFrame
                                             double[] ranges,
                                             boolean include  )
     {
+        prefs.putInt( "SpecFilterFrame_profilewidth", 
+                      profileWidth.getIntValue() );
+        prefs.putDouble( "SpecFilterFrame_gausswidth", 
+                         gWidth.getDoubleValue() );
+        prefs.putDouble( "SpecFilterFrame_lorentzwidth", 
+                         lWidth.getDoubleValue() );
+
         if ( gaussProfile.isSelected() ) {
             return filter.gaussianFilter( currentSpectrum,
                                           profileWidth.getIntValue(),
