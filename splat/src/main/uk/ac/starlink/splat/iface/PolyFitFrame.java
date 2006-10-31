@@ -807,8 +807,14 @@ public class PolyFitFrame
             try {
                 globalList.addSpectrum( plot.getPlot(), newSpec );
                 if ( replace ) {
-                    removedCurrentSpectrum = spectrum;
                     plot.getPlot().removeSpectrum( spectrum );
+
+                    //  The removed current spectrum remains the same until
+                    //  the next reset (multiple fits want to return to raw
+                    //  data).
+                    if ( removedCurrentSpectrum == null ) {
+                        removedCurrentSpectrum = spectrum;
+                    }
                 }
 
                 //  Default line is cyan.
@@ -935,6 +941,7 @@ public class PolyFitFrame
             if ( ! plot.getPlot().isDisplayed( removedCurrentSpectrum )  ) {
                 try {
                     plot.getPlot().addSpectrum( removedCurrentSpectrum );
+                    removedCurrentSpectrum = null;
                 }
                 catch (SplatException e) {
                     //  Do nothing, not important.
