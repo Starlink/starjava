@@ -151,6 +151,11 @@ public class SpecFilterFrame
     protected ScientificSpinner waveletPercent = null;
 
     /**
+     * Replaced spectrum.
+     */
+    protected SpecData removedCurrentSpectrum = null;
+
+    /**
      * Create an instance.
      */
     public SpecFilterFrame( PlotControl plot )
@@ -226,6 +231,16 @@ public class SpecFilterFrame
         filterButton.setToolTipText
             ( "Apply the filter to the current spectrum" );
 
+        //  Add action to filter all regions and replace current spectrum.
+        FilterReplaceAction filterReplaceAction =
+            new FilterReplaceAction( "Filter (Replace)", filterImage );
+        fileMenu.add( filterReplaceAction );
+        JButton filterReplaceButton = new JButton( filterReplaceAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( filterReplaceButton );
+        filterButton.setToolTipText
+            ( "Apply the filter to the current spectrum and replace it" );
+
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
         fileMenu.add( resetAction );
@@ -233,6 +248,15 @@ public class SpecFilterFrame
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
         resetButton.setToolTipText( "Clear all filtered spectra and ranges" );
+
+        //  Add action to reset a filter replace.
+        ResetReplaceAction resetReplaceAction = 
+            new ResetReplaceAction( "Reset (Replace)", resetImage );
+        fileMenu.add( resetReplaceAction );
+        JButton resetReplaceButton = new JButton( resetReplaceAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( resetReplaceButton );
+        resetReplaceButton.setToolTipText("Reset changes of Filter (Replace)");
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
@@ -582,11 +606,13 @@ public class SpecFilterFrame
 
     /**
      *  Apply the filter, to either the full spectrum, all the ranges
-     *  or just the selected ones.
+     *  or just the selected ones. Replace the current spectrum with the
+     *  result, if requested.
      *
      *  @param selected true if we should just filter the selected ranges.
+     *  @param replace if true remove current spectrum
      */
-    public void filter( boolean selected )
+    public void filter( boolean selected, boolean replace )
     {
         //  Extract all ranges and obtain current spectrum.
         SpecData currentSpectrum = plot.getCurrentSpectrum();
@@ -663,6 +689,16 @@ public class SpecFilterFrame
             globalList.setKnownNumberProperty( newSpec,
                                                SpecData.LINE_COLOUR,
                                                new Integer(Color.red.getRGB()) );
+            if ( replace ) {
+                plot.removeSpectrum( currentSpectrum );
+
+                //  The removed current spectrum remains the same until 
+                //  the next reset (multiple filters want to return to raw
+                //  data).
+                if ( removedCurrentSpectrum == null ) {
+                    removedCurrentSpectrum = currentSpectrum;
+                }
+            }
         }
         catch (SplatException e) {
             e.printStackTrace();
@@ -815,6 +851,30 @@ public class SpecFilterFrame
     }
 
     /**
+     * Reset a filter replace. That's get rid of the filtered spectra and
+     * replace the current one.
+     */
+    protected void resetReplaceActionEvent()
+    {
+        //  Remove any spectra.
+        deleteSpectra();
+
+        //  Restore the current spectrum, if needed.
+        if ( removedCurrentSpectrum != null ) {
+            if ( ! plot.isDisplayed( removedCurrentSpectrum )  ) {
+                try {
+                    plot.addSpectrum( removedCurrentSpectrum );
+                    removedCurrentSpectrum = null;
+                }
+                catch (SplatException e) {
+                    //  Do nothing, not important.
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
      * Filter action.
      */
     protected class FilterAction
@@ -826,7 +886,23 @@ public class SpecFilterFrame
         }
         public void actionPerformed( ActionEvent ae )
         {
-            filter( false );
+            filter( false, true );
+        }
+    }
+
+    /**
+     * Filter action, replacing current spectrum with result.
+     */
+    protected class FilterReplaceAction
+        extends AbstractAction
+    {
+        public FilterReplaceAction( String name, Icon icon )
+        {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            filter( false, true );
         }
     }
 
@@ -844,6 +920,22 @@ public class SpecFilterFrame
         public void actionPerformed( ActionEvent ae )
         {
             closeWindowEvent();
+        }
+    }
+
+    /**
+     * Inner class defining action for resetting a filter replace.
+     */
+    protected class ResetReplaceAction
+        extends AbstractAction
+    {
+        public ResetReplaceAction( String name, Icon icon )
+        {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            resetReplaceActionEvent();
         }
     }
 
