@@ -26,9 +26,6 @@ public class GraphSurface implements PlotSurface {
     private double xhi_;
     private double ylo_;
     private double yhi_;
-    private double huge_;
-    private boolean labelX_;
-    private boolean labelY_;
     private boolean xLog_;
     private boolean yLog_;
     private boolean xFlip_;
