@@ -503,6 +503,16 @@ public class SpecDataComp
     }
 
     /**
+     *  Get an array of all the currently displayed spectra.
+     *
+     *  @param inspec references to the spectra to remove.
+     */
+    public SpecData[] get()
+    {
+        return (SpecData[]) spectra.toArray( new SpecData[0] );
+    }
+
+    /**
      *  Get the index of a spectrum.
      *
      *  @param inspec the spectrum.
