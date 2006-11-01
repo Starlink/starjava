@@ -724,7 +724,10 @@ public class PolyFitFrame
             try {
                 globalList.addSpectrum( plot.getPlot(), newSpec );
                 if ( replace ) {
-                    removedCurrentSpectrum = spectrum;
+                    if ( removedCurrentSpectrum == null ) {
+                        //  Only changed once until a reset.
+                        removedCurrentSpectrum = spectrum;
+                    }
                     plot.getPlot().removeSpectrum( spectrum );
                 }
 
@@ -808,11 +811,8 @@ public class PolyFitFrame
                 globalList.addSpectrum( plot.getPlot(), newSpec );
                 if ( replace ) {
                     plot.getPlot().removeSpectrum( spectrum );
-
-                    //  The removed current spectrum remains the same until
-                    //  the next reset (multiple fits want to return to raw
-                    //  data).
                     if ( removedCurrentSpectrum == null ) {
+                        //  Only changed once until a reset.
                         removedCurrentSpectrum = spectrum;
                     }
                 }
