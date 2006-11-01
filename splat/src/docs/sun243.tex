@@ -2357,13 +2357,37 @@ line that you have drawn (or are about to draw) on the plot. Such lines can
 then be subtracted to or from, or divided into the current spectrum,
 thus providing a way to background correct a spectrum using a hand-drawn line.
 
-To create an interpolated line just press the \labelitem{Draw curve} button,
-or select the \submenuitem{Drawing mode}{\inline{curve}} option in the
-\labelitem{Graphics} menu and draw out the line.
-Different types of interpolated lines can be
-selected first in the \labelitem{Curve type} menu. The default is
+\subheading{Command Buttons}
+
+\begin{itemize}
+
+\item \labelitem{Draw Curve} Start an interaction in the plot window for
+drawing a curve. This is equivalent to selecting the 
+\submenuitem{Drawing mode}{\inline{curve}} option in the
+\labelitem{Graphics} menu.
+Different types of interpolated lines can be selected first in the
+\labelitem{Curve type} menu. The default is
 \labelitem{hermite} a type of spline that attempts to connect points in a
 similar way to a hand-drawn curve.
+
+\item \labelitem{Generate} Generates an actual spectrum from your interpolated
+curve and then displays it, along with any subtracted or divided spectra, in
+the plot.
+
+\item \labelitem{Generate (Replace)} Same as \labelitem{Generate}, except that
+if you've opted to subtract or divide the curve into the displayed spectrum,
+then that spectrum will be removed and you'll only see the subtracted and/or
+divided result. If you haven't opted to subtract or divide then the results are
+exactly the same as for \labelitem{Generate}.
+
+\item \labelitem{Reset} Removes any spectra that you've generated from the 
+plot and global list.
+
+\item \labelitem{Reset (Replace)} Same as \labelitem{Reset}, but it also
+restores the spectrum removed in by the first \labelitem{Generate (Replace)}.
+Effectively undoes a \labelitem{Generate (Replace)}.
+
+\end{itemize}
 
 \newpage
 \subsection{The spectral line fitting window}
@@ -3298,7 +3322,8 @@ spectrum.
 sessions.
    
 \item New controls for replacing the currently displayed spectrum with
-the result spectrum have been added to the polynomial and filter toolboxes.
+the result spectrum have been added to the polynomial, filter and interpolate 
+toolboxes.
 
 \item The order of the polynomial is now saved as a UI default.
 

@@ -5,13 +5,10 @@
 
    Save and restores some UI defaults for filter toolbox.
    
-   Add new controls for replacing displayed spectrum with subtracted
-   or divided polynomial fit. 
+   Add new controls for replacing displayed spectrum with processed version
+   in the polynomial, filter and interpolate toolboxes. Usability improvement.
 
-   Add new controls for replacing displayed spectrum with filtered
-   spectrum.
-
-   Save order of polynomial as a UI default.
+   Save order of polynomial as a UI default in polynomial fitting toolbox.
 
    3.5-7
    =====

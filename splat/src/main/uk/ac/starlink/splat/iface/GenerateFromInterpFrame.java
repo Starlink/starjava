@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -41,6 +42,7 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -62,6 +64,10 @@ import uk.ac.starlink.diva.interp.Interpolator;
 public class GenerateFromInterpFrame
     extends JFrame
 {
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( GenerateFromInterpFrame.class );
+
     /**
      * List of spectra that we have created.
      */
@@ -77,6 +83,7 @@ public class GenerateFromInterpFrame
      */
     protected JPanel actionBarContainer = new JPanel();
     protected JPanel topActionBar = new JPanel();
+    protected JPanel midActionBar = new JPanel();
     protected JPanel botActionBar = new JPanel();
 
     /**
@@ -114,6 +121,11 @@ public class GenerateFromInterpFrame
      *  Reference to GlobalSpecPlotList object.
      */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+
+    /**
+     *  The current spectrum last removed, if done.
+     */
+    protected SpecData removedCurrentSpectrum = null;
 
     /**
      * Create an instance.
@@ -182,11 +194,67 @@ public class GenerateFromInterpFrame
         subtractGroup.add( subtractFromAbove );
         subtractNothing.setSelected( true );
 
+        int which = prefs.getInt( "GenerateFromInterpFrame_subtract", 1 );
+        if ( which == 2 ) {
+            subtractFromBelow.setSelected( true );
+        }
+        else if ( which == 3 ) {
+            subtractFromAbove.setSelected( true );
+        }
+        else {
+            subtractNothing.setSelected( true );
+        }
+
+        //  Record any new preferences.
+        subtractNothing.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( subtractNothing.isSelected() ) {
+                        prefs.putInt( "GenerateFromInterpFrame_subtract", 1 );
+                    }
+                }
+            });
+
+        subtractFromBelow.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( subtractFromBelow.isSelected() ) {
+                        prefs.putInt( "GenerateFromInterpFrame_subtract", 2 );
+                    }
+                }
+            });
+
+        subtractFromAbove.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( subtractFromAbove.isSelected() ) {
+                        prefs.putInt( "GenerateFromInterpFrame_subtract", 3 );
+                    }
+                }
+            });
+
+
         //  Decide if we should generate and display a divided
         //  version of the spectrum.
         divideSpectrum.setToolTipText( "Divide spectrum by line" );
         layouter.add( new JLabel( "Divide spectrum by line:" ), false );
         layouter.add( divideSpectrum, true );
+
+        boolean state = prefs.getBoolean( "GenerateFromInterpFrame_divide", 
+                                          false );
+        divideSpectrum.setSelected( state );
+        divideSpectrum.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = divideSpectrum.isSelected();
+                    prefs.putBoolean("GenerateFromInterpFrame_divide", state);
+                }
+            });
+
     }
 
     /**
@@ -198,7 +266,7 @@ public class GenerateFromInterpFrame
                  ( "Generate spectra from interpolated lines" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         contentPane.add( actionBarContainer, BorderLayout.SOUTH );
-        setSize( new Dimension( 550, 200 ) );
+        setSize( new Dimension( 450, 250 ) );
         setVisible( true );
     }
 
@@ -214,6 +282,10 @@ public class GenerateFromInterpFrame
         topActionBar.setLayout( new BoxLayout( topActionBar,
                                                BoxLayout.X_AXIS ) );
         topActionBar.setBorder( BorderFactory.
+                                createEmptyBorder( 3, 3, 3, 3 ) );
+        midActionBar.setLayout( new BoxLayout( midActionBar,
+                                               BoxLayout.X_AXIS ) );
+        midActionBar.setBorder( BorderFactory.
                                 createEmptyBorder( 3, 3, 3, 3 ) );
         botActionBar.setLayout( new BoxLayout( botActionBar,
                                                BoxLayout.X_AXIS ) );
@@ -258,22 +330,44 @@ public class GenerateFromInterpFrame
         generateButton.setToolTipText
             ( "Generate a spectrum from a graphics interpolated line" );
 
+        //  Add action to do the generation of a spectrum from a line and
+        //  replace the current one, if subtracting or dividing.
+        GenerateReplaceAction generateReplaceAction = 
+            new GenerateReplaceAction( "Generate (Replace)",interpolateImage );
+        fileMenu.add( generateReplaceAction );
+        JButton generateReplaceButton = new JButton( generateReplaceAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( generateReplaceButton );
+        generateReplaceButton.setToolTipText
+            ( "Generate a spectrum from a graphics interpolated line and " +
+              "replace the current spectrum with the subtracted/divided result" );
+
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
         fileMenu.add( resetAction );
         JButton resetButton = new JButton( resetAction );
-        topActionBar.add( Box.createGlue() );
-        topActionBar.add( resetButton );
+        midActionBar.add( Box.createGlue() );
+        midActionBar.add( resetButton );
         resetButton.setToolTipText
             ( "Reset all values and clear all generated spectra" );
+
+        //  Add action to reset a generate replace operation.
+        ResetReplaceAction resetReplaceAction = 
+            new ResetReplaceAction( "Reset (Replace)", resetImage );
+        fileMenu.add( resetReplaceAction );
+        JButton resetReplaceButton = new JButton( resetReplaceAction );
+        midActionBar.add( Box.createGlue() );
+        midActionBar.add( resetReplaceButton );
+        resetReplaceButton.setToolTipText
+            ( "Reset after a Generate (Replace)" );
 
         //  Add action to just delete any spectra
         DeleteAction deleteAction =
             new DeleteAction( "Delete spectra", deleteImage );
         fileMenu.add( deleteAction );
         JButton deleteButton = new JButton( deleteAction );
-        topActionBar.add( Box.createGlue() );
-        topActionBar.add( deleteButton );
+        midActionBar.add( Box.createGlue() );
+        midActionBar.add( deleteButton );
         deleteButton.setToolTipText( "Delete all generated spectra" );
 
         //  Add an action to close the window.
@@ -285,9 +379,11 @@ public class GenerateFromInterpFrame
         closeButton.setToolTipText( "Close window" );
 
         topActionBar.add( Box.createGlue() );
+        midActionBar.add( Box.createGlue() );
         botActionBar.add( Box.createGlue() );
         actionBarContainer.setLayout( new BorderLayout() );
         actionBarContainer.add( topActionBar, BorderLayout.NORTH );
+        actionBarContainer.add( midActionBar, BorderLayout.CENTER );
         actionBarContainer.add( botActionBar, BorderLayout.SOUTH );
 
         //  Add menu to choose the type of curve to draw. Need to keep this
@@ -361,8 +457,11 @@ public class GenerateFromInterpFrame
      *  Perform the conversion. This grabs the current
      *  InterpolatedCurveFigure. If none is grabbed an error dialog is shown.
      *
+     *  @param replace if true and a subtracted or divided spectrum is being
+     *                 created then remove the current spectrum.
+     *
      */
-    public void generate()
+    public void generate( boolean replace )
     {
         //  Grab the current figures from the plot and look for an
         //  InterpolatedCurveFigure instance.
@@ -437,30 +536,51 @@ public class GenerateFromInterpFrame
             yp[i] = xyt[1][i];
         }
 
-        //  Display results as a spectrum.
+        //  Decide what we're going to display. If replace has been selected,
+        //  then we remove the current spectrum, but only if we're generating
+        //  an equivalent one (subtracted or divided).
+        boolean displayFit = true;
+        boolean displaySubtract = ( ! subtractNothing.isSelected() );
+        boolean displayDivide = divideSpectrum.isSelected();
+        if ( replace && ( displaySubtract || displayDivide ) ) {
+            displayFit = false;
+        }
+
+        //  Create a spectrum from the interpolation and then display
+        //  as a spectrum, unless replacing and generating one of the
+        //  corrected forms.
         String name = "Interpolated line: " + (++generateCounter);
-        display( name, currentSpectrum, yp, null );
+        display( name, currentSpectrum, yp, displayFit );
 
-        //  Also create and display the subtracted form of the
-        //  spectrum.
-        subtractAndDisplay( currentSpectrum, name, yp );
+        //  Create and display the subtracted form of the spectrum. This
+        //  replaces current spectrum, if we're replacing and subtracting.
+        boolean replaceCurrent = ( replace && displaySubtract );
+        if ( displaySubtract ) {
+            subtractAndDisplay( currentSpectrum, name, yp, replaceCurrent );
+        }
 
-        //  And the normalized form.
-        divideAndDisplay( currentSpectrum, name, yp );
+        //  Create and display the normalised form of the spectrum. This
+        //  replaces current spectrum, if we're replacing and not subtracting.
+        if ( displayDivide ) {
+            replaceCurrent = ( ( ! replaceCurrent ) && displayDivide );
+            divideAndDisplay( currentSpectrum, name, yp, replaceCurrent );
+        }
     }
 
     /**
      * Create and display a new spectrum with given data values.
      */
     protected void display( String name, SpecData spectrum,
-                            double[] data, double[] errors )
+                            double[] data, boolean display  )
     {
-        SpecData newSpec = createNewSpectrum( name, spectrum, data, errors );
+        SpecData newSpec = createNewSpectrum( name, spectrum, data, null );
         if ( newSpec != null ) {
             try {
                 newSpec.setType( SpecData.POLYNOMIAL );
                 newSpec.setUseInAutoRanging( false );
-                globalList.addSpectrum( plot.getPlot(), newSpec );
+                if ( display ) {
+                    globalList.addSpectrum( plot.getPlot(), newSpec );
+                }
 
                 //  Default line is red and dot-dash.
                 globalList.setKnownNumberProperty
@@ -523,7 +643,7 @@ public class GenerateFromInterpFrame
      * memory spectrum. The default line colour is yellow.
      */
     protected void subtractAndDisplay( SpecData spectrum, String polyName,
-                                       double[] genData )
+                                       double[] genData, boolean replace )
     {
         if ( subtractNothing.isSelected() ) return;
 
@@ -546,6 +666,13 @@ public class GenerateFromInterpFrame
         if ( newSpec != null ) {
             try {
                 globalList.addSpectrum( plot.getPlot(), newSpec );
+                if ( replace ) {
+                    if ( removedCurrentSpectrum == null ) {
+                        //  Only changed once until a reset.
+                        removedCurrentSpectrum = spectrum;
+                    }
+                    plot.getPlot().removeSpectrum( spectrum );
+                }
 
                 //  Default line is gray.
                 globalList.setKnownNumberProperty
@@ -585,7 +712,7 @@ public class GenerateFromInterpFrame
      * The default line colour is cyan.
      */
     protected void divideAndDisplay( SpecData spectrum, String polyName,
-                                     double[] genData )
+                                     double[] genData, boolean replace )
     {
         if ( ! divideSpectrum.isSelected() ) return;
 
@@ -604,7 +731,13 @@ public class GenerateFromInterpFrame
         if ( newSpec != null ) {
             try {
                 globalList.addSpectrum( plot.getPlot(), newSpec );
-
+                if ( replace ) {
+                    plot.getPlot().removeSpectrum( spectrum );
+                    if ( removedCurrentSpectrum == null ) {
+                        //  Only changed once until a reset.
+                        removedCurrentSpectrum = spectrum;
+                    }
+                }
                 //  Default line is cyan.
                 globalList.setKnownNumberProperty
                     ( newSpec, SpecData.LINE_COLOUR,
@@ -683,6 +816,29 @@ public class GenerateFromInterpFrame
     }
 
     /**
+     * Reset after a generate replace.
+     */
+    protected void resetReplaceActionEvent()
+    {
+        //  Remove any spectra.
+        deleteSpectra();
+
+        //  Restore the current spectrum, if needed.
+        if ( removedCurrentSpectrum != null ) {
+            if ( ! plot.getPlot().isDisplayed( removedCurrentSpectrum )  ) {
+                try {
+                    plot.getPlot().addSpectrum( removedCurrentSpectrum );
+                    removedCurrentSpectrum = null;
+                }
+                catch (SplatException e) {
+                    //  Do nothing, not important.
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
      * Reset all controls and dispose of all generated spectra.
      */
     protected void resetActionEvent()
@@ -700,7 +856,20 @@ public class GenerateFromInterpFrame
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            generate();
+            generate( false );
+        }
+    }
+
+    /**
+     * Generate and replace action.
+     */
+    protected class GenerateReplaceAction extends AbstractAction
+    {
+        public GenerateReplaceAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            generate( true );
         }
     }
 
@@ -727,6 +896,19 @@ public class GenerateFromInterpFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             resetActionEvent();
+        }
+    }
+
+    /**
+     * Inner class defining the reset of a generate replace action.
+     */
+    protected class ResetReplaceAction extends AbstractAction
+    {
+        public ResetReplaceAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            resetReplaceActionEvent();
         }
     }
 

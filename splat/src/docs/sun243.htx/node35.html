@@ -52,9 +52,9 @@ The generate spectra from interpolated lines window</A>
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="358" HEIGHT="133" ALIGN="BOTTOM" BORDER="0"
+ WIDTH="309" HEIGHT="166" ALIGN="BOTTOM" BORDER="0"
  SRC="generateline.gif"
- ALT="2398">
+ ALT="2410">
  
 </DIV>
 
@@ -65,16 +65,50 @@ then be subtracted to or from, or divided into the current spectrum,
 thus providing a way to background correct a spectrum using a hand-drawn line.
 
 <P>
-To create an interpolated line just press the <B>Draw curve</B> button,
-or select the <B>Drawing mode-&gt;<IMG
+<B><FONT SIZE="+1">Command Buttons</FONT></B>
+
+<P>
+
+<UL><LI><B>Draw Curve</B> Start an interaction in the plot window for
+drawing a curve. This is equivalent to selecting the 
+<B>Drawing mode-&gt;<IMG
  WIDTH="16" HEIGHT="16" ALIGN="CENTER"
  SRC="curve.gif"
- ALT="2403"></B> option in the
-<B>Graphics</B> menu and draw out the line.
-Different types of interpolated lines can be
-selected first in the <B>Curve type</B> menu. The default is
+ ALT="2417"></B> option in the
+<B>Graphics</B> menu.
+Different types of interpolated lines can be selected first in the
+<B>Curve type</B> menu. The default is
 <B>hermite</B> a type of spline that attempts to connect points in a
 similar way to a hand-drawn curve.
+
+<P>
+
+<LI><B>Generate</B> Generates an actual spectrum from your interpolated
+curve and then displays it, along with any subtracted or divided spectra, in
+the plot.
+
+<P>
+
+<LI><B>Generate (Replace)</B> Same as <B>Generate</B>, except that
+if you've opted to subtract or divide the curve into the displayed spectrum,
+then that spectrum will be removed and you'll only see the subtracted and/or
+divided result. If you haven't opted to subtract or divide then the results are
+exactly the same as for <B>Generate</B>.
+
+<P>
+
+<LI><B>Reset</B> Removes any spectra that you've generated from the 
+plot and global list.
+
+<P>
+
+<LI><B>Reset (Replace)</B> Same as <B>Reset</B>, but it also
+restores the spectrum removed in by the first <B>Generate (Replace)</B>.
+Effectively undoes a <B>Generate (Replace)</B>.
+
+<P>
+
+</UL>
 
 <P>
 
