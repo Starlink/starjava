@@ -2060,10 +2060,12 @@ public class SplatBrowser
      *
      * @param id the plot identifier number.
      * @param list the list of spectra file names (or disk specifications).
+     * @param clear if true then an existing plot will have any displayed
+     *              spectra removed.
      * @return the id of the plot that the spectra are displayed
      *         in, -1 if it fails to display.
      */
-    public int displaySpectra( int id, String list )
+    public int displaySpectra( int id, String list, boolean clear )
     {
         // Find out how many spectral names we have.
         StringTokenizer st = new StringTokenizer( list );
@@ -2080,9 +2082,9 @@ public class SplatBrowser
             try {
                 plot = new PlotControl( id );
                 PlotControlFrame plotControl = new PlotControlFrame( plot );
-                int index = globalList.add( plot );
+                id = globalList.add( plot );
                 plotControl.setTitle( Utilities.getReleaseName() + ": " +
-                                      globalList.getPlotName( index ) );
+                                      globalList.getPlotName( id ) );
 
                 //  We'd like to know if the plot window is closed.
                 plotControl.addWindowListener( new WindowAdapter() {
@@ -2111,7 +2113,15 @@ public class SplatBrowser
         }
         if ( openedCount == 0 ) return -1;
 
-        //  Display in the plot.
+        //  Remove all existing spectra, if clear is true and this isn't a new
+        //  plot. Do this before adding so that there are no problems with
+        //  matching the coordinate systems.
+        if ( clear && plotIndex != -1 ) {
+            SpecData[] dispSpec = plot.getPlot().getSpecDataComp().get();
+            plot.getPlot().getSpecDataComp().remove( dispSpec );
+        }
+
+        //  Display new spectra in the plot.
         SplatException lastException = null;
         SpecData spectra[] = new SpecData[openedCount];
         for ( int i = 0; i < openedCount; i++ ) {
