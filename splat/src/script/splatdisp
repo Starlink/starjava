@@ -12,7 +12,7 @@
  *    Displays a spectrum in SPLAT.
  *
  * Usage:
- *    splatdisp spectrum1 [plot_number]
+ *    splatdisp spectrum1 [plot_number] [clear]
  *
  * Description:
  *    This command accepts the name of a single spectrum and
@@ -20,7 +20,8 @@
  *    contacted, then it creates a new one and uses that. A plot
  *    number can be given, if this already exists then the spectrum
  *    will be added to the plot, otherwise a new plot will be
- *    created.
+ *    created. If clear is set to "true", then any existing spectra will be
+ *    removed from the plot.
  *
  * Language:
  *    Beanshell (Java-based scripting language).
@@ -37,7 +38,7 @@
  */
 usage ()
 {
-    print( "Usage: splatdisp spectrum [plot_number]" );
+    print( "Usage: splatdisp spectrum [plot_number] [clear]" );
     exit();
 }
 
@@ -66,14 +67,6 @@ display()
                 print("Failed to connect to SPLAT, starting new instance...");
                 proc = Runtime.getRuntime().exec( "/bin/sh -c $SPLAT_DIR/splat" );
                 started = true;
-
-                //  TODO: Check don't need this work around on Solaris...
-                //  Locate the "detached_splat" script and run it up in a
-                //  thread. Need to do this to stop blocking of the exec
-                //  command . Note I think this script should live in a
-                //  jar on release!
-                //script = getResource("/star/splat/scripts/detached_splat");
-                //bg( script.getPath() );
             }
 
             //  Wait a while, this blocks current thread.
@@ -94,16 +87,25 @@ display()
 
     //  Construct the command that the remote beanshell interpreter
     //  in SPLAT should execute.
-    if ( bsh.args.length > 1 ) {
+    if ( bsh.args.length > 2 ) {
         command = "browser.displaySpectra(" +
             bsh.args[1] +
             ", \"" + bsh.args[0] +
-            "\")";
+            "\", " + bsh.args[2] +
+            ")";
+    } else if ( bsh.args.length > 1 ) {
+        command = "browser.displaySpectra(" +
+            bsh.args[1] +
+            ", \"" + bsh.args[0] +
+            "\", false)";
     } else {
         command = "browser.displaySpectra(" +
             "\"" + bsh.args[0] +
             "\")";
     }
+    print( "Command = " + command );
+
+
     //  And send the command. Trap connection errors etc.
     try {
         result = RemoteUtilities.sendRemoteCommand( contactDetails, command );
@@ -123,7 +125,7 @@ display()
 
 //  Check that we have been given a spectrum to display.
 if ( bsh.args == null || bsh.args == void ||
-     bsh.args.length == 0 || bsh.args.length > 2 ) {
+     bsh.args.length == 0 || bsh.args.length > 3 ) {
    usage();
 }
 
