@@ -10,6 +10,9 @@
 
    Save order of polynomial as a UI default in polynomial fitting toolbox.
 
+   The splatdisp command now has an extra argument for clearing the plot
+   that the spectrum will be displayed in.
+
    3.5-7
    =====
 
