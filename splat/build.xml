@@ -246,6 +246,18 @@
     <!-- PLASTIC -->
     <pathelement location="${star.jar.dir}/plastic/plastic.jar"/>
 
+    <!-- HDS -->
+    <pathelement location="${star.jar.dir}/hds/hds.jar"/>
+
+    <!-- DATANODE -->
+    <pathelement location="${star.jar.dir}/datanode/datanode.jar"/>   
+
+    <!-- JSKY -->
+    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
+
+    <!-- HELP -->
+    <pathelement location="${star.jar.dir}/help/help.jar"/>
+ 
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
