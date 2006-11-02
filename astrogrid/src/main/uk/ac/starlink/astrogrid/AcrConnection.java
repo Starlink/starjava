@@ -9,6 +9,7 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
@@ -43,6 +44,7 @@ public class AcrConnection extends Connection {
 
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.astrogrid" );
+    private static final Method CHUNK_METHOD = getChunkMethod();
 
     /**
      * Constructor.
@@ -163,13 +165,13 @@ public class AcrConnection extends Connection {
         /* Not working, as far as I can see.  From Noel's comments it 
          * looks like the trouble is at the client end though, so 
          * probably fixable. */
-        if ( false ) {
+        if ( CHUNK_METHOD != null ) {
             try {
                 return getHttpOutputStream( outUri );
             }
             catch ( IOException e ) {
                 logger_.warning( "Failed to output using HTTP streaming " +
-                                 "try temporary file" );
+                                 "try temporary file: " + e );
             }
         }
 
@@ -189,16 +191,24 @@ public class AcrConnection extends Connection {
     private OutputStream getHttpOutputStream( String outUri )
             throws IOException {
 
+        Object[] uriArgs = new Object[] { outUri };
+        boolean exists = 
+            ((Boolean) execute( "astrogrid.myspace.exists", uriArgs ))
+           .booleanValue();
+        if ( ! exists ) {
+            execute( "astrogrid.myspace.createFile", uriArgs );
+        }
+        else {
+            logger_.warning( "Overwriting existing MySpace file " + outUri );
+        }
         String outLoc =
-            (String) execute( "astrogrid.myspace.getWriteContentURL",
-                              new Object[] { outUri } );
+            (String) execute( "astrogrid.myspace.getWriteContentURL", uriArgs );
         URL url = new URL( outLoc );
 
         /* Acquire and configure the HTTP connection. */
         final HttpURLConnection httpConn =
             (HttpURLConnection) url.openConnection();
         httpConn.setAllowUserInteraction( false );
-        httpConn.setDoInput( false );
         httpConn.setDoOutput( true );
         httpConn.setUseCaches( false );
         httpConn.setRequestMethod( "PUT" );
@@ -206,15 +216,15 @@ public class AcrConnection extends Connection {
         /* Attempt to configure for a streamed write.  This is only 
          * available at Java 1.5 and above. */
         try {
-            httpConn.getClass().getMethod( "setChunkedStreamingMode",
-                                           new Class[] { int.class } )
-                    .invoke( httpConn,
-                             new Object[] { new Integer( HTTP_CHUNK ) } );
+            CHUNK_METHOD.invoke( httpConn,
+                                 new Object[] { new Integer( HTTP_CHUNK ), } );
             logger_.config( "Streaming with chunk size " + HTTP_CHUNK 
                           + "to remote URL " + url );
         }
-        catch ( Throwable err ) {
-            logger_.warning( "Can't stream to output URL (requires J2SE1.5)" );
+        catch ( Throwable e ) {
+            logger_.warning( "Streamed write to MySpace failed: " + e );
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
 
         /* Make the connection and return the result. */
@@ -309,6 +319,30 @@ public class AcrConnection extends Connection {
                     // never mind.
                 }
             }
+        }
+    }
+
+    /**
+     * Returns the <code>HttpURLConnection.getChunkedStreamingMode(int)</code>
+     * method, obtained by reflection.  Will be null on pre-Java 1.5 JVMs.
+     *
+     * @return   method object
+     */
+    private static Method getChunkMethod() {
+        assert logger_ != null;
+        try {
+            return HttpURLConnection.class
+                  .getMethod( "setChunkedStreamingMode",
+                              new Class[] { int.class } );
+        }
+        catch ( NoSuchMethodException e ) {
+            logger_.info( "No chunked streamed writes to MySpace"
+                        + " - requires J2SE1.5" );
+            return null;
+        }
+        catch ( SecurityException e ) {
+            logger_.info( "No chunked streamed writes to MySpace: " + e );
+            return null;
         }
     }
 }
