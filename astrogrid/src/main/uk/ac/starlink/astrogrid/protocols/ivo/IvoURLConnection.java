@@ -42,9 +42,11 @@ public class IvoURLConnection extends URLConnection {
         }
         else if ( doInput ) {
             inStrm_ = createInputStream();
+            connected = true;
         }
         else if ( doOutput ) {
             outStrm_ = createOutputStream();
+            connected = true;
         }
         else {
             assert false;
