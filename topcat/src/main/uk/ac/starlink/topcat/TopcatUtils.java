@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -288,6 +289,18 @@ public class TopcatUtils {
             helpWin.makeVisible();
             helpWin.setID( "largeTables" );
         }
+    }
+
+    /**
+     * Queues a {@link #memoryError} call for later execution on the
+     * event dispatch thread.
+     */
+    public static void memoryErrorLater() {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                memoryError();
+            }
+        } );
     }
 
     /**
