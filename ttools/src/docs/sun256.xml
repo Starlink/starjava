@@ -4046,6 +4046,8 @@ but my thanks are especially due to the following:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
+        later.</li>
     <li>Modified parameter handling slightly for <code>votlint</code>.</li>
     </ul>
     </p></dd>
