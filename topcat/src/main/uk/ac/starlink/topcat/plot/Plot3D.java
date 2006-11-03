@@ -23,6 +23,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * Component which paints a 3d plot.
@@ -1246,6 +1247,7 @@ public abstract class Plot3D extends JPanel {
      * Component containing the plot.
      */
     private class Plot3DDataPanel extends JComponent {
+        private boolean failed_ = false;
         Plot3DDataPanel() {
             setBackground( Color.WHITE );
             setOpaque( true );
@@ -1256,7 +1258,15 @@ public abstract class Plot3D extends JPanel {
                 ((Graphics2D) g).setBackground( getBackground() );
                 g.clearRect( 0, 0, getWidth(), getHeight() );
             }
-            drawData( g, this );
+            if ( ! failed_ ) {
+                try {
+                    drawData( g, this );
+                }
+                catch ( OutOfMemoryError e ) {
+                    failed_ = true;
+                    TopcatUtils.memoryErrorLater();
+                }
+            }
         }
     }
 
