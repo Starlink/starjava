@@ -9705,7 +9705,7 @@ introduced since the last version:
     <ul>
     <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
         later.</li>
-    <li>Intercep OutOfMemoryErrors during 3D plotting to give an explanatory
+    <li>Intercept OutOfMemoryErrors during 3D plotting to give an explanatory
         popup.</li>
     </ul>
     </p></dd>
