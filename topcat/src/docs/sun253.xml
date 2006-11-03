@@ -9700,6 +9700,16 @@ introduced since the last version:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
+        later.</li>
+    <li>Intercep OutOfMemoryErrors during 3D plotting to give an explanatory
+        popup.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
