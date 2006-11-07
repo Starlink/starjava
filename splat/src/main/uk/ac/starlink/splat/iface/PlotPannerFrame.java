@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -57,8 +58,6 @@ public class PlotPannerFrame extends JFrame
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      * Content pane of frame.
@@ -133,6 +132,7 @@ public class PlotPannerFrame extends JFrame
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add an action to close the window.

@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -329,6 +330,7 @@ public class DeblendFrame
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add action to do read a list of extents for fitting the lines.

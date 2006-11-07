@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.prefs.Preferences;
@@ -141,6 +142,7 @@ public class SpecDataUnitsFrame
 
         // Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Create the Help menu.

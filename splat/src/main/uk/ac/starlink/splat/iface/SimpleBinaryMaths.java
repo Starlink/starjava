@@ -14,6 +14,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -102,8 +103,6 @@ public class SimpleBinaryMaths
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      * Split pane used for displaying global list side-by-side.
@@ -137,6 +136,7 @@ public class SimpleBinaryMaths
 
         // Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Put both lists of spectra in scroll panes.

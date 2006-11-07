@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
@@ -231,6 +232,7 @@ public class SSAQueryBrowser
 
         //  Create the File menu.
         JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add options to save and restore the query result.
@@ -264,6 +266,7 @@ public class SSAQueryBrowser
 
         //  Create the options menu.
         JMenu optionsMenu = new JMenu( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         LocalAction proxyAction = new LocalAction( LocalAction.PROXY,
@@ -281,6 +284,7 @@ public class SSAQueryBrowser
 
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
+        resolverMenu.setMnemonic( KeyEvent.VK_R );
         menuBar.add( resolverMenu );
 
         ButtonGroup bg = new ButtonGroup();

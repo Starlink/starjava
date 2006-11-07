@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.AstCellEditor;
@@ -199,6 +200,7 @@ public class SpecViewerFrame
 
         // Create and populate the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
         fileMenu.add( closeAction );
 
@@ -221,6 +223,7 @@ public class SpecViewerFrame
     protected void createEditMenu()
     {
         editMenu.setText( "Edit" );
+        editMenu.setMnemonic( KeyEvent.VK_E );
         menuBar.add( editMenu );
 
         // Undo the last change...
@@ -256,6 +259,7 @@ public class SpecViewerFrame
     protected void createOperationsMenu()
     {
         opsMenu.setText( "Operations" );
+        opsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( opsMenu );
 
         //  Modify the coordinates

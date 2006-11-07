@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
@@ -95,8 +96,6 @@ public class SpecFilterFrame
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      *  The PlotControl that is displaying the current spectrum.
@@ -219,6 +218,7 @@ public class SpecFilterFrame
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add action to filter all regions.

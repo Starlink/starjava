@@ -11,6 +11,7 @@ import java.awt.BorderLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.prefs.Preferences;
 
@@ -159,8 +160,6 @@ public class SpecAnimatorFrame
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      * Type of scaling that we're using.
@@ -210,6 +209,7 @@ public class SpecAnimatorFrame
 
         // Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Create the Help menu.

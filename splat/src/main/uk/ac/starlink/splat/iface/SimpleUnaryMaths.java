@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -102,8 +103,6 @@ public class SimpleUnaryMaths
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      * Create an instance.
@@ -131,6 +130,7 @@ public class SimpleUnaryMaths
 
         // Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Put the list of spectra in a scroll pane.

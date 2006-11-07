@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -95,11 +96,13 @@ public class CoordinateGeneratorFrame
 
         // Create and populate the File menu.
         JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
         fileMenu.add( closeAction );
 
         //  Menu of useful pre-defined functions.
         JMenu functions = new JMenu( "Functions" );
+        functions.setMnemonic( KeyEvent.VK_U );
         menuBar.add( functions );
         coordinateGenerator.addPreDefined( functions );
 

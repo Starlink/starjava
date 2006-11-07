@@ -12,6 +12,7 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -63,8 +64,6 @@ public class SpecCutterFrame
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      *  The PlotControl that is displaying the current spectrum.
@@ -162,6 +161,7 @@ public class SpecCutterFrame
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add action to do read a list of ranges from disk file.

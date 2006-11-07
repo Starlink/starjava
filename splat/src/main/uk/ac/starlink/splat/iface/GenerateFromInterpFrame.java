@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -92,8 +93,6 @@ public class GenerateFromInterpFrame
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
 
     /**
      *  The PlotControlFrame that specifies the current spectrum.
@@ -310,6 +309,7 @@ public class GenerateFromInterpFrame
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Action to start a drawing interaction.

@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.vo;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 import javax.swing.AbstractAction;
@@ -196,6 +197,7 @@ public class SSAServerFrame
 
         //  Create the File menu.
         JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add action to do read a list of servers from disk file.
@@ -224,6 +226,7 @@ public class SSAServerFrame
 
         //  Create the Options menu.
         JMenu optionsMenu = new JMenu( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         //  Configure the proxy server.
@@ -265,7 +268,9 @@ public class SSAServerFrame
 
         //  Add a Column menu that allows the choice of which registry
         //  query columns to show.
-        menuBar.add( makeColumnVisibilityMenu( "Columns" ) );
+        JMenu columnsMenu = makeColumnVisibilityMenu( "Columns" );
+        columnsMenu.setMnemonic( KeyEvent.VK_L );
+        menuBar.add( columnsMenu );
 
         //  Create the Help menu.
         HelpFrame.createHelpMenu( "ssap-server-window", "Help on window",

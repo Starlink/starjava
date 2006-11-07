@@ -12,6 +12,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -166,10 +167,12 @@ public class StatsFrame
 
         //  File menu.
         JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Options.
         JMenu optionsMenu = new JMenu( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         //  Action bar for buttons.
