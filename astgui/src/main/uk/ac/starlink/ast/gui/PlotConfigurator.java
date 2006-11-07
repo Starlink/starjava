@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -261,10 +262,12 @@ public class PlotConfigurator
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Create the Options menu.
         optionsMenu.setText( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         //  Add action to draw the AST description.
