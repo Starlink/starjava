@@ -19,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -53,6 +54,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -156,7 +158,6 @@ public class SplatBrowser
      *  Main menubar and various menus.
      */
     protected JMenuBar menuBar = new JMenuBar();
-    protected JMenu themeMenu = null;
 
     /**
      *  Toolbar.
@@ -610,6 +611,7 @@ public class SplatBrowser
     private void createFileMenu()
     {
         JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add action to open a list of spectrum stored in files.
@@ -688,12 +690,15 @@ public class SplatBrowser
                              saveStackImage, "Save all spectra to disk file" );
         fileMenu.add( saveStackAction );
 
-        //  Add an action to exit application.
+        //  Add an action to exit application. Note mnenomic is X and
+        //  accelerator is control-X.
         ImageIcon exitImage =
             new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
         LocalAction exitAction = new LocalAction( LocalAction.EXIT,
                                                   "Exit", exitImage,
-                                                  "Exit program" );
+                                                  "Exit program",
+                                                  "control X",
+                                                  KeyEvent.VK_X );
         fileMenu.add( exitAction );
     }
 
@@ -703,6 +708,7 @@ public class SplatBrowser
     private void createEditMenu()
     {
         JMenu editMenu = new JMenu( "Edit" );
+        editMenu.setMnemonic( KeyEvent.VK_E );
         menuBar.add( editMenu );
 
         //  Add an action to remove the selected spectra.
@@ -792,6 +798,7 @@ public class SplatBrowser
     private void createViewMenu()
     {
         JMenu viewMenu = new JMenu( "View" );
+        viewMenu.setMnemonic( KeyEvent.VK_V );
         menuBar.add( viewMenu );
 
         //  Add an action to display the selected spectra.
@@ -801,7 +808,8 @@ public class SplatBrowser
             new LocalAction( LocalAction.SINGLE_DISPLAY,
                              "Display in new plots",
                              displayImage,
-                             "Display selected spectra in separate windows" );
+                             "Display selected spectra in separate windows",
+                             "control D", KeyEvent.VK_D );
         viewMenu.add( displayAction );
         toolBar.add( displayAction );
 
@@ -812,7 +820,8 @@ public class SplatBrowser
         LocalAction multiDisplayAction =
             new LocalAction( LocalAction.MULTI_DISPLAY,
                              "Display/add to plot", multiDisplayImage,
-            "Display selected spectra in one plot or add to selected plots");
+                             "Display selected spectra in one plot or add to"+
+                             " selected plots", "control A", KeyEvent.VK_A );
         viewMenu.add( multiDisplayAction );
         toolBar.add( multiDisplayAction );
 
@@ -872,6 +881,7 @@ public class SplatBrowser
     {
 
         JMenu optionsMenu = new JMenu( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         //  Add any locally availabel line identifiers.
@@ -932,6 +942,7 @@ public class SplatBrowser
     private void createInteropMenu()
     {
         JMenu interopMenu = new JMenu( "Interop" );
+        interopMenu.setMnemonic( KeyEvent.VK_I );
         menuBar.add( interopMenu );
 
         // Add server registration options.
@@ -1061,8 +1072,8 @@ public class SplatBrowser
      */
     protected void createOperationsMenu()
     {
-
         JMenu operationsMenu = new JMenu( "Operations" );
+        operationsMenu.setMnemonic( KeyEvent.VK_P );
         menuBar.add( operationsMenu );
 
         //  Add controls for the simple maths operations.
@@ -1095,6 +1106,8 @@ public class SplatBrowser
         JMenu helpMenu = HelpFrame.createButtonHelpMenu( "browser-window",
                                                          "Help on window",
                                                          menuBar, toolBar );
+
+        helpMenu.setMnemonic( KeyEvent.VK_H );
 
         //  Add an action to display the about dialog.
         Action aboutAction = AboutFrame.getAction( this );
@@ -2788,6 +2801,33 @@ public class SplatBrowser
             super( name, icon );
             this.type = type;
             putValue( SHORT_DESCRIPTION, help );
+        }
+
+        /**
+         * Create a Action.
+         *
+         * @param type the type of local action (see above).
+         * @param name simple name for the action (appears in labels).
+         * @param icon an icon for for the action (can be null,
+         *             appears in all labels).
+         * @param help the tooltip help for any labels (can be null).
+         * @param accel accelerator key description (string for 
+         *              {@link KeyStroke.getKeyStroke(String)} call). 
+         *              Accelerator invokes Action immediately.
+         * @param mnem Mnemonic key to active item when menu active
+         *             (usually a {@link KeyEvent}.VK_? value).
+         */
+        public LocalAction( int type, String name, Icon icon, String help,
+                            String accel, int mnem )
+        {
+            super( name, icon );
+            this.type = type;
+            putValue( SHORT_DESCRIPTION, help );
+            KeyStroke k = KeyStroke.getKeyStroke( accel );
+            if ( k != null ) {
+                putValue( ACCELERATOR_KEY, k );
+            }
+            putValue( MNEMONIC_KEY, new Integer( mnem ) );
         }
 
         public void actionPerformed( ActionEvent ae )

@@ -17,6 +17,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -35,6 +36,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.gui.AstFigureStore;
@@ -346,6 +348,7 @@ public class PlotControlFrame
     protected void setupFileMenu()
     {
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         ImageIcon printImage = new ImageIcon(
@@ -431,6 +434,7 @@ public class PlotControlFrame
     protected void setupAnalysisMenu()
     {
         analysisMenu.setText( "Analysis" );
+        analysisMenu.setMnemonic( KeyEvent.VK_A );
         menuBar.add( analysisMenu );
 
         ImageIcon backImage =
@@ -534,6 +538,7 @@ public class PlotControlFrame
     protected void setupEditMenu()
     {
         editMenu.setText( "Edit" );
+        editMenu.setMnemonic( KeyEvent.VK_E );
         menuBar.add( editMenu );
 
 	// Remove the current spectrum.
@@ -548,6 +553,7 @@ public class PlotControlFrame
     protected void setupOptionsMenu()
     {
         optionsMenu.setText( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         //  Arrange to carefully align coordinates when asked (expensive
@@ -625,6 +631,7 @@ public class PlotControlFrame
     protected void setupLineOptionsMenu()
     {
         lineOptionsMenu.setText( "Line identifiers" );
+        lineOptionsMenu.setMnemonic( KeyEvent.VK_L );
         optionsMenu.add( lineOptionsMenu );
 
         //  Load line identifiers into the plot. This comes in two flavours
@@ -680,7 +687,10 @@ public class PlotControlFrame
             ( (AstPlotSource) plot.getPlot(), Utilities.getApplicationName(),
               "FigureStore.xml", "drawnfigures" );
         drawActions.setFigureStore( store );
-        menuBar.add( new DrawGraphicsMenu( drawActions ) );
+
+        DrawGraphicsMenu graphicsMenu = new DrawGraphicsMenu( drawActions );
+        graphicsMenu.setMnemonic( KeyEvent.VK_G );
+        menuBar.add( graphicsMenu );
     }
 
     /**
@@ -1359,6 +1369,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control C" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1375,6 +1388,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1391,6 +1407,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control T" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1407,6 +1426,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control J" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_J ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1423,6 +1445,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_W ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1439,6 +1464,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control H" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_H ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1455,6 +1483,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control O" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_O ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             configPlot();
@@ -1470,6 +1501,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control A" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1486,6 +1520,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control V" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_V ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1502,6 +1539,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1518,6 +1558,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1534,6 +1577,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control U" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_U ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1550,6 +1596,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control I" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_I ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1566,6 +1615,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1582,6 +1634,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control Y" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_Y ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1598,6 +1653,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control G" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_G ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1614,6 +1672,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1630,6 +1691,9 @@ public class PlotControlFrame
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
+
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control L" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

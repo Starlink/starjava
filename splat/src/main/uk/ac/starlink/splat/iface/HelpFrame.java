@@ -10,6 +10,7 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
+import java.awt.event.KeyEvent;
 import java.net.URL;
 
 import javax.help.HelpSetException;
@@ -87,6 +88,10 @@ public class HelpFrame
                 e.printStackTrace();
             }
         }
+
+        //  Standard Mnemonic.
+        menu.setMnemonic( KeyEvent.VK_H );
+
         return menu;
     }
 
@@ -107,9 +112,14 @@ public class HelpFrame
                                         JMenuBar menuBar,
                                         JToolBar toolBar )
     {
-        return uk.ac.starlink.help.HelpFrame.
+        JMenu menu = uk.ac.starlink.help.HelpFrame.
             createHelpMenu( topic, description, "splat-help",
                             "On " + Utilities.getReleaseName(),
                             menuBar, toolBar );
+
+        //  Standard Mnemonic.
+        menu.setMnemonic( KeyEvent.VK_H );
+
+        return menu;
     }
 }
