@@ -467,7 +467,6 @@ public class DivaPlot
                                                    KeyEvent.SHIFT_MASK ),
                            rightAction );
 
-
         //  The space-bar (with control, alt and shift modifiers) makes the
         //  interactive readouts show the interpolated vertical hair
         //  coordinates (this can be true if the hair is moved by the arrow
@@ -495,7 +494,8 @@ public class DivaPlot
     }
 
     /**
-     * Add an action to associate with a KeyStroke.
+     * Add an action to associate with a KeyStroke. Probably best not to 
+     * over-write existing associations.
      *
      * @param keyStroke the KeyStroke (e.g. shift-left would be obtained
      *      using: KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
@@ -503,7 +503,7 @@ public class DivaPlot
      * @param action the Action (i.e. implementation of AbstractAction) to
      *      associate with the KeyStroke.
      */
-    protected void addKeyBoardAction( KeyStroke keyStroke, Action action )
+    public void addKeyBoardAction( KeyStroke keyStroke, Action action )
     {
         getInputMap().put( keyStroke, action );
         getActionMap().put( action, action );
