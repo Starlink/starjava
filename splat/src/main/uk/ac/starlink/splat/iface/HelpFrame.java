@@ -19,6 +19,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -72,7 +73,7 @@ public class HelpFrame
         JMenu menu = uk.ac.starlink.help.HelpFrame.
             createHelpMenu( topic, description, "splat-help",
                             "On " + Utilities.getReleaseName(),
-                            menuBar, null );
+                            menuBar, null, true );
 
         //  Need to add to the toolbar by hand.
         if ( toolBar != null ) {
@@ -88,9 +89,6 @@ public class HelpFrame
                 e.printStackTrace();
             }
         }
-
-        //  Standard Mnemonic.
-        menu.setMnemonic( KeyEvent.VK_H );
 
         return menu;
     }
@@ -115,11 +113,7 @@ public class HelpFrame
         JMenu menu = uk.ac.starlink.help.HelpFrame.
             createHelpMenu( topic, description, "splat-help",
                             "On " + Utilities.getReleaseName(),
-                            menuBar, toolBar );
-
-        //  Standard Mnemonic.
-        menu.setMnemonic( KeyEvent.VK_H );
-
+                            menuBar, toolBar, true );
         return menu;
     }
 }

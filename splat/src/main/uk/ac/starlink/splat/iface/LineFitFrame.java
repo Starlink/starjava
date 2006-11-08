@@ -42,6 +42,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.ScientificFormat;
@@ -1356,10 +1357,12 @@ public class LineFitFrame
      */
     protected class FitAction extends AbstractAction
     {
-        public FitAction( String name, Icon icon ) {
+        public FitAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             fitLines();
         }
     }
@@ -1369,10 +1372,12 @@ public class LineFitFrame
      */
     protected class GaussianAction extends AbstractAction
     {
-        public GaussianAction() {
+        public GaussianAction() 
+        {
             super( "Gaussian" );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             changeGaussianFitsEvent();
         }
     }
@@ -1382,10 +1387,12 @@ public class LineFitFrame
      */
     protected class LorentzAction extends AbstractAction
     {
-        public LorentzAction() {
+        public LorentzAction() 
+        {
             super( "Lorentzian" );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             changeLorentzFitsEvent();
         }
     }
@@ -1395,10 +1402,12 @@ public class LineFitFrame
      */
     protected class VoigtAction extends AbstractAction
     {
-        public VoigtAction() {
+        public VoigtAction() 
+        {
             super( "Voigt" );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             changeVoigtFitsEvent();
         }
     }
@@ -1409,10 +1418,14 @@ public class LineFitFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon ) 
+        {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             closeWindowEvent();
         }
     }
@@ -1422,10 +1435,12 @@ public class LineFitFrame
      */
     protected class ResetAction extends AbstractAction
     {
-        public ResetAction( String name, Icon icon ) {
+        public ResetAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             resetActionEvent();
         }
     }
@@ -1435,10 +1450,12 @@ public class LineFitFrame
      */
     protected class DeleteFitsAction extends AbstractAction
     {
-        public DeleteFitsAction( String name, Icon icon ) {
+        public DeleteFitsAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             deleteFits();
         }
     }

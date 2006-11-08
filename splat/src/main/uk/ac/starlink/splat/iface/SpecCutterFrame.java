@@ -30,6 +30,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -402,6 +403,8 @@ public class SpecCutterFrame
         public CloseAction( String name, Icon icon ) 
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
         {

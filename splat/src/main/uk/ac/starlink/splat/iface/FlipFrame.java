@@ -47,6 +47,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -352,8 +353,10 @@ public class FlipFrame
 
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
-                                                   "Close",
-                                                   closeImage );
+                                                   "Close", closeImage,
+                                                   "Close window",
+                                                   "control W",
+                                                   KeyEvent.VK_C );
         fileMenu.add( closeAction );
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
@@ -1236,6 +1239,15 @@ public class FlipFrame
             this( actionType, name, icon );
             putValue( SHORT_DESCRIPTION, help );
         }
+
+        public LocalAction( int actionType, String name, Icon icon, 
+                            String help, String accel, int mnemonic )
+        {
+            this( actionType, name, icon, help );
+            putValue( MNEMONIC_KEY, new Integer( mnemonic ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
+        }
+
 
         public void actionPerformed( ActionEvent ae )
         {

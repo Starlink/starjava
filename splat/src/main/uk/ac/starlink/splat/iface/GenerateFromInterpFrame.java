@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.diva.DrawActions;
@@ -242,7 +243,7 @@ public class GenerateFromInterpFrame
         layouter.add( new JLabel( "Divide spectrum by line:" ), false );
         layouter.add( divideSpectrum, true );
 
-        boolean state = prefs.getBoolean( "GenerateFromInterpFrame_divide", 
+        boolean state = prefs.getBoolean( "GenerateFromInterpFrame_divide",
                                           false );
         divideSpectrum.setSelected( state );
         divideSpectrum.addActionListener( new ActionListener()
@@ -332,7 +333,7 @@ public class GenerateFromInterpFrame
 
         //  Add action to do the generation of a spectrum from a line and
         //  replace the current one, if subtracting or dividing.
-        GenerateReplaceAction generateReplaceAction = 
+        GenerateReplaceAction generateReplaceAction =
             new GenerateReplaceAction( "Generate (Replace)",interpolateImage );
         fileMenu.add( generateReplaceAction );
         JButton generateReplaceButton = new JButton( generateReplaceAction );
@@ -352,7 +353,7 @@ public class GenerateFromInterpFrame
             ( "Reset all values and clear all generated spectra" );
 
         //  Add action to reset a generate replace operation.
-        ResetReplaceAction resetReplaceAction = 
+        ResetReplaceAction resetReplaceAction =
             new ResetReplaceAction( "Reset (Replace)", resetImage );
         fileMenu.add( resetReplaceAction );
         JButton resetReplaceButton = new JButton( resetReplaceAction );
@@ -433,9 +434,9 @@ public class GenerateFromInterpFrame
                 JRadioButtonMenuItem menuItem = null;
 
                 for ( int i = 0; i < n; i++ ) {
-                    plotMenuItem = (JRadioButtonMenuItem) 
+                    plotMenuItem = (JRadioButtonMenuItem)
                         plotCurveMenu.getItem( i );
-                    menuItem = 
+                    menuItem =
                         new JRadioButtonMenuItem( plotMenuItem.getText() );
 
                     //  Share underlying model, hence state.
@@ -612,7 +613,7 @@ public class GenerateFromInterpFrame
         try {
             EditableSpecData newSpec =
                 SpecDataFactory.getInstance().createEditable( name );
-            FrameSet frameSet = 
+            FrameSet frameSet =
                 ASTJ.get1DFrameSet( spectrum.getAst().getRef(), 1 );
             if ( errors == null ) {
                 newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
@@ -852,10 +853,12 @@ public class GenerateFromInterpFrame
      */
     protected class GenerateAction extends AbstractAction
     {
-        public GenerateAction( String name, Icon icon ) {
+        public GenerateAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             generate( false );
         }
     }
@@ -865,10 +868,12 @@ public class GenerateFromInterpFrame
      */
     protected class GenerateReplaceAction extends AbstractAction
     {
-        public GenerateReplaceAction( String name, Icon icon ) {
+        public GenerateReplaceAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             generate( true );
         }
     }
@@ -878,8 +883,11 @@ public class GenerateFromInterpFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon )
+        {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindowEvent();
@@ -891,10 +899,12 @@ public class GenerateFromInterpFrame
      */
     protected class ResetAction extends AbstractAction
     {
-        public ResetAction( String name, Icon icon ) {
+        public ResetAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             resetActionEvent();
         }
     }
@@ -904,10 +914,12 @@ public class GenerateFromInterpFrame
      */
     protected class ResetReplaceAction extends AbstractAction
     {
-        public ResetReplaceAction( String name, Icon icon ) {
+        public ResetReplaceAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             resetReplaceActionEvent();
         }
     }
@@ -917,10 +929,12 @@ public class GenerateFromInterpFrame
      */
     protected class DeleteAction extends AbstractAction
     {
-        public DeleteAction( String name, Icon icon ) {
+        public DeleteAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             deleteSpectra();
         }
     }
@@ -930,10 +944,12 @@ public class GenerateFromInterpFrame
      */
     protected class DrawAction extends AbstractAction
     {
-        public DrawAction( String name, Icon icon ) {
+        public DrawAction( String name, Icon icon )
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae )
+        {
             drawCurve();
         }
     }

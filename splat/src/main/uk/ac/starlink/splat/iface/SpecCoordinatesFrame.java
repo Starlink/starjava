@@ -36,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -150,6 +151,16 @@ public class SpecCoordinatesFrame
      * Rest frequency units
      */
     private JComboBox restFrequencyUnits = null;
+
+    /**
+     * Spectral origin.
+     */
+    private JTextField specOrigin = null;
+
+    /**
+     * Spectral origin units.
+     */
+    private JComboBox specOriginUnits = null;
 
     /**
      * Control for source velocity.
@@ -587,7 +598,27 @@ public class SpecCoordinatesFrame
                                       " of zero velocity ");
         restFrequencyUnits.setToolTipText( "Rest frequency/wavelength/energy" +
                                            " value units");
+        //  Spectral origin, can be qualified by a units string
+        //  (wavelength or energy).
+        label = new JLabel( "Spectral origin:" );
+        JPanel origpanel = new JPanel();
+        GridBagLayouter gbl3 = new GridBagLayouter( origpanel,
+                                                    GridBagLayouter.SCHEME2 );
+        gbl3.setInsets( new Insets( 0, 0, 0, 0 ) );
+        specOrigin = new JTextField();
+        specOriginUnits = new JComboBox( unitsMap.keySet().toArray() );
+        specOriginUnits.setEditable( true );
+        specOriginUnits.addActionListener( this );
+        gbl3.add( specOrigin, false );
+        gbl3.add( specOriginUnits, true );
+        gbl.add( label, false );
+        gbl.add( origpanel, true );
+        specOrigin.setToolTipText( "Origin for spectral values (displays" +
+                                   " offset values from this position)" );
+        specOriginUnits.setToolTipText( "Spectral origin value units (blank" +
+                                        " for current)" );
 
+        //  Source rest frame.
         label = new JLabel( "Source rest frame:" );
         sourceStdOfRestBox =
             new JComboBox( sourceStdOfRest.keySet().toArray() );
@@ -745,6 +776,12 @@ public class SpecCoordinatesFrame
         if ( isValid( value ) ) {
             String units = (String) restFrequencyUnits.getEditor().getItem();
             buffer.append( ",RestFreq=" + value + units );
+        }
+
+        value = specOrigin.getText();
+        if ( isValid( value ) ) {
+            String units = (String) specOriginUnits.getEditor().getItem();
+            buffer.append( ",SpecOrigin=" + value + units );
         }
 
         selected = (String) sourceStdOfRestBox.getSelectedItem();
@@ -934,6 +971,7 @@ public class SpecCoordinatesFrame
             String refra = "";
             String refdec = "";
             String restfreq = "";
+            String specorigin = "";
             String sourcevel = "";
             String sourcevrf = "";
             String epoch = "";
@@ -950,6 +988,7 @@ public class SpecCoordinatesFrame
                 refra = picked.getC( "RefRA" );
                 refdec = picked.getC( "RefDec" );
                 restfreq = picked.getC( "RestFreq" );
+                specorigin = picked.getC( "SpecOrigin" );
                 sourcevel = picked.getC( "SourceVel" );
                 sourcevrf = picked.getC( "SourceVRF" );
                 epoch = picked.getC( "Epoch" );
@@ -969,6 +1008,8 @@ public class SpecCoordinatesFrame
                         refra = checkAttr( picked, refra, "RefRA" );
                         refdec = checkAttr( picked, refdec, "RefDec" );
                         restfreq = checkAttr( picked, restfreq, "RestFreq" );
+                        specorigin = checkAttr( picked, specorigin, 
+                                                "SpecOrigin" );
                         sourcevel = checkAttr( picked, sourcevel,
                                                "SourceVel" );
                         sourcevrf = checkAttr( picked, sourcevrf,
@@ -985,6 +1026,7 @@ public class SpecCoordinatesFrame
                         refra = "";
                         refdec = "";
                         restfreq = "";
+                        specorigin = "";
                         sourcevel = "";
                         sourcevrf = "";
                         epoch = "";
@@ -998,7 +1040,7 @@ public class SpecCoordinatesFrame
 
             // Set the values.
             setInterface( system, unit, stdofrest, obslon, obslat, refra,
-                          refdec, restfreq, sourcevrf, sourcevel,
+                          refdec, restfreq, specorigin, sourcevrf, sourcevel,
                           epoch );
         }
     }
@@ -1015,8 +1057,9 @@ public class SpecCoordinatesFrame
     public void setInterface( String system, String unit,
                               String stdofrest, String obslon,
                               String obslat, String refra, String refdec,
-                              String restfreq, String sourcevrf,
-                              String sourcevel, String epoch )
+                              String restfreq, String specorigin,
+                              String sourcevrf, String sourcevel, 
+                              String epoch )
     {
         String value = null;
 
@@ -1051,6 +1094,11 @@ public class SpecCoordinatesFrame
         if ( restfreq != null ) {
             restFrequency.setText( restfreq );
             restFrequencyUnits.setSelectedItem( "GHz" );
+        }
+
+        if ( specorigin != null ) {
+            specOrigin.setText( specorigin );
+            specOriginUnits.setSelectedIndex( 0 );
         }
 
         if ( sourcevel != null ) {
@@ -1096,6 +1144,8 @@ public class SpecCoordinatesFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1180,12 +1230,18 @@ public class SpecCoordinatesFrame
                     restFrequencyUnits.setSelectedItem( units );
                 }
             }
+            else if ( jb == specOriginUnits ) {
+                String units = (String) unitsMap.get( name );
+                if ( units != null ) {
+                    specOriginUnits.setSelectedItem( units );
+                }
+            }
         }
         else if ( source instanceof JMenuItem ) {
             String cmd = e.getActionCommand();
             if ( "set1".equals( cmd ) ) {
                 setInterface( "WAVE", "Angstrom", "Source", "", "", "", "",
-                              "", "Topocentric", "0.0", "" );
+                              "", "", "Topocentric", "0.0", "" );
             }
         }
     }

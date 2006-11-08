@@ -37,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 
@@ -734,6 +735,8 @@ public class SpecAnimatorFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

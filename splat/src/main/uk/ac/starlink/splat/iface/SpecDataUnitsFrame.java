@@ -29,6 +29,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -436,6 +437,8 @@ public class SpecDataUnitsFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

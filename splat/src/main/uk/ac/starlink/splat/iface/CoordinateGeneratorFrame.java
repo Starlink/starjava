@@ -12,16 +12,17 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -128,6 +129,8 @@ public class CoordinateGeneratorFrame
         {
             super( name, icon  );
             putValue( SHORT_DESCRIPTION, shortHelp );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
 
         /**

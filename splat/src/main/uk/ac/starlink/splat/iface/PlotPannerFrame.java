@@ -20,6 +20,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
@@ -159,7 +160,7 @@ public class PlotPannerFrame extends JFrame
      */
     protected void closeWindowEvent()
     {
-        this.hide();
+        this.setVisible( false );
     }
 
     /**
@@ -167,10 +168,14 @@ public class PlotPannerFrame extends JFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon ) 
+        {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             closeWindowEvent();
         }
     }

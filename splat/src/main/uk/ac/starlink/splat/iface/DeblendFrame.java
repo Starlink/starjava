@@ -36,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTJ;
@@ -974,10 +975,12 @@ public class DeblendFrame
      */
     protected class FitAction extends AbstractAction
     {
-        public FitAction( String name, Icon icon ) {
+        public FitAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             fitLines();
         }
     }
@@ -987,10 +990,12 @@ public class DeblendFrame
      */
     protected class GaussianAction extends AbstractAction
     {
-        public GaussianAction() {
+        public GaussianAction() 
+        {
             super( "Gaussian" );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             addGaussian();
         }
     }
@@ -1000,10 +1005,12 @@ public class DeblendFrame
      */
     protected class LorentzAction extends AbstractAction
     {
-        public LorentzAction() {
+        public LorentzAction() 
+        {
             super( "Lorentzian" );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             //addLorentz();
         }
     }
@@ -1013,10 +1020,12 @@ public class DeblendFrame
      */
     protected class VoigtAction extends AbstractAction
     {
-        public VoigtAction() {
+        public VoigtAction() 
+        {
             super( "Voigt" );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             //addVoigt();
         }
     }
@@ -1027,10 +1036,14 @@ public class DeblendFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) {
+        public CloseAction( String name, Icon icon ) 
+        {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             closeWindowEvent();
         }
     }
@@ -1040,10 +1053,12 @@ public class DeblendFrame
      */
     protected class ResetAction extends AbstractAction
     {
-        public ResetAction( String name, Icon icon ) {
+        public ResetAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             resetActionEvent();
         }
     }
@@ -1053,10 +1068,12 @@ public class DeblendFrame
      */
     protected class DeleteFitsAction extends AbstractAction
     {
-        public DeleteFitsAction( String name, Icon icon ) {
+        public DeleteFitsAction( String name, Icon icon ) 
+        {
             super( name, icon );
         }
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             deleteFits();
         }
     }

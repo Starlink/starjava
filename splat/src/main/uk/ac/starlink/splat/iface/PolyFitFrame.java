@@ -38,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.FrameSet;
@@ -1027,6 +1028,8 @@ public class PolyFitFrame
     {
         public CloseAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindowEvent();

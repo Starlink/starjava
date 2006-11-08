@@ -23,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.undo.UndoManager;
 
@@ -765,6 +766,8 @@ public class SpecViewerFrame
         {
             super( name, icon  );
             putValue( SHORT_DESCRIPTION, shortHelp );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
 
         /**

@@ -31,6 +31,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
@@ -211,7 +212,9 @@ public class SimpleBinaryMaths
         image =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         LocalAction closeAction = new LocalAction( "Close", image, 
-                                                   "Close window" );
+                                                   "Close window",
+                                                   "control W", 
+                                                   KeyEvent.VK_C );
         fileMenu.add( closeAction );
         closeButton = new JButton( closeAction );
         
@@ -430,6 +433,14 @@ public class SimpleBinaryMaths
         {
             super( name, icon  );
             putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        public LocalAction( String name, Icon icon, String shortHelp, 
+                            String accel, int mnemonic )
+        {
+            this( name, icon, shortHelp );
+            putValue( MNEMONIC_KEY, new Integer( mnemonic ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
         }
 
         /**

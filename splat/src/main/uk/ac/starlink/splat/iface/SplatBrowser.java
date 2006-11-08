@@ -619,7 +619,9 @@ public class SplatBrowser
             new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
         LocalAction openAction  = new LocalAction( LocalAction.OPEN,
                                                    "Open", openImage,
-                                                   "Open spectra" );
+                                                   "Open spectra",
+                                                   "control O",
+                                                   KeyEvent.VK_O );
         fileMenu.add( openAction );
         toolBar.add( openAction );
 
@@ -629,7 +631,9 @@ public class SplatBrowser
         LocalAction locationAction  = new LocalAction( LocalAction.LOCATION,
                                                        "Location",
                                                        locationImage,
-                                                       "Open location" );
+                                                       "Open location",
+                                                       "control L",
+                                                       KeyEvent.VK_L );
         fileMenu.add( locationAction );
         toolBar.add( locationAction );
 
@@ -658,9 +662,10 @@ public class SplatBrowser
         //  Add action to re-open a list of spectra if possible.
         ImageIcon reOpenImage =
             new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
-        LocalAction reOpenAction  = new LocalAction( LocalAction.REOPEN,
-                                                   "Re-Open", reOpenImage,
-                                                   "Re-Open selected spectra");
+        LocalAction reOpenAction  = 
+            new LocalAction( LocalAction.REOPEN, "Re-Open", reOpenImage,
+                             "Re-Open selected spectra", "control R",
+                             KeyEvent.VK_R );
         fileMenu.add( reOpenAction );
         toolBar.add( reOpenAction );
 
@@ -669,7 +674,8 @@ public class SplatBrowser
             new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
         LocalAction saveAction  =
             new LocalAction( LocalAction.SAVE, "Save", saveImage,
-                             "Save a spectrum to disk file" );
+                             "Save a spectrum to disk file", "Control S",
+                             KeyEvent.VK_S );
         fileMenu.add( saveAction );
         toolBar.add( saveAction );
 
@@ -690,8 +696,7 @@ public class SplatBrowser
                              saveStackImage, "Save all spectra to disk file" );
         fileMenu.add( saveStackAction );
 
-        //  Add an action to exit application. Note mnenomic is X and
-        //  accelerator is control-X.
+        //  Add an action to exit application.
         ImageIcon exitImage =
             new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
         LocalAction exitAction = new LocalAction( LocalAction.EXIT,
@@ -717,7 +722,8 @@ public class SplatBrowser
         LocalAction removeSpectraAction =
             new LocalAction( LocalAction.REMOVE_SPECTRA,
                              "Remove selected spectra", removeImage,
-                             "Close any spectra selected in global list" );
+                             "Close any spectra selected in global list",
+                             "DELETE", KeyEvent.VK_D );
         editMenu.add( removeSpectraAction );
         toolBar.add( removeSpectraAction );
 
@@ -725,7 +731,8 @@ public class SplatBrowser
         LocalAction selectSpectraAction =
             new LocalAction( LocalAction.SELECT_SPECTRA,
                              "Select all spectra", null,
-                             "Select all spectra in list" );
+                             "Select all spectra in list",
+                             "control A", KeyEvent.VK_A );
         editMenu.add( selectSpectraAction );
 
         //  Add an action to deselect all spectra.
@@ -821,7 +828,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.MULTI_DISPLAY,
                              "Display/add to plot", multiDisplayImage,
                              "Display selected spectra in one plot or add to"+
-                             " selected plots", "control A", KeyEvent.VK_A );
+                             " selected plots", "control I", KeyEvent.VK_I );
         viewMenu.add( multiDisplayAction );
         toolBar.add( multiDisplayAction );
 
@@ -1106,8 +1113,6 @@ public class SplatBrowser
         JMenu helpMenu = HelpFrame.createButtonHelpMenu( "browser-window",
                                                          "Help on window",
                                                          menuBar, toolBar );
-
-        helpMenu.setMnemonic( KeyEvent.VK_H );
 
         //  Add an action to display the about dialog.
         Action aboutAction = AboutFrame.getAction( this );

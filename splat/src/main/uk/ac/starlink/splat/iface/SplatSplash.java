@@ -39,6 +39,6 @@ public class SplatSplash
 
         // Position the window at the centre of the screen.
         setLocationRelativeTo( null );
-        show();
+        setVisible( true );
     } 
 }

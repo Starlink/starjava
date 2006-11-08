@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.prefs.Preferences;
+
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -31,6 +32,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTJ;
@@ -438,6 +440,8 @@ public class PlotUnitsFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
