@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
@@ -46,6 +47,7 @@ import javax.print.attribute.standard.JobName;
 import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -58,6 +60,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -520,12 +523,14 @@ public class PlotControl
             } );
 
 
-        //  Add the zoom factor controls and set their default values.
-        addZoomControls();
-
         //  Create a DivaPlot object so that it can be called upon to
         //  do the drawing.
         plot = new DivaPlot( spectra );
+
+        //  Add the zoom factor controls and set their default values.
+        addZoomControls();
+
+        //  Respond to zoom messages (after controls are set).
         plot.addPlotScaledListener( this );
 
         //  Now that this is configured, we can properly configure the
@@ -585,6 +590,11 @@ public class PlotControl
         logYAxis.setAxis( 2 );
         logYAxis.setAstAxes( astAxes );
         logYAxis.setPlotController( this );
+
+        //  For spectral plots we always force exterior labelling, interior
+        //  always looks wrong.
+        astAxes.setInterior( false );
+        astAxes.setForceExterior( true );
     }
 
     /**
@@ -693,6 +703,8 @@ public class PlotControl
                     zoomAboutTheCentre( 1, 0 );
                 }
             } );
+
+
         xDecr.addActionListener(
             new ActionListener()
             {
@@ -743,6 +755,54 @@ public class PlotControl
                     }
                 }
             } );
+
+        //  Add =/- keyboard accelerators for zooming in X.
+        AbstractAction zoomInXAction =
+            new AbstractAction( "zoominx" )
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    zoomAboutTheCentre( 1, 0 );
+                }
+            };
+        plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS, 0 ),
+                                zoomInXAction );
+
+        AbstractAction zoomOutXAction =
+            new AbstractAction( "zoomoutx" )
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    zoomAboutTheCentre( -1, 0 );
+                }
+            };
+        plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_MINUS, 0 ),
+                                zoomOutXAction );
+
+        //  Add _/+ keyboard accelerators for zooming in X.
+        AbstractAction zoomInYAction =
+            new AbstractAction( "zoominy" )
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    zoomAboutTheCentre( 0, 1 );
+                }
+            };
+        plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS, 
+                                                        KeyEvent.SHIFT_MASK ),
+                                zoomInYAction );
+
+        AbstractAction zoomOutYAction =
+            new AbstractAction( "zoomouty" )
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    zoomAboutTheCentre( 0, -1 );
+                }
+            };
+        plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_MINUS,
+                                                        KeyEvent.SHIFT_MASK ),
+                                zoomOutYAction );
     }
 
     /**
