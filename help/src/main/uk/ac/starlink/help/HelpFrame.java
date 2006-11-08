@@ -13,6 +13,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URL;
@@ -31,6 +32,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 import uk.ac.starlink.help.images.ImageHolder;
@@ -176,14 +178,58 @@ public class HelpFrame
                                         JMenuBar menuBar,
                                         JToolBar toolBar )
     {
+        //  Compatibility implementation, bindKeys is false.
+        return createHelpMenu( windowTopic, windowDescription,
+                               appTopic, appDescription,
+                               menuBar, toolBar, false );
+    }
+
+    /**
+     * Add a Help menu to a given menu bar and populate it with the
+     * a window specific topic and an optional application-wide topic.
+     * If a toolbar is given then the window specific topic item is added to
+     * it.
+     * <p>
+     * Typically the application-wide topic would be to the head of the
+     * complete documentation set.
+     *
+     * @param windowTopic the help system identifier for the window specific
+     *                    help (null for none).
+     * @param windowDescription description for the window specific menu item.
+     * @param appTopic the help system identifier for application help (null
+     *                 for none).
+     * @param appDescription description for the application help.
+     * @param menuBar menubar to add the Help menu
+     * @param toolBar toolbar to add topic to (null for don't)
+     * @param bindKeys if true add standard key bindings to accelerate help
+     *                 (f1 and shift-f1) and standard alt-h to access Help
+     *                 menu. 
+     *
+     * @return the "Help" JMenu created.
+     */
+    public static JMenu createHelpMenu( String windowTopic,
+                                        String windowDescription,
+                                        String appTopic,
+                                        String appDescription,
+                                        JMenuBar menuBar,
+                                        JToolBar toolBar,
+                                        boolean bindKeys )
+    {
         //  Create the help menu and add it to the menubar.
         JMenu helpMenu = new JMenu( "Help" );
+        if ( bindKeys ) {
+            helpMenu.setMnemonic( KeyEvent.VK_H );
+        }
         menuBar.add( helpMenu );
 
         //  Add an action to get help for the given topic.
         if ( windowTopic != null ) {
             Action helpAction = HelpFrame.getAction( windowDescription,
                                                      windowTopic );
+            if ( bindKeys ) {
+                helpAction.putValue( Action.ACCELERATOR_KEY, 
+                                     KeyStroke.getKeyStroke( "shift F1" ) );
+            }
             helpMenu.add( helpAction );
 
             // If a toolbar is given add the window specific help to that.
@@ -195,6 +241,10 @@ public class HelpFrame
         //  Add an action for the application-wide help.
         if ( appDescription != null ) {
             Action topAction = HelpFrame.getAction( appDescription, appTopic );
+            if ( bindKeys ) {
+                topAction.putValue( Action.ACCELERATOR_KEY, 
+                                    KeyStroke.getKeyStroke( "F1" ) );
+            }
             helpMenu.add( topAction );
         }
         return helpMenu;
@@ -243,6 +293,7 @@ public class HelpFrame
 
         //  Create the File menu.
         fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
         //  Add an action to close the window.
@@ -255,6 +306,7 @@ public class HelpFrame
 
         //  Create the options menu.
         optionsMenu.setText( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
         FontAction fontAction = new FontAction( "Choose font..." );
@@ -316,7 +368,7 @@ public class HelpFrame
             fontChooser = new BasicFontChooser( helpFrame, "Select Font",
                                                 true );
         }
-        fontChooser.show();
+        fontChooser.setVisible( true );
         if ( fontChooser.accepted() ) {
             Font newFont = fontChooser.getSelectedFont();
             helpComponent.setFont( newFont );
@@ -333,7 +385,7 @@ public class HelpFrame
             ProxySetupFrame.restore( null );
             proxyWindow = new ProxySetupFrame();
         }
-        proxyWindow.show();
+        proxyWindow.setVisible( true );
     }
 
     /**
@@ -397,6 +449,9 @@ public class HelpFrame
         public CloseAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            
         }
         public void actionPerformed( ActionEvent ae )
         {
