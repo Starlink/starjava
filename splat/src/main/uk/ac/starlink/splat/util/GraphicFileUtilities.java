@@ -72,7 +72,7 @@ public class GraphicFileUtilities
     {
 
         GraphicsChooser chooser = new GraphicsChooser( component );
-        chooser.show();
+        chooser.setVisible( true );
         if ( chooser.accepted() ) {
             printGraphics( chooser.getFormat(), chooser.getFile(), component,
                            chooser.getWidth(), chooser.getHeight(),
@@ -400,7 +400,7 @@ public class GraphicFileUtilities
         protected void closeWindow( boolean accepted )
         {
             this.accepted = accepted;
-            hide();
+            setVisible( false );
         }
     }
 }

@@ -218,7 +218,7 @@ public class AboutFrame extends JDialog
         AboutFrame dlg = new AboutFrame( parent );
         dlg.setLocationRelativeTo( parent );
         dlg.setModal( true );
-        dlg.show();
+        dlg.setVisible( true );
     }
 
     /**

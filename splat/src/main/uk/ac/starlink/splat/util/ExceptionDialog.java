@@ -128,7 +128,7 @@ public class ExceptionDialog
         });
 
         //  Display the dialog and wait for it to go away.
-        dialog.show();
+        dialog.setVisible( true );
         dialog.dispose();
     }
 
