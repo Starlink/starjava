@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -683,11 +684,45 @@ public class PlotControlFrame
     protected void setupGraphicsMenu()
     {
         DrawActions drawActions = plot.getPlot().getDrawActions();
+
+        //  Set the figure store for saving figures to a backing file.
         AstFigureStore store = new AstFigureStore
             ( (AstPlotSource) plot.getPlot(), Utilities.getApplicationName(),
               "FigureStore.xml", "drawnfigures" );
         drawActions.setFigureStore( store );
 
+        //  Keyboard shortcuts to some actions.
+        Action action = drawActions.getDeleteSelectedAction();
+        action.putValue( Action.ACCELERATOR_KEY, 
+                         KeyStroke.getKeyStroke( "DELETE" ) );
+
+        action = drawActions.getClearAction();
+        action.putValue( Action.ACCELERATOR_KEY, 
+                         KeyStroke.getKeyStroke( "shift DELETE" ) );
+
+        action = drawActions.getRaiseSelectedAction();
+        action.putValue( Action.ACCELERATOR_KEY, 
+                         KeyStroke.getKeyStroke( "R" ) );
+
+        action = drawActions.getLowerSelectedAction();
+        action.putValue( Action.ACCELERATOR_KEY, 
+                         KeyStroke.getKeyStroke( "L" ) );
+
+        action = drawActions.getHideAction();
+        action.putValue( Action.ACCELERATOR_KEY, 
+                         KeyStroke.getKeyStroke( "H" ) );
+
+        action = drawActions.getHideAction();
+        action.putValue( Action.ACCELERATOR_KEY, 
+                         KeyStroke.getKeyStroke( "H" ) );
+
+        for ( int i = 2; i < DrawActions.NUM_DRAWING_MODES; i++ ) {
+            action = drawActions.getDrawingModeAction( i ); 
+            action.putValue( Action.ACCELERATOR_KEY, 
+                             KeyStroke.getKeyStroke( "control "+ ( i - 1 ) ) );
+        }
+
+        //  Finally create menu and add to menubar.
         DrawGraphicsMenu graphicsMenu = new DrawGraphicsMenu( drawActions );
         graphicsMenu.setMnemonic( KeyEvent.VK_G );
         menuBar.add( graphicsMenu );
@@ -1370,7 +1405,7 @@ public class PlotControlFrame
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
 
-            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control C" ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
             putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -1446,7 +1481,7 @@ public class PlotControlFrame
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
 
-            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control B" ) );
             putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_W ) );
         }
         public void actionPerformed( ActionEvent ae )
