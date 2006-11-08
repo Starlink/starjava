@@ -1423,6 +1423,11 @@ public class DrawActions
                 deleteSelected();
             }
         };
+    public Action getDeleteSelectedAction()
+    {
+        return deleteSelectedAction;
+    }
+
 
     /** Action to use to remove all figures. */
     protected AbstractAction clearAction =
@@ -1433,6 +1438,10 @@ public class DrawActions
                 clear();
             }
         };
+    public Action getClearAction()
+    {
+        return clearAction;
+    }
 
     /** Action to use to toggle the visibility of all figures. */
     protected AbstractAction hideGraphicsAction =
@@ -1443,6 +1452,10 @@ public class DrawActions
                 hideGraphics();
             }
         };
+    public Action getHideAction()
+    {
+        return hideGraphicsAction;
+    }
 
     /** Action to raise selected Figures  */
     protected AbstractAction raiseSelectedAction =
@@ -1453,6 +1466,10 @@ public class DrawActions
                 raiseSelected();
             }
         };
+    public Action getRaiseSelectedAction()
+    {
+        return raiseSelectedAction;
+    }
 
     /** Action to lower selected Figures  */
     protected AbstractAction lowerSelectedAction =
@@ -1463,6 +1480,10 @@ public class DrawActions
                 lowerSelected();
             }
         };
+    public Action getLowerSelectedAction()
+    {
+        return lowerSelectedAction;
+    }
 
     /** Action to save or restore the figures */
     protected AbstractAction saveRestoreAction =
