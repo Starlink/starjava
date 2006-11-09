@@ -27,6 +27,7 @@ import diva.util.java2d.Polyline2D;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -361,6 +362,8 @@ public class DrawActions
     public void setDrawingMode( int drawingMode )
     {
         this.drawingMode = drawingMode;
+        canvas.getComponent()
+            .setCursor( Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) );
         fireChange();
     }
 
@@ -1210,6 +1213,8 @@ public class DrawActions
         line = null;
         setDrawingMode( SELECT );
         mouseClicked = false;
+
+        canvas.getComponent().setCursor( Cursor.getDefaultCursor() );
     }
 
     /**
