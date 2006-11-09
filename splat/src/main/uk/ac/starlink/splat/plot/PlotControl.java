@@ -590,11 +590,6 @@ public class PlotControl
         logYAxis.setAxis( 2 );
         logYAxis.setAstAxes( astAxes );
         logYAxis.setPlotController( this );
-
-        //  For spectral plots we always force exterior labelling, interior
-        //  always looks wrong.
-        astAxes.setInterior( false );
-        astAxes.setForceExterior( true );
     }
 
     /**
