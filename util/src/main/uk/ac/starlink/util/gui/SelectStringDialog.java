@@ -27,7 +27,7 @@ import javax.swing.JPanel;
 
 /**
  * Create a dialog for obtaining a text string with the option of
- * selecting and including special characters. Use the "showDialog()" 
+ * selecting and including special characters. Use the "showDialog()"
  * method to activate.
  *
  * @author Peter W. Draper
@@ -59,7 +59,7 @@ public class SelectStringDialog
     {
         //  Create a dialog window
         Frame frame = JOptionPane.getFrameForComponent( component );
-        SelectStringDialog dialog = new SelectStringDialog( frame, title, 
+        SelectStringDialog dialog = new SelectStringDialog( frame, title,
                                                             labelText,
                                                             initialValue );
         dialog.setLocationRelativeTo( frame );
@@ -100,8 +100,8 @@ public class SelectStringDialog
         //  SelectText.
         JPanel actionPane = new JPanel();
 
-        SelectCharacters selectCharacters = 
-            new SelectCharacters( frame, "Select Characters", true,  
+        SelectCharacters selectCharacters =
+            new SelectCharacters( frame, "Select Characters", true,
                                   getFont() );
         textField = new SelectTextField( initialValue, selectCharacters );
         textField.setColumns( 25 );
@@ -112,6 +112,15 @@ public class SelectStringDialog
         actionPane.add( label );
         actionPane.add( Box.createRigidArea( new Dimension( 10, 0 ) ) );
         actionPane.add( textField );
+
+        textField.addActionListener( new ActionListener()
+        {
+            public void actionPerformed( ActionEvent e )
+            {
+                acceptValue();
+                closeWindow();
+            }
+        });
 
         //  Lay out the buttons from left to right.
         JPanel buttonPane = new JPanel();
