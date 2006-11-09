@@ -102,6 +102,7 @@ public class PolyFitFrame
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
+    protected JMenu rangeMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
 
     /**
@@ -319,7 +320,8 @@ public class PolyFitFrame
             });
 
         //  List of regions of spectrum to fit.
-        rangeList = new XGraphicsRangesView( plot.getPlot().getPlot() );
+        rangeList = new XGraphicsRangesView( plot.getPlot().getPlot(), 
+                                             rangeMenu );
         layouter.add( rangeList, true );
 
         //  Add an area to show the results of the fit (coefficients
@@ -489,6 +491,11 @@ public class PolyFitFrame
         actionBarContainer.add( topActionBar, BorderLayout.NORTH );
         actionBarContainer.add( midActionBar, BorderLayout.CENTER );
         actionBarContainer.add( botActionBar, BorderLayout.SOUTH );
+
+        // Now add the Ranges menu.
+        rangeMenu.setText( "Ranges" );
+        rangeMenu.setMnemonic( KeyEvent.VK_R );
+        menuBar.add( rangeMenu );
 
         //  Create the Help menu.
         HelpFrame.createHelpMenu( "polynomial-fit-window", "Help on window",
@@ -975,6 +982,8 @@ public class PolyFitFrame
     {
         public FitAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             fitPoly( false, false );
@@ -988,6 +997,8 @@ public class PolyFitFrame
     {
         public FitReplaceAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control L" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             fitPoly( false, true );
@@ -1001,6 +1012,8 @@ public class PolyFitFrame
     {
         public FitSelectedAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             fitPoly( true, false );
@@ -1015,6 +1028,8 @@ public class PolyFitFrame
     {
         public FitReplaceSelectedAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control T" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             fitPoly( true, true );
@@ -1043,6 +1058,8 @@ public class PolyFitFrame
     {
         public ResetReplaceAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             resetReplaceActionEvent();
@@ -1056,6 +1073,8 @@ public class PolyFitFrame
     {
         public ResetAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             resetActionEvent();
@@ -1069,6 +1088,8 @@ public class PolyFitFrame
     {
         public DeleteFitsAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_I ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control I" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             deleteFits();

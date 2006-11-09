@@ -118,6 +118,7 @@ public class LineFitFrame
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
+    protected JMenu rangeMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
 
     /**
@@ -333,9 +334,9 @@ public class LineFitFrame
 
         double userpref = prefs.getDouble( "LineFitFrame_backvalue", 0 );
         backgroundValue.setSelectedItem( new Double( userpref ) );
-        backgroundValue.addActionListener( new ActionListener() 
+        backgroundValue.addActionListener( new ActionListener()
             {
-                public void actionPerformed( ActionEvent e ) 
+                public void actionPerformed( ActionEvent e )
                 {
                     double d = getBackgroundValue();
                     prefs.putDouble( "LineFitFrame_backvalue", d );
@@ -355,7 +356,7 @@ public class LineFitFrame
         //  Add the XGraphicsRangesView that displays the spectral
         //  line ranages.
         rangeList = new XGraphicsRangesView( plot.getPlot().getPlot(),
-                                             Color.yellow, false );
+                                             rangeMenu, Color.yellow, false );
         layouter.add( rangeList, true );
 
         //  Add the LineView that displays and creates the line
@@ -457,6 +458,11 @@ public class LineFitFrame
         closeButton.setToolTipText( "Close window" );
 
         actionBar.add( Box.createGlue() );
+
+        // Now add the Ranges menu.
+        rangeMenu.setText( "Ranges" );
+        rangeMenu.setMnemonic( KeyEvent.VK_R );
+        menuBar.add( rangeMenu );
 
         //  Add a help menu and the topic about this window.
         HelpFrame.createHelpMenu( "line-fit-window", "Help on window",
@@ -924,7 +930,7 @@ public class LineFitFrame
     /**
      * Copy an array to another array, reversing the order of the values.
      */
-    protected void reverseArray( double[] inarray, double outarray[] ) 
+    protected void reverseArray( double[] inarray, double outarray[] )
     {
         int n = inarray.length;
         for ( int i = 0, j = n - 1; i < n; i++, j-- ) {
@@ -940,7 +946,7 @@ public class LineFitFrame
      *
      * The results are the guess for peak, centre and width.
      */
-    public double[] quickFit( SpecData currentSpectrum, 
+    public double[] quickFit( SpecData currentSpectrum,
                               int lineIndex, double[] coords,
                               double[] data, double[] background,
                               double backgroundValue )
@@ -982,7 +988,7 @@ public class LineFitFrame
             fitY[1] = results[1]       + backgroundValue;
             fitY[2] = results[1] * 0.5 + backgroundValue;
         }
-        displayFit( currentSpectrum, "Quick Fit: " + fitCounter, 
+        displayFit( currentSpectrum, "Quick Fit: " + fitCounter,
                     fitX, fitY, 3 );
 
         //  Make these viewable.
@@ -1040,7 +1046,7 @@ public class LineFitFrame
                 fitY[l] += genBackgroundValue;
             }
         }
-        displayFit( currentSpectrum, "Gaussian Fit: " + fitCounter, 
+        displayFit( currentSpectrum, "Gaussian Fit: " + fitCounter,
                     genCoords, fitY, 0 );
 
         //  Add results to view.
@@ -1073,7 +1079,7 @@ public class LineFitFrame
      * @param genBackgroundValue a single background value used if
      *                           genBackground is null.
      */
-    protected void doFitLorentzian( SpecData currentSpectrum, 
+    protected void doFitLorentzian( SpecData currentSpectrum,
                                     int lineIndex, double[] fitCoords,
                                     double[] fitData, double[] fitWeights,
                                     double peak, double centre,
@@ -1103,7 +1109,7 @@ public class LineFitFrame
                 fitY[l] += genBackgroundValue;
             }
         }
-        displayFit( currentSpectrum, "Lorentzian Fit: " + fitCounter, 
+        displayFit( currentSpectrum, "Lorentzian Fit: " + fitCounter,
                     genCoords, fitY, 1 );
 
         //  Add results to view.
@@ -1136,7 +1142,7 @@ public class LineFitFrame
      * @param genBackgroundValue a single background value used if
      *                           genBackground is null.
      */
-    protected void doFitVoigts( SpecData currentSpectrum, 
+    protected void doFitVoigts( SpecData currentSpectrum,
                                 int lineIndex, double[] fitCoords,
                                 double[] fitData, double[] fitWeights,
                                 double peak, double centre,
@@ -1166,7 +1172,7 @@ public class LineFitFrame
                 fitY[l] += genBackgroundValue;
             }
         }
-        displayFit( currentSpectrum, "Voigt Fit: " + fitCounter, 
+        displayFit( currentSpectrum, "Voigt Fit: " + fitCounter,
                     genCoords, fitY, 2 );
 
         //  Add results to view.
@@ -1204,10 +1210,10 @@ public class LineFitFrame
             values[0] = value;
             values[1] = value;
 
-            FrameSet frameSet = 
+            FrameSet frameSet =
                 ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
             constantSpectrum.setSimpleUnitData
-                ( frameSet, coords, currentSpectrum.getCurrentDataUnits(), 
+                ( frameSet, coords, currentSpectrum.getCurrentDataUnits(),
                   values );
             constantSpectrum.setType( SpecData.POLYNOMIAL );
             constantSpectrum.setUseInAutoRanging( false );
@@ -1236,9 +1242,9 @@ public class LineFitFrame
             EditableSpecData lineSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
 
-            FrameSet frameSet = 
+            FrameSet frameSet =
                 ASTJ.get1DFrameSet( currentSpectrum.getAst().getRef(), 1 );
-            lineSpec.setSimpleUnitData( frameSet, coords, 
+            lineSpec.setSimpleUnitData( frameSet, coords,
                                         currentSpectrum.getCurrentDataUnits(),
                                         data );
 
@@ -1357,11 +1363,13 @@ public class LineFitFrame
      */
     protected class FitAction extends AbstractAction
     {
-        public FitAction( String name, Icon icon ) 
+        public FitAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             fitLines();
         }
@@ -1372,11 +1380,11 @@ public class LineFitFrame
      */
     protected class GaussianAction extends AbstractAction
     {
-        public GaussianAction() 
+        public GaussianAction()
         {
             super( "Gaussian" );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             changeGaussianFitsEvent();
         }
@@ -1387,11 +1395,11 @@ public class LineFitFrame
      */
     protected class LorentzAction extends AbstractAction
     {
-        public LorentzAction() 
+        public LorentzAction()
         {
             super( "Lorentzian" );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             changeLorentzFitsEvent();
         }
@@ -1402,11 +1410,11 @@ public class LineFitFrame
      */
     protected class VoigtAction extends AbstractAction
     {
-        public VoigtAction() 
+        public VoigtAction()
         {
             super( "Voigt" );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             changeVoigtFitsEvent();
         }
@@ -1418,13 +1426,13 @@ public class LineFitFrame
      */
     protected class CloseAction extends AbstractAction
     {
-        public CloseAction( String name, Icon icon ) 
+        public CloseAction( String name, Icon icon )
         {
             super( name, icon );
             putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             closeWindowEvent();
         }
@@ -1435,11 +1443,13 @@ public class LineFitFrame
      */
     protected class ResetAction extends AbstractAction
     {
-        public ResetAction( String name, Icon icon ) 
+        public ResetAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             resetActionEvent();
         }
@@ -1450,11 +1460,13 @@ public class LineFitFrame
      */
     protected class DeleteFitsAction extends AbstractAction
     {
-        public DeleteFitsAction( String name, Icon icon ) 
+        public DeleteFitsAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_E ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control E" ) );
         }
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             deleteFits();
         }

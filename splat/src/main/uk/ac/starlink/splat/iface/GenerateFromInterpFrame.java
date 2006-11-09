@@ -316,6 +316,7 @@ public class GenerateFromInterpFrame
         //  Action to start a drawing interaction.
         DrawAction drawAction = new DrawAction( "Draw curve", curveImage );
         JButton drawButton = new JButton( drawAction );
+        fileMenu.add( drawAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( drawButton );
         drawButton.setToolTipText
@@ -427,6 +428,7 @@ public class GenerateFromInterpFrame
                 //  version. Note that the radio button pairs share a
                 //  single ButtonModel so that they also share state.
                 JMenu curveMenu = new JMenu( "Curve type" );
+                curveMenu.setMnemonic( KeyEvent.VK_C );
                 ButtonGroup group = new ButtonGroup();
 
                 n = plotCurveMenu.getItemCount();
@@ -856,6 +858,8 @@ public class GenerateFromInterpFrame
         public GenerateAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_G ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control G" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -871,6 +875,8 @@ public class GenerateFromInterpFrame
         public GenerateReplaceAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control T" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -902,6 +908,8 @@ public class GenerateFromInterpFrame
         public ResetAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -917,6 +925,8 @@ public class GenerateFromInterpFrame
         public ResetReplaceAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -932,6 +942,8 @@ public class GenerateFromInterpFrame
         public DeleteAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_E ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control E" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -947,6 +959,8 @@ public class GenerateFromInterpFrame
         public DrawAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

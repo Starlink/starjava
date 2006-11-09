@@ -13,6 +13,7 @@ import diva.canvas.interactor.SelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,11 +27,14 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -92,25 +96,29 @@ public class XGraphicsRangesView
 
     /**
      * Create an instance.
+     *
+     * @param plot the DivaPlot that we're drawing into.
+     * @param menu a JMenu to add the local Actions to (may be null).
      */
-    public XGraphicsRangesView( DivaPlot plot )
+    public XGraphicsRangesView( DivaPlot plot, JMenu menu )
     {
         setPlot( plot );
-        initUI( null );
+        initUI( null, menu );
     }
 
     /**
      * Create an instance with a given colour and constained property.
      *
      * @param plot the DivaPlot that we're drawing into.
+     * @param menu a JMenu to add the local Actions to (may be null).
      * @param colour the colour that any figures should be drawn using.
      * @param constrain whether the figure moves just X and show a full range
      *      in Y or not.
      */
-    public XGraphicsRangesView( DivaPlot plot, Color colour, 
+    public XGraphicsRangesView( DivaPlot plot, JMenu menu, Color colour, 
                                 boolean constrain )
     {
-        this( plot, colour, constrain, null );
+        this( plot, menu, colour, constrain, null );
     }
 
     /**
@@ -118,17 +126,18 @@ public class XGraphicsRangesView
      * XGraphicsRangesModel instance.
      *
      * @param plot the DivaPlot that we're drawing into.
+     * @param menu a JMenu to add the local Actions to (may be null).
      * @param colour the colour that any figures should be drawn using.
      * @param constrain whether the figure moves just X and show a full range
      *      in Y or not.
      */
-    public XGraphicsRangesView( DivaPlot plot, Color colour,
+    public XGraphicsRangesView( DivaPlot plot, JMenu menu, Color colour,
                                 boolean constrain, XGraphicsRangesModel model )
     {
         setPlot( plot );
         setColour( colour );
         setConstrain( constrain );
-        initUI( model );
+        initUI( model, menu );
     }
 
     /**
@@ -148,7 +157,7 @@ public class XGraphicsRangesView
     /**
      * Initialise the various user interface components.
      */
-    protected void initUI( XGraphicsRangesModel model )
+    protected void initUI( XGraphicsRangesModel model, JMenu menu )
     {
         setLayout( new BorderLayout() );
 
@@ -201,6 +210,9 @@ public class XGraphicsRangesView
         actionBar.add( addButton );
         addButton.setToolTipText
             ( "Select a region of spectrum and add to list" );
+        if ( menu != null ) {
+            menu.add( addAction );
+        }
 
         //  Add action for "delete" button.
         DeleteAction deleteAction = new DeleteAction( "Delete", deleteImage );
@@ -210,6 +222,9 @@ public class XGraphicsRangesView
         deleteButton.setToolTipText
             ( "Delete the selected regions from list" );
         actionBar.add( Box.createGlue() );
+        if ( menu != null ) {
+            menu.add( deleteAction );
+        }
 
         //  Add components.
         setBorder( BorderFactory.createTitledBorder( "Coordinate ranges:" ) );
@@ -269,6 +284,9 @@ public class XGraphicsRangesView
      */
     protected void createRange()
     {
+        //  Raise the plot to indicate that an interaction should begin.
+        SwingUtilities.getWindowAncestor( plot ).toFront();
+
         XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
                                                     constrain, null );
     }
@@ -386,6 +404,8 @@ public class XGraphicsRangesView
         public AddAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -401,6 +421,8 @@ public class XGraphicsRangesView
         public DeleteAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_E ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control E" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

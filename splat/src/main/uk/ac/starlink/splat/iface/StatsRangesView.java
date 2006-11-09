@@ -16,8 +16,10 @@ import java.io.OutputStreamWriter;
 
 import java.util.Iterator;
 
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
 import uk.ac.starlink.splat.plot.PlotControl;
@@ -40,10 +42,16 @@ public class StatsRangesView
 
     /**
      * Create an instance with default colour and constraint.
+     *
+     * @param plot the DivaPlot that we're drawing into.
+     * @param menu a menu for adding the ranges actions (can be null).
+     * @param model the model used to populate the table, if null a default
+     *              instance of XGraphicsRangesModel will be used.
      */
-    public StatsRangesView( PlotControl control, StatsRangesModel model )
+    public StatsRangesView( PlotControl control, JMenu menu, 
+                            StatsRangesModel model )
     {
-        this( control, Color.green, true, model );
+        this( control, menu, Color.green, true, model );
         configureColumnWidths();
     }
 
@@ -52,16 +60,17 @@ public class StatsRangesView
      * StatsRangesModel instance.
      *
      * @param plot the DivaPlot that we're drawing into.
+     * @param menu a menu for adding the ranges actions (can be null).
      * @param colour the colour that any figures should be drawn using.
      * @param constrain whether the figure moves just X and show a full range
      *                  in Y or not.
      * @param model the model used to populate the table, if null a default
      *              instance of XGraphicsRangesModel will be used.
      */
-    protected StatsRangesView( PlotControl control, Color colour, 
+    protected StatsRangesView( PlotControl control, JMenu menu, Color colour, 
                                boolean constrain, StatsRangesModel model )
     {
-        super( control.getPlot(), colour, constrain, model );
+        super( control.getPlot(), menu, colour, constrain, model );
         this.control = control;
         configureColumnWidths();
     }
@@ -72,6 +81,9 @@ public class StatsRangesView
      */
     protected void createRange()
     {
+        //  Raise the plot to indicate that an interaction should begin.
+        SwingUtilities.getWindowAncestor( plot ).toFront();
+
         StatsRange xRange = new StatsRange( control, (StatsRangesModel) model, 
                                             colour, constrain, null );
     }

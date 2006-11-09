@@ -130,7 +130,8 @@ public class StatsFrame
         //  The ranges.
         boolean showFlux = prefs.getBoolean( "StatsFrame_flux", true );
         rangesModel = new StatsRangesModel( control, showFlux );
-        rangesView = new StatsRangesView( control, rangesModel );
+        JMenu rangesMenu = new JMenu( "Ranges" );
+        rangesView = new StatsRangesView( control, rangesMenu, rangesModel );
         layouter.add( rangesView, true );
 
         //  Text pane to show report on statistics. Use this so that
@@ -176,6 +177,10 @@ public class StatsFrame
         optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
 
+        //  Ranges.
+        optionsMenu.setMnemonic( KeyEvent.VK_R );
+        menuBar.add( rangesMenu );
+
         //  Action bar for buttons.
         JPanel actionBar = new JPanel();
 
@@ -193,7 +198,8 @@ public class StatsFrame
         LocalAction selectedAction =
             new LocalAction( LocalAction.SELECTEDSTATS,
                              "Selected stats", statsImage,
-                             "Statistics for selected ranges" );
+                             "Statistics for selected ranges",
+                             "control S", KeyEvent.VK_S );
         fileMenu.add( selectedAction );
         JButton selectedButton = new JButton( selectedAction );
         actionBar.add( Box.createGlue() );
@@ -203,7 +209,8 @@ public class StatsFrame
         LocalAction allAction =
             new LocalAction( LocalAction.ALLSTATS,
                              "All stats", statsImage,
-                             "Statistics for all ranges" );
+                             "Statistics for all ranges",
+                             "control L", KeyEvent.VK_L );
         fileMenu.add( allAction );
         JButton allButton = new JButton( allAction );
         actionBar.add( Box.createGlue() );
@@ -212,7 +219,8 @@ public class StatsFrame
         //  Statistics on the full current spectrum.
         LocalAction wholeAction =
             new LocalAction( LocalAction.WHOLESTATS, "Whole stats", statsImage,
-                             "Statistics for whole spectrum" );
+                             "Statistics for whole spectrum", "control H",
+                             KeyEvent.VK_H );
         fileMenu.add( wholeAction );
         JButton wholeButton = new JButton( wholeAction );
         actionBar.add( Box.createGlue() );
@@ -223,10 +231,10 @@ public class StatsFrame
 
         //  Read and write ranges to disk file.
         Action readAction = rangesView.getReadAction( "Read ranges",
-                                                     readImage );
+                                                      readImage );
         fileMenu.add( readAction );
         Action writeAction = rangesView.getWriteAction( "Save ranges",
-                                                       saveImage );
+                                                        saveImage );
         fileMenu.add( writeAction );
 
 

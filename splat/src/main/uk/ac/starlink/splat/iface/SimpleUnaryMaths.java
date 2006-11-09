@@ -104,6 +104,7 @@ public class SimpleUnaryMaths
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
+    protected JMenu opsMenu = new JMenu();
 
     /**
      * Create an instance.
@@ -133,6 +134,11 @@ public class SimpleUnaryMaths
         fileMenu.setText( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
+
+        // Operations menu.
+        opsMenu.setText( "Operations" );
+        opsMenu.setMnemonic( KeyEvent.VK_O );
+        menuBar.add( opsMenu );
 
         //  Put the list of spectra in a scroll pane.
         JPanel centerPanel = new JPanel( new BorderLayout() );
@@ -165,27 +171,39 @@ public class SimpleUnaryMaths
         //  Add actions to the math operator buttons.
         ImageIcon image =
             new ImageIcon( ImageHolder.class.getResource( "plus24.gif" ) );
-        LocalAction addAction = new LocalAction ( "Add", image,
-                                "Add constant to selected spectrum" );
+        LocalAction addAction = 
+            new LocalAction ( "Add", image,
+                              "Add constant to selected spectrum",
+                              "control D", KeyEvent.VK_D );
         addButton.setAction( addAction );
+        opsMenu.add( addAction );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "minus24.gif" ) );
-        LocalAction subAction = new LocalAction ( "Subtract", image,
-                                "Subtract constant from selected spectrum");
+        LocalAction subAction = 
+            new LocalAction ( "Subtract", image,
+                              "Subtract constant from selected spectrum",
+                              "control S", KeyEvent.VK_S );
         subButton.setAction( subAction );
+        opsMenu.add( subAction );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "multiply.gif" ) );
-        LocalAction mulAction = new LocalAction ( "Multiply", image,
-                                "Multiply selected spectrum by constant");
+        LocalAction mulAction = 
+            new LocalAction ( "Multiply", image,
+                              "Multiply selected spectrum by constant",
+                              "control M", KeyEvent.VK_M );
         mulButton.setAction( mulAction );
+        opsMenu.add( mulAction );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "divide.gif" ) );
-        LocalAction divAction = new LocalAction ( "Divide", image,
-                                "Divide selected spectrum by constant");
+        LocalAction divAction = 
+            new LocalAction ( "Divide", image,
+                              "Divide selected spectrum by constant",
+                              "control I", KeyEvent.VK_I );
         divButton.setAction( divAction );
+        opsMenu.add( divAction );
 
         //  And place together in a panel.
         mathActionBar.setLayout( new BoxLayout( mathActionBar,
@@ -421,27 +439,22 @@ public class SimpleUnaryMaths
          */
         public void actionPerformed( ActionEvent ae )
         {
-            if ( ae.getSource() instanceof JButton ) {
-                JButton source = (JButton) ae.getSource();
-                if ( source.equals( addButton ) ) {
-                    operate( ADD );
-                }
-                else if ( source.equals( subButton ) ) {
-                    operate( SUBTRACT );
-                }
-                else if ( source.equals( divButton ) ) {
-                    operate( DIVIDE );
-                }
-                else if ( source.equals( mulButton ) ) {
-                    operate( MULTIPLY );
-                }
-                else if ( source.equals( closeButton ) ) {
-                    closeWindow();
-                }
+            String cmd = ae.getActionCommand();
+            if ( cmd.equals( "Add" ) ) {
+                operate( ADD );
+            }
+            else if ( cmd.equals( "Subtract" ) ) {
+                operate( SUBTRACT );
+            }
+            else if ( cmd.equals( "Divide" ) ) {
+                operate( DIVIDE );
+            }
+            else if ( cmd.equals( "Multiply" ) ) {
+                operate( MULTIPLY );
             }
             else {
-                closeWindow(); // Only other action is from menu.
-            }
+                closeWindow(); // Only other action.
+            }      
         }
     }
 }

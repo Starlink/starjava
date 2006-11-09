@@ -64,6 +64,7 @@ public class SpecCutterFrame
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
+    protected JMenu rangeMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
 
     /**
@@ -127,12 +128,12 @@ public class SpecCutterFrame
         //  the center and the toolbox below this.
         contentPane.setLayout( new BorderLayout() );
 
-        //  Add the list of regions.
-        rangeList = new XGraphicsRangesView( plot.getPlot() );
-        contentPane.add( rangeList, BorderLayout.CENTER );
-
         //  Add the menuBar.
         setJMenuBar( menuBar );
+
+        //  Add the list of regions.
+        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
+        contentPane.add( rangeList, BorderLayout.CENTER );
 
         //  Action bars use BoxLayout and are placed at the south.
         JPanel actionBar = new JPanel( new BorderLayout() );
@@ -228,6 +229,11 @@ public class SpecCutterFrame
         closeButton.setToolTipText( "Close window" );
 
         actionBar2.add( Box.createGlue() );
+
+        // Now add the Ranges menu.
+        rangeMenu.setText( "Ranges" );
+        rangeMenu.setMnemonic( KeyEvent.VK_R );
+        menuBar.add( rangeMenu );
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "cutter-window", "Help on window",
@@ -338,6 +344,8 @@ public class SpecCutterFrame
         public CutAction( String name, Icon icon ) 
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control C" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
         {
@@ -354,6 +362,8 @@ public class SpecCutterFrame
         public CutSelectedAction( String name, Icon icon ) 
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
         {
@@ -370,6 +380,8 @@ public class SpecCutterFrame
         public RemoveAction( String name, Icon icon ) 
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_M ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control M" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
         {
@@ -386,6 +398,8 @@ public class SpecCutterFrame
         public RemoveSelectedAction( String name, Icon icon ) 
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_O ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control O" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
         {
@@ -421,6 +435,8 @@ public class SpecCutterFrame
         public ResetAction( String name, Icon icon ) 
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
         {

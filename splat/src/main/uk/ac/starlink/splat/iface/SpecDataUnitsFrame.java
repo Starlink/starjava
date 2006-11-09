@@ -461,6 +461,8 @@ public class SpecDataUnitsFrame
             super( "Convert", convertImage );
             putValue( SHORT_DESCRIPTION, "Convert data units from old to " +
                       "new type" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_N ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control N" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -482,6 +484,8 @@ public class SpecDataUnitsFrame
         {
             super( "Set", setImage );
             putValue( SHORT_DESCRIPTION, "Set data units" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

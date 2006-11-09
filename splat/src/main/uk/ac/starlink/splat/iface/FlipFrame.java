@@ -343,7 +343,10 @@ public class FlipFrame
         //  Add an action to reset the spectrum to the default transform.
         LocalAction resetAction = new LocalAction( LocalAction.RESET,
                                                    "Reset",
-                                                   resetImage );
+                                                   resetImage,
+                                                   "Reset",
+                                                   "control R",
+                                                   KeyEvent.VK_R );
         fileMenu.add( resetAction );
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );

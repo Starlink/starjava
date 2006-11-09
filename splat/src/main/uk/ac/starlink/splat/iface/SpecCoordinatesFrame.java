@@ -1167,6 +1167,8 @@ public class SpecCoordinatesFrame
             super( "Convert", convertImage );
             putValue( SHORT_DESCRIPTION, "Convert spectral coordinates" +
                       "from old to new type" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_N ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control N" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1187,6 +1189,8 @@ public class SpecCoordinatesFrame
         {
             super( "Set", setImage );
             putValue( SHORT_DESCRIPTION, "Set spectral coordinate type" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

@@ -275,7 +275,7 @@ public class DeblendFrame
 
         // Add the XGraphicsRangesView that displays the spectral line
         // ranges.
-        rangeList = new XGraphicsRangesView( plot.getPlot().getPlot() );
+        rangeList = new XGraphicsRangesView( plot.getPlot().getPlot(), null );
         layouter.add( rangeList, true );
 
 

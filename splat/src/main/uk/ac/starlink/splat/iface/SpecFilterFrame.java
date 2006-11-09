@@ -96,6 +96,7 @@ public class SpecFilterFrame
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
+    protected JMenu rangeMenu = new JMenu();
     protected JMenuItem closeFileMenu = new JMenuItem();
 
     /**
@@ -268,6 +269,11 @@ public class SpecFilterFrame
         closeButton.setToolTipText( "Close window" );
 
         actionBar.add( Box.createGlue() );
+
+        // Now add the Ranges menu.
+        rangeMenu.setText( "Ranges" );
+        rangeMenu.setMnemonic( KeyEvent.VK_R );
+        menuBar.add( rangeMenu );
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "filter-window", "Help on window",
@@ -592,7 +598,7 @@ public class SpecFilterFrame
               " ranges from filtering" );
         panel.add( includeRanges, BorderLayout.NORTH );
 
-        rangeList = new XGraphicsRangesView( plot.getPlot() );
+        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
         panel.add( rangeList, BorderLayout.CENTER );
 
         //  Add action to do read a list of ranges from disk file.
@@ -884,10 +890,12 @@ public class SpecFilterFrame
         public FilterAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
-            filter( false, true );
+            filter( false, false );
         }
     }
 
@@ -900,6 +908,8 @@ public class SpecFilterFrame
         public FilterReplaceAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control L" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -935,6 +945,8 @@ public class SpecFilterFrame
         public ResetReplaceAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -951,6 +963,8 @@ public class SpecFilterFrame
         public ResetAction( String name, Icon icon )
         {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

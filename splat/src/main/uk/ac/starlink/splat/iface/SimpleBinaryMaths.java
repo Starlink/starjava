@@ -104,6 +104,7 @@ public class SimpleBinaryMaths
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
+    protected JMenu opsMenu = new JMenu();
 
     /**
      * Split pane used for displaying global list side-by-side.
@@ -140,6 +141,11 @@ public class SimpleBinaryMaths
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
+        // Operations menu.
+        opsMenu.setText( "Operations" );
+        opsMenu.setMnemonic( KeyEvent.VK_O );
+        menuBar.add( opsMenu );
+
         //  Put both lists of spectra in scroll panes.
         JScrollPane scrollerOne = new JScrollPane( viewOne );
         TitledBorder viewOneTitle =
@@ -171,26 +177,38 @@ public class SimpleBinaryMaths
         ImageIcon image =
             new ImageIcon( ImageHolder.class.getResource( "plus24.gif" ) );
         LocalAction addAction = new LocalAction ( "Add", image,
-                                                  "Add selected spectra" );
+                                                  "Add selected spectra",
+                                                  "control D", 
+                                                  KeyEvent.VK_D );
         addButton.setAction( addAction );
+        opsMenu.add( addAction );
 
         image = 
             new ImageIcon( ImageHolder.class.getResource( "minus24.gif" ) );
-        LocalAction subAction = new LocalAction ( "Subtract", image,
-                                "Subtract left from right selected spectra");
+        LocalAction subAction = 
+            new LocalAction ( "Subtract", image,
+                              "Subtract left from right selected spectra",
+                              "control S", KeyEvent.VK_S );
         subButton.setAction( subAction );
+        opsMenu.add( subAction );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "multiply.gif" ) );
         LocalAction mulAction = new LocalAction ( "Multiply", image,
-                                                  "Multiply selected spectra");
+                                                  "Multiply selected spectra",
+                                                  "control M", 
+                                                  KeyEvent.VK_M );
         mulButton.setAction( mulAction );
+        opsMenu.add( mulAction );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "divide.gif" ) );
-        LocalAction divAction = new LocalAction ( "Divide", image,
-                                "Divide left by right selected spectra");
+        LocalAction divAction = 
+            new LocalAction ( "Divide", image,
+                              "Divide left by right selected spectra",
+                              "control I", KeyEvent.VK_I );
         divButton.setAction( divAction );
+        opsMenu.add( divAction );
 
         //  And place together in a panel.
         mathActionBar.setLayout( new BoxLayout( mathActionBar,
@@ -448,26 +466,21 @@ public class SimpleBinaryMaths
          */
         public void actionPerformed( ActionEvent ae )
         {
-            if ( ae.getSource() instanceof JButton ) {
-                JButton source = (JButton) ae.getSource();
-                if ( source.equals( addButton ) ) {
-                    operate( ADD );
-                }
-                else if ( source.equals( subButton ) ) {
-                    operate( SUBTRACT );
-                }
-                else if ( source.equals( divButton ) ) {
-                    operate( DIVIDE );
-                }
-                else if ( source.equals( mulButton ) ) {
-                    operate( MULTIPLY );
-                }
-                else if ( source.equals( closeButton ) ) {
-                    closeWindow();
-                } 
+            String cmd = ae.getActionCommand();
+            if ( cmd.equals( "Add" ) ) {
+                operate( ADD );
+            }
+            else if ( cmd.equals( "Subtract" ) ) {
+                operate( SUBTRACT );
+            }
+            else if ( cmd.equals( "Divide" ) ) {
+                operate( DIVIDE );
+            }
+            else if ( cmd.equals( "Multiply" ) ) {
+                operate( MULTIPLY );
             }
             else {
-                closeWindow(); // Only other action is from menu.
+                closeWindow(); // Only other action.
             }
         }
     }

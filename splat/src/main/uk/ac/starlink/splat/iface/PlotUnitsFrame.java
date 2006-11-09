@@ -464,6 +464,8 @@ public class PlotUnitsFrame
             super( "Apply", modifyImage );
             putValue( SHORT_DESCRIPTION,  
                       "Apply units change to current spectrum" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control A" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
