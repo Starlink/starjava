@@ -12,6 +12,7 @@ package uk.ac.starlink.util.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -29,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 
 import org.w3c.dom.Element;
 
@@ -113,6 +115,7 @@ public class StoreControlFrame
         //  Add the menuBar.
         setJMenuBar( menuBar );
         menuBar.add( fileMenu );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
 
         //  Action bar uses a BoxLayout.
         actionBar.setLayout( new BoxLayout( actionBar, BoxLayout.X_AXIS ) );
@@ -332,6 +335,8 @@ public class StoreControlFrame
     {
         public CloseAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindowEvent();
