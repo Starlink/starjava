@@ -32,6 +32,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -523,6 +524,8 @@ public class PlotConfigurator
     {
         public DrawAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             update();
@@ -536,6 +539,8 @@ public class PlotConfigurator
     {
         public CloseAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindowEvent();
@@ -549,6 +554,8 @@ public class PlotConfigurator
     {
         public ResetAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             reset();
@@ -563,6 +570,8 @@ public class PlotConfigurator
     {
         public StoreAction( String name, Icon icon ) {
             super( name, icon );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             openStoreWindow();
