@@ -81,11 +81,29 @@ public class StatsRangesView
      */
     protected void createRange()
     {
-        //  Raise the plot to indicate that an interaction should begin.
-        SwingUtilities.getWindowAncestor( plot ).toFront();
+        if ( interactive ) {
+            //  Raise the plot to indicate that an interaction should begin.
+            SwingUtilities.getWindowAncestor( plot ).toFront();
+            StatsRange xRange = new StatsRange( control, 
+                                                (StatsRangesModel) model, 
+                                                colour, constrain, null );
+        }
+        else {
 
-        StatsRange xRange = new StatsRange( control, (StatsRangesModel) model, 
-                                            colour, constrain, null );
+            //  Accessible creation. Figure that spans visible part of plot.
+            float[] graphbox = plot.getGraphicsLimits();
+            double graph[] = new double[4];
+            graph[0] = graphbox[0];
+            graph[1] = graphbox[1];
+            graph[2] = graphbox[2];
+            graph[3] = graphbox[3];
+
+            double tmp[][]= plot.transform( graph, true );
+            double range[] = new double[2];
+            range[0] = tmp[0][0];
+            range[1] = tmp[0][1];
+            createRange( range );
+        }
     }
 
     /**

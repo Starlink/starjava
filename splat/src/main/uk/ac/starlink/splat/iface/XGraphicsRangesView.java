@@ -12,6 +12,7 @@ import diva.canvas.interactor.SelectionListener;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
@@ -27,6 +28,7 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -93,6 +95,9 @@ public class XGraphicsRangesView
 
     /** Model for table. */
     protected XGraphicsRangesModel model = null;
+
+    /** Whether interactive creation is allowed */
+    protected boolean interactive = true;
 
     /**
      * Create an instance.
@@ -226,6 +231,15 @@ public class XGraphicsRangesView
             menu.add( deleteAction );
         }
 
+        //  Allow the interactive state to be changed (but only from menu).
+        if ( menu != null ) {
+            InteractiveAction interactiveAction = 
+                new InteractiveAction( "Interactive Add" );
+            JCheckBoxMenuItem mi = new JCheckBoxMenuItem( interactiveAction );
+            mi.setState( interactive );
+            menu.add( mi );
+        }
+
         //  Add components.
         setBorder( BorderFactory.createTitledBorder( "Coordinate ranges:" ) );
         JScrollPane scroller = new JScrollPane( table );
@@ -284,11 +298,29 @@ public class XGraphicsRangesView
      */
     protected void createRange()
     {
-        //  Raise the plot to indicate that an interaction should begin.
-        SwingUtilities.getWindowAncestor( plot ).toFront();
+        if ( interactive ) {
+            //  Raise the plot to indicate that an interaction should begin.
+            SwingUtilities.getWindowAncestor( plot ).toFront();
 
-        XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
-                                                    constrain, null );
+            XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
+                                                        constrain, null );
+        }
+        else {
+
+            //  Accessible creation. Figure that spans visible part of plot.
+            float[] graphbox = plot.getGraphicsLimits();
+            double graph[] = new double[4];
+            graph[0] = graphbox[0];
+            graph[1] = graphbox[1];
+            graph[2] = graphbox[2];
+            graph[3] = graphbox[3];
+
+            double tmp[][]= plot.transform( graph, true );
+            double range[] = new double[2];
+            range[0] = tmp[0][0];
+            range[1] = tmp[0][1];
+            createRange( range );
+        }
     }
 
     /**
@@ -397,6 +429,14 @@ public class XGraphicsRangesView
     }
 
     /**
+     * Toggle the interactive creation flag.
+     */
+    public void toggleInteractive()
+    {
+        interactive = !interactive;
+    }
+
+    /**
      * Add action. Adds a new region to the plot.
      */
     protected class AddAction extends AbstractAction
@@ -427,6 +467,23 @@ public class XGraphicsRangesView
         public void actionPerformed( ActionEvent ae )
         {
             deleteSelectedRanges();
+        }
+    }
+
+    /**
+     * Interactive creation action.
+     */
+    protected class InteractiveAction extends AbstractAction
+    {
+        public InteractiveAction( String name )
+        {
+            super( name );
+            putValue( SHORT_DESCRIPTION, "Add creates range interactively" );
+            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_I ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            toggleInteractive();
         }
     }
 
