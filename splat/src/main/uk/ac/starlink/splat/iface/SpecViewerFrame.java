@@ -203,7 +203,7 @@ public class SpecViewerFrame
         fileMenu.setText( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         //  Create and populate the Edit menu.
         createEditMenu();
@@ -766,7 +766,6 @@ public class SpecViewerFrame
         {
             super( name, icon  );
             putValue( SHORT_DESCRIPTION, shortHelp );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
 

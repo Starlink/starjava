@@ -178,37 +178,35 @@ public class SimpleBinaryMaths
             new ImageIcon( ImageHolder.class.getResource( "plus24.gif" ) );
         LocalAction addAction = new LocalAction ( "Add", image,
                                                   "Add selected spectra",
-                                                  "control D", 
-                                                  KeyEvent.VK_D );
+                                                  "control D" );
         addButton.setAction( addAction );
-        opsMenu.add( addAction );
+        opsMenu.add( addAction ).setMnemonic( KeyEvent.VK_D );
 
         image = 
             new ImageIcon( ImageHolder.class.getResource( "minus24.gif" ) );
         LocalAction subAction = 
             new LocalAction ( "Subtract", image,
                               "Subtract left from right selected spectra",
-                              "control S", KeyEvent.VK_S );
+                              "control S" );
         subButton.setAction( subAction );
-        opsMenu.add( subAction );
+        opsMenu.add( subAction ).setMnemonic( KeyEvent.VK_S );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "multiply.gif" ) );
         LocalAction mulAction = new LocalAction ( "Multiply", image,
                                                   "Multiply selected spectra",
-                                                  "control M", 
-                                                  KeyEvent.VK_M );
+                                                  "control M" );
         mulButton.setAction( mulAction );
-        opsMenu.add( mulAction );
+        opsMenu.add( mulAction ).setMnemonic( KeyEvent.VK_M );
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "divide.gif" ) );
         LocalAction divAction = 
             new LocalAction ( "Divide", image,
                               "Divide left by right selected spectra",
-                              "control I", KeyEvent.VK_I );
+                              "control I" );
         divButton.setAction( divAction );
-        opsMenu.add( divAction );
+        opsMenu.add( divAction ).setMnemonic( KeyEvent.VK_I );
 
         //  And place together in a panel.
         mathActionBar.setLayout( new BoxLayout( mathActionBar,
@@ -231,9 +229,8 @@ public class SimpleBinaryMaths
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         LocalAction closeAction = new LocalAction( "Close", image, 
                                                    "Close window",
-                                                   "control W", 
-                                                   KeyEvent.VK_C );
-        fileMenu.add( closeAction );
+                                                   "control W" );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
         closeButton = new JButton( closeAction );
         
         windowActionBar.setLayout( new BoxLayout( windowActionBar,
@@ -454,10 +451,9 @@ public class SimpleBinaryMaths
         }
 
         public LocalAction( String name, Icon icon, String shortHelp, 
-                            String accel, int mnemonic )
+                            String accel )
         {
             this( name, icon, shortHelp );
-            putValue( MNEMONIC_KEY, new Integer( mnemonic ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
         }
 

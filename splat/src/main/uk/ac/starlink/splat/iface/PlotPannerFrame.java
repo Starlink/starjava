@@ -140,7 +140,7 @@ public class PlotPannerFrame extends JFrame
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "close.gif" ) );
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         //  Add the window help.
         HelpFrame.createHelpMenu( "panner-window", "Help on window", 
@@ -171,7 +171,6 @@ public class PlotPannerFrame extends JFrame
         public CloseAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) 

@@ -97,7 +97,7 @@ public class ColumnGeneratorFrame
         JMenu fileMenu = new JMenu( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
 
         // Add the pre-defined functions menu.
         addPreDefined();
@@ -137,7 +137,6 @@ public class ColumnGeneratorFrame
         {
             super( name, icon  );
             putValue( SHORT_DESCRIPTION, shortHelp );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
 

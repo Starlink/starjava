@@ -99,11 +99,11 @@ public class CoordinateGeneratorFrame
         JMenu fileMenu = new JMenu( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
 
         //  Menu of useful pre-defined functions.
         JMenu functions = new JMenu( "Functions" );
-        functions.setMnemonic( KeyEvent.VK_U );
+        functions.setMnemonic( KeyEvent.VK_F );
         menuBar.add( functions );
         coordinateGenerator.addPreDefined( functions );
 
@@ -129,7 +129,6 @@ public class CoordinateGeneratorFrame
         {
             super( name, icon  );
             putValue( SHORT_DESCRIPTION, shortHelp );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
 

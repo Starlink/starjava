@@ -383,7 +383,7 @@ public class PlotControlFrame
         PrintAction printAction  =
             new PrintAction( "Print", printImage,
                              "Print display to local printer or file" );
-        fileMenu.add( printAction );
+        fileMenu.add( printAction ).setMnemonic( KeyEvent.VK_P );
         toolBar.add( printAction );
 
         //  Add action to print figure to postscript file.
@@ -391,14 +391,14 @@ public class PlotControlFrame
             new PrintPostscriptAction( "Print to postscript",
                                        printPostscriptImage,
                                        "Print display to a postscript file" );
-        fileMenu.add( printPostscriptAction );
+        fileMenu.add( printPostscriptAction ).setMnemonic( KeyEvent.VK_T );
         toolBar.add( printPostscriptAction );
 
         //  Add action to print figure to a JPEG or PNG.
         PrintJPEGAction printJPEGAction  =
             new PrintJPEGAction( "Print to JPEG/PNG", printJPEGImage,
                                  "Print display to a JPEG or a PNG file" );
-        fileMenu.add( printJPEGAction );
+        fileMenu.add( printJPEGAction ).setMnemonic( KeyEvent.VK_J );
         toolBar.add( printJPEGAction );
 
         //  Add action to fit plot to window width.
@@ -406,7 +406,7 @@ public class PlotControlFrame
             new FitWidthAction( "Fit width",
                                 fitWidthImage,
                                 "Scale spectrum to fit visible width" );
-        fileMenu.add( fitWidthAction );
+        fileMenu.add( fitWidthAction ).setMnemonic( KeyEvent.VK_W );
         toolBar.add( fitWidthAction );
 
         //  Add action to fit plot to window height.
@@ -414,7 +414,7 @@ public class PlotControlFrame
             new FitHeightAction( "Fit height",
                                  fitHeightImage,
                                  "Scale spectrum to fit visible height" );
-        fileMenu.add( fitHeightAction );
+        fileMenu.add( fitHeightAction ).setMnemonic( KeyEvent.VK_H );
         toolBar.add( fitHeightAction );
 
         //  Add action to enable the panner.
@@ -422,7 +422,7 @@ public class PlotControlFrame
             new PannerAction( "Show panner",
                               pannerImage,
                 "Show panner window for controlling scroll position " );
-        fileMenu.add( pannerAction );
+        fileMenu.add( pannerAction ).setMnemonic( KeyEvent.VK_S );
         toolBar.add( pannerAction );
 
         //  Add action to configure plot.
@@ -430,13 +430,13 @@ public class PlotControlFrame
             new ConfigAction( "Configure",
                               configImage,
                               "Configure plot presentation attributes" );
-        fileMenu.add( configAction );
+        fileMenu.add( configAction ).setMnemonic( KeyEvent.VK_O );
         toolBar.add( configAction );
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage,
                                                    "Close window" );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
     }
 
     /**
@@ -474,7 +474,7 @@ public class PlotControlFrame
         ViewCutterAction viewCutterAction =
             new ViewCutterAction( "Cut out view", cutterImage,
                 "Cut out what you can see of the current spectrum" );
-        analysisMenu.add( viewCutterAction );
+        analysisMenu.add( viewCutterAction ).setMnemonic( KeyEvent.VK_V );
         toolBar.add( viewCutterAction );
 
         //  Add action start the cutter tool.
@@ -482,7 +482,7 @@ public class PlotControlFrame
             new RegionCutterAction( "Cut regions from spectrum",
                                     regionCutterImage,
                 "Cut out selected regions of the current spectrum" );
-        analysisMenu.add( regionCutterAction );
+        analysisMenu.add( regionCutterAction ).setMnemonic( KeyEvent.VK_R );
         toolBar.add( regionCutterAction );
 
         //  Add the fit polynomial to background item.
@@ -490,7 +490,7 @@ public class PlotControlFrame
             new PolyFitAction( "Fit polynomial",
                                backImage,
                                "Fit parts of spectrum using a polynomial" );
-        analysisMenu.add( polyFitAction );
+        analysisMenu.add( polyFitAction ).setMnemonic( KeyEvent.VK_Y );
         toolBar.add( polyFitAction );
 
         //  Add the generate from interpolated line item.
@@ -498,7 +498,7 @@ public class PlotControlFrame
             new GenFromInterpAction( "Spectrum from interpolation",
                                      interpImage,
                 "Generate a spectrum from an interpolated line" );
-        analysisMenu.add( interpAction );
+        analysisMenu.add( interpAction ).setMnemonic( KeyEvent.VK_P );
         toolBar.add( interpAction );
 
         //  Add the deblend lines action.
@@ -506,7 +506,7 @@ public class PlotControlFrame
             DeblendAction deblendAction =
                 new DeblendAction( "Deblend lines", deblendImage,
                                    "Fit components to a blend of lines" );
-            analysisMenu.add( deblendAction );
+            analysisMenu.add( deblendAction ).setMnemonic( KeyEvent.VK_D );
             toolBar.add( deblendAction );
         }
 
@@ -515,31 +515,31 @@ public class PlotControlFrame
             new LineFitAction( "Fit lines",
                                lineImage,
                 "Fit spectral lines using a variety of functions" );
-        analysisMenu.add( lineFitAction );
+        analysisMenu.add( lineFitAction ).setMnemonic( KeyEvent.VK_L );
         toolBar.add( lineFitAction );
 
         FilterAction filterAction =
             new FilterAction( "Filter spectrum", filterImage,
                               "Apply a filter to the current spectrum" );
-        analysisMenu.add( filterAction );
+        analysisMenu.add( filterAction ).setMnemonic( KeyEvent.VK_F );
         toolBar.add( filterAction );
 
         UnitsAction unitsAction =
             new UnitsAction( "Change units", unitsImage,
                              "Change the units of the current spectrum" );
-        analysisMenu.add( unitsAction );
+        analysisMenu.add( unitsAction ).setMnemonic( KeyEvent.VK_U );
         toolBar.add( unitsAction );
 
         FlipAction flipAction =
             new FlipAction( "Flip compare", flipImage,
                             "Flip and/or translate current spectrum" );
-        analysisMenu.add( flipAction );
+        analysisMenu.add( flipAction ).setMnemonic( KeyEvent.VK_I );
         toolBar.add( flipAction );
 
         StatsAction statsAction =
             new StatsAction( "Region statistics", statsImage,
                              "Get statistics on regions of spectrum" );
-        analysisMenu.add( statsAction );
+        analysisMenu.add( statsAction ).setMnemonic( KeyEvent.VK_S );
         toolBar.add( statsAction );
     }
 
@@ -1416,7 +1416,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1435,7 +1434,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1454,7 +1452,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control T" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1473,7 +1470,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control J" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_J ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1492,7 +1488,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control B" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_W ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1511,7 +1506,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control H" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_H ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1530,7 +1524,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control O" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_O ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             configPlot();
@@ -1548,7 +1541,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control A" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1567,7 +1559,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control V" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_V ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1586,7 +1577,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1605,7 +1595,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1624,7 +1613,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control U" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_U ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1643,7 +1631,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control I" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_I ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1662,7 +1649,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1681,7 +1667,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control Y" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_Y ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1700,7 +1685,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control G" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_G ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1719,7 +1703,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
         }
         public void actionPerformed( ActionEvent ae )
         {
@@ -1738,7 +1721,6 @@ public class PlotControlFrame
             putValue( SHORT_DESCRIPTION, help );
 
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control L" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

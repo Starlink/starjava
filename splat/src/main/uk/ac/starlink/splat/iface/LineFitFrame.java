@@ -426,7 +426,7 @@ public class LineFitFrame
 
         //  Add action to do the fit.
         FitAction fitAction = new FitAction( "Fit", fitImage );
-        fileMenu.add( fitAction );
+        fileMenu.add( fitAction ).setMnemonic( KeyEvent.VK_F );
         JButton fitButton = new JButton( fitAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( fitButton );
@@ -434,7 +434,7 @@ public class LineFitFrame
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
-        fileMenu.add( resetAction );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
@@ -443,7 +443,7 @@ public class LineFitFrame
         //  Add action to just clear the line fits.
         DeleteFitsAction deleteFitsAction =
             new DeleteFitsAction( "Delete fits", deleteImage );
-        fileMenu.add( deleteFitsAction );
+        fileMenu.add( deleteFitsAction ).setMnemonic( KeyEvent.VK_E );
         JButton deleteFitsButton = new JButton( deleteFitsAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( deleteFitsButton );
@@ -451,7 +451,7 @@ public class LineFitFrame
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -1366,7 +1366,6 @@ public class LineFitFrame
         public FitAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -1429,7 +1428,6 @@ public class LineFitFrame
         public CloseAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -1446,7 +1444,6 @@ public class LineFitFrame
         public ResetAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -1463,8 +1460,7 @@ public class LineFitFrame
         public DeleteFitsAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_E ) );
-            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control E" ) );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control I" ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

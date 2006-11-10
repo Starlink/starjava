@@ -345,9 +345,8 @@ public class FlipFrame
                                                    "Reset",
                                                    resetImage,
                                                    "Reset",
-                                                   "control R",
-                                                   KeyEvent.VK_R );
-        fileMenu.add( resetAction );
+                                                   "control R" );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
@@ -358,9 +357,8 @@ public class FlipFrame
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
                                                    "Close", closeImage,
                                                    "Close window",
-                                                   "control W",
-                                                   KeyEvent.VK_C );
-        fileMenu.add( closeAction );
+                                                   "control W" );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -1244,10 +1242,9 @@ public class FlipFrame
         }
 
         public LocalAction( int actionType, String name, Icon icon, 
-                            String help, String accel, int mnemonic )
+                            String help, String accel )
         {
             this( actionType, name, icon, help );
-            putValue( MNEMONIC_KEY, new Integer( mnemonic ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
         }
 

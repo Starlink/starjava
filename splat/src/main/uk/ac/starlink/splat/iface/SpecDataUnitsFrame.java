@@ -196,7 +196,8 @@ public class SpecDataUnitsFrame
         // data units. Tricky as involves modification of underlying data
         // values.
         ConvertAction convertAction = new ConvertAction();
-        fileMenu.add( convertAction );
+        fileMenu.add( convertAction ).setMnemonic( KeyEvent.VK_N );
+
         JButton convertButton = new JButton( convertAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( convertButton );
@@ -204,7 +205,8 @@ public class SpecDataUnitsFrame
 
         // Add an action to set the data units.
         SetAction setAction = new SetAction();
-        fileMenu.add( setAction );
+        fileMenu.add( setAction ).setMnemonic( KeyEvent.VK_S );
+
         JButton setButton = new JButton( setAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( setButton );
@@ -213,7 +215,8 @@ public class SpecDataUnitsFrame
         // Add an action to close the window (appears in File menu and action
         // bar).
         CloseAction closeAction = new CloseAction();
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -437,7 +440,6 @@ public class SpecDataUnitsFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -461,7 +463,6 @@ public class SpecDataUnitsFrame
             super( "Convert", convertImage );
             putValue( SHORT_DESCRIPTION, "Convert data units from old to " +
                       "new type" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_N ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control N" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -484,7 +485,6 @@ public class SpecDataUnitsFrame
         {
             super( "Set", setImage );
             putValue( SHORT_DESCRIPTION, "Set data units" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae )

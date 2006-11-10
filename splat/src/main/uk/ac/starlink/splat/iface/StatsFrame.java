@@ -199,8 +199,9 @@ public class StatsFrame
             new LocalAction( LocalAction.SELECTEDSTATS,
                              "Selected stats", statsImage,
                              "Statistics for selected ranges",
-                             "control S", KeyEvent.VK_S );
-        fileMenu.add( selectedAction );
+                             "control S" );
+        fileMenu.add( selectedAction ).setMnemonic( KeyEvent.VK_S );
+
         JButton selectedButton = new JButton( selectedAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( selectedButton );
@@ -210,8 +211,9 @@ public class StatsFrame
             new LocalAction( LocalAction.ALLSTATS,
                              "All stats", statsImage,
                              "Statistics for all ranges",
-                             "control L", KeyEvent.VK_L );
-        fileMenu.add( allAction );
+                             "control L" );
+        fileMenu.add( allAction ).setMnemonic( KeyEvent.VK_A );
+
         JButton allButton = new JButton( allAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( allButton );
@@ -219,9 +221,9 @@ public class StatsFrame
         //  Statistics on the full current spectrum.
         LocalAction wholeAction =
             new LocalAction( LocalAction.WHOLESTATS, "Whole stats", statsImage,
-                             "Statistics for whole spectrum", "control H",
-                             KeyEvent.VK_H );
-        fileMenu.add( wholeAction );
+                             "Statistics for whole spectrum", "control H" );
+        fileMenu.add( wholeAction ).setMnemonic( KeyEvent.VK_W );
+
         JButton wholeButton = new JButton( wholeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( wholeButton );
@@ -242,9 +244,9 @@ public class StatsFrame
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
                                                    "Close", closeImage,
                                                    "Close window",
-                                                   "control W", 
-                                                   KeyEvent.VK_C );
-        fileMenu.add( closeAction );
+                                                   "control W" );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -488,11 +490,10 @@ public class StatsFrame
         }
 
         public LocalAction( int actionType, String name, Icon icon,
-                            String help, String accel, int mnemonic )
+                            String help, String accel )
         {
             this( actionType, name, icon );
             putValue( SHORT_DESCRIPTION, help );
-            putValue( MNEMONIC_KEY, new Integer( mnemonic ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
         }
 

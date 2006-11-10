@@ -173,7 +173,8 @@ public class SpecCutterFrame
         //  Add action to cut out all regions.
         CutAction cutAction =
             new CutAction( "Cut", cutterImage );
-        fileMenu.add( cutAction );
+        fileMenu.add( cutAction ).setMnemonic( KeyEvent.VK_U );
+
         JButton cutButton = new JButton( cutAction );
         actionBar1.add( Box.createGlue() );
         actionBar1.add( cutButton );
@@ -183,7 +184,8 @@ public class SpecCutterFrame
         //  Add action to cut out the selected regions.
         CutSelectedAction cutSelectedAction =
             new CutSelectedAction( "Cut Selected", cutterImage );
-        fileMenu.add( cutSelectedAction );
+        fileMenu.add( cutSelectedAction ).setMnemonic( KeyEvent.VK_S );
+
         JButton cutSelectedButton = new JButton( cutSelectedAction );
         actionBar1.add( Box.createGlue() );
         actionBar1.add( cutSelectedButton );
@@ -193,7 +195,8 @@ public class SpecCutterFrame
         //  Add action to remove all regions.
         RemoveAction removeAction =
             new RemoveAction( "Remove", removeImage );
-        fileMenu.add( removeAction );
+        fileMenu.add( removeAction ).setMnemonic( KeyEvent.VK_M );
+
         JButton removeButton = new JButton( removeAction );
         actionBar1.add( Box.createGlue() );
         actionBar1.add( removeButton );
@@ -203,7 +206,8 @@ public class SpecCutterFrame
         //  Add action to just remove the selected regions.
         RemoveSelectedAction removeSelectedAction =
             new RemoveSelectedAction( "Remove Selected", removeImage );
-        fileMenu.add( removeSelectedAction );
+        fileMenu.add( removeSelectedAction ).setMnemonic( KeyEvent.VK_O );
+
         JButton removeSelectedButton = new JButton( removeSelectedAction );
         actionBar1.add( Box.createGlue() );
         actionBar1.add( removeSelectedButton );
@@ -214,7 +218,8 @@ public class SpecCutterFrame
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
-        fileMenu.add( resetAction );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
+
         JButton resetButton = new JButton( resetAction );
         actionBar2.add( Box.createGlue() );
         actionBar2.add( resetButton );
@@ -222,7 +227,8 @@ public class SpecCutterFrame
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBar2.add( Box.createGlue() );
         actionBar2.add( closeButton );
@@ -344,7 +350,6 @@ public class SpecCutterFrame
         public CutAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control C" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
@@ -362,7 +367,6 @@ public class SpecCutterFrame
         public CutSelectedAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
@@ -380,7 +384,6 @@ public class SpecCutterFrame
         public RemoveAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_M ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control M" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
@@ -398,7 +401,6 @@ public class SpecCutterFrame
         public RemoveSelectedAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_O ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control O" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
@@ -417,7 +419,6 @@ public class SpecCutterFrame
         public CloseAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) 
@@ -435,7 +436,6 @@ public class SpecCutterFrame
         public ResetAction( String name, Icon icon ) 
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae ) 

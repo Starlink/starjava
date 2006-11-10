@@ -226,7 +226,8 @@ public class SpecFilterFrame
         //  Add action to filter all regions.
         FilterAction filterAction =
             new FilterAction( "Filter", filterImage );
-        fileMenu.add( filterAction );
+        fileMenu.add( filterAction ).setMnemonic( KeyEvent.VK_F );
+
         JButton filterButton = new JButton( filterAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( filterButton );
@@ -236,7 +237,8 @@ public class SpecFilterFrame
         //  Add action to filter all regions and replace current spectrum.
         FilterReplaceAction filterReplaceAction =
             new FilterReplaceAction( "Filter (Replace)", filterImage );
-        fileMenu.add( filterReplaceAction );
+        fileMenu.add( filterReplaceAction ).setMnemonic( KeyEvent.VK_L );
+
         JButton filterReplaceButton = new JButton( filterReplaceAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( filterReplaceButton );
@@ -245,7 +247,8 @@ public class SpecFilterFrame
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
-        fileMenu.add( resetAction );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
+
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
@@ -254,7 +257,8 @@ public class SpecFilterFrame
         //  Add action to reset a filter replace.
         ResetReplaceAction resetReplaceAction = 
             new ResetReplaceAction( "Reset (Replace)", resetImage );
-        fileMenu.add( resetReplaceAction );
+        fileMenu.add( resetReplaceAction ).setMnemonic( KeyEvent.VK_P );
+
         JButton resetReplaceButton = new JButton( resetReplaceAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetReplaceButton );
@@ -262,7 +266,8 @@ public class SpecFilterFrame
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -890,7 +895,6 @@ public class SpecFilterFrame
         public FilterAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -908,7 +912,6 @@ public class SpecFilterFrame
         public FilterReplaceAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control L" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -927,7 +930,6 @@ public class SpecFilterFrame
         public CloseAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -945,7 +947,6 @@ public class SpecFilterFrame
         public ResetReplaceAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -963,7 +964,6 @@ public class SpecFilterFrame
         public ResetAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae )

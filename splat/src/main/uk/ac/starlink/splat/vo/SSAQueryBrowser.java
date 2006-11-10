@@ -261,9 +261,9 @@ public class SSAQueryBrowser
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
                                                    "Close", closeImage,
                                                    "Close window",
-                                                   "control W",
-                                                   KeyEvent.VK_C );
-        fileMenu.add( closeAction );
+                                                   "control W" );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBarContainer.add( closeButton );
 
@@ -1282,10 +1282,9 @@ public class SSAQueryBrowser
         }
 
         public LocalAction( int actionType, String name, Icon icon,
-                            String help, String accel, int mnemonic )
+                            String help, String accel )
         {
             this( actionType, name, icon, help );
-            putValue( MNEMONIC_KEY, new Integer( mnemonic ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
         }
 

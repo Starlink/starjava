@@ -414,7 +414,8 @@ public class PolyFitFrame
 
         //  Add actions to do the fit to all data.
         FitAction fitAction = new FitAction( "Fit", fitImage );
-        fileMenu.add( fitAction );
+        fileMenu.add( fitAction ).setMnemonic( KeyEvent.VK_F );
+
         JButton fitButton = new JButton( fitAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( fitButton );
@@ -422,7 +423,8 @@ public class PolyFitFrame
 
         FitReplaceAction fitReplaceAction =
             new FitReplaceAction( "Fit (Replace)", fitImage );
-        fileMenu.add( fitReplaceAction );
+        fileMenu.add( fitReplaceAction ).setMnemonic( KeyEvent.VK_L );
+
         JButton fitReplaceButton = new JButton( fitReplaceAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( fitReplaceButton );
@@ -432,7 +434,8 @@ public class PolyFitFrame
         //  Add actions to do the fit to selected.
         FitSelectedAction fitSelectedAction =
             new FitSelectedAction( "Fit selected", fitImage );
-        fileMenu.add( fitSelectedAction );
+        fileMenu.add( fitSelectedAction ).setMnemonic( KeyEvent.VK_S );
+
         JButton fitSelectedButton = new JButton( fitSelectedAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( fitSelectedButton );
@@ -441,7 +444,8 @@ public class PolyFitFrame
 
         FitReplaceSelectedAction fitReplaceSelectedAction =
             new FitReplaceSelectedAction( "Fit selected (Replace)", fitImage );
-        fileMenu.add( fitReplaceSelectedAction );
+        fileMenu.add( fitReplaceSelectedAction ).setMnemonic( KeyEvent.VK_T );
+
         JButton fitReplaceSelectedButton = 
             new JButton( fitReplaceSelectedAction );
         topActionBar.add( Box.createGlue() );
@@ -452,7 +456,8 @@ public class PolyFitFrame
         //  Add action to reset after a replace.
         ResetReplaceAction resetReplaceAction = 
             new ResetReplaceAction( "Reset (Replace)", resetImage );
-        fileMenu.add( resetReplaceAction );
+        fileMenu.add( resetReplaceAction ).setMnemonic( KeyEvent.VK_P );
+
         JButton resetReplaceButton = new JButton( resetReplaceAction );
         midActionBar.add( Box.createGlue() );
         midActionBar.add( resetReplaceButton );
@@ -460,7 +465,8 @@ public class PolyFitFrame
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
-        fileMenu.add( resetAction );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
+
         JButton resetButton = new JButton( resetAction );
         midActionBar.add( Box.createGlue() );
         midActionBar.add( resetButton );
@@ -470,7 +476,8 @@ public class PolyFitFrame
         //  Add action to just delete any fits.
         DeleteFitsAction deleteFitsAction =
             new DeleteFitsAction( "Delete fits", deleteImage );
-        fileMenu.add( deleteFitsAction );
+        fileMenu.add( deleteFitsAction ).setMnemonic( KeyEvent.VK_I );
+
         JButton deleteFitsButton = new JButton( deleteFitsAction );
         midActionBar.add( Box.createGlue() );
         midActionBar.add( deleteFitsButton );
@@ -478,7 +485,8 @@ public class PolyFitFrame
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         botActionBar.add( Box.createGlue() );
         botActionBar.add( closeButton );
@@ -982,7 +990,6 @@ public class PolyFitFrame
     {
         public FitAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_F ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -997,7 +1004,6 @@ public class PolyFitFrame
     {
         public FitReplaceAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control L" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -1012,7 +1018,6 @@ public class PolyFitFrame
     {
         public FitSelectedAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -1028,7 +1033,6 @@ public class PolyFitFrame
     {
         public FitReplaceSelectedAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control T" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -1044,7 +1048,6 @@ public class PolyFitFrame
         public CloseAction( String name, Icon icon ) {
             super( name, icon );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
         }
         public void actionPerformed( ActionEvent ae ) {
             closeWindowEvent();
@@ -1058,7 +1061,6 @@ public class PolyFitFrame
     {
         public ResetReplaceAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -1073,7 +1075,6 @@ public class PolyFitFrame
     {
         public ResetAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -1088,7 +1089,6 @@ public class PolyFitFrame
     {
         public DeleteFitsAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_I ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control I" ) );
         }
         public void actionPerformed( ActionEvent ae ) {

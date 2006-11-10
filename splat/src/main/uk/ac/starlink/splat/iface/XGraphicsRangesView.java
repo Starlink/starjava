@@ -216,7 +216,7 @@ public class XGraphicsRangesView
         addButton.setToolTipText
             ( "Select a region of spectrum and add to list" );
         if ( menu != null ) {
-            menu.add( addAction );
+            menu.add( addAction ).setMnemonic( KeyEvent.VK_A );
         }
 
         //  Add action for "delete" button.
@@ -228,7 +228,7 @@ public class XGraphicsRangesView
             ( "Delete the selected regions from list" );
         actionBar.add( Box.createGlue() );
         if ( menu != null ) {
-            menu.add( deleteAction );
+            menu.add( deleteAction ).setMnemonic( KeyEvent.VK_D );
         }
 
         //  Allow the interactive state to be changed (but only from menu).
@@ -237,7 +237,7 @@ public class XGraphicsRangesView
                 new InteractiveAction( "Interactive Add" );
             JCheckBoxMenuItem mi = new JCheckBoxMenuItem( interactiveAction );
             mi.setState( interactive );
-            menu.add( mi );
+            menu.add( mi ).setMnemonic( KeyEvent.VK_I );
         }
 
         //  Add components.
@@ -444,7 +444,6 @@ public class XGraphicsRangesView
         public AddAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -461,7 +460,6 @@ public class XGraphicsRangesView
         public DeleteAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_E ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control E" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -479,7 +477,6 @@ public class XGraphicsRangesView
         {
             super( name );
             putValue( SHORT_DESCRIPTION, "Add creates range interactively" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_I ) );
         }
         public void actionPerformed( ActionEvent ae )
         {

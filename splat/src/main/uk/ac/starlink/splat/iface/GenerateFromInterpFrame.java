@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.diva.DrawActions;
@@ -316,7 +317,7 @@ public class GenerateFromInterpFrame
         //  Action to start a drawing interaction.
         DrawAction drawAction = new DrawAction( "Draw curve", curveImage );
         JButton drawButton = new JButton( drawAction );
-        fileMenu.add( drawAction );
+        fileMenu.add( drawAction ).setMnemonic( KeyEvent.VK_D );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( drawButton );
         drawButton.setToolTipText
@@ -325,7 +326,7 @@ public class GenerateFromInterpFrame
         //  Add action to do the generation of a spectrum from a line.
         GenerateAction generateAction = new GenerateAction( "Generate",
                                                             interpolateImage );
-        fileMenu.add( generateAction );
+        fileMenu.add( generateAction ).setMnemonic( KeyEvent.VK_G );
         JButton generateButton = new JButton( generateAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( generateButton );
@@ -336,7 +337,7 @@ public class GenerateFromInterpFrame
         //  replace the current one, if subtracting or dividing.
         GenerateReplaceAction generateReplaceAction =
             new GenerateReplaceAction( "Generate (Replace)",interpolateImage );
-        fileMenu.add( generateReplaceAction );
+        fileMenu.add( generateReplaceAction ).setMnemonic( KeyEvent.VK_T );
         JButton generateReplaceButton = new JButton( generateReplaceAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( generateReplaceButton );
@@ -346,7 +347,7 @@ public class GenerateFromInterpFrame
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
-        fileMenu.add( resetAction );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
         JButton resetButton = new JButton( resetAction );
         midActionBar.add( Box.createGlue() );
         midActionBar.add( resetButton );
@@ -356,7 +357,7 @@ public class GenerateFromInterpFrame
         //  Add action to reset a generate replace operation.
         ResetReplaceAction resetReplaceAction =
             new ResetReplaceAction( "Reset (Replace)", resetImage );
-        fileMenu.add( resetReplaceAction );
+        fileMenu.add( resetReplaceAction ).setMnemonic( KeyEvent.VK_P );
         JButton resetReplaceButton = new JButton( resetReplaceAction );
         midActionBar.add( Box.createGlue() );
         midActionBar.add( resetReplaceButton );
@@ -366,7 +367,7 @@ public class GenerateFromInterpFrame
         //  Add action to just delete any spectra
         DeleteAction deleteAction =
             new DeleteAction( "Delete spectra", deleteImage );
-        fileMenu.add( deleteAction );
+        fileMenu.add( deleteAction ).setMnemonic( KeyEvent.VK_E );
         JButton deleteButton = new JButton( deleteAction );
         midActionBar.add( Box.createGlue() );
         midActionBar.add( deleteButton );
@@ -374,7 +375,7 @@ public class GenerateFromInterpFrame
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
         JButton closeButton = new JButton( closeAction );
         botActionBar.add( Box.createGlue() );
         botActionBar.add( closeButton );
@@ -800,6 +801,7 @@ public class GenerateFromInterpFrame
     {
         DrawActions drawActions = plot.getPlot().getPlot().getDrawActions();
         drawActions.setDrawingMode( DrawActions.CURVE );
+        plot.toFront();
     }
 
     /**
@@ -858,7 +860,6 @@ public class GenerateFromInterpFrame
         public GenerateAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_G ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control G" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -875,7 +876,6 @@ public class GenerateFromInterpFrame
         public GenerateReplaceAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control T" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -892,7 +892,6 @@ public class GenerateFromInterpFrame
         public CloseAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -908,7 +907,6 @@ public class GenerateFromInterpFrame
         public ResetAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -925,7 +923,6 @@ public class GenerateFromInterpFrame
         public ResetReplaceAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_P ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -942,7 +939,6 @@ public class GenerateFromInterpFrame
         public DeleteAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_E ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control E" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -959,7 +955,6 @@ public class GenerateFromInterpFrame
         public DrawAction( String name, Icon icon )
         {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
         }
         public void actionPerformed( ActionEvent ae )

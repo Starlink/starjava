@@ -620,9 +620,9 @@ public class SplatBrowser
         LocalAction openAction  = new LocalAction( LocalAction.OPEN,
                                                    "Open", openImage,
                                                    "Open spectra",
-                                                   "control O",
-                                                   KeyEvent.VK_O );
-        fileMenu.add( openAction );
+                                                   "control O" );
+        fileMenu.add( openAction ).setMnemonic( KeyEvent.VK_O );
+
         toolBar.add( openAction );
 
         //  Add action to open a spectrum using a typed in location (URL).
@@ -632,9 +632,9 @@ public class SplatBrowser
                                                        "Location",
                                                        locationImage,
                                                        "Open location",
-                                                       "control L",
-                                                       KeyEvent.VK_L );
-        fileMenu.add( locationAction );
+                                                       "control L" );
+        fileMenu.add( locationAction ).setMnemonic( KeyEvent.VK_L );
+
         toolBar.add( locationAction );
 
         //  Add action to do a search of any SSAP servers.
@@ -644,7 +644,7 @@ public class SplatBrowser
                                                    "SSAP",
                                                    ssapImage,
                                                    "Search SSAP servers" );
-        fileMenu.add( ssapAction );
+        fileMenu.add( ssapAction ).setMnemonic( KeyEvent.VK_P );
         toolBar.add( ssapAction );
 
         //  Add action to browse the local file system and look for tables
@@ -656,7 +656,7 @@ public class SplatBrowser
         LocalAction browseAction  = new LocalAction( LocalAction.BROWSE,
                                                      "Browse", browseImage,
                                                      "Browse for spectra" );
-        fileMenu.add( browseAction );
+        fileMenu.add( browseAction ).setMnemonic( KeyEvent.VK_B );;
         toolBar.add( browseAction );
 
         //  Add action to re-open a list of spectra if possible.
@@ -664,9 +664,9 @@ public class SplatBrowser
             new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
         LocalAction reOpenAction  = 
             new LocalAction( LocalAction.REOPEN, "Re-Open", reOpenImage,
-                             "Re-Open selected spectra", "control R",
-                             KeyEvent.VK_R );
-        fileMenu.add( reOpenAction );
+                             "Re-Open selected spectra", "control R" );
+        fileMenu.add( reOpenAction ).setMnemonic( KeyEvent.VK_R );
+
         toolBar.add( reOpenAction );
 
         //  Add action to save a spectrum
@@ -674,9 +674,9 @@ public class SplatBrowser
             new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
         LocalAction saveAction  =
             new LocalAction( LocalAction.SAVE, "Save", saveImage,
-                             "Save a spectrum to disk file", "Control S",
-                             KeyEvent.VK_S );
-        fileMenu.add( saveAction );
+                             "Save a spectrum to disk file", "Control S" );
+        fileMenu.add( saveAction ).setMnemonic( KeyEvent.VK_S );
+
         toolBar.add( saveAction );
 
         //  Add an action to read in a stack of spectra.
@@ -686,7 +686,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.READ_STACK, "Read stack",
                              readStackImage,
                              "Read back spectra stored in a disk file");
-        fileMenu.add( readStackAction );
+        fileMenu.add( readStackAction ).setMnemonic( KeyEvent.VK_T );;
 
         //  Add an action to save the stack of spectra.
         ImageIcon saveStackImage =
@@ -694,7 +694,7 @@ public class SplatBrowser
         LocalAction saveStackAction =
             new LocalAction( LocalAction.SAVE_STACK, "Save stack",
                              saveStackImage, "Save all spectra to disk file" );
-        fileMenu.add( saveStackAction );
+        fileMenu.add( saveStackAction ).setMnemonic( KeyEvent.VK_V );;
 
         //  Add an action to exit application.
         ImageIcon exitImage =
@@ -702,9 +702,8 @@ public class SplatBrowser
         LocalAction exitAction = new LocalAction( LocalAction.EXIT,
                                                   "Exit", exitImage,
                                                   "Exit program",
-                                                  "control X",
-                                                  KeyEvent.VK_X );
-        fileMenu.add( exitAction );
+                                                  "control X" );
+        fileMenu.add( exitAction ).setMnemonic( KeyEvent.VK_X );
     }
 
     /**
@@ -723,8 +722,9 @@ public class SplatBrowser
             new LocalAction( LocalAction.REMOVE_SPECTRA,
                              "Remove selected spectra", removeImage,
                              "Close any spectra selected in global list",
-                             "DELETE", KeyEvent.VK_D );
-        editMenu.add( removeSpectraAction );
+                             "DELETE" );
+        editMenu.add( removeSpectraAction ).setMnemonic( KeyEvent.VK_R );
+
         toolBar.add( removeSpectraAction );
 
         //  Add an action to select all spectra.
@@ -732,15 +732,15 @@ public class SplatBrowser
             new LocalAction( LocalAction.SELECT_SPECTRA,
                              "Select all spectra", null,
                              "Select all spectra in list",
-                             "control A", KeyEvent.VK_A );
-        editMenu.add( selectSpectraAction );
+                             "control A" );
+        editMenu.add( selectSpectraAction ).setMnemonic( KeyEvent.VK_S );
 
         //  Add an action to deselect all spectra.
         LocalAction deSelectSpectraAction =
             new LocalAction( LocalAction.DESELECT_SPECTRA,
                              "Deselect all spectra", null,
                              "Deselect any spectra selected in list" );
-        editMenu.add( deSelectSpectraAction );
+        editMenu.add( deSelectSpectraAction ).setMnemonic( KeyEvent.VK_D );;
 
         //  Add an action to remove the selected plots.
         ImageIcon removePlotImage =
@@ -749,21 +749,21 @@ public class SplatBrowser
             new LocalAction( LocalAction.REMOVE_PLOTS,
                              "Remove selected plots", removePlotImage,
                              "Close any plots selected in views list" );
-        editMenu.add( removePlotAction );
+        editMenu.add( removePlotAction ).setMnemonic( KeyEvent.VK_R );;
 
         //  Add an action to select all plots.
         LocalAction selectPlotAction =
             new LocalAction( LocalAction.SELECT_PLOTS,
                              "Select all plots", null,
                              "Select all plots in list" );
-        editMenu.add( selectPlotAction );
+        editMenu.add( selectPlotAction ).setMnemonic( KeyEvent.VK_E );;
 
         //  Add an action to deselect all plots.
         LocalAction deSelectPlotAction =
             new LocalAction( LocalAction.DESELECT_PLOTS,
                              "Deselect all plots", null,
                              "Deselect any plots selected in list" );
-        editMenu.add( deSelectPlotAction );
+        editMenu.add( deSelectPlotAction ).setMnemonic( KeyEvent.VK_L );
 
         //  Add an action to copy all selected spectra. This makes
         //  memory copies.
@@ -771,7 +771,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.COPY_SPECTRA,
                              "Copy selected spectra", null,
                              "Make memory copies of all selected spectra" );
-        editMenu.add( copySelectedSpectraAction );
+        editMenu.add( copySelectedSpectraAction ).setMnemonic( KeyEvent.VK_C );
 
         //  Add an action to copy and sort all selected spectra. This makes
         //  memory copies.
@@ -780,7 +780,8 @@ public class SplatBrowser
                              "Copy and sort selected spectra", null,
                              "Make memory copies of all selected spectra " +
                              "and sort their coordinates if necessary" );
-        editMenu.add( copySortSelectedSpectraAction );
+        editMenu.add( copySortSelectedSpectraAction ).
+            setMnemonic( KeyEvent.VK_Y );
 
         //  Add an action to create a new spectrum. The size is
         //  obtained from a dialog.
@@ -788,7 +789,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.CREATE_SPECTRUM,
                              "Create new spectrum", null,
                              "Create a new spectrum with unset elements" );
-        editMenu.add( createSpectrumAction );
+        editMenu.add( createSpectrumAction ).setMnemonic( KeyEvent.VK_T );
 
         //  Remove any spectra that have no data or invalid coordinates.
         LocalAction purgeSpectraAction =
@@ -796,7 +797,7 @@ public class SplatBrowser
                              "Purge empty spectra", null,
                              "Remove spectra that cannot be autoranged from" +
                              " global list" );
-        editMenu.add( purgeSpectraAction );
+        editMenu.add( purgeSpectraAction ).setMnemonic( KeyEvent.VK_P );;
     }
 
     /**
@@ -816,8 +817,9 @@ public class SplatBrowser
                              "Display in new plots",
                              displayImage,
                              "Display selected spectra in separate windows",
-                             "control D", KeyEvent.VK_D );
-        viewMenu.add( displayAction );
+                             "control D" );
+        viewMenu.add( displayAction ).setMnemonic( KeyEvent.VK_D );
+
         toolBar.add( displayAction );
 
         //  Add an action to display the selected spectra into the
@@ -828,8 +830,9 @@ public class SplatBrowser
             new LocalAction( LocalAction.MULTI_DISPLAY,
                              "Display/add to plot", multiDisplayImage,
                              "Display selected spectra in one plot or add to"+
-                             " selected plots", "control I", KeyEvent.VK_I );
-        viewMenu.add( multiDisplayAction );
+                             " selected plots", "control I" );
+        viewMenu.add( multiDisplayAction ).setMnemonic( KeyEvent.VK_I );
+
         toolBar.add( multiDisplayAction );
 
         //  Add an action to display the selected spectra in a single
@@ -840,7 +843,8 @@ public class SplatBrowser
             new LocalAction( LocalAction.ANIMATE_DISPLAY,
                              "Animate spectra", animateImage,
                 "Animate selected spectra by displaying one at a time" );
-        viewMenu.add( animateAction );
+        viewMenu.add( animateAction ).setMnemonic( KeyEvent.VK_A );
+
         toolBar.add( animateAction );
 
         //  Add an action to view the values of the spectra.
@@ -850,7 +854,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.SPEC_VIEWER,
                              "View/modify spectra values", viewerImage,
                              "View/modify the values of the selected spectra");
-        viewMenu.add( viewerAction );
+        viewMenu.add( viewerAction ).setMnemonic( KeyEvent.VK_V );
         toolBar.add( viewerAction );
 
         //  Add an action to set the spectral coordinates (x units).
@@ -861,7 +865,7 @@ public class SplatBrowser
                              "View/modify spectral coordinates",
                              specCoordsImage, "View/modify the spectral" +
                              " coordinates of the selected spectra");
-        viewMenu.add( specCoordsAction );
+        viewMenu.add( specCoordsAction ).setMnemonic( KeyEvent.VK_I );
         toolBar.add( specCoordsAction );
 
         //  Add an action to set the data units (y units).
@@ -872,12 +876,12 @@ public class SplatBrowser
                              "View/modify data units",
                              dataUnitsImage, "View/modify the data" +
                              " units of the selected spectra");
-        viewMenu.add( dataUnitsAction );
+        viewMenu.add( dataUnitsAction ).setMnemonic( KeyEvent.VK_E );
         toolBar.add( dataUnitsAction );
 
         //  Add an action to cascade all the plot windows.
         JMenuItem cascade = new JMenuItem( "Cascade all plots" );
-        viewMenu.add( cascade );
+        viewMenu.add( cascade ).setMnemonic( KeyEvent.VK_C );
         cascade.addActionListener( this );
     }
 
@@ -906,7 +910,7 @@ public class SplatBrowser
         ImageIcon rainbowImage =
             new ImageIcon( ImageHolder.class.getResource( "rainbow.gif" ) );
         colourAsLoadedItem.setIcon( rainbowImage );
-        optionsMenu.add( colourAsLoadedItem );
+        optionsMenu.add( colourAsLoadedItem ).setMnemonic( KeyEvent.VK_C );
         colourAsLoadedItem.setToolTipText
             ( "Automatically choose a colour for each spectrum as loaded" );
         colourAsLoadedItem.addItemListener( this );
@@ -917,12 +921,14 @@ public class SplatBrowser
             new LocalAction( LocalAction.COLOURIZE, "Re-auto-colour all",
                              rainbowImage,
                              "Automatically choose a colour for all spectra" );
-        optionsMenu.add( colourizeAction );
+        JMenuItem colourize = optionsMenu.add( colourizeAction );
+        colourize.setMnemonic( KeyEvent.VK_C );
+        colourize.setAccelerator( KeyStroke.getKeyStroke( "control C" ) );
         toolBar.add( colourizeAction );
 
         //  Whether global list shows short or full names.
         showShortNamesItem = new JCheckBoxMenuItem( "Show short names" );
-        optionsMenu.add( showShortNamesItem );
+        optionsMenu.add( showShortNamesItem ).setMnemonic( KeyEvent.VK_S );
         showShortNamesItem.setToolTipText
             ( "Show short names in global list, otherwise long names" );
         showShortNamesItem.addItemListener( this );
@@ -930,7 +936,8 @@ public class SplatBrowser
         //  Whether global list shows simple short names.
         showSimpleShortNamesItem =
             new JCheckBoxMenuItem( "Simple short names" );
-        optionsMenu.add( showSimpleShortNamesItem );
+        optionsMenu.add( showSimpleShortNamesItem )
+            .setMnemonic( KeyEvent.VK_I );
         showSimpleShortNamesItem.setToolTipText
             ( "Show simplified short names in global list, " +
               "when they are same as long names" );
@@ -938,7 +945,7 @@ public class SplatBrowser
 
         //  Arrange the JSplitPane vertically or horizontally.
         splitOrientation = new JCheckBoxMenuItem( "Vertical split" );
-        optionsMenu.add( splitOrientation );
+        optionsMenu.add( splitOrientation ).setMnemonic( KeyEvent.VK_O );
         splitOrientation.setToolTipText( "How to split the browser window" );
         splitOrientation.addItemListener( this );
     }
@@ -953,15 +960,22 @@ public class SplatBrowser
         menuBar.add( interopMenu );
 
         // Add server registration options.
-        interopMenu.add( plasticServer.getRegisterAction( true ) );
-        interopMenu.add( plasticServer.getRegisterAction( false ) );
+        JMenuItem plasticReg = 
+            interopMenu.add( plasticServer.getRegisterAction( true ) );
+        plasticReg.setMnemonic( KeyEvent.VK_R );
+        plasticReg.setAccelerator( KeyStroke.getKeyStroke( "control P" ) );
+        interopMenu.add( plasticServer.getRegisterAction( false ) )
+            .setMnemonic( KeyEvent.VK_U );
 
         // Add hub start options.
-        interopMenu.add( plasticServer.getHubStartAction( true ) );
-        interopMenu.add( plasticServer.getHubStartAction( false ) );
+        interopMenu.add( plasticServer.getHubStartAction( true ) )
+            .setMnemonic( KeyEvent.VK_I );
+        interopMenu.add( plasticServer.getHubStartAction( false ) )
+            .setMnemonic( KeyEvent.VK_E );
 
         // Add registered application window option.
-        interopMenu.add( plasticServer.getHubWatchAction() );
+        interopMenu.add( plasticServer.getHubWatchAction() )
+            .setMnemonic( KeyEvent.VK_H );
 
         // Add spectrum type acceptance options.
         JMenuItem acceptSpectrum =
@@ -971,16 +985,18 @@ public class SplatBrowser
         plasticServer.setAcceptSpectrumModel( acceptSpectrum.getModel() );
         plasticServer.setAcceptFITSLineModel( acceptFITSLine.getModel() );
         interopMenu.addSeparator();
-        interopMenu.add( acceptSpectrum );
-        interopMenu.add( acceptFITSLine );
+        interopMenu.add( acceptSpectrum ).setMnemonic( KeyEvent.VK_S );
+        interopMenu.add( acceptFITSLine ).setMnemonic( KeyEvent.VK_F );
 
 
         // Add spectrum transmit menus items.
         interopMenu.addSeparator();
         SpecTransmitter specTransmitter = SpecTransmitter
             .createSpectrumTransmitter( plasticServer, specList );
-        interopMenu.add( specTransmitter.getBroadcastAction() );
-        interopMenu.add( specTransmitter.createSendMenu() );
+        interopMenu.add( specTransmitter.getBroadcastAction() )
+            .setMnemonic( KeyEvent.VK_B );
+        interopMenu.add( specTransmitter.createSendMenu() )
+            .setMnemonic( KeyEvent.VK_T );
 
         // Could add facilities to transmit as FITS and VOTable here.
         // Don't currently provide this as it clutters the menu and it's
@@ -2819,11 +2835,9 @@ public class SplatBrowser
          * @param accel accelerator key description (string for 
          *              {@link KeyStroke.getKeyStroke(String)} call). 
          *              Accelerator invokes Action immediately.
-         * @param mnem Mnemonic key to active item when menu active
-         *             (usually a {@link KeyEvent}.VK_? value).
          */
         public LocalAction( int type, String name, Icon icon, String help,
-                            String accel, int mnem )
+                            String accel )
         {
             super( name, icon );
             this.type = type;
@@ -2832,7 +2846,6 @@ public class SplatBrowser
             if ( k != null ) {
                 putValue( ACCELERATOR_KEY, k );
             }
-            putValue( MNEMONIC_KEY, new Integer( mnem ) );
         }
 
         public void actionPerformed( ActionEvent ae )

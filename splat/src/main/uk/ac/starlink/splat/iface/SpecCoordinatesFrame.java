@@ -443,7 +443,8 @@ public class SpecCoordinatesFrame
         // Add an action to convert the AST framesets of the current
         // spectra.
         ConvertAction convertAction = new ConvertAction();
-        fileMenu.add( convertAction );
+        fileMenu.add( convertAction ).setMnemonic( KeyEvent.VK_N );
+
         JButton convertButton = new JButton( convertAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( convertButton );
@@ -452,7 +453,8 @@ public class SpecCoordinatesFrame
         // Add an action to set the AST framesets of the current
         // spectra.
         SetAction setAction = new SetAction();
-        fileMenu.add( setAction );
+        fileMenu.add( setAction ).setMnemonic( KeyEvent.VK_S );
+
         JButton setButton = new JButton( setAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( setButton );
@@ -461,7 +463,8 @@ public class SpecCoordinatesFrame
         // Add an action to close the window (appears in File menu
         // and action bar).
         CloseAction closeAction = new CloseAction();
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -1144,7 +1147,6 @@ public class SpecCoordinatesFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -1167,7 +1169,6 @@ public class SpecCoordinatesFrame
             super( "Convert", convertImage );
             putValue( SHORT_DESCRIPTION, "Convert spectral coordinates" +
                       "from old to new type" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_N ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control N" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -1189,7 +1190,6 @@ public class SpecCoordinatesFrame
         {
             super( "Set", setImage );
             putValue( SHORT_DESCRIPTION, "Set spectral coordinate type" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae )

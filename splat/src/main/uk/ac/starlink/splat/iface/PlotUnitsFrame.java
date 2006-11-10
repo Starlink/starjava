@@ -226,7 +226,8 @@ public class PlotUnitsFrame
         // Add an action to convert from the existing coordinates and data
         // units to some new values.
         ApplyAction applyAction = new ApplyAction();
-        fileMenu.add( applyAction );
+        fileMenu.add( applyAction ).setMnemonic( KeyEvent.VK_A );
+
         JButton applyButton = new JButton( applyAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( applyButton );
@@ -235,7 +236,8 @@ public class PlotUnitsFrame
         // Add an action to close the window (appears in File menu and action
         // bar).
         CloseAction closeAction = new CloseAction();
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -440,7 +442,6 @@ public class PlotUnitsFrame
         {
             super( "Close", closeImage );
             putValue( SHORT_DESCRIPTION, "Close window" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae )
@@ -464,7 +465,6 @@ public class PlotUnitsFrame
             super( "Apply", modifyImage );
             putValue( SHORT_DESCRIPTION,  
                       "Apply units change to current spectrum" );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control A" ) );
         }
         public void actionPerformed( ActionEvent ae )
