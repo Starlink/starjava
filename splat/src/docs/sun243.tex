@@ -1410,6 +1410,14 @@ that you'd like to test you can add these by hand. Look at the file
 a VO search and edit it to include a new \hitext{<server>} element. The
 required format should be obvious from the file content.
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 \newpage
 \subsection{The animation window\xlabel{animation_window}}
@@ -1513,6 +1521,14 @@ images that you could combine into a movie of some kind.
  \end{quote}
  \htmladdimg{splatmovie.gif}
 \end{quote}
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
 
 \newpage
 \subsection{The view and modify spectral values window}
@@ -1635,6 +1651,14 @@ changes are propagated immediately so you can see these effects in any
 plots of the spectrum.
 \end{quote}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 \newpage
 \subsection{The spectral coordinate system attributes window}
 
@@ -1700,6 +1724,15 @@ To find out more about spectral coordinate systems you'll need to refer to
 (Greisen, Valdes, Calabretta \& Allen)' and the Starlink AST library
 documentation (\xref{SUN/211}{sun211}{ss_specframes}).
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-n} Convert from current spectral coordinates to UI values.
+\item \labelitem{Control-s} Set spectral coordinate system to UI values.
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
 
 \newpage
 \subsection{The data units window}
@@ -1897,6 +1930,17 @@ time  & min & minute & 60 s \\
 \end{tabular}
 \end{center}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-n} Convert from current data units to UI values.
+\item \labelitem{Control-s} Set data units to UI values.
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
+
 \newpage
 \subsection{The simple binary maths window}
 
@@ -1925,6 +1969,19 @@ preserve total flux, or errors, so this tool should only be used for
 quick qualitative arithmetic between real spectra. Artificial spectra
 (such as polynomial fits) do not have this restriction.
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-d} Add the selected spectra from left and right.
+\item \labelitem{Control-s} Subtract the selected spectra from left and right.
+\item \labelitem{Control-m} Multiply the selected spectra from left and right.
+\item \labelitem{Control-i} Divide the selected spectra from left and right.
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
+
 \newpage
 \subsection{The simple constant maths window}
 
@@ -1942,6 +1999,18 @@ Now select the operation you want to apply. A new spectrum called:
   \item \hitext{Mult: (short name of spectrum) x (<constant>)}
 \end{itemize}
 is created on the global list.
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-d} Add the constant to the selected spectrum.
+\item \labelitem{Control-s} Subtract the constant from the selected spectrum.
+\item \labelitem{Control-m} Multiply the selected spectrum by the constant.
+\item \labelitem{Control-i} Divide the selected spectrum by the constant.
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
 
 \newpage
 \subsection{The panner window}
@@ -1979,6 +2048,14 @@ The following mouse interactions are provided:
 
 \end{itemize}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 \newpage
 \subsection{The plot configuration window}
 
@@ -1994,6 +2071,18 @@ is switched on by default. If you prefer to wait for changes then you will
 need to press the \labelitem{Draw} button. You also need to press the
 \labelitem{Draw} button when making changes to the data limits (these may not
 be in a valid state until you've entered the complete coordinate value).
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-d} Draw the plot with the current UI values.
+\item \labelitem{Control-r} Reset values to their defaults.
+\item \labelitem{Control-s} Activate the configuration store window.
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 \newpage
 \subsubsection*{Axis Data Limits:}
@@ -2271,6 +2360,24 @@ To clear the ranges press the \labelitem{Reset} button, but note that
 this also clears any spectra that have been created on the global
 list. To keep these just close the window.
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-c} Cut out all regions from spectrum.
+\item \labelitem{Control-s} Cut out selected regions from spectrum.
+\item \labelitem{Control-m} Remove all regions from spectrum.
+\item \labelitem{Control-o} Remove selected regions from spectrum.
+\item \labelitem{Control-r} Reset window by clearing ranges and any spectra.
+
+\item \labelitem{Control-d} Add a coordinate range (interactive or non-interactive).
+\item \labelitem{Control-e} Delete the selected coordinate ranges.
+
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
+
 \newpage
 \subsection{The polynomial fitting window}
 
@@ -2397,6 +2504,26 @@ Effectively undoes a \labelitem{Fit (Replace)}.
 
 \end{itemize}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-f} Do fit to all ranges.
+\item \labelitem{Control-l} Do fit to all ranges, only display any new spectra.
+\item \labelitem{Control-s} Do fit to selected ranges.
+\item \labelitem{Control-t} Do fit to selected ranges, only display any new spectra.
+\item \labelitem{Control-p} Reset interface after a fit replace.
+\item \labelitem{Control-r} Reset interface clearing all ranges and new spectra.
+\item \labelitem{Control-i} Delete any new spectra (fits and corrected spectra).
+
+\item \labelitem{Control-d} Add a coordinate range (interactive or non-interactive).
+\item \labelitem{Control-e} Delete the selected coordinate ranges.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
+
 \newpage
 \subsection{The generate spectra from interpolated lines window}
 
@@ -2438,6 +2565,21 @@ restores the spectrum removed in by the first \labelitem{Generate (Replace)}.
 Effectively undoes a \labelitem{Generate (Replace)}.
 
 \end{itemize}
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-d} Start interaction to draw a curve.
+\item \labelitem{Control-g} Generate a spectrum from the drawn curve.
+\item \labelitem{Control-p} Reset interface undoing a Generate (Replace).
+\item \labelitem{Control-r} Reset interface clearing all new spectra.
+\item \labelitem{Control-i} Delete any new spectra.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 \newpage
 \subsection{The spectral line fitting window}
@@ -2655,6 +2797,22 @@ hash (\#) and are ignored.
  shown. Lines are uniquely identified by their \hitext{ID} value.
 \end{quote}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-f} Do line fits to all ranges.
+\item \labelitem{Control-r} Reset interface clearing all ranges and fits.
+\item \labelitem{Control-i} Delete any fits.
+
+\item \labelitem{Control-d} Add a coordinate range (interactive or non-interactive).
+\item \labelitem{Control-e} Delete the selected coordinate ranges.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
+
 \newpage
 \subsection{The filter spectrum window}
 
@@ -2710,6 +2868,22 @@ Effectively undoes the first \labelitem{Filter (Replace)}, since the last
 
 \end{itemize}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-f} Apply current filter to spectrum.
+\item \labelitem{Control-l} Apply current filter to spectrum and only display the new spectrum.
+\item \labelitem{Control-p} Reset interface after a filter replace.
+\item \labelitem{Control-r} Reset interface clearing any ranges and new spectra.
+
+\item \labelitem{Control-d} Add a coordinate range (interactive or non-interactive).
+\item \labelitem{Control-e} Delete the selected coordinate ranges.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 \newpage
 \subsection{Quick change of coordinate or data units window}
@@ -2738,6 +2912,18 @@ and lower) when display spectra that are derived from a dual sideband
 instrument. This is not available when your spectra do not have this feature.
 When displaying a dual sideband spectrum the inactive sideband coordinates
 will be displayed along the unused X axis (usually the top).
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-a} Apply UI values converting from existing
+coordinates and/or data units to new ones.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 \newpage
 \subsection{Flip or shift or redshift a spectrum}
@@ -2863,6 +3049,17 @@ both these areas are written the file \hitext{SPEFO.log} by pressing the
 
 \end{quote}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-r} Reset interface to defaults.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
+
 \newpage
 \subsection{Region statistics window}
 
@@ -2956,6 +3153,22 @@ possible to append the contents of the \labelitem{Full stats log:} region to
 the file \hitext{SPLATStats.log} by pressing the \labelitem{Save to log file}
 button.
 \end{quote}
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-s} Show full stats for all the selected ranges.
+\item \labelitem{Control-l} Show full stats for all the ranges.
+\item \labelitem{Control-h} Show full stats for the whole spectrum,
+
+\item \labelitem{Control-d} Add a coordinate range (interactive or non-interactive).
+\item \labelitem{Control-e} Delete the selected coordinate ranges.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 \newpage
 \section{Supported data formats\xlabel{data_formats}}
