@@ -311,6 +311,16 @@ public class PlotControlFrame
         plot.getPlot().setBaseScale();
 
         setVisible( true );
+
+        //  Attempt to focus in the plot.
+        try {
+            plot.getPlot().requestFocus();
+        }
+        catch (Exception e) {
+            //  Don't care, so print this for information only.
+            e.printStackTrace();
+        }
+
     }
 
     /**
