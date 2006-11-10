@@ -1,10 +1,35 @@
 1 Starlink SPLAT news.
 
+   3.6-0
+   =====
+
+   All menus should now be accessible using keyboard mnemonics. These
+   are indicated by an underlined character in the menu name. Pressing
+   the <Alt> key followed by that character should post the menu. Some
+   menu items can be then activated by pressing a single character
+   (again underlined) or navigated to using the arrow keys.
+
+   Keyboard accelerators have also been assigned to some more useful
+   menu items. These can be activated by pressing the <Control> key
+   and the designated character, when the keyboard focus is in the
+   associated window of the menu item. The accelerator of an item is
+   written next to the item in the menu.
+
+   Simple key accelerators have been assigned to some actions in the plot
+   windows. For instance you can now hide any overlay graphics by pressing
+   the "h" key.
+
+   When defining ranges (for fitting backgrounds and spectral lines) the
+   associated plot window is now brought forward and the cursor is changed.
+   Ranges can now be created without any graphical interaction (under these
+   circumstances the a range is initially created that covers the range
+   between the current axes).
+
    3.5-8
    =====
 
    Save and restores some UI defaults for filter toolbox.
-   
+
    Add new controls for replacing displayed spectrum with processed version
    in the polynomial, filter and interpolate toolboxes. Usability improvement.
 
@@ -19,7 +44,7 @@
    Add a filter that rebins a spectrum to reduce its resolution.
    When native NDF support is not available spectra are opened as NDXs.
    NDF/NDX spectra can now also be saved to NDF using NDX support.
-   
+
    3.5-6
    =====
 
@@ -44,7 +69,7 @@
    The set of automatically chosen colours are now dimmed slightly so that
    they are always distinguishable from overlay graphics elements.
 
-   The percentile autocut now just applies to the data within the X 
+   The percentile autocut now just applies to the data within the X
    range, when the X range is not being autoranged. When autoranged it
    applies to all the data.
 
@@ -58,13 +83,13 @@
    3.5-2
    =====
 
-   The use of file type "guessing" has been extended beyond the File->Browse 
-   dialogue. This can now be selected from the command-line, or from the 
+   The use of file type "guessing" has been extended beyond the File->Browse
+   dialogue. This can now be selected from the command-line, or from the
    File->Open dialogue. Guessing requires that the spectrum be opened for each
    candidate type, so is intrinsically slower than file extension based
    typing. Remote resources will, in general, be opened using guessing.
 
-   SPLAT has also been extended so that it can now interoperate with 
+   SPLAT has also been extended so that it can now interoperate with
    other VO-enabled desktop tools using the PLASTIC protocol.
 
    Release 3.5
@@ -107,7 +132,7 @@
       - Graphics printing now provides PNG format too.
 
       - Dual sideband data now have the coordinates of the second sideband
-        shown along the opposing X axis of a plot. It is also possible to 
+        shown along the opposing X axis of a plot. It is also possible to
         switch between sidebands.
 
       - Log spacing can now be switched on from a plot (rather than by finding
@@ -166,7 +191,7 @@
 
       - Spectra can now be transformed to and from different data units
         (Jy to W/m^2/Hz or erg/cm^2/s/Angstrom etc.).
- 
+
       - The SDSS spectral wavelength calibration is now understood.
 
       - The system look and feel is now the platform default. Mac OS X tweaks
@@ -175,20 +200,20 @@
       - Data units are supported when editing and creating new spectra
         (polynomial and line fits).
 
-      - Line identifiers can now have vertical lines drawn so show the 
-        position more accurately. 
+      - Line identifiers can now have vertical lines drawn so show the
+        position more accurately.
 
       - An integrated flux is now reported as part of the quick line fitting.
 
       - The generate interpolated lines toolbox now includes controls for
-        drawing an interpolated line (avoids use of "Graphics" menu in 
+        drawing an interpolated line (avoids use of "Graphics" menu in
         the plot window).
 
       - The flip/shift toolbox now has a "line visitor" tool. This allows a
         series of coordinate positions (lines) and, optionally, an associated
         spectrum to displayed, one-by-one, and be re-visited simply.
 
-      - The flip/shift toolbox will now work with up to 5 decimal places, so 
+      - The flip/shift toolbox will now work with up to 5 decimal places, so
         that redshifts may be applied with higher accuracy.
 
 Peter W. Draper (p.w.draper@durham.ac.uk)          17th February 2006

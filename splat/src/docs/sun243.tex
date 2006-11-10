@@ -26,11 +26,11 @@ Research Councils \& \\
 2006 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.17}
+\newcommand{\stardocnumber}    {243.18}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {31 October 2006}
+\newcommand{\stardocdate}      {10 November 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.5-8}
+\newcommand{\stardocversion}   {3.6-0}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -391,10 +391,11 @@ in the Virtual Observatory.
 Finally, \SPLAT\ can interoperate with other VO enabled desktop tools using
 the PLASTIC protocol.
 
-% Not advertising this yet. Maybe big changes ahead.
-%Finally \SPLAT\ is extensible by the use of plugin code and
-%command-line scripts, and can be remotely controlled through
-%SOAP messages and a socket-based mechanism.
+% Not advertising this yet. Maybe big changes ahead. Need to make all this
+% controlled from the command-line and produce macro replays and scripts.
+%  Finally \SPLAT\ is extensible by the use of plugin code and
+%  command-line scripts, and can be remotely controlled through
+%  SOAP messages and a socket-based mechanism.
 
 If you have any problems with or comments to make about \SPLAT\, then send
 these to:
@@ -829,6 +830,23 @@ in the following figure:
 
 \end{quote}
 
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-o} Activate open file dialog.
+\item \labelitem{Control-l} Activate location dialog.
+\item \labelitem{Control-r} Re-open all spectra.
+\item \labelitem{Control-x} Exit application.
+\item \labelitem{Delete} Remove selected spectra.
+\item \labelitem{Control-a} Select all spectra.
+\item \labelitem{Control-d} Display selected spectra in plots.
+\item \labelitem{Control-i} Display selected spectra in same plot.
+\item \labelitem{Control-c} Re-colour all spectra.
+\item \labelitem{Control-p} Register with PLASTIC server.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 \newpage
 \subsection{A plot window\xlabel{plot_window}}
 
@@ -888,7 +906,8 @@ the display area.\\
 
   \item Incremental Zoom: you can increase the zoom factors by one
   simply by pressing the middle mouse button anywhere in the display
-  area.
+  area or pressing the $\_/=$ keys. If you hold down the shift key
+  these zoom in Y, otherwise in X.
 
   \item Scrollbars: when the X or Y zooms make the plot greater in size
   than the display area scrollbars appear to the bottom and right. Just
@@ -1168,7 +1187,7 @@ the display area.\\
  \end{itemize}
 \end{quote}
 
-\subsection{The Graphics menu}
+\subheading{The Graphics menu}
 
 The \menuitem{Graphics} menu provides methods for drawing text and a range of
 figures on the plot. This allows you to add annotations, but also provides the
@@ -1265,6 +1284,37 @@ at a later time, this can be done using the
 \submenuitem{Graphics}{Save/restore figures} dialogue. Figures are saved using
 the physical coordinates of the spectrum, so should be re-drawn at the correct
 wavelengths \etc\ on new plots.
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-p} Activate print to printer dialog.
+\item \labelitem{Control-t} Activate print to postscript file dialog.
+\item \labelitem{Control-j} Activate print to JPEG file dialog.
+\item \labelitem{Control-b} Scale spectrum to fit visible width.
+\item \labelitem{Control-h} Scale spectrum to fit visible height.
+\item \labelitem{Control-a} Show the panner window.
+\item \labelitem{Control-o} Show the plot configuration window.
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{Control-v} Cut out the current view of the spectrum.
+\item \labelitem{Control-r} Activate cut out regions of spectrum window.
+\item \labelitem{Control-y} Activate fit polynomial to background window.
+\item \labelitem{Control-g} Activate generate spectrum from drawn curve window.
+\item \labelitem{Control-l} Activate fit spectral lines window.
+\item \labelitem{Control-f} Activate filter spectrum window.
+\item \labelitem{Control-u} Activate quick change units window.
+\item \labelitem{Control-l} Activate flip compare window.
+\item \labelitem{Control-s} Activate statistics window.
+\item \labelitem{Control-[1-9]} Select drawing mode for various graphics figures.
+\item \labelitem{Delete} Delete any selected graphics figures.
+\item \labelitem{Shift-Delete} Delete all graphics figures.
+\item \labelitem{r} Raise any selected graphics figures.
+\item \labelitem{l} Lower any selected graphics figures.
+\item \labelitem{h} Hide or unhide all graphics figures (toggle).
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
+
 
 
 \newpage
