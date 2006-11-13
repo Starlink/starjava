@@ -10,6 +10,9 @@ set copyr2="Copyright (C) 2006 Particle Physics and Astronomy Research Council"
 
 setenv COPYRIGHT "$copyr1<br>$copyr2"
 
+#  Copy figures into place (directory in CVS).
+\cp gifs/* sun243.htx
+
 #  Help system docs, these need to be in a jar file so we can 
 #  access them from javahelp? Figures?
 star2html -no_navigation -c "$COPYRIGHT" sun243.tex
@@ -21,7 +24,6 @@ echo "Created JavaHelp archives"
 
 #  Normal docs.
 star2html -c "$COPYRIGHT" sun243.tex
-\cp gifs/* sun243.htx
 tar cf sun243.htx_tar sun243.htx
 gzip -f -9 sun243.htx_tar
 
@@ -30,4 +32,3 @@ tar cf programming.htx_tar programming.htx
 gzip -f -9 programming.htx_tar
 
 echo "Created hypertext archives"
-
