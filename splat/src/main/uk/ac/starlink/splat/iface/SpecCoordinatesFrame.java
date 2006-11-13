@@ -612,10 +612,10 @@ public class SpecCoordinatesFrame
         specOriginUnits = new JComboBox( unitsMap.keySet().toArray() );
         specOriginUnits.setEditable( true );
         specOriginUnits.addActionListener( this );
-        gbl3.add( specOrigin, false );
-        gbl3.add( specOriginUnits, true );
-        gbl.add( label, false );
-        gbl.add( origpanel, true );
+        //gbl3.add( specOrigin, false );
+        //gbl3.add( specOriginUnits, true );
+        //gbl.add( label, false );
+        //gbl.add( origpanel, true );
         specOrigin.setToolTipText( "Origin for spectral values (displays" +
                                    " offset values from this position)" );
         specOriginUnits.setToolTipText( "Spectral origin value units (blank" +
