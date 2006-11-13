@@ -702,7 +702,7 @@ public class SplatBrowser
         LocalAction exitAction = new LocalAction( LocalAction.EXIT,
                                                   "Exit", exitImage,
                                                   "Exit program",
-                                                  "control X" );
+                                                  "control W" );
         fileMenu.add( exitAction ).setMnemonic( KeyEvent.VK_X );
     }
 
@@ -923,7 +923,7 @@ public class SplatBrowser
                              "Automatically choose a colour for all spectra" );
         JMenuItem colourize = optionsMenu.add( colourizeAction );
         colourize.setMnemonic( KeyEvent.VK_C );
-        colourize.setAccelerator( KeyStroke.getKeyStroke( "control C" ) );
+        colourize.setAccelerator( KeyStroke.getKeyStroke( "control U" ) );
         toolBar.add( colourizeAction );
 
         //  Whether global list shows short or full names.
