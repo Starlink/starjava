@@ -39,7 +39,7 @@ $ref_files{$key} = "$dir".q|node9.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_plastic/;
-$ref_files{$key} = "$dir".q|node45.html|; 
+$ref_files{$key} = "$dir".q|node44.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_basic_control/;
@@ -47,7 +47,7 @@ $ref_files{$key} = "$dir".q|node6.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_animation_window/;
-$ref_files{$key} = "$dir".q|node12.html|; 
+$ref_files{$key} = "$dir".q|node11.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_getting_started/;
@@ -63,7 +63,7 @@ $ref_files{$key} = "$dir".q|node5.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/plastic/;
-$ref_files{$key} = "$dir".q|node45.html|; 
+$ref_files{$key} = "$dir".q|node44.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/Fitstatus/;
@@ -71,7 +71,7 @@ $ref_files{$key} = "$dir".q|node34.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_ssap_window/;
-$ref_files{$key} = "$dir".q|node11.html|; 
+$ref_files{$key} = "$dir".q|node10.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_/;
@@ -91,7 +91,7 @@ $ref_files{$key} = "$dir".q|node8.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_data_formats/;
-$ref_files{$key} = "$dir".q|node42.html|; 
+$ref_files{$key} = "$dir".q|node41.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/Reset/;

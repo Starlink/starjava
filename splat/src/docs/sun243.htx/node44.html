@@ -6,189 +6,175 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Command-line control and tools</TITLE>
-<META NAME="description" CONTENT="Command-line control and tools">
+<TITLE>Tool interoperability using PLASTIC</TITLE>
+<META NAME="description" CONTENT="Tool interoperability using PLASTIC">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
 <LINK REL="next" HREF="node45.html">
-<LINK REL="previous" HREF="node42.html">
+<LINK REL="previous" HREF="node43.html">
 <LINK REL="up" HREF="sun243.html">
 <LINK REL="next" HREF="node45.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html557"
+<A NAME="tex2html555"
  HREF="node45.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html555"
+<A NAME="tex2html553"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html549"
+<A NAME="tex2html547"
  HREF="node43.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html558"
- HREF="node45.html">Tool interoperability using PLASTIC</A>
+<B> Next:</B> <A NAME="tex2html556"
+ HREF="node45.html">Acknowledgements</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html556"
+<B>Up:</B> <A NAME="tex2html554"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html550"
- HREF="node43.html">Handling 2 and 3D data</A>
+<B> Previous:</B> <A NAME="tex2html548"
+ HREF="node43.html">Command-line control and tools</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00060000000000000000">
-Command-line control and tools</A>
+<H1><A NAME="SECTION00070000000000000000"></A><A NAME="plastic"></A><A NAME="xref_plastic"></A>
+<BR>
+Tool interoperability using PLASTIC
 </H1>
 
 <P>
-<B><FONT SIZE="+1">Remote control</FONT></B>
+<I>SPLAT-VO</I> can communicate with other desktop tools, for instance
+exchanging spectra with them, using a protocol called PLASTIC.
+These functions are controlled from the <B>Interop</B> menu
+in the browser window, which looks like this:
 
 <P>
-The most useful of the remote control scripts are the commands:
-
-<UL><LI><TT>splatdisp</TT>
-
-<LI><TT>splatdispmany</TT>
-
-</UL>
-<TT>splatdisp</TT> takes the name of a spectrum and displays it.
-If a plot identifier is given after the spectrum name (this is the
-<TT>n</TT> in any names like <TT>&lt;plotn&gt;</TT> that you see) then you
-can add a spectrum to an existing plot.
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="385" HEIGHT="236" ALIGN="BOTTOM" BORDER="0"
+ SRC="interopmenu.gif"
+ ALT="3802">
+ 
+</DIV>
 
 <P>
-<TT>splatdispmany</TT> takes a list of spectra and displays them all in a
-new plot, much like giving a list of spectra on the command-line when
-starting <I>SPLAT-VO</I>. The obvious uses of these commands are to have very
-basic remote control from any scripts that require display facilities.
+<B><FONT SIZE="+1">What is PLASTIC?</FONT></B>
 
 <P>
-Both of these commands are available as a standard part of <I>SPLAT-VO</I> <I>i.e.</I> you can just type in their names, just like the <TT>splat</TT>
-command. Command-line usage instructions
-are available either by typing in the command name, or by inspecting
-the comments in the file. This is true of all the following commands too.
+PLASTIC stands for the PLatform for AStronomical Tool InterConnection.
+It is a protocol which allows tools on the desktop to communicate
+with each other.  Briefly, the way it works is that applications
+can send messages to a central <EM>hub process</EM> which will
+then pass them on to other applications which can respond to them
+in some appropriate way.  
+The messages are things like ``load this spectrum''.
+Applications which currently talk PLASTIC include
+TOPCAT, GAIA and various tools from the AstroGrid project.
 
 <P>
-More sophisticated control of how the spectrum, once plotted, can be
-displayed is provided by the following scripts:
-
-<UL><LI><TT>$SPLAT_DIR/zoomandcentre</TT>
-
-<LI><TT>$SPLAT_DIR/setcolour</TT>
-
-<LI><TT>$SPLAT_DIR/setproperty</TT>
-
-</UL>
-<TT>zoomandcentre</TT> changes the zoom factor of the wavelength axis
-and optionally centres it on a given wavelength.
+You can find more information about how it works, what applications
+are compatible, and how it can be useful at the
+<A NAME="tex2html6"
+ HREF="http://plastic.sourceforge.net/">PLASTIC web site</A>.
 
 <P>
-<TT>setcolour</TT> allows you to change the display colour of a spectrum.
+<B><FONT SIZE="+1">How do I use PLASTIC with <I>SPLAT-VO</I>?</FONT></B>
 
 <P>
-<TT>setproperty</TT> is quite similar to <TT>setcolour</TT> but it
-also allows you to set the line thickness, type and style, as well as
-whether to display error bars.
+In order for PLASTIC communications to work, a PLASTIC hub must be
+running on your machine.  It is generally best to start this 
+outside of <I>SPLAT-VO</I>.  The recommended way to do this is
+currently to run the <B>AstroGrid Workbench</B>,
+which can be started using Java WebStart by following links on the
+<A NAME="tex2html7"
+ HREF="http://software.astrogrid.org/">AstroGrid web site</A>.
+It is possible however to start the hub using either the
+<B>Start internal PLASTIC hub</B> or <B>Start external PLASTIC hub</B>
+menu items.  The internal one will terminate when you exit <I>SPLAT-VO</I>,
+but the external one will continue running until it is explicitly stopped.
 
 <P>
-<B><FONT SIZE="+1">Plugins</FONT></B>
+If the hub is running when <I>SPLAT-VO</I> starts up, <I>SPLAT-VO</I> will connect to it
+(``register'') automatically.
+If you start the hub while <I>SPLAT-VO</I> is already running,
+you can connect to it by selecting the <B>Register with PLASTIC</B>
+option from the <B>Interop</B> menu.  When registered,
+<I>SPLAT-VO</I> will listen out for messages from other applications and act
+on them.  You will also be able to send messages to other applications.
+If you want to stop <I>SPLAT-VO</I> responding to any such messages,
+you can select <B>Unregister with PLASTIC</B> from the same menu.
 
 <P>
-The one useful example plugin (<I>i.e.</I> code that is loaded into <I>SPLAT-VO</I> when it starts up) provides the ability to name a list of spectra in a
-directory that should be automatically loaded when <I>SPLAT-VO</I> starts up
-in that directory (this includes a special indicator to load all
-spectra).
+The <B>Show Registered Applications</B> menu item will display a
+little window that gives the names of applications currently registered.
+This will show you which other tools are in a position to send messages
+to or receive them from <I>SPLAT-VO</I>.
 
 <P>
-To use this you need to do the following:
-<BLOCKQUOTE>
-<PRE>
- % setenv SPLAT_PLUGINS $SPLAT_DIR/example_plugin3.bsh
-</PRE>
-</BLOCKQUOTE>
-Now when <I>SPLAT-VO</I> starts it will look for a file
-<TT>.splat_autoloads</TT>  in the current directory and if found
-it will read the lines (each of which are
-assumed to contain a file name) from it to construct a list of spectra
-to display. If the file only has one line ``*'' then all the NDFs are
-automatically loaded. If you'd like other types of spectra to be
-automatically loaded take a copy of <TT>example_plugin3.bsh</TT> and
-modify the <TT>FILE_PATTERN</TT> definition line. Now re-define
-<TT>SPLAT_PLUGINS</TT> to point at your copy.
+<B><FONT SIZE="+1">What PLASTIC facilities does <I>SPLAT-VO</I> support?</FONT></B>
 
 <P>
-<B><FONT SIZE="+1">Command-line <I>SPLAT-VO</I></FONT></B>
+Currently, <I>SPLAT-VO</I>'s PLASTIC interaction is confined to receiving
+spectra from, and sending spectra to, other applications.
 
 <P>
-<TT>$SPLAT_DIR</TT> also contains several command-line scripts that
-only make use of <I>SPLAT-VO</I> classes, so don't need <I>SPLAT-VO</I> to be running. These
-are:
-
-<UL><LI><TT>$SPLAT_DIR/fitgauss</TT>
-
-<LI><TT>$SPLAT_DIR/fitgauss2</TT>
-
-<LI><TT>$SPLAT_DIR/linepositions</TT>
-
-</UL>
-which as you might expect fit gaussians to lines and just locate
-accurate line positions from a initial list. Just run the commands
-without any arguments to get usage instructions. Look at the script
-headers for more details.
+Normally, if another PLASTIC application sends spectral data to <I>SPLAT-VO</I>,
+it will respond by attempting to add it to the global list
+just as if you had loaded it in the usual way.
+This is usually what you want to happen, but two checkbox items
+are provided on the <B>Interop</B> menu which allow you to turn this 
+behaviour off: <B>Accept spectra</B> and <B>Accept 1d FITS</B>.
+If you uncheck these, then incoming requests to load
+spectral data or 1-dimensional FITS files respectively will be ignored.
 
 <P>
-A one-off command that is currently only available as a script, but may become
-available as part of a proper toolbox is:
-
-<UL><LI><TT>$SPLAT_DIR/deblend</TT>
-
-</UL>
-This fits a blend of spectral lines using a multi-component model, based on
-any of the three spectral line profiles supported by <I>SPLAT-VO</I> (Gaussian,
-Lorentz, Voigt). See the contents of this file for instructions on how to use
-it.
+You can also perform the opposite trick, take a spectrum which is
+displayed in <I>SPLAT-VO</I> and send it to one or all of the other tools
+currently registered with PLASTIC.  To do this select one of the
+<B>Broadcast spectrum</B> or <B>Send spectrum to ...</B> items.  
+The Broadcast action sends the data to all listening tools.
+The Send action sends only to a single selected tool; you choose it
+from the submenu to the right.  Only tools which (claim they) know 
+what to do with spectral data will be listed; if none of the 
+currently-registered tools is prepared to accept data in that format, 
+the Send options will be unavailable.
 
 <P>
 <BR> <HR>
-<A NAME="tex2html557"
+<A NAME="tex2html555"
  HREF="node45.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html555"
+<A NAME="tex2html553"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html549"
+<A NAME="tex2html547"
  HREF="node43.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="104"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html558"
- HREF="node45.html">Tool interoperability using PLASTIC</A>
+<B> Next:</B> <A NAME="tex2html556"
+ HREF="node45.html">Acknowledgements</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html556"
+<B>Up:</B> <A NAME="tex2html554"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html550"
- HREF="node43.html">Handling 2 and 3D data</A>
+<B> Previous:</B> <A NAME="tex2html548"
+ HREF="node43.html">Command-line control and tools</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>31 October 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
-
-Research Councils \& \
-
-2006 Particle Physics and Astronomy Research Council<BR></I>
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper & Mark Taylor<BR>13 November 2006<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright (C) 2001-2005 Council for the Central Laboratory of the Research Councils<br>Copyright (C) 2006 Particle Physics and Astronomy Research Council<BR></I>
 </ADDRESS>
 </BODY>
 </HTML>

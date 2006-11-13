@@ -39,7 +39,7 @@ $external_labels{$key} = "$URL/" . q|node9.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_plastic/;
-$external_labels{$key} = "$URL/" . q|node45.html|; 
+$external_labels{$key} = "$URL/" . q|node44.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_basic_control/;
@@ -47,7 +47,7 @@ $external_labels{$key} = "$URL/" . q|node6.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_animation_window/;
-$external_labels{$key} = "$URL/" . q|node12.html|; 
+$external_labels{$key} = "$URL/" . q|node11.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_getting_started/;
@@ -63,7 +63,7 @@ $external_labels{$key} = "$URL/" . q|node5.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/plastic/;
-$external_labels{$key} = "$URL/" . q|node45.html|; 
+$external_labels{$key} = "$URL/" . q|node44.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/Fitstatus/;
@@ -71,7 +71,7 @@ $external_labels{$key} = "$URL/" . q|node34.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_ssap_window/;
-$external_labels{$key} = "$URL/" . q|node11.html|; 
+$external_labels{$key} = "$URL/" . q|node10.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/xref_/;
@@ -91,7 +91,7 @@ $external_labels{$key} = "$URL/" . q|node8.html|;
 $noresave{$key} = "$nosave";
 
 $key = q/xref_data_formats/;
-$external_labels{$key} = "$URL/" . q|node42.html|; 
+$external_labels{$key} = "$URL/" . q|node41.html|; 
 $noresave{$key} = "$nosave";
 
 $key = q/Reset/;

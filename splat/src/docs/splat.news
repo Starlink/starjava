@@ -3,21 +3,22 @@
    3.6-0
    =====
 
-   All menus should now be accessible using keyboard mnemonics. These
-   are indicated by an underlined character in the menu name. Pressing
-   the <Alt> key followed by that character should post the menu. Some
-   menu items can be then activated by pressing a single character
-   (again underlined) or navigated to using the arrow keys.
+   All menus are now accessible using keyboard mnemonics. These are indicated
+   by an underlined character in the menu name. Pressing the <Alt> (platform
+   dependent) key followed by that character should post the menu. Some menu
+   items can be then activated by pressing a single character (again
+   underlined) or navigated to using the arrow keys.
 
-   Keyboard accelerators have also been assigned to some more useful
-   menu items. These can be activated by pressing the <Control> key
-   and the designated character, when the keyboard focus is in the
-   associated window of the menu item. The accelerator of an item is
-   written next to the item in the menu.
+   Keyboard accelerators have also been assigned to some more useful menu
+   items. These can be activated by pressing the <Control> key and the
+   designated character, when the keyboard focus is in the associated window
+   of the menu item. The accelerator of an item is written next to the item in
+   the menu.
 
-   Simple key accelerators have been assigned to some actions in the plot
-   windows. For instance you can now hide any overlay graphics by pressing
-   the "h" key.
+   Some one character accelerators have been assigned to plot actions. For
+   instance you can now hide any overlay graphics by pressing the `h' key,
+   zoom in X by pressing the `=' key etc. Consult the plot help menu for more
+   about these bindings.
 
    When defining ranges (for fitting backgrounds and spectral lines) the
    associated plot window is now brought forward and the cursor is changed.

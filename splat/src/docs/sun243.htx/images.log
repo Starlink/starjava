@@ -1,4 +1,4 @@
-This is TeX, Version 3.14159 (Web2C 7.4.5) (format=latex 2006.1.26)  31 OCT 2006 17:12
+This is TeX, Version 3.14159 (Web2C 7.4.5) (format=latex 2006.1.26)  10 NOV 2006 18:23
 **./images.tex
 (./images.tex
 LaTeX2e <2001/06/01>
@@ -179,28 +179,28 @@ latex2htmlLength oddsidemargin=0.0pt
 
 latex2htmlLength evensidemargin=0.0pt
 
-LaTeX Font Info:    Try loading font information for OT1+cmbr on input line 180
+LaTeX Font Info:    Try loading font information for OT1+cmbr on input line 168
 .
 (/usr/share/texmf/tex/latex/cmbright/ot1cmbr.fd
 File: ot1cmbr.fd 1999/05/12 v7.3 (WaS)
 )
-LaTeX Font Info:    Try loading font information for OML+cmbrm on input line 18
-0.
+LaTeX Font Info:    Try loading font information for OML+cmbrm on input line 16
+8.
 (/usr/share/texmf/tex/latex/cmbright/omlcmbrm.fd
 File: omlcmbrm.fd 1999/05/12 v7.3 (WaS)
 )
-LaTeX Font Info:    Try loading font information for OMS+cmbrs on input line 18
-0.
+LaTeX Font Info:    Try loading font information for OMS+cmbrs on input line 16
+8.
 (/usr/share/texmf/tex/latex/cmbright/omscmbrs.fd
 File: omscmbrs.fd 1999/05/12 v7.3 (WaS)
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 180.
+(Font)              <10.95> on input line 168.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 180.
+(Font)              <8> on input line 168.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 180.
-l2hSize :displaymath2311:49.40045pt::0.0pt::451.0pt.
+(Font)              <6> on input line 168.
+l2hSize :tex2html_wrap_inline972:8.7125pt::8.7125pt::26.55061pt.
 [1
 
 
@@ -209,10 +209,10 @@ l2hSize :displaymath2311:49.40045pt::0.0pt::451.0pt.
 Here is how much of TeX's memory you used:
  1229 strings out of 95847
  16282 string characters out of 1195948
- 56936 words of memory out of 1000001
+ 55937 words of memory out of 1000001
  4167 multiletter control sequences out of 10000+50000
  8944 words of font info for 26 fonts, out of 500000 for 1000
  14 hyphenation exceptions out of 1000
- 28i,5n,21p,405b,237s stack positions out of 1500i,500n,5000p,200000b,5000s
+ 28i,5n,21p,406b,239s stack positions out of 1500i,500n,5000p,200000b,5000s
 
-Output written on images.dvi (1 page, 816 bytes).
+Output written on images.dvi (1 page, 444 bytes).
