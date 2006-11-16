@@ -51,6 +51,7 @@ public class FormatsTest extends TableCase {
     private static final DefaultValueInfo SIZE_INFO =
         new DefaultValueInfo( "Size", Double.class, null );
     private StarTableOutput sto = new StarTableOutput();
+    private static final String FUNNY_UNITS = "\"'<a&b>'\"";
 
     static {
         MATRIX_INFO.setShape( new int[] { 2, -1 } );
@@ -58,6 +59,7 @@ public class FormatsTest extends TableCase {
         NAMES_INFO.setElementSize( 24 );
         DRINK_INFO.setUCD( "ID_VERSION" );
         SIZE_INFO.setUnitString( "Area of Wales" );
+        NAMES_INFO.setUnitString( FUNNY_UNITS );
 
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
