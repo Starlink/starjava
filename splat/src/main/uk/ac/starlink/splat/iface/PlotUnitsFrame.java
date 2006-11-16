@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     18-APR-2005 (Peter W. Draper):
@@ -34,6 +35,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
@@ -41,6 +44,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -107,6 +111,11 @@ public class PlotUnitsFrame
     private JComboBox sideBandBox = null;
 
     /**
+     * Control for selecting spectral origin.
+     */
+    private JComboBox originBox = null;
+
+    /**
      * Unknown units, could also be unrecognised.
      */
     private static final String UNKNOWN = "Unknown";
@@ -162,11 +171,29 @@ public class PlotUnitsFrame
     private static Map sideBandMap = null;
     static {
         sideBandMap = new LinkedHashMap(); 
-        sideBandMap.put( UNKNOWN, UNKNOWN);
+        sideBandMap.put( UNKNOWN, UNKNOWN );
         sideBandMap.put( "Lower", "LSB" );
         sideBandMap.put( "Upper", "USB" );
         sideBandMap.put( "Offset from LO", "LO" );
     };
+
+    /** Default spectral origin */
+    private double originDefault = 0.0;
+
+    /** Default spectral units, need a Frame for complete coverage */
+    private Frame originDefaultFrame = null;
+
+    /**
+     * List of the possible origins.
+     */
+    private static Map originMap = null;
+    static {
+        originMap = new LinkedHashMap(); 
+        originMap.put( "Default", "Default" );
+        originMap.put( "Rest Frequency", "RestFreq" );
+        originMap.put( "None", "None" );
+    };
+
 
     /**
      * Create an instance.
@@ -288,8 +315,14 @@ public class PlotUnitsFrame
         label = new JLabel( "Data units: " );
         gbl.add( label, false );
         gbl.add( dataUnitsBox, false );
-        gbl.eatLine();
         dataUnitsBox.setToolTipText( "Units of the data values" );
+
+        originBox = new JComboBox( originMap.keySet().toArray() );
+        label = new JLabel( "Origin: " );
+        gbl.add( label, false );
+        gbl.add( originBox, false );
+        gbl.eatLine();
+        originBox.setToolTipText( "Origin of spectral coordinates" );
 
         gbl.eatSpare();
 
@@ -314,6 +347,17 @@ public class PlotUnitsFrame
 
         String coordUnits = frameSet.getC( "unit(1)" );
         String dataUnits = frameSet.getC( "unit(2)" );
+        try {
+            originDefault = frameSet.getD( "SpecOrigin" );
+            originDefaultFrame = (Frame) 
+                frameSet.getFrame( FrameSet.AST__CURRENT ).copy();
+        }
+        catch (AstException e) {
+            //  Not a SpecFrame, no SpecOrigin.
+            originDefault = 0.0;
+            originDefaultFrame = null;
+            System.out.println( "Not a SpecFrame, no SpecOrigin" );
+        }
 
         //  Need to transform these into local strings.
         Set entrySet = dataUnitsMap.entrySet();
@@ -380,9 +424,15 @@ public class PlotUnitsFrame
             return;
         }
 
+        //  See if we need to set the spectral origin. Three states, default, 
+        //  unset and set to the rest frequency.
+        String origin = (String) originBox.getSelectedItem();
+        origin = (String) originMap.get( origin );
+
         //  And apply to current spectrum,
         SpecData spec = control.getCurrentSpectrum();
-        convertToUnits( spec, dataUnits, coordUnits, coordSystem, sideBand );
+        convertToUnits( spec, dataUnits, coordUnits, coordSystem, sideBand,
+                        origin );
     }
 
     /**
@@ -392,7 +442,7 @@ public class PlotUnitsFrame
      */
     protected void convertToUnits( SpecData spec, String dataUnits,
                                    String coordUnits, String coordSystem,
-                                   String sideBand )
+                                   String sideBand, String origin )
     {
         if ( ! dataUnits.equals( UNKNOWN ) ) {
             try {
@@ -412,10 +462,61 @@ public class PlotUnitsFrame
                     attributes = attributes + ",SideBand=" + sideBand;
                 }
                 SpecCoordinatesFrame.convertToAttributes( spec, attributes, 
-                                                          iaxis );
+                                                          iaxis, false );
             }
             catch (SplatException e) {
                 new ExceptionDialog( this, e );
+            }
+        }
+
+
+        //  Now that the transformations are complete deal with the origin 
+        //  transformation.
+        if ( originDefaultFrame != null ) {
+
+            // Note here we use the plot 2D frameset for conversions etc.
+            // (this will be updated above), but apply the changes to the
+            // underlying frameset, so the changes are used when the plot
+            // frameset is regenerated (XXX, make sure plot frameset is upto
+            // date).
+            FrameSet plotFrameSet = spec.getAst().getRef();
+            if ( origin.equals( "Default" ) ) {
+                if ( originDefault != 0.0 ) {
+                    //  Transform to the new coordinates from the ones that
+                    //  the default is in.
+                    double newOrigin = 
+                        UnitUtilities.convert( plotFrameSet, 1, 
+                                               originDefaultFrame, 1,
+                                               true, originDefault );
+                    spec.getFrameSet().setD( "SpecOrigin", newOrigin );
+                }
+                else {
+                    //  Default is 0.0 so clear.
+                    spec.getFrameSet().clear( "SpecOrigin" );
+                }
+            }
+            else if ( origin.equals( "RestFreq" ) ) {
+                //  Get the rest frequency, that's always in GHz.
+                double restfreq = plotFrameSet.getD( "RestFreq" );
+                //  Transform to the new coordinates from the ones that
+                //  the default is in.
+                double newOrigin = 
+                    UnitUtilities.convert( plotFrameSet, 1, 
+                                           "System=FREQ,Unit=GHz", 
+                                           true, false, restfreq );
+                spec.getFrameSet().setD( "SpecOrigin", newOrigin );
+            }
+            else {
+                spec.getFrameSet().clear( "SpecOrigin" );
+            }
+
+            // Do a full update to get the changes propagated throughout.
+            try { 
+                spec.initialiseAst();
+                globalList.notifySpecListenersModified( spec );
+            }
+            catch (SplatException e) {
+                //  Not fatal so just trap.
             }
         }
     }
