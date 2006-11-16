@@ -9,13 +9,13 @@ package uk.ac.starlink.splat.util;
 
 import java.util.StringTokenizer;
 
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.AstException;
+
 /**
  * Utility class for various issues related to working with units as used in
  * spectral data.
- * <p>
- * Consists of two static methods that uses heuristics to fix up problems
- * that have been encountered with units strings that do not match the FITS
- * paper I standard (as used by AST).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -28,6 +28,95 @@ public class UnitUtilities
     private UnitUtilities()
     {
         //  Do nothing.
+    }
+
+    /**
+     * Convert a coordinate from one system to another.
+     * <p>
+     *
+     * The current coordinate system is described as an axis of a Frame (which
+     * would normally be a SpecFrame) and the target system by an AST
+     * attribute list. If clone is true then the attributes will be applied to
+     * a copy of the current Frame (thus preserving any existing attributes,
+     * like a frame of reference, if this is a SpecFrame, and allowing 
+     * attributes beyond those of Frame).
+     *
+     * @param frame the Frame containing the 1D Frame with current coordinates
+     * @param axis the axis of Frame that is the 1D Frame.
+     * @param newatts the AST attribute list of the new coordinate system.
+     * @param clone if true then the attributes will be applied to a copy of
+     *              the input Frame (preserving existing attributes).
+     * @param forward if false work out the transformation in reverse.
+     * @param value the coordinate to be transformed.
+     * @return the transformed coordinate.
+     */
+    public static double convert( Frame frame, int axis, String newatts,
+                                  boolean clone, boolean forward, 
+                                  double value )
+        throws AstException
+    {
+        //  Extract the 1D Frame.
+        int axes[] = new int[1];
+        axes[0] = axis;
+        Frame from = frame.pickAxes( 1, axes, null );
+
+        Frame to;
+        if ( clone ) {
+            to = (Frame) from.copy();
+        }
+        else {
+            to = new Frame( 1 );
+        }
+        to.set( newatts );
+
+        FrameSet cvt = from.convert( to, "" );
+        if ( cvt != null ) {
+            double xin[] = new double[1];
+            xin[0] = value;
+            double xout[] = cvt.tran1( 1, xin, forward );
+            return xout[0];
+        }
+        return 0.0;
+    }
+
+    /**
+     * Convert a coordinate from one system to another.
+     * <p>
+     *
+     * The current coordinate system is described as an axis of a Frame (which
+     * would normally be a SpecFrame) and the target system by another Frame.
+     *
+     * @param fromframe the Frame containing the 1D Frame with current
+     *                  coordinates 
+     * @param fromaxis the axis of fromframe that is the 1D Frame.
+     * @param toframe the Frame describing the new coordinate system.
+     * @param toaxis the axis of toframe that is the 1D Frame.
+     * @param forward if false work out the transformation in reverse.
+     * @param value the coordinate to be transformed.
+     * @return the transformed coordinate.
+     */
+    public static double convert( Frame fromframe, int fromaxis, 
+                                  Frame toframe, int toaxis, boolean forward,
+                                  double value )
+        throws AstException
+    {
+        //  Extract the 1D Frames.
+        int axes[] = new int[1];
+
+        axes[0] = fromaxis;
+        Frame from = fromframe.pickAxes( 1, axes, null );
+
+        axes[0] = toaxis;
+        Frame to = toframe.pickAxes( 1, axes, null );
+
+        FrameSet cvt = from.convert( to, "" );
+        if ( cvt != null ) {
+            double xin[] = new double[1];
+            xin[0] = value;
+            double xout[] = cvt.tran1( 1, xin, forward );
+            return xout[0];
+        }
+        return 0.0;
     }
 
     /**
