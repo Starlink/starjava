@@ -302,7 +302,8 @@ public class AxisEditor extends JPanel {
      */
     public void updateRanges() {
         for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
-            ((Range) it.next()).setBounds( getLow(), getHigh() );
+            double[] bounds = getAxisBounds();
+            ((Range) it.next()).setBounds( bounds[ 0 ], bounds[ 1 ] );
         }
     }
 

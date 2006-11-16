@@ -9707,6 +9707,7 @@ introduced since the last version:
         later.</li>
     <li>Intercept OutOfMemoryErrors during 3D plotting to give an explanatory
         popup.</li>
+    <li>Fixed bug in axis range checking.</li>
     </ul>
     </p></dd>
 
