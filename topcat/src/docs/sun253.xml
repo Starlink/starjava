@@ -9708,6 +9708,7 @@ introduced since the last version:
     <li>Intercept OutOfMemoryErrors during 3D plotting to give an explanatory
         popup.</li>
     <li>Fixed bug in axis range checking.</li>
+    <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
     </ul>
     </p></dd>
 

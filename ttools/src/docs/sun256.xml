@@ -4049,6 +4049,7 @@ but my thanks are especially due to the following:
     <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
         later.</li>
     <li>Modified parameter handling slightly for <code>votlint</code>.</li>
+    <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
     </ul>
     </p></dd>
 
