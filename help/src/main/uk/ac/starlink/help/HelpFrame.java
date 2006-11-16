@@ -300,7 +300,8 @@ public class HelpFrame
         ImageIcon closeImage =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         closeButton.setToolTipText( "Close window" );
 
@@ -450,7 +451,6 @@ public class HelpFrame
         {
             super( name, icon );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             
         }
         public void actionPerformed( ActionEvent ae )

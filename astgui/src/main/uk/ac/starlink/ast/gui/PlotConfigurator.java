@@ -273,7 +273,8 @@ public class PlotConfigurator
 
         //  Add action to draw the AST description.
         DrawAction drawAction = new DrawAction( "Draw", drawImage );
-        fileMenu.add( drawAction );
+        fileMenu.add( drawAction ).setMnemonic( KeyEvent.VK_D );
+
         JButton drawButton = new JButton( drawAction );
         topAction.add( Box.createGlue() );
         topAction.add( drawButton );
@@ -282,7 +283,8 @@ public class PlotConfigurator
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
-        fileMenu.add( resetAction );
+        fileMenu.add( resetAction ).setMnemonic( KeyEvent.VK_R );
+
         JButton resetButton = new JButton( resetAction );
         topAction.add( Box.createGlue() );
         topAction.add( resetButton );
@@ -291,7 +293,8 @@ public class PlotConfigurator
         //  Add action to create the configuration storage window.
         StoreAction storeAction = new StoreAction( "Store/restore",
                                                    configImage );
-        optionsMenu.add( storeAction );
+        optionsMenu.add( storeAction ).setMnemonic( KeyEvent.VK_S );
+
         JButton storeButton = new JButton( storeAction );
         topAction.add( Box.createGlue() );
         topAction.add( storeButton );
@@ -303,7 +306,8 @@ public class PlotConfigurator
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
         JButton closeButton = new JButton( closeAction );
         botAction.add( Box.createGlue() );
         botAction.add( closeButton );
@@ -524,7 +528,6 @@ public class PlotConfigurator
     {
         public DrawAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_D ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control D" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -539,7 +542,6 @@ public class PlotConfigurator
     {
         public CloseAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_C ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control W" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -554,7 +556,6 @@ public class PlotConfigurator
     {
         public ResetAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_R ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control R" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
@@ -570,7 +571,6 @@ public class PlotConfigurator
     {
         public StoreAction( String name, Icon icon ) {
             super( name, icon );
-            putValue( MNEMONIC_KEY, new Integer( KeyEvent.VK_S ) );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
         }
         public void actionPerformed( ActionEvent ae ) {
