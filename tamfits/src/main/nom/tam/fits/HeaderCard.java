@@ -96,17 +96,30 @@ public class HeaderCard
 	if (value != null) {
             value = value.trim();
 
-            if (value.length() > MAX_VALUE_LENGTH) {
-	        throw new HeaderCardException("Value too long");
+            // MBT (16-NOV-2006): Quote processing modified.
+            // Comment out the following:
+            //
+         // if (value.charAt(0) == '\'') {
+	 //     if (value.charAt(value.length()-1) != '\'') {
+	 //         throw new HeaderCardException("Missing end quote in string value");
+	 //     }
+         //
+	 //     value = value.substring(1,value.length()-1).trim();
+         //
+         // }
+
+            // If first and last characters are single quotes, strip them.
+            // I'm not sure this is the best thing to do, but it's here to
+            // provide behaviour which is as compatible as possible with
+            // the previous behaviour (see commented-out code above),
+            // while fixing the bugs that it exhibited (see code below).
+            if (value.length() > 1 && value.charAt(0) == '\''
+                                   && value.charAt(value.length()-1) == '\'') {
+                value = value.substring(1,value.length()-1).trim();
             }
 
-            if (value.charAt(0) == '\'') {
-	        if (value.charAt(value.length()-1) != '\'') {
-	            throw new HeaderCardException("Missing end quote in string value");
-	        }
-
-	        value = value.substring(1,value.length()-1).trim();
-
+            if (value.length() > MAX_VALUE_LENGTH) {
+	        throw new HeaderCardException("Value too long");
             }
         }
 
@@ -204,7 +217,10 @@ public class HeaderCard
             }
 
             // break apart character string
-            value = valueAndComment.substring(1, vend).trim();
+            // MBT (16-NOV-2006): unquote quotes 16-NOV-2006
+            value = valueAndComment.substring(1, vend)
+                                   .replaceAll( "''", "'" )
+                                   .trim();
 	   
 	    if (vend+1 >= valueAndComment.length()) {
 		comment = null;
@@ -454,12 +470,13 @@ public class HeaderCard
 	}
 
         if (value != null) {
+            String val = value.replaceAll( "'", "''" );
             buf.append("= ");
 
             if (isString) {
 	        // left justify the string inside the quotes
 	        buf.append('\'');
-	        buf.append(value);
+	        buf.append(val);
 		if (buf.length() < 19) {
 		  
 		    buf.append(space80.substring(0, 19-buf.length()));
@@ -473,11 +490,11 @@ public class HeaderCard
             } else {
 		
 	        int offset = buf.length();
-		if (value.length() < 20) {
-		    buf.append(space80.substring(0, 20-value.length()));
+		if (val.length() < 20) {
+		    buf.append(space80.substring(0, 20-val.length()));
 		}
 		
-	        buf.append(value);
+	        buf.append(val);
 
             }
 
