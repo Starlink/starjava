@@ -153,14 +153,13 @@ public class SpecCoordinatesFrame
     private JComboBox restFrequencyUnits = null;
 
     /**
-     * Spectral origin.
+     * Spectral origin. Special attribute. Uses units of spectrum and is
+     * transformed with the spectrum. A value of 0 is taken to mean clear
+     * (quite different from setting to 0). Cannot apply from the UI unless it
+     * is changed as the units are not matched.
      */
     private JTextField specOrigin = null;
-
-    /**
-     * Spectral origin units.
-     */
-    private JComboBox specOriginUnits = null;
+    private String specOriginDefault = null;
 
     /**
      * Control for source velocity.
@@ -609,17 +608,12 @@ public class SpecCoordinatesFrame
                                                     GridBagLayouter.SCHEME2 );
         gbl3.setInsets( new Insets( 0, 0, 0, 0 ) );
         specOrigin = new JTextField();
-        specOriginUnits = new JComboBox( unitsMap.keySet().toArray() );
-        specOriginUnits.setEditable( true );
-        specOriginUnits.addActionListener( this );
-        //gbl3.add( specOrigin, false );
-        //gbl3.add( specOriginUnits, true );
-        //gbl.add( label, false );
-        //gbl.add( origpanel, true );
+        gbl3.add( specOrigin, false );
+        gbl.add( label, false );
+        gbl.add( origpanel, true );
         specOrigin.setToolTipText( "Origin for spectral values (displays" +
-                                   " offset values from this position)" );
-        specOriginUnits.setToolTipText( "Spectral origin value units (blank" +
-                                        " for current)" );
+                                   " offset values from this position)," +
+                                   " same units as spectrum (0 to reset)" );
 
         //  Source rest frame.
         label = new JLabel( "Source rest frame:" );
@@ -677,8 +671,8 @@ public class SpecCoordinatesFrame
                 // for AST. Note we use AST to format the value.
                 aSpecFrame.setD( "ObsLon", -1.0 * obs.getLong() * Pal.R2D );
                 aSpecFrame.setD( "ObsLat", obs.getLat() * Pal.R2D );
-                obsLong.setText( aSpecFrame.getC( "ObsLon") );
-                obsLat.setText( aSpecFrame.getC( "ObsLat") );
+                obsLong.setText( aSpecFrame.getC( "ObsLon" ) );
+                obsLat.setText( aSpecFrame.getC( "ObsLat" ) );
             }
             catch (Exception e) {
                 obsLong.setText( "" );
@@ -707,6 +701,29 @@ public class SpecCoordinatesFrame
             //  string.
             String attributes = gatherAttributes();
 
+            //  Only set spectral origin when it has changed. When it is set
+            //  to zero we really need to clear the value instead.
+            String value = specOrigin.getText();
+            boolean clearOrigin = false;
+            if ( isValid( value ) ) { 
+
+                //  Check for zero, means clear this attribute.
+                try {
+                    double origin = Double.parseDouble( value );
+                    if ( origin == 0.0 ) {
+                        clearOrigin = true;
+                    }
+                }
+                catch (NumberFormatException e) {
+                    //  Do nothing, just this for information.
+                    e.printStackTrace();
+                }
+                if ( ! clearOrigin && 
+                     ( set || ! value.equals( specOriginDefault ) ) ) {
+                    attributes = attributes + ",SpecOrigin=" + value;
+                }
+            }
+
             //  And apply to all selected spectra.
             for ( int i = 0; i < indices.length; i++ ) {
                 SpecData spec = globalList.getSpectrum( indices[i] );
@@ -721,16 +738,21 @@ public class SpecCoordinatesFrame
                 }
                 try {
                     if ( set ) {
-                        setToAttributes( spec, fullats, iaxis );
+                        setToAttributes( spec, fullats, iaxis, clearOrigin );
                     }
                     else {
-                        convertToAttributes( spec, fullats, iaxis );
+                        convertToAttributes( spec, fullats, iaxis, 
+                                             clearOrigin );
                     }
                 }
                 catch (SplatException e) {
                     new ExceptionDialog( this, e );
                 }
             }
+
+            //  Make interface match spectra. Need to do that as the spectral
+            //  origin is transformed to the new coordinate system.
+            update();
         }
     }
 
@@ -779,12 +801,6 @@ public class SpecCoordinatesFrame
         if ( isValid( value ) ) {
             String units = (String) restFrequencyUnits.getEditor().getItem();
             buffer.append( ",RestFreq=" + value + units );
-        }
-
-        value = specOrigin.getText();
-        if ( isValid( value ) ) {
-            String units = (String) specOriginUnits.getEditor().getItem();
-            buffer.append( ",SpecOrigin=" + value + units );
         }
 
         selected = (String) sourceStdOfRestBox.getSelectedItem();
@@ -839,11 +855,12 @@ public class SpecCoordinatesFrame
      * @param attributes the AST attributes describing the new system
      *                   (for example: "system=WAVE,unit(1)=Angstrom").
      * @param iaxis the axis that of spectral FrameSet that is the SpecFrame.
+     * @param clearOrigin iff true clear the SpecOrigin attribute first.
      *
      * @throws SplatException when an error occurs
      */
     public static void convertToAttributes( SpecData spec, String attributes,
-                                            int iaxis  )
+                                            int iaxis, boolean clearOrigin )
         throws SplatException
     {
         //  This modifies the underlying FrameSet. Not the plot version.
@@ -864,7 +881,14 @@ public class SpecCoordinatesFrame
         if ( picked instanceof SpecFrame ) {
             try {
                 FrameSet localCopy = (FrameSet) frameSet.copy();
+                if ( clearOrigin ) {
+                    localCopy.clear( "SpecOrigin" );
+                }
                 localCopy.set( attributes );
+
+                if ( clearOrigin ) {
+                    frameSet.clear( "SpecOrigin" );
+                }
                 frameSet.set( attributes );
 
                 // Do a full update to get the changes propagated throughout.
@@ -893,10 +917,11 @@ public class SpecCoordinatesFrame
      * @param attributes the AST attributes describing the system
      *                   (for example: "system=WAVE,unit=Angstrom").
      * @param iaxis the axis that of spectral FrameSet that is the SpecFrame.
+     * @param clearOrigin iff true clear the SpecOrigin attribute first.
      * @throws SplatException when an error occurs.
      */
     public static void setToAttributes( SpecData spec, String attributes, 
-                                        int iaxis )
+                                        int iaxis, boolean clearOrigin )
         throws SplatException
     {
         //  This sets the underlying FrameSet. Not the plot version.  The
@@ -919,17 +944,23 @@ public class SpecCoordinatesFrame
             spec.initialiseAst();
         }
 
-        // Now set the values. Note we write to Frame not FrameSet as
-        // this just sets the attributes, rather than have them
-        // remapped. Use a copy of the FrameSet so we can back out
-        // when errors happen (these can leave the FrameSet quite
-        // mixed up).
+        // Now set the values. Note we write to Frame not FrameSet as this
+        // just sets the attributes, rather than have them remapped. Use a
+        // copy of the FrameSet so we can back out when errors happen (these
+        // can leave the FrameSet quite mixed up).
 
         FrameSet localCopy = (FrameSet) frameSet.copy();
-        current = localCopy.getFrame( FrameSet.AST__CURRENT );
+        Frame currentCopy = localCopy.getFrame( FrameSet.AST__CURRENT );
         try {
-            current.set( attributes );
+            if ( clearOrigin ) {
+                currentCopy.clear( "SpecOrigin" );
+            }
+            currentCopy.set( attributes );
+
             current = frameSet.getFrame( FrameSet.AST__CURRENT );
+            if ( clearOrigin ) {
+                current.clear( "SpecOrigin" );
+            }
             current.set( attributes );
 
             // Do a full update to get the changes propagated throughout.
@@ -974,7 +1005,8 @@ public class SpecCoordinatesFrame
             String refra = "";
             String refdec = "";
             String restfreq = "";
-            String specorigin = "";
+            String specorigin = "0";
+            String specoriginDefault = "0";
             String sourcevel = "";
             String sourcevrf = "";
             String epoch = "";
@@ -1029,7 +1061,8 @@ public class SpecCoordinatesFrame
                         refra = "";
                         refdec = "";
                         restfreq = "";
-                        specorigin = "";
+                        specorigin = "0";
+                        specoriginDefault = "0";
                         sourcevel = "";
                         sourcevrf = "";
                         epoch = "";
@@ -1101,7 +1134,7 @@ public class SpecCoordinatesFrame
 
         if ( specorigin != null ) {
             specOrigin.setText( specorigin );
-            specOriginUnits.setSelectedIndex( 0 );
+            specOriginDefault = specorigin;
         }
 
         if ( sourcevel != null ) {
@@ -1232,12 +1265,6 @@ public class SpecCoordinatesFrame
                 String units = (String) unitsMap.get( name );
                 if ( units != null ) {
                     restFrequencyUnits.setSelectedItem( units );
-                }
-            }
-            else if ( jb == specOriginUnits ) {
-                String units = (String) unitsMap.get( name );
-                if ( units != null ) {
-                    specOriginUnits.setSelectedItem( units );
                 }
             }
         }
