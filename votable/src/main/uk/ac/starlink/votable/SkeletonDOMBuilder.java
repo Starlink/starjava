@@ -350,6 +350,10 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                         throw (IOException) new IOException( e.getMessage() )
                              .initCause( e );
                     }
+                    catch ( OutOfMemoryError e ) {
+                        tableHandler_ = null;
+                        throw e;
+                    }
                     finally {
                         rseq.close();
                     }
