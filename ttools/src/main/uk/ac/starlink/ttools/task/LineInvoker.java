@@ -227,6 +227,9 @@ public class LineInvoker {
             }
             catch ( OutOfMemoryError e ) {
                 System.err.println( "\nOut of memory" );
+                if ( e.getMessage() != null ) {
+                    System.err.println( e.getMessage() );
+                }
                 if ( env.getTableFactory().getStoragePolicy() 
                      != StoragePolicy.PREFER_DISK ) {
                     System.err.println( "Try \"-disk\" flag?\n" );
