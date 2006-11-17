@@ -42,7 +42,7 @@ public class UnitUtilities
      * attributes beyond those of Frame).
      *
      * @param frame the Frame containing the 1D Frame with current coordinates
-     * @param axis the axis of Frame that is the 1D Frame.
+     * @param axis the axis of Frame that is the 1D Frame, 0 if 1D already.
      * @param newatts the AST attribute list of the new coordinate system.
      * @param clone if true then the attributes will be applied to a copy of
      *              the input Frame (preserving existing attributes).
@@ -57,8 +57,11 @@ public class UnitUtilities
     {
         //  Extract the 1D Frame.
         int axes[] = new int[1];
-        axes[0] = axis;
-        Frame from = frame.pickAxes( 1, axes, null );
+        Frame from = frame;
+        if ( axis != 0 ) {
+            axes[0] = axis;
+            from = frame.pickAxes( 1, axes, null );
+        }
 
         Frame to;
         if ( clone ) {
@@ -88,9 +91,11 @@ public class UnitUtilities
      *
      * @param fromframe the Frame containing the 1D Frame with current
      *                  coordinates 
-     * @param fromaxis the axis of fromframe that is the 1D Frame.
+     * @param fromaxis the axis of fromframe that is the 1D Frame, 0 for 1D
+     *                 already. 
      * @param toframe the Frame describing the new coordinate system.
-     * @param toaxis the axis of toframe that is the 1D Frame.
+     * @param toaxis the axis of toframe that is the 1D Frame, 0 for 1D
+     *               already.
      * @param forward if false work out the transformation in reverse.
      * @param value the coordinate to be transformed.
      * @return the transformed coordinate.
@@ -103,11 +108,17 @@ public class UnitUtilities
         //  Extract the 1D Frames.
         int axes[] = new int[1];
 
-        axes[0] = fromaxis;
-        Frame from = fromframe.pickAxes( 1, axes, null );
+        Frame from = fromframe;
+        if ( fromaxis != 0 ) {
+            axes[0] = fromaxis;
+            from = fromframe.pickAxes( 1, axes, null );
+        }
 
-        axes[0] = toaxis;
-        Frame to = toframe.pickAxes( 1, axes, null );
+        Frame to = toframe;
+        if ( toaxis != 0 ) {
+            axes[0] = toaxis;
+            to = toframe.pickAxes( 1, axes, null );
+        }
 
         FrameSet cvt = from.convert( to, "" );
         if ( cvt != null ) {
