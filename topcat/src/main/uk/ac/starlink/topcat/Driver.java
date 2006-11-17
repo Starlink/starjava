@@ -369,7 +369,7 @@ public class Driver {
                 addTableLater( tabfact.randomTable( startab ), name );
             }
             catch ( OutOfMemoryError e ) {
-                TopcatUtils.memoryError();
+                TopcatUtils.memoryError( e );
             }
             catch ( final Throwable e ) {
                 System.err.println( e.getMessage() );

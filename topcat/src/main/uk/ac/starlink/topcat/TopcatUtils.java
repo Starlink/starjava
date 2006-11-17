@@ -271,13 +271,18 @@ public class TopcatUtils {
     /**
      * Alerts the user that the system has run out of memory, and provides
      * the option of some useful tips.
+     *
+     * @param   e  exception, or null
      */
-    public static void memoryError() {
+    public static void memoryError( OutOfMemoryError e ) {
         ControlWindow control = ControlWindow.getInstance();
         String nullOpt = "OK";
         String helpOpt = "Help!";
         String[] options = new String[] { nullOpt, helpOpt };
-        String msg = "Out of memory";
+        String msg = e.getMessage();
+        if ( msg == null || msg.trim().length() == 0 ) {
+            msg = "Out of memory";
+        }
         String title = "Out Of Memory";
         int iopt = JOptionPane.showOptionDialog( control, msg, title,
                                                  JOptionPane.DEFAULT_OPTION,
@@ -294,11 +299,13 @@ public class TopcatUtils {
     /**
      * Queues a {@link #memoryError} call for later execution on the
      * event dispatch thread.
+     *
+     * @param   e  exception, or null
      */
-    public static void memoryErrorLater() {
+    public static void memoryErrorLater( final OutOfMemoryError e ) {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                memoryError();
+                memoryError( e );
             }
         } );
     }

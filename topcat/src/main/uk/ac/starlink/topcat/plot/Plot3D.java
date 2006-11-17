@@ -1264,7 +1264,7 @@ public abstract class Plot3D extends JPanel {
                 }
                 catch ( OutOfMemoryError e ) {
                     failed_ = true;
-                    TopcatUtils.memoryErrorLater();
+                    TopcatUtils.memoryErrorLater( e );
                 }
             }
         }

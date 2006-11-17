@@ -193,7 +193,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
 
         protected void processError( Throwable th ) {
             if ( th instanceof OutOfMemoryError ) {
-                TopcatUtils.memoryError();
+                TopcatUtils.memoryError( (OutOfMemoryError) th );
             }
             else {
                 super.processError( th );

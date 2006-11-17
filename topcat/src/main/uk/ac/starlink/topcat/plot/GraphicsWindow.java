@@ -1295,7 +1295,8 @@ public abstract class GraphicsWindow extends AuxWindow {
                     /* In case of failure, inform the user. */
                     else {
                         if ( error1 instanceof OutOfMemoryError ) {
-                            TopcatUtils.memoryError();
+                            TopcatUtils.memoryError( (OutOfMemoryError)
+                                                     error1 );
                         }
                         else {
                             ErrorDialog.showError( GraphicsWindow.this,

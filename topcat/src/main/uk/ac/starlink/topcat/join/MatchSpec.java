@@ -75,7 +75,7 @@ public abstract class MatchSpec extends JPanel {
      */
     public void matchFailure( Throwable th, Component parent ) {
         if ( th instanceof OutOfMemoryError ) {
-            TopcatUtils.memoryError();
+            TopcatUtils.memoryError( (OutOfMemoryError) th );
         }
         else {
             ErrorDialog.showError( parent, "Match Error", th );
