@@ -108,6 +108,10 @@ public class AstAxes
      */
     public static int MAX_WIDTH = 20;
 
+    /**
+     * Whether exterior axes should be forced.
+     */
+    private boolean forceExterior = false;
 
     /**
      * Create a empty instance. This indicates that the axis elements
@@ -139,6 +143,7 @@ public class AstAxes
         xWidth = 1.0;
         yWidth = 1.0;
         interior = false;
+        forceExterior = false;
         fireChanged();
     }
 
@@ -516,6 +521,28 @@ public class AstAxes
     }
 
     /**
+     * Set whether exterior axes placement should be forced, when 
+     * the labelling choice is exterior.
+     *
+     * @param forceExterior Whether to force exterior axes.
+     */
+    public void setForceExterior( boolean forceExterior )
+    {
+        this.forceExterior = forceExterior;
+        fireChanged();
+    }
+
+    /**
+     * Return if the exterior axes will be forced.
+     *
+     * @return The state value
+     */
+    public boolean getForceExterior()
+    {
+        return forceExterior;
+    }
+
+    /**
      * Get the AST plot options description of this object.
      *
      * @return The astOptions value
@@ -532,6 +559,9 @@ public class AstAxes
         }
         else {
             buffer.append( "Labelling=exterior" );
+            if ( forceExterior ) { 
+                buffer.append( ",ForceExterior=1" );
+            }
         }
 
         if ( isXSet ) {
@@ -622,6 +652,8 @@ public class AstAxes
     {
         addChildElement( rootElement, "interior", interior );
 
+        addChildElement( rootElement, "forceExterior", forceExterior );
+
         addChildElement( rootElement, "isXSet", isXSet );
         addChildElement( rootElement, "showX", showX );
         addChildElement( rootElement, "xLog", logX );
@@ -655,6 +687,11 @@ public class AstAxes
     {
         if ( name.equals( "interior" ) ) {
             setInterior( booleanFromString( value ) );
+            return;
+        }
+
+        if ( name.equals( "forceExterior" ) ) {
+            setForceExterior( booleanFromString( value ) );
             return;
         }
 
