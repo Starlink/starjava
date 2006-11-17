@@ -28,7 +28,7 @@ Copyright \copyright\ 2006 Particle Physics and Astronomy Research Council}
 % Variable part - replace [xxx] as appropriate.
 \newcommand{\stardocnumber}    {243.18}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {13 November 2006}
+\newcommand{\stardocdate}      {17 November 2006}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.6-0}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -1718,6 +1718,10 @@ supported) a rest "frequency" is also needed.  Conceptually this is the value
 that the centre of a line with locally zero velocity has. The rest frequency
 can actually be specified in various units, for instance angstroms.
 
+The \labelitem{Spectral origin} value is used when you want to draw spectral
+coordinates in some offset system. This value defines the zero point. It must
+be specified in the same units as the spectrum.
+
 To find out more about spectral coordinate systems you'll need to refer to
 `FITS-WCS paper III
 \textit{Representations of spectral coordinates in FITS}
@@ -2911,7 +2915,17 @@ The \labelitem{SideBand:} control is for switching between sidebands (upper
 and lower) when display spectra that are derived from a dual sideband
 instrument. This is not available when your spectra do not have this feature.
 When displaying a dual sideband spectrum the inactive sideband coordinates
-will be displayed along the unused X axis (usually the top).
+will be displayed along the unused X axis (usually the top). You
+can also use this control to display coordinates offset from the Local
+Oscillator value.
+
+The \labelitem{Origin:} control allows you to display offset coordinates. 
+In this case you can select to have no offset (\labelitem{None}), use the
+existing offset, if defined (\labelitem{Default}, usually the same as 
+\labelitem{None}), or display coordinates offset from the rest frequency. 
+Note for velocities this last option isn't useful as they are already
+displayed offset from this value. If you want to set another value as the
+origin then you need to use the advanced toolbox available in the main window.
 
 \subheading{Accelerator keys}
 
@@ -3648,8 +3662,14 @@ command-line, or from the
 for each candidate type, so is intrinsically slower than file extension based 
 typing. Remote resources will, in general, be opened using guessing.
 
-\SPLAT\ has also been extended so that it can now interoperate with 
+\item \SPLAT\ has also been extended so that it can now interoperate with 
 other VO-enabled desktop tools using the PLASTIC protocol.
+
+\item It is now possible to define a spectral origin. This allows the
+plotting of offset coordinates.
+
+\item The axes of a plot should now always be drawn on on the edges, unless
+the option to plot them in the plot interior is selected.
 
 \end{itemize}
 

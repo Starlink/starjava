@@ -26,6 +26,12 @@
    circumstances the a range is initially created that covers the range
    between the current axes).
 
+   It is now possible to define a spectral origin. This allows the
+   plotting of offset coordinates.
+
+   The axes of a plot should now always be drawn on on the edges, unless
+   the option to plot them in the plot interior is selected.
+
    3.5-8
    =====
 
