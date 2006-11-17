@@ -254,6 +254,13 @@ public class JDBCStarTable extends AbstractStarTable {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+        catch ( OutOfMemoryError e ) {
+            String msg = "Out of memory during SQL statement execution; "
+                       + "looks like JDBC driver is assembling a read-only "
+                       + "in memory on the client, which is questionable "
+                       + "behaviour";
+            throw (OutOfMemoryError) new OutOfMemoryError( msg ).initCause( e );
+        }
         return new RowSequence() {
 
             public boolean next() throws IOException {
