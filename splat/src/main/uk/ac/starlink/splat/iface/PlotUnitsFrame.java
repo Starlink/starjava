@@ -125,14 +125,14 @@ public class PlotUnitsFrame
      */
     private static Map dataUnitsMap = null;
     static {
-        dataUnitsMap = new LinkedHashMap(); 
+        dataUnitsMap = new LinkedHashMap();
         dataUnitsMap.put( UNKNOWN, UNKNOWN);
         dataUnitsMap.put( "Jansky", "Jy");
         dataUnitsMap.put( "W/m^2/Hz", "W/m^2/Hz" );
         dataUnitsMap.put( "W/m^2/Angstrom", "W/m^2/Angstrom" );
         dataUnitsMap.put( "W/cm^2/um", "W/cm^2/um" );
         dataUnitsMap.put( "erg/cm^2/s/Hz", "erg/cm^2/s/Hz" );
-        dataUnitsMap.put( "erg/cm^2/s/Angstrom", "erg/cm^2/s/Angstrom" ); 
+        dataUnitsMap.put( "erg/cm^2/s/Angstrom", "erg/cm^2/s/Angstrom" );
     };
 
     /**
@@ -141,7 +141,7 @@ public class PlotUnitsFrame
      */
     private static Vector coordinateSystems = null;
     static {
-        coordinateSystems = new Vector(); 
+        coordinateSystems = new Vector();
         coordinateSystems.add( new Cdus( UNKNOWN, UNKNOWN, UNKNOWN ) );
         coordinateSystems.add( new Cdus( "Angstroms", "Angstrom", "WAVE" ) );
         coordinateSystems.add( new Cdus( "Nanometres", "nm", "WAVE" ) );
@@ -156,7 +156,7 @@ public class PlotUnitsFrame
         coordinateSystems.add( new Cdus( "Joules", "J", "ENER" ) );
         coordinateSystems.add( new Cdus( "Ergs", "erg", "ENER" ) );
         coordinateSystems.add( new Cdus( "Electron-volts", "eV", "ENER" ) );
-        coordinateSystems.add( new Cdus( "Kilo-electron-volts", "keV", 
+        coordinateSystems.add( new Cdus( "Kilo-electron-volts", "keV",
                                          "ENER" ) );
         coordinateSystems.add( new Cdus( "Metres-per-sec (radio)", "m/s",
                                          "VRAD" ) );
@@ -170,7 +170,7 @@ public class PlotUnitsFrame
      */
     private static Map sideBandMap = null;
     static {
-        sideBandMap = new LinkedHashMap(); 
+        sideBandMap = new LinkedHashMap();
         sideBandMap.put( UNKNOWN, UNKNOWN );
         sideBandMap.put( "Lower", "LSB" );
         sideBandMap.put( "Upper", "USB" );
@@ -188,7 +188,7 @@ public class PlotUnitsFrame
      */
     private static Map originMap = null;
     static {
-        originMap = new LinkedHashMap(); 
+        originMap = new LinkedHashMap();
         originMap.put( "Default", "Default" );
         originMap.put( "Rest Frequency", "RestFreq" );
         originMap.put( "None", "None" );
@@ -197,7 +197,7 @@ public class PlotUnitsFrame
 
     /**
      * Create an instance.
-     * 
+     *
      * @plot a PlotControl instance that specifies the current spectrum.
      */
     public PlotUnitsFrame( PlotControl control )
@@ -206,7 +206,7 @@ public class PlotUnitsFrame
         this.control = control;
         initUI();
         initFrame();
-        
+
         //  Listen for changes to the current spectrum. When this happens
         //  update the displayed units.
         control.addItemListener( this );
@@ -331,7 +331,7 @@ public class PlotUnitsFrame
 
     /**
      * Match the UI to the properties of the current spectrum. If the
-     * units cannot be matched against the list of possibles then 
+     * units cannot be matched against the list of possibles then
      * "Unknown" is shown.
      */
     protected void matchCurrentSpectrum()
@@ -349,7 +349,7 @@ public class PlotUnitsFrame
         String dataUnits = frameSet.getC( "unit(2)" );
         try {
             originDefault = frameSet.getD( "SpecOrigin" );
-            originDefaultFrame = (Frame) 
+            originDefaultFrame = (Frame)
                 frameSet.getFrame( FrameSet.AST__CURRENT ).copy();
         }
         catch (AstException e) {
@@ -398,7 +398,7 @@ public class PlotUnitsFrame
     }
 
     /**
-     * Apply the current units as selected in the UI controls to 
+     * Apply the current units as selected in the UI controls to
      * the current spectrum.
      */
     protected void matchUIUnits()
@@ -416,7 +416,7 @@ public class PlotUnitsFrame
             sideBand = UNKNOWN;
         }
 
-        if ( dataUnits.equals( UNKNOWN ) && 
+        if ( dataUnits.equals( UNKNOWN ) &&
              coordUnits.equals( UNKNOWN ) ) {
             new SplatException
                 ( this, "Cannot convert when current units are unknown",
@@ -424,7 +424,7 @@ public class PlotUnitsFrame
             return;
         }
 
-        //  See if we need to set the spectral origin. Three states, default, 
+        //  See if we need to set the spectral origin. Three states, default,
         //  unset and set to the rest frequency.
         String origin = (String) originBox.getSelectedItem();
         origin = (String) originMap.get( origin );
@@ -452,16 +452,16 @@ public class PlotUnitsFrame
                 new ExceptionDialog( this, e );
             }
         }
-        
+
         if ( ! coordUnits.equals( UNKNOWN ) ) {
             try {
                 int iaxis = spec.getMostSignificantAxis();
-                String attributes = 
+                String attributes =
                     "System=" + coordSystem + ",Unit("+iaxis+")=" + coordUnits;
                 if ( ! sideBand.equals( UNKNOWN ) ) {
                     attributes = attributes + ",SideBand=" + sideBand;
                 }
-                SpecCoordinatesFrame.convertToAttributes( spec, attributes, 
+                SpecCoordinatesFrame.convertToAttributes( spec, attributes,
                                                           iaxis, false );
             }
             catch (SplatException e) {
@@ -470,22 +470,22 @@ public class PlotUnitsFrame
         }
 
 
-        //  Now that the transformations are complete deal with the origin 
+        //  Now that the transformations are complete deal with the origin
         //  transformation.
         if ( originDefaultFrame != null ) {
 
             // Note here we use the plot 2D frameset for conversions etc.
             // (this will be updated above), but apply the changes to the
             // underlying frameset, so the changes are used when the plot
-            // frameset is regenerated (XXX, make sure plot frameset is upto
-            // date).
+            // frameset is regenerated.
             FrameSet plotFrameSet = spec.getAst().getRef();
             if ( origin.equals( "Default" ) ) {
                 if ( originDefault != 0.0 ) {
                     //  Transform to the new coordinates from the ones that
                     //  the default is in.
-                    double newOrigin = 
-                        UnitUtilities.convert( plotFrameSet, 1, 
+                    plotFrameSet.clear( "SpecOrigin" );
+                    double newOrigin =
+                        UnitUtilities.convert( plotFrameSet, 1,
                                                originDefaultFrame, 1,
                                                true, originDefault );
                     spec.getFrameSet().setD( "SpecOrigin", newOrigin );
@@ -500,9 +500,10 @@ public class PlotUnitsFrame
                 double restfreq = plotFrameSet.getD( "RestFreq" );
                 //  Transform to the new coordinates from the ones that
                 //  the default is in.
-                double newOrigin = 
-                    UnitUtilities.convert( plotFrameSet, 1, 
-                                           "System=FREQ,Unit=GHz", 
+                plotFrameSet.clear( "SpecOrigin" );
+                double newOrigin =
+                    UnitUtilities.convert( plotFrameSet, 1,
+                                           "System=FREQ,Unit=GHz",
                                            true, false, restfreq );
                 spec.getFrameSet().setD( "SpecOrigin", newOrigin );
             }
@@ -511,7 +512,7 @@ public class PlotUnitsFrame
             }
 
             // Do a full update to get the changes propagated throughout.
-            try { 
+            try {
                 spec.initialiseAst();
                 globalList.notifySpecListenersModified( spec );
             }
@@ -536,7 +537,7 @@ public class PlotUnitsFrame
     /**
      * Inner class defining Action for closing window.
      */
-    protected class CloseAction 
+    protected class CloseAction
         extends AbstractAction
     {
         public CloseAction()
@@ -558,13 +559,13 @@ public class PlotUnitsFrame
      * Inner class defining Action for converting the AST framesets to
      * the current set of attributes.
      */
-    protected class ApplyAction 
+    protected class ApplyAction
         extends AbstractAction
     {
         public ApplyAction()
         {
             super( "Apply", modifyImage );
-            putValue( SHORT_DESCRIPTION,  
+            putValue( SHORT_DESCRIPTION,
                       "Apply units change to current spectrum" );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control A" ) );
         }
