@@ -80,6 +80,9 @@ public class AboutFrame extends JDialog
         "<h5 align=center>Home page:<i> " +
         Utilities.getSupportURL() +
         "</i></h5>" +
+        "<h5 align=center>Platform:<i> " +
+        Utilities.getPlatform() +
+        "</i></h5>" +
         "</html></body>";
 
     /**
