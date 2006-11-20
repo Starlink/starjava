@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.CmpFrame;
 import uk.ac.starlink.ast.CmpMap;
 import uk.ac.starlink.ast.DSBSpecFrame;
@@ -114,6 +115,15 @@ public class ASTJ
     //  ====================
     //  Class public methods
     //  ====================
+
+    /**
+     * Check if JNIAST is available.
+     */
+    public static boolean isAvailable()
+    {
+        return AstPackage.isAvailable();
+    }
+
 
     /**
      *  Set the main AST frameset.
@@ -569,7 +579,7 @@ public class ASTJ
         // SpecFluxFrame).  Otherwise we use a plain Frame to just represent
         // the data values.
         Frame f2 = null;
-        if ( haveSpecFrame && 
+        if ( haveSpecFrame &&
              ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
             try {
                 f2 = createFluxFrame( units, null, true );
