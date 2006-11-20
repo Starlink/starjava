@@ -963,7 +963,7 @@
          <extension name="UTIL" href="util.jnlp"/>
        </resources>
 
-       <!-- SUN Linux -->
+       <!-- Linux -->
        <resources os="Linux" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
        </resources>
@@ -989,6 +989,9 @@
        <!-- Mac OS X -->
        <resources os="Mac OS X" arch="ppc">
          <nativelib href="ppc/${name}_libs.jar"/>
+       </resources>
+       <resources os="Mac OS X" arch="i386">
+         <nativelib href="i386/${name}_libs.jar"/>
        </resources>
 
        <component_desc/>
