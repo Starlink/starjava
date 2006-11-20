@@ -95,7 +95,7 @@ public class Utilities
      */
     public static String getAuthors()
     {
-        return "Peter W. Draper";
+        return "Peter W. Draper &amp; Mark B. Taylor";
     }
 
     /**
@@ -121,6 +121,18 @@ public class Utilities
     public static String getSupportEmail()
     {
         return "splat@starlink.ac.uk";
+    }
+
+    /**
+     * Get the platform.
+     */
+    public static String getPlatform()
+    {
+        return
+            System.getProperty( "java.version" ) + " : " +
+            System.getProperty( "os.name" ) + " - " +
+            System.getProperty( "os.arch" ) + " - " +
+            System.getProperty( "os.version" );
     }
 
 //
@@ -369,8 +381,8 @@ public class Utilities
      * If the default width and height values are 0 and no values exist
      * already then the size is not set.
      */
-    public static void setComponentSize( JComponent comp, int defWidth, 
-                                         int defHeight, Preferences prefs, 
+    public static void setComponentSize( JComponent comp, int defWidth,
+                                         int defHeight, Preferences prefs,
                                          String name )
     {
         if ( defWidth == 0 || defHeight == 0  ) {
