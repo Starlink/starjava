@@ -15,6 +15,7 @@ import java.util.prefs.Preferences;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
@@ -43,18 +44,18 @@ public class SplatBrowserMain
     protected SplatBrowser browser = null;
 
     /** Command-line usage routine */
-    private static void printUsage() 
+    private static void printUsage()
     {
         System.err.println
-            ( 
-             "usage: " + 
-             Utilities.getApplicationName() + 
+            (
+             "usage: " +
+             Utilities.getApplicationName() +
              " [{-t,--type} type_string]" +
              " [{-n,--ndaction} c{ollapse}||e{xtract}||v{ectorize}]" +
              " [{-d,--dispax} axis_index]" +
              " [{-s,--selectax} axis_index]" +
              " [{-c,--clear}]" +
-             " [spectra1 spectra2 ...]" 
+             " [spectra1 spectra2 ...]"
             );
     }
 
@@ -70,19 +71,22 @@ public class SplatBrowserMain
         Integer dispersionAxis = null;
         Integer selectAxis = null;
         Boolean clearPrefs = Boolean.FALSE;
+        Boolean ignoreErrors = Boolean.FALSE;
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
 
             //  Parse the command-line.
             CmdLineParser parser = new CmdLineParser();
             CmdLineParser.Option type = parser.addStringOption( 't', "type" );
-            CmdLineParser.Option ndaction = 
+            CmdLineParser.Option ndaction =
                 parser.addStringOption( 'n', "ndaction" );
-            CmdLineParser.Option dispax = 
+            CmdLineParser.Option dispax =
                 parser.addIntegerOption( 'd', "dispax" );
-            CmdLineParser.Option selectax = 
+            CmdLineParser.Option selectax =
                 parser.addIntegerOption( 's', "selectax" );
-            CmdLineParser.Option clear = 
+            CmdLineParser.Option clear =
                 parser.addBooleanOption( 'c', "clear" );
+            CmdLineParser.Option ignore =
+                parser.addBooleanOption( 'i', "ignore" );
 
             try {
                 parser.parse( args );
@@ -112,6 +116,12 @@ public class SplatBrowserMain
                 clearPrefs = Boolean.FALSE;
             }
 
+            //  Ignore certain error conditions.
+            ignoreErrors = (Boolean) parser.getOptionValue( ignore );
+            if ( ignoreErrors == null ) {
+                ignoreErrors = Boolean.FALSE;
+            }
+
             //  Everything else should be spectra.
             spectraArgs = parser.getRemainingArgs();
 
@@ -137,12 +147,21 @@ public class SplatBrowserMain
         //  Make interface visible. Do this from an event thread as
         //  parts of the GUI could be realized before returning (not
         //  thread safe).
+        final boolean checkjniast = ! ignoreErrors.booleanValue();
         SwingUtilities.invokeLater( new Runnable() {
                 public void run()
                 {
                     browser = new SplatBrowser( spectra, false, type,
                                                 action, dispax, selectax );
                     browser.setVisible( true );
+                    if ( checkjniast ) {
+                        if ( ! ASTJ.isAvailable() ) {
+                            System.out.println( "No JNIAST support, " + 
+                                                "no point in continuing" +
+                                                " (--ignore 1 to ignore)" );
+                            System.exit( 1 );
+                        }
+                    }
                 }
             });
     }
@@ -159,7 +178,7 @@ public class SplatBrowserMain
         //  each package that stores preferences. Or start walking the tree.
         //  AFAIK only iface stores preferences.
         if ( clearPrefs ) {
-            Preferences prefs = 
+            Preferences prefs =
                 Preferences.userNodeForPackage( SplatBrowserMain.class );
             try {
                 prefs.clear();
@@ -194,7 +213,7 @@ public class SplatBrowserMain
         catch (Exception e) {
             System.err.println( "Failed to load line identifiers" );
         }
-            
+
         //  Web service defaults.
         if ( ! props.containsKey( "axis.EngineConfigFactory" ) ) {
             props.setProperty( "axis.EngineConfigFactory",
@@ -204,12 +223,12 @@ public class SplatBrowserMain
             props.setProperty( "axis.ServerFactory",
                                "uk.ac.starlink.soap.AppAxisServerFactory" );
         }
- 
+
         //  Load the proxy server configuration, if set.
         ProxySetup.getInstance().restore();
     }
 
-    /** 
+    /**
      * Guess the type of a spectrum. Does this by seeing if the default rules
      * work, if not returns guess, otherwise returns null.
      */
@@ -222,7 +241,7 @@ public class SplatBrowserMain
                 result = "guess";
             }
             else if ( "NDF".equals( namer.getFormat() ) ) {
-                //  Files without extensions default to this. 
+                //  Files without extensions default to this.
                 if ( namer.isRemote() ) {
                     //  Remote file. If no extension then the best we can do
                     //  is guess. Remote NDFs should have their file extension
