@@ -447,7 +447,9 @@
      !   and we want to keep the other libraries. The datestamps should 
      !   be in the past otherwise this will fail
      !-->
-    <unjar src="${src.lib.arch}/${name}_libs.jar" dest="${build.lib.arch}"/>
+    <unjar dest="${build.lib.arch}">
+      <fileset file="${src.lib.arch}/${name}_libs.jar"/>
+    </unjar>
 
     <!-- Build the library -->
     <antcall target="execute_mk_script">
