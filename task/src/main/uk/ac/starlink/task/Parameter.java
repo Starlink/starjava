@@ -293,7 +293,7 @@ public class Parameter {
      * using a string, in order to maintain some string representation
      * of the value.  Use with care.
      *
-     * @param  stringVal  new string value
+     * @param  stringValue  new string value
      */
     protected void setStringValue( String stringValue ) {
          this.stringValue = stringValue;
