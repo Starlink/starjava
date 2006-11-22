@@ -31,7 +31,7 @@ public class SeqConcatStarTable extends WrapperStarTable {
      * Constructor.
      *
      * @param   meta   table providing metadata
-     * @param   tProcs  array of table producers which provide the tables
+     * @param   tProds  array of table producers which provide the tables
      *          to join
      */
     public SeqConcatStarTable( StarTable meta, TableProducer[] tProds ) {

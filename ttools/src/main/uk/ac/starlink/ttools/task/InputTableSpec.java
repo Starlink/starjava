@@ -30,14 +30,15 @@ public abstract class InputTableSpec {
     /**
      * Returns input table.
      *
-     * @param  input table
+     * @return  input table
      */
     public abstract StarTable getInputTable() throws TaskException;
 
     /**
-     * Returns the input filter parameter.
+     * Returns the array of processing steps which constitutes the 
+     * processing pipeline.
      *
-     * @param   input filter parameter (may be null)
+     * @return   processing pipeline steps
      */
     public ProcessingStep[] getSteps() {
         return steps_;
@@ -46,7 +47,7 @@ public abstract class InputTableSpec {
     /**
      * Returns input table location as specified in the parameter value.
      *
-     * @param  input table location
+     * @return  input table location
      */
     public String getLocation() {
         return loc_;
