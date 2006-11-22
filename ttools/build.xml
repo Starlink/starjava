@@ -205,6 +205,12 @@
     <!-- TABLE -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
 
+    <!-- FITS -->
+    <pathelement location="${star.jar.dir}/fits/fits.jar"/>
+
+    <!-- VOTABLE -->
+    <pathelement location="${star.jar.dir}/votable/votable.jar"/>
+
   </extclasspath>
 
   <!-- Local build system jar files.
