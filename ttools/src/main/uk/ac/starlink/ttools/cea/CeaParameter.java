@@ -26,7 +26,7 @@ class CeaParameter {
     private boolean isRef_;
     private boolean isMulti_;
     private boolean isNullPermitted_;
-    private Object[] options_;
+    private String[] options_;
 
     /**
      * Constructor.
@@ -51,7 +51,7 @@ class CeaParameter {
             truncateDescription();
         }
         if ( taskParam instanceof ChoiceParameter ) {
-            options_ = ((ChoiceParameter) taskParam).getOptions();
+            options_ = ((ChoiceParameter) taskParam).getOptionNames();
         }
         if ( taskParam instanceof MultiParameter ) {
             isMulti_ = true;
@@ -153,7 +153,7 @@ class CeaParameter {
      *
      * @param   array of sole permitted values, or null
      */
-    public Object[] getOptions() {
+    public String[] getOptions() {
         return options_;
     }
 

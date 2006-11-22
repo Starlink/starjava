@@ -192,13 +192,11 @@ public class CeaWriter extends XmlWriter {
             if ( dflt != null && dflt.trim().length() > 0 ) {
                 addElement( "agpd:DefaultValue", "", dflt );
             }
-            Object[] options = param.getOptions();
+            String[] options = param.getOptions();
             if ( options != null && options.length > 0 ) {
                 startElement( "agpd:OptionList" );
                 for ( int iOpt = 0; iOpt < options.length; iOpt++ ) {
-                    Object opt = options[ iOpt ];
-                    addElement( "agpd:OptionVal", "",
-                                opt == null ? null : opt.toString() );
+                    addElement( "agpd:OptionVal", "", options[ iOpt ] );
                 }
                 endElement( "agpd:OptionList" );
             }
