@@ -56,6 +56,9 @@ public class TerminalEnvironment implements Environment {
                         found = true;
                     }
                 }
+                if ( ! found ) {
+                    throw new UsageException( "Unknown parameter " + name );
+                }
             }
             else {
                 for ( int j = 0; j < params.length; j++ ) {
@@ -66,7 +69,7 @@ public class TerminalEnvironment implements Environment {
                 }
             }
             if ( ! found ) {
-                throw new UsageException();
+                throw new UsageException( "Unknown word: " + args[ i ] );
             }
         }
     }
