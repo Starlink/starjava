@@ -12,10 +12,11 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Channel;
-import uk.ac.starlink.splat.ast.ASTJ;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTChannel;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.util.Loader;
 
 import uk.ac.starlink.splat.util.Utilities;
@@ -26,7 +27,7 @@ import uk.ac.starlink.splat.util.Utilities;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class NDFJ 
+public class NDFJ
     implements Serializable
 {
     //
@@ -72,7 +73,8 @@ public class NDFJ
     //
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.splat" );
-    private static boolean supported = true;
+    private static boolean supported = false;
+
     /**
      *  Load the shareable libraries that contains the NDF code and all
      *  its dependencies. Note this will never work for JWS, unless
@@ -81,6 +83,7 @@ public class NDFJ
     static {
         try {
             Loader.loadLibrary( "splat" );
+            supported = true;
         }
         catch (SecurityException se) {
             logger.log( Level.CONFIG, se.getMessage(), se );
@@ -96,15 +99,27 @@ public class NDFJ
             supported = false;
         }
         if ( ! supported ) {
-            logger.warning( ( "Failed to load the " + 
-                              Utilities.getReleaseName() + 
+            logger.warning( ( "Failed to load the " +
+                              Utilities.getReleaseName() +
                               " JNI library" ) );
             logger.warning( "No native NDF support available" );
+            supported = false;
         }
-
         //  Initialise NDF library.
         if ( supported ) {
-            nInit();
+            try {
+                nInit();
+            }
+            catch ( UnsatisfiedLinkError e ) {
+                //  Incompatible/old library, better to not use.
+                logger.warning( ( "Failed to load the " +
+                                  Utilities.getReleaseName() +
+                                  " JNI library " +
+                                  "(picked up old library)" ) );
+                logger.warning( "No native NDF support available" );
+                e.printStackTrace();
+                supported = false;
+            }
         }
     }
 
@@ -603,7 +618,7 @@ public class NDFJ
 
     /**
      * Set reference to an AST FrameSet that describes the NDF
-     * coordinate systems (not read from NDF). 
+     * coordinate systems (not read from NDF).
      *
      * @param newwcs AST FrameSet
      */
@@ -1046,7 +1061,7 @@ public class NDFJ
      * @param wcsArray the FrameSet encoded as a character array
      *                 (native format).
      */
-    protected synchronized static native void 
+    protected synchronized static native void
         nSetAstArray( int ident, String[] wcsArray );
 
     /**
