@@ -845,37 +845,44 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          <extension name="PLASTIC" href="plastic.jnlp"/>
        </resources>
 
+       <!-- Do not enable this until webstart supports the loading
+            of dependent libraries (JNIAST). 23/11/06 they are no
+            workarounds (I've tried them all), so don't waste time 
+            on this. The bug to be fixed is:
 
-       <!-- Linux -->
+            http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4491398
+       -->
+      
+       <!-- Linux >
        <resources os="Linux" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
        </resources>
        <resources os="Linux" arch="amd64">
          <nativelib href="amd64/${name}_libs.jar"/>
-       </resources>
+       </resources-->
 
-       <!-- IBM Linux -->
+       <!-- IBM Linux >
        <resources os="Linux" arch="x86">
          <nativelib href="i386/${name}_libs.jar"/>
-       </resources>
+       </resources-->
 
-       <!-- Windows -->
+       <!-- Windows >
        <resources os="Windows">
           <nativelib href="x86/${name}_libs.jar"/>
-       </resources>
+       </resources-->
 
-       <!-- SUN Solaris -->
+       <!-- SUN Solaris >
        <resources os="SunOS" arch="sparc">
          <nativelib href="sparc/${name}_libs.jar"/>
-       </resources>
+       </resources-->
 
-       <!-- Mac OS X -->
+       <!-- Mac OS X > 
        <resources os="Mac OS X" arch="ppc">
          <nativelib href="ppc/${name}_libs.jar"/>
        </resources>
        <resources os="Mac OS X" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
-       </resources>
+       </resources-->
 
        <component_desc/>
      </jnlp>
