@@ -829,7 +829,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
        </security>
        <resources>
          <j2se version="1.4+"/>
-         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+         <fileset dir="${dist.lib}" includes="splat/*.jar splat/*.zip"/>
          <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="ASTGUI" href="astgui.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>
