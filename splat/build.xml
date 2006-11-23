@@ -27,6 +27,7 @@
  !      javadocs         -> creates the API documentation
  !      javadoc-sources  -> make source files for release API documention
  !      build-lineids    -> create the distributable line identifier jar file
+ !      build-native     -> builds native library for current platform
  !      test             -> run up SPLAT from local build
  !
  !   Authors:
@@ -90,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.6-0"/>
+  <property name="version" value="3.6-1"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -146,6 +147,7 @@
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
   <property name="build.jni" value="${build.dir}/jni"/>
+  <property name="build.lib" location="${build.dir}/lib"/>
   <property name="build.examples" value="${build.classes}/examples"/>
 
   <!-- Distribution directories, these are created in the current
@@ -169,6 +171,8 @@
   <!-- Architecture-specific files (shared libraries) will be placed in
    !   an appropriate subdirectory of dist.lib -->
   <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
+  <property name="src.lib.arch" value="${src.jars.dir}/${os.arch}"/>
+  <property name="build.lib.arch" value="${build.lib}/${os.arch}"/>
 
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
@@ -430,34 +434,34 @@
      !   that require the package version, current date and/or time -->
     <filterchain id="filters">
       <replacetokens>
-		<token key="VERSION" value="${version}"/>
-		<token key="DATE" value="${TODAY}"/>
-		<token key="TIME" value="${TSTAMP}"/>
-	      </replacetokens>
-	    </filterchain>
-
-	  </target>
-
-	  <!--
-	   !   ==============
-	   !   Build the code
-	   !   ==============
-	   !
-	   !  The results of the compilation are placed in the build.classes
-	   !  directory. Other files that are also needed in the classes tree
-	   !  (i.e. resources like images) should also be copied into place here.
-	   !-->
-	  <target name="build"
-		  depends="prepare, check_packages, build_examples"
-		  unless="runonly.install"
-		  description="-> compiles the source code">
-
-	    <javac srcdir="${java.dir}"
-		   destdir="${build.classes}"
-		   debug="${debug}"
-		   deprecation="${deprecation}"
-		   optimize="${optimize}"
-		   source="${source.version}">
+        <token key="VERSION" value="${version}"/>
+        <token key="DATE" value="${TODAY}"/>
+        <token key="TIME" value="${TSTAMP}"/>
+      </replacetokens>
+    </filterchain>
+    
+  </target>
+  
+  <!--
+  !   ==============
+  !   Build the code
+  !   ==============
+  !
+  !  The results of the compilation are placed in the build.classes
+  !  directory. Other files that are also needed in the classes tree
+  !  (i.e. resources like images) should also be copied into place here.
+  !-->
+  <target name="build"
+          depends="prepare, check_packages, build_examples, unpack_jni"
+          unless="runonly.install"
+          description="-> compiles the source code">
+    
+    <javac srcdir="${java.dir}"
+           destdir="${build.classes}"
+           debug="${debug}"
+           deprecation="${deprecation}"
+           optimize="${optimize}"
+           source="${source.version}">
 
       <classpath refid="classpath"/>
 
@@ -484,17 +488,12 @@
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
     <copy todir="${dist.lib.pkg}">
-       <fileset dir="${src.jars.dir}"/>
+       <fileset dir="${src.jars.dir}" includes="*">
+        <and>
+          <type type="file"/>
+        </and>
+      </fileset>
     </copy>
-
-    <!-- Build any shareable libraries needed to support this package.
-     !   This goes straight into the distribution directory to save on
-     !   space, and to make it immediately available to locally built
-     !   packages.
-     !-->
-    <antcall target="execute_mk_script">
-      <param name="mk.action" value="build"/>
-    </antcall>
 
     <!-- Update the version properties file. Keep copy in real source for
      !   reference, but do not copy that into place. -->
@@ -545,6 +544,81 @@
 
   </target>
 
+  <!-- Pulls the architecture-specific shared libraries out of the source
+   !   jar files in which they live.  These jar files are in the CVS
+   !   repository, they are not built as part of the normal build target.
+   !   The one specific to the build-time architecture can be built
+   !   using the 'build-native' target, but this requires more than the
+   !   basic CVS files to work (e.g. it needs the stardev classic libraries).
+   !-->
+  <target name="unpack_jni">
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="i386"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="sparc"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="x86"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="ppc"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="amd64"/>
+    </antcall>
+  </target>
+
+  <!-- Architecture-specific JNI jar file unpacker, skips if jar file
+   !   missing -->
+  <target name="unpack_jni_arch">
+    <unjar dest="${dist.lib}/${unpack.arch}">
+      <fileset file="${src.jars.dir}/${unpack.arch}/${name}_libs.jar"/>
+      <patternset excludes="META-INF*/*"/>
+    </unjar>
+  </target>
+
+
+  <!--
+   !  ============================================
+   !  Build the native shared library from sources
+   !  ============================================
+   !
+   !  This does the actual build of the shared library for the build-time
+   !  architecture, and requires a stardev installation.  It is not a
+   !  dependency of any of the other public targets, and should not be
+   !  invoked as part of the normal build process.  It should be invoked
+   !  periodically (when NDF or the local C source change), once on each 
+   !  of the supported platforms, and the resulting new 'source' files 
+   !  (shared library jar files) checked in.
+   !
+   !  Note the build will not be attempted if the stardev property is not set.
+   !-->
+  <target name="build-native"
+          description="-> builds native library">
+
+    <!-- Extract the existing libraries from the jar file. There may
+     !   be more than one library per architecture (i386 Linux and OS X)
+     !   and we want to keep the other libraries. The datestamps should 
+     !   be in the past otherwise this will fail
+     !-->
+    <unjar dest="${build.lib.arch}">
+      <fileset file="${src.lib.arch}/${name}_libs.jar"/>
+    </unjar>
+
+    <!-- Build the library -->
+    <antcall target="execute_mk_script">
+      <param name="mk.action" value="build"/>
+    </antcall>
+
+    <!-- Jar it up and copy it into the source tree ready for CVS checkin -->
+    <jar destfile="${src.lib.arch}/${name}_libs.jar"
+         basedir="${build.lib.arch}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+  </target>
 
   <!--
    !  ===================================
@@ -599,8 +673,7 @@
     <property name="java.shareables" value="${jniast.share}"/>
     <property name="java.shareables.osx" value="${jniast.share.osx}"/>
 
-
-    <mkdir dir="${dist.lib.arch}"/>
+    <mkdir dir="${build.lib.arch}"/>
 
     <echo message="java.home=${java.home}"/>
 
@@ -612,7 +685,7 @@
       <env key="JAVA_SYSTEM" value="linux"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -622,7 +695,7 @@
       <env key="JAVA_SYSTEM" value="solaris"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -632,7 +705,7 @@
       <env key="JAVA_SYSTEM" value="alpha"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -642,7 +715,7 @@
       <env key="JAVA_SYSTEM" value="${dist.lib.arch}"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables.osx}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -683,6 +756,12 @@ JNI libraries not built (NDF library not installed in ${stardev})"
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
+
+    <!-- Architecture dependent jar files (shareable libraries for
+     !   webstart) -->
+    <copy todir="${dist.lib}">
+       <fileset dir="${src.jars.dir}" includes="**/*.jar **/*.zip"/>
+    </copy>
 
     <jar destfile="${dist.lib.pkg}/${name}_examples.jar"
          basedir="${build.examples}"/>
@@ -765,6 +844,39 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          <extension name="VO" href="vo.jnlp"/>
          <extension name="PLASTIC" href="plastic.jnlp"/>
        </resources>
+
+
+       <!-- Linux -->
+       <resources os="Linux" arch="i386">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+       <resources os="Linux" arch="amd64">
+         <nativelib href="amd64/${name}_libs.jar"/>
+       </resources>
+
+       <!-- IBM Linux -->
+       <resources os="Linux" arch="x86">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+
+       <!-- Windows -->
+       <resources os="Windows">
+          <nativelib href="x86/${name}_libs.jar"/>
+       </resources>
+
+       <!-- SUN Solaris -->
+       <resources os="SunOS" arch="sparc">
+         <nativelib href="sparc/${name}_libs.jar"/>
+       </resources>
+
+       <!-- Mac OS X -->
+       <resources os="Mac OS X" arch="ppc">
+         <nativelib href="ppc/${name}_libs.jar"/>
+       </resources>
+       <resources os="Mac OS X" arch="i386">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+
        <component_desc/>
      </jnlp>
 
