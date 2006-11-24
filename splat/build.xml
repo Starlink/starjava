@@ -539,7 +539,11 @@
 
     <mkdir dir="${build.examples}"/>
     <copy todir="${build.examples}">
-      <fileset dir="${src.etc}/examples" excludes="**/*.sdf"/>
+      <fileset dir="${src.etc}/examples" includes="*">
+        <and>
+          <type type="file"/>
+        </and>
+      </fileset>
     </copy>
 
   </target>
@@ -919,7 +923,11 @@ JNI libraries not built (NDF library not installed in ${stardev})"
 
     <!-- Copy any startup scripts etc. -->
     <copy todir="${dist.bin.pkg}">
-      <fileset dir="${script.dir}/" />
+      <fileset dir="${script.dir}" includes="*">
+        <and>
+          <type type="file"/>
+        </and>
+      </fileset>
     </copy>
 
     <!-- Copy auxiliary files. -->
