@@ -63,14 +63,6 @@ display()
                 print("Failed to connect to SPLAT, starting new instance...");
                 proc = Runtime.getRuntime().exec( "/bin/sh -c $SPLAT_DIR/splat" );
                 started = true;
-                
-                //  TODO: Check don't need this work around on Solaris...
-                //  Locate the "detached_splat" script and run it up in a
-                //  thread. Need to do this to stop blocking of the exec
-                //  command . Note I think this script should live in a
-                //  jar on release!
-                //script = getResource("/star/splat/scripts/detached_splat");
-                //bg( script.getPath() );
             }
             
             //  Wait a while, this blocks current thread.
