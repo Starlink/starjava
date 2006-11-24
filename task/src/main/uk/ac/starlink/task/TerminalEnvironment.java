@@ -113,7 +113,7 @@ public class TerminalEnvironment implements Environment {
             if ( par.getDefault() != null ) {
                 valueMap.put( par, par.getDefault() );
             }
-            else {
+            else if ( par.getPreferExplicit() || ! par.isNullPermitted() ) {
                 String prompt = par.getPrompt();
                 System.out.print( par.getName() 
                                 + ( ( prompt == null ) ? ""
@@ -154,8 +154,12 @@ public class TerminalEnvironment implements Environment {
         catch ( ParameterValueException e ) {
             System.out.println( e.getMessage() );
             valueMap.remove( par );
-            acquireValue( par, ntries - 1 );  // recurse
-            return;
+            if ( ntries > 1 ) {
+                acquireValue( par, ntries - 1 );  // recurse
+            }
+            else {
+                throw e;
+            }
         }
     }
 
