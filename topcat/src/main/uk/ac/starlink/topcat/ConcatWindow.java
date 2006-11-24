@@ -170,9 +170,48 @@ public class ConcatWindow extends AuxWindow
                    .makeClassColumnComboBoxModel( colModel2, true, 
                                                   cinfo.getContentClass() );
                 JComboBox combo = comboModel.makeComboBox();
-                guessColumn( comboModel, cinfo );
+                comboModel.setSelectedItem( comboModel.getElementAt( 0 ) );
                 colSelectors[ icol ] = combo;
                 colPanel.add( combo );
+            }
+
+            /* Check if the tables have fully matching columns (same number,
+             * names and classes). */
+            boolean matching = false;
+            if ( colModel1.getColumnCount() == colModel2.getColumnCount() ) {
+                matching = true;
+                for ( int icol = 0; icol < ncol && matching; icol++ ) {
+                    ColumnInfo info1 =
+                        ((StarTableColumn) colModel1.getColumn( icol ))
+                                                    .getColumnInfo();
+                    ColumnInfo info2 =
+                        ((StarTableColumn) colModel2.getColumn( icol ))
+                                                    .getColumnInfo();
+                    matching = matching 
+                            && info1.getName()
+                                    .equalsIgnoreCase( info2.getName() )
+                            && info1.getContentClass()
+                                    .equals( info2.getContentClass() );
+                }
+            }
+
+            /* If so, align each one with the corresponding one from the
+             * other table. */
+            if ( matching ) {
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    ComboBoxModel model = colSelectors[ icol ].getModel();
+                    model.setSelectedItem( colModel2.getColumn( icol ) );
+                }
+            }
+
+            /* Otherwise, just make the best guess about how to match
+             * them up. */
+            else { 
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    guessColumn( colSelectors[ icol ].getModel(), 
+                                 ((StarTableColumn) colModel1.getColumn( icol ))
+                                                             .getColumnInfo() );
+                }
             }
         }
     }
