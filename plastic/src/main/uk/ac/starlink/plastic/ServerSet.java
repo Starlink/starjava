@@ -25,7 +25,7 @@ import org.votech.plastic.PlasticHubListener;
  * @author   Mark Taylor
  * @since    16 Feb 2006
  */
-class ServerSet {
+public class ServerSet {
 
     private final Server rmiServer_;
     private final int rmiPort_;
@@ -180,7 +180,7 @@ class ServerSet {
     /**
      * Returns the URL for the XML-RPC server associated with this object.
      *
-     * @param  XML-RPC URL
+     * @return  XML-RPC URL
      */
     public URL getXmlRpcUrl() {
         return xmlrpcUrl_;
