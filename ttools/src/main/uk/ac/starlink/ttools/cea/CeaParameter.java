@@ -4,9 +4,9 @@ import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.InputStreamParameter;
+import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
-import uk.ac.starlink.ttools.task.MultiParameter;
 import uk.ac.starlink.ttools.task.OutputStreamParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
 
