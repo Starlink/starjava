@@ -3,6 +3,8 @@ package uk.ac.starlink.ttools.task;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.LineEnvironment;
+import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.task.TaskException;
 
 /**

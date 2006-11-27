@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.task;
 
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.LineEnvironment;
+import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.LoadException;

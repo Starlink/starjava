@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.LineEnvironment;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.util.DataSource;
 
