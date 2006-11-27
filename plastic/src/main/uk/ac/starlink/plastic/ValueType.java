@@ -49,7 +49,7 @@ public class ValueType {
      * defined by this object, a <code>ValueTypeException</code> will be
      * thrown.
      *
-     * @param   value   value to check
+     * @param   jValue   value to check
      */
     public void checkJavaValue( Object jValue ) throws ValueTypeException {
         if ( jValue == null ) {
