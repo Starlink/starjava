@@ -105,7 +105,7 @@ public abstract class PlasticTransmitter {
      * this transmitter.  If there are no suitable recipient applications
      * registered they will be disabled anyway.
      *
-     * @param   false to ensure that the actions are disabled,
+     * @param  enabled   false to ensure that the actions are disabled,
      *          true means they may be enabled
      */
     public void setEnabled( boolean enabled ) {
