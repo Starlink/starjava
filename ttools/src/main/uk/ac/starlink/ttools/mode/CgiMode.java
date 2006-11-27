@@ -12,7 +12,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.task.TableEnvironment;
+import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 
 /**
@@ -57,7 +57,7 @@ public class CgiMode implements ProcessingMode {
     public TableConsumer createConsumer( Environment env )
             throws TaskException {
         String fmt = formatParam_.stringValue( env );
-        StarTableOutput sto = TableEnvironment.getTableOutput( env );
+        StarTableOutput sto = LineTableEnvironment.getTableOutput( env );
         final StarTableWriter handler; 
         try {
              handler = sto.getHandler( fmt );

@@ -24,7 +24,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.task.TableEnvironment;
+import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.votable.soap.VOTableSerialization;
 
 /**
@@ -75,7 +75,7 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
     }
 
     public TableConsumer createConsumer( Environment env ) {
-        policy_ = TableEnvironment.getStoragePolicy( env );
+        policy_ = LineTableEnvironment.getStoragePolicy( env );
         return this;
     }
 

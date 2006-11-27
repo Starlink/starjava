@@ -104,7 +104,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
             throws TaskException {
         String fmt = formatParam_.stringValue( env );
         boolean stream = streamParam_.booleanValue( env );
-        StarTableFactory tfact = TableEnvironment.getTableFactory( env );
+        StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         try {
             if ( loc.equals( "-" ) ) {
                 InputStream in =

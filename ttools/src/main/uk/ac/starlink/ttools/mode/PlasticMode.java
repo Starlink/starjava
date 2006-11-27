@@ -28,7 +28,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.task.TableEnvironment;
+import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
@@ -146,7 +146,8 @@ public class PlasticMode implements ProcessingMode {
         catch ( Throwable e ) {
             throw new TaskException( "Can't connect to PLASTIC hub", e );
         }
-        final StoragePolicy policy = TableEnvironment.getStoragePolicy( env );
+        final StoragePolicy policy =
+            LineTableEnvironment.getStoragePolicy( env );
         final PrintStream out = env.getOutputStream();
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {

@@ -203,7 +203,8 @@ public class MultiCone extends SingleMapperTask {
         final boolean zmeta = zmetaParam_.booleanValue( env );
         final boolean force = forceParam_.booleanValue( env );
         final String copyColIdList = copycolsParam_.stringValue( env );
-        final StarTableFactory tfact = TableEnvironment.getTableFactory( env );
+        final StarTableFactory tfact =
+            LineTableEnvironment.getTableFactory( env );
         final String raString = raParam_.stringValue( env );
         final String decString = decParam_.stringValue( env );
         final String srString = srParam_.stringValue( env );

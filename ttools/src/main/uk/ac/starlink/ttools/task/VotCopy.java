@@ -188,9 +188,9 @@ public class VotCopy implements Task {
             base = null;
         }
         Charset xenc = xencParam_.charsetValue( env );
-        boolean strict = TableEnvironment.isStrictVotable( env );
+        boolean strict = LineTableEnvironment.isStrictVotable( env );
         boolean cache = cacheParam_.booleanValue( env );
-        StoragePolicy policy = TableEnvironment.getStoragePolicy( env );
+        StoragePolicy policy = LineTableEnvironment.getStoragePolicy( env );
         return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, base,
                               format, strict, cache, policy );
     }

@@ -14,6 +14,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
+import uk.ac.starlink.task.LineWord;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -25,7 +26,7 @@ import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.util.IOUtils;
 
 /**
- * Invokes the Stilts tasks using a {@link LineEnvironment}.
+ * Invokes the Stilts tasks using a {@link LineTableEnvironment}.
  *
  * @author   Mark Taylor
  * @since    15 Aug 2005
@@ -57,7 +58,7 @@ public class LineInvoker {
      */
     public void invoke( String[] args ) {
         List argList = new ArrayList( Arrays.asList( args ) );
-        LineEnvironment env = new LineEnvironment();
+        LineTableEnvironment env = new LineTableEnvironment();
         int verbosity = 0;
 
         /* Treat flags. */
@@ -156,7 +157,11 @@ public class LineInvoker {
                     System.out.println( "\n" + helpText );
                 }
                 else {
-                    env.setArgs( taskArgs );
+                    LineWord[] words = new LineWord[ taskArgs.length ];
+                    for ( int i = 0; i < taskArgs.length; i++ ) {
+                        words[ i ] = new LineWord( taskArgs[ i ] );
+                    }
+                    env.setWords( words );
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();
                     if ( unused.length == 0 ) {
@@ -257,7 +262,8 @@ public class LineInvoker {
      * @param  taskName  task name
      * @param  env  execution environment
      */
-    private void logParameterValues( String taskName, LineEnvironment env ) {
+    private void logParameterValues( String taskName,
+                                     LineTableEnvironment env ) {
         StringBuffer sbuf = new StringBuffer( taskName );
         String[] words = env.getAssignments();
         for ( int i = 0; i < words.length; i++ ) {

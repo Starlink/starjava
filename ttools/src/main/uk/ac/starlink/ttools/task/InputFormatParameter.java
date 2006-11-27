@@ -80,6 +80,6 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
     }
 
     private StarTableFactory getTableFactory( Environment env ) {
-        return TableEnvironment.getTableFactory( env );
+        return LineTableEnvironment.getTableFactory( env );
     }
 }

@@ -6,7 +6,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.task.TableEnvironment;
+import uk.ac.starlink.ttools.task.LineTableEnvironment;
 
 /**
  * Table consumer which disposes of a table by writing it as a new 
@@ -39,8 +39,8 @@ public class JdbcConsumer implements TableConsumer {
      * @param   env  execution environment
      */
     public JdbcConsumer( String url, Environment env ) {
-        this( url,
-              new JDBCHandler( TableEnvironment.getJdbcAuthenticator( env ) ) );
+        this( url, new JDBCHandler( LineTableEnvironment
+                                   .getJdbcAuthenticator( env ) ) );
     }
 
     public void consume( StarTable table ) throws IOException {

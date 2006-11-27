@@ -12,9 +12,9 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
-import uk.ac.starlink.ttools.task.TableEnvironment;
 
 /**
  * Processing mode which writes out a table.
@@ -72,7 +72,8 @@ public class CopyMode implements ProcessingMode {
         }
         else {
             return new CopyConsumer( loc, fmt,
-                                     TableEnvironment.getTableOutput( env ) );
+                                     LineTableEnvironment
+                                    .getTableOutput( env ) );
         }
     }
 
