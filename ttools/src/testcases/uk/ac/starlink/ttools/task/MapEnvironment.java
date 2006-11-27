@@ -5,6 +5,9 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -14,7 +17,7 @@ import uk.ac.starlink.ttools.TableConsumer;
  * Input StarTables can be set as values of parameters and output ones
  * can be extracted.
  */
-public class MapEnvironment extends TableEnvironment {
+public class MapEnvironment implements TableEnvironment {
 
     private final Map paramMap_;
     private final Map outputTables_ = new HashMap();
@@ -23,6 +26,8 @@ public class MapEnvironment extends TableEnvironment {
     private final PrintStream pout_ = new PrintStream( out_ );
     private final PrintStream perr_ = new PrintStream( err_ );
     private Class resourceBase_ = MapEnvironment.class;
+    private boolean strictVot_;
+    private boolean debug_;
 
     /**
      * Constructs a new environment with no values.
@@ -188,4 +193,31 @@ public class MapEnvironment extends TableEnvironment {
         }
     }
 
+    public StarTableFactory getTableFactory() {
+        return new StarTableFactory();
+    }
+
+    public StarTableOutput getTableOutput() {
+        return new StarTableOutput();
+    }
+
+    public JDBCAuthenticator getJdbcAuthenticator() {
+        return null;
+    }
+
+    public boolean isDebug() {
+        return debug_;
+    }
+
+    public void setDebug( boolean debug ) {
+        debug_ = debug;
+    }
+
+    public boolean isStrictVotable() {
+        return strictVot_;
+    }
+
+    public void setStrictVotable( boolean strict ) {
+        strictVot_ = strict;
+    }
 }
