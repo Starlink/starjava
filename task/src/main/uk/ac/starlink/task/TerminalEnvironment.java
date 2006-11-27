@@ -12,6 +12,9 @@ import java.util.Set;
 /**
  * Implementation of Environment which accepts an initial command line,
  * and communicates with the user using standard input and standard output.
+ *
+ * <p>This environment is somewhat deprecated in favour of the more capable
+ * {@link LineEnvironment}.
  * 
  * @author   Mark Taylor (Starlink)
  */
