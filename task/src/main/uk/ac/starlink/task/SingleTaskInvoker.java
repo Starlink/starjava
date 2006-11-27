@@ -1,5 +1,6 @@
 package uk.ac.starlink.task;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,7 +55,7 @@ public class SingleTaskInvoker {
         try {
             String[] taskArgs = (String[]) argList.toArray( new String[ 0 ] );
             Environment env =
-                new TerminalEnvironment( taskArgs, task_.getParameters() );
+                new LineEnvironment( taskArgs, task_.getParameters() );
             task_.createExecutable( env ).execute();
         }
 
@@ -68,24 +69,44 @@ public class SingleTaskInvoker {
                 e.printStackTrace( System.err );
             }
             System.err.println();
+            summariseError( e, System.err );
 
             if ( e instanceof ParameterValueException ) {
-                System.err.println( e.getMessage() );
             }
             else if ( e instanceof UsageException ) {
+                System.err.println();
                 System.err.println( getUsage() );
             }
             else if ( e instanceof AbortException ) {
+                System.err.println();
                 System.err.println( "User abort" );
-            }
-            else {
-                System.err.println( e );
             }
             return 1;
         }
 
         /* Successful return. */
         return 0;
+    }
+
+    /**
+     * Writes a summary of a (possibly nested) exception to a given 
+     * output stream.
+     *
+     * @param   error  exception
+     * @return   out  destination stream
+     */
+    private static void summariseError( Throwable error, PrintStream out ) {
+        String msg = error.getMessage();
+        if ( msg == null || msg.trim().length() == 0 ) {
+            msg = error.toString();
+        }
+        else {
+            out.println( msg );
+        }
+        Throwable cause = error.getCause();
+        if ( cause != null ) {
+            summariseError( cause, out );
+        }
     }
 
     /**
