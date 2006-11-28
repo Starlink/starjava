@@ -2567,7 +2567,7 @@ stilts tcat in='rA.csv rB.csv rC.csv' ifmt=csv \
 <subsect id="tcatn" tocleaf="yes">
 <subhead><title><code>tcatn</code>: &tcatn-purpose;</title></subhead>
 
-<p><code>tcatn</code> is a tool for concatenating two tables 
+<p><code>tcatn</code> is a tool for concatenating a number of tables 
 one after the other.  Each table can be manipulated separately 
 prior to the concatenatation.
 If you have two tables T1 and T2 which contain similar columns, and you 
