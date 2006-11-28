@@ -1,14 +1,10 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.task;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import uk.ac.starlink.task.Environment;
-import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
-import uk.ac.starlink.task.TaskException;
 
 /**
  * Parameter for selecting an output stream to write to.
@@ -30,7 +26,6 @@ public class OutputStreamParameter extends Parameter {
         setUsage( "<out-file>" );
         setPrompt( "Location of output file" );
         setDefault( "-" );
-        setPreferExplicit( true );
 
         setDescription( new String[] {
             "<p>The location of the output file.  This is usually a filename",

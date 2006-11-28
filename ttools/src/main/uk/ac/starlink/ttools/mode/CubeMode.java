@@ -7,13 +7,13 @@ import java.util.regex.Pattern;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.task.OutputStreamParameter;
 import uk.ac.starlink.ttools.task.WordParser;
 import uk.ac.starlink.ttools.task.WordsParameter;
 
@@ -101,6 +101,7 @@ public class CubeMode implements ProcessingMode {
         } );
 
         outParam_ = new OutputStreamParameter( "out" );
+        outParam_.setPreferExplicit( true );
         outParam_.setPrompt( "Location of output FITS file" );
         outParam_.setDescription( new String[] {
             outParam_.getDescription(),

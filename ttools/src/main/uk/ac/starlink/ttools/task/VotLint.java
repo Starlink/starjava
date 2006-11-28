@@ -7,12 +7,13 @@ import java.io.PrintStream;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.InputStreamParameter;
+import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
@@ -89,7 +90,6 @@ public class VotLint implements Task {
         outParam_.setPrompt( "File for output messages" );
         outParam_.setUsage( "<location>" );
         outParam_.setDefault( "-" );
-        outParam_.setPreferExplicit( false );
         outParam_.setDescription( new String[] {
             "<p>Destination file for output messages.",
             "May be a filename or \"-\" to indicate standard output.",
