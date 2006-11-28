@@ -151,7 +151,8 @@ public class CatMapper implements TableMapper {
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
-    public TableMapping createMapping( Environment env ) throws TaskException {
+    public TableMapping createMapping( Environment env, int nin )
+            throws TaskException {
         String seqCol = seqParam_.stringValue( env );
         String locCol = locParam_.stringValue( env );
         String ulocCol = ulocParam_.stringValue( env );

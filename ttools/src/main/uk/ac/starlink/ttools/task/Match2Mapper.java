@@ -105,7 +105,8 @@ public class Match2Mapper implements TableMapper {
         };
     }
 
-    public TableMapping createMapping( Environment env ) throws TaskException {
+    public TableMapping createMapping( Environment env, int nin )
+            throws TaskException {
 
         /* Get the matcher. */
         MatchEngine matcher = matcherParam_.matchEngineValue( env );

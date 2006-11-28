@@ -49,7 +49,8 @@ public abstract class MapperTask extends ConsumerTask {
     protected TableProducer createProducer( Environment env )
             throws TaskException {
         final InputTableSpec[] inSpecs = getInputSpecs( env );
-        final TableMapping mapping = mapper_.createMapping( env );
+        final TableMapping mapping =
+            mapper_.createMapping( env, inSpecs.length );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
                 return mapping.mapTables( inSpecs );

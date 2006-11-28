@@ -26,6 +26,9 @@ public interface TableMapper {
      * for any additional required state.
      *
      * @param  env  execution environment
+     * @param  nin  number of input tables that the mapping will operate on
+     *              if known; -1 if not
      */
-    TableMapping createMapping( Environment env ) throws TaskException;
+    TableMapping createMapping( Environment env, int nin )
+           throws TaskException;
 }

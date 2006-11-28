@@ -49,7 +49,8 @@ public class ColumnSelectionMapper implements TableMapper {
         };
     }
 
-    public TableMapping createMapping( Environment env ) throws TaskException {
+    public TableMapping createMapping( Environment env, int nin )
+            throws TaskException {
         final String[] colids = colsParam_.wordsValue( env );
         return new TableMapping() {
             public StarTable mapTables( InputTableSpec[] inSpecs )
