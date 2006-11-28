@@ -35,6 +35,7 @@
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
+  <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
@@ -157,6 +158,9 @@ table manipulation:
     </li>
 <li><ref id="tcatn" plaintextref="yes"><code>tcatn</code></ref>:
     &tcatn-purpose;
+    </li>
+<li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
+    &tjoin-purpose;
     </li>
 <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
     &tcube-purpose;
@@ -349,6 +353,7 @@ the available tasks are:
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
+<li><code>tjoin</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tpipe</code></li>
 <li><code>votcopy</code></li>
@@ -975,6 +980,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tcat"><code>tcat</code></ref>,
            <ref id="tcatn"><code>tcatn</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
+           <ref id="tjoin"><code>tjoin</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="multicone"><code>multicone</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
@@ -1240,7 +1246,8 @@ have parameters with names like "<code>cmd</code>" which you
 use to specify processing steps.
 Tasks with multiple input tables
 (<ref id="tmatch2"><code>tmatch2</code></ref>,
- <ref id="tcatn"><code>tcatn</code></ref>)
+ <ref id="tcatn"><code>tcatn</code></ref>,
+ <ref id="tjoin"><code>tjoin</code></ref>)
 may have parameters called <code>icmd1</code>, <code>icmd2</code>, ...
 for preprocessing the different input tables and
 <code>ocmd</code> for postprocessing the output table.
@@ -2824,6 +2831,62 @@ stilts tcube in=iras_psc.vot out=iras_psc_map.fits \
 </subsubsect>
 </subsect>
 
+<subsect id="tjoin" tocleaf="yes">
+<subhead><title><code>tjoin</code>: &tjoin-purpose;</title></subhead>
+
+<p><code>tjoin</code> performs a trivial side-by-side join of multiple tables.
+The N'th row of the output table consists of the N'th row of the
+first input table, followed by the N'th row of the second input table, ...
+and so on.  It is suitable if you want to amalgamate two or more 
+tables whose row orderings correspond exactly to each other.
+</p>
+
+<p>For the (more usual) case in which the rows of the tables to be 
+joined are not already in the right order, use the
+<ref id="tmatch2"><code>tmatch</code></ref> command.
+</p>
+
+&tjoin-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tjoin</code>
+<dl>
+
+<dt><verbatim>
+stilts tjoin nin=2 in1=positions.fit in2=fluxes.fits out=combined.fits
+</verbatim></dt>
+<dd><p>Takes two input FITS files and sticks them together side by side,
+    writing the result as a third FITS file.  The output will have the
+    same number of rows as each of the input catalogues, and a number
+    of columns equal to the sum of those in the two input catalogues.
+</p></dd>
+
+<dt><verbatim>
+stilts tjoin nin=3 fixcols=all \
+             ifmt1=ascii in1=t1.txt suffix1=_T1 \
+             ifmt2=ascii in2=t2.txt suffix2=_T2 \
+             ifmt3=ascii in3=t3.txt suffix3=_T3 \
+             ocmd='select FLAG_T1==0' \
+             omode=stats
+</verbatim></dt>
+<dd><p>This joins three ascii tables together.  Each column of the output
+    table is renamed by appending a string to it ("_T1" for the first 
+    table, "_T2" for the second...).
+    Only those rows of the output for which the FLAG column in the first
+    input table, and hence the FLAG_T1 column in the output table,
+    have the value zero are selected.  Statistics are calculated for
+    all the columns of these selected rows, and written to the output.
+</p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="tmatch2" tocleaf="yes">
 <subhead><title><code>tmatch2</code>: &tmatch2-purpose;</title></subhead>
 
@@ -4046,6 +4109,7 @@ but my thanks are especially due to the following:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>New command <ref id="tjoin"><code>tjoin</code></ref> introduced.</li>
     <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
         later.</li>
     <li>Modified parameter handling slightly for <code>votlint</code>.</li>
