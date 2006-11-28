@@ -65,7 +65,13 @@ display()
         while ( tried < 100 ) {
             if ( ! started ) {
                 print("Failed to connect to SPLAT, starting new instance...");
-                proc = Runtime.getRuntime().exec( "/bin/sh -c $SPLAT_DIR/splat" );
+                if ( File.separator.equals( "/" ) ) {
+                   sh = "/bin/sh";
+                } else {
+                   //  Cygwin or bust, sh better be on PATH.
+                   sh = "sh.exe";
+                }
+                proc = Runtime.getRuntime().exec( sh + " -c $SPLAT_DIR/splat" );
                 started = true;
             }
 
@@ -105,6 +111,10 @@ display()
     }
     print( "Command = " + command );
 
+    //  Protect windows \ from beanshell (replaces "\" with "\\"!).
+    if ( ! File.separator.equals( "/" ) ) {
+        command = command.replaceAll( "\\\\", "\\\\\\\\" );
+    }
 
     //  And send the command. Trap connection errors etc.
     try {
