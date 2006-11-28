@@ -81,6 +81,7 @@ import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.util.gui.FileNameListCellRenderer;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
@@ -338,6 +339,13 @@ public class SplatBrowser
     protected SplatPlastic plasticServer = null;
 
     /**
+     * A long filename to use for setting the default size of a cell
+     * in the spectral list.
+     */
+    protected static String LONG_FILE_NAME = "12345678901234567890" +
+        "123456789012345678901234567890123456789012345678901234567890";
+
+    /**
      *  Create a browser with no existing spectra.
      */
     public SplatBrowser()
@@ -558,7 +566,13 @@ public class SplatBrowser
         //  Set up split pane.
         splitPane.setOneTouchExpandable( true );
         setSplitOrientation( true );
-        specList.setSize( new Dimension( 190, 0 ) );
+        //specList.setSize( new Dimension( 190, 0 ) );
+
+        //  Size a cell in the JList in an attempt to stop the random
+        //  size bug (must be a timing issue, sometimes the height/width
+        //  are clearly requested when not initialised).
+        specList.setPrototypeCellValue( LONG_FILE_NAME );
+        specList.setCellRenderer( new FileNameListCellRenderer() );
         splitPane.setDividerLocation( 200 );
 
         //  Finally add the main components to the content and split
