@@ -298,9 +298,6 @@ public class LineInvoker {
             else if ( arg.toLowerCase().startsWith( "help=" ) ) {
                 helpFor = arg.substring( 5 ).trim().toLowerCase();
             }
-            else if ( arg.length() > 1 && arg.endsWith( "=" ) ) {
-                helpFor = arg.substring( 0, arg.length() - 1 );
-            }
             else if ( arg.length() > 2 && arg.endsWith( "=?" ) ) {
                 helpFor = arg.substring( 0, arg.length() - 2 );
             }
@@ -312,7 +309,7 @@ public class LineInvoker {
                         return getParamHelp( env, taskName, param );
                     }
                 }
-                return "No such parameter: " + helpFor + "\n\n" 
+                return "No help for parameter: " + helpFor + "\n\n" 
                      + getTaskUsage( task, taskName );
             }
         }
