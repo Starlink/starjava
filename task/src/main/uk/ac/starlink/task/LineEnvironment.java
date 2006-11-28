@@ -32,7 +32,7 @@ public class LineEnvironment implements Environment {
     private final Set clearedParams_ = new HashSet();
     private final List acquiredValues_ = new ArrayList();
 
-    private static final String NULL_STRING = "";
+    static final String NULL_STRING = "";
     public static final char INDIRECTION_CHAR = '@';
     public static final int NUM_TRIES = 3;
 

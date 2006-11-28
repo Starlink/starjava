@@ -32,7 +32,7 @@ public class LineWord {
             sval = text;
         }
         value_ = ( sval.length() == 0 || sval.equals( "null" ) )
-               ? null
+               ? LineEnvironment.NULL_STRING
                : sval;
     }
 
