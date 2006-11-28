@@ -35,6 +35,11 @@ if test -z "$SPLAT_DIR"; then
 fi
 echo "SPLAT_DIR = $SPLAT_DIR"
 
+#  Check if we are running Cygwin.
+cygwin=false;
+case "`uname`" in
+  CYGWIN*) cygwin=true ;;
+esac
 
 # Set the amount of memory that we use for the heap. Increase this
 # if you start getting out of memory errors. Decrease it for smaller 
@@ -62,9 +67,16 @@ if test ! -f "$appjar"; then
    echo "Failed to locate the SPLAT application. Please define SPLAT_DIR"
    exit
 fi
+if $cygwin; then
+   appjar=`cygpath --windows "$appjar"`
+fi
 
 #  Location of the etc directory (needed for line id files).
-defines="$defines -Dsplat.etc.dir=$SPLAT_DIR/../etc/splat"
+etcdir="$SPLAT_DIR/../etc/splat"
+if $cygwin; then
+    etcdir=`cygpath --windows "$etcdir"`
+fi
+defines="$defines -Dsplat.etc.dir=$etcdir"
 
 #  Need the port and default configuration for the web services.
 defines="$defines \
@@ -83,5 +95,16 @@ fi
 # Execute the script passing any arguments along, except the name of
 # this script ($0).
 
-$starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar bsh.Interpreter ${1+"$@"}
+# Under cygwin the first argument is the name of the associated
+# script. This also needs to be transformed.
+if $cygwin; then
+    script_name=`cygpath --windows "$1"`
+else
+    script_name="$1"
+fi
+shift
+
+echo "$starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar bsh.Interpreter $script_name ${1+$@}"
+$starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar bsh.Interpreter \
+    $script_name ${1+"$@"}
 exit
