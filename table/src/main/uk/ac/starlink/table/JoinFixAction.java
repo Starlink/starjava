@@ -26,7 +26,7 @@ public class JoinFixAction {
      * Private constructor.
      */
     private JoinFixAction( String name, String appendage,
-                       boolean renameDup, boolean renameAll ) {
+                           boolean renameDup, boolean renameAll ) {
         this.name = name;
         this.appendage = appendage;
         this.renameDup = renameDup;
