@@ -47,10 +47,10 @@ public class JoinMapper implements TableMapper {
             "columns are not renamed</li>",
             "<li><code>" + FIX_DUPS + "</code>:",
             "columns which would otherwise have duplicate names in the output",
-            "will be renamed to indicate which table they came from",
+            "will be renamed to indicate which table they came from</li>",
             "<li><code>" + FIX_ALL + "</code>:",
             "all columns will be renamed to indicate which table they",
-            "came from",
+            "came from</li>",
             "</ul>",
             "</p>",
         } );
@@ -138,6 +138,7 @@ public class JoinMapper implements TableMapper {
             "the output table, this parameter determines how they are",
             "renamed.  It specifies a suffix which is appended to all renamed",
             "columns from table " + index + ".",
+            "</p>",
         } );
         return param;
     }
