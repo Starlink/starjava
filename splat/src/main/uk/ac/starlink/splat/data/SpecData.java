@@ -553,7 +553,7 @@ public class SpecData
     public String getShortName()
     {
         String sName = shortName;
-        if ( simplifyShortNames && fullName.equals( sName ) ) {
+        if ( simplifyShortNames && sName.equals( fullName ) ) {
             File file = new File( sName );
             File par = file.getParentFile();
             if ( par != null ) {
