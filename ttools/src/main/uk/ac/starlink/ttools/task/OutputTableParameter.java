@@ -47,9 +47,11 @@ public class OutputTableParameter extends Parameter
 
     public void setValueFromString( Environment env, String sval ) 
             throws TaskException {
-        String loc = sval;
-        String fmt = formatParam_.stringValue( env );
-        consumer_ = CopyMode.createConsumer( env, loc, fmt );
+        if ( sval != null ) {
+            String loc = sval;
+            String fmt = formatParam_.stringValue( env );
+            consumer_ = CopyMode.createConsumer( env, loc, fmt );
+        }
         super.setValueFromString( env, sval );
     }
 
