@@ -10,6 +10,7 @@
       export FC
       export CFLAGS
       export SHARE
+      export JAVA_INCLUDE
 
 #  Java system exports (set by build.xml).
       export JAVA_SYSTEM
@@ -73,6 +74,7 @@
                FC=${FC:=g77}
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
                SHARE='.jnilib'
+               JAVA_INCLUDE='$(JAVA_HOME)/Headers'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
