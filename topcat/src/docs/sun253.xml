@@ -9709,6 +9709,8 @@ introduced since the last version:
         popup.</li>
     <li>Fixed bug in axis range checking.</li>
     <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
+    <li>Concatenation column assignments now smarter for fully compatible
+        input tables.</li>
     </ul>
     </p></dd>
 
