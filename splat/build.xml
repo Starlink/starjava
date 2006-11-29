@@ -679,7 +679,7 @@
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X">
       <env key="SYSTEM" value="MacOSX"/>
       <env key="STARLINK" value="${stardev}"/>
-      <env key="JAVA_SYSTEM" value="${dist.lib.arch}"/>
+      <env key="JAVA_SYSTEM" value="${os.arch}"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables.osx}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
