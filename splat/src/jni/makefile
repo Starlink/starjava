@@ -35,6 +35,9 @@ JAVA_SHAREABLES =
 CC = cc
 CFLAGS = -O
 
+#  Default for Fortran compiler, if used as part of the BLD_SHR macro.
+FC = f77
+
 #  Default file type extension for a shareable library and command for
 #  building a shareable library (the default acts as a null command).
 
