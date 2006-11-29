@@ -38,7 +38,10 @@ public class OutputStreamParameter extends Parameter {
 
     public void setValueFromString( Environment env, String sval )
             throws TaskException {
-        if ( "-".equals( sval ) ) {
+        if ( sval == null || sval.trim().length() == 0 ) {
+            destination_ = null;
+        }
+        else if ( "-".equals( sval ) ) {
             final PrintStream out = env.getOutputStream();
             destination_ = new Destination() {
                 public OutputStream createStream() {
