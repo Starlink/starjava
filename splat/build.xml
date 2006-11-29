@@ -262,6 +262,9 @@
     <!-- HELP -->
     <pathelement location="${star.jar.dir}/help/help.jar"/>
  
+    <!-- UTIL -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
+ 
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -292,6 +295,7 @@
     <pathelement location="${star.build.dir}/votable/lib/votable/votable.jar"/>
     <pathelement location="${star.build.dir}/vo/lib/vo/vo.jar"/>
     <pathelement location="${star.build.dir}/plastic/lib/plastic/plastic.jar"/>
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -361,54 +365,13 @@
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
   <!--
-   !    =========================================
-   !    Check availability of direct dependencies
-   !    =========================================
-   !    (could also use this to check optional elements).
+   !    ===========================================
+   !    Check availability of optional dependencies
+   !    ===========================================
    !
-   ! If any of the required dependencies are not present then
-   ! this throws a <fail> and exits the build.
    !-->
   <target name="check_packages"
-          unless="runonly.install"
-          if="fasttest">
-
-    <!--  Need NDArray -->
-    <available property="array.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.hdx.array.NDArray"/>
-
-    <fail message="No NDArray available" unless="array.present"/>
-
-    <!--  Need JNIAST -->
-    <available property="jniast.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.ast.Grf"/>
-
-    <fail message="No JNIAST available" unless="jniast.present"/>
-
-    <!--  Need NDX -->
-    <available property="ndx.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.ndx.Ndx"/>
-
-    <fail message="No NDX available" unless="ndx.present"/>
-
-    <!--  Need TABLE -->
-    <available property="table.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.table.StarTable"/>
-    
-    <fail message="No TABLE available" unless="ndx.present"/>
-
-
-
-    <!-- Need SOAPSERVER -->
-    <available property="soapserver.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.soap.AppHttpSOAPServer"/>
-
-    <fail message="No SOAPSERVER classes available" unless="soapserver.present"/>
+          unless="runonly.install">
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -1398,11 +1361,39 @@ JNI libraries not built (NDF library not installed in ${stardev})"
    !   ============
    !   Run testcase
    !   ============
-   ! Note these are not JUnit based.
    !-->
   <target name="test"
-          depends="compile-tests">
-    <!-- does nothing, no tests in SPLAT -->
+          depends="run-tests">
+  </target>
+
+  <target name="run-tests"
+          depends="compile-tests"
+          if="junit.present">
+
+    <junit printsummary="${junit.summary}" haltonfailure="yes"
+           filtertrace="${junit.filtertrace}"
+           fork="${junit.fork}">
+
+      <classpath refid="tests-classpath"/>
+
+      <jvmarg value="${junit.assertions}"/>
+
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+
+      <formatter type="brief" usefile="false"/>
+
+      <batchtest>
+        <fileset dir="${tests.dir}">
+          <include name="**/*Test*"/>
+        </fileset>
+      </batchtest>
+
+    </junit>
+
   </target>
 
   <!-- Compile all code and run up the UI -->
