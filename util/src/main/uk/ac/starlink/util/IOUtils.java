@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ public class IOUtils {
     private final static Map resourceMap_ = new HashMap();
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
+    private final static byte[] lineSep_ = getLineSeparatorBytes();
 
     /**
      * Skips over a number of bytes in a <tt>DataInput</tt>.
@@ -152,5 +154,34 @@ public class IOUtils {
             resourceMap_.put( key, value );
         }
         return (String) resourceMap_.get( key );   
+    }
+
+    /**
+     * Writes a string to an output stream followed by a new line.
+     * Unlike {@link java.io.PrintStream#println}, an IOException may
+     * be thrown.
+     *
+     * @param  out  destination stream
+     * @param  line  line to write
+     */
+    public static void println( OutputStream out, String line )
+            throws IOException {
+        out.write( line.getBytes() );
+        out.write( lineSep_ );
+    }
+
+    /**
+     * Returns the platform's line separator as a byte array given the
+     * platform's default encoding.  May or may not be equal to {'\n'}.
+     *
+     * @return  line separator byte sequence
+     */
+    public static byte[] getLineSeparatorBytes() {
+        try {
+            return System.getProperty( "line.separator", "\n" ).getBytes();
+        }
+        catch ( SecurityException e ) {
+            return "\n".getBytes();
+        }
     }
 }
