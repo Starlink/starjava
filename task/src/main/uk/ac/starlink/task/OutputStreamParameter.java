@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import uk.ac.starlink.util.Destination;
 
 /**
  * Parameter for selecting an output stream to write to.
@@ -74,25 +75,5 @@ public class OutputStreamParameter extends Parameter {
             throws TaskException {
         checkGotValue( env );
         return destination_;
-    }
-
-    /**
-     * Defines an object which can return an output stream, and hence
-     * represents the potential destination of a stream of data.
-     * It is used in preference to an OutputStream so that you can
-     * avoid opening output files before you know you need them,
-     * so you don't get new empty files (possibly overwriting old ones)
-     * when a command fails.
-     */
-    public interface Destination {
-
-        /**
-         * Returns an output stream which will write to this destination.
-         * This method is only intended to be called once for a given
-         * instance.
-         *
-         * @return  output stream
-         */
-        OutputStream createStream() throws IOException;
     }
 }
