@@ -491,16 +491,17 @@
            <arg value="${dist.lib.pkg}/xmlrpc-2.0.jar(**.class)"/>
       <arg value="-keep"/>
            <arg value="public class uk.ac.starlink.plastic.MinimalHub {public static void main(java.lang.String[]);}"/>
-      <arg value="-keep"/>
-           <arg value="public class org.votech.PlasticHubListener {public *;}"/>
-      <arg value="-keep"/>
-           <arg value="public class org.votech.PlasticListener {public *;}"/>
       <arg value="-outjars"/> <arg value="${build.dir}/microhub.jar"/>
       <arg value="-dontoptimize"/>
       <arg value="-dontobfuscate"/>
     </java>
     <unjar src="${build.dir}/microhub.jar" dest="${build.dir}/microclasses"/>
     <unjar src="${src.jars.dir}/rmi-lite.jar" dest="${build.dir}/microclasses"/>
+    <unjar src="${dist.lib.pkg}/${name}.jar" dest="${build.dir}/microclasses">
+      <patternset>
+        <include name="org/votech/plastic/**"/>
+      </patternset>
+    </unjar>
     <delete file="${build.dir}/microhub.jar"/>
     <jar destfile="${dist.lib.pkg}/microhub.jar"
          basedir="${build.dir}/microclasses">
