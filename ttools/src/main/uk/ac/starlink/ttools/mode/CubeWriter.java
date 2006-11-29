@@ -18,11 +18,11 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.ttools.ColumnIdentifier;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.util.Destination;
 
 /**
  * TableConsumer implementation which constructs and outputs a histogram
@@ -38,7 +38,7 @@ public class CubeWriter implements TableConsumer {
     private final String[] colIds_;
     private final String scaleId_;
     private final Class outType_;
-    private final OutputStreamParameter.Destination dest_;
+    private final Destination dest_;
     private int[] nbins_;
     private double[] binSizes_;
 
@@ -62,7 +62,7 @@ public class CubeWriter implements TableConsumer {
      */
     public CubeWriter( double[] loBounds, double[] hiBounds, int[] nbins,
                        double[] binSizes, String[] colIds, String scaleId,
-                       OutputStreamParameter.Destination dest, Class outType ) {
+                       Destination dest, Class outType ) {
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         nbins_ = nbins;

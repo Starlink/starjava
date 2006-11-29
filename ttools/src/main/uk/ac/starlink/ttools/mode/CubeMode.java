@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.WordParser;
 import uk.ac.starlink.ttools.task.WordsParameter;
+import uk.ac.starlink.util.Destination;
 
 /**
  * Output mode for generating an N-dimenaional histogram of data points
@@ -231,8 +232,7 @@ public class CubeMode implements ProcessingMode {
         }
 
         /* Get the destination. */
-        OutputStreamParameter.Destination dest = 
-            outParam_.destinationValue( env );
+        Destination dest = outParam_.destinationValue( env );
 
         /* Get the output datatype size. */
         Class outType = (Class) typeParam_.objectValue( env );
