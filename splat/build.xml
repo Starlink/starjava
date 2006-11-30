@@ -1378,10 +1378,10 @@ JNI libraries not built (NDF library not installed in ${stardev})"
 
       <jvmarg value="${junit.assertions}"/>
 
+      <sysproperty key="java.library.path" value="${dist.lib.arch}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="brief" usefile="false"/>
