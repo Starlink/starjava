@@ -109,7 +109,6 @@ display()
             "\"" + bsh.args[0] +
             "\")";
     }
-    print( "Command = " + command );
 
     //  Protect windows \ from beanshell (replaces "\" with "\\"!).
     if ( ! File.separator.equals( "/" ) ) {
