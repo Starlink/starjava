@@ -104,7 +104,6 @@ else
 fi
 shift
 
-echo "$starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar bsh.Interpreter $script_name ${1+$@}"
 $starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar bsh.Interpreter \
     $script_name ${1+"$@"}
 exit
