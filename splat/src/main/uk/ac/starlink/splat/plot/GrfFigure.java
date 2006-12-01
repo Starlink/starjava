@@ -15,7 +15,6 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
-import javax.swing.JViewport;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
