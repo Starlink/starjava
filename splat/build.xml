@@ -746,6 +746,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
+             maxmemory="128m"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
