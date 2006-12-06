@@ -610,9 +610,6 @@ public class ASTJ
         if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
             frame2.clear( "format(1)" );
         }
-        if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
-            frame2.clear( "format(1)" );
-        }
         if ( ! cfrm.test( "Digits(" + axis + ")" ) ) {
             frame2.clear( "digits(1)" );
         }
