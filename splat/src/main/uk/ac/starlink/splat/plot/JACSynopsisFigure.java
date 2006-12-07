@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.plot;
 
 import diva.canvas.AbstractFigure;
 import diva.canvas.interactor.Interactor;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -49,6 +50,9 @@ public class JACSynopsisFigure
     /** The underlying location within viewport */
     private Point anchor = null;
 
+    /** The default font */
+    private static Font defaultFont = new Font( null, Font.PLAIN, 10 );
+
     /**
      * Create an instance.
      *
@@ -61,8 +65,7 @@ public class JACSynopsisFigure
     public JACSynopsisFigure( SpecData specData, JViewport viewport,
                               Point anchor )
     {
-        super( "JACSynopsisFigure\nName=\nTSYS=\n" );
-
+        super( "JACSynopsisFigure", defaultFont );
         this.anchor = anchor.getLocation();
         setSpecData( specData );
         setViewport( viewport );
