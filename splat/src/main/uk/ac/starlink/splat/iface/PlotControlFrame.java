@@ -158,6 +158,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem prefixLineIDs = null;
     protected JCheckBoxMenuItem showVerticalMarks = null;
     protected JCheckBoxMenuItem showShortNames = null;
+    protected JCheckBoxMenuItem showSynopsis = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
     protected JMenu analysisMenu = new JMenu();
@@ -634,6 +635,14 @@ public class PlotControlFrame
                                   LineRenderer.isShowShortNames() );
         showShortNames.setSelected( state );
         LineRenderer.setShowShortNames( state );
+
+        //  Display the current spectrum synopsis.
+        showSynopsis =
+            new JCheckBoxMenuItem( "Display synopsis" );
+        optionsMenu.add( showSynopsis );
+        showSynopsis.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
+        showSynopsis.setSelected( state );
     }
 
     /**
@@ -1819,6 +1828,14 @@ public class PlotControlFrame
             boolean state = showShortNames.isSelected();
             prefs.putBoolean( "PlotControlFrame_showshortnames", state );
             LineRenderer.setShowShortNames( state );
+            return;
+        }
+
+        if ( source.equals( showSynopsis ) ) {
+            boolean state = showSynopsis.isSelected();
+            prefs.putBoolean( "PlotControlFrame_showsynopsis", state );
+            plot.setShowSynopsis( state );
+            plot.updatePlot();
             return;
         }
 
