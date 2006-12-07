@@ -19,6 +19,7 @@ import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 
 import java.awt.font.FontRenderContext;
@@ -292,7 +293,25 @@ public class LabelFigure extends AbstractFigure {
 
             g.setPaint(_fillPaint);
             g.setComposite(_composite);
+            
+            // Respect the hints for anti-aliased text, if set. Do this by
+            // switching on all anti-aliasing (since we use a Shape not a
+            // direct String, text anti-aliasing is not used).
+            boolean aat = g.getRenderingHints()
+                .containsValue( RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
+            boolean aaa = g.getRenderingHints()
+                .containsValue( RenderingHints.VALUE_ANTIALIAS_ON );
+            if ( aat && !aaa ) {
+                g.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_ON );
+            }
+
 	    g.fill(_shape);
+
+            if ( aat && !aaa ) {
+                g.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_OFF );
+            }
 
             // Pop the context
             _transformContext.pop(g);
