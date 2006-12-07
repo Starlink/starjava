@@ -1556,7 +1556,7 @@ public class DivaPlot
         return "Axis" + axis;
     }
 
-    //  Make a postscript copy of the spectra.
+    //  Make a postscript copy of the spectra. Implements Printable interface.
     public int print( Graphics g, PageFormat pf, int pageIndex )
     {
         if ( pageIndex > 0 ) {
@@ -1571,7 +1571,7 @@ public class DivaPlot
         Graphics2D g2 = (Graphics2D) g;
         fitToPage( g2, pf );
 
-        //  Print the spectra.
+        //  Print the spectra and AST graphics.
         print( g2 );
 
         //  Restore background colour.
