@@ -235,6 +235,16 @@ public class PlotControl
     protected PrintRequestAttributeSet pageSet = null;
 
     /**
+     * Whether to show the synopsis.
+     */
+    protected boolean showSynopsis = false;
+
+    /**
+     * The synopsis figure.
+     */
+    protected JACSynopsisFigure synopsisFigure = null;
+
+    /**
      * Create a PlotControl, adding spectra later.
      */
     public PlotControl()
@@ -1587,6 +1597,11 @@ public class PlotControl
         if ( plot.getDataLimits().isYFit() ) {
             fitToHeight();
         }
+
+        // Update the synopsis, if a change in spectrum has occurred.
+        if ( referenceSpec != null ) {
+            updateSynopsis();
+        }
     }
 
     /**
@@ -1610,6 +1625,47 @@ public class PlotControl
     {
         if ( spectra.have( specData ) ) {
             spectra.setCurrentSpectrum( specData );
+        }
+    }
+
+    /**
+     * Set whether we're displaying the current spectrum synopsis.
+     */
+    public void setShowSynopsis( boolean showSynopsis )
+    {
+        this.showSynopsis = showSynopsis;
+        updateSynopsis();
+    }
+
+    /**
+     * Get whether we're displaying the current spectrum synopsis.
+     */
+    public boolean isShowSynopsis()
+    {
+        return showSynopsis;
+    }
+
+    /**
+     * Update the synopsis. Needs to be done when enabling, or a change in
+     * current spectrum has occurred.
+     */
+    protected void updateSynopsis()
+    {
+        if ( showSynopsis ) {
+            if ( synopsisFigure == null ) {
+                synopsisFigure = 
+                    new JACSynopsisFigure( getCurrentSpectrum(), 
+                                           getViewport(), 
+                                           new Point( 250, 90 ) );
+                plot.getDrawActions().addDrawFigure( synopsisFigure );
+            }
+            else {
+                synopsisFigure.setSpecData( getCurrentSpectrum() );
+            }
+        }
+        else {
+            plot.getDrawActions().deleteFigure( synopsisFigure );
+            synopsisFigure = null;
         }
     }
 
