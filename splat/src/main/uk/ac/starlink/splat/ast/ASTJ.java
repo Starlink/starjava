@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2002 Central Laboratory of the Research Councils
+ * Copyright (C) 1999-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  * History:
  *    21-SEP-1999 (Peter W. Draper):
@@ -150,10 +151,7 @@ public class ASTJ
      */
     public boolean isAxisClass( int axis, Class clazz )
     {
-        int iaxes[] = new int[1];
-        iaxes[0] = axis;
-        Frame picked = astRef.pickAxes( 1, iaxes, null );
-        return clazz.isInstance( picked );
+        return clazz.isInstance( pickAxis( axis ) );
     }
 
     /**
@@ -163,10 +161,7 @@ public class ASTJ
     public boolean isFirstAxisSpecFrame()
     {
         if ( ! isSpecFrameSet ) {
-            int iaxes[] = new int[1];
-            iaxes[0] = 1;
-            Frame picked = astRef.pickAxes( 1, iaxes, null );
-            isSpecFrame =  (picked instanceof SpecFrame);
+            isSpecFrame = ( pickAxis( 1 ) instanceof SpecFrame );
             isSpecFrameSet = true;
         }
         return isSpecFrame;
@@ -179,15 +174,21 @@ public class ASTJ
     public boolean isFirstAxisDSBSpecFrame()
     {
         if ( ! isDSBSpecFrameSet ) {
-            int iaxes[] = new int[1];
-            iaxes[0] = 1;
-            Frame picked = astRef.pickAxes( 1, iaxes, null );
-            isDSBSpecFrame =  (picked instanceof DSBSpecFrame);
+            isDSBSpecFrame =  ( pickAxis( 1 ) instanceof DSBSpecFrame );
             isDSBSpecFrameSet = true;
         }
         return isDSBSpecFrame;
     }
 
+    /**
+     * Return an axis from the current FrameSet.
+     */
+    public Frame pickAxis( int axis )
+    {
+        int iaxes[] = new int[1];
+        iaxes[0] = axis;
+        return astRef.pickAxes( 1, iaxes, null );
+    }
 
     /**
      *  Create an AST frame and return a reference to it.
@@ -702,9 +703,7 @@ public class ASTJ
         }
 
         // Pick out the axis that should be a SpecFrame.
-        int iaxes[] = new int[1];
-        iaxes[0] = axis;
-        Frame picked = astRef.pickAxes( 1, iaxes, null );
+        Frame picked = pickAxis( 1 );
 
         // Nothing to do if this is a SpecFrame.
         if ( picked instanceof SpecFrame ) {
@@ -838,7 +837,7 @@ public class ASTJ
             Frame newFrame = null;
             if ( axis > 1 ) {
                 // SpecFrame somewhere in middle or at top.
-                iaxes = new int[ nax - 1 ];
+                int iaxes[] = new int[ nax - 1 ];
                 int i = 1;
                 for ( i = 1; i < axis; i++ ) {
                     iaxes[ i - 1 ] = i;
@@ -857,7 +856,7 @@ public class ASTJ
             }
             else {
                 // SpecFrame is first.
-                iaxes = new int[ nax ];
+                int iaxes[] = new int[ nax ];
                 int i = 1;
                 for ( i = 2; i <= nax; i++ ) {
                     iaxes[ i - 1 ] = i;
