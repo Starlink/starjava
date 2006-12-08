@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  * History:
  *    16-SEP-1999 (Peter W. Draper):
@@ -243,6 +244,11 @@ public class PlotControl
      * The synopsis figure.
      */
     protected JACSynopsisFigure synopsisFigure = null;
+
+    /**
+     *  Initial position, just a guess.
+     */
+    protected Point synopsisAnchor = new Point( 120, 55 );
 
     /**
      * Create a PlotControl, adding spectra later.
@@ -1598,10 +1604,8 @@ public class PlotControl
             fitToHeight();
         }
 
-        // Update the synopsis, if a change in spectrum has occurred.
-        if ( referenceSpec != null ) {
-            updateSynopsis();
-        }
+        // Update the synopsis, if a chance in spectrum has occurred.
+        updateSynopsis( referenceSpec != null );
     }
 
     /**
@@ -1634,7 +1638,9 @@ public class PlotControl
     public void setShowSynopsis( boolean showSynopsis )
     {
         this.showSynopsis = showSynopsis;
-        updateSynopsis();
+        if ( getCurrentSpectrum() != null ) {
+            updateSynopsis( true );
+        }
     }
 
     /**
@@ -1647,25 +1653,33 @@ public class PlotControl
 
     /**
      * Update the synopsis. Needs to be done when enabling, or a change in
-     * current spectrum has occurred.
+     * current spectrum has occurred, or some property of the spectrum. If
+     * just a property then set current false.
      */
-    protected void updateSynopsis()
+    protected void updateSynopsis( boolean current )
     {
         if ( showSynopsis ) {
             if ( synopsisFigure == null ) {
                 synopsisFigure = 
                     new JACSynopsisFigure( getCurrentSpectrum(), 
-                                           getViewport(), 
-                                           new Point( 250, 90 ) );
+                                           getViewport(), synopsisAnchor );
                 plot.getDrawActions().addDrawFigure( synopsisFigure );
             }
             else {
-                synopsisFigure.setSpecData( getCurrentSpectrum() );
+                if ( current ) {
+                    synopsisFigure.setSpecData( getCurrentSpectrum() );
+                }
+                else {
+                    synopsisFigure.updateProperties();
+                }
             }
         }
         else {
-            plot.getDrawActions().deleteFigure( synopsisFigure );
-            synopsisFigure = null;
+            if ( synopsisFigure != null ) {
+                plot.getDrawActions().deleteFigure( synopsisFigure );
+                synopsisAnchor = synopsisFigure.getLocalAnchor();
+                synopsisFigure = null;
+            }
         }
     }
 
