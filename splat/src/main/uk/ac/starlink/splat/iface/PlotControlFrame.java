@@ -642,7 +642,12 @@ public class PlotControlFrame
         optionsMenu.add( showSynopsis );
         showSynopsis.addItemListener( this );
         state = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
-        showSynopsis.setSelected( state );
+        try {
+            showSynopsis.setSelected( state );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
