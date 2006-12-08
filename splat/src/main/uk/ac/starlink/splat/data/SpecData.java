@@ -718,6 +718,16 @@ public class SpecData
     }
 
     /**
+     * Return a keyed value from the FITS headers. Returns "" if not
+     * found. Standard properties are made available with specific methods
+     * ({@link #getDataLabel} etc.), which should be used to access those.
+     */
+    public String getProperty( String property )
+    {
+        return impl.getProperty( property );
+    }
+
+    /**
      * Save the spectrum to disk (if supported). Uses the current state of the
      * spectrum (i.e. any file names etc.) to decide how to do this.
      *
