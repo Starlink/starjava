@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.plot;
 
 import diva.canvas.AbstractFigure;
 import diva.canvas.interactor.Interactor;
+
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -18,13 +19,22 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Date;
+
 import javax.swing.JViewport;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import nom.tam.fits.FitsDate;
+
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.SpecFrame;
+import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.diva.DrawLabelFigure;
 import uk.ac.starlink.diva.DrawRectangleFigure;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.util.SplatException;
 
@@ -65,10 +75,12 @@ public class JACSynopsisFigure
     public JACSynopsisFigure( SpecData specData, JViewport viewport,
                               Point anchor )
     {
-        super( "JACSynopsisFigure", defaultFont );
+        super( "JACSynopsisFigure", defaultFont, 4.0, 
+               SwingConstants.NORTH_WEST );
         this.anchor = anchor.getLocation();
         setSpecData( specData );
         setViewport( viewport );
+        reAnchor();
     }
 
     /**
@@ -77,27 +89,15 @@ public class JACSynopsisFigure
     public void setSpecData( SpecData specData )
     {
         this.specData = specData;
-        gatherProperties();
+        if ( specData != null ) {
+            updateProperties();
+        }
         fireChanged();
     }
 
-    //  Create the String that represents the synopsis.
-    protected void gatherProperties()
-    {
-        FrameSet frameSet = specData.getFrameSet();
-
-        StringBuffer b = new StringBuffer();
-
-        b.append( "Epoch: " + frameSet.getEpoch() + "\n" );
-        b.append( "Short name: " + specData.getShortName() + "\n" );
-        b.append( "Full name: " + specData.getFullName() + "\n" );
-        b.append( "Rest Freq: " + frameSet.getC( "RestFreq" ) + " (GHz)\n" );
-        setString( b.toString() );
-    }
-
     /**
-     * Set the {@link JViewport} instance. The position of our Rectangle is
-     * fixed within the visible portion of this.
+     * Set the {@link JViewport} instance. The position of our synopsis text
+     * is initially fixed within the visible portion of this.
      */
     public void setViewport( JViewport viewport )
     {
@@ -117,6 +117,111 @@ public class JACSynopsisFigure
     }
 
     /**
+     * Return a copy of the current local anchor position.
+     */
+    public Point getLocalAnchor()
+    {
+        return anchor.getLocation();
+    }
+
+    //  Create the String that represents the synopsis.
+    protected void updateProperties()
+    {
+        ASTJ astj = specData.getAst();
+        Frame specAxis = astj.pickAxis( 1 );
+
+        StringBuffer b = new StringBuffer();
+
+        //  SPLAT name.
+        b.append( "Name: " + specData.getShortName() + "\n" );
+
+        //  Telescope/instrument/backend.
+        String prop = specData.getProperty( "TELESCOP" );
+        if ( ! "".equals( prop ) ) {
+            b.append( "Telescope: " + prop );
+            prop = specData.getProperty( "INSTRUME" );
+            if ( ! "".equals( prop ) ) {
+                b.append( " / " + prop );
+                prop = specData.getProperty( "BACKEND" );
+                if ( ! "".equals( prop ) ) {
+                    b.append( " / " + prop );
+                }
+            }
+            b.append( "\n" );
+        }
+
+        //  Prefer human readable date of observation. Epoch will
+        //  be MJD-OBS.
+        prop = specData.getProperty( "DATE-OBS" );
+        if ( "".equals( prop ) ) {
+            b.append( "Epoch: " + specAxis.getEpoch() + "\n" );
+        }
+        else {
+            b.append( "Date obs: " + prop + " (UTC)\n" );
+        }
+
+        //  Target of observation.
+        prop = specData.getProperty( "OBJECT" );
+        if ( ! "".equals( prop ) ) {
+            b.append( "Object: " + prop + "\n" );
+        }
+
+        //  Elevation.
+        prop = specData.getProperty( "ELSTART" );
+        if ( ! "".equals( prop ) ) {
+            double elstart = Double.parseDouble( prop );
+            prop = specData.getProperty( "ELEND" );
+            if ( ! "".equals( prop ) ) {
+                double elend = Double.parseDouble( prop );
+                b.append( "Elevation: " + (0.5*(elstart+elend)) + "\n" );
+            }
+            else {
+                b.append( "Elevation: " + elstart + "\n" );
+            }
+        }
+
+        //  Exposure time. These are human readable dates so need to use FITS
+        //  parsing.
+        prop = specData.getProperty( "DATE-OBS" );
+        if ( ! "".equals( prop ) ) {
+            try {
+                Date dstart = new FitsDate( prop ).toDate();
+                prop = specData.getProperty( "DATE-END" );
+                if ( ! "".equals( prop ) ) {
+                    Date dend = new FitsDate( prop ).toDate();
+                    
+                    //  Get milliseconds in UNIX time.
+                    long istart = dstart.getTime();
+                    long iend = dend.getTime();
+                    b.append( "Exposure: " +((iend-istart)/1000.0)+ " sec\n" );
+                }
+            }
+            catch (Exception e) {
+                //  Unparsable time. Just give up.
+            }
+        }
+
+        b.append( "Coord Sys: " + specAxis.getSystem() + "\n" );
+        //b.append( "ObsLat: " + specAxis.getC( "ObsLat" ) + "\n" );
+        //b.append( "ObsLon: " + specAxis.getC( "ObsLon" ) + "\n" );
+
+        if ( specAxis instanceof SpecFrame ) {
+            b.append( "RefRA; RefDec: " + specAxis.getC( "RefRA" ) );
+            b.append( "; " + specAxis.getC( "RefDec" ) + "\n" );
+            b.append( "SourceVel: " + specAxis.getC( "SourceVel" ) + "\n" );
+            b.append( "SourceVRF: " + specAxis.getC( "SourceVRF" ) + "\n" );
+            b.append( "StdOfRest: " + specAxis.getC( "StdOfRest" ) + "\n" );
+            b.append( "RestFreq: " + specAxis.getC( "RestFreq" ) + "GHz\n" );
+        }
+        if ( specAxis instanceof DSBSpecFrame ) {
+            b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + "GHz\n" );
+            //b.append( "DSBCentre: " + specAxis.getC( "DSBCentre" ) + "\n" );
+            //b.append( "IF: " + specAxis.getC( "IF" ) + "GHz\n" );
+        }
+        setString( b.toString() );
+    }
+
+    /**
      * Reset the text anchor position so that the position within the viewport
      * is retained.
      */
@@ -129,7 +234,8 @@ public class JACSynopsisFigure
         translate( p.getX() - a.getX(), p.getY() - a.getY(), false );
     }
 
-    // Don't want this to transform, needs to retain its size.
+    // Don't want this to transform, needs to retain its size, not grow in
+    // scale with the other DrawFigure instances.
     public void transform( AffineTransform at )
     {
         // Do nothing.
@@ -139,7 +245,7 @@ public class JACSynopsisFigure
     //  (do after interactive drag, but not when viewport updates).
     public void translate( double x, double y, boolean reset )
     {
-        //  Cheat big time and use transform of super-class, not translate.
+        //  Cheat big time. Use transform() of super-class, not translate.
         //  That avoids having a transform in this class, which is where the
         //  translation request end up.
         super.transform( AffineTransform.getTranslateInstance( x, y ) );
