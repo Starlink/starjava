@@ -353,16 +353,29 @@ public class FlipFrame
         resetButton.setToolTipText( "Reset spectrum to default offset and"
                                     + " clear visitor states" );
 
-        //  Add an action to close the window.
-        LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
-                                                   "Close", closeImage,
-                                                   "Close window",
-                                                   "control W" );
+        //  Add an action to close the window, but keep shift.
+        LocalAction closeKeepAction = 
+            new LocalAction( LocalAction.CLOSE_KEEP, "Close keep", 
+                             closeImage, "Close window keeping shift",
+                             "control K" );
+        fileMenu.add( closeKeepAction ).setMnemonic( KeyEvent.VK_K );;
+        JButton closeKeepButton = new JButton( closeKeepAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( closeKeepButton );
+        closeKeepButton.setToolTipText( "Close window keeping shift" );
+
+        actionBar.add( Box.createGlue() );
+        contentPane.add( actionBar, BorderLayout.SOUTH );
+
+        //  Add an action to close the window, and reset shift.
+        LocalAction closeAction = 
+            new LocalAction( LocalAction.CLOSE, "Close", closeImage,
+                             "Close window resetting shift", "control W" );
         fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
-        closeButton.setToolTipText( "Close window" );
+        closeButton.setToolTipText( "Close window resetting shift" );
 
         actionBar.add( Box.createGlue() );
         contentPane.add( actionBar, BorderLayout.SOUTH );
@@ -876,16 +889,18 @@ public class FlipFrame
     }
 
     /**
-     * Close the window. Reset shift of current spectrum.
+     * Close the window. Reset shift of current spectrum if requested.
      */
-    protected void closeWindowEvent()
+    protected void closeWindowEvent( boolean reset )
     {
         globalList.removePlotListener( this );
-        try {
-            flipTransform( 1.0, 0.0, null, redshiftBox.isSelected() );
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+        if ( reset ) {
+            try {
+                flipTransform( 1.0, 0.0, null, redshiftBox.isSelected() );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         visitor.clearStates();
         this.dispose();
@@ -1212,12 +1227,13 @@ public class FlipFrame
 
         //  Types of action.
         public static final int CLOSE = 0;
-        public static final int RESET = 1;
-        public static final int COPY = 2;
-        public static final int SPEFO = 3;
-        public static final int SPEFOSAVE = 4;
-        public static final int READVISITOR = 5;
-        public static final int MAKEVIS = 6;
+        public static final int CLOSE_KEEP = 1;
+        public static final int RESET = 2;
+        public static final int COPY = 3;
+        public static final int SPEFO = 4;
+        public static final int SPEFOSAVE = 5;
+        public static final int READVISITOR = 6;
+        public static final int MAKEVIS = 7;
 
         //  The type of this instance.
         private int actionType = CLOSE;
@@ -1254,7 +1270,11 @@ public class FlipFrame
             switch ( actionType )
             {
                case CLOSE: {
-                   closeWindowEvent();
+                   closeWindowEvent( true );
+                   break;
+               }
+               case CLOSE_KEEP: {
+                   closeWindowEvent( false );
                    break;
                }
                case RESET: {
