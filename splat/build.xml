@@ -106,7 +106,7 @@
   <property name="chmod.fail" value="false"/>
 
   <!-- JUnit test options -->
-  <property name="junit.fork" value="false"/>
+  <property name="junit.fork" value="yes"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
 
@@ -741,7 +741,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
   <!-- Local target so it can be skipped when "skip.sign.jar" is set -->
   <target name="signjar"
           description="sign all jar files"
-          unless="skip.sign.jar">
+          unless="sign.jar.skip">
 
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
@@ -1373,19 +1373,26 @@ JNI libraries not built (NDF library not installed in ${stardev})"
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
-           fork="${junit.fork}">
+           fork="${junit.fork}"
+           forkmode="once">
 
       <classpath refid="tests-classpath"/>
 
-      <jvmarg value="${junit.assertions}"/>
-
-      <sysproperty key="java.library.path" value="${dist.lib.arch}"/>
+      <!-- Need to pick up local JNIAST, which might be installed or on the
+       !   library path, note that java.library.path cannot be changed inside 
+       !   a JVM, so we have to fork and pass this from the environment.
+       !   Set LD_LIBRARY_PATH and DYLD_LIBRARY_PATH as they are the only two
+       !   ways that we support. -->
+      <env key="LD_LIBRARY_PATH"
+           path="${dist.lib.arch}:${star.build.dir}/jniast/lib/${os.arch}:${star.jar.dir}/${os.arch}"/>
+      <env key="DYLD_LIBRARY_PATH"
+           path="${dist.lib.arch}:${star.build.dir}/jniast/lib/${os.arch}:${star.jar.dir}/${os.arch}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
-      <formatter type="brief" usefile="false"/>
+      <formatter type="plain" usefile="false"/>
 
       <batchtest>
         <fileset dir="${tests.dir}">
