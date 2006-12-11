@@ -182,22 +182,30 @@ public class JACSynopsisFigure
 
         //  Exposure time. These are human readable dates so need to use FITS
         //  parsing.
-        prop = specData.getProperty( "DATE-OBS" );
+        prop = specData.getProperty( "INT_TIME" );
         if ( ! "".equals( prop ) ) {
-            try {
-                Date dstart = new FitsDate( prop ).toDate();
-                prop = specData.getProperty( "DATE-END" );
-                if ( ! "".equals( prop ) ) {
-                    Date dend = new FitsDate( prop ).toDate();
-                    
-                    //  Get milliseconds in UNIX time.
-                    long istart = dstart.getTime();
-                    long iend = dend.getTime();
-                    b.append( "Exposure: " +((iend-istart)/1000.0)+ " sec\n" );
+            b.append( "Exposure: " + prop + " sec\n" );
+        }
+        else {
+            //  Try elapsed time.
+            prop = specData.getProperty( "DATE-OBS" );
+            if ( ! "".equals( prop ) ) {
+                try {
+                    Date dstart = new FitsDate( prop ).toDate();
+                    prop = specData.getProperty( "DATE-END" );
+                    if ( ! "".equals( prop ) ) {
+                        Date dend = new FitsDate( prop ).toDate();
+                        
+                        //  Get milliseconds in UNIX time.
+                        long istart = dstart.getTime();
+                        long iend = dend.getTime();
+                        b.append( "Exposure (elapsed): " 
+                                  +( (iend-istart)/1000.0 )+ " sec\n" );
+                    }
                 }
-            }
-            catch (Exception e) {
-                //  Unparsable time. Just give up.
+                catch (Exception e) {
+                    //  Unparsable time. Just give up.
+                }
             }
         }
 
