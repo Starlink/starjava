@@ -329,6 +329,11 @@ follows:
     then you won't be prompted at all.
     </p></dd>
 
+<dt><code>-bench</code></dt>
+<dd><p>Outputs the elapsed time taken by the task to standard error on
+    successful completion.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -4114,6 +4119,7 @@ but my thanks are especially due to the following:
         later.</li>
     <li>Modified parameter handling slightly for <code>votlint</code>.</li>
     <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
+    <li>Added <code>-bench</code> flag to <code>stilts</code> command.</li>
     </ul>
     </p></dd>
 

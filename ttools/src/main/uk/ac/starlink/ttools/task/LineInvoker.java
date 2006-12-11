@@ -60,6 +60,7 @@ public class LineInvoker {
         List argList = new ArrayList( Arrays.asList( args ) );
         LineTableEnvironment env = new LineTableEnvironment();
         int verbosity = 0;
+        boolean bench = false;
 
         /* Treat flags. */
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -127,6 +128,10 @@ public class LineInvoker {
                     it.remove();
                     env.setDebug( true );
                 }
+                else if ( arg.equals( "-bench" ) ) {
+                    it.remove();
+                    bench = true;
+                }
                 else {
                     it.remove();
                     System.err.println( "\n" + getUsage() );
@@ -162,11 +167,18 @@ public class LineInvoker {
                         words[ i ] = new LineWord( taskArgs[ i ] );
                     }
                     env.setWords( words );
+                    long start = System.currentTimeMillis();
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();
                     if ( unused.length == 0 ) {
                         logParameterValues( taskName, env );
                         exec.execute();
+                        if ( bench ) {
+                            long millis = System.currentTimeMillis() - start;
+                            String secs =
+                                Float.toString( ( millis / 100L ) * 0.1f );
+                            System.err.println( "Elapsed time: " + secs + "s" );
+                        }
                     }
                     else {
                         System.err.println( "\n" + getUnusedWarning( unused ) );
@@ -355,6 +367,7 @@ public class LineInvoker {
             .append( " [-debug]" )
             .append( " [-prompt]" )
             .append( " [-batch]" )
+            .append( " [-bench]" )
             .append( '\n' )
             .append( pad )
             .append( " <task-name> <task-args>" )
