@@ -214,8 +214,24 @@ public class JACSynopsisFigure
         //b.append( "ObsLon: " + specAxis.getC( "ObsLon" ) + "\n" );
 
         if ( specAxis instanceof SpecFrame ) {
-            b.append( "RefRA; RefDec: " + specAxis.getC( "RefRA" ) );
-            b.append( "; " + specAxis.getC( "RefDec" ) + "\n" );
+
+            //  RA and Dec are ideally from GAIA.
+            prop = specData.getProperty( "EXRA" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "Centre: " + 
+                          prop + ", " + 
+                          specData.getProperty( "EXDEC" ) + "\n" );
+                b.append( "Offset: " + 
+                          specData.getProperty( "EXRAOF" ) + ", " +
+                          specData.getProperty( "EXDECOF" ) + " (arcsec)\n" );
+            }
+            else {
+
+                //  Just report SpecFrame reference position. This should be
+                //  for the source.
+                b.append( "RefRA, RefDec: " + specAxis.getC( "RefRA" ) );
+                b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
+            }
             b.append( "SourceVel: " + specAxis.getC( "SourceVel" ) + "\n" );
             b.append( "SourceVRF: " + specAxis.getC( "SourceVRF" ) + "\n" );
             b.append( "StdOfRest: " + specAxis.getC( "StdOfRest" ) + "\n" );
@@ -225,6 +241,10 @@ public class JACSynopsisFigure
             b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + "GHz\n" );
             //b.append( "DSBCentre: " + specAxis.getC( "DSBCentre" ) + "\n" );
             //b.append( "IF: " + specAxis.getC( "IF" ) + "GHz\n" );
+            prop = specData.getProperty( "IFCHANSP" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "Channel spacing: " + prop + "Hz" );
+            }
         }
         setString( b.toString() );
     }
