@@ -20,6 +20,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
+import java.text.DecimalFormat;
 
 import javax.swing.JViewport;
 import javax.swing.SwingConstants;
@@ -75,7 +76,7 @@ public class JACSynopsisFigure
     public JACSynopsisFigure( SpecData specData, JViewport viewport,
                               Point anchor )
     {
-        super( "JACSynopsisFigure", defaultFont, 4.0, 
+        super( "JACSynopsisFigure", defaultFont, 4.0,
                SwingConstants.NORTH_WEST );
         this.anchor = anchor.getLocation();
         setSpecData( specData );
@@ -137,6 +138,7 @@ public class JACSynopsisFigure
 
         //  Telescope/instrument/backend.
         String prop = specData.getProperty( "TELESCOP" );
+        String telescope = prop;
         if ( ! "".equals( prop ) ) {
             b.append( "Telescope: " + prop );
             prop = specData.getProperty( "INSTRUME" );
@@ -184,7 +186,7 @@ public class JACSynopsisFigure
         //  parsing.
         prop = specData.getProperty( "INT_TIME" );
         if ( ! "".equals( prop ) ) {
-            b.append( "Exposure: " + prop + " sec\n" );
+            b.append( "Exposure: " + prop + " (sec)\n" );
         }
         else {
             //  Try elapsed time.
@@ -195,12 +197,12 @@ public class JACSynopsisFigure
                     prop = specData.getProperty( "DATE-END" );
                     if ( ! "".equals( prop ) ) {
                         Date dend = new FitsDate( prop ).toDate();
-                        
+
                         //  Get milliseconds in UNIX time.
                         long istart = dstart.getTime();
                         long iend = dend.getTime();
-                        b.append( "Exposure (elapsed): " 
-                                  +( (iend-istart)/1000.0 )+ " sec\n" );
+                        b.append( "Exposure (elapsed): "
+                                  +( (iend-istart)/1000.0 )+ " (sec)\n" );
                     }
                 }
                 catch (Exception e) {
@@ -218,10 +220,10 @@ public class JACSynopsisFigure
             //  RA and Dec are ideally from GAIA.
             prop = specData.getProperty( "EXRA" );
             if ( ! "".equals( prop ) ) {
-                b.append( "Centre: " + 
-                          prop + ", " + 
+                b.append( "Centre: " +
+                          prop + ", " +
                           specData.getProperty( "EXDEC" ) + "\n" );
-                b.append( "Offset: " + 
+                b.append( "Offset: " +
                           specData.getProperty( "EXRAOF" ) + ", " +
                           specData.getProperty( "EXDECOF" ) + " (arcsec)\n" );
             }
@@ -235,17 +237,38 @@ public class JACSynopsisFigure
             b.append( "SourceVel: " + specAxis.getC( "SourceVel" ) + "\n" );
             b.append( "SourceVRF: " + specAxis.getC( "SourceVRF" ) + "\n" );
             b.append( "StdOfRest: " + specAxis.getC( "StdOfRest" ) + "\n" );
-            b.append( "RestFreq: " + specAxis.getC( "RestFreq" ) + "GHz\n" );
+            b.append( "RestFreq: " + specAxis.getC( "RestFreq" ) + " (GHz)\n");
         }
         if ( specAxis instanceof DSBSpecFrame ) {
-            b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + "GHz\n" );
+            b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + " (GHz)\n");
             //b.append( "DSBCentre: " + specAxis.getC( "DSBCentre" ) + "\n" );
-            //b.append( "IF: " + specAxis.getC( "IF" ) + "GHz\n" );
+            //b.append( "IF: " + specAxis.getC( "IF" ) + " (GHz)\n" );
             prop = specData.getProperty( "IFCHANSP" );
             if ( ! "".equals( prop ) ) {
-                b.append( "Channel spacing: " + prop + "Hz" );
+                double inc = Double.parseDouble( prop ) / 1.0E6;
+                b.append( "Channel spacing: " + inc + " (MHz)\n" );
             }
         }
+
+        //  TSYS and TRX. These should have been set by GAIA.
+        prop = specData.getProperty( "TSYS" );
+        if ( "".equals( prop ) ) {
+            //  No TSYS, only proceed if have variances and this is the JCMT.
+            if ( "JCMT".equals( telescope ) ) {
+                if ( specData.haveYDataErrors() ) {
+                    prop = calculateTsys( specData );
+                }
+            }
+        }
+        if ( ! "".equals( prop ) ) {
+            b.append( "TSYS: " + prop + " (K)\n" );
+        }
+
+        prop = specData.getProperty( "TRX" );
+        if ( ! "".equals( prop ) ) {
+            b.append( "TRX: " + prop + " (K)\n" );
+        }
+
         setString( b.toString() );
     }
 
@@ -292,5 +315,60 @@ public class JACSynopsisFigure
     {
         //  Reset anchor as should be from an interactive movement.
         translate( x, y, true );
+    }
+
+    /**
+     * Calculate an estimate for the TSYS. Based on the SpecX analysis.
+     */
+    protected String calculateTsys( SpecData specData )
+    {
+        String result = "";
+
+        //  Need the channel spacing and the efficiency factor.
+        String prop = specData.getProperty( "BEDEGFAC" );
+        if ( "".equals( prop ) ) {
+            return result;
+        }
+        double K = Double.parseDouble( prop );
+
+        prop = specData.getProperty( "IFCHANSP" );
+        if ( "".equals( prop ) ) {
+            return result;
+        }
+        double dnu = Math.abs( Double.parseDouble( prop ) );
+
+        prop = specData.getProperty( "INT_TIME" );
+        if ( "".equals( prop ) ) {
+            return result;
+        }
+        double exposure = Double.parseDouble( prop );
+
+        double[] errors = specData.getYDataErrors();
+        int n = errors.length;
+        double sum = 0.0;
+        int count = 0;
+        for ( int i = 0; i < n; i++ ) {
+            if ( errors[i] != SpecData.BAD ) {
+                sum += ( errors[i] * errors[i] );
+                count++;
+            }
+        }
+        if ( count > 0 ) {
+            double sigma = Math.sqrt ( sum / (double) count );
+
+            //  I make this.
+            //double mytsys = 
+            //    0.5 * sigma * Math.sqrt( 2.0 * dnu * exposure / K );
+
+            //  SpecX says:
+            double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
+            
+            //System.out.println( "tsys's = " + tsys + " : " + mytsys + 
+            //                    " (" + sigma + ")" );
+
+            DecimalFormat f  = new DecimalFormat( "###.##" );
+            result = f.format( tsys ) + "(Est) ";
+        }
+        return result;
     }
 }
