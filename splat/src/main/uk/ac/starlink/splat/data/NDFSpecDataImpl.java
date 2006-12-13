@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2006 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
@@ -159,7 +160,11 @@ public class NDFSpecDataImpl
         if ( ! result.equals( "" ) ) {
             return result;
         }
-        if ( theNDF.has( key ) ) {
+
+        //  Check for the known keys in NDF.
+        if ( ( key.equalsIgnoreCase( "label" ) ||
+               key.equalsIgnoreCase( "units" ) ||
+               key.equalsIgnoreCase( "title" ) ) && theNDF.has( key ) ) {
             return theNDF.getCharComp( key );
         }
         else {
