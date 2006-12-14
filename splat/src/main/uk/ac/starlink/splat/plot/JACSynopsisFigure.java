@@ -220,12 +220,28 @@ public class JACSynopsisFigure
             //  RA and Dec are ideally from GAIA.
             prop = specData.getProperty( "EXRA" );
             if ( ! "".equals( prop ) ) {
-                b.append( "Centre: " +
+                b.append( "Obs Centre: " +
                           prop + ", " +
                           specData.getProperty( "EXDEC" ) + "\n" );
-                b.append( "Offset: " +
-                          specData.getProperty( "EXRAOF" ) + ", " +
-                          specData.getProperty( "EXDECOF" ) + " (arcsec)\n" );
+
+                //  Extraction offsets from centre.
+                prop = specData.getProperty( "EXRAOF" );
+                if ( ! "".equals( prop ) ) {
+                    b.append( "Ex Offset: " +
+                              prop + ", " +
+                              specData.getProperty( "EXDECOF" ) +
+                              " (arcsec)\n" );
+                }
+                else {
+                    //  No offsets, maybe an extraction position instead
+                    //  (non-celestial coords).
+                    prop = specData.getProperty( "EXRAX" );
+                    if ( ! "".equals( prop ) ) {
+                        b.append( "Ex Position: " +
+                                  prop + ", " +
+                                  specData.getProperty( "EXDECX" ) + "\n" );
+                    }
+                }
             }
             else {
 
@@ -250,23 +266,32 @@ public class JACSynopsisFigure
             }
         }
 
-        //  TSYS and TRX. These should have been set by GAIA.
-        prop = specData.getProperty( "TSYS" );
-        if ( "".equals( prop ) ) {
-            //  No TSYS, only proceed if have variances and this is the JCMT.
-            if ( "JCMT".equals( telescope ) ) {
-                if ( specData.haveYDataErrors() ) {
-                    prop = calculateTsys( specData );
+        //  Temperature calculations are broken for now, so development mode
+        //  only...
+        java.util.Properties props = System.getProperties();
+        String isDevelop = props.getProperty( "splat.development" );
+        if (  isDevelop != null && isDevelop.equals( "1" )  ) {
+
+            //  TSYS and TRX.
+            prop = specData.getProperty( "TSYS" );
+            if ( "".equals( prop ) ) {
+                //  No TSYS, only proceed if have variances and this is the
+                //  JCMT.
+                if ( "JCMT".equals( telescope ) ) {
+                    if ( specData.haveYDataErrors() ) {
+                        prop = calculateTsys( specData );
+                    }
                 }
             }
-        }
-        if ( ! "".equals( prop ) ) {
-            b.append( "TSYS: " + prop + " (K)\n" );
-        }
 
-        prop = specData.getProperty( "TRX" );
-        if ( ! "".equals( prop ) ) {
-            b.append( "TRX: " + prop + " (K)\n" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "TSYS: " + prop + " (K)\n" );
+            }
+
+            prop = specData.getProperty( "TRX" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "TRX: " + prop + " (K)\n" );
+            }
         }
 
         setString( b.toString() );
@@ -318,7 +343,7 @@ public class JACSynopsisFigure
     }
 
     /**
-     * Calculate an estimate for the TSYS. Based on the SpecX analysis.
+     * Calculate an estimate for the TSYS.
      */
     protected String calculateTsys( SpecData specData )
     {
@@ -337,6 +362,8 @@ public class JACSynopsisFigure
         }
         double dnu = Math.abs( Double.parseDouble( prop ) );
 
+        //  This is the wrong value, need the spectrum integration time, not
+        //  the time for the whole "exposure".
         prop = specData.getProperty( "INT_TIME" );
         if ( "".equals( prop ) ) {
             return result;
@@ -356,15 +383,53 @@ public class JACSynopsisFigure
         if ( count > 0 ) {
             double sigma = Math.sqrt ( sum / (double) count );
 
-            //  I make this.
-            //double mytsys = 
+            //  I make this from Jamie's original paper:
+            // double tsys =
             //    0.5 * sigma * Math.sqrt( 2.0 * dnu * exposure / K );
 
             //  SpecX says:
-            double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
-            
-            //System.out.println( "tsys's = " + tsys + " : " + mytsys + 
-            //                    " (" + sigma + ")" );
+            // double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
+            //
+
+            //  Tim says:
+            //
+            //  Effective exposure time depends on observing mode.
+            //  These corrections are a guess.
+            //
+            //  Really need some property that has the effective temperature
+            //  already calculated.
+
+            //  Hack, exposure only correct for Tim's data.
+            exposure = 2.0;
+
+            String sam_mode = specData.getProperty( "SAM_MODE" );
+            String sw_mode = specData.getProperty( "SW_MODE" );
+            System.out.println( "sam_mode = " + sam_mode );
+            System.out.println( "sw_mode = " + sw_mode );
+            double teff = exposure;
+            if ( sam_mode.equals( "raster" ) ) {
+                // toff = sqrt(N)*ton. Need number of ons... Where's that kept?
+                double N = 1.0;
+                teff = exposure * Math.sqrt(N) / ( 1.0  + Math.sqrt(N) );
+            }
+            else if ( sw_mode.equals( "chop" ) ) {
+                //  toff = ton
+                teff = 0.5 * exposure;
+            }
+            else if ( sw_mode.equals( "pssw" ) ) {
+                //  toff = ton
+                teff = 0.5 * exposure;
+            }
+            else if ( sw_mode.equals( "freq" ) ) {
+                //  teff = ton, no toff.
+                teff = exposure;
+            }
+            else if ( sw_mode.equals( "none" ) ) {
+                //  No toff?
+                teff = exposure;
+            }
+
+            double tsys = sigma * Math.sqrt( dnu * teff ) / K;
 
             DecimalFormat f  = new DecimalFormat( "###.##" );
             result = f.format( tsys ) + "(Est) ";
