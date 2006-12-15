@@ -1840,7 +1840,6 @@ public class PlotControlFrame
             boolean state = showSynopsis.isSelected();
             prefs.putBoolean( "PlotControlFrame_showsynopsis", state );
             plot.setShowSynopsis( state );
-            plot.updatePlot();
             return;
         }
 
