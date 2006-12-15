@@ -806,7 +806,7 @@ public class SpecDataComp
      */
     protected double[] transformRange( FrameSet mapping, double[] range )
     {
-        if ( range == null ) return null;
+        if ( range == null || mapping == null ) return null;
 
         double[] result = range;
 
