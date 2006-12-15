@@ -1573,15 +1573,18 @@ public class PlotControl
                 range[2] = dataLimits.getYLower();
                 range[3] = dataLimits.getYUpper();
                 range = spectra.transformRange( referenceSpec, range );
-                dataLimits.setXLower( range[0] );
-                dataLimits.setXUpper( range[1] );
-                dataLimits.setYLower( range[2] );
-                dataLimits.setYUpper( range[3] );
+                if ( range != null ) {
+                    dataLimits.setXLower( range[0] );
+                    dataLimits.setXUpper( range[1] );
+                    dataLimits.setYLower( range[2] );
+                    dataLimits.setYUpper( range[3] );
 
-                //  If a reference spectrum has been given we need to refit to
-                //  the displayed size (the limits that apply to the graphics
-                //  coordinate have changed). Note we do not change the scale.
-                plot.staticUpdate();
+                    //  If a reference spectrum has been given we need to
+                    //  refit to the displayed size (the limits that apply to
+                    //  the graphics coordinate have changed). Note we do not
+                    //  change the scale.
+                    plot.staticUpdate();
+                }
             }
             catch (SplatException e) {
                 //  Get normal redraw.
@@ -1604,8 +1607,8 @@ public class PlotControl
             fitToHeight();
         }
 
-        // Update the synopsis, if a chance in spectrum has occurred.
-        updateSynopsis( referenceSpec != null );
+        // Update the synopsis to reflect any changes.
+        updateSynopsis();
     }
 
     /**
@@ -1638,9 +1641,7 @@ public class PlotControl
     public void setShowSynopsis( boolean showSynopsis )
     {
         this.showSynopsis = showSynopsis;
-        if ( getCurrentSpectrum() != null ) {
-            updateSynopsis( true );
-        }
+        updateSynopsis();
     }
 
     /**
@@ -1653,10 +1654,9 @@ public class PlotControl
 
     /**
      * Update the synopsis. Needs to be done when enabling, or a change in
-     * current spectrum has occurred, or some property of the spectrum. If
-     * just a property then set current false.
+     * current spectrum has occurred, or some property of the spectrum.
      */
-    protected void updateSynopsis( boolean current )
+    protected void updateSynopsis()
     {
         if ( showSynopsis ) {
             if ( synopsisFigure == null ) {
@@ -1666,12 +1666,7 @@ public class PlotControl
                 plot.getDrawActions().addDrawFigure( synopsisFigure );
             }
             else {
-                if ( current ) {
-                    synopsisFigure.setSpecData( getCurrentSpectrum() );
-                }
-                else {
-                    synopsisFigure.updateProperties();
-                }
+                synopsisFigure.setSpecData( getCurrentSpectrum() );
             }
         }
         else {
@@ -1918,6 +1913,7 @@ public class PlotControl
             updateThePlot( spectra.getLastCurrentSpectrum() );
         }
         catch ( Exception ex ) {
+            ex.printStackTrace();
             // Do nothing
         }
     }
