@@ -90,9 +90,7 @@ public class JACSynopsisFigure
     public void setSpecData( SpecData specData )
     {
         this.specData = specData;
-        if ( specData != null ) {
-            updateProperties();
-        }
+        updateProperties();
         fireChanged();
     }
 
@@ -128,6 +126,10 @@ public class JACSynopsisFigure
     //  Create the String that represents the synopsis.
     protected void updateProperties()
     {
+        if ( specData == null ) {
+            return;
+        }
+
         ASTJ astj = specData.getAst();
         Frame specAxis = astj.pickAxis( 1 );
 
@@ -165,7 +167,18 @@ public class JACSynopsisFigure
         //  Target of observation.
         prop = specData.getProperty( "OBJECT" );
         if ( ! "".equals( prop ) ) {
-            b.append( "Object: " + prop + "\n" );
+            b.append( "Object: " + prop );
+
+            //  ACSIS specific.
+            prop = specData.getProperty( "MOLECULE" );
+            if ( ! "".equals( prop ) && ! "No Line".equals( prop ) ) {
+                b.append( " / " + prop );
+            }
+            prop = specData.getProperty( "TRANSITI" );
+            if ( ! "".equals( prop ) && ! "No Line".equals( prop ) ) {
+                b.append( " / " + prop );
+            }
+            b.append( "\n" );
         }
 
         //  Elevation.
