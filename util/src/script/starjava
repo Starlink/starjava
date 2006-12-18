@@ -8,6 +8,9 @@
 #     Locate and run the Starlink installed "java" command, using installed
 #     native libraries, with given arguments.
 
+#  Type of Module:
+#     Shell script.
+
 #  Description:
 #     This script should be used as the "java" command when starting a
 #     Starlink program. It does the following things: 
@@ -16,7 +19,7 @@
 #          shared libraries
 #        - configures logging properties in a sensible way
 #        - defines the SOAP contact directory.
-#     
+#
 #     The preferred "java" command is Starlink one; this increases the 
 #     likelihood that programs are only executed by JVMs that they have 
 #     been tested against.  The "java" command used is searched for 
@@ -36,15 +39,31 @@
 #     this can be overridden by setting STAR_JAVA_LD_PATH to a 
 #     preferred directory for native libraries.
 
-#  Type of Module:
-#     Shell script.
-
 #  Copyright:
-#     Copyright (C) 2001-2002 Central Laboratory of the Research Councils
+#     Copyright (C) 2001-2004 Central Laboratory of the Research Councils.
+#     Copyright (C) 2005-2006 Particle Physics and Astronomy Research Council.
+#     All Rights Reserved.
+
+#  Licence:
+#     This program is free software; you can redistribute it and/or
+#     modify it under the terms of the GNU General Public License as
+#     published by the Free Software Foundation; either version 2 of
+#     the License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be
+#     useful, but WITHOUT ANY WARRANTY; without even the implied
+#     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#     PURPOSE. See the GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, write to the Free Software
+#     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+#     02111-1307, USA
 
 #  Authors:
 #     PWD: P.W. Draper (Starlink, Durham University)
 #     MBT: Mark Taylor (Starlink, Bristol University)
+#     TIMJ: Tim Jenness (JAC, Hawaii)
 #     {enter_new_authors_here}
 
 #  History:
@@ -65,10 +84,10 @@
 #        Added adam.user property to define ADAM_USER with the JVM.
 #     17-JUN-2005 (MBT):
 #        Added a getout flag to prevent additional configuration.
+#     18-DEC-2006 (TIMJ):
+#        - recognize x86_64 and amd64 architectures
+#        - support jrehome and jdkhome files
 #     {enter_further_changes_here}
-
-#  Bugs:
-#     {note_any_bugs_here}
 
 #-
 
@@ -87,7 +106,11 @@ else
    #  command (only need JDK for development, use "STAR_JAVA" to
    #  override).
    if test "$STARLINK" != ""; then
-      if test -r "$STARLINK/java/jre/bin/java"; then
+      if test -r "$STARLINK/java/jrehome"; then
+         java=`cat $STARLINK/java/jrehome`/bin/java
+      elif test -r "$STARLINK/java/jdkhome"; then
+         java=`cat $STARLINK/java/jdkhome`/bin/java
+      elif test -r "$STARLINK/java/jre/bin/java"; then
          java="$STARLINK/java/jre/bin/java"
       fi
    fi
@@ -108,6 +131,9 @@ fi
 case "`uname -m`" in
    i[3-7]86 | ia32 | ia64)
        arch=i386
+       ;;
+   amd64 | x86_64)
+       arch=amd64
        ;;
    sparc*)
        arch=sparc
