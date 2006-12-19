@@ -103,8 +103,9 @@ abstract class FileColumnStore implements ColumnStore {
             long start = System.currentTimeMillis();
             try {
                 for ( long nbyte = getDataLength(); nbyte > 0; ) {
-                    int count = in.read( buf, 0,
-                                         Math.min( (int) nbyte, bufsiz ) );
+                    int count =
+                        in.read( buf, 0, 
+                                 (int) Math.min( nbyte, (long) bufsiz ) );
                     if ( count < 0 ) {
                         throw new EOFException();
                     }
