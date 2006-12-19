@@ -62,7 +62,7 @@ public class FitsTableBuilder implements TableBuilder {
      *
      * @param  datsrc  the source of the FITS table data
      * @param  wantRandom  whether a random-access table is preferred
-     * @param  storagePolicy   a StoragePolicy object which may be used to
+     * @param  policy   a StoragePolicy object which may be used to
      *         supply scratch storage if the builder needs it
      * @return  a new StarTable based on <tt>datsrc</tt>, or <tt>null</tt>
      *          if it doesn't look like a FITS table
