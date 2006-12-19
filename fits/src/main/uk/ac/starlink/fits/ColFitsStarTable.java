@@ -31,6 +31,7 @@ public class ColFitsStarTable extends ColumnStarTable {
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
+    private final static int MAX_SECTION_BYTES = Integer.MAX_VALUE;
 
     /**
      * Constructor.
@@ -244,9 +245,9 @@ public class ColFitsStarTable extends ColumnStarTable {
 
             if ( formatChar == 'L' ) {
                 info.setContentClass( Boolean.class );
-                return new MappedColumnData( info, 1, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 1, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         switch ( buf.get( offset ) ) {
                             case 'T':
                                 return Boolean.TRUE;
@@ -256,19 +257,19 @@ public class ColFitsStarTable extends ColumnStarTable {
                                 return null;
                         }
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'A' ) {
                 info.setContentClass( Character.class );
                 info.setNullable( false );
-                return new MappedColumnData( info, 1, SCALAR, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 1, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
                     protected Object readValue( ByteBuffer buf, int offset ) {
                         return new Character( (char) 
                                               ( buf.get( offset ) & 0xff ) );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'B' ) {
@@ -276,15 +277,15 @@ public class ColFitsStarTable extends ColumnStarTable {
                 final boolean hasBad = blank != null;
                 final byte badval = hasBad ? blank.byteValue() : (byte) 0;
                 info.setNullable( hasBad );
-                return new MappedColumnData( info, 1, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 1, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         byte val = buf.get( offset );
                         return ( hasBad && val == badval )
                              ? null
                              : new Short( (short) ( val & 0xff ) );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'b' ) {
@@ -292,15 +293,15 @@ public class ColFitsStarTable extends ColumnStarTable {
                 final boolean hasBad = blank != null;
                 final byte badval = hasBad ? blank.byteValue() : (byte) 0;
                 info.setNullable( hasBad );
-                return new MappedColumnData( info, 1, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 1, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         byte val = buf.get( offset );
                         return ( hasBad && val == badval )
                              ? null
                              : new Short( (short) val );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'I' ) {
@@ -308,15 +309,15 @@ public class ColFitsStarTable extends ColumnStarTable {
                 final boolean hasBad = blank != null;
                 final short badval = hasBad ? blank.shortValue() : (short) 0;
                 info.setNullable( hasBad );
-                return new MappedColumnData( info, 2, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 2, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         short val = buf.getShort( offset );
                         return ( hasBad && val == badval )
                              ? null
                              : new Short( val );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'J' ) {
@@ -324,15 +325,15 @@ public class ColFitsStarTable extends ColumnStarTable {
                 final boolean hasBad = blank != null;
                 final int badval = hasBad ? blank.intValue() : 0;
                 info.setNullable( hasBad );
-                return new MappedColumnData( info, 4, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 4, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         int val = buf.getInt( offset );
                         return ( hasBad && val == badval )
                              ? null
                              : new Integer( val );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'K' ) {
@@ -340,35 +341,35 @@ public class ColFitsStarTable extends ColumnStarTable {
                 final boolean hasBad = blank != null;
                 final long badval = hasBad ? blank.longValue() : 0L;
                 info.setNullable( hasBad );
-                return new MappedColumnData( info, 8, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 8, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         long val = buf.getLong( offset );
                         return ( hasBad && val == badval )
                              ? null
                              : new Long( val );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'E' ) {
                 info.setContentClass( Float.class );
-                return new MappedColumnData( info, 4, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 4, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         return new Float( buf.getFloat( offset ) );
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'D' ) {
                 info.setContentClass( Double.class );
-                return new MappedColumnData( info, 8, SCALAR, nrow,
-                                             chan, pos ) {
-                    protected Object readValue( ByteBuffer buf, int offset ) {
+                return createColumnData( info, 8, SCALAR, nrow, chan, pos,
+                        new ValueReader() {
+                    Object readValue( ByteBuffer buf, int offset ) {
                         return new Double( buf.getDouble( offset ) );
                     }
-                };
+                } );
             }
         }
 
@@ -379,8 +380,8 @@ public class ColFitsStarTable extends ColumnStarTable {
 
             if ( formatChar == 'L' ) {
                 info.setContentClass( boolean[].class );
-                return new MappedColumnData( info, 1, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 1, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -390,13 +391,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'B' ) {
                 info.setContentClass( short[].class );
-                return new MappedColumnData( info, 1, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 1, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -406,13 +407,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'b' ) {
                 info.setContentClass( short[].class );
-                return new MappedColumnData( info, 1, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 1, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -422,13 +423,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'I' ) {
                 info.setContentClass( short[].class );
-                return new MappedColumnData( info, 2, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 2, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -438,13 +439,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'J' ) {
                 info.setContentClass( int[].class );
-                return new MappedColumnData( info, 4, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 4, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -454,13 +455,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'K' ) {
                 info.setContentClass( long[].class );
-                return new MappedColumnData( info, 8, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 8, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -470,13 +471,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'E' ) {
                 info.setContentClass( float[].class );
-                return new MappedColumnData( info, 4, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 4, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -486,13 +487,13 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'D' ) {
                 info.setContentClass( double[].class );
-                return new MappedColumnData( info, 8, itemShape, nrow,
-                                             chan, pos ) {
+                return createColumnData( info, 8, itemShape, nrow, chan, pos,
+                        new ValueReader() {
                     protected synchronized Object readValue( ByteBuffer buf,
                                                              int offset ) {
                         buf.position( offset );
@@ -502,7 +503,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                         }
                         return val;
                     }
-                };
+                } );
             }
 
             else if ( formatChar == 'A' ) {
@@ -512,8 +513,9 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setNullable( true );
                 if ( itemShape.length == 1 ) {
                     info.setContentClass( String.class );
-                    return new MappedColumnData( info, sleng, SCALAR, nrow,
-                                                 chan, pos ) {
+                    return createColumnData( info, sleng, SCALAR, nrow,
+                                             chan, pos,
+                            new ValueReader() {
                         protected synchronized Object readValue( ByteBuffer buf,
                                                                  int offset ) {
                             buf.position( offset );
@@ -534,7 +536,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                             return iend > 0 ? new String( charBuf, 0, iend )
                                             : null;
                         }
-                    };
+                    } );
                 }
                 else {
                     info.setContentClass( String[].class );
@@ -543,8 +545,9 @@ public class ColFitsStarTable extends ColumnStarTable {
                     info.setShape( sshape );
                     final int nstring = itemSize / sleng;
                     assert nstring * sleng == itemSize;
-                    return new MappedColumnData( info, sleng, sshape, nrow,
-                                                 chan, pos ) {
+                    return createColumnData( info, sleng, sshape, nrow,
+                                             chan, pos,
+                            new ValueReader() {
                         protected synchronized Object readValue( ByteBuffer buf,
                                                                  int offset ) {
                             buf.position( offset );
@@ -570,7 +573,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                             }
                             return val;
                         }
-                    };
+                    } );
                 }
             }
         }
@@ -580,15 +583,138 @@ public class ColFitsStarTable extends ColumnStarTable {
     }
 
     /**
-     * ColumnData subclass which works by mapping FITS-format
-     * data from a file channel.
+     * Creates a new mapped column data object.
+     *
+     * @param   info  column metadata
+     * @param   typeBytes  number of bytes per scalar element
+     * @param   itemShape  dimensions of column cells
+     * @param   nrow       number of entries in the column
+     * @param   chan       file channel to map data from
+     * @param   pos        offset into file of start of column
+     * @param   reader     object for reading data from byte buffer
+     */
+    private static MappedColumnData createColumnData( ColumnInfo info,
+                                                      int typeBytes,
+                                                      int[] itemShape,
+                                                      long nrow,
+                                                      FileChannel chan,
+                                                      long pos,
+                                                      ValueReader reader )
+            throws IOException {
+        long itemBytes = Tables.checkedLongToInt( multiply( itemShape ) )
+                       * typeBytes;
+        long colBytes = itemBytes * nrow;
+        if ( colBytes <= MAX_SECTION_BYTES ) {
+            return new SingleMappedColumnData( info, typeBytes, itemShape, nrow,
+                                               chan, pos, reader );
+        }
+        else {
+            int nsec = (int) ( colBytes / MAX_SECTION_BYTES ) + 1;
+            return new SectionsMappedColumnData( info, typeBytes, itemShape,
+                                                 nrow, chan, pos, nsec,
+                                                 reader );
+        }
+    }
+
+    /**
+     * Interface for reading column cells from a mapped buffer.
+     */
+    private static abstract class ValueReader {
+
+        /**
+         * Reads an object from a byte buffer.
+         * 
+         * @param    buf  mapped buffer
+         * @param    offset  position in <code>buf</code> of cell start
+         * @throws   RuntimeException
+         *           (as thrown by {@link java.nio.ByteBuffer#read})
+         *           in case of a read error
+         */
+        abstract Object readValue( ByteBuffer buf, int offset );
+    }
+
+    /**
+     * Abstract superclass for ColumnData implementations used by this class.
      */
     private static abstract class MappedColumnData extends ColumnData {
 
-        private final int itemBytes_;
-        private final FileChannel chan_;
-        private final long nrow_;
+        protected final int itemBytes_;
+        protected final long nrow_;
         private final long pos_;
+        private final FileChannel chan_;
+        private final ValueReader reader_;
+
+        /**
+         * Constructor.
+         *
+         * @param   info  column metadata
+         * @param   typeBytes  number of bytes per scalar element
+         * @param   itemShape  dimensions of column cells
+         * @param   nrow       number of entries in the column
+         * @param   chan       file channel to map data from
+         * @param   pos        offset into file of start of column
+         * @param   reader     object for reading data from byte buffer
+         */
+        MappedColumnData( ColumnInfo info, int typeBytes, int[] itemShape,
+                          long nrow, FileChannel chan, long pos,
+                          ValueReader reader ) {
+            super( info );
+            itemBytes_ = Tables.checkedLongToInt( multiply( itemShape ) )
+                       * typeBytes;
+            chan_ = chan;
+            nrow_ = nrow;
+            pos_ = pos;
+            reader_ = reader;
+        }
+
+        /**
+         * Reads a single value from the mapped buffer.
+         *
+         * @param  buf  mapped buffer
+         * @param  offset  byte offset into <code>buf</code> of item to read
+         */
+        protected Object readValue( ByteBuffer buf, int offset )
+                throws IOException {
+            try {
+                return reader_.readValue( buf, offset );
+            }
+            catch ( RuntimeException e ) {
+                throw (IOException)
+                      new IOException( "Failed buffer read attempt" )
+                     .initCause( e );
+            }
+        }
+
+        /**
+         * Maps a region of the file associated with this object into a buffer.
+         *
+         * @param   offset  start of region to map,
+         *           relative to the start of this buffer's column in the file
+         * @param   size    length of region to map
+         * @return  mapped buffer
+         */
+        protected ByteBuffer mapBuffer( long offset, int size )
+                throws IOException {
+            return chan_.map( FileChannel.MapMode.READ_ONLY,
+                              pos_ + offset, size );
+        }
+
+        /**
+         * Returns the size in bytes of a scalar element of this column's type.
+         *
+         * @return  scalar item size
+         */
+        public int getItemBytes() {
+            return itemBytes_;
+        }
+    }
+
+    /**
+     * ColumnData subclass which works by mapping FITS-format
+     * data from a file channel as a single mapped region.
+     */
+    private static class SingleMappedColumnData extends MappedColumnData {
+
         private ByteBuffer buf_;
 
         /**
@@ -600,58 +726,99 @@ public class ColFitsStarTable extends ColumnStarTable {
          * @param   nrow       number of entries in the column
          * @param   chan       file channel to map data from
          * @param   pos        offset into file of start of column
+         * @param   reader     object for reading data from byte buffer
          */
-        MappedColumnData( ColumnInfo info, int typeBytes, int[] itemShape, 
-                          long nrow, FileChannel chan, long pos )
+        SingleMappedColumnData( ColumnInfo info, int typeBytes,
+                                int[] itemShape, long nrow, FileChannel chan,
+                                long pos, ValueReader reader )
                 throws IOException {
-            super( info );
-            itemBytes_ = Tables.checkedLongToInt( multiply( itemShape ) )
-                       * typeBytes;
-            chan_ = chan;
-            nrow_ = nrow;
-            pos_ = pos;
+            super( info, typeBytes, itemShape, nrow, chan, pos, reader );
+            assert itemBytes_ * nrow_ <= MAX_SECTION_BYTES;
         }
 
+        /**
+         * Returns the buffer which maps the data for this column.
+         * It is mapped lazily.
+         *
+         * @return   mapped data of column
+         */
         private ByteBuffer getBuffer() throws IOException {
-
-            /* Map columns lazily.  Since in many cases colfits format tables
-             * will only have a few of their columns accessed during their
-             * lifetime, this can save considerably on resources. */
             if ( buf_ == null ) {
-                buf_ = chan_.map( FileChannel.MapMode.READ_ONLY, pos_, 
-                                  nrow_ * itemBytes_ );
+                buf_ = mapBuffer( 0, (int) (nrow_ * itemBytes_) );
                 logger_.config( "Mapping column " + getColumnInfo() );
             }
             return buf_;
         }
 
         public synchronized Object readValue( long irow ) throws IOException {
-            try {
-                return readValue( getBuffer(), Tables.checkedLongToInt( irow )
-                                               * itemBytes_ );
-            }
-            catch ( RuntimeException e ) {
-                throw (IOException)
-                      new IOException( "Failed buffer read attempt" )
-                     .initCause( e );
-            }
+            return readValue( getBuffer(),
+                              Tables.checkedLongToInt( irow ) * itemBytes_ );
+        }
+    }
+
+    /**
+     * ColumnData subclass which works by mapping FITS-format data from 
+     * a file channel as a number of mapped regions.
+     */
+    private static class SectionsMappedColumnData extends MappedColumnData {
+
+        private final int nsec_;
+        private final int secRows_;
+        private final int secBytes_;
+        private final ByteBuffer[] bufs_;
+
+        /**
+         * Constructor.
+         *
+         * @param   info  column metadata
+         * @param   typeBytes  number of bytes per scalar element
+         * @param   itemShape  dimensions of column cells
+         * @param   nrow       number of entries in the column
+         * @param   chan       file channel to map data from
+         * @param   pos        offset into file of start of column
+         * @param   nsec       number of sections to use
+         * @param   reader     object for reading data from byte buffer
+         */
+        SectionsMappedColumnData( ColumnInfo info, int typeBytes,
+                                  int[] itemShape, long nrow, FileChannel chan,
+                                  long pos, int nsec, ValueReader reader ) {
+            super( info, typeBytes, itemShape, nrow, chan, pos, reader );
+            nsec_ = nsec;
+            long sr = nrow_ / nsec_;
+            assert sr < Integer.MAX_VALUE;
+            assert sr * itemBytes_ < Integer.MAX_VALUE;
+            secRows_ = (int) sr;
+            long sb = secRows_ * itemBytes_;
+            assert sb < Integer.MAX_VALUE;
+            secBytes_ = (int) sb;
+            bufs_ = new ByteBuffer[ nsec_ ];
         }
 
         /**
-         * Reads a single value from the mapped buffer.
+         * Returns the buffer used for one of the sections of this column.
+         * It is mapped lazily.
          *
-         * @param  buf  mapped buffer
-         * @param  offset  byte offset into <code>buf</code> of item to read
+         * @param  isec  section index
+         * @return   mapped data of section
          */
-        protected abstract Object readValue( ByteBuffer buf, int offset );
+        private ByteBuffer getBuffer( int isec ) throws IOException {
+            if ( bufs_[ isec ] == null ) {
+                bufs_[ isec ] = mapBuffer( isec * secBytes_, secBytes_ );
+                logger_.config( "Mapping column region " + ( isec + 1 ) + "/"
+                              + nsec_ + " of " + getColumnInfo() );
+            }
+            return bufs_[ isec ];
+        }
 
-        /**
-         * Returns the size in bytes of a scalar element of this column's type.
-         *
-         * @return  scalar item size
-         */
-        public int getItemBytes() {
-            return itemBytes_;
+        public synchronized Object readValue( long lrow ) throws IOException {
+            if ( lrow < nrow_ ) {
+                int isec = (int) lrow / secRows_;
+                int ioff = (int) ( ( lrow % secRows_ ) * itemBytes_ );
+                return readValue( getBuffer( isec ), ioff );
+            }
+            else {
+                throw new IOException( "Row " + lrow + " out of range" );
+            }
         }
     }
 }
