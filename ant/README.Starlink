@@ -1,0 +1,138 @@
+
+                       ANT for Starlink builds
+                       =======================
+
+This is the ANT tool (version 1.6.2) together with some additional tasks and
+types required for Starlink ANT builds.
+
+Before you can build anything else you'll need to build this. First add the
+local "bin" directory to the PATH and make sure that the "java" command on the
+PATH is part of a JDK (not a JRE).
+
+   setenv PATH `pwd`/bin:${PATH}
+
+If these are correct then the "ant" command should now work. Use:
+
+   ant -projecthelp 
+
+to see the targets (note these are the standard Starlink ones, the original
+build file for ANT is kept in "realbuild.xml"). If this fails check the PATH,
+if this is OK then you've got a broken release (see if the lib directory has
+some jar files -- ant.jar, optional.jar, xercesImpl.jar and xml-apis.jar).
+
+To build ANT with the new targets you need to do:
+
+   ant install
+   ant clean
+
+(either add "-Dstar.dir=..." to the command-line or add "star.dir=..." to your
+$HOME/.stardev.properties file if you want your installation to be different
+to "../.."). This should build and install a version of ANT (in "../../bin" by
+default) ready to build our real sources.
+
+To use this new version of ANT you need to add the directory that the ant
+script has been installed ("../../bin") to your PATH. If you don't do this
+you'll start getting messages about unknown tasks (like extclasspath) at some
+point.
+
+If you see other errors that are clearly related to ANT, after or during
+installation then you should clear out any previous versions and try a clean
+rebuild.
+
+The new files added to this release are:
+
+   src/main/uk/ac/starlink/ant/tasks/LoggedCopy.java
+   src/main/uk/ac/starlink/ant/tasks/ListDelete.java
+   src/main/uk/ac/starlink/ant/types/ExtClasspath.java
+
+The files:
+
+   src/main/org/apache/tools/ant/taskdefs/defaults.properties 
+   src/main/org/apache/tools/ant/types/defaults.properties 
+
+are also modified to add these new tasks and types to the standard sets.
+
+The file:
+
+   src/main/org/apache/tools/ant/taskdefs/Delete.java
+
+is also changed to allow better sub-classing.
+
+The tasks added are "loggedcopy" and "listdelete". These are modifications of
+the "copy" and "delete" tasks to add the ability to record the names of the
+files copied and to accept a list of files and directories to delete (note
+directories are removed, including their content, without comment).
+
+The "loggedcopy" task has two new attributes "logfile", the name of file to
+write, and "logfileAppend", a boolean indicating if an existing logfile should
+be deleted or appended to (useful for recording multiple copies). Note that
+this should generally be combined with overwrite="true", as files that are not
+out of date will not normally be copied and will therefore not appear in the
+log.
+
+  <loggedcopy todir="${star.bin}"
+              logfile="${install.log}"
+              overwrite="${install.overwrite}"
+              logfileAppend="false">
+    <fileset dir="${dist.bin}"/>
+  </loggedcopy>
+
+To add a directory ${star.bin.pkg}) to the list you'd need to do:
+
+    <echo file="${install.log}" append="true">${star.bin.pkg}
+</echo>
+
+The exact format is required to get a newline.
+
+The "listdelete", task adds the ability to embed a FileList (containing files
+and directories) in the "delete" task. This is just so that the following
+snippet will undo the action of a series of "loggedcopy" and "echo" commands
+as described above (FileSets do not work with non-existent files and function
+poorly with fixed sets of names, so cannot be made to do this job):
+
+  <loadfile property="files" srcFile="${install.log}"/>
+  <listdelete>
+     <filelist dir="/" files="${files}"/>
+  </listdelete>
+
+The final extension is a type "extclasspath" that extends the "path"
+type. This generates a final path that includes any "download extensions"
+(also known as "optional bundled packages") that are described in any jars
+files found in the various parts of the path. Normally this is intended to
+produce a CLASSPATH that mimics the one used by the extension class loader,
+except it is a real CLASSPATH and can therefore be manipulated easily
+(i.e. have another CLASSPATH added to it).
+
+  <extclasspath id="installed.classpath">
+    <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
+    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
+    <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
+  </extclasspath>
+
+Would make "installed.classpath" include all jars reference in the manifests
+of the "hdx", "jsky" and "soapserver" jars and the jars that they
+reference. When using Java 1.5 the expansion of the download extension
+classpath is actually done by the compiler, so the "extclasspath" type becomes
+a simple "path" type when this is detected.
+
+Lately I've also added some tasks to support writing Java webstart JNLP files,
+these are the Roxes ANT Tasks, found in the files:
+
+   src/main/com/roxes/tools/ant/JNLPTask.java
+   src/main/com/roxes/tools/ant/JStubTask.java
+   src/main/com/roxes/tools/ant/PreferencesTask.java
+   src/main/com/roxes/tools/ant/SFXTask.java
+   src/main/com/roxes/tools/ant/stub.java
+
+The home page for these is at:
+
+   http://www.roxes.com/produkte/rat.html
+
+The roxes tasks are released under the LGPL and the documentation is in
+"docs/roxes".
+
+Only the <jnlp> task is actually used, please don't use any of the others
+without some consultation.
+
+Peter W. Draper (8-DEC-2004)
+

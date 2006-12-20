@@ -118,6 +118,11 @@ public class Delete extends MatchingTask {
         }
     }
 
+    /** Return quiet setting */
+    public boolean isQuiet() {
+        return quiet;
+    }
+
     /**
      * If false, note errors but continue.
      *
@@ -126,6 +131,11 @@ public class Delete extends MatchingTask {
      public void setFailOnError(boolean failonerror) {
          this.failonerror = failonerror;
      }
+
+    /** Return failonerror setting */
+    public boolean isFailOnError() {
+        return failonerror;
+    }
 
     /**
      * If true, on failure to delete, note the error and set

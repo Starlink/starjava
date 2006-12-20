@@ -1,0 +1,2177 @@
+<?xml version="1.0" encoding="Cp1252"?>
+
+<!DOCTYPE xsl:stylesheet [
+	<!ENTITY preferences '<see reference="preferences"/>'> 
+]>
+
+<doc>
+	<meta>
+			<author name="lars gersmann" email="lars.gersmann@roxes.com" id="lg"/> 
+			<description title="ROXES ANT Tasks" logo="roxes.gif" homepage="http://www.roxes.com/produkte/rat.html"> 
+				ROXES ANT Tasks is a collection of Tasks for <see reference="ant">Jakarta Ant</see>. The 
+				ANT Tasks provided by ROXES Technologies are created for multi platform deployment.
+   			</description>
+			
+			<links>
+				<link rel="SHORTCUT ICON" href="./roxes.ico"/>
+				<link rel="stylesheet" type="text/css" href="default.css"/>
+			</links>
+			
+		  <keywords>ROXES Technologies, Jakarta, Apache, Ant</keywords>
+			<history>
+				<release version="@version@" date="@build@">
+						<build date="2003-10-15" author="lg"> 
+							<section>
+								jstub windows executable rewritten to reflect the ideas of jc duford.
+								See jstub chapter for details.
+							</section>
+							<section>
+								jstub windows executable can now handle command line arguments. 
+							</section>
+						</build>
+						<build date="2003-09-26" author="lg"> 
+							PreferencesTask documentation added.
+						</build>
+						<build date="2003-09-25" author="lg"> 
+							PreferencesTask added. this task makes accessing java preferences 
+							(java 1.4 preferences) api a piece of cake.
+						</build>
+						<build date="2003-09-17" author="lg"> 
+							major bug fixed : both sfx and jstub task
+							now do not open a console in win32 (console less) mode.
+						</build>
+						<build date="2003-09-12" author="lg"> 
+							thanks to <a href="mailto:DACURRAN@ie.ibm.com">darragh curran</a>
+							the jnlp output is now correct for icon element's.
+						</build>
+						<build date="2003-09-10" author="lg"> 
+							<section>
+								thanks to <a href="mailto:DACURRAN@ie.ibm.com">darragh curran</a>:
+								the docs were polished to reflect the current jar file version
+								in the examples, the examples taskdef are corrected and the jnlp task 
+								now handles the <i>href</i> top level attribute. furthermore the sfx 
+								unix executable stub was updated.
+								the jnlp task now handles filesets correct.
+								jnlptask's homepage element output fixed.
+							</section>
+							<section>
+								sfx task mode <i>java</i>
+								<br/>
+								bug fixed: if started on windows "start /B" will be set as starting sequence. before 
+								<i>command /C</i> or <i>cmd /c</i> was set as starting sequence (which is not correct).
+							</section>
+						</build>
+				</release>
+				<release version="1.0" date="2003-09-08">
+ 						<build date="2003-09-08" author="lg"> 
+							<section>
+								bug fixed: sfx windows executables now working like expected when started with
+								full or partial path. 
+							</section>
+							<section>
+								urls to ant website refreshed, docs (chapter <i>usage</i>) corrected.
+								(thanx to jan.materne@rzf.fin-nrw.de).
+							</section>
+						</build>
+						<build  date="2003-09-04" author="lg"> 
+							initial release.
+						</build>				
+				</release>
+			</history>
+			
+			<references>
+				<reference title="Preferences" name="preferences" href="http://java.sun.com/j2se/1.4.1/docs/guide/lang/preferences.html"/> 
+				<reference title="Ant" name="ant" href="http://ant.apache.org"> 
+					Ant is a tool similar to <i>Make</i>. Ant is based on XML formatted configuration files.
+				</reference>
+				<reference title="ROXES Technologies" name="roxes" href="http://www.roxes.com"> 
+					ROXES Technologies is a company specialized in Web Application Development. ROXES Technologies is the owner of 
+					ANT Tasks.
+				</reference>
+				<reference title="ZLib library" name="zlib" href="http://www.zlib.org"> 
+					A general purpose library for reading/writing zip file contents.
+				</reference>
+
+				<reference title="Java Webstart" name="jnlp" href="http://java.sun.com/products/javawebstart/"> 
+					Java Webstart is a technology to make java applications available to the desktop.
+				</reference>
+
+				<reference title="JNLP File Format" name="jnlp-format" href="http://java.sun.com/products/javawebstart/1.2/docs/developersguide.html#jnlp"/>
+				<reference title="FileSet" name="fileset" href="http://ant.apache.org/manual/CoreTypes/fileset.html"/>
+			</references>
+		</meta>
+		
+		<chapter title="Usage" name="usage">
+			<p>
+				To use ROXES ANT Tasks you can add the jar file to <see reference="ant"/>'s lib directory or attach the jar to the CLASSPATH. 
+			</p>
+			<p>
+				To make ROXES ANT Tasks available in your classpath simply add the following line 
+				to to head of your <i>build.xml</i> :
+				<panel filter="xml" line-numbers="no">
+<![CDATA[ <taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/> ]]>				
+				</panel>
+			</p>
+			<p>
+				Now you can use all ROXES ANT Tasks.
+			</p>
+		</chapter>
+		
+		<chapter title="Tasks">
+			<chapter title="sfx">
+				<p>
+					<i>sfx</i> creates self extracting executables for various platforms.
+				</p>
+				<p>
+					sfx takes an archive and makes it executable for a variete of platforms. The started 
+					executable extracts to contents of the archive to a platform depended temp directory
+					<i>[temp-dir]/[executable]</i> and executes an command int the extracted path.
+				</p>
+				<p>
+					<i>sfx</i> is very handy to create setup's. Zip the required resources of your application
+					and make start script available for each platform. That's all you need.
+				</p>
+				<section title="Attributes">
+					<table width="100%">
+						<tr valign="top">
+							<td>Name</td>
+							<td>Description</td>
+							<td>Required</td>
+						</tr>
+						<tr valign="top">
+							<td>archive</td>
+							<td>the zip/jar archive to use</td>							
+							<td>yes</td>							
+						</tr>
+						<tr valign="top">
+							<td>mode</td>
+							<td>
+								5 types of self executables can be created by <i>sfx</i>
+								<ul>
+									<li>win32
+										<p>
+											Creates a win32 executable (exe file) which is executed without opening a shell window.
+											Use this mode for silent extraction.
+										</p>
+									</li>
+									<li>win32-console
+										<p>
+											Creates a win32 executable (exe file) which is executed by opening a shell window. All output
+											goes to the console.
+										</p>
+									</li>
+									<li>unix
+										<p>
+											Creates an executable shell script (sh file) which is executed
+											<ol>
+												<li>silent when opened outside a shell</li> 
+												<li>with output when opened in a shell</li> 
+											</ol>
+										</p>
+									</li>
+									<li>java
+										<p>
+											Creates a executable java <i>jar</i> file which opens a status window 
+											with extraction progress bar. 
+										</p>
+									</li>
+									<li>java-console
+										<p>
+											Creates a executable java <i>jar</i> file which opens a console shell window. 
+											All output goes to the console.
+										</p>
+									</li>
+								</ul>
+							</td>							
+							<td>yes</td>							
+						</tr>
+						<tr valign="top">
+							<td>execute</td>
+							<td>
+								<p>The command to execute after successful extraction.</p>
+								<p>
+									The command is executed 
+									<ol>
+										<li>in the temp directory where the files were extracted when no <i>workingDir</i> was defined.</li>
+										<li>in the <i>workingDir</i> inside the temp directory if <i>workingDir</i> was defined.</li>
+									</ol>
+								</p>
+								<p>
+									<i>
+										In case of executables created for windows the <i>execute</i> will be executed with "command /B" 
+										(for Windows 95/98) or "cmd /B" (Windows NT/2000/XP).
+									</i>
+								</p>
+							</td>							
+							<td>yes</td>							
+						</tr>
+						<tr valign="top">
+							<td>output</td>
+							<td>The name of the output file (<i>setup.exe</i> or <i>setup.sh</i> for example).</td>							
+							<td>yes</td>							
+						</tr>
+						<tr valign="top">
+							<td>workingDirectory</td>
+							<td>
+								<p>The working directory were the command defined in <i>execute</i> should be executed.</p>
+								<p>If not defined the command will be executed with the extraction path as working directory.</p>
+								<p>
+									<i>
+										The path separator used in workingDir can always be a slash (/). It is transformed to the platform
+										dependend path separator by sfx.
+									</i>
+								</p>
+							</td>							
+							<td>no</td>							
+						</tr>
+					</table>
+				</section>
+				<section title="Example">
+					<p>Suppose an sample application named <i>layxx</i> with the following directory structure</p>
+					
+					<panel filter="text" line-numbers="no">
+bin/
+	layxx.bat
+	layxx.sh
+lib/
+	layxx.jar
+	common.jar
+native/
+	common.dll
+	common.so
+doc/
+	index.html
+					</panel>
+					
+					<ol>
+						<li>
+							<p>Zip the directory structure to an archive (<i>layxx.zip</i> for example).</p>
+						</li>
+						<li>
+							<p>
+								Create a <see reference="ant"/> make file with the following content:
+								<panel title="build.xml" line-numbers="no" filter="xml">
+<![CDATA[ <?xml version="1.0"?>	
+
+<project basedir="." name="layxx" default="sfx">
+	<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+	
+	<target name="sfx">
+			<!-- create windows executable -->
+		<sfx 
+    		archive="layxx.zip"
+    		mode="win32"
+    		workingDirectory="/bin"
+    		execute="hello.bat"
+    		output="layxx.exe"
+    	/>
+				<!-- create windows console executable -->
+    	<sfx 
+    		archive="layxx.zip"
+    		mode="win32-console"
+    		workingDirectory="bin"
+    		execute="layxx.bat"
+    		output="layxx-console.exe"
+    	/>
+    		<!-- create unix executable -->
+    	<sfx 
+    		archive="layxx.zip"
+    		mode="unix"
+    		workingDirectory="/bin"
+    		execute="layxx.sh"
+    		output="layxx"
+    	/>
+    		<!-- create java console executable -->
+    	<sfx 
+    		archive="layxx.zip"
+    		mode="java-console"
+    		execute="javaw -jar layxx-console.jar"
+    		output="layxx-console.jar"
+    	/>
+				<!-- create java executable -->
+    	<sfx 
+    		archive="layxx.zip"
+    		mode="java"
+    		execute="javaw -jar layxx.jar"
+    		output="layxx.jar"
+    	/>
+	</target>
+</project> ]]>
+								</panel>
+							</p>
+						</li>					
+					</ol>
+					
+					<p>Thats it. After running <see reference="ant"/> you have 5 exectables created by <i>sfx</i>.</p>
+					
+					<p>
+						When starting the windows executable created by this example the contents of the executable are extracted
+						to <i>[temp-dir]/layxx.exe</i>, the current directory is set to <i>[temp-dir]/layxx.exe/bin</i> and <i>layxx.bat</i> 
+						will be started.
+					</p>
+					
+					<p>
+							As you can see in the example you don't really need to create start scripts for your application.
+							It is also possible to pack the whole start command into the <i>execute</i> attribute.
+					</p>
+					
+					<p>
+						<i>
+							Attention windows exececutable creators : The created java jar files are only working successfully when started from command line.
+							Otherwise the current working directory is not known and the archive cannot extract itself.
+						</i>
+					</p>
+				</section>
+				<section title="How does it work ?">
+					<p>
+						For <i>win32</i> and <i>unix</i> modes the zip file will be appended to a native stub (an exe for win32, shell script for unix).
+					</p>
+					<p>
+						At execution time the executable unzips itself ! 
+						In general the magic behind extraction is the <see reference="zlib"/>. The <see reference="zlib"/> library
+						tries not to read the zip stream at start of file instead the library seeks forward until the zip 
+						header signature is found. Is'nt it easy and elegant ?
+					</p>
+				</section>				
+			</chapter>
+			<chapter title="jstub">
+				<p>
+					jstub creates native executables from jar files. 
+				</p>
+				<p>
+					You never need to create shell scripts to start you application. The only thing which has to be installed 
+					is java itself.
+				</p>
+				<p>
+					New since version 1.1 is support for commandline arguments. They will appended to the given <i>execute</i>
+					string.
+				</p>
+				<p>
+					Also introduced in version 1.1 is the automatic executable detection for Windows executables
+					(feature proposed by jc dufourd). This feature allows to use a placeholder for the executable
+					inside the given commandline option. The executable evaluates its name and path at runtime and 
+					replaces the placeholder before executing them. See the examples.
+				</p>
+				<section title="Properties">	
+					<table width="100%">
+						<tr valign="top">
+							<td>Name</td>
+							<td>Description</td>
+							<td>Required</td>
+						</tr>
+						<tr valign="top">
+							<td>archive</td>
+							<td>the zip/jar archive to use.</td>							
+							<td>yes</td>							
+						</tr>			
+						<tr valign="top">
+							<td>execute</td>
+							<td>
+								<p>The command line to execute.</p>
+								<p>
+									When your archive is an regular executable jar file (containing a manifest with guilty main-class attribute)
+									<i>execute</i> has to be <i>java -jar [output]</i> where [output] is the name of the generated executable.
+								</p>
+								<p>
+									Since Version 1.1 the commandline to execute can contain the placeholder <i>XYZjstubLocationXYZ</i> which is replaced 
+									at runtime by path and name of the executable. <i>This feature is Windows specific.</i>
+								</p>
+							</td>							
+							<td>yes</td>							
+						</tr>		
+						<tr valign="top">
+							<td>mode</td>
+							<td>
+								3 types of self executables can be created by <i>sfx</i>
+								<ul>
+									<li>win32
+										<p>
+											Creates a win32 executable (exe file) which is executed without opening a shell window.
+										</p>
+									</li>
+									<li>win32-console
+										<p>
+											Creates a win32 executable (exe file) which is executed by opening a shell window. All output
+											goes to the console.
+										</p>
+									</li>
+									<li>unix
+										<p>
+											Creates an executable shell script (sh file) which is executed
+											<ol>
+												<li>silent when opened outside a shell</li> 
+												<li>with output when opened in a shell</li> 
+											</ol>
+										</p>
+									</li>
+								</ul>							
+							</td>							
+							<td>yes</td>							
+						</tr>		
+						<tr valign="top">
+							<td>output</td>
+							<td>The name of the output file (<i>myapp.exe</i> or <i>myapp.sh</i> for example).</td>							
+							<td>yes</td>							
+						</tr>																						
+					</table>
+				</section>			
+				<section title="Example">
+					<p>
+					Suppose you have a working self executable jar file which is named <i>myapp.jar</i>. 
+						<panel title="build.xml" line-numbers="no" filter="xml">
+<![CDATA[ <?xml version="1.0"?>	
+
+<project basedir="." name="myapp" default="main">
+	<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+	
+	<target name="main">
+		<jstub 
+			archive="myapp.jar"
+			mode="win32"
+			execute="java -jar myapp.exe"
+			output="myapp.exe"
+		/>
+</target>
+</project> ]]>
+						</panel>											
+					</p>
+					<p>
+					In case of a jar file which contains all resources required by your application named <i>myapp.zip</i> and is not a self executable jar file
+					with main class <i>com.mycompany.myapp</i> you can use the following example. 
+						<panel title="build.xml" line-numbers="no" filter="xml">
+<![CDATA[ <?xml version="1.0"?>	
+
+<project basedir="." name="myapp" default="main">
+	<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+	
+	<target name="main">
+		<jstub 
+			archive="myapp.jar"
+			mode="win32"
+			execute="java -cp myapp.exe com.mycompany.myapp"
+			output="myapp.exe"
+		/>
+</target>
+</project> ]]>
+						</panel>											
+					</p>			
+					<p>
+					The example below uses the commandline placeholder <i>XYZjstubLocationXYZ</i>:
+						<panel title="build.xml" line-numbers="no" filter="xml">
+<![CDATA[ <?xml version="1.0"?>	
+
+<project basedir="." name="myapp" default="main">
+	<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+	
+	<target name="main">
+		<jstub 
+			archive="myapp.jar"
+			mode="win32"
+			execute="java -cp XYZjstubLocationXYZ com.mycompany.myapp"
+			output="myapp.exe"
+		/>
+</target>
+</project> ]]>
+						</panel>											
+						
+						<p>The key difference to the example before is that you can rename the application or put it somewhere 
+						in the path. The placeholder <i>XYZjstubLocationXYZ</i> will be replaced before execution by the real name and path
+						of the executable.</p>
+						
+						<p>
+							An scenario: You rename the executable (configured with commandline <i>javaw -cp XYZjstubLocationXYZ com.mycompany.myapp</i>) to <i>test.exe</i> and store it under c:\winnt (which is registered in the PATH
+							enviroment). When opening a console in <i>c:\temp</i> and execute <i>test.exe</i> the executable substitutes the placeolder
+							and executes <i>java -cp c:\winnt\test.exe com.mycompany.myapp</i>.
+						</p>
+						<tip>
+							Only the first placecholder occurence will be replaced. Multiple placeholders will be ignored.
+						</tip>
+					</p>	
+				</section>
+				<section title="How does it work ?">
+					<p>
+						The <i>jstub</i> native stubs (written in <i>c</i>) originally contains only a few lines of code - 
+						<panel filter="c" line-numbers="no">
+<![CDATA[		int main( int argc char** argv) 
+{
+	system( "java -jar %s", (char*)&argv[0]);
+	
+	return 0;
+}
+ ]]>						
+ 						</panel>
+						which executes java using the executable as regular jar file.
+					</p> 
+					<p>
+						For <i>win32</i> and <i>unix</i> modes the zip file will be appended to a native stub (an exe for win32, shell script for unix).
+					</p>
+					<p>
+						In general the magic behind extraction is the <see reference="zlib"/>. The <see reference="zlib"/> library
+						tries not to read the zip stream at start of file instead the library seeks forward until the zip 
+						header signature is found. Is'nt it easy and elegant ?
+					</p>
+					<p>
+						When i read about zlib and who the hell the <see reference="zlib"/> includes in his software (Adove, Sun etc.) i thought
+						"Why not try to attach an executable as jar file to java ?" - and it works ! You can attach almost any file which 
+						has a guilty ZIP header signature inside as jar file to java's classpath. 
+					</p>
+					<p>
+						<i>In short terms: Take any file you want and append a jar file and it will be accepted as regular jar file from java.</i>
+					</p>
+				</section>
+			</chapter>
+			<chapter title="jnlp">
+				<p>
+					The <i>jnlp</i> task generates a <see reference="jnlp"/> xml file. In general the task is very easy.
+				</p>
+				<p>
+					The reason we wrote <i>jnlp</i> is to have a smart integration within <see reference="ant"/>. Regularly 
+					you have to enter every jar/native library required by you application into the jnlp file. Using the <i>jnlp</i>
+					task you can delegate this task to <see reference="ant"/> using <see reference="ant">FileSet's</see>.
+				</p>
+				<p>
+					In general the <i>jnlp</i> task is exactly the same like <see reference="jnlp-format"/> with 2 differences
+					<ul>
+						<li>
+							<p><see reference="jnlp-format"/> tags containing minus ('-') must be written with underscore ('_')</p>
+						</li>
+						<li>
+							<p><see chapter="resources"/> may contain <see reference="ant">FileSet's</see>.</p>
+						</li>
+					</ul>
+				</p>
+				<section title="Properties">
+					<table width="100%">
+						<tr valign="top">
+							<td>Name</td>
+							<td>Description</td>
+							<td>Required</td>
+						</tr>
+						<tr valign="top">
+							<td>codebase</td>
+							<td>
+								The URI describing the download location.
+							</td>							
+							<td>yes</td>							
+						</tr>			
+						<tr valign="top">
+							<td>spec</td>
+							<td>
+								<p>
+									application being launched, as well as the version of the JNLP file	itself.
+								</p>
+								<p>The according <see reference="jnlp"/> specification of the file.
+								This attribute defaults to <i>1.0+</i> if not set.</p>
+							</td>
+							<td>no</td>							
+						</tr>			
+						<tr valign="top">
+							<td>version</td>
+							<td>
+								The codebase attribute of the jnlp element specifies the codebase for
+								the application. This is also used as the base URL for all relative URLs
+								in href attributes.
+							</td>							
+							<td>yes</td>							
+						</tr>
+						<tr valign="top">
+							<td>toFile</td>
+							<td>the file to write the resulting jnlp file</td>							
+							<td>yes</td>							
+						</tr>												
+					</table>
+				</section>			
+				<p>
+					<i>jnlp</i> task contains many nested elements reflecting the structure of <see reference="jnlp-format"/>
+				</p>
+				<chapter title="Element information">
+					<p>
+						The information element contains various descriptive information about
+						the application being launched.
+					</p>
+					<p>
+						This element may occur multiple times for different locales.
+					</p>
+					<section title="Properties">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>locale</td>
+								<td>
+									The locale attribute of the information element specifies the locale for
+									which this information element should be used.
+								</td>							
+								<td>no</td>							
+							</tr>			
+						</table>
+					</section>			
+					<chapter title="Element title" name="title">
+						<p>The title element contains the name of the application.</p>
+					</chapter>
+					<chapter title="Element vendor" name="vendor">
+						<p>The vendor element contains the name of the vendor.</p>
+					</chapter>	
+					<chapter title="Element homepage" name="homepage">
+						<p>The homepage element contains a href attribute to the homepage for the
+							 application.</p>
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>href</td>
+									<td>
+										The href attribute of the homepage element specifies the URL for the
+										homepage.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+							</table>
+						</section>									 
+					</chapter>
+					<chapter title="Element description" name="description">
+						<p>
+							This Element may occur multiple times.
+						</p>
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>kind</td>
+									<td>
+										The kind attribute for the description element indicates the use of a
+										description element. The values are
+										<ul>
+											<li>one-line
+												<p>for a one-line	description</p>
+											</li>
+											<li>short
+												<p>for a one paragraph description</p>
+											</li>
+											<li>tooltip
+												<p>for a tool-tip description</p>
+											</li>
+										</ul>
+										Longer descriptions should be put
+										on a separate web page and referred to using the homepage element.
+									</td>							
+									<td>no</td>							
+								</tr>			
+							</table>
+						</section>									 
+					</chapter>		
+					<chapter title="Element icon" name="icon">
+						<p>
+							This element may occure multiple times depending of the <i>kind</i> of use.
+						</p>
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>href</td>
+									<td>
+										The href attribute of an icon contains a URL to a location on the web
+										containing an image file for an icon. The file must be in either JPEG or
+										GIF format.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+								<tr valign="top">
+									<td>version</td>
+									<td>
+										The version attribute of an icon contains a string describing the
+										version of the image that is requested.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>width</td>
+									<td>
+										The width attribute of the icon element describes the width of the icon
+										in pixels.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>height</td>
+									<td>
+										The height attribute of the icon element describes the height of the
+										icon in pixels.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>kind</td>
+									<td>
+										<p>
+											The kind attribute of the icon element describes the use of the icon.
+										</p>
+										<p>
+											Valid values are default, selected, disabled and rollover.
+										</p>
+									</td>							
+									<td>no</td>							
+								</tr>	
+								<tr valign="top">
+									<td>depth</td>
+									<td>
+										The depth attribute of the icon element describes the color depth of the
+										image in bits-per-pixel. Common values will be 8, 16, or 24.
+									</td>							
+									<td>no</td>							
+								</tr>
+									<tr valign="top">
+									<td>size</td>
+									<td>	
+										The size attribute of an icon element indicates the size of an icon file
+										in bytes.
+									</td>							
+									<td>no</td>							
+								</tr>																		
+							</table>
+						</section>									 						
+					</chapter>		
+					<chapter title="Element offline_allowed">
+						The offline-allowed element indicates if the application can be launched
+						offline. Default value (i.e., if the element is not specified) is
+						online.
+					</chapter>
+				</chapter>
+				
+				<chapter title="Element security">
+					The security element describes the security requirements of the
+					application.
+					<chapter title="Element all_permissions">
+						The all-permissions element indicates that the application needs full
+						access the the local system and network.
+					</chapter>
+					
+					<chapter title="Element j2ee_application_client_permissions">
+						The j2ee-application-client-permissions element indicates that the
+						application needs the set of permissions defined for a J2EE application
+						client.
+					</chapter>
+				</chapter>
+				
+				<chapter title="Element resources" name="resources">
+					<p>
+						The resources element contains an ordered set of resources that
+						constitutes an application.
+					</p>
+					<p>
+						The nested <i>resources</i> element lets you specify <see chapter="jar">jars</see>, 
+						<see chapter="nativelib">native libs</see> and <see chapter="extension">extensions</see> that you want to 	
+						add to the JNLP launch descriptor. You can use any number of nested <see reference="fileset">fileset's</see>, 
+						<see chapter="jar">jars</see>, <see chapter="nativelib">native libs</see> or <see chapter="extension">extensions</see>. 
+						Note, that only files ending with jar, dll, so, or jnlp will be accepted and that resources must be defined 
+						inside a jnlp element.
+					</p>
+					<p>
+						The most importatn point of this task is that multiple <see reference="fileset"/> instances can be added as sub elements.
+						All matching files of the <see reference="fileset"/>'s will be added either as <i>jar</i> element or <i>nativelib</i> element.
+					</p>
+					<section title="Properties">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>os</td>
+								<td>
+									The os attribute of the resources element specifies for which operating
+									system this element should be considered.
+								</td>							
+								<td>no</td>							
+							</tr>			
+							<tr valign="top">
+								<td>arch</td>
+								<td>
+									The arch attribute of the resources element specifies for what platform
+									this element should be considered.
+								</td>							
+								<td>no</td>							
+							</tr>			
+							<tr valign="top">
+								<td>locale</td>
+								<td>
+									The locale attribute of the resources element specifies for which
+									locales this element should be considered.
+								</td>							
+								<td>no</td>							
+							</tr>			
+						</table>
+					</section>
+					<chapter title="Element j2se">
+						The j2se element describes a supported JRE version and an optional
+						resources element to be used by the particular JRE.
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>version</td>
+									<td>
+										The version attribute of the j2se element describes the versions of the
+										JRE that this application is supported on.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>href</td>
+									<td>
+										The href attribute of the j2se element specifies the location where the
+										JRE should be downloaded from.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>initial-heap-size</td>
+									<td>
+										The initial-heap-size attribute of the j2se element specifies the
+										initial size of the object heap.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>max-heap-size</td>
+									<td>
+										The max-heap-size attribute of the j2se element specifies the preferred
+										maximum size of the object heap.
+									</td>							
+									<td>no</td>							
+								</tr>			
+							</table>
+						</section>
+						
+						The <i>j2se</i> element can also contain <see chapter="resources">resources</see> elements.
+					</chapter>
+					
+					<chapter title="Element jar">
+						The jar element describes a jar file resource.
+						
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>href</td>
+									<td>
+										The href attribute of the jar element contains the location of a jar
+										file as a URL.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+								<tr valign="top">
+									<td>version</td>
+									<td>
+										The version attribute of a jar element describes the version of a
+										particular JAR file that is requested.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>main</td>
+									<td>
+										<p>The main attribute of a jar element indicates whether this element
+										contains the main class (true | false).</p>
+										<p>
+											The atribute defaults to false.
+										</p>
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>download</td>
+									<td>
+										<p>The download attribute of a jar element indicates if this element must
+										be downloaded before an application is launched (eager), or not (lazy).</p>
+										<p>The attribute defaults to eager.</p>
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>size</td>
+									<td>
+										The size attribute of a jar element indicates the size of a JAR file in
+										bytes.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>part</td>
+									<td>
+										The size attribute of a jar element indicates the size of a JAR file in
+										bytes.
+									</td>							
+									<td>no</td>							
+								</tr>			
+							</table>
+						</section>
+					</chapter>
+					<chapter title="Element nativelib">
+						The nativelib element describes a resource containing native files.
+						
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>href</td>
+									<td>
+										The href attribute of a nativelib element contains the location of a
+										nativelib file as a URL.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+								<tr valign="top">
+									<td>version</td>
+									<td>
+										The version attribute of a nativelib element describes the version of a
+										particular nativelib file that is requested.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>download</td>
+									<td>
+										<p>
+											The download attribute of a nativelib element indicates if this element
+											must be downloaded before an application is launched (eager), or not (lazy).
+										</p>
+										<p>The attribute defaults to eager.</p>
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>size</td>
+									<td>
+										The size attribute of a nativelib element indicates the size of a
+										nativelib file in bytes.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>part</td>
+									<td>
+										The part attribute of a nativelib element describes the name of the part
+										it belongs to.
+									</td>							
+									<td>no</td>							
+								</tr>			
+							</table>
+						</section>
+					</chapter>
+					<chapter title="Element extension">
+						The extension element describes an extension that is required in order
+						to run the application.
+						
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>version</td>
+									<td>
+										The version attribute of an extension element specifies the version of
+										the extension requested.									
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The name attribute of an extension element specifies the name of the
+										extension.
+									</td>							
+									<td>no</td>							
+								</tr>			
+								<tr valign="top">
+									<td>href</td>
+									<td>
+										<p>
+											The href attribute of an extension element specifies the location of
+											the extension.										
+										</p>
+										<p>The attribute defaults to eager.</p>
+									</td>							
+									<td>yes</td>							
+								</tr>			
+							</table>
+							</section>
+						
+							<chapter title="Element ext_download">
+								The ext_download element defines how parts of the extension are
+								downloaded.
+							
+							<section title="Properties">
+								<table width="100%">
+									<tr valign="top">
+										<td>Name</td>
+										<td>Description</td>
+										<td>Required</td>
+									</tr>
+									<tr valign="top">
+										<td>ext_part</td>
+										<td>
+											The ext-part attribute of an ext-download element describes the name of
+											a part in the extension.
+										</td>							
+										<td>yes</td>							
+									</tr>			
+									<tr valign="top">
+										<td>download</td>
+										<td>
+											<p>
+												The download attribute of an ext-download element describes if the
+												resource may be lazily downloaded (lazy|eager).
+											</p>
+											<p>
+												The attribute defaults to eager.
+											</p>
+										</td>							
+										<td>no</td>							
+									</tr>			
+									<tr valign="top">
+										<td>part</td>
+										<td>
+											The part attribute of an ext-download element describes the name of the
+											part it belongs to in the current JNLP file.
+										</td>							
+										<td>yes</td>							
+									</tr>			
+								</table>
+							</section>
+						</chapter>
+					</chapter>
+					<chapter title="Element property">
+						The property element describes a name/value pair that is available to
+						the launched application as a system property.
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The name attribute of the property element describes the name of a
+										system property.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										The value element describes the value of a system property.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+							</table>
+						</section>
+					</chapter>
+					<chapter title="Element package">
+						The package element defines a relationship between a Java package or
+						class name and a part.
+						
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The name attribute of the package element describes the name of a
+										package or class.
+									</td>							
+									<td>yes</td>							
+								</tr>											
+								<tr valign="top">
+									<td>part</td>
+									<td>
+										The part attribute of the package element describes the part that
+										contains the specified package or class.
+									</td>							
+									<td>yes</td>							
+								</tr>			
+								<tr valign="top">
+									<td>recursive</td>
+									<td>
+										<p>
+											The recursive attribute of the package element indicates if all subpackages
+											of this particular package is also included.
+										</p>
+										<p>
+											The attribute defaults to false.
+										</p>
+									</td>							
+									<td>no</td>							
+								</tr>			
+							</table>
+						</section>
+					</chapter>
+				</chapter>
+				<chapter title="Element application_desc">
+					The application-desc element describes how to launch a Java-based
+					application. It contains information about the main class and arguments.
+						<section title="Properties">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>main_class</td>
+								<td>
+									The main-class attribute of the application-desc element describes the
+									main class of an application.
+								</td>							
+								<td>yes</td>							
+							</tr>													
+						</table>
+					</section>
+					<chapter title="Element argument">
+						The argument elements describe the ordered set of arguments to an
+						application. These arguments will be passed into the main method of the
+						application’s main class.
+					</chapter>
+				</chapter>
+
+				<chapter title="Element applet_desc">
+					The applet-desc element describes how to launch a Java Technology-based
+					Applet. It contains information about, e.g., the main class, size, and
+					parameters.
+					<section title="Properties">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>documentbase</td>
+								<td>
+									The documentbase attribute of the applet-desc element describes the
+									documentbase for the applet as a URL.
+								</td>							
+								<td>no</td>							
+							</tr>					
+							<tr valign="top">
+								<td>main_class</td>
+								<td>
+									The main-class attribute of the applet-desc element describes the name
+									of the main Applet class.
+								</td>							
+								<td>yes</td>							
+							</tr>																				
+							<tr valign="top">
+								<td>name</td>
+								<td>
+									The name attribute of the applet-desc element describes the name of the
+									Applet.
+								</td>							
+								<td>yes</td>							
+							</tr>																				
+							<tr valign="top">
+								<td>width</td>
+								<td>
+									The width attribute of the applet-desc element describes the width of
+									the Applet in pixels.
+								</td>							
+								<td>yes</td>							
+							</tr>		
+							<tr valign="top">
+								<td>height</td>
+								<td>
+									The height attribute of the applet-desc element describes the height of
+									the Applet in pixels.
+								</td>							
+								<td>yes</td>							
+							</tr>																										
+						</table>
+					</section>
+					<chapter title="Element parameter">
+						The param element describes a parameter to an Applet.
+						<section title="Properties">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The name attribute of the param element describes the name of a
+										parameter.
+									</td>
+									<td>yes</td>							
+								</tr>																														
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										The value attribute of the param element describes the value of a
+										parameter.
+									</td>
+									<td>yes</td>							
+								</tr>																														
+							</table>
+						</section>
+					</chapter>
+				</chapter>
+				<chapter title="Element component_desc">
+					The component-desc element specifies a component extension.
+				</chapter>
+				<chapter title="Element installer_desc">
+					The installer-desc element specifies an installer extension.
+					<section title="Properties">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>main_class</td>
+								<td>
+									The main-class attribute of the installer-desc element describes the
+									main class for the installer/uninstaller.
+								</td>
+								<td>yes</td>							
+							</tr>																														
+						</table>
+					</section>
+				</chapter>
+				<chapter title="An excurse about security in Java Web Start">
+					<see reference="jnlp"/> addresses the security issues of
+					<ul>
+						<li>Protecting users against malicious code (intentional and unintentional) that may affect local files </li>
+						<li>Protecting enterprises against code that may attempt to access or destroy data on networks</li>
+					</ul>
+					<p>
+						Applications launched with <see reference="jnlp"/> are -- by default -- run in a restricted environment where they have 
+						limited access to local computing resources, such as storage devices and the local network. In this sandbox environment, 
+						<see reference="jnlp"/> can guarantee that a downloaded and potentially untrusted application cannot compromise the security of 
+						the local files or the network. 
+					</p>
+					<p>
+						An additional security feature supported by <see reference="jnlp"/> is digital code signing. 
+						If an application being invoked is delivered in one or more signed JAR files, <see reference="jnlp"/> will verify that 
+						the contents of the JAR file have not been modified since they were signed. If verification of a digital signature 
+						fails, <see reference="jnlp"/> will not run the application, since it may have been compromised by a third-party. 
+					</p>
+					<p>
+						The support for code signing is important for both users and for application service providers. This service makes 
+						it possible for users to verify that an application comes from a trusted source. Because the application service 
+						provider signs the code, both can be ensured that no other party can impersonate the application on the Web. 
+						A signed application that is trusted by the user can also request additional system privileges, 
+						such as access to a local disk.
+					</p>
+					<p>
+						<see reference="jnlp"/> presents a dialog displaying the application's origin, based on the signer's certificate, before 
+						the application is launched. Thereby allowing the user to make an informed decision whether to grant additional 
+						privileges to the downloaded code, or not.
+					</p>
+					<p>
+						An application can request full access to a client system when all its JAR files are signed by including the 
+						following settings in the JNLP file:
+						<panel filter="xml" line-numbers="no">
+<![CDATA[ <security> 
+   <all-permissions/> 
+</security> ]]>						
+						</panel>
+						The implementation of code signing in <see reference="jnlp"/> is based on the security API in the core Java 2 Platform. 
+						The Java 2 SE JRE 1.2.x supports code signing with the SHAwithSDA algorithm. Java 2 SE JRE 1.3 also 
+						supports MD2withRSA and MD5withRSA. The MD5withRSA is currently the most often used algorithm.
+					</p>
+					<p>
+						Developers sign code for use with <see reference="jnlp"/> in the same manner as for Java Applets by using the standard 
+						jarsigner tool from the Java 2 SE SDK. The <a target="_blank" href="http://java.sun.com/j2se/1.3/docs/tooldocs/win32/jarsigner.html">
+						documentation</a> for the jarsigner tool provides examples on how to 
+						sign code, create test certificates, and other signing related issues.
+					</p>
+					<p>
+						<see reference="jnlp"/> also support use of the Netscape signtool when used with the Java 2 SE JRE 1.3.0. 
+						See the Netscape Web site for details: 
+						<a href="http://developer.netscape.com/software/signedobj/" target="_blank">http://developer.netscape.com/software/signedobj/ </a>
+					</p>
+				</chapter>
+				<section title="Example">
+					Suppose the following directory structure of an application foo
+					<panel filter="text" line-numbers="no">
+/
+	lib/
+		foo.jar
+		common.jar
+		gui.jar
+	native
+		foo.dll
+					</panel>
+					
+					The following sample <see reference="ant"/> build file creates a jnlp file using <i>jnlp</i> task:
+					
+					<panel filter="xml" line-numbers="no">
+<![CDATA[ <?xml version="1.0"?>	
+
+<project basedir="." name="foo" default="main">
+	<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+	
+	<target name="main">
+		<jnlp toFile="foo.jnlp" href="foo.jnlp" codebase="http://www.foo.com/products/foo/jws-start">
+			<information>
+				<title>Foo</title>
+				<vendor>Foo Bar Limited</vendor>
+				<homepage href="http://www.foo.com/products/foo"/>
+				<icon kind="splash" href="images/splash.gif"/>
+				<icon href="logo.gif"/>
+				<description>Foo is an extremely useful application for doing almost everything</description>
+				<description kind="tooltip">Foo - the extremely useful application</description>
+				<offline_allowed/>
+			</information>
+			
+			<security>
+		      <all_permissions/>
+			</security> 
+			
+			<resources>
+				<j2se version="1.4+"/>
+				<fileset dir="." includes="**/*.jar, **/*.lib"/>
+			</resources>
+			<application_desc main_class="com.foo.Main"/>
+		</jnlp>	
+	</target>
+</project> ]]>						
+					</panel>
+					
+					The file set is expanded by the jnlp task and the matched resources are added to the generated jnlp file:
+					
+					<panel filter="xml" line-numbers="no">
+<![CDATA[ <jnlp href="foo.jnlp" codebase="http://www.foo.com/products/foo/jws-start">
+	<information>
+		<title>Foo</title>
+		<vendor>Foo Bar Limited</vendor>
+		<homepage href="http://www.foo.com/products/foo"/>
+		<icon kind="splash" href="images/splash.gif"/>
+		<icon href="logo.gif"/>
+		<description>Foo is an extremely useful application for doing almost everything</description>
+		<description kind="tooltip">Foo - the extremely useful application</description>
+		<offline-allowed/>
+	</information>
+	
+	<security>
+			<all-permissions/>
+	</security> 
+	
+	<resources>
+		<j2se version="1.4+"/>
+		<jar href="lib/foo.jar"/>
+		<jar href="lib/common.jar"/>
+		<jar href="lib/gui.jar"/>
+		<nativelib href="native/foo.dll"/>
+	</resources>
+	<application-desc main-class="com.foo.Main"/>
+</jnlp> ]]>					
+					</panel>					
+					
+					As you can see, alle <i>jar</i>, <i>dll</i> and <i>so</i> files are added to the jnlp file.
+				</section>
+			</chapter>
+		 	
+			<chapter title="preferences">
+				<p>
+					The <i>preferences</i> task is the interface to the <see reference="preferences">Java Preferences API</see> (available since JAVA 1.4).
+				</p>
+				<p>
+					<i>preferences</i> let's you read, write, test, import and export data out of the <see reference="preferences">Java Preferences Store</see>.
+					Use this task to setup the required <see reference="preferences">Preferences data</see> for your application.
+				</p>
+				<p>
+					The <i>preferences task</i> is able to handle a bunch of sub elements containing various commmands 
+					executed on the specified part of the &preferences;.
+				</p>
+				<p>
+					You can combine the elements in any kind. The elements (i.e. commands) will be executed 
+					in the same order they are defined in the make file.
+				</p>
+				<section title="Attributes">
+					<table width="100%">
+						<tr valign="top">
+							<td>Name</td>
+							<td>Description</td>
+							<td>Required</td>
+						</tr>
+						<tr valign="top">
+							<td>type</td>
+							<td>
+								Type value has to be either <i>user</i> or <i>system</i>. 
+								Depending on the <i>type</i> value a &preferences; root will be used.
+							</td>
+							<td>yes</td>
+						</tr>
+												
+						<tr valign="top">
+							<td>path</td>
+							<td>
+								<p>
+									The base path of the &preferences; subtree to work on. 
+									If the given <i>path</i> does not exists it will be created.
+								</p>
+							</td>
+							<td>no</td>
+						</tr>
+						
+					</table>
+				</section>
+				<chapter title="Set Preferences data">
+					<p>
+						The <i>preferences</i> Task provides sub elements to set entries for each data type defined in the &preferences; API.
+					</p>
+					<chapter title="Element boolean">
+						<p>	
+							The <i>boolean</i> element defines a single boolean data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. The value must be compatible with the boolean type (either <i>true</i> or <i>false</i>).
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+							</table>
+						</section>
+					</chapter>
+					<chapter title="Element bytearray">
+						<p>	
+							The <i>bytearray</i> element defines a single bytearray data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. <i>bytearray</i> data is defined as a bunch of numbers (representing single bytes) separated by a separator.
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+								<tr valign="top">
+									<td>separator</td>
+									<td>
+										<p>
+											The <i>separator</i> defines the characters which separate the numbers of single bytes.
+										</p>
+										<p>
+											<i>separator</i> defaults to ", " which means that without defining a special separator you can simply
+											write your data comma separated (<i>1,5,120,-4</i> for example).
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>radix</td>
+									<td>
+										<p>
+											The <i>radix</i> defines the encoding of a number representing a single byte .
+										</p>
+										<p>
+											<i>radix</i> defaults to <i>10</i> which means that an entry will be edited decimal encoded
+											(set <i>radix</i> to 16 for hexadecimal encoding etc).
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+						
+							</table>
+						</section>						
+					</chapter>
+					<chapter title="Element double">
+						<p>	
+							The <i>double</i> element defines a single double data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. The value must be compatible with the double type (a number either specified in scientific or simplified syntax).
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+							</table>
+						</section>					
+					</chapter>					
+					<chapter title="Element float">
+						<p>	
+							The <i>float</i> element defines a single float data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. The value must be compatible with the float type (a number either specified in scientific or simplified syntax).
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+							</table>
+						</section>										
+					</chapter>					
+					<chapter title="Element int">
+						<p>	
+							The <i>int</i> element defines a single int data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. The value must be compatible with the int type (a integer number).
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+							</table>
+						</section>										
+					</chapter>
+					<chapter title="Element long">
+						<p>	
+							The <i>long</i> element defines a single long data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. The value must be compatible with the long type (a integer number).
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+							</table>
+						</section>															
+					</chapter>
+					<chapter title="Element string">
+						<p>	
+							The <i>string</i> element defines a single text data entry in a &preferences; node.
+						</p>
+						<section title="Attributes">
+							<table width="100%">
+								<tr valign="top">
+									<td>Name</td>
+									<td>Description</td>
+									<td>Required</td>
+								</tr>
+								<tr valign="top">
+									<td>name</td>
+									<td>
+										The <i>name</i> of the entry.
+									</td>
+									<td>yes</td>
+								</tr>
+												
+								<tr valign="top">
+									<td>value</td>
+									<td>
+										<p>
+											The value will be taken either from attribute <i>value</i> or from the body of the
+											<i>element</i>. 
+										</p>
+									</td>
+									<td>yes</td>
+								</tr>
+						
+								<tr valign="top">
+									<td>path</td>
+									<td>
+										<p>
+											The path of the node where the entry should set.
+											The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+											If the given <i>path</i> does not exists it will be created.
+										</p>
+									</td>
+									<td>no</td>
+								</tr>
+														
+							</table>
+						</section>															
+					</chapter>
+					<section title="Example">
+						<panel title="Set Preferences data" filter="xml" line-numbers="no">
+	<![CDATA[ <?xml version="1.0"?>	
+	
+	<project basedir="." name="foo" default="main">
+		<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+		
+		<target name="main">
+			<preferences type="user" path="com/roxes/tools/foo">
+				<string name="workingDir" value="${app.home}/"/>
+				<string name="lru">
+					${app.home}/examples/test.bar,${user.home}/examples/trial.bar
+				</string>
+				<bytearray name="signature" path="bar">	
+						1, 127, 34, 5, 33  <!-- heading/trailing spaces will be removed -->
+				</bytearray>
+				<bytearray name="sig2" path="bar/signatures" radix="16" separator=":">	
+						01:7F:0A:5:3:7 
+				</bytearray>
+				<int name="listeners" path="current/version" value="0"/>
+			</preferences>
+		</target>
+	</project> ]]>						
+						</panel>
+							
+					</section>
+				</chapter>
+				<chapter title="Element get">
+					<p>
+						<i>get</i> copies a &preferences; data entry into a property.
+					</p>
+					<section title="Attributes">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>name</td>
+								<td>
+									The <i>name</i> of the entry to retrieve.
+								</td>
+								<td>yes</td>
+							</tr>
+												
+							<tr valign="top">
+								<td>property</td>
+								<td>
+									The name of the property to use as entry data container.
+								</td>
+								<td>yes</td>
+							</tr>
+												
+							<tr valign="top">
+								<td>path</td>
+								<td>
+									<p>
+										The path of the node.
+										The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+										If the given <i>path</i> does not exists an exception will be thrown.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+														
+							<tr valign="top">
+								<td>defaultValue</td>
+								<td>
+									<p>
+										If the entry was not found in the &preferences; path, the <i>defaultValue</i>
+										will be returned, otherwise the property will be not set.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+						
+						</table>
+					</section>
+					<section title="Example">
+							The following example queries a &preferences; entry and prints the value.
+						<panel filter="xml" line-numbers="no">
+	<![CDATA[ <?xml version="1.0"?>	
+	
+	<project basedir="." name="foo" default="main">
+		<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+		
+		<target name="main">
+			<preferences type="user" path="com/roxes/tools/foo">
+				<get name="signature" path="bar" property="signature"/>	
+			</preferences>
+			<echo message="Signature is ${signature}"/>
+		</target>
+	</project> ]]>						
+						</panel>
+					</section>					
+				</chapter>				
+				<chapter title="Element remove">
+					<p><i>remove</i> removes a node (subtree) or data entry of the &preferences;.</p>
+					<section title="Attributes">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>name</td>
+								<td>
+									The <i>name</i> of the entry to remove.
+								</td>
+								<td>yes <i>(if node is not given)</i></td>
+							</tr>
+												
+							<tr valign="top">
+								<td>node</td>
+								<td>
+									The <i>name</i> of the node (subtree) to remove.
+								</td>
+								<td>yes <i>(if name is not given)</i></td>
+							</tr>
+																			
+							<tr valign="top">
+								<td>path</td>
+								<td>
+									<p>
+										The path of the node.
+										The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+										If the given <i>path</i> does not exists an exception will be thrown.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+														
+						</table>
+						<tip>
+							Either <i>name</i>(to remove a data entry) or <i>node</i>(to remove a node/subtree) must be set. 
+						</tip>
+					</section>
+					<section title="Example">
+							The following example removes a entry and a subtree.
+						<panel filter="xml" line-numbers="no">
+	<![CDATA[ <?xml version="1.0"?>	
+	
+	<project basedir="." name="foo" default="main">
+		<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+		
+		<target name="main">
+			<preferences type="user" path="com/roxes/tools/foo">
+				<remove name="signature" path="bar"/>	
+				
+				<remove node="current" path="bar"/>
+			</preferences>
+		</target>
+	</project> ]]>						
+						</panel>
+					</section>					
+				</chapter>
+				<chapter title="Element test">
+					<p>
+						<i>test</i> checks if either a node of a entry exists. Furthermore you can test a data entry against
+						a user defined value. <i>test</i> sets a property as result of the condition.
+					</p>
+					<section title="Attributes">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>name</td>
+								<td>
+									The <i>name</i> of the entry to remove.
+								</td>
+								<td>yes <i>(if node is not given)</i></td>
+							</tr>
+			
+							<tr valign="top">
+								<td>node</td>
+								<td>
+									The <i>name</i> of the node (subtree) to remove.
+								</td>
+								<td>yes <i>(if name is not given)</i></td>
+							</tr>
+						
+							<tr valign="top">
+								<td>property</td>
+								<td>
+									The name of the property to set if the condition is fulfilled.
+								</td>
+								<td>yes</td>
+							</tr>
+							<tr valign="top">
+								<td>path</td>
+								<td>
+									<p>
+										The path of the node.
+										The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+										If the given <i>path</i> does not exists an exception will be thrown.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+							<tr valign="top">
+								<td>value</td>
+								<td>
+									<p>
+										If <i>value</i> is defined <i>test</i> checks first if the entry exists and second compares
+										the data entry with this value. if the values are equals the property will be defined.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+														
+						</table>
+						<tip>
+							Either <i>name</i>(to remove a data entry) or <i>node</i>(to remove a node/subtree) must be set. 
+						</tip>
+					</section>
+					<section title="Example">
+						<panel filter="xml" line-numbers="no">
+	<![CDATA[ <?xml version="1.0"?>	
+	
+	<project basedir="." name="foo" default="main">
+		<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+		
+		<target name="check"> 
+			<preferences type="user" path="com/roxes/tools/foo">
+					<!-- 
+						property version_found will be defined if 
+						node current/version exists 
+					-->
+				<test path="current" node="version" property="version_found"/> 
+					<!-- 	
+						property listeners_ok will be defined if entry listeners 
+						exists in current/version and its value is 2 
+					-->
+				<test path="current/version" name="listeners" value="2" property="listeners_ok"/>
+			</preferences>
+		</target>
+	</project> ]]>						
+						</panel>
+					</section>					
+
+				</chapter>
+				<chapter title="Element export">
+					<p>
+						<i>export</i> exports the entries of a node or the whole subtree into a file.
+					</p>
+					<section title="Attributes">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>file</td>
+								<td>
+									The <i>file</i> to export to.
+								</td>
+								<td>yes</td>
+							</tr>
+			
+							<tr valign="top">
+								<td>path</td>
+								<td>
+									<p>
+										The path of the node.
+										The <i>path</i> is used relative to the base path defined in the <i>preferences</i> task. 
+										If the given <i>path</i> does not exists an exception will be thrown.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+							<tr valign="top">
+								<td>noSubElements</td>
+								<td>
+									<p>
+										If <i>noSubElements</i> is defined to be true <i>export</i> exports only data entries of the node.
+									</p>
+								</td>
+								<td>no</td>
+							</tr>
+														
+						</table>
+					</section>
+					<section title="Example">
+						<panel filter="xml" line-numbers="no">
+	<![CDATA[ <?xml version="1.0"?>	
+	
+	<project basedir="." name="foo" default="main">
+		<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+		
+		<target name="check"> 
+			<preferences type="user" path="com/roxes/tools/foo">
+					<!-- export whole subtree -->
+				<export file="foo.xml"/>
+					<!-- export only data entries of the path -->
+				<export noSubElements="true" file="foo-entries.xml"/>
+			</preferences>
+		</target>
+	</project> ]]>						
+						</panel>
+					</section>					
+					<tip>
+						The file format is defined <see reference="preferences">here</see>.
+					</tip>
+				</chapter>
+				<chapter title="Element import">
+					<p>
+						<i>import</i> imports data from one ore more files into &preferences;.
+					</p>
+					<section title="Attributes">
+						<table width="100%">
+							<tr valign="top">
+								<td>Name</td>
+								<td>Description</td>
+								<td>Required</td>
+							</tr>
+							<tr valign="top">
+								<td>file</td>
+								<td>
+									The <i>file</i> to import from.
+								</td>
+								<td>yes (if no inner fileset is defined)</td>
+							</tr>
+			
+							<tr valign="top">
+								<td>one ore more filesets</td>
+								<td>
+									The <i>files</i> to import from.
+ 
+									You can define one ore more filesets inside this element. All matching files will be imported.
+								</td>
+								<td>yes (if file is not defined)</td>
+							</tr>
+							
+						</table>
+						<tip>
+							Due the restrictions of the Java &preferences; API the import is everytime absolute which
+							means that the node to import to is defined in the import xml file.
+						</tip>
+					</section>
+					<section title="Example">
+						<panel filter="xml" line-numbers="no">
+	<![CDATA[ <?xml version="1.0"?>	
+	
+	<project basedir="." name="foo" default="main">
+		<taskdef classpath="@jarname@" resource="com/roxes/tools/ant/taskdefs.properties"/>
+		
+		<target name="check"> 
+			<preferences type="user" path="com/roxes/tools/foo">
+				<import file="foo.xml"/>
+				<import>
+					<fileset dir="." includes="preferences*.xml"/>
+					<fileset dir="./preferences" includes="**/*_pref.xml"/>
+				</import>
+			</preferences>
+		</target>
+	</project> ]]>						
+						</panel>
+					</section>	
+					<tip>
+						The file format is defined <see reference="preferences">here</see>.
+					</tip>
+				</chapter>
+				
+			</chapter>
+		</chapter>
+</doc>

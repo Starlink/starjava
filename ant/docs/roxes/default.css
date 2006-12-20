@@ -1,0 +1,150 @@
+.title
+{
+	 font-family:	Verdana, Arial;
+	 font-size:		14pt;
+	 font-weight:	bold;
+}
+
+.headline
+{
+	 font-family:	Verdana, Arial;
+	 font-size:		14pt;
+	 font-weight:	bold;
+}
+
+.headline-resources
+{
+	 font-family:	Verdana, Arial;
+	 font-size:		12pt;
+	 font-weight:	bold;
+}
+
+.tip
+{
+	 border-color:#CDCDCD; 
+	 border-width:1px; 
+	 border-style:solid;
+}
+
+.footer
+{
+	 font-family:	Verdana, Arial;
+	 color:	#808080;
+	 font-size:		8pt;
+	 font-weight:	none;
+}
+
+.spacer
+{
+	 background-color:	#EEEEEE;
+}
+
+.header
+{
+	 background-color:	#F0F0F0;
+}
+
+.code
+{
+	 background-color:	#F0F0F0;
+}
+
+body 
+{
+	 font-size : 10pt; 
+	 font-family : Verdana, arial, tahoma; 
+}
+
+H2
+{
+	 font-size : 10pt; 
+	 font-style: bold;
+	 font-family : Verdana, arial, tahoma; 
+}
+
+TD
+{
+	 font-size : 10pt; 
+	 font-family : Verdana, arial, tahoma; 
+	 /* background-image :  url("images/gray-texture.gif");*/
+}
+
+HR 
+{
+	color : #CDCDCD;
+}
+
+A
+{
+	color : #ED1C24;
+	text-decoration : none;
+}
+
+A.bold
+{
+	font-size : 10pt;
+	font-family : arial, tahoma, verdana;
+	color:black;
+}
+
+A:hover
+{
+	 text-decoration : underline;    
+}
+
+A:link 
+{
+    text-decoration : none;    
+}
+
+input
+{
+	 font-size : 10pt; 
+	 font-family : arial, tahoma, verdana; 	
+}
+
+option
+{
+	 font-size : 10pt; 
+	 font-family : arial, tahoma, verdana; 	
+}
+
+select
+{
+	width : 100pt;
+	font-size : 10pt;
+	font-family : arial, tahoma, verdana;
+	table-layout : fixed;
+}
+
+textarea
+{
+	font-size : 10pt;
+	font-family : arial, tahoma, verdana;
+	table-layout : fixed;
+}
+
+span.comment 
+{
+	color : #008000;
+}
+
+span.statement
+{
+	color : #0071BC;
+}
+
+span.operator
+{
+	color : green;
+}
+
+span.literal
+{
+	color : red; 
+}
+
+span.default
+{
+	color : black; 
+}
