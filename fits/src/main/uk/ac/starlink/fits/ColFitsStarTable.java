@@ -784,7 +784,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                                   long pos, int nsec, ValueReader reader ) {
             super( info, typeBytes, itemShape, nrow, chan, pos, reader );
             nsec_ = nsec;
-            long sr = nrow_ / nsec_;
+            long sr = ( nrow_ + ( nsec_ - 1 ) ) / nsec_;
             assert sr < Integer.MAX_VALUE;
             assert sr * itemBytes_ < Integer.MAX_VALUE;
             secRows_ = (int) sr;
@@ -812,7 +812,7 @@ public class ColFitsStarTable extends ColumnStarTable {
 
         public synchronized Object readValue( long lrow ) throws IOException {
             if ( lrow < nrow_ ) {
-                int isec = (int) lrow / secRows_;
+                int isec = (int) ( lrow / secRows_ );
                 int ioff = (int) ( ( lrow % secRows_ ) * itemBytes_ );
                 return readValue( getBuffer( isec ), ioff );
             }
