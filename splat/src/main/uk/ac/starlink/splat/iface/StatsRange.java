@@ -13,6 +13,7 @@ import uk.ac.starlink.diva.XRangeFigure;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Statistics;
 import uk.ac.starlink.splat.util.NumericIntegrator;
 
@@ -90,20 +91,19 @@ public class StatsRange
 
             //  Extract the data from the spectrum.
             double[] range = getRange();
-            int[] lower = currentSpectrum.bound( range[0] );
-            int[] higher = currentSpectrum.bound( range[1] );
-            if ( lower[1] > higher[0] ) {
+            double[] coords = currentSpectrum.getXData();
+            int low = Sort.lookup( coords, range[0] );
+            int high = Sort.lookup( coords, range[1] );
+            if ( low > high ) {
                 //  Swap when coordinates run right to left.
-                int[] temp = lower;
-                lower = higher;
-                higher = temp;
+                int temp = low;
+                low = high;
+                high = temp;
             }
-            int nvals = higher[0] - lower[1] + 1;
+            int nvals = high - low + 1;
 
             if ( nvals > 0 ) {
                 double[] data = currentSpectrum.getYData();
-                int low = lower[1];
-                int high = higher[0];
 
                 //  Test for presence of BAD values in the data. These are not
                 //  allowed in the final data.
@@ -121,7 +121,6 @@ public class StatsRange
                 if ( showFlux && monotonic ) { 
                     rangeCoords = new double[n];
                     if ( n > 1 ) {
-                        double[] coords = currentSpectrum.getXData();
                         n = 0;
                         for ( int i = low; i <= high; i++ ) {
                             if ( data[i] != SpecData.BAD ) {
