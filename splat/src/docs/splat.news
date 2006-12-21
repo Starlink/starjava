@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.6-1
+   =====
+
+   The statistics toolbox had an off-by-one difference between the 
+   selected stats and the individual region stats, giving slighty different
+   results. That has been fixed.
+
    3.6-0
    =====
 
