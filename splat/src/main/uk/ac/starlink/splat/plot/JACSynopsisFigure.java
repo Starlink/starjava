@@ -279,15 +279,17 @@ public class JACSynopsisFigure
             }
         }
 
-        //  Temperature calculations are broken for now, so development mode
-        //  only...
-        java.util.Properties props = System.getProperties();
-        String isDevelop = props.getProperty( "splat.development" );
-        if (  isDevelop != null && isDevelop.equals( "1" )  ) {
 
-            //  TSYS and TRX.
-            prop = specData.getProperty( "TSYS" );
-            if ( "".equals( prop ) ) {
+        //  TSYS and TRX.
+        prop = specData.getProperty( "TSYS" );
+        if ( "".equals( prop ) ) {
+
+            //  Temperature calculations are broken for now, so development
+            //  mode only...
+            java.util.Properties props = System.getProperties();
+            String isDevelop = props.getProperty( "splat.development" );
+            if (  isDevelop != null && isDevelop.equals( "1" )  ) {
+
                 //  No TSYS, only proceed if have variances and this is the
                 //  JCMT.
                 if ( "JCMT".equals( telescope ) ) {
@@ -296,15 +298,15 @@ public class JACSynopsisFigure
                     }
                 }
             }
+        }
 
-            if ( ! "".equals( prop ) ) {
-                b.append( "TSYS: " + prop + " (K)\n" );
-            }
-
-            prop = specData.getProperty( "TRX" );
-            if ( ! "".equals( prop ) ) {
-                b.append( "TRX: " + prop + " (K)\n" );
-            }
+        if ( ! "".equals( prop ) ) {
+            b.append( "TSYS: " + prop + " (K)\n" );
+        }
+        
+        prop = specData.getProperty( "TRX" );
+        if ( ! "".equals( prop ) ) {
+            b.append( "TRX: " + prop + " (K)\n" );
         }
 
         setString( b.toString() );
@@ -413,7 +415,7 @@ public class JACSynopsisFigure
             //  already calculated.
 
             //  Hack, exposure only correct for Tim's data.
-            exposure = 2.0;
+            exposure = 30.0;
 
             String sam_mode = specData.getProperty( "SAM_MODE" );
             String sw_mode = specData.getProperty( "SW_MODE" );
