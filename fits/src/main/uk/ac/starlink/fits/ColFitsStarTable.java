@@ -32,6 +32,7 @@ public class ColFitsStarTable extends ColumnStarTable {
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
     private final static int MAX_SECTION_BYTES = Integer.MAX_VALUE;
+    // private final static int MAX_SECTION_BYTES = 100 * 1024 * 1024;
 
     /**
      * Constructor.
@@ -803,7 +804,8 @@ public class ColFitsStarTable extends ColumnStarTable {
          */
         private ByteBuffer getBuffer( int isec ) throws IOException {
             if ( bufs_[ isec ] == null ) {
-                bufs_[ isec ] = mapBuffer( isec * secBytes_, secBytes_ );
+                long offset = isec * (long) secBytes_;
+                bufs_[ isec ] = mapBuffer( offset, secBytes_ );
                 logger_.config( "Mapping column region " + ( isec + 1 ) + "/"
                               + nsec_ + " of " + getColumnInfo() );
             }
