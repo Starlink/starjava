@@ -703,7 +703,7 @@ public class ASTJ
         }
 
         // Pick out the axis that should be a SpecFrame.
-        Frame picked = pickAxis( 1 );
+        Frame picked = pickAxis( axis );
 
         // Nothing to do if this is a SpecFrame.
         if ( picked instanceof SpecFrame ) {
