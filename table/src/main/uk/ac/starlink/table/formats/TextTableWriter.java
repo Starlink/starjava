@@ -2,7 +2,9 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -48,8 +50,41 @@ public class TextTableWriter extends StreamStarTableWriter {
 
     public void writeStarTable( StarTable startab, OutputStream strm )
             throws IOException {
+        RowSequence rseq = startab.getRowSequence();
+        try {
+            writeStarTable( startab, rseq, strm );
+        }
+        finally {
+            rseq.close();
+        }
+    }
 
-        /* Get the column headers and work out column widths for formatting. */
+    /**
+     * Writes the table given a row sequence.
+     *
+     * @param   startab  table
+     * @param   rseq     row sequence
+     * @param   strm     output stream
+     */
+    private void writeStarTable( StarTable startab, RowSequence rseq,
+                                 OutputStream strm ) throws IOException {
+
+        /* Fill a buffer with a sample of the rows.  This will be used to
+         * work out field widths, prior to being written out as normal
+         * row data. */
+        List sampleList = new ArrayList();
+        boolean allRowsSampled = false;
+        int sr = getSampledRows();
+        while ( rseq.next() ) {
+            sampleList.add( rseq.getRow() );
+            if ( --sr <= 0 ) {
+                allRowsSampled = true;
+                break;
+            }
+        }
+
+        /* Get the column headers and prepare to work out column widths 
+         * for formatting. */
         int ncol = startab.getColumnCount();
         ColumnInfo[] cinfos = new ColumnInfo[ ncol ];
         int[] cwidths = new int[ ncol ];
@@ -60,29 +95,19 @@ public class TextTableWriter extends StreamStarTableWriter {
             maxWidths[ i ] = getMaxWidth( cinfos[ i ].getContentClass() );
         }
 
-        boolean allRowsSampled = false;
-        RowSequence srseq = startab.getRowSequence();
-        try {
-            int sr = getSampledRows();
-            for ( long lrow = 0; lrow < sr; lrow++ ) {
-                if ( ! srseq.next() ) {
-                    allRowsSampled = true;
-                    break;
-                }
-                Object[] row = srseq.getRow();
-                for ( int i = 0; i < ncol; i++ ) {
-                    String formatted = cinfos[ i ]
-                                      .formatValue( row[ i ], maxWidths[ i ] );
-                    if ( formatted.length() > cwidths[ i ] ) {
-                        cwidths[ i ] = formatted.length();
-                    }
+        /* Go through the sample to determine field widths. */
+        for ( Iterator it = sampleList.iterator(); it.hasNext(); ) {
+            Object[] row = (Object[]) it.next();
+            for ( int i = 0; i < ncol; i++ ) {
+                String formatted = cinfos[ i ]
+                                  .formatValue( row[ i ], maxWidths[ i ] );
+                if ( formatted.length() > cwidths[ i ] ) {
+                    cwidths[ i ] = formatted.length();
                 }
             }
         }
-        finally {
-            srseq.close();
-        }
 
+        /* Add a bit of safety padding if we're only going on a sample. */
         if ( ! allRowsSampled ) {
             for ( int icol = 0; icol < ncol; icol++ ) {
                 cwidths[ icol ] += 2;
@@ -96,48 +121,51 @@ public class TextTableWriter extends StreamStarTableWriter {
             }
         }
 
+        /* Apply sensible maximum field widths. */
         for ( int i = 0; i < ncol; i++ ) {
             cwidths[ i ] = Math.min( maxWidths[ i ], cwidths[ i ] );
         }
 
-        /* Get an iterator over the table data. */
-        RowSequence rseq = startab.getRowSequence();
-        try {
-
-            /* Print parameters. */
-            if ( writeParams ) {
-                String name = startab.getName();
-                if ( name != null && name.trim().length() > 0 ) {
-                    printParam( strm, "Table name", name );
-                }
-                for ( Iterator it = startab.getParameters().iterator();
-                      it.hasNext(); ) {
-                    DescribedValue param = (DescribedValue) it.next();
-                    printParam( strm, param.getInfo().getName(),
-                                      param.getValueAsString( 160 ) );
-                }
+        /* Print parameters. */
+        if ( writeParams ) {
+            String name = startab.getName();
+            if ( name != null && name.trim().length() > 0 ) {
+                printParam( strm, "Table name", name );
             }
- 
-            /* Print headings. */
-            printColumnHeads( strm, cwidths, cinfos );
-
-            /* Print data. */
-            while ( rseq.next() ) {
-                Object[] row = rseq.getRow();
-                String[] data = new String[ ncol ];
-                for ( int i = 0; i < ncol; i++ ) {
-                    data[ i ] = formatValue( row[ i ], cinfos[ i ],
-                                             cwidths[ i ] );
-                }
-                printLine( strm, cwidths, data );
+            for ( Iterator it = startab.getParameters().iterator();
+                  it.hasNext(); ) {
+                DescribedValue param = (DescribedValue) it.next();
+                printParam( strm, param.getInfo().getName(),
+                                  param.getValueAsString( 160 ) );
             }
-            printSeparator( strm, cwidths );
         }
 
-        /* Tidy up. */
-        finally {
-            rseq.close();
+        /* Print headings. */
+        printColumnHeads( strm, cwidths, cinfos );
+
+        /* Print sample rows. */
+        String[] data = new String[ ncol ];
+        for ( Iterator it = sampleList.iterator(); it.hasNext(); ) {
+            Object[] row = (Object[]) it.next();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                data[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
+                                            cwidths[ icol ] );
+            }
+            printLine( strm, cwidths, data );
         }
+
+        /* Print remaining rows. */
+        while ( rseq.next() ) {
+            Object[] row = rseq.getRow();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                data[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
+                                            cwidths[ icol ] );
+            }
+            printLine( strm, cwidths, data );
+        }
+
+        /* Finish off. */
+        printSeparator( strm, cwidths );
     }
 
     /**
