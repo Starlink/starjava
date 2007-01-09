@@ -2,8 +2,10 @@ package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +27,7 @@ import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Utility class providing some constants and static methods related to 
@@ -172,14 +175,26 @@ public class FitsConstants {
             throws IOException {
         if ( datsrc instanceof FileDataSource && 
              datsrc.getCompression() == Compression.NONE ) {
+            File file = ((FileDataSource) datsrc).getFile();
             try {
-                return new MappedFile( ((FileDataSource) datsrc)
-                                      .getFile().toString() );
+                MappedFile mf = new MappedFile( file.toString() );
+                logger.config( "Mapping file " + file );
+                return mf;
             }
             catch ( MappedFile.FileTooLongException e ) {
-                logger.config( datsrc + " too long to map" );
+                logger.info( file + " too long for monolithic map" );
+                if ( Loader.is64Bit() ) {
+                    logger.info( file + " - mapping in blocks" );
+                    return new MultiMappedFile( file,
+                                                FileChannel.MapMode.READ_ONLY,
+                                                1024 * 1024 * 256 );
+                }
+                else {
+                    logger.info( "Won't try mapping in blocks on 32-bit JVM" );
+                }
             }
         }
+        logger.config( "Buffering stream " + datsrc.getName() );
         return new BufferedDataInputStream( datsrc.getInputStream() );
     }
 
