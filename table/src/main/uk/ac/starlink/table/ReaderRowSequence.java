@@ -14,7 +14,8 @@ import java.util.NoSuchElementException;
  */
 public abstract class ReaderRowSequence implements RowSequence {
 
-    private Object[] row;
+    private Object[] row_;
+    private boolean done_;
 
     /**
      * Acquires the next row of objects from the input stream.
@@ -30,22 +31,25 @@ public abstract class ReaderRowSequence implements RowSequence {
     protected abstract Object[] readRow() throws IOException;
 
     public boolean next() throws IOException {
-        row = readRow();
-        return row != null;
+        if ( ! done_ ) {
+            row_ = readRow();
+            done_ = ( row_ == null );
+        }
+        return ! done_;
     }
 
     public Object getCell( int icol ) {
-        if ( row == null ) {
+        if ( row_ == null ) {
             throw new IllegalStateException( "No current row" );
         }
-        return row[ icol ];
+        return row_[ icol ];
     }
 
     public Object[] getRow() {
-        if ( row == null ) {
+        if ( row_ == null ) {
             throw new IllegalStateException( "No current row" );
         }
-        return row;
+        return row_;
     }
 
     /**
