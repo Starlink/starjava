@@ -177,7 +177,7 @@ public class StarTableOutput {
      * Handlers earlier in the list are given a chance to write the
      * table before ones later in the list.
      *
-     * @param  an array of <tt>StarTableWriter</tt> objects
+     * @param  handlers  an array of <tt>StarTableWriter</tt> objects
      */
     public void setHandlers( StarTableWriter[] handlers ) {
         this.handlers = new ArrayList( Arrays.asList( handlers ) );

@@ -96,7 +96,7 @@ public class BeanStarTable extends RandomStarTable {
      * The runtime type of the returned array matches that of the bean class
      * this model displays.
      *
-     * @param  table data
+     * @return  table data
      */
     public Object[] getData() {
         return data_;
@@ -154,8 +154,8 @@ public class BeanStarTable extends RandomStarTable {
      * each of the properties of this bean which is used to get a column
      * value.
      *
-     * @param   array of programmatic names of properties to be used as
-     *          columns
+     * @param  propNames   array of programmatic names of properties
+     *         to be used as columns
      */
     public void setColumnProperties( String[] propNames ) {
         PropertyDescriptor[] props = new PropertyDescriptor[ propNames.length ];

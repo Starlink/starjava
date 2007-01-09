@@ -315,7 +315,7 @@ public class StarTableFactory {
      * If it has not been set explicitly, the default policy is used 
      * ({@link StoragePolicy#getDefaultPolicy}).
      *
-     * @param   return  storage policy object
+     * @return  storage policy object
      */
     public StoragePolicy getStoragePolicy() {
         if ( storagePolicy_ == null ) {

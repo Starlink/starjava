@@ -250,7 +250,7 @@ public class TextTableWriter extends StreamStarTableWriter {
      *
      * @param   strm  stream to write into
      * @param   colwidths   column widths in characters
-     * @param   data   array of column headings
+     * @param   cinfos   array of column headings
      */
     protected void printColumnHeads( OutputStream strm, int[] colwidths,
                                      ColumnInfo[] cinfos ) throws IOException {

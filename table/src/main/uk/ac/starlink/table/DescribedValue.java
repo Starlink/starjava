@@ -90,7 +90,7 @@ public class DescribedValue {
     /**
      * Sets the value of this object from a string representation.
      *
-     * @param   string representation of the new value
+     * @param  sval string representation of the new value
      */
     public void setValueFromString( String sval ) {
         setValue( vinfo.unformatString( sval ) );

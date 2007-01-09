@@ -359,7 +359,7 @@ public class TableLoadChooser extends JPanel {
      * Sets the factory object which this chooser
      * uses to resove files into <tt>StarTable</tt>s.
      *
-     * @param  the factory
+     * @param  factory  the factory
      */
     public void setStarTableFactory( StarTableFactory factory ) {
         tableFactory_ = factory;
@@ -573,7 +573,7 @@ public class TableLoadChooser extends JPanel {
      * as a selected one.  This handler is installed by default on this
      * window.
      *
-     * @param  table drop target transfer handler
+     * @return  table drop target transfer handler
      */
     public TransferHandler getTableImportTransferHandler() {
         return transferHandler_;

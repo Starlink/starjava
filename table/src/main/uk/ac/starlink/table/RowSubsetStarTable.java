@@ -53,7 +53,7 @@ public class RowSubsetStarTable extends WrapperStarTable {
     /**
      * Sets the mask which determines which rows are seen.
      * 
-     * @param   row mask
+     * @param  mask   row mask
      */
     public void setMask( BitSet mask ) {
         this.mask = mask;

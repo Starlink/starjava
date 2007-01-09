@@ -49,7 +49,7 @@ public class StarTableColumn extends TableColumn {
     /**
      * Returns the <tt>ColumnInfo</tt> object associated with this column.
      *
-     * @param  the metadata for this column
+     * @return  the metadata for this column
      */
     public ColumnInfo getColumnInfo() {
         return colinfo;

@@ -60,7 +60,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     /**
      * Returns the number of dimensions of this matcher.
      *
-     * @param  dimensionality of Cartesian space
+     * @return  dimensionality of Cartesian space
      */
     public int getDimensions() {
         return ndim_;

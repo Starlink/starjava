@@ -65,7 +65,7 @@ public class Tables {
      * <p>This convenience method is equivalent to calling
      * <tt>StoragePolicy.getDefaultPolicy().randomTable(startab)</tt>.
      *
-     * @param  stab  original table
+     * @param  startab  original table
      * @return  a table with the same data as <tt>startab</tt> and with 
      *          <tt>isRandom()==true</tt>
      */
@@ -326,7 +326,7 @@ public class Tables {
      * which can be represented in an <tt>int</tt>, then unlike a
      * typecast, this method will throw an <tt>IllegalArgumentException</tt>.
      *
-     * @param  the <tt>long</tt> value to convert
+     * @param  lval the <tt>long</tt> value to convert
      * @return an <tt>int</tt> value which has the same value as <tt>lval</tt>
      * @throws IllegalArgumentException  if the conversion cannot be done
      */

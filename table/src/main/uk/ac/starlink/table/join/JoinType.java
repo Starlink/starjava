@@ -47,7 +47,8 @@ public abstract class JoinType {
      * same object as the input <code>links</code> itself.
      *
      * @param  links  set of RowLinks representing actual matches
-     * @param  numbers of rows in the tables on which the match was performed
+     * @param  rowCounts numbers of rows in the tables on which the 
+     *         match was performed
      * @return  set of RowLinks representing rows for the output table
      */
     public abstract LinkSet processLinks( LinkSet links, int[] rowCounts );

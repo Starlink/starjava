@@ -479,11 +479,11 @@ public class DefaultValueInfo implements ValueInfo {
 
     /**
      * Returns a human-friendly string indicating the class and shape
-     * of a given ValueInfo object.  This will read something like
+     * of a given class object.  This will read something like
      * "Integer" or "byte[][]" or "uk.ac.starlink.FrameSet".
      *
-     * @param  info  the <tt>ValueInfo</tt> object whose class is required
-     * @return  a string showing the class and shape of <tt>info</tt>
+     * @param  clazz  the class
+     * @return  a string showing the class and shape of <tt>clazz</tt>
      */
     public static String formatClass( Class clazz ) {
         String cname = clazz.getName();
