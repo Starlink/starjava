@@ -8658,11 +8658,12 @@ for the latest news and releases.
 <subhead><title>Acknowledgements</title></subhead>
 
 <p>TOPCAT was initially (2003-2005) developed under the UK 
-<webref url="http://www.starlink.ac.uk/">Starlink</webref> project
+<webref url="http://en.wikipedia.org/wiki/Starlink_Project"
+        >Starlink</webref> project
 (1980-2005, R.I.P.).  From July 2005 until June 2006, it was supported
 by grant PP/D002486/1 from the UK's 
 Particle Physics and Astronomy Research Council.
-Its author will be funded from July 2006 until (at least) June 2007 by the
+Its author is funded from July 2006 until (at least) June 2007 by the
 European <webref url="http://eurovotech.org/">VOTech project</webref> 
 within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
 and it is expected that support and development of the software will
@@ -9711,6 +9712,7 @@ introduced since the last version:
     <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
     <li>Concatenation column assignments now smarter for fully compatible
         input tables.</li>
+    <li>Some optimisations for very large files.</li>
     </ul>
     </p></dd>
 
