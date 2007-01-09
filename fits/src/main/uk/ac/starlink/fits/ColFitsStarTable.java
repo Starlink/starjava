@@ -15,6 +15,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.Loader;
 
 /**
  * StarTable based on a single-row FITS BINTABLE which contains the
@@ -29,6 +30,8 @@ public class ColFitsStarTable extends ColumnStarTable {
 
     private final long nrow_;
 
+    private static long mappedBytes_;
+    private static boolean mapWarned_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
     private final static int MAX_SECTION_BYTES = Integer.MAX_VALUE;
@@ -602,19 +605,45 @@ public class ColFitsStarTable extends ColumnStarTable {
                                                       long pos,
                                                       ValueReader reader )
             throws IOException {
+
+        /* Work out the size of the region to map. */
         long itemBytes = Tables.checkedLongToInt( multiply( itemShape ) )
                        * typeBytes;
         long colBytes = itemBytes * nrow;
+
+        /* Issue a warning if we're in danger of running out of address space.
+         * Since this is a kind of failure that many users will be unfamiliar
+         * with, the more warning/explanation the better.  Only need to 
+         * issue the warning once per run though. */
+        if ( mappedBytes_ + colBytes > ( 1L << 30 ) &&
+             ! Loader.is64Bit() &&
+             ! mapWarned_ ) {
+            logger_.warning( "Doing a lot of mapping - "
+                           + "may run out of address space on 32-bit JVM" );
+            mapWarned_ = true;
+        }
+
+        /* Attempt to construct a column data object using either monolithic
+         * or sectioned mapping. */
+        MappedColumnData cdata;
         if ( colBytes <= MAX_SECTION_BYTES ) {
-            return new SingleMappedColumnData( info, typeBytes, itemShape, nrow,
-                                               chan, pos, reader );
+            cdata = new SingleMappedColumnData( info, typeBytes, itemShape,
+                                                nrow, chan, pos, reader );
         }
         else {
             int nsec = (int) ( colBytes / MAX_SECTION_BYTES ) + 1;
-            return new SectionsMappedColumnData( info, typeBytes, itemShape,
-                                                 nrow, chan, pos, nsec,
-                                                 reader );
+            cdata = new SectionsMappedColumnData( info, typeBytes, itemShape,
+                                                  nrow, chan, pos, nsec,
+                                                  reader );
         }
+
+        /* If successful, update the total number of mapped bytes.
+         * Exact accounting of this figure is not essential, so we 
+         * don't bother to update it in MappedColumnData finalizers. */
+        mappedBytes_ += colBytes;
+
+        /* Return the column. */
+        return cdata;
     }
 
     /**
