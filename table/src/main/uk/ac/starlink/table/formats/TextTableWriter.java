@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -22,6 +23,9 @@ import uk.ac.starlink.table.ValueInfo;
 public class TextTableWriter extends StreamStarTableWriter {
 
     private boolean writeParams = true;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.formats" );
 
     /**
      * Returns "text";
@@ -74,14 +78,19 @@ public class TextTableWriter extends StreamStarTableWriter {
          * row data. */
         List sampleList = new ArrayList();
         boolean allRowsSampled = false;
-        int sr = getSampledRows();
-        while ( rseq.next() ) {
-            sampleList.add( rseq.getRow() );
-            if ( --sr <= 0 ) {
+        int maxSamples = getSampledRows();
+        logger_.config( "Reading <=" + maxSamples 
+                      + " rows to guess column widths" );
+        for ( int ir = 0; ir < maxSamples; ir++ ) {
+            if ( ! rseq.next() ) {
                 allRowsSampled = true;
                 break;
             }
+            sampleList.add( rseq.getRow() );
         }
+        logger_.config( sampleList.size()
+                      + ( allRowsSampled ? " (all)" : "" )
+                      + " rows read to guess column widths" );
 
         /* Get the column headers and prepare to work out column widths 
          * for formatting. */
@@ -155,6 +164,12 @@ public class TextTableWriter extends StreamStarTableWriter {
         }
 
         /* Print remaining rows. */
+        if ( ! allRowsSampled ) {
+            logger_.config( "Streaming remaining data rows" );
+        }
+        else {
+            assert ! rseq.next();
+        }
         while ( rseq.next() ) {
             Object[] row = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
