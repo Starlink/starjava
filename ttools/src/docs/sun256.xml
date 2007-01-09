@@ -4120,7 +4120,7 @@ but my thanks are especially due to the following:
     <li>Modified parameter handling slightly for <code>votlint</code>.</li>
     <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
     <li>Added <code>-bench</code> flag to <code>stilts</code> command.</li>
-    <li>Various scalability improvements for use with very large (Tb) 
+    <li>Various scalability improvements for use with very large (Tb?) 
         files.</li>
     <li>Improved efficiency for <code>text</code> and <code>ascii</code>
         output formats (now one-pass not two-pass).</li>
