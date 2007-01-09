@@ -14,7 +14,9 @@ import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.BufferedFile;
+import nom.tam.util.RandomAccess;
 import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.fits.AbstractArrayDataIO;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.MappedFile;
 import uk.ac.starlink.util.Compression;
@@ -62,9 +64,10 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     headerSize = ((BufferedFile) istrm).getFilePointer();
                     fileSize = ((BufferedFile) istrm).length();
                 }
-                else if ( istrm instanceof MappedFile ) {
-                    headerSize = ((MappedFile) istrm).getFilePointer();
-                    fileSize = ((MappedFile) istrm).length();
+                else if ( istrm instanceof AbstractArrayDataIO &&
+                          istrm instanceof RandomAccess ) {
+                    headerSize = ((RandomAccess) istrm).getFilePointer();
+                    fileSize = ((AbstractArrayDataIO) istrm).length();
                 }
                 else {
                     throw new AssertionError();
