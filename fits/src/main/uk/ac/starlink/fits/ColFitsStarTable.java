@@ -618,6 +618,22 @@ public class ColFitsStarTable extends ColumnStarTable {
     }
 
     /**
+     * Recasts a <code>long</code> value which is known to be in range 
+     * to an <code>int</code>.
+     *
+     * @param   lval  long value, must be between Integer.MIN_VALUE
+     *                and Integer.MAX_VALUE
+     * @return  <code>int</code> equivalent of <code>lval</code>
+     * @param   throws   AssertionError if <code>lval</code> is out of range
+     *          (and asssertions are enabled)
+     */
+    private static int toInt( long lval ) {
+        int ival = (int) lval;
+        assert (long) ival == lval;
+        return ival;
+    }
+
+    /**
      * Interface for reading column cells from a mapped buffer.
      */
     private static abstract class ValueReader {
@@ -785,13 +801,8 @@ public class ColFitsStarTable extends ColumnStarTable {
                                   long pos, int nsec, ValueReader reader ) {
             super( info, typeBytes, itemShape, nrow, chan, pos, reader );
             nsec_ = nsec;
-            long sr = ( nrow_ + ( nsec_ - 1 ) ) / nsec_;
-            assert sr < Integer.MAX_VALUE;
-            assert sr * itemBytes_ < Integer.MAX_VALUE;
-            secRows_ = (int) sr;
-            long sb = secRows_ * itemBytes_;
-            assert sb < Integer.MAX_VALUE;
-            secBytes_ = (int) sb;
+            secRows_ = toInt( (long) ( nrow_ + ( nsec_ - 1 ) ) / (long) nsec_ );
+            secBytes_ = toInt( (long) secRows_ * (long) itemBytes_ );
             bufs_ = new ByteBuffer[ nsec_ ];
         }
 
@@ -804,8 +815,10 @@ public class ColFitsStarTable extends ColumnStarTable {
          */
         private ByteBuffer getBuffer( int isec ) throws IOException {
             if ( bufs_[ isec ] == null ) {
-                long offset = isec * (long) secBytes_;
-                bufs_[ isec ] = mapBuffer( offset, secBytes_ );
+                long offset = (long) isec * (long) secBytes_;
+                int leng = toInt( Math.min( nrow_ * (long) itemBytes_ - offset,
+                                            (long) secBytes_ ) );
+                bufs_[ isec ] = mapBuffer( offset, leng );
                 logger_.config( "Mapping column region " + ( isec + 1 ) + "/"
                               + nsec_ + " of " + getColumnInfo() );
             }
