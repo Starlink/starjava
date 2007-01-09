@@ -28,6 +28,7 @@ public class Loader {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.util" );
     private static boolean propsLoaded = false;
     private static Set warnings = new HashSet();
+    private static Boolean is64Bit;
 
     /** 
      * Name of the file in the user's home directory from which properties
@@ -329,6 +330,42 @@ public class Loader {
         }
         instances.addAll( getClassInstances( propertyName, type ) );
         return instances;
+    }
+
+    /**
+     * Tests whether the JVM appears to be 64-bit or not.
+     * Not guaranteed reliable.
+     *
+     * @return  true if the JVM appears to be running in 64 bits
+     *          (if false, presumably it's 32 bits)
+     */
+    public static boolean is64Bit() {
+        if ( is64Bit == null ) {
+            boolean is64;
+            Loader.loadProperties();
+            try {
+                String archdm = System.getProperty( "sun.arch.data.model" );
+                if ( archdm != null ) {
+                    is64 = "64".equals( archdm );
+                    logger.config( "sun.arch.data.model=" + archdm
+                                 + ": assuming " + ( is64 ? "64" : "32" )
+                                 + "-bit JVM" );
+                }
+                else {
+                    String arch = System.getProperty( "os.arch", "unknown" );
+                    is64 = arch.indexOf( "64" ) >= 0;
+                    logger.config( "os.arch=" + arch + ": assuming "
+                                 + ( is64 ? "64" : "32" ) + "-bit JVM" );
+                }
+            }
+            catch ( SecurityException e ) {
+                logger.info( "Can't determine os.arch (" + e 
+                           + ") - assume 32-bit" );
+                is64 = false;
+            }
+            is64Bit = Boolean.valueOf( is64 );
+        }
+        return is64Bit.booleanValue();
     }
 
     /** 
