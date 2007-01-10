@@ -1,5 +1,9 @@
 package uk.ac.starlink.ttools.cea;
 
+import java.util.ArrayList;
+import java.util.List;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
@@ -7,7 +11,11 @@ import uk.ac.starlink.task.InputStreamParameter;
 import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.ttools.task.InputTableParameter;
+import uk.ac.starlink.ttools.task.AbstractInputTableParameter;
+import uk.ac.starlink.ttools.task.InputFormatParameter;
+import uk.ac.starlink.ttools.task.MatchEngineParameter;
+import uk.ac.starlink.ttools.task.OutputFormatParameter;
+import uk.ac.starlink.ttools.task.OutputModeParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
 
 /**
@@ -28,6 +36,9 @@ class CeaParameter {
     private boolean isNullPermitted_;
     private String[] options_;
 
+    private static StarTableFactory tableFactory_ = new StarTableFactory();
+    private static StarTableOutput tableOutput_ = new StarTableOutput();
+
     /**
      * Constructor.
      *
@@ -43,15 +54,12 @@ class CeaParameter {
              taskParam instanceof OutputStreamParameter ) {
             setOutput( true );
         }
-        if ( taskParam instanceof InputTableParameter ||
+        if ( taskParam instanceof AbstractInputTableParameter ||
              taskParam instanceof InputStreamParameter ) {
             isRef_ = true;
             dflt_ = null;
             isNullPermitted_ = false;
             truncateDescription();
-        }
-        if ( taskParam instanceof ChoiceParameter ) {
-            options_ = ((ChoiceParameter) taskParam).getOptionNames();
         }
         if ( taskParam instanceof MultiParameter ) {
             isMulti_ = true;
@@ -61,6 +69,35 @@ class CeaParameter {
         }
         if ( taskParam instanceof DoubleParameter ) {
             type_ = "double";
+        }
+
+        if ( taskParam instanceof ChoiceParameter ) {
+            options_ = ((ChoiceParameter) taskParam).getOptionNames();
+        }
+        else if ( taskParam instanceof InputFormatParameter ) {
+            List opts = new ArrayList();
+            opts.add( StarTableFactory.AUTO_HANDLER );
+            opts.addAll( tableFactory_.getKnownFormats() );
+            options_ = (String[]) opts.toArray( new String[ 0 ] );
+        }
+        else if ( taskParam instanceof OutputFormatParameter ) {
+            List opts = new ArrayList( tableOutput_.getKnownFormats() );
+            opts.remove( "jdbc" );
+            options_ = (String[]) opts.toArray( new String[ 0 ] );
+
+            /* Auto mode won't work because the output filename is munged
+             * by CEA. */
+            assert ! opts.contains( StarTableOutput.AUTO_HANDLER );
+            dflt_ = null;
+        }
+        else if ( taskParam instanceof MatchEngineParameter ) {
+            options_ = MatchEngineParameter.getExampleValues();
+        }
+        else if ( taskParam instanceof OutputModeParameter ) {
+
+            /* Ouput modes other than "out" are too complicated to deal
+             * with in CEA. */
+            assert false;
         }
     }
 
