@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -30,13 +32,6 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
-
-    /** Examples parameter values which are used in documentation. */
-    private static final String[] EXAMPLES = new String[] {
-        "sky", "skyerr", "sky3d", "exact", "1d", "2d", "3d",
-        "2d_anisotropic", "3d_anisotropic",
-        "sky+1d",
-    };
 
     public MatchEngineParameter( String name ) {
         super( name );
@@ -82,9 +77,10 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         sbuf.append( "   Available matchers, with associated parameters,"
                    + " include:\n" );
         try {
-            for ( int i = 0; i < EXAMPLES.length; i++ ) {
+            for ( Iterator it = Arrays.asList( getExampleValues() ).iterator();
+                  it.hasNext(); ) {
+                String name = (String) it.next();
                 StringBuffer line = new StringBuffer();
-                String name = EXAMPLES[ i ];
                 MatchEngine engine = createEngine( name );
                 line.append( "      " )
                     .append( getName() )
@@ -301,5 +297,17 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 .append( units );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Returns strings naming a set of example match engine parameter values.
+     * These are used in the documentation.
+     */
+    public static String[] getExampleValues() {
+        return new String[] {
+            "sky", "skyerr", "sky3d", "exact", "1d", "2d", "3d",
+            "2d_anisotropic", "3d_anisotropic",
+            "sky+1d",
+        };
     }
 }
