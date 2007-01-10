@@ -45,7 +45,11 @@ public class InputTableParameter extends AbstractInputTableParameter {
      */
     void setValueFromTable( StarTable table ) {
         table_ = table;
-        setStringValue( table.getName() );
+        String name = table.getName();
+        if ( name == null ) {
+            name = "unnamed table";
+        }
+        setStringValue( name );
         setGotValue( true );
     }
 }
