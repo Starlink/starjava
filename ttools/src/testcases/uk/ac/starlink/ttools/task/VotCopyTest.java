@@ -79,7 +79,7 @@ public class VotCopyTest extends TableTestCase {
         matchMultiData( fDom );
         matchMultiDOM( checkAndRemoveData( fDom, "FITS" ) );
 
-        map.put( "format", "empty" );
+        map.put( "format", null );
         matchMultiDOM( readDOM( map ) );
 
         // Skip these for now, since they leave files about the place which
