@@ -53,6 +53,7 @@ public class CeaWriter extends XmlWriter {
         appPath_ = appPath;
         ceaAppName_ = ceaAppName;
         formatter_ = new Formatter();
+        formatter_.setManualName( "the manual" );
     }
 
     /**
