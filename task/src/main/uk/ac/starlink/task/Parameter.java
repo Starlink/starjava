@@ -279,9 +279,6 @@ public class Parameter {
      */
     public void setValueFromString( Environment env, String stringval ) 
             throws TaskException {
-         if ( stringval == null && ! isNullPermitted() ) {
-             throw new NullPointerException();
-         }
          setStringValue( stringval );
          setGotValue( true );
     }
@@ -296,6 +293,9 @@ public class Parameter {
      * @param  stringValue  new string value
      */
     protected void setStringValue( String stringValue ) {
+         if ( stringValue == null && ! isNullPermitted() ) {
+             throw new NullPointerException( "Null value not permitted" );
+         }
          this.stringValue = stringValue;
     }
 
