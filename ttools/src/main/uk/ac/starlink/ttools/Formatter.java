@@ -22,6 +22,7 @@ import org.w3c.dom.Text;
 public class Formatter {
 
     private final DocumentBuilder db_;
+    private String manualName_ = "SUN/256";
 
     /**
      * Constructor.
@@ -45,6 +46,24 @@ public class Formatter {
      */
     public String formatXML( String xml, int indent ) throws SAXException {
         return formatDOM( readDOM( xml ), indent );
+    }
+
+    /**
+     * Sets the text used to refer in formatted output to the STILTS manual.
+     *
+     * @param  name  manual reference name
+     */
+    public void setManualName( String name ) {
+        manualName_ = name;
+    }
+   
+    /**
+     * Returns the text used to refer in formatted output to the STILTS manual.
+     *
+     * @return  manual reference name
+     */
+    public String getManualName() {
+        return manualName_;
     }
 
     /**
@@ -99,7 +118,7 @@ public class Formatter {
                         appendChildren( result, el );
                     }
                     else {
-                        result.appendWords( "SUN/256" );
+                        result.appendWords( getManualName() );
                     }
                 }
                 else {
