@@ -32,6 +32,13 @@ class CeaTask {
         Parameter[] params = task.getParameters();
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
+
+            /* We're not going to try to muck about with output modes 
+             * other than "out" for the purposes of CEA; other modes 
+             * are generally intended for interactive/client-side use 
+             * of one sort or another, and the business of dynamically
+             * determining supplementary parameters would be extremely
+             * messy within CEA. */
             if ( ! ( param instanceof OutputModeParameter ) ) {
                 paramList_.add( new CeaParameter( param ) );
             }
