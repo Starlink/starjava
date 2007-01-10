@@ -4124,6 +4124,8 @@ but my thanks are especially due to the following:
         files.</li>
     <li>Improved efficiency for <code>text</code> and <code>ascii</code>
         output formats (now one-pass not two-pass).</li>
+    <li>Improved CEA app-description file, including especially option lists
+        for things like input and output formats.</li>
     </ul>
     </p></dd>
 
