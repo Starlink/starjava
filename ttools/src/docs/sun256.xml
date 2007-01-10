@@ -4126,6 +4126,7 @@ but my thanks are especially due to the following:
         output formats (now one-pass not two-pass).</li>
     <li>Improved CEA app-description file, including especially option lists
         for things like input and output formats.</li>
+    <li>Added README.cea file to distribution.</li>
     </ul>
     </p></dd>
 

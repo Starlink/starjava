@@ -454,6 +454,7 @@
   <target name="build-standalone" depends="install">
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="stilts"/>
+      <fileset dir="${star.docs.pkg}" includes="README.*"/>
     </zip>
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
@@ -622,7 +623,7 @@
      !   are generated from the source-->
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${build.docs}"
-               includes="${user.doc}/* *.pdf"/>
+               includes="${user.doc}/* *.pdf README.*"/>
     </copy>
 
     <!-- Set permissions on contents of distribution directories -->
@@ -1018,6 +1019,7 @@
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" includes="${user.doc}.xml"/>
       <fileset dir="${xdoc.etc}" includes="docs.dtd"/>
+      <fileset dir="${src.docs}" includes="README.*"/>
     </copy>
 
     <!-- Construct XML documentation for the JEL-accessible classes.
