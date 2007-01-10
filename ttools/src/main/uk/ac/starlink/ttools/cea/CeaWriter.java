@@ -338,25 +338,22 @@ public class CeaWriter extends XmlWriter {
      * Main method.  Invoked to write STILTS application description to 
      * standard output.
      *
-     * @example <code>CeaWriter -path /starjava/bin/stilts 
-     *                          -auth org.astrogrid.test1/stilts</code>
-     *
      * @param   args  arguments - invoke with "-help" for a usage messege
      */
     public static void main( String[] args )
             throws LoadException, SAXException {
+        String ceaId = "ivo://uk.ac.starlink/stilts";
+        String docUrl = "http://www.starlink.ac.uk/stilts/";
         String usage = "\n   Usage: " + CeaWriter.class.getName()
-                     + " [-help]"
-                     + " -path stilts-path"
-                     + " -auth cea-auth"
-                     + " [-docurl docurl]"
-                     + "\n";
+            + "\n      [-help]            displays this message"
+            + "\n      -path stilts-path  path to stilts script"
+            + "\n      [-cea-id id]       app ID [" + ceaId + "]"
+            + "\n      [-docurl docurl]   documentation URL [" + docUrl + "]"
+            + "\n";
 
         /* Process arguments. */
         List argList = new ArrayList( Arrays.asList( args ) );
         String appPath = null;
-        String ceaAuth = "astrogrid.cam";
-        String docUrl = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-path" ) && it.hasNext() ) {
@@ -364,9 +361,9 @@ public class CeaWriter extends XmlWriter {
                 appPath = (String) it.next();
                 it.remove();
             }
-            else if ( arg.equals( "-auth" ) && it.hasNext() ) {
+            else if ( arg.equals( "-cea-id" ) && it.hasNext() ) {
                 it.remove();
-                ceaAuth = (String) it.next();
+                ceaId = (String) it.next();
                 it.remove();
             }
             else if ( arg.equals( "-docurl" ) && it.hasNext() ) {
@@ -382,14 +379,14 @@ public class CeaWriter extends XmlWriter {
         }
 
         /* Validate arguments. */
-        if ( ! argList.isEmpty() || appPath == null || ceaAuth == null ) {
+        if ( ! argList.isEmpty() || appPath == null || ceaId == null ) {
             System.err.println( usage );
             System.exit( 1 );
         }
 
         /* Prepare writer object. */
         CeaWriter ceaWriter = new CeaWriter( System.out, getTasks(), appPath,
-                                             ceaAuth + "/stilts" );
+                                             ceaId );
         if ( docUrl != null ) {
             ceaWriter.docUrl_ = docUrl;
         }
