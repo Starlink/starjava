@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
 
@@ -94,6 +95,15 @@ public class TableMatch2Test extends TableTestCase {
         assertArrayEquals( new double[] { 659.68, 1046.874, 17.2 },
                            unbox( tNot.getRow( 0 ) ) );
         assertEquals( 1L, tNot.getRowCount() );
+    }
+
+    public void testExamples() throws UsageException {
+        String[] examps = MatchEngineParameter.getExampleValues();
+        MatchEngineParameter matcherParam =
+            new MatchEngineParameter( "matcher" );
+        for ( int i = 0; i < examps.length; i++ ) {
+            assertTrue( matcherParam.createEngine( examps[ i ] ) != null );
+        }
     }
 
     private StarTable join12( String join, String find, double err )
