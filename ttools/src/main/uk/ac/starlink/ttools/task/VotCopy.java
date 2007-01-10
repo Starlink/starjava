@@ -21,6 +21,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
@@ -47,7 +48,7 @@ public class VotCopy implements Task {
 
     private final Parameter inParam_;
     private final Parameter outParam_;
-    private final VotFormatParameter formatParam_;
+    private final ChoiceParameter formatParam_;
     private final XmlEncodingParameter xencParam_;
     private final BooleanParameter cacheParam_;
     private final BooleanParameter hrefParam_;
@@ -81,10 +82,24 @@ public class VotCopy implements Task {
             "</p>",
         } );
 
-        formatParam_ = new VotFormatParameter( "format" );
+        formatParam_ = new ChoiceParameter( "format", new DataFormat[] {
+            DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.FITS,
+        } );
         formatParam_.setPosition( 3 );
         formatParam_.setPrompt( "Output votable format" );
+        formatParam_.setNullPermitted( true );
+        formatParam_.setDefault( DataFormat.TABLEDATA.toString()
+                                                     .toLowerCase() );
         formatParam_.setPreferExplicit( true );
+        formatParam_.setDescription( new String[] {
+            "<p>Determines the encoding format of the table data in the ",
+            "output document.",
+            "If <code>null</code> is selected, then the tables will be",
+            "data-less (will contain no DATA element), leaving only",
+            "the document structure.",
+            "Data-less tables are legal VOTable elements.",
+            "</p>",
+        } );
 
         xencParam_ = new XmlEncodingParameter( "charset" );
 
@@ -155,7 +170,7 @@ public class VotCopy implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
-        DataFormat format = formatParam_.formatValue( env );
+        DataFormat format = (DataFormat) formatParam_.objectValue( env );
         cacheParam_.setDefault( format == DataFormat.FITS );
         PrintStream pstrm = env.getOutputStream();
         boolean inline;
