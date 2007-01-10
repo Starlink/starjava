@@ -71,7 +71,6 @@ public class QuantCalcTest extends TestCase {
                 values[ ix++ ] = -i;
             }
         }
-        assert ix == values.length;
         return values;
     }
 
