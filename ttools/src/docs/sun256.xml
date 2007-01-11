@@ -4117,7 +4117,8 @@ but my thanks are especially due to the following:
     <li>New command <ref id="tjoin"><code>tjoin</code></ref> introduced.</li>
     <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
         later.</li>
-    <li>Modified parameter handling slightly for <code>votlint</code>.</li>
+    <li>Slight changes to parameters for <code>votlint</code>
+        and <code>votcopy</code>.</li>
     <li>Fixed bug in handling of single quotes in FITS file metadata.</li>
     <li>Added <code>-bench</code> flag to <code>stilts</code> command.</li>
     <li>Various scalability improvements for use with very large (Tb?) 
