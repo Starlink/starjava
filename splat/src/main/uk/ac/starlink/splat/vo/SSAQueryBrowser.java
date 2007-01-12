@@ -54,9 +54,7 @@ import jsky.catalog.skycat.SkycatCatalog;
 import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
-import jsky.util.ConnectionUtil;
 import jsky.util.SwingWorker;
-import jsky.util.gui.ProgressPanel;
 
 import org.us_vo.www.SimpleResource;
 
@@ -116,12 +114,6 @@ public class SSAQueryBrowser
 
     /** File chooser used for saving and restoring queries. */
     protected BasicFileChooser fileChooser = null;
-
-    /** ProgressPanel used when downloading query responses */
-    private ProgressPanel progressPanel = null;
-
-    /** Worker thread used with ProgressPanel */
-    private SwingWorker worker = null;
 
     /** Content pane of frame */
     protected JPanel contentPane = null;
@@ -238,7 +230,7 @@ public class SSAQueryBrowser
 
         //  Add options to save and restore the query result.
         LocalAction saveAction = new LocalAction( LocalAction.SAVE,
-                                                  "Save query results", 
+                                                  "Save query results",
                                                   saveImage,
                                                   "Save results of query " +
                                                   "to disk file" );
@@ -248,7 +240,7 @@ public class SSAQueryBrowser
         actionBarContainer.add( saveButton );
 
         LocalAction readAction = new LocalAction( LocalAction.READ,
-                                                  "Restore query results", 
+                                                  "Restore query results",
                                                   readImage,
                                                   "Read results of a " +
                                                   "previous query back " +
@@ -554,75 +546,72 @@ public class SSAQueryBrowser
     }
 
     /**
-     * If it does not already exist, make the panel for displaying
-     * the progress of network access.
-     */
-    protected void makeProgressPanel()
-    {
-        if ( progressPanel == null ) {
-            progressPanel = ProgressPanel.makeProgressPanel
-                ( "Querying SSA servers for spectra...", this );
-
-            //  When the cancel button is pressed we want to stop the
-            //  SwingWorker thread. XXX Can we just skip current server?
-            progressPanel.addActionListener( new ActionListener()
-            {
-                public void actionPerformed( ActionEvent e )
-                {
-                    if ( worker != null ) {
-                        worker.interrupt();
-                        worker = null;
-                    }
-                }
-            });
-        }
-    }
-
-    /**
      * Process a list of URL queries to SSA servers and display the
      * results. All processing is performed in a background Thread.
      */
     protected void processQueryList( ArrayList queryList )
     {
         final ArrayList localQueryList = queryList;
-        makeProgressPanel();
+        makeResultsDisplay( null );
 
-        worker = new SwingWorker()
-        {
-            boolean interrupted = false;
-            public Object construct()
-            {
-                progressPanel.start();
-                try {
-                    runProcessQueryList( localQueryList );
-                }
-                catch (InterruptedException e) {
-                    interrupted = true;
-                }
-                return null;
-            }
+        final ProgressPanelFrame progressFrame =
+            new ProgressPanelFrame( "Querying SSAP servers" );
 
-            public void finished()
-            {
-                progressPanel.stop();
-                worker = null;
-                queryThread = null;
+        Iterator i = queryList.iterator();
+        while ( i.hasNext() ) {
+            final SSAQuery ssaQuery = (SSAQuery) i.next();
+            final ProgressPanel progressPanel = 
+                new ProgressPanel( "Querying: " + ssaQuery.getDescription() );
+            progressFrame.addProgressPanel( progressPanel );
 
-                //  Display the results.
-                if ( ! interrupted ) {
-                    makeResultsDisplay( localQueryList );
-                }
-            }
-        };
-        worker.start();
+            final SwingWorker worker = new SwingWorker()
+                {
+                    boolean interrupted = false;
+                    public Object construct()
+                    {
+                        progressPanel.start();
+                        try {
+                            runProcessQuery( ssaQuery, progressPanel );
+                        }
+                        catch (InterruptedException e) {
+                            interrupted = true;
+                        }
+                        return null;
+                    }
+
+                    public void finished()
+                    {
+                        progressPanel.stop();
+                        queryThread = null;
+
+                        //  Display the results.
+                        if ( ! interrupted ) {
+                            addResultsDisplay( ssaQuery );
+                        }
+                    }
+                };
+
+            progressPanel.addActionListener( new ActionListener()
+                {
+                    public void actionPerformed( ActionEvent e )
+                    {
+                        if ( worker != null ) {
+                            worker.interrupt();
+                        }
+                    }
+                });
+
+            worker.start();
+        }
     }
 
     private Thread queryThread = null;
 
     /**
-     * Do the query to all the SSAP servers.
+     * Do a query to an SSAP server.
      */
-    private void runProcessQueryList( ArrayList queryList )
+    private void runProcessQuery( SSAQuery ssaQuery,
+                                  ProgressPanel progressPanel )
         throws InterruptedException
     {
         //  We just download VOTables, so avoid attempting to build the other
@@ -632,62 +621,59 @@ public class SSAQueryBrowser
         factory.setDefaultBuilders( blist );
 
         StarTable starTable = null;
-        Iterator i = queryList.iterator();
-        int j = 0;
-        while( i.hasNext() ) {
+
+        // int j = 0;
+
+        try {
+            URL url = ssaQuery.getQueryURL();
+            progressPanel.logMessage( ssaQuery.getBaseURL() );
+            starTable = factory.makeStarTable( url );
+
+            //  Check parameter QUERY_STATUS, this should be set to OK
+            //  when the query
+            String queryOK = null;
             try {
-                SSAQuery ssaQuery = (SSAQuery) i.next();
-                URL url = ssaQuery.getQueryURL();
-                progressPanel.logMessage( "Querying: " +
-                                          ssaQuery.getDescription() );
-                starTable = factory.makeStarTable( url );
+                queryOK = starTable
+                    .getParameterByName( "QUERY_STATUS" )
+                    .getValueAsString( 100 );
+            }
+            catch (NullPointerException ne) {
+                // Whoops, that's not good, but see what we can do.
+                queryOK = "OK";
+            }
+            if ( "OK".equalsIgnoreCase( queryOK ) ) {
+                ssaQuery.setStarTable( starTable );
+                progressPanel.logMessage( "Done" );
+            }
+            else {
+                //  Some problem with the service.
+                progressPanel.logMessage( "Query failed: " + queryOK );
+            }
 
-                //  Check parameter QUERY_STATUS, this should be set to OK
-                //  when the query
-                String queryOK = null;
-                try {
-                    queryOK = starTable
-                        .getParameterByName( "QUERY_STATUS" )
-                        .getValueAsString( 100 );
-                }
-                catch (NullPointerException ne) {
-                    // Whoops, that's not good, but see what we can do.
-                    queryOK = "OK";
-                }
-                if ( "OK".equalsIgnoreCase( queryOK ) ) {
-                    ssaQuery.setStarTable( starTable );
-                    progressPanel.logMessage( "Done" );
-                }
-                else {
-                    //  Some problem with the service.
-                    progressPanel.logMessage( "Query failed: " + queryOK );
-                }
-
-                //  Dump query results as VOTables.
-                //uk.ac.starlink.table.StarTableOutput sto =
-                //    new uk.ac.starlink.table.StarTableOutput();
-                //sto.writeStarTable( starTable,
-                //                    "votable" + j + ".xml", null);
-                j++;
-            }
-            catch (TableFormatException te) {
-                progressPanel.logMessage( te.getMessage() );
-                System.out.println( te.getMessage() );
-            }
-            catch (IOException ie) {
-                progressPanel.logMessage( ie.getMessage() );
-                System.out.println( ie.getMessage() );
-            }
-            catch (Exception ge) {
-                //  General exception.
-                progressPanel.logMessage( ge.getMessage() );
-                System.out.println( ge.getMessage() );
-            }
-            if ( Thread.interrupted() ) {
-                throw new InterruptedException();
-            }
+            //  Dump query results as VOTables.
+            //uk.ac.starlink.table.StarTableOutput sto =
+            //    new uk.ac.starlink.table.StarTableOutput();
+            //sto.writeStarTable( starTable,
+            //                    "votable" + j + ".xml", null);
+            //j++;
         }
-        progressPanel.logMessage( "Completed downloads" );
+        catch (TableFormatException te) {
+            progressPanel.logMessage( te.getMessage() );
+            System.out.println( te.getMessage() );
+        }
+        catch (IOException ie) {
+            progressPanel.logMessage( ie.getMessage() );
+            System.out.println( ie.getMessage() );
+        }
+        catch (Exception ge) {
+            //  General exception.
+            progressPanel.logMessage( ge.getMessage() );
+            System.out.println( ge.getMessage() );
+        }
+        if ( Thread.interrupted() ) {
+            throw new InterruptedException();
+        }
+        progressPanel.logMessage( "Completed download" );
     }
 
     /**
@@ -705,44 +691,52 @@ public class SSAQueryBrowser
         resultsPane.removeAll();
         starJTables.clear();
 
+        if ( tableList != null ) {
+            Iterator i = tableList.iterator();
+            while ( i.hasNext() ) {
+                addResultsDisplay( i.next() );
+            }
+        }
+    }
+
+    protected void addResultsDisplay( Object next )
+    {
         DescribedValue dValue = null;
         JScrollPane scrollPane = null;
-        Object next = null;
         SSAQuery ssaQuery = null;
         StarJTable table = null;
         StarTable starTable = null;
         String shortName = null;
 
-        Iterator i = tableList.iterator();
-        while ( i.hasNext() ) {
-            next = i.next();
-            if ( next instanceof SSAQuery ) {
-                ssaQuery = (SSAQuery) next;
-                starTable = ssaQuery.getStarTable();
-                shortName = ssaQuery.getDescription();
+        if ( next instanceof SSAQuery || next != null ) {
+            ssaQuery = (SSAQuery) next;
+            starTable = ssaQuery.getStarTable();
+            shortName = ssaQuery.getDescription();
+        }
+        else if ( next instanceof StarTable) {
+            starTable = (StarTable) next;
+            dValue = starTable.getParameterByName( "ShortName" );
+            if ( dValue == null ) {
+                shortName = starTable.getName();
             }
             else {
-                starTable = (StarTable) next;
-                dValue = starTable.getParameterByName( "ShortName" );
-                if ( dValue == null ) {
-                    shortName = starTable.getName();
-                }
-                else {
-                    shortName = (String)dValue.getValue();
-                }
+                shortName = (String)dValue.getValue();
             }
-            if ( starTable != null ) {
-                table = new StarJTable( starTable, true );
-                scrollPane = new JScrollPane( table );
-                resultsPane.addTab( shortName, scrollPane );
-                starJTables.add( table );
+        }
+        else {
+            System.out.println( "Couldn't handle: " + next );
+        }
+        if ( starTable != null ) {
+            table = new StarJTable( starTable, true );
+            scrollPane = new JScrollPane( table );
+            resultsPane.addTab( shortName, scrollPane );
+            starJTables.add( table );
 
-                //  Set widths of columns.
-                table.configureColumnWidths( 200, 5 );
+            //  Set widths of columns.
+            table.configureColumnWidths( 200, 5 );
 
-                //  Double click on row means load just that spectrum.
-                table.addMouseListener( this );
-            }
+            //  Double click on row means load just that spectrum.
+            table.addMouseListener( this );
         }
     }
 
@@ -1273,7 +1267,7 @@ public class SSAQueryBrowser
             this.actionType = actionType;
         }
 
-        public LocalAction( int actionType, String name, Icon icon, 
+        public LocalAction( int actionType, String name, Icon icon,
                             String help )
         {
             super( name, icon );

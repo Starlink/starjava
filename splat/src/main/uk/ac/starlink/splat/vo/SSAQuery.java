@@ -136,6 +136,14 @@ public class SSAQuery
     }
 
     /**
+     * Get the base URL for this service.
+     */
+    public String getBaseURL()
+    {
+        return baseURL;
+    }
+
+    /**
      * Set the StarTable created as a result of downloading the VOTable.
      */
     public void setStarTable( StarTable starTable )
