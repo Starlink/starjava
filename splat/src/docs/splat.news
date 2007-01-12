@@ -1,5 +1,17 @@
 1 Starlink SPLAT news.
 
+   3.6-2
+   =====
+
+   An optional synopsis figure has been added to each plot. This shows
+   some details of the current spectrum, such as it's name, the telescope,
+   instrument, object, position of extraction (when used together with GAIA), 
+   etc.
+
+   The SSAP query has been remodelled so that all queries are performed
+   concurrently. This means that a failing service will not block access
+   to all the others.
+
    3.6-1
    =====
 
