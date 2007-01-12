@@ -60,7 +60,7 @@ public class ProgressPanelFrame
 
     protected void initUI()
     {
-        setLayout( new BorderLayout() );
+        getContentPane().setLayout( new BorderLayout() );
 
         mainPanel = new JPanel();
         mainPanel.setLayout( new BoxLayout( mainPanel, BoxLayout.Y_AXIS ) );
