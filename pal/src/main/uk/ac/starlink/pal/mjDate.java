@@ -104,8 +104,8 @@ public class mjDate {
  */
     public int getDay() { return day; }
 
-/** Get year
- *  @return Year
+/** Get fraction as integer number of places.
+ *  @return fraction * 10^n
  */
     public int getFraction( int n ) { return (int) (fraction*Math.pow(10,n) ); }
 
