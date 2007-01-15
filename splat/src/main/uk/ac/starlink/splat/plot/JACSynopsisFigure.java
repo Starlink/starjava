@@ -29,12 +29,16 @@ import javax.swing.event.ChangeListener;
 
 import nom.tam.fits.FitsDate;
 
+import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.SpecFrame;
-import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.diva.DrawLabelFigure;
 import uk.ac.starlink.diva.DrawRectangleFigure;
+import uk.ac.starlink.pal.Pal;
+import uk.ac.starlink.pal.mjDate;
+import uk.ac.starlink.pal.palTime;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.util.SplatException;
@@ -154,13 +158,32 @@ public class JACSynopsisFigure
             b.append( "\n" );
         }
 
-        //  Prefer human readable date of observation. Epoch will
-        //  be MJD-OBS.
+        //  Prefer DATE-OBS human readable date of observation. Epoch will
+        //  be MJD-OBS converted into a Julian epoch, which requires more work.
         prop = specData.getProperty( "DATE-OBS" );
         if ( "".equals( prop ) ) {
-            b.append( "Epoch: " + specAxis.getEpoch() + "\n" );
+            if ( specAxis.test( "Epoch" ) ) {
+
+                //  Use Epoch value, that's decimal years (TDB), so convert 
+                //  into human readable form. Get epoch in TAI (/UTC).
+                double epoch = specAxis.getEpoch() - 
+                    ( 32.184 / ( 60.0 * 60.0 * 24.0 * 365.25 ) );
+                Pal pal = new Pal();
+                double mjd = pal.Epj2d( epoch );
+                try {
+                    mjDate date = pal.Djcl( mjd );
+                    palTime dayfrac = pal.Dd2tf( date.getFraction() );
+                    prop = 
+                        date.getYear() + "-" + date.getMonth() + "-" + 
+                        date.getDay() + "T" + dayfrac.toString();
+                }
+                catch (Exception e) {
+                    //  Formatting or domain error.
+                    prop = e.getMessage();
+                }
+            }
         }
-        else {
+        if ( ! "".equals( prop ) ) {
             b.append( "Date obs: " + prop + " (UTC)\n" );
         }
 
@@ -230,6 +253,13 @@ public class JACSynopsisFigure
 
         if ( specAxis instanceof SpecFrame ) {
 
+            //  Report SpecFrame reference position. This should be
+            //  for the source.
+            if ( specAxis.test( "RefRA" ) ) {
+                b.append( "RA, Dec: " + specAxis.getC( "RefRA" ) );
+                b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
+            }
+
             //  RA and Dec are ideally from GAIA.
             prop = specData.getProperty( "EXRA" );
             if ( ! "".equals( prop ) ) {
@@ -258,11 +288,16 @@ public class JACSynopsisFigure
             }
             else {
 
-                //  Just report SpecFrame reference position. This should be
-                //  for the source.
-                b.append( "RefRA, RefDec: " + specAxis.getC( "RefRA" ) );
-                b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
+                //  No observation centre, that's OK for some data (timeseries
+                //  cubes), so check for just an extraction position.
+                prop = specData.getProperty( "EXRAX" );
+                if ( ! "".equals( prop ) ) {
+                    b.append( "Ex Position: " +
+                              prop + ", " +
+                              specData.getProperty( "EXDECX" ) + "\n" );
+                }
             }
+            
 
             //  Source velocity and rest frame. Only report if set.
             if ( specAxis.test( "SourceVel" ) ) {
@@ -283,6 +318,16 @@ public class JACSynopsisFigure
             if ( ! "".equals( prop ) ) {
                 double inc = Double.parseDouble( prop ) / 1.0E6;
                 b.append( "Channel spacing: " + inc + " (MHz)\n" );
+            }
+            else {
+                //  Work out the channel spacing from the coordinates.
+                //  These are in the axis units.
+                Mapping mapping = astj.get1DMapping( 1 );
+                double xin[] = new double[]{1.0, 2.0};
+                double xout[] = mapping.tran1( 2, xin, true );
+                double inc = xout[1] - xout[0];
+                String u = specAxis.getUnit( 1 );
+                b.append( "Channel spacing: " + inc + " (" + u + ")\n" );
             }
         }
 
