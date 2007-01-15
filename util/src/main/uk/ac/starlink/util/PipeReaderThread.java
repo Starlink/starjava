@@ -73,9 +73,18 @@ public abstract class PipeReaderThread extends Thread {
         pipeOut = new FastPipedOutputStream( pipeIn ) {
             public void write( byte[] b, int off, int len ) throws IOException {
                 if ( caught == null ) {
-                    super.write( b, off, len );
+                    try {
+                        super.write( b, off, len );
+                        return;
+                    }
+                    catch ( Throwable e ) {
+                        if ( caught == null ) {
+                            caught = e;
+                        }
+                    }
                 }
-                else if ( caught instanceof IOException ) {
+                assert caught != null;
+                if ( caught instanceof IOException ) {
                     throw (IOException) caught;
                 }
                 else if ( caught instanceof RuntimeException ) {
