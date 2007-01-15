@@ -4128,6 +4128,8 @@ but my thanks are especially due to the following:
     <li>Improved CEA app-description file, including especially option lists
         for things like input and output formats.</li>
     <li>Added README.cea file to distribution.</li>
+    <li>Fixed problem which could mis-report VOTable out of memory errors
+        as Broken Pipe.</li>
     </ul>
     </p></dd>
 
