@@ -9713,6 +9713,8 @@ introduced since the last version:
     <li>Concatenation column assignments now smarter for fully compatible
         input tables.</li>
     <li>Some optimisations for very large files.</li>
+    <li>Added Vega&lt;-&gt;AB magnitude conversion constants to 
+        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref> functions.</li>
     </ul>
     </p></dd>
 
