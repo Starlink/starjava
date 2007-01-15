@@ -4131,7 +4131,7 @@ but my thanks are especially due to the following:
     <li>Fixed problem which could mis-report VOTable out of memory errors
         as Broken Pipe.</li>
     <li>Added Vega&lt;-&gt;AB magnitude conversion constants to 
-        <ref id="Fluxes">Fluxes</ref> functions.</li>
+        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref> functions.</li>
     </ul>
     </p></dd>
 

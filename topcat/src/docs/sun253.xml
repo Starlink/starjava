@@ -9714,7 +9714,7 @@ introduced since the last version:
         input tables.</li>
     <li>Some optimisations for very large files.</li>
     <li>Added Vega&lt;-&gt;AB magnitude conversion constants to 
-        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref> functions.</li>
+        <ref id="Fluxes">Fluxes</ref> functions.</li>
     </ul>
     </p></dd>
 
