@@ -263,8 +263,15 @@ public class JACSynopsisFigure
                 b.append( "RefRA, RefDec: " + specAxis.getC( "RefRA" ) );
                 b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
             }
-            b.append( "SourceVel: " + specAxis.getC( "SourceVel" ) + "\n" );
-            b.append( "SourceVRF: " + specAxis.getC( "SourceVRF" ) + "\n" );
+
+            //  Source velocity and rest frame. Only report if set.
+            if ( specAxis.test( "SourceVel" ) ) {
+                b.append( "SourceVel: " + specAxis.getC("SourceVel" ) + "\n");
+                if ( specAxis.test( "SourceVRF" ) ) {
+                    b.append( "SourceVRF: " +
+                    specAxis.getC("SourceVRF")+"\n");
+                }
+            }
             b.append( "StdOfRest: " + specAxis.getC( "StdOfRest" ) + "\n" );
             b.append( "RestFreq: " + specAxis.getC( "RestFreq" ) + " (GHz)\n");
         }
