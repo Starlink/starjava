@@ -9,12 +9,20 @@ package uk.ac.starlink.ttools.func;
  * Functions for conversion between flux and magnitude values.
  * Functions are provided for conversion between flux in Janskys and
  * AB magnitudes.
- * A set of constants are also defined for approximate conversions 
- * between the AB and Johnson magnitude scales; 
- * the source for these values is
- * <a href="http://www.astro.utoronto.ca/~patton/astro/mags.html"
- *         >http://www.astro.utoronto.ca/~patton/astro/mags.html</a>
- * (citing Frei and Gunn 1995).
+ * <p>Some constants for approximate conversions between different magnitude
+ * scales are also provided:
+ * <ul>
+ * <li>Constants <code>JOHNSON_AB_*</code>, for Johnson &lt;-&gt; AB magnitude
+ *     conversions
+ *     (<a href="http://www.astro.utoronto.ca/~patton/astro/mags.html"
+ *              >http://www.astro.utoronto.ca/~patton/astro/mags.html</a>,
+ *      citing Frei and Gunn 1995).</li>
+ * <li>Constants <code>VEGA_AB_*</code>, for Vega &lt;-&gt; AB magnitude
+ *     conversions
+ *     (Blanton et al., Astronomical Journal <em>127</em>, 2562-2578 (2005),
+ *     eqs.(5)).
+ *     </li>
+ * </ul>
  *
  * @author   Mark Taylor
  * @since    30 Jun 2006
@@ -138,4 +146,22 @@ public class Fluxes {
      * z'<sub>J</sub>=z'<sub>AB</sub>+<code>JOHNSON_AB_zPrime</code>=z'<sub>AB</sub>.
      */
     public static final double JOHNSON_AB_zPrime = 0.0;
+
+    /**
+     * Approximate offset between Vega (e.g. 2MASS) and AB magnitudes in J band.
+     * J<sub>Vega</sub>~=J<sub>AB</sub>+<code>VEGA_AB_J</code>.
+     */
+    public static final double VEGA_AB_J = -0.91;
+
+    /**
+     * Approximate offset between Vega (e.g. 2MASS) and AB magnitudes in H band.
+     * H<sub>Vega</sub>~=H<sub>AB</sub>+<code>VEGA_AB_H</code>.
+     */
+    public static final double VEGA_AB_H = -1.39;
+
+    /**
+     * Approximate offset between Vega (e.g. 2MASS) and AB magnitudes in K band.
+     * K<sub>Vega</sub>~=K<sub>AB</sub>+<code>VEGA_AB_K</code>.
+     */
+    public static final double VEGA_AB_K = -1.85;
 }
