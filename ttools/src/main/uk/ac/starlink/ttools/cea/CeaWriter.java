@@ -342,7 +342,7 @@ public class CeaWriter extends XmlWriter {
      */
     public static void main( String[] args )
             throws LoadException, SAXException {
-        String ceaId = "ivo://uk.ac.starlink/stilts";
+        String ceaId = "ivo://starlink.ac.uk/stilts";
         String docUrl = "http://www.starlink.ac.uk/stilts/";
         String usage = "\n   Usage: " + CeaWriter.class.getName()
             + "\n      [-help]            displays this message"
