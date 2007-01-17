@@ -398,7 +398,7 @@ public class FilestoreChooser extends JPanel {
      * currently entered in the text field (as well as if it's been 
      * selected in the list in the usual way).
      *
-     * @param  unique selected node, or null
+     * @return  unique selected node, or null
      */
     public Node getSelectedNode() {
         Node[] nodes = getSelectedNodes();
@@ -483,7 +483,7 @@ public class FilestoreChooser extends JPanel {
      * be one obtained from a {@link #getModel} call on another
      * <tt>FilestoreChooser</tt>.
      *
-     * @param   data model to use
+     * @param  model   data model to use
      */
     public void setModel( ComboBoxModel model ) {
         branchSelector_.setModel( model );
