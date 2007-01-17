@@ -118,9 +118,12 @@ public class NodeRootComboBox extends JComboBox {
                                      ": " + e );
                 }
             }
+
+            /* Unreadable root is quite common on MS Windows for, e.g.,
+             * empty removable drives. */
             else {
-                logger_.warning( "Local filesystem root " + dir +
-                                 " is not a readable directory" );
+                logger_.info( "Local filesystem root " + dir +
+                              " is not a readable directory" );
             }
         }
 

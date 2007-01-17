@@ -297,9 +297,12 @@ public class FilestoreChooser extends JPanel {
             if ( fileRoot.isDirectory() && fileRoot.canRead() ) {
                 branchSelector_.addBranch( new FileBranch( fileRoot ) );
             }
+
+            /* Unreadable roots are quite common on MS Windows for, e.g.,
+             * empty removable media drives. */
             else {
-                logger_.warning( "Local filesystem root " + fileRoot + 
-                                 " is not a readable directory" );
+                logger_.info( "Local filesystem root " + fileRoot + 
+                              " is not a readable directory" );
             }
         }
 
