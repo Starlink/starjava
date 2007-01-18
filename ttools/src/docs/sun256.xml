@@ -2957,18 +2957,20 @@ stilts tmatch2 survey.fits ifmt2=csv mycat.csv \
     </p></dd>
 
 <dt><verbatim>
-stilts tmatch2 ifmt1=ascii ifmt2=ascii int1=cat1.txt in2=cat2.txt \
-               matcher=2d values1="X Y" values2="X Y" params="5" join=1and2 \
-               ocmd='addcol XDIFF X_1-X_2; addcol Y_1-Y_2' \
+stilts tmatch2 ifmt1=ascii ifmt2=ascii int1=cat-a.txt in2=cat-b.txt \
+               matcher=2d values1='X Y' values2='X Y' params=5 join=1and2 \
+               duptag1=_a duptag2=_b \
+               ocmd='addcol XDIFF X_a-X_b; addcol YDIFF Y_a-Y_b' \
                ocmd'keepcols "XDIFF YDIFF"' omode=stats
 </verbatim></dt>
 <dd><p>Two ASCII-format catalogues are matched, where rows are
 considered to match if their X,Y positions are within 5 units of
 each other in some Cartesian space.
 The result of the matching operation is a table of all the matched rows,
-containing columns called X_1, X_2, Y_1 and Y_2 (along with any others
-in the input tables) - the _1 and _2 are appended to the names to
-disambiguate them since the same column names appear in the two input tables.
+containing columns called X_a, Y_a, X_b and Y_b (along with any others
+in the input tables) - the <code>duptag*</code> parameters describe 
+how the input X and Y columns are to be renamed to avoid duplicate
+column names in the output table.
 To this result are added two new columns, representing the X and Y positional
 difference between the rows from one input table and those from the other.
 The <code>keepcols</code> filter then throws all the other columns away,
