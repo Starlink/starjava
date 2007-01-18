@@ -148,19 +148,22 @@ public class Fluxes {
     public static final double JOHNSON_AB_zPrime = 0.0;
 
     /**
-     * Approximate offset between Vega (e.g. 2MASS) and AB magnitudes in J band.
+     * Approximate offset between Vega (as in 2MASS) and AB magnitudes 
+     * in J band.
      * J<sub>Vega</sub>~=J<sub>AB</sub>+<code>VEGA_AB_J</code>.
      */
     public static final double VEGA_AB_J = -0.91;
 
     /**
-     * Approximate offset between Vega (e.g. 2MASS) and AB magnitudes in H band.
+     * Approximate offset between Vega (as in 2MASS) and AB magnitudes 
+     * in H band.
      * H<sub>Vega</sub>~=H<sub>AB</sub>+<code>VEGA_AB_H</code>.
      */
     public static final double VEGA_AB_H = -1.39;
 
     /**
-     * Approximate offset between Vega (e.g. 2MASS) and AB magnitudes in K band.
+     * Approximate offset between Vega (as in 2MASS) and AB magnitudes
+     * in K band.
      * K<sub>Vega</sub>~=K<sub>AB</sub>+<code>VEGA_AB_K</code>.
      */
     public static final double VEGA_AB_K = -1.85;
