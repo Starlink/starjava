@@ -63,6 +63,22 @@ public class TableMatch2Test extends TableTestCase {
         assertArrayEquals(
             new String[] { "X", "Y", "Bmag" },
             getColNames( join12( "2not1", "all", 1.0 ) ) );
+
+        assertArrayEquals(
+            cols12sep,
+            getColNames( join12( "1and2", "best", 1.0, null, null ) ) );
+        assertArrayEquals(
+            new String[] { "X", "Y", "Vmag", "X", "Y", "Bmag", "Separation" },
+            getColNames( join12( "1and2", "best", 1.0, "", "" ) ) );
+        assertArrayEquals(
+            new String[] { "X_1", "Y_1", "Vmag", "X", "Y", "Bmag",
+                           "Separation" },
+            getColNames( join12( "1and2", "best", 1.0, null, "" ) ) );
+
+        assertArrayEquals(
+            new String[] { "X-a", "Y-a", "Vmag", "X-b", "Y-b", "Bmag",
+                           "Separation" },
+            getColNames( join12( "1or2", "best", 1.0, "-a", "-b" ) ) );
     }
 
     public void testRows() throws Exception {
@@ -108,6 +124,12 @@ public class TableMatch2Test extends TableTestCase {
 
     private StarTable join12( String join, String find, double err )
             throws Exception {
+        return join12( join, find, err, null, null );
+    }
+
+    private StarTable join12( String join, String find, double err,
+                              String duptag1, String duptag2 )
+            throws Exception {
         MapEnvironment env = new MapEnvironment()
                             .setValue( "in1", t1_ )
                             .setValue( "in2", t2_ )
@@ -117,6 +139,12 @@ public class TableMatch2Test extends TableTestCase {
                             .setValue( "params", Double.toString( err ) )
                             .setValue( "join", join )
                             .setValue( "find", find );
+        if ( duptag1 != null ) {
+            env.setValue( "duptag1", duptag1 );
+        }
+        if ( duptag2 != null ) {
+            env.setValue( "duptag2", duptag2 );
+        }
         new TableMatch2().createExecutable( env ).execute();
         StarTable result = env.getOutputTable( "omode" );
         if ( result != null ) {

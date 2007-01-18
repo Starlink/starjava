@@ -4132,6 +4132,8 @@ but my thanks are especially due to the following:
         as Broken Pipe.</li>
     <li>Added Vega&lt;-&gt;AB magnitude conversion constants to 
         <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref> functions.</li>
+    <li>Added <code>duptag</code> parameters to <ref id="tmatch2">tmatch2</ref>
+        task for customised renaming of columns with duplicated names.</li>
     </ul>
     </p></dd>
 

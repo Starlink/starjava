@@ -37,6 +37,7 @@ public class Match2Mapper implements TableMapper {
     private final WordsParameter[] tupleParams_;
     private final JoinTypeParameter joinParam_;
     private final ChoiceParameter modeParam_;
+    private final Parameter[] duptagParams_;
 
     private final static Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -46,6 +47,7 @@ public class Match2Mapper implements TableMapper {
         matcherParam_ = new MatchEngineParameter( "matcher" );
 
         tupleParams_ = new WordsParameter[ 2 ];
+        duptagParams_ = new Parameter[ 2 ];
         for ( int i = 0; i < 2; i++ ) {
             int i1 = i + 1;
             tupleParams_[ i ] = new WordsParameter( "values" + i1 );
@@ -68,6 +70,22 @@ public class Match2Mapper implements TableMapper {
                 "Elements of the expression list are commonly just column",
                 "names, but may be algebraic expressions calculated from",
                 "zero or more columns as explained in <ref id='jel'/>.",
+                "</p>",
+            } );
+
+            duptagParams_[ i ] = new Parameter( "duptag" + i1 );
+            duptagParams_[ i ].setUsage( "<trail-string>" );
+            duptagParams_[ i ].setPrompt( "Column deduplication string " +
+                                          "for table " + i1 );
+            duptagParams_[ i ].setDefault( "_" + i1 );
+            duptagParams_[ i ].setNullPermitted( true );
+            duptagParams_[ i ].setDescription( new String[] {
+                "<p>If the same column name appears in both of the input",
+                "tables, those columns are renamed in the output table",
+                "to avoid ambiguity.",
+                "The output column name of such a duplicated column",
+                "is formed by appending the value of this parameter",
+                "to its name in the input table.",
                 "</p>",
             } );
         }
@@ -102,6 +120,8 @@ public class Match2Mapper implements TableMapper {
             matcherParam_.getMatchParametersParameter(),
             joinParam_,
             modeParam_,
+            duptagParams_[ 0 ],
+            duptagParams_[ 1 ],
         };
     }
 
@@ -149,11 +169,19 @@ public class Match2Mapper implements TableMapper {
             throw new UsageException( "Unknown value of " +
                                       modeParam_.getName() + "??" );
         }
+        JoinFixAction[] fixacts = new JoinFixAction[ 2 ];
+        for ( int i = 0; i < 2; i++ ) {
+            String duptag = duptagParams_[ i ].stringValue( env );
+            fixacts[ i ] = ( duptag == null || duptag.trim().length() == 0 )
+                ? JoinFixAction.NO_ACTION
+                : JoinFixAction.makeRenameDuplicatesAction( duptag );
+        }
         PrintStream logStrm = env.getErrorStream();
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
-                                  join, bestOnly, logStrm );
+                                  join, bestOnly,
+                                  fixacts[ 0 ], fixacts[ 1 ], logStrm );
     }
 
     /**
@@ -162,6 +190,7 @@ public class Match2Mapper implements TableMapper {
     private static class Match2Mapping implements TableMapping {
 
         final String[][] exprTuples_;
+        final JoinFixAction[] fixacts_;
         final MatchEngine matchEngine_;
         final boolean bestOnly_;
         final JoinType join_;
@@ -181,15 +210,19 @@ public class Match2Mapper implements TableMapper {
          *          the context of the second table
          * @param   join  output row selection type
          * @param   bestOnly   whether only the best match is to be retained
+         * @param   fixact1    deduplication fix action for first input table
+         * @param   fixact2    deduplication fix action for second input table
          * @param   logStrm    print stream for logging output
          */
         Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
                        String[] exprTuple2, JoinType join,
-                       boolean bestOnly, PrintStream logStrm ) {
+                       boolean bestOnly, JoinFixAction fixact1, 
+                       JoinFixAction fixact2, PrintStream logStrm ) {
             matchEngine_ = matchEngine;
             exprTuples_ = new String[][] { exprTuple1, exprTuple2 };
             join_ = join;
             bestOnly_ = bestOnly;
+            fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
             logStrm_ = logStrm;
         }
 
@@ -227,14 +260,10 @@ public class Match2Mapper implements TableMapper {
             }
 
              /* Create a new table from the result and return. */
-            JoinFixAction[] fixActs = new JoinFixAction[] {
-                JoinFixAction.makeRenameDuplicatesAction( "_1" ),
-                JoinFixAction.makeRenameDuplicatesAction( "_2" ),
-            };
             ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
             return MatchStarTables.makeJoinTable( inTables[ 0 ], inTables[ 1 ],
                                                   matches, join_, ! bestOnly_,
-                                                  fixActs, scoreInfo );
+                                                  fixacts_, scoreInfo );
         }
 
         /**
