@@ -158,35 +158,6 @@ public class JACSynopsisFigure
             b.append( "\n" );
         }
 
-        //  Prefer DATE-OBS human readable date of observation. Epoch will
-        //  be MJD-OBS converted into a Julian epoch, which requires more work.
-        prop = specData.getProperty( "DATE-OBS" );
-        if ( "".equals( prop ) ) {
-            if ( specAxis.test( "Epoch" ) ) {
-
-                //  Use Epoch value, that's decimal years (TDB), so convert 
-                //  into human readable form. Get epoch in TAI (/UTC).
-                double epoch = specAxis.getEpoch() - 
-                    ( 32.184 / ( 60.0 * 60.0 * 24.0 * 365.25 ) );
-                Pal pal = new Pal();
-                double mjd = pal.Epj2d( epoch );
-                try {
-                    mjDate date = pal.Djcl( mjd );
-                    palTime dayfrac = pal.Dd2tf( date.getFraction() );
-                    prop = 
-                        date.getYear() + "-" + date.getMonth() + "-" + 
-                        date.getDay() + "T" + dayfrac.toString();
-                }
-                catch (Exception e) {
-                    //  Formatting or domain error.
-                    prop = e.getMessage();
-                }
-            }
-        }
-        if ( ! "".equals( prop ) ) {
-            b.append( "Date obs: " + prop + " (UTC)\n" );
-        }
-
         //  Target of observation.
         prop = specData.getProperty( "OBJECT" );
         if ( ! "".equals( prop ) ) {
@@ -202,6 +173,35 @@ public class JACSynopsisFigure
                 b.append( " / " + prop );
             }
             b.append( "\n" );
+        }
+
+        //  Prefer DATE-OBS human readable date of observation. Epoch will
+        //  be MJD-OBS converted into a Julian epoch, which requires more work.
+        prop = specData.getProperty( "DATE-OBS" );
+        if ( "".equals( prop ) ) {
+            if ( specAxis.test( "Epoch" ) ) {
+
+                //  Use Epoch value, that's decimal years (TDB), so convert
+                //  into human readable form. Get epoch in TAI (/UTC).
+                double epoch = specAxis.getEpoch() -
+                    ( 32.184 / ( 60.0 * 60.0 * 24.0 * 365.25 ) );
+                Pal pal = new Pal();
+                double mjd = pal.Epj2d( epoch );
+                try {
+                    mjDate date = pal.Djcl( mjd );
+                    palTime dayfrac = pal.Dd2tf( date.getFraction() );
+                    prop =
+                        date.getYear() + "-" + date.getMonth() + "-" +
+                        date.getDay() + "T" + dayfrac.toString();
+                }
+                catch (Exception e) {
+                    //  Formatting or domain error.
+                    prop = e.getMessage();
+                }
+            }
+        }
+        if ( ! "".equals( prop ) ) {
+            b.append( "Date obs: " + prop + " (UTC)\n" );
         }
 
         //  Elevation.
@@ -253,51 +253,58 @@ public class JACSynopsisFigure
 
         if ( specAxis instanceof SpecFrame ) {
 
-            //  Report SpecFrame reference position. This should be
-            //  for the source.
-            if ( specAxis.test( "RefRA" ) ) {
-                b.append( "RA, Dec: " + specAxis.getC( "RefRA" ) );
-                b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
+            //  Extraction position.
+            prop = specData.getProperty( "EXRAX" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "Spec Position: " +
+                          prop + ", " +
+                          specData.getProperty( "EXDECX" ) + "\n" );
             }
 
-            //  RA and Dec are ideally from GAIA.
-            prop = specData.getProperty( "EXRA" );
+            //  RA and Dec of image centre are ideally from GAIA.
+            //  Prefer EXRRA over EXRA, as EXRRA should be the source
+            //  position, EXRA is just the image centre.
+            prop = specData.getProperty( "EXRRA" );
             if ( ! "".equals( prop ) ) {
-                b.append( "Obs Centre: " +
+                b.append( "Src Position: " +
                           prop + ", " +
-                          specData.getProperty( "EXDEC" ) + "\n" );
+                          specData.getProperty( "EXRDEC" ) + "\n" );
 
-                //  Extraction offsets from centre.
-                prop = specData.getProperty( "EXRAOF" );
+                //  Offset from this position.
+                prop = specData.getProperty( "EXRRAOF" );
                 if ( ! "".equals( prop ) ) {
-                    b.append( "Ex Offset: " +
+                    b.append( "Offset: " +
                               prop + ", " +
-                              specData.getProperty( "EXDECOF" ) +
+                              specData.getProperty( "EXRDECOF" ) +
                               " (arcsec)\n" );
-                }
-                else {
-                    //  No offsets, maybe an extraction position instead
-                    //  (non-celestial coords).
-                    prop = specData.getProperty( "EXRAX" );
-                    if ( ! "".equals( prop ) ) {
-                        b.append( "Ex Position: " +
-                                  prop + ", " +
-                                  specData.getProperty( "EXDECX" ) + "\n" );
-                    }
                 }
             }
             else {
-
-                //  No observation centre, that's OK for some data (timeseries
-                //  cubes), so check for just an extraction position.
-                prop = specData.getProperty( "EXRAX" );
+                //  Try for image centre.
+                prop = specData.getProperty( "EXRA" );
                 if ( ! "".equals( prop ) ) {
-                    b.append( "Ex Position: " +
+                    b.append( "Img Centre: " +
                               prop + ", " +
-                              specData.getProperty( "EXDECX" ) + "\n" );
+                              specData.getProperty( "EXDEC" ) + "\n" );
+
+                    //  Extraction offsets from centre.
+                    prop = specData.getProperty( "EXRAOF" );
+                    if ( ! "".equals( prop ) ) {
+                        b.append( "Offset: " +
+                                  prop + ", " +
+                                  specData.getProperty( "EXDECOF" ) +
+                                  " (arcsec)\n" );
+                    }
                 }
             }
-            
+
+            //  Report SpecFrame reference position. This should be
+            //  also for the source in general. The actual use is for doppler
+            //  corrections.
+            if ( specAxis.test( "RefRA" ) ) {
+                b.append( "Doppler RA, Dec: " + specAxis.getC( "RefRA" ) );
+                b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
+            }
 
             //  Source velocity and rest frame. Only report if set.
             if ( specAxis.test( "SourceVel" ) ) {
@@ -307,30 +314,42 @@ public class JACSynopsisFigure
                     specAxis.getC("SourceVRF")+"\n");
                 }
             }
-            b.append( "StdOfRest: " + specAxis.getC( "StdOfRest" ) + "\n" );
-            b.append( "RestFreq: " + specAxis.getC( "RestFreq" ) + " (GHz)\n");
+            if ( specAxis.test( "StdOfRest" ) ) {
+                b.append( "StdOfRest: "+specAxis.getC( "StdOfRest" )+"\n" );
+            }
+            if ( specAxis.test( "RestFreq" ) ) {
+                b.append( "RestFreq: "+specAxis.getC( "RestFreq" )+" (GHz)\n");
+            }
         }
         if ( specAxis instanceof DSBSpecFrame ) {
             b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + " (GHz)\n");
             //b.append( "DSBCentre: " + specAxis.getC( "DSBCentre" ) + "\n" );
             //b.append( "IF: " + specAxis.getC( "IF" ) + " (GHz)\n" );
-            prop = specData.getProperty( "IFCHANSP" );
-            if ( ! "".equals( prop ) ) {
-                double inc = Double.parseDouble( prop ) / 1.0E6;
-                b.append( "Channel spacing: " + inc + " (MHz)\n" );
-            }
-            else {
-                //  Work out the channel spacing from the coordinates.
-                //  These are in the axis units.
-                Mapping mapping = astj.get1DMapping( 1 );
-                double xin[] = new double[]{1.0, 2.0};
-                double xout[] = mapping.tran1( 2, xin, true );
-                double inc = xout[1] - xout[0];
-                String u = specAxis.getUnit( 1 );
-                b.append( "Channel spacing: " + inc + " (" + u + ")\n" );
-            }
         }
 
+        //  Channel spacing.
+        prop = specData.getProperty( "IFCHANSP" );
+        if ( specAxis instanceof DSBSpecFrame && ! "".equals( prop ) ) {
+            //  JCMT value, should only be seen for DSBSpecFrames.
+            double inc = Double.parseDouble( prop ) / 1.0E6;
+            b.append( "Channel spacing: " + inc + " (MHz)\n" );
+        }
+        else {
+            //  Work out the channel spacing from the coordinates.
+            //  These are in the axis units.
+            Mapping mapping = astj.get1DMapping( 1 );
+            double xin[] = new double[]{1.0, 2.0};
+            double xout[] = mapping.tran1( 2, xin, true );
+            double inc = xout[1] - xout[0];
+            String u = specAxis.getUnit( 1 );
+            b.append( "Channel spacing: " + inc );
+            if ( ! "".equals( u ) ) {
+                b.append( " (" + u + ")\n" );
+            }
+            else {
+                b.append( "\n" );
+            }
+        }
 
         //  TSYS and TRX.
         prop = specData.getProperty( "TSYS" );
@@ -355,7 +374,7 @@ public class JACSynopsisFigure
         if ( ! "".equals( prop ) ) {
             b.append( "TSYS: " + prop + " (K)\n" );
         }
-        
+
         prop = specData.getProperty( "TRX" );
         if ( ! "".equals( prop ) ) {
             b.append( "TRX: " + prop + " (K)\n" );
