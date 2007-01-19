@@ -1,9 +1,9 @@
 package uk.ac.starlink.ttools.build;
 
 import uk.ac.starlink.task.Task;
-import uk.ac.starlink.ttools.LoadException;
-import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.ObjectFactory;
 
 /**
  * Writes entity definitions for the purposes of all the known STILTS tasks.

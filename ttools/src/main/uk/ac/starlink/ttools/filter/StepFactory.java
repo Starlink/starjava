@@ -6,9 +6,9 @@ import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.LoadException;
-import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.Tokenizer;
+import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.ObjectFactory;
 
 /**
  * Factory which can create ProcessingStep objects from strings which

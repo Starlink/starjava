@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.ObjectFactory;
 import uk.ac.starlink.util.URLUtils;
 
 /**

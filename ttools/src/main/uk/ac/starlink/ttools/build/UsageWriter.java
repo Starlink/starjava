@@ -10,9 +10,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
-import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.task.LineInvoker;
+import uk.ac.starlink.util.LoadException;
 
 /**
  * Writes a usage paragraph specific to one of the STILTS tasks.

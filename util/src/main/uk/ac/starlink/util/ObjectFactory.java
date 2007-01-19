@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -28,7 +28,7 @@ public class ObjectFactory {
     private List nameList_ = new ArrayList();
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools" );
+        Logger.getLogger( "uk.ac.starlink.util" );
  
     /**
      * Constructor.  

@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.util;
 
 /**
  * Exception thrown if an object creation fails for reasonable reasons.

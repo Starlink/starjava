@@ -3,11 +3,11 @@ package uk.ac.starlink.ttools.build;
 import java.io.PrintStream;
 import java.util.Arrays;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.ttools.LoadException;
-import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.OutputModeParameter;
+import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.ObjectFactory;
 
 /**
  * Writes a section of XML text documenteding all the known ProcessingModes.

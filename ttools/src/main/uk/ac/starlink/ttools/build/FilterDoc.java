@@ -2,10 +2,10 @@ package uk.ac.starlink.ttools.build;
 
 import java.io.PrintStream;
 import java.util.Arrays;
-import uk.ac.starlink.ttools.LoadException;
-import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
+import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.ObjectFactory;
 
 /**
  * Writes a section of XML text documenting all the known ProcessingFilters.

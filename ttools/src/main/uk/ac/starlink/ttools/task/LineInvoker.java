@@ -20,10 +20,10 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.Formatter;
-import uk.ac.starlink.ttools.LoadException;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.util.IOUtils;
+import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.ObjectFactory;
 
 /**
  * Invokes the Stilts tasks using a {@link LineTableEnvironment}.

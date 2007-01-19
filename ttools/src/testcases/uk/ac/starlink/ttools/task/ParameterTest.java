@@ -11,10 +11,10 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
-import uk.ac.starlink.ttools.LoadException;
-import uk.ac.starlink.ttools.ObjectFactory;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.ObjectFactory;
 
 public class ParameterTest extends TestCase {
 

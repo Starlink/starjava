@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.ttools.LoadException;
+import uk.ac.starlink.util.LoadException;
 
 public class CeaTest extends TestCase {
 

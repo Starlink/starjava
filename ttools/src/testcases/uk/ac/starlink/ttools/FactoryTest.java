@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.filter.BasicFilter;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.util.ObjectFactory;
 
 public class FactoryTest extends TestCase {
 
