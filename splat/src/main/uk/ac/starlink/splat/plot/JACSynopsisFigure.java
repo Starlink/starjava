@@ -296,6 +296,17 @@ public class JACSynopsisFigure
                                   " (arcsec)\n" );
                     }
                 }
+                else {
+                    //  No image centre, may have an offset anyway (from 
+                    //  JCMT GAPPT observation).
+                    prop = specData.getProperty( "EXRRAOF" );
+                    if ( ! "".equals( prop ) ) {
+                        b.append( "Offset: " +
+                                  prop + ", " +
+                                  specData.getProperty( "EXRDECOF" ) +
+                                  " (arcsec)\n" );
+                    }
+                }
             }
 
             //  Report SpecFrame reference position. This should be
