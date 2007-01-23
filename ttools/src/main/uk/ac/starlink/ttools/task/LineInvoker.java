@@ -5,15 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
+import uk.ac.starlink.task.InvokeUtils;
+import uk.ac.starlink.task.LineFormatter;
 import uk.ac.starlink.task.LineWord;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -83,7 +82,7 @@ public class LineInvoker {
                         "STIL version "
                         + IOUtils.getResourceContents( StarTable.class,
                                                        "stil.version" ),
-                        "Java version " + getJavaVersion(),
+                        "Java version " + InvokeUtils.getJavaVersion(),
                         "",
                         "Author: Mark Taylor",
                         "WWW: http://www.starlink.ac.uk/stilts/",
@@ -148,7 +147,7 @@ public class LineInvoker {
             System.exit( 1 );
         }
 
-        configureLogging( verbosity, env.isDebug() );
+        InvokeUtils.configureLogging( verbosity, env.isDebug() );
 
         String taskName = (String) argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {
@@ -572,55 +571,5 @@ public class LineInvoker {
         }
         sbuf.append( '\n' );
         return sbuf.toString();
-    }
-
-    /**
-     * Sets up the logging system.
-     *
-     * @param  verbosity  number of levels greater than default to set
-     * @param  debug   whether debugging mode is on
-     */
-    private static void configureLogging( int verbosity, boolean debug ) {
-
-        /* Try to acquire the root logger. */
-        Logger rootLogger = Logger.getLogger( "" );
-
-        /* Work out the logging level to which the requested verbosity
-         * corresponds. */
-        int verbInt = Math.max( Level.ALL.intValue(),
-                                Level.WARNING.intValue()
-                                - verbosity *
-                                  ( Level.WARNING.intValue() -
-                                    Level.INFO.intValue() ) );
-        Level verbLevel = Level.parse( Integer.toString( verbInt ) );
-
-        /* Get the root logger's console handler.  By default
-         * it has one of these; if it doesn't then some custom
-         * logging is in place and we won't mess about with it. */
-        Handler[] rootHandlers = rootLogger.getHandlers();
-        if ( rootHandlers.length > 0 &&
-             rootHandlers[ 0 ] instanceof ConsoleHandler ) {
-            rootHandlers[ 0 ].setLevel( verbLevel );
-            rootHandlers[ 0 ].setFormatter( new LineFormatter( debug ) );
-        }
-        rootLogger.setLevel( verbLevel );
-
-        /* Filter out an annoying message that Axis issues. */
-        Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
-              .setLevel( Level.SEVERE );
-    }
-
-    /**
-     * Returns the JVM version, without throwing any exceptions.
-     *
-     * @return   java version
-     */
-    private static String getJavaVersion() {
-        try {
-            return System.getProperty( "java.version" );
-        }
-        catch ( SecurityException e ) {
-            return "???";
-        }
     }
 }
