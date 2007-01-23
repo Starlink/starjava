@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.task;
 
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
@@ -15,6 +15,11 @@ public class LineFormatter extends Formatter {
 
     private final boolean debug_;
 
+    /**
+     * Constructor. 
+     *
+     * @param   debug  iff true, provides more information per log message
+     */
     public LineFormatter( boolean debug ) {
         debug_ = debug;
     }
