@@ -161,7 +161,7 @@ public class MultiTaskInvoker {
      * Returns the message to be reported if the "-version" flag is
      * given.
      *
-     * @param   msg   formatted version message
+     * @return  formatted version message
      */
     public String getVersionMessage() {
         return versionMessage_;
