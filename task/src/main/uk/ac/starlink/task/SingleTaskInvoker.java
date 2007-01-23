@@ -1,10 +1,10 @@
 package uk.ac.starlink.task;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,18 +60,17 @@ public class SingleTaskInvoker {
         }
 
         /* Catch various exceptions and deal with them appropriately. */
-        catch ( RuntimeException e ) {
-            throw e;
-        }
         catch ( Exception e ) {
             if ( debug ) {
                 System.err.println();
                 e.printStackTrace( System.err );
             }
             System.err.println();
-            summariseError( e, System.err );
+            InvokeUtils.summariseError( e, System.err );
 
             if ( e instanceof ParameterValueException ) {
+            }
+            else if ( e instanceof IOException ) {
             }
             else if ( e instanceof UsageException ) {
                 System.err.println();
@@ -81,32 +80,15 @@ public class SingleTaskInvoker {
                 System.err.println();
                 System.err.println( "User abort" );
             }
+            else if ( ! debug ) {
+                System.err.println();
+                e.printStackTrace( System.err );
+            }
             return 1;
         }
 
         /* Successful return. */
         return 0;
-    }
-
-    /**
-     * Writes a summary of a (possibly nested) exception to a given 
-     * output stream.
-     *
-     * @param   error  exception
-     * @return   out  destination stream
-     */
-    private static void summariseError( Throwable error, PrintStream out ) {
-        String msg = error.getMessage();
-        if ( msg == null || msg.trim().length() == 0 ) {
-            msg = error.toString();
-        }
-        else {
-            out.println( msg );
-        }
-        Throwable cause = error.getCause();
-        if ( cause != null ) {
-            summariseError( cause, out );
-        }
     }
 
     /**
@@ -125,37 +107,14 @@ public class SingleTaskInvoker {
             .append( " [-debug]" );
 
         /* Get an ordered list of task parameters. */
-        Parameter[] params = task_.getParameters();
-        List numbered = new ArrayList();
-        List unNumbered = new ArrayList();
-        for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
-            ( param.getPosition() > 0 ? numbered : unNumbered ).add( param );
-        }
-        Collections.sort( numbered, new Comparator() {
-            public int compare( Object o1, Object o2 ) {
-                int pos1 = ((Parameter) o1).getPosition();
-                int pos2 = ((Parameter) o2).getPosition();
-                if ( pos1 < pos2 ) {
-                    return -1;
-                }
-                else if ( pos2 < pos1 ) {
-                    return +1;
-                }
-                else {
-                    throw new IllegalArgumentException(
-                        "Two params have same position" );
-                }
-             }
-        } );
-        List paramList = numbered;
-        paramList.addAll( unNumbered );
+        Parameter[] params =
+            InvokeUtils.sortParameters( task_.getParameters() );
 
         /* Add an entry for each parameter. */
-        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+        for ( int i = 0; i < params.length; i++ ) {
             ubuf.append( '\n' )
                 .append( padding );
-            Parameter param = (Parameter) it.next();
+            Parameter param = params[ i ];
             boolean optional = param.isNullPermitted()
                             || param.getDefault() != null;
             ubuf.append( optional ? "[" : "" )
