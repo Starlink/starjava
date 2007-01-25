@@ -41,7 +41,12 @@ public class SuperJar {
     private static Set doneJars = new HashSet();
     private static JarOutputStream jarOut;
     private static PrintStream logStrm = System.err;
-    private static Set excludes = new HashSet();
+    private static Set jarExcludes = new HashSet();
+    private static Set fileExcludes = new HashSet();
+    private static Set dirExcludes = new HashSet();
+    static {
+        dirExcludes.add( "META-INF/" );
+    }
 
     /**
      * Writes a new jar file based on the contents of an existing jar file
@@ -49,19 +54,28 @@ public class SuperJar {
      * <p>
      * <h4>Usage:</h4>
      * <pre>
-     *    SuperJar [-o outjar] [[-x exclude] -x exclude]..] jarfile [jarfile ..]
+     *    SuperJar [-o outjar]
+     *             [[-xjar jar] -xjar jar ...]
+     *             [[-xentry entry] -xentry entry ...]
+     *             jarfile [jarfile ...]
      * </pre>
      *
      * <p>The <tt>-o</tt> flag may optionally be supplied to provide the
      * name of the output jar file.  Otherwise it will be given a default
      * name (superjar.jar).
      *
-     * <p>The <tt>-x</tt> flag may be supplied one or more times to define
+     * <p>The <tt>-xjar</tt> (or <tt>-x</tt>, which is a deprecated
+     * synonym) flag may be supplied one or more times to define
      * jarfiles which should not be included, even if they are referenced
      * in the manifest's Class-Path entry of a jar file which is included.
      * The <tt>exclude</tt> argument thus defined is the name, optionally
      * with one or more prepended path elements of the jar file to be 
      * excluded (e.g. axis.jar or axis/axis.jar would both work).
+     *
+     * <p>The <tt>-xent</tt> flag may be supplied one or more times to define
+     * jar entry names (names of directories or files within the included
+     * jar archives) which should not be included.  Directory names should
+     * include a trailing "/".
      *
      * <p>The <tt>jarfile</tt> argument(s) will be combined to form
      * the output file, all their contents and those of the jar files
@@ -74,8 +88,10 @@ public class SuperJar {
      * @param  args  an array of command-line arguments as described above
      */
     public static void main( String[] args ) throws IOException {
-        String usage = "SuperJar [-o outjar] [-x exclude [-x exclude]..] "
-                     + "jarfile [jarfile ..]";
+        String usage = "SuperJar [-o out-jar]\n"
+                     + "         [-xjar jar [-xjar jar] ..]\n"
+                     + "         [-xent entry [-xent entry] ..]\n"
+                     + "         jarfile [jarfile ..]";
 
         /* Turn the arguments into a list of jar files. */
         List arglist = new ArrayList( Arrays.asList( args ) );
@@ -92,10 +108,18 @@ public class SuperJar {
                 outfile = new File( (String) it.next() );
                 it.remove();
             }
-            else if ( arg.equals( "-x" ) ) {
+            else if ( arg.equals( "-x" ) ||
+                      arg.equals( "-xjar" ) ) {
                 it.remove();
-                excludes.add( (String) it.next() );
+                jarExcludes.add( (String) it.next() );
                 it.remove();
+            }
+            else if ( arg.equals( "-xent" ) ) {
+                it.remove();
+                String name = (String) it.next();
+                it.remove();
+                ( name.endsWith( "/" ) ? dirExcludes : fileExcludes )
+                                     .add( name );
             }
             else {
                 jarlist.add( arg );
@@ -174,8 +198,7 @@ public class SuperJar {
         /* Copy all the entries to the output jar. */
         byte[] buffer = new byte[ 4096 ];
         for ( JarEntry jent; ( jent = jstrm.getNextJarEntry() ) != null; ) {
-            if ( ! jent.isDirectory() &&
-                 jent.getName().indexOf( "META-INF" ) < 0 ) {
+            if ( ! excludeEntry( jent ) ) {
                 jarOut.putNextEntry( jent );
                 for ( int nbyte; ( nbyte = jstrm.read( buffer ) ) >= 0; ) {
                     jarOut.write( buffer, 0, nbyte );
@@ -194,7 +217,7 @@ public class SuperJar {
                 String[] cpents = classpath.trim().split( " +" );
                 for ( int i = 0; i < cpents.length; i++ ) {
                     File jf = new File( dir, cpents[ i ] );
-                    if ( exclude( jf ) ) {
+                    if ( excludeJar( jf ) ) {
                         logStrm.println( levelPrefix( level ) 
                                        + "        Excluding: " + jf );
                     }
@@ -211,12 +234,34 @@ public class SuperJar {
      *
      * @param   file to test
      */
-    private static boolean exclude( File file ) throws IOException {
+    private static boolean excludeJar( File file ) throws IOException {
         String cname = file.getCanonicalPath();
-        for ( Iterator it = excludes.iterator(); it.hasNext(); ) {
+        for ( Iterator it = jarExcludes.iterator(); it.hasNext(); ) {
             String excl = (String) it.next();
             if ( cname.equals( excl ) ||
                  cname.endsWith( File.separator + excl ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether to exclude a given jar entry from the output.
+     *
+     * @param  jar entry to test
+     */
+    private static boolean excludeEntry( JarEntry entry ) {
+        if ( entry.isDirectory() ) {
+            return true;
+        }
+        String name = entry.getName();
+        if ( fileExcludes.contains( name ) ) {
+            return true;
+        }
+        for ( Iterator it = dirExcludes.iterator(); it.hasNext(); ) {
+            String exclude = (String) it.next();
+            if ( name.startsWith( exclude ) ) {
                 return true;
             }
         }
