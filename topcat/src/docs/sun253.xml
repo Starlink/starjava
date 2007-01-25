@@ -9715,6 +9715,10 @@ introduced since the last version:
     <li>Some optimisations for very large files.</li>
     <li>Added Vega&lt;-&gt;AB magnitude conversion constants to 
         <ref id="Fluxes">Fluxes</ref> functions.</li>
+    <li>Encapsulated PostScript exported from graphics windows is improved.
+        These files should now print when sent directly to a printer,
+        and the image size is now guaranteed sensible for a portrait
+        A4/letter page.</li>
     </ul>
     </p></dd>
 
