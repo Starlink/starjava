@@ -21,6 +21,7 @@ import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.BitSet;
@@ -904,14 +905,44 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private void exportEPS( OutputStream ostrm ) throws IOException {
 
-        /* Construct a graphics object which will write postscript
-         * down this stream. */
+        /* Scale to a pixel size which makes the bounding box sit sensibly
+         * on an A4 or letter page.  EpsGraphics2D default scale is 72dpi. */
         JComponent plot = getPlot();
         Rectangle bounds = plot.getBounds();
-        EpsGraphics2D g2 = new EpsGraphics2D( getTitle(), ostrm,
-                                              bounds.x, bounds.y,
-                                              bounds.x + bounds.width,
-                                              bounds.y + bounds.height );
+        double padfrac = 0.05;
+        double xdpi = bounds.width / 6.0;
+        double ydpi = bounds.height / 9.0;
+        double scale;
+        int pad;
+        if ( xdpi > ydpi ) {
+            scale = 72.0 / xdpi;
+            pad = (int) Math.ceil( bounds.width * padfrac * scale );
+        }
+        else {
+            scale = 72.0 / ydpi;
+            pad = (int) Math.ceil( bounds.height * padfrac * scale );
+        }
+        int xlo = (int) Math.floor( scale * bounds.x ) - pad;
+        int ylo = (int) Math.floor( scale * bounds.y ) - pad;
+        int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) ) + pad;
+        int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) ) + pad;
+
+        /* Provide an output stream which appends a final carriage return.
+         * This is a hack around the fact that EpsGraphics2D omits doesn't
+         * do this, which prevents the resulting EPS file from printing out
+         * when sent to some printers. */
+        ostrm = new FilterOutputStream( ostrm ) {
+            public void close() throws IOException {
+                write( '\n' );
+                super.close();
+            }
+        };
+
+        /* Construct a graphics object which will write postscript
+         * down this stream. */
+        EpsGraphics2D g2 =
+            new EpsGraphics2D( getTitle(), ostrm, xlo, ylo, xhi, yhi );
+        g2.scale( scale, scale );
 
         /* Do the drawing. */
         plot.print( g2 );
