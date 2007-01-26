@@ -183,4 +183,65 @@ public class Maths {
     public static double pow(double a, double b) {
         return Math.pow( a, b );
     }
+
+    /**
+     * Hyperbolic sine.
+     *
+     * @param   x  parameter
+     * @return  result
+     */
+    public static double sinh( double x ) {
+        return 0.5 * ( Math.exp( x ) - Math.exp( -x ) );
+    }
+
+    /**
+     * Hyperbolic cosine.
+     *
+     * @param   x  parameter
+     * @return  result
+     */
+    public static double cosh( double x ) {
+        return 0.5 * ( Math.exp( x ) + Math.exp( -x ) );
+    }
+
+    /**
+     * Hyperbolic tangent.
+     *
+     * @param  x  parameter
+     * @return  result
+     */
+    public static double tanh( double x ) {
+        return ( Math.exp( x ) - Math.exp( -x ) )
+             / ( Math.exp( x ) + Math.exp( -x ) );
+    }
+
+    /**
+     * Inverse hyperbolic sine.
+     *
+     * @param  x  parameter
+     * @return result
+     */
+    public static double asinh( double x ) {
+        return Math.log( x + Math.sqrt( x * x + 1 ) );
+    }
+
+    /**
+     * Inverse hyperbolic cosine.
+     *
+     * @param  x  parameter
+     * @return   result
+     */
+    public static double acosh( double x ) {
+        return Math.log( x + Math.sqrt( x * x - 1 ) );
+    }
+
+    /**
+     * Inverse hyperbolic tangent.
+     *
+     * @param   x  parameter
+     * @return  result
+     */
+    public static double atanh( double x ) {
+        return 0.5 * Math.log( ( 1 + x ) / ( 1 - x ) );
+    }
 }

@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.ttools.JELUtils;
@@ -12,6 +13,7 @@ import uk.ac.starlink.util.TestCase;
 public class FuncTest extends TestCase {
 
     private static final double TINY = 1e-13;
+    private static final Random RANDOM = new Random( 1234567L );
 
     static {
         Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
@@ -178,6 +180,19 @@ public class FuncTest extends TestCase {
 
         assertEquals( 32.0, Maths.sqrt( 1024.0 ) );
        
+        double delta = 1e-7;
+        for ( int i = 0; i < 1000; i++ ) {
+            double theta = ( RANDOM.nextDouble() - 0.5 ) * Maths.PI;
+            assertEquals( 1.0, Maths.pow( Maths.sin( theta ), 2 ) +
+                               Maths.pow( Maths.cos( theta ), 2 ), delta );
+            assertEquals( theta, Maths.asin( Maths.sin( theta ) ), delta );
+            assertEquals( Arithmetic.abs( theta ), 
+                          Maths.acos( Maths.cos( theta ) ), delta );
+            assertEquals( theta, Maths.asinh( Maths.sinh( theta ) ), delta );
+            assertEquals( Arithmetic.abs( theta ),
+                          Maths.acosh( Maths.cosh( theta ) ), delta );
+            assertEquals( theta, Maths.atanh( Maths.tanh( theta ) ), delta );
+        }
     }
 
     public void testStrings() {
