@@ -140,27 +140,30 @@ public class FuncTest extends TestCase {
          * results from Ned Wright's Cosmology Calculator at
          * http://www.astro.ucla.edu/~wright/CosmoCalc.html. */
         compareDistances( 3.0, 71.0, 0.270, 0.730,
-                          11.476, 6460.6, 1615.1, 25841.7 );
+                          11.476, 6460.6, 1129.454, 1615.1, 25841.7 );
         compareDistances( 0.1, 71.0, 0.270, 0.730,
-                          1.286, 413.5, 375.9, 454.8 );
+                          1.286, 413.5, 0.296, 375.9, 454.8 );
         compareDistances( 5.5, 100.0, 1.0, 0.0,
-                          6.125, 3643.9, 560.6, 23685.3 );
+                          6.125, 3643.9, 202.672, 560.6, 23685.3 );
         compareDistances( 2.0, 60.0, 0.05, 0.0,
-                          10.694, 5380.8, 2141.5, 19273.6 );
+                          10.694, 5380.8, 812.374, 2141.5, 19273.6 );
         compareDistances( 1.7, 75, 0.6, 0.6,
-                          8.069, 3837.2, 1377.9, 10044.9 );
+                          8.069, 3837.2, 228.082, 1377.9, 10044.9 );
     }
 
     public void compareDistances( double z, double h0, double oM, double oL,
                                   double lookbackTime,
                                   double comovingDistanceL,
+                                  double comovingVolume,
                                   double angularDiameterDistance,
                                   double luminosityDistance ) {
-        double delta = 5e-4;
+        double delta = 1e-3;
         assertEquals( 1.0, lookbackTime
                / Distances.lookbackTime( z, h0, oM, oL ), delta );
         assertEquals( 1.0, comovingDistanceL
                / Distances.comovingDistanceL( z, h0, oM, oL ), delta );
+        assertEquals( 1.0, comovingVolume
+               / Distances.comovingVolume( z, h0, oM, oL ), delta );
         assertEquals( 1.0, angularDiameterDistance
                / Distances.angularDiameterDistance( z, h0, oM, oL ), delta );
         assertEquals( 1.0, luminosityDistance
