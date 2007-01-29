@@ -4136,6 +4136,12 @@ but my thanks are especially due to the following:
         <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref> functions.</li>
     <li>Added <code>duptag</code> parameters to <ref id="tmatch2">tmatch2</ref>
         task for customised renaming of columns with duplicated names.</li>
+    <li>Added hyperbolic trig functions 
+        (<code>sinh</code>, <code>cosh</code>, <code>tanh</code> and inverses)
+        <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref> class
+        (sinh, cosh, tanh and inverses).</li>
+    <li>Added cosmology distance calculations in class
+        <ref id="uk.ac.starlink.ttools.func.Distances">Distances</ref>.</li>
     </ul>
     </p></dd>
 

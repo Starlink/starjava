@@ -9719,6 +9719,12 @@ introduced since the last version:
         These files should now print when sent directly to a printer,
         and the image size is now guaranteed sensible for a portrait
         A4/letter page.</li>
+    <li>Added hyperbolic trig functions
+        (<code>sinh</code>, <code>cosh</code>, <code>tanh</code> and inverses)
+        <ref id="Maths">Maths</ref> class
+        (sinh, cosh, tanh and inverses).</li>
+    <li>Added cosmology distance calculations in class
+        <ref id="Distances">Distances</ref>.</li>
     </ul>
     </p></dd>
 
