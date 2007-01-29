@@ -203,6 +203,44 @@ public class Distances {
     }
 
     /**
+     * Comoving volume.  This returns the all-sky total comoving
+     * volume out to a given redshift <code>z</code>.
+     *
+     *
+     * @param   z  redshift
+     * @param   H0  Hubble constant in km/sec/Mpc
+     * @param   omegaM density ratio of the universe
+     * @return  comoving volume in Gpc<sup>3</sup>
+     */
+    public static double comovingVolume( double z, double H0, double omegaM,
+                                         double omegaLambda ) {
+        double dH = dH( H0 ) * 1e-3;
+        double dM = comovingDistanceT( z, H0, omegaM, omegaLambda ) * 1e-3;
+        double omegaK = omegaK( omegaM, omegaLambda );
+        if ( omegaK == 0 ) {
+            return 4.0 * Math.PI / 3.0 * dM * dM * dM;
+        }
+        else if ( omegaK < 0 ) {
+            double oks = Math.sqrt( - omegaK );
+            double dMH = dM / dH;
+            double t1 = dMH * Math.sqrt( 1.0 + omegaK * dMH * dMH );
+            double t2 = Math.asin( oks * dMH ) / oks;
+            return 2.0 * Math.PI * dH * dH * dH / omegaK * ( t1 - t2 );
+        }
+        else if ( omegaK > 0 ) {
+            double oks = Math.sqrt( omegaK );
+            double dMH = dM / dH;
+            double t1 = dMH * Math.sqrt( 1.0 + omegaK * dMH * dMH );
+            double t2 = Maths.asinh( oks * dMH ) / oks;
+            return 2.0 * Math.PI * dH * dH * dH / omegaK * ( t1 - t2 );
+        }
+        else {
+            assert Double.isNaN( omegaK );
+            return Double.NaN;
+        }
+    }
+
+    /**
      * Returns the Hubble distance in Mpc given the Hubble constant in
      * km/sec/Mpc.
      *
