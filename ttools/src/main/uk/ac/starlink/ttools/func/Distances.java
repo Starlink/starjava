@@ -210,6 +210,7 @@ public class Distances {
      * @param   z  redshift
      * @param   H0  Hubble constant in km/sec/Mpc
      * @param   omegaM density ratio of the universe
+     * @param   omegaLambda  normalised cosmological constant
      * @return  comoving volume in Gpc<sup>3</sup>
      */
     public static double comovingVolume( double z, double H0, double omegaM,
