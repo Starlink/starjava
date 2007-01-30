@@ -73,6 +73,7 @@ public class MultiTaskInvoker {
                 return 0;
             }
             else if ( "-bench".equals( arg ) ) {
+                it.remove();
                 bench = true;
             }
             else if ( arg.charAt( 0 ) == '-' ) {
@@ -117,8 +118,15 @@ public class MultiTaskInvoker {
         try {
             Environment env =
                 new LineEnvironment( taskArgs, task.getParameters() );
+            long start = System.currentTimeMillis();
             Executable exec = task.createExecutable( env );
             exec.execute();
+            if ( bench ) {
+                long millis = System.currentTimeMillis() - start;
+                String secs =
+                    Float.toString( ( millis / 100L ) * 0.1f );
+                System.err.println( "Elapsed time: " + secs + "s" );
+            }
             return 0;
         }
         catch ( Exception e ) {
