@@ -10,4 +10,7 @@ public class LoadException extends Exception {
     LoadException( String msg, Throwable e ) {
         super( msg, e );
     }
+    LoadException( String msg ) {
+        super( msg );
+    }
 }

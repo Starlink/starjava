@@ -108,8 +108,7 @@ public class ObjectFactory {
      */
     public Object createObject( String name ) throws LoadException {
         if ( ! isRegistered( name ) ) {
-            throw new IllegalArgumentException( "Unknown classname/nickname "
-                                              + name );
+            throw new LoadException( "Unknown classname/nickname " + name );
         }
         String className = (String) nameMap_.get( name );
         logger_.config( "Instantiating " + className + " for " + name );
