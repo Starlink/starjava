@@ -1240,8 +1240,12 @@ public class SpecDataFactory
             stype = SpecDataFactory.TABLE;
         }
         else if ( simpleType.equals( "spectrum/votable" ) ) {
-            // VOTable spectrum or SED (from SDSS?)...
-            stype = SpecDataFactory.SED;
+            // VOTable spectrum, open as a table.
+            stype = SpecDataFactory.TABLE;
+
+            //  XXX this used to be SpecDataFactory.SED with some note about
+            //  the SDSS service requiring it. Don't see that service anymore
+            //  so go back to the standard behaviour.
         }
         return stype;
     }
