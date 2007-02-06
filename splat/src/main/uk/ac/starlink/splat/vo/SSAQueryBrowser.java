@@ -708,7 +708,7 @@ public class SSAQueryBrowser
         StarTable starTable = null;
         String shortName = null;
 
-        if ( next instanceof SSAQuery || next != null ) {
+        if ( next instanceof SSAQuery && next != null ) {
             ssaQuery = (SSAQuery) next;
             starTable = ssaQuery.getStarTable();
             shortName = ssaQuery.getDescription();
