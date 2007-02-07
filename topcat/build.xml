@@ -1309,6 +1309,7 @@
           style="${xdoc.etc}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="FIGDIR" expression="${build.docs}/figures"/>
       <param name="COVERIMAGE" expression="../multishot.gif"/>
     </xslt>
     <java classname="org.apache.fop.apps.Fop"
