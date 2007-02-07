@@ -185,6 +185,8 @@ public class MultiTaskInvoker {
     private String getUsage( String taskName, Task task ) {
         StringBuffer ubuf = new StringBuffer();
         ubuf.append( "Usage: " )
+            .append( toolName_ )
+            .append( ' ' )
             .append( taskName );
         String padding = ubuf.toString().replaceAll( ".", " " ) + " ";
         ubuf.append( "\n" );
