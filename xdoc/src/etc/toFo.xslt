@@ -13,6 +13,7 @@
 
   <xsl:param name="VERSION" select="'???'"/>
   <xsl:param name="BASEDIR" select="'.'"/>
+  <xsl:param name="FIGDIR" select="'.'"/>
   <xsl:param name="COVERIMAGE" select="''"/>
 
 
@@ -419,8 +420,8 @@
       <fo:block>
         <xsl:element name="fo:external-graphic">
           <xsl:attribute name="src">
-            <xsl:value-of select="$BASEDIR"/>
-            <xsl:text>/../figures/</xsl:text>
+            <xsl:value-of select="$FIGDIR"/>
+            <xsl:text>/</xsl:text>
             <xsl:value-of select="figureimage/@src"/>
           </xsl:attribute>
      <!-- <xsl:attribute name="content-width">50%</xsl:attribute> -->
