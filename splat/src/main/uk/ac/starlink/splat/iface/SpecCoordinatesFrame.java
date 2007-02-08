@@ -904,7 +904,7 @@ public class SpecCoordinatesFrame
             throw new SplatException( "Cannot convert coordinate type " +
                                       "as the spectrum '" +
                                       spec.getShortName() +
-                                      "' does not already have a " +
+                                      "' does not have an existing " +
                                       "spectral coordinate system" );
         }
     }
