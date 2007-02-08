@@ -116,6 +116,11 @@ public class PlotUnitsFrame
     private JComboBox originBox = null;
 
     /**
+     * Control for selecting standard of rest.
+     */
+    private JComboBox stdOfRestBox = null;
+
+    /**
      * Unknown units, could also be unrecognised.
      */
     private static final String UNKNOWN = "Unknown";
@@ -194,6 +199,23 @@ public class PlotUnitsFrame
         originMap.put( "None", "None" );
     };
 
+    /**
+     * List of the possible standards of rest.
+     */
+    private static Map stdOfRestMap = null;
+    static {
+        stdOfRestMap = new LinkedHashMap();
+        stdOfRestMap.put( UNKNOWN, UNKNOWN );
+        stdOfRestMap.put( "Observer", "Topocentric" );
+        stdOfRestMap.put( "Centre of Earth", "Geocentric" );
+        stdOfRestMap.put( "Solar system barycentre", "Barycentric" );
+        stdOfRestMap.put( "Centre of Sun", "Heliocentric" );
+        stdOfRestMap.put( "Kinematical local standard of rest", "LSRK" );
+        stdOfRestMap.put( "Dynamical local standard of rest", "LSRD" );
+        stdOfRestMap.put( "Galactic centre", "Galactic" );
+        stdOfRestMap.put( "Local group", "Local_group" );
+        stdOfRestMap.put( "Source", "Source" );
+    };
 
     /**
      * Create an instance.
@@ -324,6 +346,13 @@ public class PlotUnitsFrame
         gbl.eatLine();
         originBox.setToolTipText( "Origin of spectral coordinates" );
 
+        stdOfRestBox = new JComboBox( stdOfRestMap.keySet().toArray() );
+        label = new JLabel( "Standard of rest: " );
+        gbl.add( label, false );
+        gbl.add( stdOfRestBox, false );
+        gbl.eatLine();
+        stdOfRestBox.setToolTipText( "Standard of rest for coordinates" );
+
         gbl.eatSpare();
 
         return panel;
@@ -339,10 +368,16 @@ public class PlotUnitsFrame
         SpecData spectrum = control.getCurrentSpectrum();
         ASTJ astJ = spectrum.getAst();
         FrameSet frameSet = astJ.getRef();
+
         boolean isDSB = astJ.isFirstAxisDSBSpecFrame();
         String sideband = UNKNOWN;
         if ( isDSB ) {
             sideband = frameSet.getC( "SideBand" );
+        }
+
+        String stdOfRest = UNKNOWN;
+        if ( astJ.isFirstAxisSpecFrame() ) {
+            stdOfRest = frameSet.getC( "StdOfRest" );
         }
 
         String coordUnits = frameSet.getC( "unit(1)" );
@@ -394,7 +429,19 @@ public class PlotUnitsFrame
                 break;
             }
         }
+
         sideBandBox.setEnabled( isDSB );
+
+        entrySet = stdOfRestMap.entrySet();
+        i = entrySet.iterator();
+        stdOfRestBox.setSelectedIndex( 0 ); //  Unknown
+        while ( i.hasNext() ) {
+            entry = (Map.Entry) i.next();
+            if ( entry.getValue().equals( stdOfRest ) ) {
+                stdOfRestBox.setSelectedItem( (String) entry.getKey() );
+                break;
+            }
+        }
     }
 
     /**
@@ -429,10 +476,14 @@ public class PlotUnitsFrame
         String origin = (String) originBox.getSelectedItem();
         origin = (String) originMap.get( origin );
 
+        //  See if we need to set the standard of rest.
+        String restframe = (String) stdOfRestBox.getSelectedItem();
+        restframe = (String) stdOfRestMap.get( restframe );
+
         //  And apply to current spectrum,
         SpecData spec = control.getCurrentSpectrum();
         convertToUnits( spec, dataUnits, coordUnits, coordSystem, sideBand,
-                        origin );
+                        origin, restframe );
     }
 
     /**
@@ -442,7 +493,8 @@ public class PlotUnitsFrame
      */
     protected void convertToUnits( SpecData spec, String dataUnits,
                                    String coordUnits, String coordSystem,
-                                   String sideBand, String origin )
+                                   String sideBand, String origin,
+                                   String stdOfRest )
     {
         if ( ! dataUnits.equals( UNKNOWN ) ) {
             try {
@@ -461,6 +513,9 @@ public class PlotUnitsFrame
                 if ( ! sideBand.equals( UNKNOWN ) ) {
                     attributes = attributes + ",SideBand=" + sideBand;
                 }
+                if ( ! stdOfRest.equals( UNKNOWN ) ) {
+                    attributes = attributes + ",StdOfRest=" + stdOfRest;
+                }
                 SpecCoordinatesFrame.convertToAttributes( spec, attributes,
                                                           iaxis, false );
             }
@@ -468,7 +523,6 @@ public class PlotUnitsFrame
                 new ExceptionDialog( this, e );
             }
         }
-
 
         //  Now that the transformations are complete deal with the origin
         //  transformation.
