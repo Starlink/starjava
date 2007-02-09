@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     01-DEC-2006 (Peter W. Draper):
@@ -218,35 +218,53 @@ public class JACSynopsisFigure
             }
         }
 
-        //  Exposure time. These are human readable dates so need to use FITS
-        //  parsing.
-        prop = specData.getProperty( "INT_TIME" );
+        //  Exposure time. Prefer EXTIME from SPLAT, that's the time for just
+        //  this spectrum (ton+toff).
+        prop = specData.getProperty( "EXTIME" );
         if ( ! "".equals( prop ) ) {
             b.append( "Exposure: " + prop + " (sec)\n" );
         }
         else {
-            //  Try elapsed time.
-            prop = specData.getProperty( "DATE-OBS" );
-            if ( ! "".equals( prop ) ) {
-                try {
-                    Date dstart = new FitsDate( prop ).toDate();
-                    prop = specData.getProperty( "DATE-END" );
-                    if ( ! "".equals( prop ) ) {
-                        Date dend = new FitsDate( prop ).toDate();
 
-                        //  Get milliseconds in UNIX time.
-                        long istart = dstart.getTime();
-                        long iend = dend.getTime();
-                        b.append( "Exposure (elapsed): "
-                                  +( (iend-istart)/1000.0 )+ " (sec)\n" );
-                    }
+            //  EXP_TIME is median for cube.
+            prop = specData.getProperty( "EXP_TIME" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "Exposure (median): " + prop + " (sec)\n" );
+            }
+            else {
+                
+                //  Try elapsed time.
+                prop = specData.getProperty( "INT_TIME" );
+                if ( ! "".equals( prop ) ) {
+                    b.append( "Exposure (elapsed): " + prop + " (sec)\n" );
                 }
-                catch (Exception e) {
-                    //  Unparsable time. Just give up.
+                else {
+
+                    //  These are human readable dates so need to use FITS
+                    //  parsing.
+                    prop = specData.getProperty( "DATE-OBS" );
+                    if ( ! "".equals( prop ) ) {
+                        try {
+                            Date dstart = new FitsDate( prop ).toDate();
+                            prop = specData.getProperty( "DATE-END" );
+                            if ( ! "".equals( prop ) ) {
+                                Date dend = new FitsDate( prop ).toDate();
+                                
+                                //  Get milliseconds in UNIX time.
+                                long istart = dstart.getTime();
+                                long iend = dend.getTime();
+                                b.append( "Exposure (elapsed): "
+                                          +( (iend-istart)/1000.0 )+ " (sec)\n" );
+                            }
+                        }
+                        catch (Exception e) {
+                            //  Unparsable time. Just give up.
+                        }
+                    }
                 }
             }
         }
-
+            
         b.append( "Coord Sys: " + specAxis.getSystem() + "\n" );
         //b.append( "ObsLat: " + specAxis.getC( "ObsLat" ) + "\n" );
         //b.append( "ObsLon: " + specAxis.getC( "ObsLon" ) + "\n" );
@@ -297,7 +315,7 @@ public class JACSynopsisFigure
                     }
                 }
                 else {
-                    //  No image centre, may have an offset anyway (from 
+                    //  No image centre, may have an offset anyway (from
                     //  JCMT GAPPT observation).
                     prop = specData.getProperty( "EXRRAOF" );
                     if ( ! "".equals( prop ) ) {
@@ -362,28 +380,17 @@ public class JACSynopsisFigure
             }
         }
 
-        //  TSYS and TRX.
+        //  TSYS and TRX. TRX only for ACSIS timeseries cubes.
         prop = specData.getProperty( "TSYS" );
-        if ( "".equals( prop ) ) {
-
-            //  Temperature calculations are broken for now, so development
-            //  mode only...
-            java.util.Properties props = System.getProperties();
-            String isDevelop = props.getProperty( "splat.development" );
-            if (  isDevelop != null && isDevelop.equals( "1" )  ) {
-
-                //  No TSYS, only proceed if have variances and this is the
-                //  JCMT.
-                if ( "JCMT".equals( telescope ) ) {
-                    if ( specData.haveYDataErrors() ) {
-                        prop = calculateTsys( specData );
-                    }
-                }
-            }
-        }
-
         if ( ! "".equals( prop ) ) {
             b.append( "TSYS: " + prop + " (K)\n" );
+        }
+        else {
+            //  Maybe we have a median TSYS for cube.
+            prop = specData.getProperty( "MEDTSYS" );
+            if ( ! "".equals( prop ) ) {
+                b.append( "TSYS (median): " + prop + " (K)\n" );
+            }
         }
 
         prop = specData.getProperty( "TRX" );
@@ -437,100 +444,5 @@ public class JACSynopsisFigure
     {
         //  Reset anchor as should be from an interactive movement.
         translate( x, y, true );
-    }
-
-    /**
-     * Calculate an estimate for the TSYS.
-     */
-    protected String calculateTsys( SpecData specData )
-    {
-        String result = "";
-
-        //  Need the channel spacing and the efficiency factor.
-        String prop = specData.getProperty( "BEDEGFAC" );
-        if ( "".equals( prop ) ) {
-            return result;
-        }
-        double K = Double.parseDouble( prop );
-
-        prop = specData.getProperty( "IFCHANSP" );
-        if ( "".equals( prop ) ) {
-            return result;
-        }
-        double dnu = Math.abs( Double.parseDouble( prop ) );
-
-        //  This is the wrong value, need the spectrum integration time, not
-        //  the time for the whole "exposure".
-        prop = specData.getProperty( "INT_TIME" );
-        if ( "".equals( prop ) ) {
-            return result;
-        }
-        double exposure = Double.parseDouble( prop );
-
-        double[] errors = specData.getYDataErrors();
-        int n = errors.length;
-        double sum = 0.0;
-        int count = 0;
-        for ( int i = 0; i < n; i++ ) {
-            if ( errors[i] != SpecData.BAD ) {
-                sum += ( errors[i] * errors[i] );
-                count++;
-            }
-        }
-        if ( count > 0 ) {
-            double sigma = Math.sqrt ( sum / (double) count );
-
-            //  I make this from Jamie's original paper:
-            // double tsys =
-            //    0.5 * sigma * Math.sqrt( 2.0 * dnu * exposure / K );
-
-            //  SpecX says:
-            // double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
-            //
-
-            //  Tim says:
-            //
-            //  Effective exposure time depends on observing mode.
-            //  These corrections are a guess.
-            //
-            //  Really need some property that has the effective temperature
-            //  already calculated.
-
-            //  Hack, exposure only correct for Tim's data.
-            exposure = 30.0;
-
-            String sam_mode = specData.getProperty( "SAM_MODE" );
-            String sw_mode = specData.getProperty( "SW_MODE" );
-            System.out.println( "sam_mode = " + sam_mode );
-            System.out.println( "sw_mode = " + sw_mode );
-            double teff = exposure;
-            if ( sam_mode.equals( "raster" ) ) {
-                // toff = sqrt(N)*ton. Need number of ons... Where's that kept?
-                double N = 1.0;
-                teff = exposure * Math.sqrt(N) / ( 1.0  + Math.sqrt(N) );
-            }
-            else if ( sw_mode.equals( "chop" ) ) {
-                //  toff = ton
-                teff = 0.5 * exposure;
-            }
-            else if ( sw_mode.equals( "pssw" ) ) {
-                //  toff = ton
-                teff = 0.5 * exposure;
-            }
-            else if ( sw_mode.equals( "freq" ) ) {
-                //  teff = ton, no toff.
-                teff = exposure;
-            }
-            else if ( sw_mode.equals( "none" ) ) {
-                //  No toff?
-                teff = exposure;
-            }
-
-            double tsys = sigma * Math.sqrt( dnu * teff ) / K;
-
-            DecimalFormat f  = new DecimalFormat( "###.##" );
-            result = f.format( tsys ) + "(Est) ";
-        }
-        return result;
     }
 }
