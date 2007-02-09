@@ -153,6 +153,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
+    protected JCheckBoxMenuItem sidebandMatching = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem horizontalLineIDs = null;
     protected JCheckBoxMenuItem prefixLineIDs = null;
@@ -580,12 +581,20 @@ public class PlotControlFrame
         optionsMenu.add( dataUnitsMatching );
         dataUnitsMatching.addItemListener( this );
 
+        sidebandMatching =
+            new JCheckBoxMenuItem( "Match sidebands" );
+        optionsMenu.add( sidebandMatching );
+        sidebandMatching.addItemListener( this );
+
         boolean state =
             prefs.getBoolean( "PlotControlFrame_coordinatematch", false );
         coordinateMatching.setSelected( state );
 
         state = prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
         dataUnitsMatching.setSelected( state );
+
+        state = prefs.getBoolean( "PlotControlFrame_sidebandmatch", false );
+        sidebandMatching.setSelected( state );
 
         //  Whether to just draw the grid in the visible region. Can be
         //  expensive so off by default.
@@ -1752,10 +1761,12 @@ public class PlotControlFrame
         Object source = e.getSource();
 
         if ( source.equals( coordinateMatching ) ||
-             source.equals( dataUnitsMatching ) ) {
+             source.equals( dataUnitsMatching ) || 
+             source.equals( sidebandMatching ) ) {
 
             boolean state1 = coordinateMatching.isSelected();
             boolean state2 = dataUnitsMatching.isSelected();
+            boolean state3 = sidebandMatching.isSelected();
 
             if ( source.equals( dataUnitsMatching ) ) {
                 // Need coordinateMatching when matching dataUnits. Coordinate
@@ -1774,15 +1785,18 @@ public class PlotControlFrame
 
             plot.getSpecDataComp().setCoordinateMatching( state1 );
             plot.getSpecDataComp().setDataUnitsMatching( state2 );
+            plot.getSpecDataComp().setSideBandMatching( state3 );
 
             prefs.putBoolean( "PlotControlFrame_coordinatematch", state1 );
             prefs.putBoolean( "PlotControlFrame_dataunitsmatch", state2 );
+            prefs.putBoolean( "PlotControlFrame_sidebandmatch", state3 );
             try {
                 plot.updateThePlot( null );
             }
             catch (SplatException se) {
-                // Matching has failed. Need to make this clear and
-                // then rectify the situation by switching it off.
+
+                // Matching has failed. Need to make this clear and then
+                // rectify the situation by switching it off.
                 if ( state1 || state2 ) {
                     JOptionPane.showMessageDialog
                         ( this, se.getMessage() +
@@ -1793,6 +1807,7 @@ public class PlotControlFrame
                     //  Trigger rematch?
                     coordinateMatching.setSelected( false );
                     dataUnitsMatching.setSelected( false );
+                    sidebandMatching.setSelected( true );
                 }
             }
             return;

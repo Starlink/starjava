@@ -18,6 +18,7 @@ import javax.swing.event.ListDataListener;
 
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.CmpFrame;
+import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.FluxFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -91,6 +92,11 @@ public class SpecDataComp
      * coordinates.
      */
     private boolean dataUnitsMatching = false;
+
+    /**
+     * Whether we're matching sidebands or not. The AST default is true.
+     */
+    private boolean sidebandMatching = true;
 
     /**
      * Whether we are to include spacing for error bars in the automatic
@@ -218,6 +224,28 @@ public class SpecDataComp
     public boolean isDataUnitsMatching()
     {
         return dataUnitsMatching;
+    }
+
+    /**
+     * Set whether we're being careful about matching sidebands
+     * between spectra.
+     */
+    public void setSideBandMatching( boolean sidebandMatching )
+    {
+        //  If sideband matching state is changed we may need to generate
+        //  the mappings between the current spectrum and all the others.
+        if ( sidebandMatching != this.sidebandMatching ) {
+            regenerateMappings = true;
+        }
+        this.sidebandMatching = sidebandMatching;
+    }
+
+    /**
+     * Get whether we're being careful about matching sidebands.
+     */
+    public boolean isSideBandMatching()
+    {
+        return sidebandMatching;
     }
 
     /**
@@ -1009,6 +1037,7 @@ public class SpecDataComp
             iaxes[0] = 1;
             Frame picked = to.pickAxes( 1, iaxes, null );
             boolean haveSpecFrame = ( picked instanceof SpecFrame );
+            boolean haveDSBSpecFrame = ( picked instanceof DSBSpecFrame );
 
             // If spectrum is a line id then we should attempt to transform it
             // into the system of main spectrum (this aligns if a source
@@ -1056,15 +1085,21 @@ public class SpecDataComp
                 from.setActiveUnit( true );
             }
 
-            //  Transform to source rest frame for matching against line ids.
-            if ( sourceTransform ) {
-                String stdofrest = to.getC( "StdOfRest(1)" );
-                to.set( "StdOfRest(1)=Source" );
-                mapping = to.convert( from, "DATAPLOT" );
-                to.set( "StdOfRest(1)=" + stdofrest );
+            //  If we're matching sidebands then arrange for that. Needs
+            //  both spectra to have DSBSpecFrames.
+            if ( haveDSBSpecFrame ) {
+                to.setB( "AlignSideBand", sidebandMatching );
             }
-            else {
-                mapping = to.convert( from, "DATAPLOT" );
+
+            //  Get mapping.
+            mapping = to.convert( from, "DATAPLOT" );
+
+            //  Transform to source rest frame for matching against line ids.
+            //  Do this after convert so that internal remappings are correct?
+            if ( sourceTransform ) {
+                mapping.setInvert( true );
+                mapping.set( "StdOfRest(1)=Source" );
+                mapping.setInvert( false );
             }
 
             if ( dataUnitsMatching ) {
