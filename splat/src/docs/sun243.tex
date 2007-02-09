@@ -23,14 +23,14 @@
 \newcommand{\stardoccopyright}
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the
 Research Councils \\
-Copyright \copyright\ 2006 Particle Physics and Astronomy Research Council}
+Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.18}
+\newcommand{\stardocnumber}    {243.19}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {17 November 2006}
+\newcommand{\stardocdate}      {9 February 2007}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.6-0}
+\newcommand{\stardocversion}   {3.6-3}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1127,6 +1127,12 @@ the display area.\\
   If your data units are not understood as fluxes it may still be possible to
   align them (dimensionally obvious unit conversions are possible for instance
   mK and K will be aligned correctly, as will eV and keV).
+
+  \item \submenuitem{Options}{Match sideband}
+  If your spectra are dual sideband then they can be aligned taking this 
+  into account, or they can be aligned just using the currently selected
+  sidebands. By default they are aligned taking the sideband into account. 
+  If you want to do otherwise deselect this item.
 
   \item \submenuitem{Options}{Only display grid axes in visible area}
   Normally the labelled axes displaying the spectral and data coordinates are
@@ -2927,6 +2933,10 @@ Note for velocities this last option isn't useful as they are already
 displayed offset from this value. If you want to set another value as the
 origin then you need to use the advanced toolbox available in the main window.
 
+The \labelitem{Standard of rest:} control allows you to switch between
+the various supported rest frames. If the current spectrum doesn't support
+these the value will be set to \labelitem{Unknown}.
+
 \subheading{Accelerator keys}
 
 \begin{itemize}
@@ -3585,7 +3595,7 @@ requests for useful features -- thanks to them all.
 
 \section{Changes}
 
-\subsection{3.6-0}
+\subsection{3.6-3}
 
 All menus are now accessible using keyboard mnemonics. These are indicated by
 an underlined character in the menu name. Pressing the <Alt> (platform
@@ -3606,6 +3616,15 @@ these bindings.
 Other changes in this release.
 
 \begin{itemize}
+
+\item An optional synopsis figure has been added to each plot. This shows
+some details of the current spectrum, such as it's name, the telescope,
+instrument, object, position of extraction (when used together with GAIA), 
+etc.
+
+\item The SSAP query has been remodelled so that all queries are performed
+concurrently. This means that a failing service will not block access
+to all the others.
 
 \item When defining ranges (for fitting backgrounds and spectral lines) the
 associated plot window is now brought forward and the cursor is changed.
@@ -3655,7 +3674,11 @@ applies to all the data.
 This can be used to estimate the flux in line of a background subtracted
 spectrum.
 
-\item The use of file type "guessing" has been extended beyond the
+\item The statistics toolbox had an off-by-one difference between the 
+selected stats and the individual region stats, giving slighty different
+results. That has been fixed.
+
+\item The use of file type `guessing' has been extended beyond the
 \labelitem{File->Browse} dialogue. This can now be selected from the
 command-line, or from the  
 \labelitem{File->Open} dialogue. Guessing requires that the spectrum be opened
@@ -3667,6 +3690,10 @@ other VO-enabled desktop tools using the PLASTIC protocol.
 
 \item It is now possible to define a spectral origin. This allows the
 plotting of offset coordinates.
+
+\item The quick change of units dialog has been extended to allow a change in
+standard of rest. A option has been added that controls how dual sideband
+spectra are aligned, by default this remains in the same sideband.
 
 \item The axes of a plot should now always be drawn on on the edges, unless
 the option to plot them in the plot interior is selected.

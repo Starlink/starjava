@@ -1,6 +1,6 @@
 1 Starlink SPLAT news.
 
-   3.6-2
+   3.6-3
    =====
 
    An optional synopsis figure has been added to each plot. This shows
@@ -11,6 +11,10 @@
    The SSAP query has been remodelled so that all queries are performed
    concurrently. This means that a failing service will not block access
    to all the others.
+
+   The quick change of units has been extended to allow a change in standard
+   of rest. A option has been added that controls how dual sideband
+   spectra are aligned, by default this remains in the same sideband.
 
    3.6-1
    =====
