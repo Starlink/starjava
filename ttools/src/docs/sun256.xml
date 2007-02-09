@@ -1955,6 +1955,8 @@ and so on.
 <p>The functions available for use by default
 are listed by class in the following subsections
 with their arguments and short descriptions.
+The <ref id="funcs"><code>funcs</code></ref> command provides another
+way to browse these function descriptions online.
 </p>
 
 &jel.func.docs;
