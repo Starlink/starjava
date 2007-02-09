@@ -14,7 +14,7 @@ import uk.ac.starlink.ttools.gui.MethodBrowser;
 /**
  * A panel displaying the static public methods of a set of classes.
  * This is currently arranged as a tree.  If javadocs are available
- * (under names as described by the {@link uk.ac.starlink.topcat.doc.DocNames}
+ * (under names as described by the {@link uk.ac.starlink.ttools.gui.DocNames}
  * class) these are displayed alongside.
  * 
  * <p>Currently, the items in the tree can be an instance of one of the
@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.gui.MethodBrowser;
  * <li>{@link java.lang.Class}
  * <li>{@link java.lang.reflect.Method}
  * <li>{@link java.lang.reflect.Field}
- * <li>{@link uk.ac.starlink.topcat.doc.Heading}
+ * <li>{@link uk.ac.starlink.ttools.build.Heading}
  * </ul>
  *
  * @author   Mark Taylor (Starlink)
