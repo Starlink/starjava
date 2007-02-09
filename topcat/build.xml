@@ -1264,7 +1264,7 @@
     <!-- Construct HTML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and is available from the MethodWindow
      !   method browser. -->
-    <javadoc doclet="uk.ac.starlink.topcat.doc.HtmlDoclet"
+    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
              docletpathref="classpath"
              failonerror="true"
              public="true"
