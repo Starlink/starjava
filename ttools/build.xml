@@ -1034,6 +1034,18 @@
              classpathref="classpath"
              source="${source.version}"/>
 
+    <!-- Construct HTML documentation for JEL-accessible classes. -->
+    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
+             docletpathref="classpath"
+             failonerror="true"
+             public="true"
+             additionalparam="-headings"
+             destdir="${build.classes}"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.ttools.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
     <!-- Write an XML file containing usage output for some actual
      !   command invocations. -->
     <java classname="uk.ac.starlink.ttools.build.OutputCapture"

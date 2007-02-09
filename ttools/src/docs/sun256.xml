@@ -29,6 +29,7 @@
 
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
+  <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
@@ -184,10 +185,13 @@ the following commands for accessing VO services:
     &multicone-purpose;
     </li>
 </ul>
-and the following general purpose utility:
+and the following general purpose utilities:
 <ul>
 <li><ref id="calc" plaintextref="yes"><code>calc</code></ref>:
     &calc-purpose;
+    </li>
+<li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
+    &funcs-purpose;
     </li>
 </ul>
 More tools may be introduced in the future.
@@ -352,6 +356,7 @@ name of one of the tasks listed in <ref id="cmdUsage"/> - currently
 the available tasks are:
 <ul>
 <li><code>calc</code></li>
+<li><code>funcs</code></li>
 <li><code>multicone</code></li>
 <li><code>regquery</code></li>
 <li><code>tcat</code></li>
@@ -2274,6 +2279,20 @@ stilts calc 'isoToMjd("2005-12-25T00:00:00")'
 
 </subsect>
 
+<subsect id="funcs" tocleaf="yes">
+<subhead><title><code>funcs</code>: &funcs-purpose;</title></subhead>
+
+<p><code>funcs</code> is a utility which allows you to browse the
+functions you can use in STILTS's algebraic expression language.
+These are described in <ref id="staticMethods"/>, but the graphical
+browser may be a more convenient way to view the documentation.
+There are no parameters.
+</p>
+
+&func-summary;
+
+</subsect>
+
 <subsect id="multicone" tocleaf="yes">
 <subhead><title><code>multicone</code>: &multicone-purpose;</title></subhead>
 
@@ -4142,6 +4161,8 @@ but my thanks are especially due to the following:
         (sinh, cosh, tanh and inverses).</li>
     <li>Added cosmology distance calculations in class
         <ref id="uk.ac.starlink.ttools.func.Distances">Distances</ref>.</li>
+    <li>Added <ref id="funcs"><code>funcs</code></ref>, a browser for
+        expression language function documentation.</li>
     </ul>
     </p></dd>
 
