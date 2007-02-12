@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.6-4
+   =====
+
+   The way that line identifiers are matched to the source velocity
+   of a spectrum has been changed. INCOMPATIBILITY: recessional velocities
+   are now positive, previously these were negative.
+
    3.6-3
    =====
 
