@@ -156,13 +156,11 @@ public class MethodWindow extends AuxWindow {
     }
 
     /**
-     * Returns the model used by this window's tree.  
-     * This method is package-visible rather than private because it is
-     * used by unit tests.
+     * Returns the MethodBrowser used by this window.
      *
-     * @return  model containing things that are documented by this window
+     * @return  method browser
      */
-    DefaultTreeModel getTreeModel() {
-        return browser_.getTreeModel();
+    public MethodBrowser getBrowser() {
+        return browser_;
     }
 }
