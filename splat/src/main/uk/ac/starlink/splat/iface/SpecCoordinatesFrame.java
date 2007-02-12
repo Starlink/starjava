@@ -818,8 +818,8 @@ public class SpecCoordinatesFrame
                     double redshift =
                         Double.parseDouble( value.substring( 0, index ) );
                     double velocity = MathUtils.redshiftToVelocity( redshift );
-                    //  m/s to km/s, plus velocity is away not towards
-                    buffer.append( ",SourceVel=" + velocity * -0.001 );
+                    //  m/s to km/s.
+                    buffer.append( ",SourceVel=" + velocity * 0.001 );
                 }
                 catch (NumberFormatException e) {
                     // Do nothing much.
