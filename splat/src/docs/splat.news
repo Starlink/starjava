@@ -7,6 +7,10 @@
    of a spectrum has been changed. INCOMPATIBILITY: recessional velocities
    are now positive, previously these were negative.
 
+   It is now possible to define source velocities as optical or radio
+   velocities, as well as as a beta factor. Support continues for 
+   relativistic velocities and redshifts.
+
    3.6-3
    =====
 
