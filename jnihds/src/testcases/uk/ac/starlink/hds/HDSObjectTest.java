@@ -65,15 +65,19 @@ public class HDSObjectTest extends TestCase {
         int newMapMode = HDSObject.hdsGtune( "MAP" );
         assertTrue( defaultMapMode == newMapMode );
 
-        //  64bit mode. Leave switched on for further tests.
+        //  64bit/32bit mode. Leave switched on for further tests. Should
+        //  be on by default (behaviour has changed).
         int default64BitMode = HDSObject.hdsGtune( "64BIT" );
         System.out.println( "default 64bit mode = " + 
                             ( ( default64BitMode == 1 ) ? "on" : "off" ) );
-        HDSObject.hdsTune( "64BIT", 1 );
+        HDSObject.hdsTune( "64BIT", 0 );
         int new64BitMode = HDSObject.hdsGtune( "64BIT" );
         System.out.println( "test 64bit mode = " +
                             ( ( new64BitMode == 1 ) ? "on" : "off" ) );
-        // assertTrue( default64BitMode == new64BitMode );
+        assertTrue( default64BitMode != new64BitMode );
+
+        //  Back to 64bit for tests.
+        HDSObject.hdsTune( "64BIT", 1 );
     }
 
     public void testConstants() throws HDSException {
