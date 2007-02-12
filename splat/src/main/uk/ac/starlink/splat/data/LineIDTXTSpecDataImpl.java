@@ -339,6 +339,7 @@ public class LineIDTXTSpecDataImpl
                 //  Default set for laboratory lines.
                 attributes.put( "StdOfRest", "Topocentric" );
                 attributes.put( "SourceVRF", "Topocentric" );
+                attributes.put( "SourceSys", "VELO" );
                 attributes.put( "SourceVel", "0.0" );
                 nhead++;
 
@@ -433,6 +434,7 @@ public class LineIDTXTSpecDataImpl
             writeAstAtt( r, "Unit" );
             writeAstAtt( r, "StdOfRest" );
             writeAstAtt( r, "SourceVRF" );
+            writeAstAtt( r, "SourceSys" );
             writeAstAtt( r, "SourceVel" );
             String units = getDataUnits();
             if ( units != null ) {

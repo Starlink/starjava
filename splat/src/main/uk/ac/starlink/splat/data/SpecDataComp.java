@@ -1095,7 +1095,10 @@ public class SpecDataComp
             mapping = to.convert( from, "DATAPLOT" );
 
             //  Transform any line identifiers to the spectral source velocity.
+            //  Note velocity is stored in SourceSys system (could be ZOPT).
             if ( sourceTransform ) {
+                String system = to.getC( "SourceSys" );
+                mapping.setC( "SourceSys", system );
                 double velocity = to.getD( "SourceVel" );
                 mapping.setD( "SourceVel", velocity );
             }

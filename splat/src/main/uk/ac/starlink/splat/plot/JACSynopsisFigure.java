@@ -337,10 +337,14 @@ public class JACSynopsisFigure
 
             //  Source velocity and rest frame. Only report if set.
             if ( specAxis.test( "SourceVel" ) ) {
-                b.append( "SourceVel: " + specAxis.getC("SourceVel" ) + "\n");
+                b.append( "SourceVel: " + specAxis.getC( "SourceVel" ) +"\n" );
                 if ( specAxis.test( "SourceVRF" ) ) {
                     b.append( "SourceVRF: " +
-                    specAxis.getC("SourceVRF")+"\n");
+                              specAxis.getC( "SourceVRF" ) + "\n" );
+                }
+                if ( specAxis.test( "SourceSys" ) ) {
+                    b.append( "SourceSys: " +
+                              specAxis.getC( "SourceSys") + "\n" );
                 }
             }
             if ( specAxis.test( "StdOfRest" ) ) {

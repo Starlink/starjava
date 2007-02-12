@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     07-APR-2003 (Peter W. Draper):
@@ -172,6 +173,11 @@ public class SpecCoordinatesFrame
     private JComboBox sourceStdOfRestBox = null;
 
     /**
+     * Control for the source velocity spectral system.
+     */
+    private JComboBox sourceSystemBox = null;
+
+    /**
      * Control for date-obs.
      */
     private JTextField dateObs = null;
@@ -213,6 +219,16 @@ public class SpecCoordinatesFrame
      * Inverse of possible standards of rest mappings.
      */
     protected static Map stdOfRestInverse = null;
+
+    /**
+     * Possible systems for supplying a source velocity.
+     */
+    protected static Map sourceSystems = null;
+
+    /**
+     * Inverse of possible systems for supplying a source velocity.
+     */
+    protected static Map sourceSystemsInverse = null;
 
     /**
      * Known observatories and their identifications.
@@ -331,6 +347,20 @@ public class SpecCoordinatesFrame
         sourceStdOfRest.put( "Dynamical local standard of rest", "LSRD" );
         sourceStdOfRest.put( "Galactic centre", "Galactic" );
         sourceStdOfRest.put( "Local group", "Local_group" );
+
+        sourceSystems = new LinkedHashMap();
+        sourceSystems.put( "Relativistic velocity", "VELO" );
+        sourceSystems.put( "Radio velocity", "VRAD" );
+        sourceSystems.put( "Optical velocity", "VOPT" );
+        sourceSystems.put( "Redshift", "ZOPT" );
+        sourceSystems.put( "Beta factor", "BETA" );
+
+        sourceSystemsInverse = new LinkedHashMap();
+        sourceSystemsInverse.put( "VELO", "Relativistic velocity" );
+        sourceSystemsInverse.put( "VRAD", "Radio velocity" );
+        sourceSystemsInverse.put( "VOPT", "Optical velocity" );
+        sourceSystemsInverse.put( "ZOPT", "Redshift" );
+        sourceSystemsInverse.put( "BETA", "Beta factor" );
 
         //stdDependOn = new LinkedHashMap( 8 );
         //stdDependOn.put( "Topocentric", "Epoch ObsLat ObsLon RefRA RefDec" );
@@ -624,15 +654,22 @@ public class SpecCoordinatesFrame
         sourceStdOfRestBox.setToolTipText( "Standard of rest for the" +
                                            " source velocity" );
 
+        //  Source velocity system.
+        label = new JLabel( "Source system:" );
+        sourceSystemBox =
+            new JComboBox( sourceSystems.keySet().toArray() );
+        gbl.add( label, false );
+        gbl.add( sourceSystemBox, true );
+        sourceStdOfRestBox.setToolTipText
+            ( "Coordinate system used for specifying the source velocity" );
+
+        //  Source velocity.
         label = new JLabel( "Source velocity:" );
         sourceVel = new JTextField();
         gbl.add( label, false );
         gbl.add( sourceVel, true );
-        sourceVel.setToolTipText( "The relativistic velocity of source" +
-                                  " in the source rest frame (km/s or" + 
-                                  " redshift with trailing 'z')" );
-        gbl.eatSpare();
-
+        sourceVel.setToolTipText
+            ( "The velocity of source in current source system units" );
         return panel;
     }
 
@@ -809,27 +846,28 @@ public class SpecCoordinatesFrame
             buffer.append( ",SourceVRF=" + value );
         }
 
-        value = sourceVel.getText();
-        if ( isValid( value ) ) {
-            int index = value.indexOf( 'z' );
+        //  Support old-style "z" indicating a redshift. In that case the
+        //  system must be "REDSHIFT". Need to check this before setting the
+        //  source system.
+        String velocity = sourceVel.getText();
+        if ( isValid( velocity ) ) {
+            int index = velocity.indexOf( 'z' );
             if ( index != -1 ) {
-                //  Redshift convert to relativistic velocity in km/s.
-                try {
-                    double redshift =
-                        Double.parseDouble( value.substring( 0, index ) );
-                    double velocity = MathUtils.redshiftToVelocity( redshift );
-                    //  m/s to km/s.
-                    buffer.append( ",SourceVel=" + velocity * 0.001 );
-                }
-                catch (NumberFormatException e) {
-                    // Do nothing much.
-                    System.out.println( e.getMessage() );
-                }
+                velocity = velocity.substring( 0, index );
+                sourceSystemBox.setSelectedItem( "Redshift" );
+            }
+        }
 
-            }
-            else {
-                buffer.append( ",SourceVel=" + value );
-            }
+        //  Source system.
+        selected = (String) sourceSystemBox.getSelectedItem();
+        value = (String) sourceSystems.get( selected );
+        if ( isValid( value ) ) {
+            buffer.append( ",SourceSys=" + value );
+        }
+
+        //  Velocity must follow source system.
+        if ( isValid( velocity ) ) {
+            buffer.append( ",SourceVel=" + velocity );
         }
 
         value = dateObs.getText();
@@ -1009,6 +1047,7 @@ public class SpecCoordinatesFrame
             String specoriginDefault = "0";
             String sourcevel = "";
             String sourcevrf = "";
+            String sourcesys = "VELO";
             String epoch = "";
 
             //  As using Plot FrameSet we need to look at the first axis.
@@ -1025,6 +1064,7 @@ public class SpecCoordinatesFrame
                 restfreq = picked.getC( "RestFreq" );
                 specorigin = picked.getC( "SpecOrigin" );
                 sourcevel = picked.getC( "SourceVel" );
+                sourcesys = picked.getC( "SourceSys" );
                 sourcevrf = picked.getC( "SourceVRF" );
                 epoch = picked.getC( "Epoch" );
 
@@ -1047,6 +1087,8 @@ public class SpecCoordinatesFrame
                                                 "SpecOrigin" );
                         sourcevel = checkAttr( picked, sourcevel,
                                                "SourceVel" );
+                        sourcesys = checkAttr( picked, sourcesys,
+                                               "SourceSys" );
                         sourcevrf = checkAttr( picked, sourcevrf,
                                                "SourceVRF" );
                         epoch = checkAttr( picked, epoch, "Epoch" );
@@ -1064,6 +1106,7 @@ public class SpecCoordinatesFrame
                         specorigin = "0";
                         specoriginDefault = "0";
                         sourcevel = "";
+                        sourcesys = "VELO";
                         sourcevrf = "";
                         epoch = "";
                     }
@@ -1077,7 +1120,7 @@ public class SpecCoordinatesFrame
             // Set the values.
             setInterface( system, unit, stdofrest, obslon, obslat, refra,
                           refdec, restfreq, specorigin, sourcevrf, sourcevel,
-                          epoch );
+                          sourcesys, epoch );
         }
     }
 
@@ -1095,7 +1138,7 @@ public class SpecCoordinatesFrame
                               String obslat, String refra, String refdec,
                               String restfreq, String specorigin,
                               String sourcevrf, String sourcevel, 
-                              String epoch )
+                              String sourcesys, String epoch )
     {
         String value = null;
 
@@ -1144,6 +1187,11 @@ public class SpecCoordinatesFrame
         if ( sourcevrf != null ) {
             value = (String) stdOfRestInverse.get( sourcevrf );
             sourceStdOfRestBox.setSelectedItem( value );
+        }
+
+        if ( sourcesys != null ) {
+            value = (String) sourceSystemsInverse.get( sourcesys );
+            sourceSystemBox.setSelectedItem( value );
         }
 
         if ( epoch != null ) {
@@ -1272,7 +1320,7 @@ public class SpecCoordinatesFrame
             String cmd = e.getActionCommand();
             if ( "set1".equals( cmd ) ) {
                 setInterface( "WAVE", "Angstrom", "Source", "", "", "", "",
-                              "", "", "Topocentric", "0.0", "" );
+                              "", "", "Topocentric", "0.0", "VELO", "" );
             }
         }
     }

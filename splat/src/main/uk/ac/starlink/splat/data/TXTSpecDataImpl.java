@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
@@ -370,6 +371,7 @@ public class TXTSpecDataImpl
                 "RefRA",
                 "RestFreq",
                 "SourceVRF",
+                "SourceSys",
                 "SourceVel",
                 "StdOfRest",
                 "DSBCentre",

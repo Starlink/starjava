@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     17-MAY-2005 (Peter W. Draper):
@@ -624,16 +625,17 @@ public class FlipFrame
         //  Change standard of rest to "Source" and set the velocity, without
         //  causing a remap to the FrameSet.
         double initialVelocity = current.getD( "SourceVel" );
+        String initialSystem = current.getC( "SourceSys" );
         current.setC( "StdOfRest", "Source" );
-        double redshiftVelocity =
-            0.001 * MathUtils.redshiftToVelocity( redshift ); // Km/s
-        current.setD( "SourceVel", redshiftVelocity );
+        current.set( "SourceSys=ZOPT" );
+        current.setD( "SourceVel", redshift );
 
         //  Now apply the redshift by moving the frameSet back to the original
         //  reference frame, this should cause a remapping.
         frameSet.setC( "StdOfRest", stdOfRest );
 
         //  Restore any original source velocity, without causing a remap.
+        current.setC( "SourceSys", initialSystem );
         current.setD( "SourceVel", initialVelocity );
 
         //  If line identifier, we were always at "Source".
