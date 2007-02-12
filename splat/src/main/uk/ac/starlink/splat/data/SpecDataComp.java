@@ -1094,12 +1094,10 @@ public class SpecDataComp
             //  Get mapping.
             mapping = to.convert( from, "DATAPLOT" );
 
-            //  Transform to source rest frame for matching against line ids.
-            //  Do this after convert so that internal remappings are correct?
+            //  Transform any line identifiers to the spectral source velocity.
             if ( sourceTransform ) {
-                mapping.setInvert( true );
-                mapping.set( "StdOfRest(1)=Source" );
-                mapping.setInvert( false );
+                double velocity = to.getD( "SourceVel" );
+                mapping.setD( "SourceVel", velocity );
             }
 
             if ( dataUnitsMatching ) {
