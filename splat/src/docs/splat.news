@@ -11,6 +11,10 @@
    as the preference is preserved between sessions. Previously users
    of SPLAT will retain their existing preference.
 
+   It is now possible to select redshift, a relativistic velocity and
+   an optical velocity in the quick change of units associated with
+   a plot.
+
    3.6-4
    =====
 
@@ -42,7 +46,7 @@
    =====
 
    The statistics toolbox had an off-by-one difference between the 
-   selected stats and the individual region stats, giving slighty different
+   selected stats and the individual region stats, giving slightly different
    results. That has been fixed.
 
    3.6-0
