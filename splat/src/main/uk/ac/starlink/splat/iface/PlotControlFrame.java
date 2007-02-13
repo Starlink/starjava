@@ -586,15 +586,15 @@ public class PlotControlFrame
         optionsMenu.add( sidebandMatching );
         sidebandMatching.addItemListener( this );
 
-        boolean state =
+        boolean state1 =
             prefs.getBoolean( "PlotControlFrame_coordinatematch", false );
-        coordinateMatching.setSelected( state );
-
-        state = prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
-        dataUnitsMatching.setSelected( state );
-
-        state = prefs.getBoolean( "PlotControlFrame_sidebandmatch", false );
-        sidebandMatching.setSelected( state );
+        boolean state2 = 
+            prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
+        boolean state3 = 
+            prefs.getBoolean( "PlotControlFrame_sidebandmatch", true );
+        coordinateMatching.setSelected( state1 );
+        dataUnitsMatching.setSelected( state2 );
+        sidebandMatching.setSelected( state3 );
 
         //  Whether to just draw the grid in the visible region. Can be
         //  expensive so off by default.
@@ -603,8 +603,8 @@ public class PlotControlFrame
         optionsMenu.add( showVisibleOnly );
         showVisibleOnly.addItemListener( this );
 
-        state = prefs.getBoolean( "PlotControlFrame_showvisibleonly", false );
-        showVisibleOnly.setSelected( state );
+        state1 = prefs.getBoolean( "PlotControlFrame_showvisibleonly", false );
+        showVisibleOnly.setSelected( state1 );
 
         //  Whether to clip spectrum graphics to lie with axes border.
         clipGraphics =
@@ -613,8 +613,8 @@ public class PlotControlFrame
         optionsMenu.add( clipGraphics );
         clipGraphics.addItemListener( this );
 
-        state = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
-        clipGraphics.setSelected( state );
+        state1 = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
+        clipGraphics.setSelected( state1 );
 
         setupLineOptionsMenu();
 
@@ -622,37 +622,37 @@ public class PlotControlFrame
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
         optionsMenu.add( errorbarAutoRanging );
         errorbarAutoRanging.addItemListener( this );
-        state = prefs.getBoolean( "PlotControlFrame_errorbarautoranging",
-                                  false );
-        errorbarAutoRanging.setSelected( state );
+        state1 = prefs.getBoolean( "PlotControlFrame_errorbarautoranging",
+                                   false );
+        errorbarAutoRanging.setSelected( state1 );
 
         //  Autofit to Y when selecting a percentile cut.
         autoFitPercentiles =
             new JCheckBoxMenuItem( "Auto fit percentiles in Y" );
         optionsMenu.add( autoFitPercentiles );
         autoFitPercentiles.addItemListener( this );
-        state =
+        state1 =
             prefs.getBoolean( "PlotControlFrame_autofitpercentiles", false );
-        autoFitPercentiles.setSelected( state );
+        autoFitPercentiles.setSelected( state1 );
 
         //  Show short names in drop down menu.
         showShortNames =
             new JCheckBoxMenuItem( "Short names in menu lists" );
         optionsMenu.add( showShortNames );
         showShortNames.addItemListener( this );
-        state = prefs.getBoolean( "PlotControlFrame_showshortnames",
-                                  LineRenderer.isShowShortNames() );
-        showShortNames.setSelected( state );
-        LineRenderer.setShowShortNames( state );
+        state1 = prefs.getBoolean( "PlotControlFrame_showshortnames",
+                                   LineRenderer.isShowShortNames() );
+        showShortNames.setSelected( state1 );
+        LineRenderer.setShowShortNames( state1 );
 
         //  Display the current spectrum synopsis.
         showSynopsis =
             new JCheckBoxMenuItem( "Display synopsis" );
         optionsMenu.add( showSynopsis );
         showSynopsis.addItemListener( this );
-        state = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
+        state1 = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
         try {
-            showSynopsis.setSelected( state );
+            showSynopsis.setSelected( state1 );
         }
         catch (Exception e) {
             e.printStackTrace();
