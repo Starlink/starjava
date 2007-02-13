@@ -126,6 +126,11 @@ public class PlotUnitsFrame
     private static final String UNKNOWN = "Unknown";
 
     /**
+     * No units (redshift, beta factor).
+     */
+    private static final String NONE = "None";
+
+    /**
      * List of the possible data units.
      */
     private static Map dataUnitsMap = null;
@@ -167,6 +172,11 @@ public class PlotUnitsFrame
                                          "VRAD" ) );
         coordinateSystems.add( new Cdus( "Kilometres-per-sec (radio)", "km/s",
                                          "VRAD" ) );
+        coordinateSystems.add( new Cdus( "Redshift", NONE, "ZOPT" ) );
+        coordinateSystems.add( new Cdus( "Kilometres-per-sec (rela)", "km/s",
+                                         "VELO" ) );
+        coordinateSystems.add( new Cdus( "Kilometres-per-sec (opt)", "km/s",
+                                         "VOPT" ) );
         coordinateSystems.add( new Cdus( "Per-metre", "1/m", "WAVN" ) );
     };
 
@@ -391,7 +401,6 @@ public class PlotUnitsFrame
             //  Not a SpecFrame, no SpecOrigin.
             originDefault = 0.0;
             originDefaultFrame = null;
-            System.out.println( "Not a SpecFrame, no SpecOrigin" );
         }
 
         //  Need to transform these into local strings.
@@ -411,9 +420,11 @@ public class PlotUnitsFrame
         i = coordinateSystems.iterator();
         coordinatesBox.setSelectedIndex( 0 ); // Unknown
         Cdus cdus = null;
+        String units;
         while ( i.hasNext() ) {
             cdus = (Cdus) i.next();
-            if ( cdus.getUnits().equals( coordUnits ) ) {
+            units = cdus.getUnits();
+            if ( ! units.equals( NONE ) && units.equals( coordUnits ) ) {
                 coordinatesBox.setSelectedItem( cdus );
                 break;
             }
@@ -455,6 +466,9 @@ public class PlotUnitsFrame
 
         Cdus cdus = (Cdus) coordinatesBox.getSelectedItem();
         String coordUnits = cdus.getUnits();
+        if ( coordUnits.equals( NONE ) ) {
+            coordUnits = "";
+        }
         String coordSystem = cdus.getSystem();
 
         String sideBand = (String) sideBandBox.getSelectedItem();
