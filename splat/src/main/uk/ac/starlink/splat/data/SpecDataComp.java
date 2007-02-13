@@ -1088,6 +1088,11 @@ public class SpecDataComp
                 from.setActiveUnit( false );
             }
 
+            //  Reset so that it only effects the mapping (not the Plot).
+            if ( haveDSBSpecFrame && ! sidebandMatching ) {
+                to.setB( "AlignSideBand", true );
+            }
+
             if ( mapping == null ) {
                 throw new SplatException( "Failed to align coordinates of " +
                                           currentSpec.getShortName() +
