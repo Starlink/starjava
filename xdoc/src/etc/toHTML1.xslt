@@ -12,6 +12,7 @@
   <xsl:param name="BASEDIR" select="'.'"/>
   <xsl:param name="COVERIMAGE" select="''"/>
   <xsl:param name="CSS_HREF" select="''"/>
+  <xsl:param name="DOCTYPE" select="'Starlink User Note'"/>
 
   <!-- Top level element -->
 
@@ -56,7 +57,7 @@
     <hr/>
     <p>
       <i>
-        Starlink User Note
+        <xsl:value-of select="$DOCTYPE"/>
         <xsl:apply-templates select="docnumber"/>
         <br/>
         <xsl:apply-templates select="authorlist"/>
@@ -570,7 +571,7 @@
     <i>
       <xsl:apply-templates select="/sun/docinfo/title"/>
       <br/>
-      Starlink User Note 
+      <xsl:value-of select="$DOCTYPE"/>
       <xsl:apply-templates select="/sun/docinfo/docnumber"/>
       <br/>
       <xsl:apply-templates select="/sun/docinfo/contactlist"/>

@@ -16,6 +16,7 @@
   <xsl:param name="FIGDIR" select="'.'"/>
   <xsl:param name="COVERIMAGE" select="''"/>
 
+  <xsl:param name="DOCTYPE" select="'Starlink User Note'"/>
 
   <!-- Templates -->
 
@@ -68,10 +69,12 @@
 
         <fo:static-content flow-name="xsl-region-before">
           <fo:block text-align="justify" text-align-last="justify">
-            <fo:inline font-style="italic">
-              <xsl:text>SUN/</xsl:text>
-              <xsl:apply-templates select="/sun/docinfo/docnumber"/>
-            </fo:inline>
+            <xsl:if test="/sun/docinfo/docnumber">
+              <fo:inline font-style="italic">
+                <xsl:text>SUN/</xsl:text>
+                <xsl:apply-templates select="/sun/docinfo/docnumber"/>
+              </fo:inline>
+            </xsl:if>
             <fo:leader leader-pattern="space"/>
             <fo:inline>
               <fo:page-number/>
@@ -119,7 +122,7 @@
 
     <fo:block font-style="italic">
       <fo:block>
-        Starlink User Note
+        <xsl:value-of select="$DOCTYPE"/>
         <xsl:apply-templates select="docnumber"/>
       </fo:block>
       <fo:block>
