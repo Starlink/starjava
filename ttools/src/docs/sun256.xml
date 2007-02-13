@@ -2286,7 +2286,19 @@ stilts calc 'isoToMjd("2005-12-25T00:00:00")'
 
 <p><code>funcs</code> is a utility which allows you to browse the
 functions you can use in STILTS's algebraic expression language.
-These are described in <ref id="staticMethods"/>, but the graphical
+Invoking the command causes a window to pop up on the display with
+two parts.  The left hand panel contains a tree-like representation of the
+functions available - the top level shows the classes (categories)
+into which the functions are divided, and if you open these up
+(by double clicking on them) each contains a list of functions and
+constants in that class.
+If you click on any of these classes or their constituent functions
+or constants, a full descritption of what they are and how to
+use them will appear in the right hand panel.
+</p>
+
+<p>The information available from this command is the same as that given
+in <ref id="staticMethods"/>, but the graphical
 browser may be a more convenient way to view the documentation.
 There are no parameters.
 </p>
