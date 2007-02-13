@@ -1,5 +1,16 @@
 1 Starlink SPLAT news.
 
+   3.6-5
+   =====
+
+   The plot coordinate matching option is now switched on by default.
+   This option matches different spectral coordinates between spectra
+   plotted together (wavelength, frequency, velocity and energy). To
+   restore the old behaviour (which is quicker for spectra which are
+   all in the same coordinates) just switch this off in any plot window,
+   as the preference is preserved between sessions. Previously users
+   of SPLAT will retain their existing preference.
+
    3.6-4
    =====
 

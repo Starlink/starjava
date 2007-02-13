@@ -1120,8 +1120,8 @@ the display area.\\
   if you have defined the source velocity as part of its coordinate system
   definition).
 
-  Many spectra will not have appropriate coordinates or data units defined, so
-  by default this option is switched off.
+  This option is switched on by default. If your spectra do not need aligning
+  switch if off for extra performance.
 
   \item \submenuitem{Options}{Match non-flux data units}.
   If your data units are not understood as fluxes it may still be possible to
@@ -1372,9 +1372,9 @@ plot. If this isn't the case then some of the spectra are probably invalid and
 you will need to add them to a plot yourself (see the section on
 \htmlref{displaying more than one spectrum}{displaying_more_than_one_spectrum}).
 If you want \SPLAT\ to match the coordinate systems and fluxes of the spectra
-then remember to select the
+then make sure that the
 \submenuitem{Options}{Match coordinates and/or fluxes}
-item in the plot window.
+item is still switched on in the plot window.
 
 To view a single spectrum quickly just double click on its row. This will
 download the spectrum and display it in its own plot window.
@@ -1699,11 +1699,11 @@ them all in the view of the global list shown in this window.
 
 Now say that you wanted to compare this spectrum with a standard set of
 emission lines, obviously taken at rest in a laboratory. If you load the
-emission line catalogue and display it in the same plot and then select the
-\submenuitem{Options}{Match coordinates and/or fluxes} item the labels will be
-red-shifted to the rest frame of the source (\ie\ where the lines from the
-galaxy originated). This is shown in action in the next figure where the lines
-before matching are shown in blue and red after matching.
+emission line catalogue and display it in the same plot (making sure that the
+\submenuitem{Options}{Match coordinates and/or fluxes} item is switched on)
+the labels will be red-shifted to the rest frame of the source (\ie\ where the
+lines from the galaxy originated). This is shown in action in the next figure
+where the lines before matching are shown in blue and red after matching.
 
 \mainfigure{coordinatesystemplot}
 
@@ -2915,10 +2915,10 @@ If you do not want to change the units of an axis, just leave the value set at
 
 When the plot is displaying more than one spectrum, only the current one is
 actually modified. If you want the other spectra to be drawn as if in the same
-coordinates or data units, then you must select the menu item
-\submenuitem{Options}{Match coordinates and/or fluxes}, but this will only
-work when all the displayed spectra have proper spectral coordinates and data
-units defined.
+coordinates or data units, then you must make sure that the menu item
+\submenuitem{Options}{Match coordinates and/or fluxes} is selected, but this
+will only work when all the displayed spectra have proper spectral coordinates
+and data units defined.
 
 The \labelitem{SideBand:} control is for switching between sidebands (upper
 and lower) when display spectra that are derived from a dual sideband
