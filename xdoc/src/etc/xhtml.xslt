@@ -28,7 +28,13 @@
  !        <a href="archive.zip">archive.zip</a> (1.5M)
  !
  !  3. The <usage class="pkg.clazz"> element will expand to the class's
- |     usage method (result of running pkg.class.main("-help")).
+ !     usage method (result of running pkg.class.main("-help")).
+ !
+ !  4. The <version/> element will expand to the value of the VERSION
+ !     parameter if defined.
+ !
+ !  5. The <date/> element will expand to the value of the DATE parameter
+ !     if defined, otherwise to today's date.
  !
  !-->
 
@@ -37,11 +43,21 @@
                 xmlns:java="http://xml.apache.org/xalan/java"
                 xmlns:File="xalan://java.io.File"
                 xmlns:ImageIcon="xalan://javax.swing.ImageIcon"
+                xmlns:Date="xalan://java.util.Date"
+                xmlns:DateFormat="xalan://java.text.DateFormat"
                 xmlns:XdocUtils="xalan://uk.ac.starlink.xdoc.XdocUtils"
                 exclude-result-prefixes="java File ImageIcon XdocUtils"
                 >
 
   <xsl:param name="BASEDIR" select="'.'"/>
+  <xsl:param name="VERSION" select="'??'"/>
+  <xsl:param name="DATE">
+    <xsl:if test="function-available('DateFormat:getDateInstance')">
+      <xsl:variable name="today" select="Date:new()"/>
+      <xsl:variable name="format" select="DateFormat:getDateInstance()"/>
+      <xsl:value-of select="DateFormat:format($format,$today)"/>
+    </xsl:if>
+  </xsl:param>
 
   <xsl:output method="html"
               doctype-public="-//W3C//DTD HTML 3.2//EN"/>
@@ -101,6 +117,14 @@
         </xsl:element>
       </xsl:element>
     </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="version">
+    <xsl:value-of select="$VERSION"/>
+  </xsl:template>
+
+  <xsl:template match="date">
+    <xsl:value-of select="$DATE"/>
   </xsl:template>
 
 </xsl:stylesheet>
