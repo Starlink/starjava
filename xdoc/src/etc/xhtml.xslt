@@ -46,7 +46,7 @@
                 xmlns:Date="xalan://java.util.Date"
                 xmlns:DateFormat="xalan://java.text.DateFormat"
                 xmlns:XdocUtils="xalan://uk.ac.starlink.xdoc.XdocUtils"
-                exclude-result-prefixes="java File ImageIcon XdocUtils"
+                exclude-result-prefixes="java File ImageIcon Date DateFormat XdocUtils"
                 >
 
   <xsl:param name="BASEDIR" select="'.'"/>
