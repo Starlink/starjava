@@ -1039,44 +1039,34 @@ public class SpecDataComp
             boolean haveSpecFrame = ( picked instanceof SpecFrame );
             boolean haveDSBSpecFrame = ( picked instanceof DSBSpecFrame );
 
-            // If spectrum is a line id then we should attempt to transform it
-            // into the system of main spectrum (this aligns if a source
-            // velocity is set).
+            //  If this is a line identifier, then we need to make this
+            //  look as if measured travelling with the source. Do this by
+            //  using the same attributes as the measurement, but with a
+            //  standard of rest set to "Source". Also need to match the
+            //  spectral coordinates, so keep them too.
             FrameSet mapping = null;
-            boolean sourceTransform = false;
             if ( spectrum instanceof LineIDSpecData && haveSpecFrame ) {
-                sourceTransform = true;
+                Frame copy = (Frame) to.copy();
+                copy.set( "System(1)=" + from.getC( "System(1)" ) );
+                copy.set( "Unit(1)=" + from.getC( "Unit(1)" ) );
+                copy.set( "StdOfRest=Source" );
 
-                // Cannot be sure to match data units as line identifiers do
-                // not generally have these. When they are unset the data
-                // units will have value "unknown" or have no data positions,
-                // in those cases set the data units to those of the current
-                // spectrum.
+                //  Slight wart, if we have data units for this line
+                //  identifier (used when allowing the positioning of the
+                //  markers), then we also need to keep the system.
                 boolean haveDataPositions =
                     ((LineIDSpecData) spectrum).haveDataPositions();
-
-                String dataUnits = from.getC( "unit(2)" );
+                String dataUnits = from.getC( "Unit(2)" );
                 if ( dataUnits == null || dataUnits.equals( "unknown" ) ) {
                     haveDataPositions = false;
                 }
-
-                if ( ! haveDataPositions ) {
-                    //  Use units Frame of the current spectrum along with the
-                    //  SpecFrame of the line identifiers.
-                    Frame fromSpecFrame  = from.pickAxes( 1, iaxes, null );
-                    iaxes[0] = 2;
-                    Frame toUnitFrame = to.pickAxes( 1, iaxes, null );
-
-                    //  Make the right kind of Frame. SpecFluxFrames will not
-                    //  match any other type of Frame.
-                    if ( to instanceof SpecFluxFrame ) {
-                        from = new SpecFluxFrame( (SpecFrame) fromSpecFrame,
-                                                  (FluxFrame) toUnitFrame );
-                    }
-                    else {
-                        from = new CmpFrame( fromSpecFrame, toUnitFrame );
-                    }
+                if ( haveDataPositions ) {
+                    copy.set( "System(2)=" + from.getC( "System(2)" ) );
+                    copy.set( "Unit(2)=" + dataUnits );
                 }
+
+                //  This replaces existing Frame.
+                from = copy;
             }
 
             //  If not using a FluxFrame in a SpecFluxFrame we can still match
@@ -1093,15 +1083,6 @@ public class SpecDataComp
 
             //  Get mapping.
             mapping = to.convert( from, "DATAPLOT" );
-
-            //  Transform any line identifiers to the spectral source velocity.
-            //  Note velocity is stored in SourceSys system (could be ZOPT).
-            if ( sourceTransform ) {
-                String system = to.getC( "SourceSys" );
-                mapping.setC( "SourceSys", system );
-                double velocity = to.getD( "SourceVel" );
-                mapping.setD( "SourceVel", velocity );
-            }
 
             if ( dataUnitsMatching ) {
                 from.setActiveUnit( false );
