@@ -587,7 +587,7 @@ public class PlotControlFrame
         sidebandMatching.addItemListener( this );
 
         boolean state1 =
-            prefs.getBoolean( "PlotControlFrame_coordinatematch", false );
+            prefs.getBoolean( "PlotControlFrame_coordinatematch", true );
         boolean state2 = 
             prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
         boolean state3 = 
