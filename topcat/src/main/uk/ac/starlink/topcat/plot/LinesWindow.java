@@ -305,7 +305,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 (LinesPointSelector) pointSelectors.getSelector( isel );
             pselList.add( psel );
             Range yRange;
-            if ( psel.isValid() ) {
+            if ( psel.isReady() ) {
                 AxisEditor yAxEd = axEds[ 1 + isel ];
                 ColumnInfo cinfo = psel.getData().getColumnInfo( 1 );
                 yAxes[ isel ] = cinfo;
@@ -381,7 +381,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             (DefaultPointSelector) pointSelectors.getMainSelector();
         TopcatModel mainTable = null;
         Object mainXAxis = null;
-        if ( mainSel != null && mainSel.isValid() ) {
+        if ( mainSel != null && mainSel.isReady() ) {
             mainTable = mainSel.getTable();
             mainXAxis = mainSel.getColumnSelector( 0 ).getSelectedItem();
             for ( int i = 0; 
@@ -390,7 +390,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                   i++ ) {
                 DefaultPointSelector psel =
                     (DefaultPointSelector) pointSelectors.getSelector( i );
-                if ( psel.isValid() ) {
+                if ( psel.isReady() ) {
                     TopcatModel table = psel.getTable();
                     Object xAxis =
                         psel.getColumnSelector( 0 ).getSelectedItem();

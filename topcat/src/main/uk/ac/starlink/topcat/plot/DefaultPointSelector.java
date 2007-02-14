@@ -102,7 +102,7 @@ public class DefaultPointSelector extends PointSelector {
         return ndim_;
     }
 
-    public boolean isValid() {
+    public boolean isReady() {
         if ( getTable() == null ) {
             return false;
         }

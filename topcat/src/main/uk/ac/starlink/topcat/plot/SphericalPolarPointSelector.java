@@ -116,7 +116,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         return 3;
     }
 
-    public boolean isValid() {
+    public boolean isReady() {
         return getTable() != null
             && getPhi() != null
             && getTheta() != null;

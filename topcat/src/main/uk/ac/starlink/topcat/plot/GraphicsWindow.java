@@ -558,7 +558,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         PlotState state = createPlotState();
 
         /* Can't plot, won't plot. */
-        if ( ! pointSelectors_.getMainSelector().isValid() ) {
+        if ( ! pointSelectors_.getMainSelector().isReady() ) {
             state.setValid( false );
             return state;
         }

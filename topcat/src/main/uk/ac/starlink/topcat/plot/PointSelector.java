@@ -186,7 +186,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      *
      * @return   true iff properly filled in
      */
-    public abstract boolean isValid();
+    public abstract boolean isReady();
 
     /**
      * Set up column selectors correctly for the given model.
