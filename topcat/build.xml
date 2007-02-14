@@ -1268,11 +1268,9 @@
              docletpathref="classpath"
              failonerror="true"
              public="true"
-             additionalparam="-headings"
              destdir="${build.classes}"
              sourcepath="${java.dir}:${ttools.java}"
-             packagenames="uk.ac.starlink.ttools.func,
-                           uk.ac.starlink.topcat.func"
+             packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
 
