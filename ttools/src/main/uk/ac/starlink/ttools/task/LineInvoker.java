@@ -55,7 +55,7 @@ public class LineInvoker {
      * 
      * @param   args   argument list
      */
-    public void invoke( String[] args ) {
+    public int invoke( String[] args ) {
         List argList = new ArrayList( Arrays.asList( args ) );
         LineTableEnvironment env = new LineTableEnvironment();
         int verbosity = 0;
@@ -70,7 +70,7 @@ public class LineInvoker {
                     it.remove();
                     String topic = it.hasNext() ? (String) it.next() : null;
                     System.out.println( "\n" + getUsage( topic ) );
-                    return;
+                    return 0;
                 }
                 else if ( arg.equals( "-version" ) ) {
                     it.remove();
@@ -95,7 +95,7 @@ public class LineInvoker {
                         }
                         System.out.println( line );
                     }
-                    return;
+                    return 0;
                 }
                 else if ( arg.equals( "-verbose" ) ) {
                     it.remove();
@@ -131,10 +131,21 @@ public class LineInvoker {
                     it.remove();
                     bench = true;
                 }
+                else if ( arg.equals( "-checkversion" ) && it.hasNext() ) {
+                    it.remove();
+                    String vers = (String) it.next();
+                    it.remove();
+                    if ( ! vers.equals( Stilts.getVersion() ) ) {
+                        System.err.println( "Version mismatch: "
+                                          + Stilts.getVersion() + " != "
+                                          + vers );
+                        return 1;
+                    }
+                }
                 else {
                     it.remove();
                     System.err.println( "\n" + getUsage() );
-                    System.exit( 1 );
+                    return 1;
                 }
             }
             else {
@@ -144,7 +155,7 @@ public class LineInvoker {
 
         if ( argList.size() == 0 ) {
             System.err.println( "\n" + getUsage() );
-            System.exit( 1 );
+            return 1;
         }
 
         InvokeUtils.configureLogging( verbosity, env.isDebug() );
@@ -159,6 +170,7 @@ public class LineInvoker {
                 String helpText = helpMessage( env, task, taskName, taskArgs );
                 if ( helpText != null ) {
                     System.out.println( "\n" + helpText );
+                    return 0;
                 }
                 else {
                     LineWord[] words = new LineWord[ taskArgs.length ];
@@ -178,11 +190,12 @@ public class LineInvoker {
                                 Float.toString( ( millis / 100L ) * 0.1f );
                             System.err.println( "Elapsed time: " + secs + "s" );
                         }
+                        return 0;
                     }
                     else {
                         System.err.println( "\n" + getUnusedWarning( unused ) );
                         System.err.println( getTaskUsage( task, taskName ) );
-                        System.exit( 1 );
+                        return 1;
                     }
                 }
             }
@@ -200,7 +213,7 @@ public class LineInvoker {
                 if ( e instanceof UsageException && task != null ) {
                     System.err.println( getTaskUsage( task, taskName ) );
                 }
-                System.exit( 1 );
+                return 1;
             }
             catch ( IllegalArgumentException e ) {
                 if ( env.isDebug() ) {
@@ -213,11 +226,11 @@ public class LineInvoker {
                     }
                     System.err.println( "\n" + msg + "\n" );
                 }
-                System.exit( 1 );
+                return 1;
             }
             catch ( RuntimeException e ) {
                 e.printStackTrace();
-                System.exit( 1 );
+                return 1;
             }
             catch ( IOException e ) {
                 if ( env.isDebug() ) {
@@ -230,7 +243,7 @@ public class LineInvoker {
                     }
                     System.err.println( "\n" + msg + "\n" );
                 }
-                System.exit( 1 );
+                return 1;
             }
             catch ( LoadException e ) {
                 System.err.println( "Task " + taskName + " not available" );
@@ -240,6 +253,7 @@ public class LineInvoker {
                 if ( env.isDebug() ) {
                     e.printStackTrace( System.err );
                 }
+                return 1;
             }
             catch ( OutOfMemoryError e ) {
                 System.err.println( "\nOut of memory" );
@@ -257,12 +271,13 @@ public class LineInvoker {
                 if ( env.isDebug() ) {
                     e.printStackTrace( System.err );
                 }
+                return 1;
             }
         }
         else {
             System.err.println( "\nNo such task: " + taskName );
             System.err.println( "\n" + getUsage() );
-            System.exit( 1 );
+            return 1;
         }
     }
 
@@ -366,7 +381,10 @@ public class LineInvoker {
             .append( " [-debug]" )
             .append( " [-prompt]" )
             .append( " [-batch]" )
+            .append( '\n' )
+            .append( pad )
             .append( " [-bench]" )
+            .append( " [-checkversion <vers>]" )
             .append( '\n' )
             .append( pad )
             .append( " <task-name> <task-args>" )
