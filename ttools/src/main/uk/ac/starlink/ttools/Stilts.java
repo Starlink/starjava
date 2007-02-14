@@ -33,7 +33,11 @@ public class Stilts {
     public static void main( String[] args ) {
         Loader.loadProperties();
         URLUtils.installCustomHandlers();
-        new LineInvoker( "stilts", taskFactory_ ).invoke( args );
+        LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
+        int status = invoker.invoke( args );
+        if ( status != 0 ) {
+            System.exit( status );
+        }
     }
 
     /**
