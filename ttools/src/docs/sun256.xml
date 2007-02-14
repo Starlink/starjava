@@ -338,6 +338,14 @@ follows:
     successful completion.
     </p></dd>
 
+<dt><code>-checkversion &lt;vers&gt;</code></dt>
+<dd><p>Requires that the version is exactly as given by the string
+    <code>&lt;vers&gt;</code>.  If it is not, STILTS will exit with
+    an error.  This can be useful when executing in certain controlled
+    environments to ensure that the correct version of the application
+    is being picked up.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -4177,6 +4185,8 @@ but my thanks are especially due to the following:
         <ref id="uk.ac.starlink.ttools.func.Distances">Distances</ref>.</li>
     <li>Added <ref id="funcs"><code>funcs</code></ref>, a browser for
         expression language function documentation.</li>
+    <li>Added <code>-checkversion</code> to list of <code>stilts</code>
+        <ref id="stilts-flags">flags</ref>.</li>
     </ul>
     </p></dd>
 
