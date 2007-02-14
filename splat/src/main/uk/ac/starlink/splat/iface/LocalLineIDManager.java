@@ -516,6 +516,11 @@ public class LocalLineIDManager
                         throw new SplatException( ie );
                     }
                 }
+                else {
+                    //  Failed to find the identifier in the database.
+                    throw new SplatException
+                        ( "Failed to locate line identifier in database" );
+                }
             }
             return impl;
         }
@@ -551,6 +556,10 @@ public class LocalLineIDManager
                     catch (Exception ie) {
                         logger.log( Level.INFO, ie.getMessage(), ie );
                     }
+                }
+                else {
+                    logger.warning
+                        ( "Failed to locate line identifier in database" );
                 }
             }
         }
