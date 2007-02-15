@@ -131,6 +131,8 @@ public class CheckBoxStack extends JPanel
         GridBagConstraints cons = new GridBagConstraints();
         cons.gridy = entries.size();
         cons.gridx = 0;
+        cons.weightx = 1.0;
+        cons.weighty = 1.0;
         cons.anchor = GridBagConstraints.WEST;
         layer.setConstraints( c1, cons );
         add( c1 );
@@ -140,10 +142,6 @@ public class CheckBoxStack extends JPanel
             add( c2 );
         }
         cons.gridx++;
-        cons.weightx = 1.0;
-        Component dummy = new JPanel();
-        layer.setConstraints( dummy, cons );
-        add( dummy );
     }
 
     /**
@@ -217,8 +215,13 @@ public class CheckBoxStack extends JPanel
     }
 
     public Dimension getPreferredScrollableViewportSize() {
-        return new Dimension( Math.max( getPreferredSize().width, 100 ),
-                              getLineHeight() * 4 );
+
+        /* The addition of (about) 20 here appears to be required to 
+         * prevent the layout going wrong (not enough width available)
+         * Possibly to do with being in a JScrollPane; possibly not.
+         * Edit at your own risk. */
+        int width = getPreferredSize().width + 20;
+        return new Dimension( Math.max( width, 100 ), getLineHeight() * 4 );
     }
 
     public boolean getScrollableTracksViewportHeight() {
