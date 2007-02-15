@@ -79,6 +79,13 @@ public class LineIDSpecData
     private static float[] vertical = new float[] { 1.0F, 0.0F };
     private static float[] horizontal = new float[] { 0.0F, 1.0F };
 
+    /**
+     * The name used to prefix any labels. This is the shortname, but
+     * with a trailing "_lines" removed and any underscores replaced
+     * with blanks.
+     */
+    private String prefixName = null;
+
     /* TODO: Undoable support */
 
     /**
@@ -114,6 +121,26 @@ public class LineIDSpecData
     public SpecData getSpecData()
     {
         return specData;
+    }
+
+    // 
+    //  Set the short name. Overridden so we can apply the transformation to 
+    //  remove "_lines" and and "_" for the version used to prefix the labels.
+    //
+    public void setShortName( String shortName )
+    {
+        super.setShortName( shortName );
+        prefixName = shortName;
+
+        //  Trim off "_lines" from name.
+        int index = prefixName.indexOf( "_lines" );
+        if ( index != -1 ) {
+            prefixName = prefixName.substring( 0, index );
+        }
+
+        //  Replace all underscores with blanks and append ":".
+        prefixName = prefixName.replace( '_', ' ' );
+        prefixName = prefixName + ":";
     }
 
     /**
@@ -397,28 +424,36 @@ public class LineIDSpecData
         double[] pos = new double[2];
 
         if ( prefixShortName ) {
-            String prefix = shortName + ":";
+            if ( prefixName == null ) {
+                setShortName( shortName );
+            }
+            String label = null;
+            double shift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
-                plot.text( prefix + labels[i], pos, upVector, "CC" );
+                label = prefixName + labels[i];
+                plot.text( label, pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
-                    pos[1] = xypos[j+1] + yshift;
+                    shift = 0.12 * yshift * (double) label.length();
+                    pos[1] = xypos[j+1] + shift;
                     plot.gridLine( 2, pos, lineLength );
-                    pos[1] = xypos[j+1] - yshift;
+                    pos[1] = xypos[j+1] - shift;
                     plot.gridLine( 2, pos, -lineLength );
                 }
             }
         }
         else {
+            double shift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
                 plot.text( labels[i], pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
-                    pos[1] = xypos[j+1] + yshift;
+                    shift = 0.12 * yshift * (double) labels[i].length();
+                    pos[1] = xypos[j+1] + shift;
                     plot.gridLine( 2, pos, lineLength );
-                    pos[1] = xypos[j+1] - yshift;
+                    pos[1] = xypos[j+1] - shift;
                     plot.gridLine( 2, pos, -lineLength );
                 }
             }
