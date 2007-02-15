@@ -1,5 +1,16 @@
 1 Starlink SPLAT news.
 
+   3.6-6
+   =====
+
+   All the line fitting functions now also report a FWHM value.
+
+   The line identifiers should now correctly take account of velocity
+   changes in the rest frame of the observer. The display of line 
+   identifiers has been changed to remove the _lines postfix and
+   to replace all underscores with blanks when also displaying the
+   shortname as part of the labels.
+
    3.6-5
    =====
 

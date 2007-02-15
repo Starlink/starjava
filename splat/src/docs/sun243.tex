@@ -26,11 +26,11 @@ Research Councils \\
 Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.20}
+\newcommand{\stardocnumber}    {243.21}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {12 February 2007}
+\newcommand{\stardocdate}      {15 February 2007}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.6-4}
+\newcommand{\stardocversion}   {3.6-6}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1171,7 +1171,10 @@ the display area.\\
   displayed in the plot will be prefixed to the label. This allows you to
   discriminate between crowded labels. Note that the short name of a line
   identifier can be modified in the main window, once it is loaded into the
-  global list.
+  global list. For legibility any names that are appended by
+  \labelitem{\_lines}, will have that string removed and any underscores will
+  be replaced by spaces.
+
 
   \item \subsubmenuitem{Options}{Line identifiers}{Draw horizontal labels}
   Select this option if you want line identifier labels drawn horizontally
@@ -2711,6 +2714,7 @@ hash (\#) and are ignored.
    \item \hitext{Peak}, the Gaussian peak ($A$).
    \item \hitext{Centre}, the position of the Gaussian peak ($c$).
    \item \hitext{Width}, the Gaussian sigma ($\sigma$).
+   \item \hitext{FWHM}, the full width of profile at half maximum.
    \item \hitext{Flux}, the integrated flux of the Gaussian.
    \item \hitext{Rms}, the root mean square difference between the
          Gaussian and the line data.
@@ -2734,6 +2738,7 @@ hash (\#) and are ignored.
    \item \hitext{Peak}, the Lorentzian peak ($A$).
    \item \hitext{Centre}, the position of the Lorentzian peak ($c$).
    \item \hitext{Width}, the Lorentzian width ($w$).
+   \item \hitext{FWHM}, the full width of profile at half maximum.
    \item \hitext{Flux}, the integrated flux of the Lorentzian.
    \item \hitext{Rms}, the root mean square difference between the
          Lorentzian and the line data.
@@ -2771,7 +2776,8 @@ hash (\#) and are ignored.
    \item \hitext{Peak}, the Voigt peak ($A$).
    \item \hitext{Centre}, the position of the Voigt peak ($c$).
    \item \hitext{Gwidth}, the Gaussian width ($\sigma$).
-   \item \hitext{Lwidth}, the Lorentzian width ($w$).
+   \item \hitext{Lwidth}, the Lorentzian full width at half maximum ($w$).
+   \item \hitext{FWHM}, the full width of profile at half maximum (estimate).
    \item \hitext{Flux}, the integrated flux of the Voigt profile.
    \item \hitext{Rms}, the root mean square difference between the
          Voigt and the line data.
@@ -2787,23 +2793,25 @@ hash (\#) and are ignored.
  very simple, as shown by the following example:
  \begin{quote}
   \begin{verbatim}
-# File created by SPLAT
+
+# File created by Starlink SPLAT-VO
 
 # Quick results:
-# ID    Peak    Centre  Width   Equiv   Flux    Asym
-0 -0.5199948 4101.629 8.29817 7.857605 -9.345678 0.10266805484985836
+# ID    Peak    Centre  Width   Equiv   Flux    Asym    
+0 0.5321614 4101.807 10.44628 7.857605 9.0610475 1.910094
 
 # Gaussian results:
-# ID    Peak    Centre  Width   Flux    Rms
-0 -0.4720484 4101.636 6.036242 -7.142383 0.03004651
+# ID    Peak    Centre  Width   FWHM    Flux    Rms     
+0 0.4762166 4101.639 6.377338 15.01748 7.612616 0.03396829 
 
 # Lorentzian results:
-# ID    Peak    Centre  Width   Flux    Rms
-0 -0.5267519 4101.663 3.951835 -9.248467 0.008252344
+# ID    Peak    Centre  Width   FWHM    Flux    Rms     
+0 0.5317154 4101.672 4.212697 11.91531 9.951863 0.01053175 
 
 # Voigt results:
-# ID    Peak    Centre  Gwidth  Lwidth  Flux    Rms
-0 -0.513331 4101.656 2.099387 9.640681 -8.930931 0.007531246
+# ID    Peak    Centre  Gwidth  Lwidth  FWHM    Flux    Rms     
+0 0.5299186 4101.669 1.100747 11.39916 11.99854 9.820011 0.01089378 
+
   \end{verbatim}
  \end{quote}
  So each fit type has a section in which the results for each line are
