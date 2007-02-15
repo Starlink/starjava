@@ -40,9 +40,9 @@ public class LineProperties
      */
     public final static String[][] PROP_NAMES = {
         {"ID", "Peak", "Centre", "Width", "Equiv", "Flux", "Asym"},
-        {"ID", "Peak", "Centre", "Width", "Flux", "Rms"},
-        {"ID", "Peak", "Centre", "Width", "Flux", "Rms"},
-        {"ID", "Peak", "Centre", "Gwidth", "Lwidth", "Flux", "Rms"}
+        {"ID", "Peak", "Centre", "Width", "FWHM", "Flux", "Rms"},
+        {"ID", "Peak", "Centre", "Width", "FWHM", "Flux", "Rms"},
+        {"ID", "Peak", "Centre", "Gwidth", "Lwidth", "FWHM", "Flux", "Rms"}
     };
 
     /**
@@ -63,11 +63,11 @@ public class LineProperties
     protected final static int[][] WRAPPERS = {
         {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
          AST_DOUBLE_X, DOUBLE, DOUBLE}, 
-        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
+        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
          AST_DOUBLE_Y, AST_DOUBLE_Y}, 
-        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
+        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
          AST_DOUBLE_Y, AST_DOUBLE_Y}, 
-        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
+        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
          AST_DOUBLE_X, AST_DOUBLE_Y, AST_DOUBLE_Y} 
     };
 

@@ -1050,13 +1050,14 @@ public class LineFitFrame
                     genCoords, fitY, 0 );
 
         //  Add results to view.
-        double[] results = new double[6];
+        double[] results = new double[7];
         results[0] = lineIndex;
         results[1] = fitter.getScale();
         results[2] = fitter.getCentre();
         results[3] = fitter.getSigma();
-        results[4] = fitter.getFlux();
-        results[5] = fitter.calcRms( fitCoords, fitData );
+        results[4] = fitter.getFWHM();
+        results[5] = fitter.getFlux();
+        results[6] = fitter.calcRms( fitCoords, fitData );
         lineView.addOrUpdateLine( LineProperties.GAUSS, results );
     }
 
@@ -1113,13 +1114,14 @@ public class LineFitFrame
                     genCoords, fitY, 1 );
 
         //  Add results to view.
-        double[] results = new double[6];
+        double[] results = new double[7];
         results[0] = lineIndex;
         results[1] = fitter.getScale();
         results[2] = fitter.getCentre();
         results[3] = fitter.getWidth();
-        results[4] = fitter.getFlux();
-        results[5] = fitter.calcRms( fitCoords, fitData );
+        results[4] = fitter.getFWHM();
+        results[5] = fitter.getFlux();
+        results[6] = fitter.calcRms( fitCoords, fitData );
         lineView.addOrUpdateLine( LineProperties.LORENTZ, results );
     }
 
@@ -1176,14 +1178,15 @@ public class LineFitFrame
                     genCoords, fitY, 2 );
 
         //  Add results to view.
-        double[] results = new double[7];
+        double[] results = new double[8];
         results[0] = lineIndex;
         results[1] = fitter.getScale();
         results[2] = fitter.getCentre();
         results[3] = fitter.getGWidth();
         results[4] = fitter.getLWidth();
-        results[5] = fitter.getFlux();
-        results[6] = fitter.calcRms( fitCoords, fitData );
+        results[5] = fitter.getFWHM();
+        results[6] = fitter.getFlux();
+        results[7] = fitter.calcRms( fitCoords, fitData );
         lineView.addOrUpdateLine( LineProperties.VOIGT, results );
     }
 
