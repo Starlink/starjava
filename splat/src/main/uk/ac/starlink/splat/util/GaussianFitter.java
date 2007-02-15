@@ -194,6 +194,14 @@ public class GaussianFitter
     }
 
     /**
+     * Get the FWHM.
+     */
+    public double getFWHM()
+    {
+        return params[SIGMA] * FWHMFAC;
+    }
+
+    /**
      * Get if the scale height is held fixed.
      */
     public boolean getScaleFixed()
