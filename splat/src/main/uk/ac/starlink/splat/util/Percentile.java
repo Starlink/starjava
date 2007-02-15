@@ -102,13 +102,16 @@ public class Percentile
 
         // If the percentile is outside the range 0 to 100, then we
         // need to calculate the difference and add or subtract this
-        // from the min/max.
+        // from the min/max, times the number of intervals needed.
         double realPercentile = percentile;
+        int nfact = 0;
         if ( realPercentile > 100.0 ) {
-            percentile = percentile - 100.0;
+            nfact = (int) ( percentile * 0.01 );
+            percentile = percentile - ( nfact * 100.0 );
         }
         else if ( realPercentile < 0.0 ) {
-            percentile = Math.abs( percentile );
+            nfact = (int) ( percentile * -0.01 );
+            percentile = Math.abs( percentile ) - ( nfact * 100.0 );
         }
         double value = 0.0;
 
@@ -143,12 +146,13 @@ public class Percentile
         // Return is clipped to min/max unless the percentile
         // requested was outside the range 0 to 100.
         value = Math.max( min, Math.min( max, value ) );
+
         if ( realPercentile != percentile ) {
             if ( realPercentile > 100.0 ) {
-                value = max + ( value - min );
+                value = max + ( value - min ) + ( (nfact-1) * ( max - min ) );
             }
             else if ( realPercentile < 0.0 ) {
-                value = min - ( value - min );
+                value = min - ( value - min ) - ( nfact * ( max - min ) );
             }
         }
         return value;
@@ -210,13 +214,17 @@ public class Percentile
 
         System.out.println( "Positive array" );
         Percentile perc = new Percentile( array, array.length );
-        System.out.println( " -5 -> " + perc.get( -5.0 ) );
-        System.out.println( "  0 -> " + perc.get( 0.0 ) );
-        System.out.println( "  5 -> " + perc.get( 5.0 ) );
-        System.out.println( " 50 -> " + perc.get( 50.0 ) );
-        System.out.println( " 95 -> " + perc.get( 95.0 ) );
-        System.out.println( "100 -> " + perc.get( 100.0 ) );
-        System.out.println( "105 -> " + perc.get( 105.0 ) );
+        System.out.println( "-525 -> " + perc.get( -525.0 ) );
+        System.out.println( "-200 -> " + perc.get( -200.0 ) );
+        System.out.println( "  -5 -> " + perc.get( -5.0 ) );
+        System.out.println( "   0 -> " + perc.get( 0.0 ) );
+        System.out.println( "   5 -> " + perc.get( 5.0 ) );
+        System.out.println( "  50 -> " + perc.get( 50.0 ) );
+        System.out.println( "  95 -> " + perc.get( 95.0 ) );
+        System.out.println( " 100 -> " + perc.get( 100.0 ) );
+        System.out.println( " 105 -> " + perc.get( 105.0 ) );
+        System.out.println( " 200 -> " + perc.get( 200.0 ) );
+        System.out.println( " 525 -> " + perc.get( 525.0 ) );
 
         for ( int i = 0; i < array.length; i++ ) {
             array[i] *= -1.0;
@@ -224,13 +232,18 @@ public class Percentile
 
         System.out.println( "Negative array" );
         perc = new Percentile( array, array.length );
-        System.out.println( " -5 -> " + perc.get( -5.0 ) );
-        System.out.println( "  0 -> " + perc.get( 0.0 ) );
-        System.out.println( "  5 -> " + perc.get( 5.0 ) );
-        System.out.println( " 50 -> " + perc.get( 50.0 ) );
-        System.out.println( " 95 -> " + perc.get( 95.0 ) );
-        System.out.println( "100 -> " + perc.get( 100.0 ) );
-        System.out.println( "105 -> " + perc.get( 105.0 ) );
+        System.out.println( "-525 -> " + perc.get( -525.0 ) );
+        System.out.println( "-200 -> " + perc.get( -200.0 ) );
+        System.out.println( "  -5 -> " + perc.get( -5.0 ) );
+        System.out.println( "   0 -> " + perc.get( 0.0 ) );
+        System.out.println( "   5 -> " + perc.get( 5.0 ) );
+        System.out.println( "  50 -> " + perc.get( 50.0 ) );
+        System.out.println( "  95 -> " + perc.get( 95.0 ) );
+        System.out.println( " 100 -> " + perc.get( 100.0 ) );
+        System.out.println( " 105 -> " + perc.get( 105.0 ) );
+        System.out.println( " 200 -> " + perc.get( 200.0 ) );
+        System.out.println( " 525 -> " + perc.get( 525.0 ) );
+
 
         for ( int i = 0; i < array.length; i++ ) {
             array[i] = -50.0 + i;
@@ -238,13 +251,16 @@ public class Percentile
 
         System.out.println( "Negative->Positive array" );
         perc = new Percentile( array, array.length );
-        System.out.println( " -5 -> " + perc.get( -5.0 ) );
-        System.out.println( "  0 -> " + perc.get( 0.0 ) );
-        System.out.println( "  5 -> " + perc.get( 5.0 ) );
-        System.out.println( " 50 -> " + perc.get( 50.0 ) );
-        System.out.println( " 95 -> " + perc.get( 95.0 ) );
-        System.out.println( "100 -> " + perc.get( 100.0 ) );
-        System.out.println( "105 -> " + perc.get( 105.0 ) );
-
+        System.out.println( "-525 -> " + perc.get( -525.0 ) );
+        System.out.println( "-200 -> " + perc.get( -200.0 ) );
+        System.out.println( "  -5 -> " + perc.get( -5.0 ) );
+        System.out.println( "   0 -> " + perc.get( 0.0 ) );
+        System.out.println( "   5 -> " + perc.get( 5.0 ) );
+        System.out.println( "  50 -> " + perc.get( 50.0 ) );
+        System.out.println( "  95 -> " + perc.get( 95.0 ) );
+        System.out.println( " 100 -> " + perc.get( 100.0 ) );
+        System.out.println( " 105 -> " + perc.get( 105.0 ) );
+        System.out.println( " 200 -> " + perc.get( 200.0 ) );
+        System.out.println( " 525 -> " + perc.get( 525.0 ) );
     }
 }
