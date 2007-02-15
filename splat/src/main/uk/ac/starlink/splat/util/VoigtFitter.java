@@ -184,7 +184,7 @@ public class VoigtFitter
     }
 
     /**
-     * Get the Gaussian width of the fit.
+     * Get the Gaussian width of the fit. This is the Gaussian sigma.
      */
     public double getGWidth()
     {
@@ -192,11 +192,25 @@ public class VoigtFitter
     }
 
     /**
-     * Get the Lorentzian width of the fit.
+     * Get the Lorentzian width of the fit. This is the FWHM.
      */
     public double getLWidth()
     {
         return params[LWIDTH];
+    }
+
+    /**
+     * Get the FWHM of the fit.
+     */
+    public double getFWHM()
+    {
+        double fg = params[GWIDTH] * GaussianFitter.FWHMFAC;
+        double fl = params[LWIDTH];
+        double fv;
+        
+        //  Good to 0.2%, checked with some numerical code.
+        fv = 0.5 * ( 1.0692*fl + Math.sqrt(0.86639*fl*fl + 4.0*fg*fg) );
+        return fv;
     }
 
     /**
