@@ -333,8 +333,8 @@ public class DataLimitControls
 
         // Percentile cuts for Y axis values.
         yPercentiles =
-            new FloatJSlider( new FloatJSliderModel( 100.0, 50.0,
-                                                     110.0, 0.1 ) );
+            new FloatJSlider( new FloatJSliderModel( 100.0, 55.0,
+                                                     200.0, 0.1 ) );
         yPercentiles.addChangeListener(
             new ChangeListener()
             {

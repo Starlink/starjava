@@ -132,6 +132,9 @@ public class SimpleDataLimitControls
         //  Add the default list of cuts.
         yPercentiles.setEditable( false );
         yPercentiles.addItem( "automatic" );
+        yPercentiles.addItem( new Double( 200.0 ) );
+        yPercentiles.addItem( new Double( 150.0 ) );
+        yPercentiles.addItem( new Double( 120.0 ) );
         yPercentiles.addItem( new Double( 110.0 ) );
         yPercentiles.addItem( new Double( 105.0 ) );
         yPercentiles.addItem( new Double( 99.9 ) );
