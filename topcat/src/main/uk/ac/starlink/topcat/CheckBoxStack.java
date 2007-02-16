@@ -221,7 +221,7 @@ public class CheckBoxStack extends JPanel
          * Possibly to do with being in a JScrollPane; possibly not.
          * Edit at your own risk. */
         int width = getPreferredSize().width + 20;
-        return new Dimension( Math.max( width, 100 ), getLineHeight() * 4 );
+        return new Dimension( Math.max( width, 120 ), getLineHeight() * 4 );
     }
 
     public boolean getScrollableTracksViewportHeight() {
