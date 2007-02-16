@@ -56,6 +56,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
 
     private final JComboBox tableSelector_;
     private final JScrollPane subsetScroller_;
+    private final JScrollPane entryScroller_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final SelectionForwarder selectionForwarder_;
     private final ListSelectionListener listActioner_;
@@ -99,10 +100,41 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         final JComponent controlBox = Box.createHorizontalBox();
         add( controlBox, BorderLayout.SOUTH );
 
-        /* Construct and place the main box for input. */
+        /* Construct the box for input of axes etc, and insert it into a 
+         * scroll pane.  Fix it so that the preferred size takes account of
+         * scrollbars if they may be present.  You can achieve a similar
+         * effect by just setting scrollbar policies to *_SCROLLBAR_ALWAYS,
+         * but that leaves an empty scrollbar when it's not necessary,
+         * which is (IMHO) ugly. */
         final Box entryBox = new Box( BoxLayout.Y_AXIS );
-        entryBox.setBorder( AuxWindow.makeTitledBorder( "Data" ) );
-        controlBox.add( entryBox );
+        entryScroller_ = new JScrollPane( entryBox ) {
+            public Dimension getPreferredSize() {
+                Dimension size =
+                    new Dimension( entryBox.getPreferredSize() );
+                Insets insets = getInsets();
+                size.width += insets.left + insets.right;
+                size.height += insets.top + insets.bottom;
+                if ( getVerticalScrollBarPolicy() 
+                     != VERTICAL_SCROLLBAR_NEVER ) {
+                    size.width +=
+                      + getVerticalScrollBar().getPreferredSize().width;
+                }
+                if ( getHorizontalScrollBarPolicy()
+                     != HORIZONTAL_SCROLLBAR_NEVER ) {
+                    size.height +=
+                      + getHorizontalScrollBar().getPreferredSize().height;
+                }
+                return size;
+            }
+        };
+
+        /* Install horizontal scrollbar only by default. */
+        setHorizontalEntryScrolling( true );
+        setVerticalEntryScrolling( false );
+
+        /* Decorate and place entry box. */
+        entryScroller_.setBorder( AuxWindow.makeTitledBorder( "Data" ) );
+        controlBox.add( entryScroller_ );
         controlBox.add( Box.createHorizontalStrut( 5 ) );
 
         /* Prepare a selection box for the table. */
@@ -138,7 +170,14 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         subsetScroller_ = new JScrollPane( new CheckBoxStack() ) {
             public Dimension getPreferredSize() {
                 return new Dimension( super.getPreferredSize().width,
-                                      entryBox.getPreferredSize().height );
+                                      entryScroller_.getPreferredSize()
+                                                    .height );
+            }
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+            public Dimension getMinimumSize() {
+                return getPreferredSize();
             }
         };
         subsetScroller_.setBorder( AuxWindow
@@ -228,6 +267,30 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      * @return  array of new AxisEditors 
      */
     public abstract AxisEditor[] createAxisEditors();
+
+    /**
+     * Determines whether the component containing the column selectors
+     * will scroll horizontally if required or not.
+     *
+     * @param  isScroll   true iff the entry box should scroll horizontally
+     */
+    public void setHorizontalEntryScrolling( boolean isScroll ) {
+        int policy = isScroll ? JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+                              : JScrollPane.HORIZONTAL_SCROLLBAR_NEVER;
+        entryScroller_.setHorizontalScrollBarPolicy( policy );
+    }
+
+    /**
+     * Determines whether the component containing the column selectors
+     * will scroll vertically if required or not.
+     *
+     * @param  isScroll  true iff the entry box should scroll vertically
+     */
+    public void setVerticalEntryScrolling( boolean isScroll ) {
+        int policy = isScroll ? JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+                              : JScrollPane.VERTICAL_SCROLLBAR_NEVER;
+        entryScroller_.setVerticalScrollBarPolicy( policy );
+    }
 
     public void setVisible( boolean visible ) {
         if ( visible ) {
