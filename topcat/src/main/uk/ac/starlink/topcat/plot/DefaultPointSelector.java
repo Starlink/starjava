@@ -87,6 +87,7 @@ public class DefaultPointSelector extends PointSelector {
         int pad = ndim_ == 1 ? colSelectors_[ 0 ].getPreferredSize().height
                              : 5;
         entryBox_.add( Box.createVerticalStrut( pad ) );
+        entryBox_.add( Box.createVerticalGlue() );
     }
 
     /**

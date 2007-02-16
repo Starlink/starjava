@@ -95,6 +95,8 @@ public class SphericalPolarPointSelector extends PointSelector {
             cPanel.add( Box.createHorizontalStrut( 5 ) );
             cPanel.add( Box.createHorizontalGlue() );
         }
+        colBox_.add( Box.createVerticalStrut( 5 ) );
+        colBox_.add( Box.createVerticalGlue() );
 
         /* Align axis labels. */
         Dimension labelSize = new Dimension( 0, 0 );
