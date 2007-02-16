@@ -69,8 +69,11 @@ public class ComboBoxBumper extends JPanel {
     }
 
     public Dimension getMaximumSize() {
-        return new Dimension( super.getMaximumSize().width,
-                              comboBox_.getMaximumSize().height );
+        return getPreferredSize();
+    }
+
+    public Dimension getMinimumSize() {
+        return getPreferredSize();
     }
 
     public void setEnabled( boolean enabled ) {
