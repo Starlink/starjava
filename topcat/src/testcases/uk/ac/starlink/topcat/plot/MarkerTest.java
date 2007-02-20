@@ -65,7 +65,7 @@ public class MarkerTest extends TestCase {
             panel.add( new ProfileSamples() );
             toplev.pack();
             toplev.setVisible( true );
-            Thread.currentThread().sleep( 4000 );
+            Thread.currentThread().sleep( 2000 );
             toplev.dispose();
         }
         catch ( HeadlessException e ) {
