@@ -16,7 +16,7 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 
 /**
- * Grahpical component which provides a GUI for editing the characteristics
+ * Graphical component which provides a GUI for editing the characteristics
  * of a {@link Style} object.  This is an abstract superclass; a specialised
  * implementation will be required for each <code>Style</code> implementation.
  * Since Style objects are usually immutable, this doesn't (necessarily)
