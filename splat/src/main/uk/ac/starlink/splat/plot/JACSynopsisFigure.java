@@ -133,9 +133,7 @@ public class JACSynopsisFigure
         if ( specData == null ) {
             return;
         }
-
-        ASTJ astj = specData.getAst();
-        Frame specAxis = astj.pickAxis( 1 );
+        Frame specAxis = specData.getAst().pickAxis( 1 );
 
         StringBuffer b = new StringBuffer();
 
@@ -218,56 +216,56 @@ public class JACSynopsisFigure
             }
         }
 
-        //  Exposure time. Prefer EXTIME from SPLAT, that's the time for just
+        //  Exposure time. Prefer EXTIME from GAIA, that's the time for just
         //  this spectrum (ton+toff).
         prop = specData.getProperty( "EXTIME" );
         if ( ! "".equals( prop ) ) {
             b.append( "Exposure: " + prop + " (sec)\n" );
         }
         else {
-
-            //  EXP_TIME is median for cube.
+            //  EXP_TIME is median for all the spectra in a cube.
             prop = specData.getProperty( "EXP_TIME" );
             if ( ! "".equals( prop ) ) {
                 b.append( "Exposure (median): " + prop + " (sec)\n" );
             }
-            else {
-                
-                //  Try elapsed time.
-                prop = specData.getProperty( "INT_TIME" );
-                if ( ! "".equals( prop ) ) {
-                    b.append( "Exposure (elapsed): " + prop + " (sec)\n" );
-                }
-                else {
+        }
 
-                    //  These are human readable dates so need to use FITS
-                    //  parsing.
-                    prop = specData.getProperty( "DATE-OBS" );
+        //  Effective exposure time, this will be written only by
+        //  GAIA.
+        prop = specData.getProperty( "EXEFFT" );
+        if ( ! "".equals( prop ) ) {
+            b.append( "Exposure (effective): " + prop + " (sec)\n" );
+        }
+
+        //  Elapsed time for the whole observation.
+        prop = specData.getProperty( "INT_TIME" );
+        if ( ! "".equals( prop ) ) {
+            b.append( "Exposure (elapsed): " + prop + " (sec)\n" );
+        }
+        else {
+            //  These are human readable dates so need to use FITS parsing.
+            prop = specData.getProperty( "DATE-OBS" );
+            if ( ! "".equals( prop ) ) {
+                try {
+                    Date dstart = new FitsDate( prop ).toDate();
+                    prop = specData.getProperty( "DATE-END" );
                     if ( ! "".equals( prop ) ) {
-                        try {
-                            Date dstart = new FitsDate( prop ).toDate();
-                            prop = specData.getProperty( "DATE-END" );
-                            if ( ! "".equals( prop ) ) {
-                                Date dend = new FitsDate( prop ).toDate();
-                                
-                                //  Get milliseconds in UNIX time.
-                                long istart = dstart.getTime();
-                                long iend = dend.getTime();
-                                b.append( "Exposure (elapsed): "
-                                          +( (iend-istart)/1000.0 )+ " (sec)\n" );
-                            }
-                        }
-                        catch (Exception e) {
-                            //  Unparsable time. Just give up.
-                        }
+                        Date dend = new FitsDate( prop ).toDate();
+
+                        //  Get milliseconds in UNIX time.
+                        long istart = dstart.getTime();
+                        long iend = dend.getTime();
+                        b.append( "Exposure (elapsed): "
+                                  +( (iend-istart)/1000.0 )+ " (sec)\n" );
                     }
+                }
+                catch (Exception e) {
+                    //  Unparsable time. Just give up.
                 }
             }
         }
-            
+
         b.append( "Coord Sys: " + specAxis.getSystem() + "\n" );
-        //b.append( "ObsLat: " + specAxis.getC( "ObsLat" ) + "\n" );
-        //b.append( "ObsLon: " + specAxis.getC( "ObsLon" ) + "\n" );
 
         if ( specAxis instanceof SpecFrame ) {
 
@@ -356,26 +354,20 @@ public class JACSynopsisFigure
         }
         if ( specAxis instanceof DSBSpecFrame ) {
             b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + " (GHz)\n");
-            //b.append( "DSBCentre: " + specAxis.getC( "DSBCentre" ) + "\n" );
-            //b.append( "IF: " + specAxis.getC( "IF" ) + " (GHz)\n" );
         }
 
-        //  Channel spacing.
+        //  Channel spacing. Work this out from AST, but report the value
+        //  in MHz, if IFCHANSP is present.
         prop = specData.getProperty( "IFCHANSP" );
-        if ( specAxis instanceof DSBSpecFrame && ! "".equals( prop ) ) {
-            //  JCMT value, should only be seen for DSBSpecFrames.
-            double inc = Double.parseDouble( prop ) / 1.0E6;
-            b.append( "Channel spacing: " + inc + " (MHz)\n" );
+        double inc;
+        if ( ! "".equals( prop ) ) {
+            inc = channelSpacing( specData, "System=FREQ,Unit=MHz" );
+            b.append( "Channel spacing: " + inc + " (Mhz)\n" );
         }
         else {
-            //  Work out the channel spacing from the coordinates.
-            //  These are in the axis units.
-            Mapping mapping = astj.get1DMapping( 1 );
-            double xin[] = new double[]{1.0, 2.0};
-            double xout[] = mapping.tran1( 2, xin, true );
-            double inc = xout[1] - xout[0];
-            String u = specAxis.getUnit( 1 );
+            inc = channelSpacing( specData, "" );
             b.append( "Channel spacing: " + inc );
+            String u = specAxis.getUnit( 1 );
             if ( ! "".equals( u ) ) {
                 b.append( " (" + u + ")\n" );
             }
@@ -400,6 +392,14 @@ public class JACSynopsisFigure
         prop = specData.getProperty( "TRX" );
         if ( ! "".equals( prop ) ) {
             b.append( "TRX: " + prop + " (K)\n" );
+        }
+
+        //  Estimated TSYS from variance, if possible.
+        if ( "JCMT".equals( telescope ) ) {
+            prop = calculateTsys( specData );
+            if ( ! "".equals( prop ) ) {
+                b.append( "TSYS (est): " + prop + " (K)\n" );
+            }
         }
 
         setString( b.toString() );
@@ -448,5 +448,93 @@ public class JACSynopsisFigure
     {
         //  Reset anchor as should be from an interactive movement.
         translate( x, y, true );
+    }
+
+
+  /**
+     * Calculate an estimate for the TSYS.
+     */
+    protected String calculateTsys( SpecData specData )
+    {
+        String result = "";
+        double[] errors = specData.getYDataErrors();
+        if ( errors == null ) {
+            return result;
+        }
+
+        //  Need the channel spacing and the efficiency factor.
+        String prop = specData.getProperty( "BEDEGFAC" );
+        if ( "".equals( prop ) ) {
+            return result;
+        }
+        double K = Double.parseDouble( prop );
+
+        //  Work out the channel spacing from the coordinates. These are in
+        //  the axis units, but we need this in Hz.
+        double dnu = channelSpacing( specData, "System=FREQ,Unit=Hz" );
+
+        //  Effective exposure time (x4).
+        prop = specData.getProperty( "EXEFFT" );
+        if ( "".equals( prop ) ) {
+            return result;
+        }
+        double exposure = 0.25 * Double.parseDouble( prop );
+
+        //  Variance, need one value for whole spectrum.
+        int n = errors.length;
+        double sum = 0.0;
+        int count = 0;
+        for ( int i = 0; i < n; i++ ) {
+            if ( errors[i] != SpecData.BAD ) {
+                sum += ( errors[i] * errors[i] );
+                count++;
+            }
+        }
+        if ( count > 0 ) {
+            double sigma = Math.sqrt ( sum / (double) count );
+
+            //  I make this from Jamie's original paper:
+            // double tsys =
+            //    0.5 * sigma * Math.sqrt( 2.0 * dnu * exposure / K );
+
+            //  SpecX says:
+            // double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
+            //
+
+            //  Tim says (current ACSIS docs, circa December 2006):
+            double tsys = sigma * Math.sqrt( dnu * exposure ) / K;
+            DecimalFormat f  = new DecimalFormat( "###.####" );
+            result = f.format( tsys );
+        }
+        return result;
+    }
+
+
+    /**
+     * Return the "channel spacing". Determined by getting increment of moving
+     * one pixel along the first axis. Can be in units other than default by
+     * supplying an attribute string (System=FREQ,Unit=MHz).
+     */
+    protected double channelSpacing( SpecData specData, String atts )
+    {
+        //  Get the axis from the underlying dataset AST FrameSet. Cannot
+        //  use the plot FrameSet as it may be currently modified by an
+        //  in progress redraw of the main plot (base frame will be
+        //  incorrect).
+        FrameSet frameSet = specData.getFrameSet();
+        int axis = specData.getMostSignificantAxis();
+        FrameSet mapping = (FrameSet) ASTJ.extract1DFrameSet( frameSet, axis );
+
+        //  Apply the attributes.
+        if ( ! "".equals( atts ) ) {
+            mapping.set( atts );
+        }
+
+        //  Delta of one pixel in base frame, around the centre.
+        int first = specData.size() / 2;
+        double xin[] = new double[]{ first, first + 1 };
+        double xout[] = mapping.tran1( 2, xin, true );
+        double dnu = Math.abs( xout[1] - xout[0] );
+        return dnu;
     }
 }
