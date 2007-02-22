@@ -117,12 +117,12 @@ public class LinkChecker {
              }
              if ( ! ok ) {
                 if ( isExternal ) {
-                    logMessage( "Bad link: " + href );
-                    localFailures++;
-                }
-                else {
                     extFailures++;
                     logMessage( "Bad remote link: " + href );
+                }
+                else {
+                    logMessage( "Bad link: " + href );
+                    localFailures++;
                 }
             }
             return ok;
