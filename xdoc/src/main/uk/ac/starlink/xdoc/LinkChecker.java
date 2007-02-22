@@ -40,6 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class LinkChecker {
 
     private final URL context;
+    private final boolean attemptExternal;
     private int localFailures;
     private int extFailures;
     private Map urlNames = new HashMap();
@@ -58,9 +59,12 @@ public class LinkChecker {
      * resolution. 
      *
      * @param  context  document context
+     * @param  attemptExternal  true if you want to check external (http) 
+     *         links; if false, only local ones will be checked
      */
-    public LinkChecker( URL context ) {
+    public LinkChecker( URL context, boolean attemptExternal ) {
         this.context = context;
+        this.attemptExternal = attemptExternal;
     }
 
     /**
@@ -92,31 +96,37 @@ public class LinkChecker {
             localFailures++;
             return false;
         }
-        boolean ok;
-        try {
-            if ( frag == null ) {
-                ok = checkUrlExists( url );
-            }
-            else {
-                ok = checkUrlContains( url, frag );
-            }
-         }
-         catch ( IOException e ) {
-            logMessage( "Connection failed: " + e );
-            ok = false;
-         }
-         if ( ! ok ) {
-            String proto = url.getProtocol();
-            if ( "file".equals( proto ) ) {
-                logMessage( "Bad link: " + href );
-                localFailures++;
-            }
-            else {
-                extFailures++;
-                logMessage( "Bad remote link: " + href );
-            }
+
+        boolean isExternal = ! "file".equals( url.getProtocol() );
+        if ( isExternal && ! attemptExternal ) {
+            return true;
         }
-        return ok;
+        else {
+            boolean ok;
+            try {
+                if ( frag == null ) {
+                    ok = checkUrlExists( url );
+                }
+                else {
+                    ok = checkUrlContains( url, frag );
+                }
+             }
+             catch ( IOException e ) {
+                logMessage( "Connection failed: " + e );
+                ok = false;
+             }
+             if ( ! ok ) {
+                if ( isExternal ) {
+                    logMessage( "Bad link: " + href );
+                    localFailures++;
+                }
+                else {
+                    extFailures++;
+                    logMessage( "Bad remote link: " + href );
+                }
+            }
+            return ok;
+        }
     }
 
     /**
@@ -338,17 +348,21 @@ public class LinkChecker {
      */
     public static void main( String[] args ) 
             throws MalformedURLException, TransformerException {
-        String usage = "Usage: LinkChecker [-param name value ...] "
+        String usage = "Usage: LinkChecker [-noext] [-param name value ...] "
                      + "stylesheet [xmldoc]";
 
         /* Process flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
         Map params = new HashMap();
+        boolean attemptExternal = true;
         while ( argList.size() > 0 &&
                 ((String) argList.get( 0 )).startsWith( "-" ) ) {
             String flag = (String) argList.remove( 0 );
-            if ( flag.endsWith( "-param" ) && argList.size() >= 2 ) {
+            if ( flag.startsWith( "-param" ) && argList.size() >= 2 ) {
                 params.put( argList.remove( 0 ), argList.remove( 0 ) );
+            }
+            else if ( flag.startsWith( "-noext" ) ) {
+                attemptExternal = false;
             }
             else {
                 System.err.println( usage );
@@ -380,7 +394,8 @@ public class LinkChecker {
         }
 
         try {
-            LinkChecker checker = new LinkChecker( new File( "." ).toURL() );
+            LinkChecker checker =
+                new LinkChecker( new File( "." ).toURL(), attemptExternal );
             boolean ok = checker.checkLinks( styleSrc, docSrc, params );
             int localFailures = checker.getLocalFailures();
             int extFailures = checker.getExternalFailures();
