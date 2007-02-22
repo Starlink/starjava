@@ -37,7 +37,8 @@ public class DocTest extends TestCase {
         assertTrue( docXslt.isFile() );
         assertTrue( docFile.isFile() );
         assertTrue( context.isDirectory() );
-        LinkChecker checker = new LinkChecker( context.toURL() );
+        boolean attemptExt = Boolean.getBoolean( "tests.withnet" );
+        LinkChecker checker = new LinkChecker( context.toURL(), attemptExt );
         checker.checkLinks( new StreamSource( docXslt1 ),
                             new StreamSource( docFile ) );
         checker.checkLinks( new StreamSource( docXslt ),
