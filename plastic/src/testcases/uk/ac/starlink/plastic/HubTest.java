@@ -100,17 +100,25 @@ public class HubTest extends TestCase {
                 PlasticUtils.targetRequest( "query", MessageId.INFO_GETICONURL,
                                             new ArrayList(), moncon.getId() ) );
             URL iconUrl = new URL( iconloc );
-            if ( Boolean.getBoolean( "tests.withnet" ) ) {
-                Icon icon = new ImageIcon( iconUrl );
-                assertEquals( 19, icon.getIconWidth() );
-            }
-            else {
-                System.out.println( "Skipping network-dependent tests "
-                                  + "(tests.withnet not set)" );
-            }
+
+            /* Fragile - waits forever if web server is down, which is
+             * hard to diagnose. */
+        //  if ( Boolean.getBoolean( "tests.withnet" ) ) {
+        //      Icon icon = new ImageIcon( iconUrl );
+        //      assertEquals( 19, icon.getIconWidth() );
+        //  }
+        //  else {
+        //      System.out.println( "Skipping network-dependent tests "
+        //                        + "(tests.withnet not set)" );
+        //  }
         }
         finally {
             htest.dispose();
         }
+    }
+
+    public static void main( String[] args ) throws Exception {
+        new HubTest( "test" ).testHub();
+        System.exit( 0 );
     }
 }
