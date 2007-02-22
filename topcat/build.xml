@@ -1458,6 +1458,7 @@
       <sysproperty key="basedir" value="${basedir}"/>
       <sysproperty key="xdoc.etc" value="${xdoc.etc}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="tests.withnet" value="${tests.withnet}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -1489,6 +1490,7 @@
       <sysproperty key="basedir" value="${basedir}"/>
       <sysproperty key="xdoc.etc" value="${xdoc.etc}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="tests.withnet" value="${tests.withnet}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
