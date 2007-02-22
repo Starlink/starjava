@@ -9701,7 +9701,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.3-1 (Starlink Hokulei release)</dt>
 <dd><p>
     <ul>
     <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
@@ -9725,6 +9725,11 @@ introduced since the last version:
         (sinh, cosh, tanh and inverses).</li>
     <li>Added cosmology distance calculations in class
         <ref id="Distances">Distances</ref>.</li>
+    </ul>
+    </p>
+    <p><strong>Graphics upgrades</strong>
+    <ul>
+    <li>Column selector panels in graphics windows are now in scrollers.</li>
     </ul>
     </p></dd>
 
