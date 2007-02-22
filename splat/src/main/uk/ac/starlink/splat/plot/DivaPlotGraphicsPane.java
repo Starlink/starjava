@@ -89,13 +89,7 @@ public class DivaPlotGraphicsPane
         boolean invert = newMapping.getInvert();
         newMapping.setInvert( true );
         CmpMap cmpmap = new CmpMap( oldMapping, newMapping, true );
-
-        //System.out.println( "DivaPlotGraphicsPane: simplify" );
-        //System.out.flush();
-        // XXX, this can break, running out of memory when both axes are
-        // logged. Removed for now.
-        // Mapping smap = cmpmap.simplify();
-        Mapping smap = cmpmap;
+        Mapping smap = cmpmap.simplify();
 
         AffineTransform at;
         Figure figure;
