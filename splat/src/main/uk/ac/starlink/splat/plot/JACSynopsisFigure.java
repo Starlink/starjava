@@ -218,15 +218,18 @@ public class JACSynopsisFigure
 
         //  Exposure time. Prefer EXTIME from GAIA, that's the time for just
         //  this spectrum (ton+toff).
+        boolean needatime = true;
         prop = specData.getProperty( "EXTIME" );
         if ( ! "".equals( prop ) ) {
             b.append( "Exposure: " + prop + " (sec)\n" );
+            needatime = false;
         }
         else {
             //  EXP_TIME is median for all the spectra in a cube.
             prop = specData.getProperty( "EXP_TIME" );
             if ( ! "".equals( prop ) ) {
                 b.append( "Exposure (median): " + prop + " (sec)\n" );
+                needatime = false;
             }
         }
 
@@ -235,36 +238,41 @@ public class JACSynopsisFigure
         prop = specData.getProperty( "EXEFFT" );
         if ( ! "".equals( prop ) ) {
             b.append( "Exposure (effective): " + prop + " (sec)\n" );
+            needatime = false;
         }
 
-        //  Elapsed time for the whole observation.
-        prop = specData.getProperty( "INT_TIME" );
-        if ( ! "".equals( prop ) ) {
-            b.append( "Exposure (elapsed): " + prop + " (sec)\n" );
-        }
-        else {
-            //  These are human readable dates so need to use FITS parsing.
-            prop = specData.getProperty( "DATE-OBS" );
+        //  Elapsed time for the whole observation, only if no other times
+        //  have been shown.
+        if ( needatime ) {
+            prop = specData.getProperty( "INT_TIME" );
             if ( ! "".equals( prop ) ) {
-                try {
-                    Date dstart = new FitsDate( prop ).toDate();
-                    prop = specData.getProperty( "DATE-END" );
-                    if ( ! "".equals( prop ) ) {
-                        Date dend = new FitsDate( prop ).toDate();
-
-                        //  Get milliseconds in UNIX time.
-                        long istart = dstart.getTime();
-                        long iend = dend.getTime();
-                        b.append( "Exposure (elapsed): "
-                                  +( (iend-istart)/1000.0 )+ " (sec)\n" );
+                b.append( "Exposure (elapsed): " + prop + " (sec)\n" );
+            }
+            else {
+                //  These are human readable dates so need to use FITS parsing.
+                prop = specData.getProperty( "DATE-OBS" );
+                if ( ! "".equals( prop ) ) {
+                    try {
+                        Date dstart = new FitsDate( prop ).toDate();
+                        prop = specData.getProperty( "DATE-END" );
+                        if ( ! "".equals( prop ) ) {
+                            Date dend = new FitsDate( prop ).toDate();
+                            
+                            //  Get milliseconds in UNIX time.
+                            long istart = dstart.getTime();
+                            long iend = dend.getTime();
+                            b.append( "Exposure (elapsed): "
+                                      +( (iend-istart)/1000.0 )+ " (sec)\n" );
+                        }
                     }
-                }
-                catch (Exception e) {
-                    //  Unparsable time. Just give up.
+                    catch (Exception e) {
+                        //  Unparsable time. Just give up.
+                    }
                 }
             }
         }
 
+        //  The coordinate system. AST code.
         b.append( "Coord Sys: " + specAxis.getSystem() + "\n" );
 
         if ( specAxis instanceof SpecFrame ) {
