@@ -459,7 +459,7 @@ public class JACSynopsisFigure
     }
 
 
-  /**
+    /**
      * Calculate an estimate for the TSYS.
      */
     protected String calculateTsys( SpecData specData )
