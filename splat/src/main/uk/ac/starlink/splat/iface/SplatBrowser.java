@@ -334,6 +334,13 @@ public class SplatBrowser
     protected Integer selectAxis = null;
 
     /**
+     * Whether to purge extracted spectra with bad limits. Make's sure 
+     * the spectra can be displayed.
+     */
+    protected JCheckBoxMenuItem purgeBadDataLimitsItem = null;
+    protected boolean purgeBadDataLimits = true;
+
+    /**
      * Controls communication with the PLASTIC hub.
      */
     protected SplatPlastic plasticServer = null;
@@ -557,6 +564,9 @@ public class SplatBrowser
         //  Short or full names.
         setShowShortNames( true );
         setShowSimpleShortNames( false );
+
+        //  Purge bad data limits spectra from 2/2D reprocessing.
+        setPurgeBadDataLimits( true );
 
         //  Set up the control area.
         controlArea.setLayout( controlAreaLayout );
@@ -957,6 +967,15 @@ public class SplatBrowser
               "when they are same as long names" );
         showSimpleShortNamesItem.addItemListener( this );
 
+        //  Whether spectra with bad data limits should be removed when
+        //  opening nD data.
+        purgeBadDataLimitsItem =
+            new JCheckBoxMenuItem( "Purge 2/3D data" );
+        optionsMenu.add( purgeBadDataLimitsItem );
+        purgeBadDataLimitsItem.setToolTipText
+            ( "When opening 2/3D data do not keep spectra with bad limits" );
+        purgeBadDataLimitsItem.addItemListener( this );
+
         //  Arrange the JSplitPane vertically or horizontally.
         splitOrientation = new JCheckBoxMenuItem( "Vertical split" );
         optionsMenu.add( splitOrientation ).setMnemonic( KeyEvent.VK_O );
@@ -1101,6 +1120,23 @@ public class SplatBrowser
         boolean state = showSimpleShortNamesItem.isSelected();
         prefs.putBoolean( "SplatBrowser_showsimpleshortnames", state );
         ((SpecListModel)specList.getModel()).setShowSimpleShortNames( state );
+    }
+
+    /**
+     * Set whether to remove any spectra with bad data limits when opening
+     * 2/3D data.
+     */
+    protected void setPurgeBadDataLimits( boolean init )
+    {
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state =
+                prefs.getBoolean( "SplatBrowser_purgebaddatalimits", true );
+            purgeBadDataLimitsItem.setSelected( state );
+        }
+        purgeBadDataLimits = purgeBadDataLimitsItem.isSelected();
+        prefs.putBoolean( "SplatBrowser_purgebaddatalimits", 
+                          purgeBadDataLimits );
     }
 
     /**
@@ -1892,7 +1928,8 @@ public class SplatBrowser
         SpecData[] moreSpectra = null;
         try {
             moreSpectra = specDataFactory.reprocessTo1D
-                ( spectrum, ndAction, dispAxis, selectAxis );
+                ( spectrum, ndAction, dispAxis, selectAxis, 
+                  purgeBadDataLimits );
         }
         catch (SplatException e) {
             JOptionPane.showMessageDialog
@@ -3026,6 +3063,9 @@ public class SplatBrowser
         }
         else if ( source.equals( showSimpleShortNamesItem ) ) {
             setShowSimpleShortNames( false );
+        }
+        else if ( source.equals( purgeBadDataLimitsItem ) ) {
+            setPurgeBadDataLimits( false );
         }
     }
 
