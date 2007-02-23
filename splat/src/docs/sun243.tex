@@ -3606,6 +3606,36 @@ requests for useful features -- thanks to them all.
 
 \section{Changes}
 
+\subsection{3.6-6}
+All the line fitting functions now also report a FWHM value.
+
+The line identifiers should now correctly take account of velocity changes in
+the rest frame of the observer. The display of line identifiers has been
+changed to remove the \_lines postfix and to replace all underscores with
+blanks when also displaying the shortname as part of the labels.
+
+\subsection{3.6-5}
+
+The plot coordinate matching option is now switched on by default.  This
+option matches different spectral coordinates between spectra plotted together
+(wavelength, frequency, velocity and energy). To restore the old behaviour
+(which is quicker for spectra which are all in the same coordinates) just
+switch this off in any plot window, as the preference is preserved between
+sessions. Previously users of SPLAT will retain their existing preference.
+
+It is now possible to select redshift, a relativistic velocity and an optical
+velocity in the quick change of units associated with a plot.
+
+\subsection{3.6-4}
+
+The way that line identifiers are matched to the source velocity of a spectrum
+has been changed. INCOMPATIBILITY: recessional velocities are now positive,
+previously these were negative.
+
+It is now possible to define source velocities as optical or radio velocities,
+as well as as a beta factor. Support continues for relativistic velocities and
+redshifts.
+
 \subsection{3.6-3}
 
 All menus are now accessible using keyboard mnemonics. These are indicated by
@@ -3711,7 +3741,7 @@ the option to plot them in the plot interior is selected.
 
 \end{itemize}
 
-\subsection{Release 3.5}
+\subsection{3.5}
 
 Starlink SPLAT is now a tool for the Virtual Observatory and has been renamed
 to \SPLAT.
@@ -3838,68 +3868,6 @@ Other changes of note in this release:
 \end{itemize}
 
 
-\subsection{Release 2.2}
-
- The following changes have been made in this release.
- \begin{itemize}
-    \item A bug in the astrometry reading software has been fixed. This led to
-      the application of \hitext{CDELT1} \textit{and} \hitext{CD1\_1} scales to the
-      wavelength range of some spectra (notable those produced by IRAF), which
-      meant that the range was underestimated by a scale \hitext{CDELT1}.
-
-    \item You can now specify the spectrum type on the command-line using the
-      \verb|--type| option. Valid values are: \hitext{fits}, \hitext{hds},
-      \hitext{text}, \hitext{hdx}, \hitext{table} and \hitext{line ids}.
-
-    \item You can now open a spectrum using a URL, so spectra stored on remote
-      servers can be downloaded and displayed.
-
-    \item The handling of 2D and 3D input data has been enhanced. Previously
-      such data was just \hitext{vectorized} (that is displayed as a single
-      spectrum), now such data is collapsed down onto the dispersion axis (if
-      one can be determined). For 3D data each image plane is collapsed in a
-      similar fashion. You can also choose to extract each line as a spectrum.
-\end{itemize}
-
-\subsection{Release 2.1}
-
-This is a new release of SPLAT which is now part of the Starlink
-Java Collection and is now released under the GPL.
-
-The most significant visible changes to SPLAT are:
-\begin{itemize}
-    \item Tables support. You can now read and write spectra in tables of
-    various kinds, for instance FITS (binary and ASCII), VOTable and various
-    text formats.
-
-    \item Component browser. \SPLAT\ now incorporates a Treeview-like
-    component browser so you can select FITS file extensions (tables and
-    spectra) and NDF components.
-
-    \item Log axes. You can now draw either axis using log spacing. \SPLAT
-    also supports AST escaped text sequences for super and subscripting.
-
-    \item Plot annotations. You can now add arbitrary text and shapes to a
-    plot.
-
-    \item Interactive background estimation. \SPLAT\ now offers the ability to
-    draw interpolated spline-like backgrounds for your spectra.
-
-    \item Better printing facilities. Printing to postscript is now a separate,
-    always available, option.
-
-    \item You can now divide a spectrum by its background to normalize
-    absorption spectra.
-
-    \item Line deblending. SPLAT now has a command-line script for deblending
-    lines using Gaussian, Lorentzian or Voigt profiles. This may become part
-    of a proper toolbox in some future release. See the:
-    \begin{quote}
-       \hitext{\$SPLAT\_DIR/deblend}
-    \end{quote}
-    script header for how to use this command.
-
-\end{itemize}
 Other changes include, selection of the columns used from a table, text files
 may now just contain a single column, many new options for configuring the
 interface, the plot window now retains its size, and the restriction that all
