@@ -20,7 +20,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
-import java.text.DecimalFormat;
 
 import javax.swing.JViewport;
 import javax.swing.SwingConstants;
@@ -41,14 +40,18 @@ import uk.ac.starlink.pal.mjDate;
 import uk.ac.starlink.pal.palTime;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.util.JACUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * A Figure that describes some of the meta-data properties of a
  * spectrum. These are modelled on those liked by the JCMT observers
- * at the JAC (basically those displayed by Specx). The Figure is
- * really a {@link DrawLabelFigure}, but one which retains a fixed position
- * inside a {@link JViewport}, so that it remains visible.
+ * at the JAC (basically those displayed by Specx) and makes a lot of use of 
+ * FITS values either written with JAC data or created by GAIA, but retains
+ * some use for other data sources.
+ *
+ * The Figure is really a {@link DrawLabelFigure}, but one which retains a
+ * fixed position inside a {@link JViewport}, so that it remains visible.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -369,11 +372,11 @@ public class JACSynopsisFigure
         prop = specData.getProperty( "IFCHANSP" );
         double inc;
         if ( ! "".equals( prop ) ) {
-            inc = channelSpacing( specData, "System=FREQ,Unit=MHz" );
+            inc = specData.channelSpacing( "System=FREQ,Unit=MHz" );
             b.append( "Channel spacing: " + inc + " (Mhz)\n" );
         }
         else {
-            inc = channelSpacing( specData, "" );
+            inc = specData.channelSpacing( "" );
             b.append( "Channel spacing: " + inc );
             String u = specAxis.getUnit( 1 );
             if ( ! "".equals( u ) ) {
@@ -404,7 +407,7 @@ public class JACSynopsisFigure
 
         //  Estimated TSYS from variance, if possible.
         if ( "JCMT".equals( telescope ) ) {
-            prop = calculateTsys( specData );
+            prop = JACUtilities.calculateTsys( specData );
             if ( ! "".equals( prop ) ) {
                 b.append( "TSYS (est): " + prop + " (K)\n" );
             }
@@ -456,93 +459,5 @@ public class JACSynopsisFigure
     {
         //  Reset anchor as should be from an interactive movement.
         translate( x, y, true );
-    }
-
-
-    /**
-     * Calculate an estimate for the TSYS.
-     */
-    protected String calculateTsys( SpecData specData )
-    {
-        String result = "";
-        double[] errors = specData.getYDataErrors();
-        if ( errors == null ) {
-            return result;
-        }
-
-        //  Need the channel spacing and the efficiency factor.
-        String prop = specData.getProperty( "BEDEGFAC" );
-        if ( "".equals( prop ) ) {
-            return result;
-        }
-        double K = Double.parseDouble( prop );
-
-        //  Work out the channel spacing from the coordinates. These are in
-        //  the axis units, but we need this in Hz.
-        double dnu = channelSpacing( specData, "System=FREQ,Unit=Hz" );
-
-        //  Effective exposure time (x4).
-        prop = specData.getProperty( "EXEFFT" );
-        if ( "".equals( prop ) ) {
-            return result;
-        }
-        double exposure = 0.25 * Double.parseDouble( prop );
-
-        //  Variance, need one value for whole spectrum.
-        int n = errors.length;
-        double sum = 0.0;
-        int count = 0;
-        for ( int i = 0; i < n; i++ ) {
-            if ( errors[i] != SpecData.BAD ) {
-                sum += ( errors[i] * errors[i] );
-                count++;
-            }
-        }
-        if ( count > 0 ) {
-            double sigma = Math.sqrt ( sum / (double) count );
-
-            //  I make this from Jamie's original paper:
-            // double tsys =
-            //    0.5 * sigma * Math.sqrt( 2.0 * dnu * exposure / K );
-
-            //  SpecX says:
-            // double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
-            //
-
-            //  Tim says (current ACSIS docs, circa December 2006):
-            double tsys = sigma * Math.sqrt( dnu * exposure ) / K;
-            DecimalFormat f  = new DecimalFormat( "###.####" );
-            result = f.format( tsys );
-        }
-        return result;
-    }
-
-
-    /**
-     * Return the "channel spacing". Determined by getting increment of moving
-     * one pixel along the first axis. Can be in units other than default by
-     * supplying an attribute string (System=FREQ,Unit=MHz).
-     */
-    protected double channelSpacing( SpecData specData, String atts )
-    {
-        //  Get the axis from the underlying dataset AST FrameSet. Cannot
-        //  use the plot FrameSet as it may be currently modified by an
-        //  in progress redraw of the main plot (base frame will be
-        //  incorrect).
-        FrameSet frameSet = specData.getFrameSet();
-        int axis = specData.getMostSignificantAxis();
-        FrameSet mapping = (FrameSet) ASTJ.extract1DFrameSet( frameSet, axis );
-
-        //  Apply the attributes.
-        if ( ! "".equals( atts ) ) {
-            mapping.set( atts );
-        }
-
-        //  Delta of one pixel in base frame, around the centre.
-        int first = specData.size() / 2;
-        double xin[] = new double[]{ first, first + 1 };
-        double xout[] = mapping.tran1( 2, xin, true );
-        double dnu = Math.abs( xout[1] - xout[0] );
-        return dnu;
     }
 }
