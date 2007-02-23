@@ -3,20 +3,15 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.Date;
 import javax.swing.Box;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * PointSelector concrete subclass which deals with the straightforward
@@ -30,7 +25,7 @@ public class DefaultPointSelector extends PointSelector {
 
     private final int ndim_;
     private final String[] axisNames_;
-    private final JComboBox[] colSelectors_;
+    private final AxisDataSelector[] dataSelectors_;
     private final JComponent entryBox_;
 
     /**
@@ -47,44 +42,28 @@ public class DefaultPointSelector extends PointSelector {
         super( styles );
         ndim_ = axisNames.length;
         axisNames_ = (String[]) axisNames.clone();
-        
-        entryBox_ = Box.createVerticalBox();
-        colSelectors_ = new JComboBox[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            String aName = axisNames[ i ];
-            JComponent cPanel = Box.createHorizontalBox();
-            cPanel.add( new JLabel( " " + aName + " Axis: " ) );
-            entryBox_.add( Box.createVerticalStrut( 5 ) );
-            entryBox_.add( cPanel );
-
-            /* Add and configure the column selector. */
-            colSelectors_[ i ] = ColumnDataComboBoxModel.createComboBox();
-            colSelectors_[ i ].addActionListener( actionForwarder_ );
-            cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-            cPanel.add( new ComboBoxBumper( colSelectors_[ i ] ) );
-            colSelectors_[ i ].setEnabled( false );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-
-            /* Add any per-axis toggles requested. */
-            if ( toggleSets != null ) {
-                for ( int j = 0; j < toggleSets.length; j++ ) {
-                    ToggleSet toggleSet = toggleSets[ j ];
-                    if ( toggleSet != null &&
-                         toggleSet.models_[ i ] != null ) {
-                        JCheckBox checkBox = toggleSet.models_[ i ]
-                                                      .createCheckBox();
-                        checkBox.setText( toggleSet.name_ );
-                        cPanel.add( Box.createHorizontalStrut( 5 ) );
-                        cPanel.add( checkBox );
-                    }
-                }
-            }
-
-            /* Pad. */
-            cPanel.add( Box.createHorizontalGlue() );
+        int ntog = toggleSets == null ? 0 : toggleSets.length;
+        String[] togNames = new String[ ntog ];
+        for ( int itog = 0; itog < ntog; itog++ ) {
+            togNames[ itog ] = toggleSets[ itog ].name_;
         }
-        int pad = ndim_ == 1 ? colSelectors_[ 0 ].getPreferredSize().height
+        entryBox_ = Box.createVerticalBox();
+        dataSelectors_ = new AxisDataSelector[ ndim_ ];
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            ToggleButtonModel[] togModels = new ToggleButtonModel[ ntog ];
+            for ( int itog = 0; itog < ntog; itog++ ) {
+                ToggleSet togSet = toggleSets[ itog ];
+                togModels[ itog ] = togSet == null ? null
+                                                   : togSet.models_[ idim ];
+            }
+            dataSelectors_[ idim ] =
+                new AxisDataSelector( axisNames[ idim ], togNames, togModels );
+            dataSelectors_[ idim ].addActionListener( actionForwarder_ ); 
+            dataSelectors_[ idim ].setEnabled( false );
+            entryBox_.add( Box.createVerticalStrut( 5 ) );
+            entryBox_.add( dataSelectors_[ idim ] );
+        }
+        int pad = ndim_ == 1 ? dataSelectors_[ 0 ].getPreferredSize().height
                              : 5;
         entryBox_.add( Box.createVerticalStrut( pad ) );
         entryBox_.add( Box.createVerticalGlue() );
@@ -127,14 +106,14 @@ public class DefaultPointSelector extends PointSelector {
      * @return column selector box
      */
     public JComboBox getColumnSelector( int icol ) {
-        return colSelectors_[ icol ];
+        return dataSelectors_[ icol ].getMainSelector();
     }
 
     public AxisEditor[] createAxisEditors() {
         AxisEditor[] eds = new AxisEditor[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             final AxisEditor axed = new AxisEditor( axisNames_[ i ] );
-            final JComboBox csel = colSelectors_[ i ];
+            final JComboBox csel = dataSelectors_[ i ].getMainSelector();
             csel.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     ColumnData cdata = (ColumnData) csel.getSelectedItem();
@@ -148,26 +127,16 @@ public class DefaultPointSelector extends PointSelector {
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
-        if ( tcModel == null ) {
-            for ( int i = 0; i < ndim_; i++ ) {
-                colSelectors_[ i ].setSelectedItem( null );
-            }
-        }
-        else {
-            for ( int i = 0; i < ndim_; i++ ) {
-                colSelectors_[ i ]
-                    .setModel( new ColumnDataComboBoxModel( tcModel,
-                                                            Number.class,
-                                                            true ) );
-                colSelectors_[ i ].setEnabled( true );
-            }
+        for ( int i = 0; i < ndim_; i++ ) {
+            dataSelectors_[ i ].setTable( tcModel );
         }
     }
 
     protected void initialiseSelectors() {
         for ( int i = 0; i < ndim_; i++ ) {
-            if ( i + 1 < colSelectors_[ i ].getItemCount() ) {
-                colSelectors_[ i ].setSelectedIndex( i + 1 );
+            JComboBox colSelector = dataSelectors_[ i ].getMainSelector();
+            if ( i + 1 < colSelector.getItemCount() ) {
+                colSelector.setSelectedIndex( i + 1 );
             }
         }
     }
@@ -180,7 +149,8 @@ public class DefaultPointSelector extends PointSelector {
     private ColumnData[] getColumns() {
         ColumnData[] cols = new ColumnData[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (ColumnData) colSelectors_[ i ].getSelectedItem();
+            cols[ i ] = (ColumnData) dataSelectors_[ i ].getMainSelector()
+                                                        .getSelectedItem();
         }
         return cols;
     }
