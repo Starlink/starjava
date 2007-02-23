@@ -28,7 +28,7 @@ import javax.swing.Icon;
  *    style1.setDash( style0.getDash() );
  *    style1.setHidePoints( style0.getHidePoints() );
  *    style1.setOpaqueLimit( style0.getOpaqueLimit() );
- *    style1.setErrorStyle( style0.getErrorStyle() );
+ *    style1.setErrorRenderer( style0.getErrorRenderer() );
  * </pre>
  * style0 and style1 should then match according to the <code>equals()</code>
  * method.  A style may however have a null <code>shapeId</code>, in
@@ -45,7 +45,7 @@ public abstract class MarkStyle extends DefaultStyle {
     private Line line_;
     private boolean hidePoints_;
     private int opaqueLimit_ = 1;
-    private ErrorStyle errorStyle_;
+    private ErrorRenderer errorRenderer_;
     private int[] pixoffs_;
     private static final RenderingHints pixHints_;
 
@@ -87,7 +87,7 @@ public abstract class MarkStyle extends DefaultStyle {
         shapeId_ = shapeId;
         size_ = size;
         maxr_ = maxr;
-        errorStyle_ = ErrorStyle.NONE;
+        errorRenderer_ = ErrorRenderer.DEFAULT;
     }
 
     /**
@@ -209,10 +209,10 @@ public abstract class MarkStyle extends DefaultStyle {
     /**
      * Sets the style used for drawing error bars around this marker.
      *
-     * @param  errorStyle  error bar style
+     * @param  errorRenderer  error bar style
      */
-    public void setErrorStyle( ErrorStyle errorStyle ) {
-        errorStyle_ = errorStyle;
+    public void setErrorRenderer( ErrorRenderer errorRenderer ) {
+        errorRenderer_ = errorRenderer;
     }
 
     /**
@@ -220,8 +220,8 @@ public abstract class MarkStyle extends DefaultStyle {
      *
      * @return   error bar style
      */
-    public ErrorStyle getErrorStyle() {
-        return errorStyle_;
+    public ErrorRenderer getErrorRenderer() {
+        return errorRenderer_;
     }
 
     /**
@@ -279,15 +279,25 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
-     * Draws a legend icon for this style.
-     * This method sets the colour of the graphics context and then 
-     * calls {@link #drawLegendShape}.
+     * Draws a legend icon for this style without error rendering.
      *
-     * @return  legend icon
+     * @return   legend icon
      */
     public Icon getLegendIcon() {
-        final Icon errorIcon =
-            errorStyle_.getLegendIcon( LEGEND_ICON_WIDTH, LEGEND_ICON_HEIGHT );
+        return getLegendIcon( new ErrorMode[ 0 ] );
+    }
+
+    /**
+     * Draws a legend icon for this style given certain error modes.
+     *
+     * @param   errorModes  array of error modes, one for each dimension
+     * @return  legend icon
+     */
+    public Icon getLegendIcon( ErrorMode[] errorModes ) {
+        final Icon errorIcon = errorRenderer_.isBlank( errorModes )
+                ? null
+                : errorRenderer_.getLegendIcon( errorModes, LEGEND_ICON_WIDTH,
+                                                LEGEND_ICON_HEIGHT, 1, 1 );
         return new Icon() {
             public int getIconHeight() {
                 return LEGEND_ICON_HEIGHT;
@@ -309,7 +319,7 @@ public abstract class MarkStyle extends DefaultStyle {
                 else {
                     hide = false;
                 }
-                if ( ! errorStyle_.isBlank() ) {
+                if ( errorIcon != null ) {
                     Graphics g1 = createLegendContext( g );
                     g1.setColor( getColor() );
                     errorIcon.paintIcon( c, g1, x, y );
@@ -424,7 +434,7 @@ public abstract class MarkStyle extends DefaultStyle {
             return this.line_ == other.line_
                 && this.hidePoints_ == other.hidePoints_
                 && this.opaqueLimit_ == other.opaqueLimit_
-                && this.errorStyle_.equals( other.errorStyle_ );
+                && this.errorRenderer_.equals( other.errorRenderer_ );
         }
         else {
             return false;
@@ -436,7 +446,7 @@ public abstract class MarkStyle extends DefaultStyle {
         code = code * 23 + ( line_ == null ? 1 : line_.hashCode() );
         code = code * 23 + ( hidePoints_ ? 0 : 1 );
         code = code * 23 + opaqueLimit_;
-        code = code * 23 + errorStyle_.hashCode();
+        code = code * 23 + errorRenderer_.hashCode();
         return code;
     }
 

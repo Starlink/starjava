@@ -40,10 +40,11 @@ public class MarkStyleEditor extends StyleEditor {
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
     private final ValueButtonGroup lineSelector_;
-    private final ErrorSelector errorSelector_;
+    private final JComboBox errorSelector_;
     private final JLabel corrLabel_;
     private final Map statMap_;
     private final String helpId_;
+    private ErrorMode[] errorModes_;
 
     private static final int MAX_SIZE = 5;
     private static final int MAX_THICK = 10;
@@ -66,9 +67,10 @@ public class MarkStyleEditor extends StyleEditor {
      * Constructor.
      */
     public MarkStyleEditor( boolean withLines, boolean withTransparency,
-                            ErrorSelector errorSelector ) {
+                            ErrorRenderer[] errorRenderers ) {
         super();
         statMap_ = new HashMap();
+        errorModes_ = new ErrorMode[ 0 ];
         helpId_ = withLines ? "MarkStyleEditor" : "MarkStyleEditorNoLines";
 
         /* Shape selector. */
@@ -101,6 +103,16 @@ public class MarkStyleEditor extends StyleEditor {
                 }
             }
         } );
+
+        /* Error renderer selector. */
+        boolean withErrors = errorRenderers != null
+                          && errorRenderers.length > 0;
+        ErrorRenderer[] errrends =
+            withErrors ? errorRenderers
+                       : new ErrorRenderer[] { ErrorRenderer.NONE };
+        errorSelector_ = new JComboBox( errrends );
+        errorSelector_.setRenderer( new ErrorRendererRenderer() );
+        errorSelector_.addActionListener( this );
 
         /* Marker hiding selector. */
         markFlagger_ = new JCheckBox( "Hide Markers" );
@@ -156,6 +168,14 @@ public class MarkStyleEditor extends StyleEditor {
         opaqueBox.add( Box.createHorizontalStrut( 5 ) );
         opaqueBox.add( Box.createHorizontalGlue() );
 
+        JComponent errorBox = Box.createHorizontalBox();
+        errorBox.add( new JLabel( "Error Bars: " ) );
+        errorBox.add( new ShrinkWrapper( errorSelector_ ) );
+        errorBox.add( Box.createHorizontalStrut( 5 ) );
+        errorBox.add( new ComboBoxBumper( errorSelector_ ) );
+        errorBox.add( Box.createHorizontalStrut( 5 ) );
+        errorBox.add( Box.createHorizontalGlue() );
+
         JComponent hideBox = Box.createHorizontalBox();
         hideBox.add( markFlagger_ );
         hideBox.add( Box.createHorizontalGlue() );
@@ -168,23 +188,16 @@ public class MarkStyleEditor extends StyleEditor {
             markBox.add( Box.createVerticalStrut( 5 ) );
             markBox.add( opaqueBox );
         }
+        if ( withErrors ) {
+            markBox.add( Box.createVerticalStrut( 5 ) );
+            markBox.add( errorBox );
+        }
         if ( withLines ) {
             markBox.add( Box.createVerticalStrut( 5 ) );
             markBox.add( hideBox );
         }
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
-
-        /* Place error selection panel if required. */
-        if ( errorSelector != null ) {
-            errorSelector_ = errorSelector;
-            errorSelector_.setBorder( AuxWindow.makeTitledBorder( "Errors" ) );
-            errorSelector_.addActionListener( this );
-            add( errorSelector_ );
-        }
-        else {
-            errorSelector_ = new ErrorSelector( 0 );
-        }
 
         /* Place line selection components if required. */
         if ( withLines ) {
@@ -233,7 +246,7 @@ public class MarkStyleEditor extends StyleEditor {
         dashSelector_.setSelectedDash( mstyle.getDash() );
         lineSelector_.setValue( mstyle.getLine() );
         markFlagger_.setSelected( mstyle.getHidePoints() );
-        errorSelector_.setErrorStyle( mstyle.getErrorStyle() );
+        errorSelector_.setSelectedItem( mstyle.getErrorRenderer() );
     }
 
     public Style getStyle() {
@@ -242,7 +255,7 @@ public class MarkStyleEditor extends StyleEditor {
                          colorSelector_.getSelectedColor(),
                          opaqueSlider_.getValue1(),
                          markFlagger_.isEnabled() && markFlagger_.isSelected(),
-                         errorSelector_.getErrorStyle(),
+                         (ErrorRenderer) errorSelector_.getSelectedItem(),
                          (MarkStyle.Line) lineSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
                          dashSelector_.getSelectedDash() );
@@ -259,7 +272,7 @@ public class MarkStyleEditor extends StyleEditor {
      * @param  size   marker size
      * @param  color  marker colour
      * @param  hidePoints  whether markers are invisible
-     * @param  errorStyle   error bar style
+     * @param  errorRenderer   error bar rendering style
      * @param  line   line type
      * @param  thick  line thickness
      * @param  dash   line dash pattern
@@ -267,7 +280,7 @@ public class MarkStyleEditor extends StyleEditor {
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
                                        int opaqueLimit, boolean hidePoints,
-                                       ErrorStyle errorStyle,
+                                       ErrorRenderer errorRenderer,
                                        MarkStyle.Line line,
                                        int thick, float[] dash ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
@@ -275,7 +288,7 @@ public class MarkStyleEditor extends StyleEditor {
         style.setOpaqueLimit( opaqueLimit );
         style.setLine( line );
         style.setHidePoints( hidePoints );
-        style.setErrorStyle( errorStyle );
+        style.setErrorRenderer( errorRenderer );
         style.setLineWidth( thick );
         style.setDash( dash );
         return style;
@@ -324,10 +337,44 @@ public class MarkStyleEditor extends StyleEditor {
         }
         corrLabel_.setText( statText );
 
+        /* See if we are capable of plotting errors. */
+        boolean permitErrors = ! ErrorMode.allBlank( getErrorModes() );
+
+        /* Make sure that the error bar selector is only enabled if 
+         * error bars will be plotted. */
+        errorSelector_.setEnabled( permitErrors );
+
         /* Make sure that marker presence control is only enabled if 
          * a line or error bars are being plotted. */
+        boolean visibleErrors =
+             permitErrors && 
+             ! ErrorRenderer.NONE.equals( ((ErrorRenderer)
+                                           errorSelector_.getSelectedItem()) );
         markFlagger_.setEnabled( lineSelector_.getValue() != null ||
-                                 ! errorSelector_.getErrorStyle().isBlank() );
+                                 visibleErrors );
+    }
+
+    /**
+     * Sets the array of error modes associated with this editor.
+     *
+     * @param   array of error modes, one per error dimension
+     */
+    public void setErrorModes( ErrorMode[] errorModes ) {
+        errorModes_ = errorModes;
+        refreshState();
+    }
+
+    /**
+     * Returns the array of error modes associated with this editor.
+     *
+     * @return   array of error modes, one per error dimension
+     */
+    public ErrorMode[] getErrorModes() {
+        return errorModes_;
+    }
+
+    public Icon getLegendIcon() {
+        return ((MarkStyle) getStyle()).getLegendIcon( getErrorModes() );
     }
 
     /**
@@ -420,14 +467,40 @@ public class MarkStyleEditor extends StyleEditor {
                                 ? getStyle( getMarkShape( index ),
                                             getMarkSize( index ),
                                             getMarkColor( index ),
-                                            1, false, ErrorStyle.NONE,
+                                            1, false, ErrorRenderer.NONE,
                                             null, 1, null )
                                 : getStyle( getMarkShape(),
                                             getMarkSize(),
                                             getMarkColor(),
-                                            1, false, ErrorStyle.NONE,
+                                            1, false, ErrorRenderer.NONE,
                                             null, 1, null );
                 label.setIcon( style.getLegendIcon() );
+            }
+            return c;
+        }
+    }
+
+    /**
+     * Class which performs rendering of ErrorRenderer objects in a JComboBox.
+     */
+    private static class ErrorRendererRenderer extends BasicComboBoxRenderer {
+        public Component getListCellRendererComponent( JList list, Object value,
+                                                       int index,
+                                                       boolean isSelected,
+                                                       boolean hasFocus ) {
+            Component c =
+                super.getListCellRendererComponent( list, value, index,
+                                                    isSelected, hasFocus );
+            if ( c instanceof JLabel ) {
+                JLabel label = (JLabel) c;
+                Icon icon = null;
+                if ( value instanceof ErrorRenderer ) {
+                    ErrorRenderer er = (ErrorRenderer) value;
+                    icon = er.getLegendIcon();
+                    icon = new ColoredIcon( icon, c.getForeground() );
+                }
+                label.setText( icon == null ? "??" : null );
+                label.setIcon( icon );
             }
             return c;
         }
