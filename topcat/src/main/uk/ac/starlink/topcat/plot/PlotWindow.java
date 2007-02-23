@@ -264,7 +264,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new MarkStyleEditor( true, true, new ErrorSelector( 2 ) );
+        MarkStyleEditor styleEd =
+            new MarkStyleEditor( true, true, ErrorRenderer.getOptions2d() );
+        return styleEd;
     }
 
     /*
