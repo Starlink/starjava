@@ -1084,7 +1084,6 @@ public class SpecDataFactory
         //  Purge any spectra with BAD limits.
         SpecData results[];
         if ( n != spectra.length ) {
-            System.out.println( "Removing: " + n + " spectra" );
             results = new SpecData[n];
             n = 0;
             for ( int i = 0; i < spectra.length; i++ ) {
