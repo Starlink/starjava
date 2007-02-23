@@ -1012,9 +1012,12 @@ public class SpecDataFactory
      * @param selectax the index of the axis that will be stepped along
      *                 collapsing down onto dispersion axis, set to null for
      *                 automatic choice. This may not be the dispax.
+     * @param purge whether to remove any spectra that have bad limits from
+     *              the results.
      */
     public SpecData[] reprocessTo1D( SpecData specData, int method,
-                                     Integer dispax, Integer selectax )
+                                     Integer dispax, Integer selectax,
+                                     boolean purge )
         throws SplatException
     {
         int dax = -1;
@@ -1050,6 +1053,53 @@ public class SpecDataFactory
             else if ( method == EXTRACT )  {
                 results = extractSpecData( specData, specDims );
             }
+
+            //  Purge any spectra with BAD limits.
+            if ( purge && results != null ) {
+                results = purgeBadLimits( results );
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Remove any SpecData instance that have bad data or spectral limits from
+     * an array of SpecData instances. Used after extraction or collapse to
+     * clean up lists.
+     */
+    protected SpecData[] purgeBadLimits( SpecData spectra[] )
+    {
+        //  Count spectra with good limits.
+        int n = 0;
+        for ( int i = 0; i < spectra.length; i++ ) {
+            double range[] = spectra[i].getRange();
+            if ( range[0] != SpecData.BAD &&
+                 range[1] != SpecData.BAD &&
+                 range[2] != SpecData.BAD && 
+                 range[3] != SpecData.BAD ) {
+                n++;
+            }
+        }
+
+        //  Purge any spectra with BAD limits.
+        SpecData results[];
+        if ( n != spectra.length ) {
+            System.out.println( "Removing: " + n + " spectra" );
+            results = new SpecData[n];
+            n = 0;
+            for ( int i = 0; i < spectra.length; i++ ) {
+                double range[] = spectra[i].getRange();
+                if ( range[0] != SpecData.BAD &&
+                     range[1] != SpecData.BAD &&
+                     range[2] != SpecData.BAD && 
+                     range[3] != SpecData.BAD ) {
+                    results[n] = spectra[i];
+                    n++;
+                }
+            }
+        }
+        else {
+            results = spectra;
         }
         return results;
     }
@@ -1073,10 +1123,7 @@ public class SpecDataFactory
         }
         else {
             //  Need to pick an axis to step along collapsing each section in
-            //  turn onto the dispersion axis. XXX we seem to get spectra that
-            //  have no data (all BAD values), we could purge these as they
-            //  are useless. Note we get the size of the picked axis number of
-            //  SpecData's back.
+            //  turn onto the dispersion axis. 
             int stepaxis = specDims.getSelectAxis( true );
             int displen = specDims.getSigDims()[stepaxis];
             results = new SpecData[displen];
