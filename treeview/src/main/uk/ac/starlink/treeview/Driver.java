@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.datanode.nodes.ARYDataNode;
 import uk.ac.starlink.datanode.nodes.CompressedDataNode;
@@ -60,6 +61,9 @@ public class Driver {
 
         /* Ensure we have best guesses for various properties. */
         guessProperties();
+
+        /* Set logging level to warning. */
+        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
 
         /* Get the name we are running under. */
         String cmdName = 
