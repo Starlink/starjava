@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.util.Arrays;
 import javax.swing.Icon;
 
 /**
@@ -16,8 +17,15 @@ import javax.swing.Icon;
  */
 public abstract class ErrorRenderer {
 
+    /** ErrorRenderer which draws nothing. */
+    public static ErrorRenderer NONE = new Blank();
+
+    /** General purpose error renderer. */
+    public static ErrorRenderer DEFAULT = new CappedLine( true, 0 );
+
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
-        new CappedLine( true, 0 ),
+        NONE,
+        DEFAULT,
         new CappedLine( true, 3 ),
         new CappedLine( false, 3 ),
         new OpenEllipse(),
@@ -27,13 +35,11 @@ public abstract class ErrorRenderer {
     };
 
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
-        new CappedLine( true, 0 ),
+        NONE,
+        DEFAULT,
         new CappedLine( true, 3 ),
         new CappedLine( false, 3 ),
     };
-
-    /** ErrorRenderer which draws nothing. */
-    public static ErrorRenderer NONE = new Blank();
 
     private static final int LEGEND_WIDTH = 40;
     private static final int LEGEND_HEIGHT = 16;
@@ -41,11 +47,33 @@ public abstract class ErrorRenderer {
     private static final int LEGEND_YPAD = 1;
 
     /**
-     * Returns an icon giving an example of what this form looks like.
+     * Returns an icon giving a general example of what this form looks like.
      *
      * @return  example icon
      */
     public abstract Icon getLegendIcon();
+
+    /**
+     * Returns an icon giving an example of what this form looks like in a
+     * detailed context.
+     *
+     * @param   modes  array of ErrorModes, one per error dimension (x, y, ...)
+     * @param   width  total width of icon
+     * @param   height total height of icon
+     * @param   xpad   internal horizontal padding of icon
+     * @param   ypad   internal vertical padding of icon
+     */
+    public abstract Icon getLegendIcon( ErrorMode[] modes, int width,
+                                        int height, int xpad, int ypad );
+
+    /**
+     * Indicates whether this renderer is known to produce no output 
+     * for a particular set of ErrorModes.
+     *
+     * @param   modes   error mode context
+     * @return  true if this renderer can be guaranteed to paint nothing
+     */
+    public abstract boolean isBlank( ErrorMode[] modes );
 
     /**
      * Reports whether this form can be used on a given error dimensionality.
@@ -95,10 +123,10 @@ public abstract class ErrorRenderer {
     }
 
     /**
-     * Utility class which provides an icon representing a 1-dimensional
-     * error bar.
+     * Icon which represents an ErrorRenderer in a form suitable for a legend.
      */
-    private static class ErrorBarIcon1D implements Icon {
+    private static class ErrorRendererIcon implements Icon {
+
         private final ErrorRenderer renderer_;
         private final int width_;
         private final int height_;
@@ -106,91 +134,63 @@ public abstract class ErrorRenderer {
         private final int[] yoffs_;
 
         /**
-         * Constructs a default sized icon.
+         * Constructs an icon with default characteristics.
          *
-         * @param   renderer  renderer
+         * @param  renderer  error renderer
+         * @param  ndim    dimensionality
          */
-        public ErrorBarIcon1D( ErrorRenderer renderer ) {
-            this( renderer, LEGEND_WIDTH, LEGEND_HEIGHT,
-                  LEGEND_XPAD, LEGEND_YPAD );
+        public ErrorRendererIcon( ErrorRenderer renderer, int ndim ) {
+            this( renderer, fillModeArray( ndim, ErrorMode.SYMMETRIC ),
+                  LEGEND_WIDTH, LEGEND_HEIGHT, LEGEND_XPAD, LEGEND_YPAD );
         }
 
         /**
-         * Constructs an icon with custom dimensions.
+         * Constructs an icon with specified characteristics.
          *
-         * @param  renderer  renderer
-         * @param  width   total width of the icon
-         * @param  height  total height of the icon
-         * @param  xpad    internal padding in the X direction
-         * @param  ypad    internal padding in the Y direction
+         * @param  renderer  error renderer
+         * @param   modes  array of ErrorModes, one per error dimension
+         * @param   width  total width of icon
+         * @param   height total height of icon
+         * @param   xpad   internal horizontal padding of icon
+         * @param   ypad   internal vertical padding of icon
          */
-        public ErrorBarIcon1D( ErrorRenderer renderer, int width, int height,
-                               int xpad, int ypad ) {
-            renderer_ = renderer;
-            width_ = width;
-            height_ = height;
-            int w2 = width / 2 - xpad;
-            xoffs_ = new int[] { -w2, +w2, };
-            yoffs_ = new int[] {   0,   0, };
-        }
-
-        public int getIconWidth() {
-            return width_;
-        }
-
-        public int getIconHeight() {
-            return height_;
-        }
-
-        public void paintIcon( Component c, Graphics g, int x, int y ) {
-            int x0 = x + width_ / 2;
-            int y0 = y + height_ / 2;
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                 RenderingHints.VALUE_ANTIALIAS_ON );
-            renderer_.drawErrors( g2, x0, y0, xoffs_, yoffs_ );
-        }
-    }
-
-    /**
-     * Utility class which provides an icon representing a 2-dimensional
-     * error bar.
-     */
-    private static class ErrorBarIcon2D implements Icon {
-        private final ErrorRenderer renderer_;
-        private final int width_;
-        private final int height_;
-        private final int[] xoffs_;
-        private final int[] yoffs_;
-
-        /**
-         * Constructs a default sized icon.
-         *
-         * @param  renderer  renderer
-         */
-        public ErrorBarIcon2D( ErrorRenderer renderer ) {
-            this( renderer, LEGEND_WIDTH, LEGEND_HEIGHT,
-                  LEGEND_XPAD, LEGEND_YPAD );
-        }
-
-        /**
-         * Constructs an icon with custom dimensions.
-         *
-         * @param  renderer  renderer
-         * @param  width   total width of the icon
-         * @param  height  total height of the icon
-         * @param  xpad    internal padding in the X direction
-         * @param  ypad    internal padding in the Y direction
-         */
-        public ErrorBarIcon2D( ErrorRenderer renderer, int width, int height,
-                               int xpad, int ypad ) {
+        public ErrorRendererIcon( ErrorRenderer renderer, ErrorMode[] modes,
+                                  int width, int height, int xpad, int ypad ) {
             renderer_ = renderer;
             width_ = width;
             height_ = height;
             int w2 = width / 2 - xpad;
             int h2 = height / 2 - ypad;
-            xoffs_ = new int[] { -w2, +w2,   0,   0, };
-            yoffs_ = new int[] {   0,   0, -h2, +h2, };
+            int ndim = modes.length;
+            xoffs_ = new int[ ndim * 2 ];
+            yoffs_ = new int[ ndim * 2 ];
+            if ( ndim > 0 ) {
+                ErrorMode mode = modes[ 0 ];
+                xoffs_[ 0 ] = (int) Math.round( - mode.getExampleLower() * w2 );
+                yoffs_[ 0 ] = 0;
+                xoffs_[ 1 ] = (int) Math.round( + mode.getExampleUpper() * w2 );
+                yoffs_[ 1 ] = 0;
+            }
+            if ( ndim > 1 ) {
+                ErrorMode mode = modes[ 1 ];
+                xoffs_[ 2 ] = 0;
+                yoffs_[ 2 ] = (int) Math.round( + mode.getExampleLower() * h2 );
+                xoffs_[ 3 ] = 0;
+                yoffs_[ 3 ] = (int) Math.round( - mode.getExampleUpper() * h2 );
+            }
+            if ( ndim > 2 ) {
+                ErrorMode mode = modes[ 2 ];
+                double theta = Math.toRadians( 40 );
+                double slant = 0.8;
+                double c = Math.cos( theta ) * slant;
+                double s = Math.sin( theta ) * slant;
+                double lo = mode.getExampleLower();
+                double hi = mode.getExampleUpper();
+                xoffs_[ 4 ] = (int) Math.round( - c * lo * w2 );
+                yoffs_[ 4 ] = (int) Math.round( + s * lo * h2 );
+                xoffs_[ 5 ] = (int) Math.round( + c * hi * w2 );
+                yoffs_[ 5 ] = (int) Math.round( - s * hi * h2 );
+            }
         }
 
         public int getIconWidth() {
@@ -202,12 +202,25 @@ public abstract class ErrorRenderer {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
-            int x0 = x + width_ / 2;
-            int y0 = y + height_ / 2;
-            Graphics2D g2 = (Graphics2D) g.create();
+            Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  RenderingHints.VALUE_ANTIALIAS_ON );
-            renderer_.drawErrors( g2, x0, y0, xoffs_, yoffs_ );
+            renderer_.drawErrors( g2, x + width_ / 2, y + height_ / 2,
+                                  xoffs_, yoffs_ );
+            g2.dispose();
+        }
+
+        /**
+         * Utility method to return an array containing all the same modes.
+         *
+         * @param  leng  number of elements
+         * @param  mode  content of each element
+         * @return array filled with <code>mode</code>
+         */
+        private static ErrorMode[] fillModeArray( int leng, ErrorMode mode ) {
+            ErrorMode[] modes = new ErrorMode[ leng ];
+            Arrays.fill( modes, mode );
+            return modes;
         }
     }
 
@@ -232,7 +245,7 @@ public abstract class ErrorRenderer {
         CappedLine( boolean lines, int capsize ) {
             lines_ = lines;
             capsize_ = capsize;
-            legend_ = new ErrorBarIcon2D( this );
+            legend_ = new ErrorRendererIcon( this, 2 );
         }
 
         public boolean supportsDimensionality( int ndim ) {
@@ -241,6 +254,16 @@ public abstract class ErrorRenderer {
 
         public Icon getLegendIcon() {
             return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return ErrorMode.allBlank( modes );
         }
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
@@ -306,7 +329,7 @@ public abstract class ErrorRenderer {
          * Constructor.
          */
         Oblong() {
-            legend_ = new ErrorBarIcon2D( this );
+            legend_ = new ErrorRendererIcon( this, 2 );
         }
 
         public boolean supportsDimensionality( int ndim ) {
@@ -315,6 +338,16 @@ public abstract class ErrorRenderer {
 
         public Icon getLegendIcon() {
             return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return ErrorMode.allBlank( modes );
         }
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs, 
@@ -433,27 +466,56 @@ public abstract class ErrorRenderer {
         }
     }
 
+    /**
+     * Null error renderer.  It draws nothing.
+     */
     private static class Blank extends ErrorRenderer {
 
+        private final Icon legend_;
+
+        Blank() {
+            legend_ = createEmptyIcon( 0, 0 );
+        }
+
         public Icon getLegendIcon() {
-            return new Icon() {
-                public int getIconWidth() {
-                    return 0;
-                }
-                public int getIconHeight() {
-                    return 0;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                }
-            };
+            return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return createEmptyIcon( width, height );
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return true;
         }
 
+        public boolean isBlank( ErrorMode[] modes ) {
+            return true;
+        }
+
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
         }
+    }
+
+    /**
+     * Utility method to return an empty icon.
+     *
+     * @param  width  icon width
+     * @param  height icon height
+     * @return  empty icon
+     */
+    private static Icon createEmptyIcon( final int width, final int height ) {
+        return new Icon() {
+            public int getIconWidth() {
+                return width;
+            }
+            public int getIconHeight() {
+                return height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+            }
+        };
     }
 }
