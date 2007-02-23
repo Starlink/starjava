@@ -6,6 +6,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -196,8 +197,17 @@ public abstract class StyleEditor extends JPanel
      * internal state.
      */
     protected void refreshState() {
-        legendLabel_.setIcon( getStyle().getLegendIcon() );
+        legendLabel_.setIcon( getLegendIcon() );
         repaint();
+    }
+
+    /**
+     * Returns the icon to be used for the display legend of this editor.
+     *
+     * @return  legend icon
+     */
+    public Icon getLegendIcon() {
+        return getStyle().getLegendIcon();
     }
 
     /**
