@@ -78,4 +78,26 @@ public class ErrorMode {
     public static ErrorMode[] getOptions() {
         return (ErrorMode[]) ALL_OPTIONS.clone();
     }
+
+    /**
+     * Indicates whether an array of error modes represents drawing no
+     * error information at all.
+     * 
+     * @param  modes  list of error modes, one per dimension
+     * @return  true if none of the dimensions contains error information
+     */
+    public static boolean allBlank( ErrorMode[] modes ) {
+        if ( modes == null ) {
+            return true;
+        }
+        else {
+            for ( int idim = 0; idim < modes.length; idim++ ) {
+                ErrorMode mode = modes[ idim ];
+                if ( mode != null && ! ErrorMode.NONE.equals( mode ) ) {
+                    return false; 
+                } 
+            }
+            return true;
+        }
+    }
 }
