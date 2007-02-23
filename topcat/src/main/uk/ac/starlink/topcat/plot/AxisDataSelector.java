@@ -42,6 +42,7 @@ public class AxisDataSelector extends JPanel {
      *                      displayed in this component
      * @param  toggleModels toggle button models to be displayed in this
      *                      component (same length as <code>toggleNames</code>)
+     */
     public AxisDataSelector( String axisName, String[] toggleNames,
                              ToggleButtonModel[] toggleModels ) {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
