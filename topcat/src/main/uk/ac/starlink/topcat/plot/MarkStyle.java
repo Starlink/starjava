@@ -28,6 +28,7 @@ import javax.swing.Icon;
  *    style1.setDash( style0.getDash() );
  *    style1.setHidePoints( style0.getHidePoints() );
  *    style1.setOpaqueLimit( style0.getOpaqueLimit() );
+ *    style1.setErrorStyle( style0.getErrorStyle() );
  * </pre>
  * style0 and style1 should then match according to the <code>equals()</code>
  * method.  A style may however have a null <code>shapeId</code>, in
@@ -44,6 +45,7 @@ public abstract class MarkStyle extends DefaultStyle {
     private Line line_;
     private boolean hidePoints_;
     private int opaqueLimit_ = 1;
+    private ErrorStyle errorStyle_;
     private int[] pixoffs_;
     private static final RenderingHints pixHints_;
 
@@ -85,6 +87,7 @@ public abstract class MarkStyle extends DefaultStyle {
         shapeId_ = shapeId;
         size_ = size;
         maxr_ = maxr;
+        errorStyle_ = ErrorStyle.NONE;
     }
 
     /**
@@ -204,6 +207,24 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Sets the style used for drawing error bars around this marker.
+     *
+     * @param  errorStyle  error bar style
+     */
+    public void setErrorStyle( ErrorStyle errorStyle ) {
+        errorStyle_ = errorStyle;
+    }
+
+    /**
+     * Returns the style used for drawing error bars around this marker.
+     *
+     * @return   error bar style
+     */
+    public ErrorStyle getErrorStyle() {
+        return errorStyle_;
+    }
+
+    /**
      * Draws this marker centered at a given position.  
      * This method sets the colour of the graphics context and 
      * then calls {@link #drawShape}.
@@ -265,6 +286,8 @@ public abstract class MarkStyle extends DefaultStyle {
      * @return  legend icon
      */
     public Icon getLegendIcon() {
+        final Icon errorIcon =
+            errorStyle_.getLegendIcon( LEGEND_ICON_WIDTH, LEGEND_ICON_HEIGHT );
         return new Icon() {
             public int getIconHeight() {
                 return LEGEND_ICON_HEIGHT;
@@ -275,15 +298,22 @@ public abstract class MarkStyle extends DefaultStyle {
             public void paintIcon( Component c, Graphics g, int x, int y ) {
                 boolean hide;
                 if ( getLine() != null ) {
-                    Graphics g1 = g.create();
+                    Graphics g1 = createLegendContext( g );
                     configureForLine( g1, BasicStroke.CAP_BUTT,
                                           BasicStroke.JOIN_MITER );
                     int ypos = y + LEGEND_ICON_HEIGHT / 2;
                     g1.drawLine( x, ypos, x + LEGEND_ICON_WIDTH, ypos );
                     hide = getHidePoints();
+                    g1.dispose();
                 }
                 else {
                     hide = false;
+                }
+                if ( ! errorStyle_.isBlank() ) {
+                    Graphics g1 = createLegendContext( g );
+                    g1.setColor( getColor() );
+                    errorIcon.paintIcon( c, g1, x, y );
+                    g1.dispose();
                 }
                 if ( ! hide ) {
                     Graphics g1 = g.create();
@@ -291,7 +321,17 @@ public abstract class MarkStyle extends DefaultStyle {
                     g1.translate( x + LEGEND_ICON_WIDTH / 2,
                                   y + LEGEND_ICON_HEIGHT / 2 );
                     drawLegendShape( g1 );
+                    g1.dispose();
                 }
+            }
+            private Graphics createLegendContext( Graphics g ) {
+                Graphics g1 = g.create();
+                if ( g1 instanceof Graphics2D ) {
+                    ((Graphics2D) g1)
+                   .setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                      RenderingHints.VALUE_ANTIALIAS_ON );
+                }
+                return g1;
             }
         };
     }
@@ -383,7 +423,8 @@ public abstract class MarkStyle extends DefaultStyle {
             MarkStyle other = (MarkStyle) o;
             return this.line_ == other.line_
                 && this.hidePoints_ == other.hidePoints_
-                && this.opaqueLimit_ == other.opaqueLimit_;
+                && this.opaqueLimit_ == other.opaqueLimit_
+                && this.errorStyle_.equals( other.errorStyle_ );
         }
         else {
             return false;
@@ -395,6 +436,7 @@ public abstract class MarkStyle extends DefaultStyle {
         code = code * 23 + ( line_ == null ? 1 : line_.hashCode() );
         code = code * 23 + ( hidePoints_ ? 0 : 1 );
         code = code * 23 + opaqueLimit_;
+        code = code * 23 + errorStyle_.hashCode();
         return code;
     }
 

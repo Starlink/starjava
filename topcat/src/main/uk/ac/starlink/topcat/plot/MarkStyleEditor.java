@@ -40,6 +40,7 @@ public class MarkStyleEditor extends StyleEditor {
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
     private final ValueButtonGroup lineSelector_;
+    private final ErrorSelector errorSelector_;
     private final JLabel corrLabel_;
     private final Map statMap_;
     private final String helpId_;
@@ -64,7 +65,8 @@ public class MarkStyleEditor extends StyleEditor {
     /**
      * Constructor.
      */
-    public MarkStyleEditor( boolean withLines, boolean withTransparency ) {
+    public MarkStyleEditor( boolean withLines, boolean withTransparency,
+                            ErrorSelector errorSelector ) {
         super();
         statMap_ = new HashMap();
         helpId_ = withLines ? "MarkStyleEditor" : "MarkStyleEditorNoLines";
@@ -85,7 +87,7 @@ public class MarkStyleEditor extends StyleEditor {
         opaqueSlider_ = new LogSlider( 1000 );
         final JLabel opaqueLabel = new JLabel( "", SwingConstants.RIGHT );
         opaqueSlider_.addChangeListener( new ChangeListener() {
-            Dimension size;;
+            Dimension size;
             public void stateChanged( ChangeEvent evt ) {
                 if ( size == null ) {
                     opaqueLabel.setText( "9999" );
@@ -173,6 +175,17 @@ public class MarkStyleEditor extends StyleEditor {
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
 
+        /* Place error selection panel if required. */
+        if ( errorSelector != null ) {
+            errorSelector_ = errorSelector;
+            errorSelector_.setBorder( AuxWindow.makeTitledBorder( "Errors" ) );
+            errorSelector_.addActionListener( this );
+            add( errorSelector_ );
+        }
+        else {
+            errorSelector_ = new ErrorSelector( 0 );
+        }
+
         /* Place line selection components if required. */
         if ( withLines ) {
             Box lineStyleBox = Box.createHorizontalBox();
@@ -220,6 +233,7 @@ public class MarkStyleEditor extends StyleEditor {
         dashSelector_.setSelectedDash( mstyle.getDash() );
         lineSelector_.setValue( mstyle.getLine() );
         markFlagger_.setSelected( mstyle.getHidePoints() );
+        errorSelector_.setErrorStyle( mstyle.getErrorStyle() );
     }
 
     public Style getStyle() {
@@ -228,6 +242,7 @@ public class MarkStyleEditor extends StyleEditor {
                          colorSelector_.getSelectedColor(),
                          opaqueSlider_.getValue1(),
                          markFlagger_.isEnabled() && markFlagger_.isSelected(),
+                         errorSelector_.getErrorStyle(),
                          (MarkStyle.Line) lineSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
                          dashSelector_.getSelectedDash() );
@@ -244,6 +259,7 @@ public class MarkStyleEditor extends StyleEditor {
      * @param  size   marker size
      * @param  color  marker colour
      * @param  hidePoints  whether markers are invisible
+     * @param  errorStyle   error bar style
      * @param  line   line type
      * @param  thick  line thickness
      * @param  dash   line dash pattern
@@ -251,6 +267,7 @@ public class MarkStyleEditor extends StyleEditor {
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
                                        int opaqueLimit, boolean hidePoints,
+                                       ErrorStyle errorStyle,
                                        MarkStyle.Line line,
                                        int thick, float[] dash ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
@@ -258,6 +275,7 @@ public class MarkStyleEditor extends StyleEditor {
         style.setOpaqueLimit( opaqueLimit );
         style.setLine( line );
         style.setHidePoints( hidePoints );
+        style.setErrorStyle( errorStyle );
         style.setLineWidth( thick );
         style.setDash( dash );
         return style;
@@ -307,8 +325,9 @@ public class MarkStyleEditor extends StyleEditor {
         corrLabel_.setText( statText );
 
         /* Make sure that marker presence control is only enabled if 
-         * a line is being plotted. */
-        markFlagger_.setEnabled( lineSelector_.getValue() != null );
+         * a line or error bars are being plotted. */
+        markFlagger_.setEnabled( lineSelector_.getValue() != null ||
+                                 ! errorSelector_.getErrorStyle().isBlank() );
     }
 
     /**
@@ -401,11 +420,13 @@ public class MarkStyleEditor extends StyleEditor {
                                 ? getStyle( getMarkShape( index ),
                                             getMarkSize( index ),
                                             getMarkColor( index ),
-                                            1, false, null, 1, null )
+                                            1, false, ErrorStyle.NONE,
+                                            null, 1, null )
                                 : getStyle( getMarkShape(),
                                             getMarkSize(),
                                             getMarkColor(),
-                                            1, false, null, 1, null );
+                                            1, false, ErrorStyle.NONE,
+                                            null, 1, null );
                 label.setIcon( style.getLegendIcon() );
             }
             return c;
