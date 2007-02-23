@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Reseach Council
  *
  *  History:
  *     01-SEP-2002 (Peter W. Draper):
@@ -1072,6 +1073,40 @@ public class SpecData
     public FrameSet getFrameSet()
     {
         return impl.getAst();
+    }
+
+
+    /**
+     * Return the "channel spacing". Determined by getting increment of moving
+     * one pixel along the first axis. Can be in units other than default by
+     * supplying an attribute string (System=FREQ,Unit=MHz).
+     * 
+     * @param atts an AST attribute string, use to set the coordinates that
+     *             the channel spacing is required in.
+     *
+     * @return the channel spacing
+     */
+    public double channelSpacing( String atts )
+    {
+        //  Get the axis from the underlying dataset AST FrameSet. Cannot
+        //  use the plot FrameSet as it may be currently modified by an
+        //  in progress redraw of the main plot (base frame will be
+        //  incorrect).
+        FrameSet frameSet = impl.getAst();
+        int axis = getMostSignificantAxis();
+        FrameSet mapping = ASTJ.extract1DFrameSet( frameSet, axis );
+
+        //  Apply the attributes.
+        if ( ! "".equals( atts ) ) {
+            mapping.set( atts );
+        }
+
+        //  Delta of one pixel in base frame, around the centre.
+        int first = xPos.length / 2;
+        double xin[] = new double[]{ first, first + 1 };
+        double xout[] = mapping.tran1( 2, xin, true );
+        double dnu = Math.abs( xout[1] - xout[0] );
+        return dnu;
     }
 
     /**
