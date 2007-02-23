@@ -1,5 +1,11 @@
 1 Starlink SPLAT news.
 
+   3.6-7
+   =====
+
+   When opening 2 or 3D data spectra that do not have valid data
+   limits are now automatically removed by default.
+
    3.6-6
    =====
 
