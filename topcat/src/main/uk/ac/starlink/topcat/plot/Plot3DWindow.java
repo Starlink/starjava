@@ -221,7 +221,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
     }
 
     protected StyleEditor createStyleEditor() {
-        return new MarkStyleEditor( false, true, null );
+        return new MarkStyleEditor( false, true );
     }
 
     protected PlotState createPlotState() {
