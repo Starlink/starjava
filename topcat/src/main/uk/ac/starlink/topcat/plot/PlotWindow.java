@@ -24,6 +24,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.OverlayLayout;
@@ -55,6 +56,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final Action blobAction_;
     private final Action fromVisibleAction_;
     private final CountsLabel plotStatus_;
+    private final ErrorModeSelectionModel[] errorModeModels_;
 
     private static final StyleSet MARKERS1;
     private static final StyleSet MARKERS2;
@@ -87,6 +89,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.faded( "Medium Transparent Pixels", MARKERS1, 5 ),
         MarkStyles.faded( "Medium Transparent Dots", MARKERS2, 5 ),
     };
+    private static final String[] AXIS_NAMES = new String[] { "X", "Y", };
 
     /**
      * Constructs a new PlotWindow.
@@ -94,7 +97,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( Component parent ) {
-        super( "Scatter Plot", new String[] { "X", "Y" }, parent );
+        super( "Scatter Plot", AXIS_NAMES, parent );
 
         /* Construct the plot component.  Provide an implementation of the
          * hook reportStats() method to accept useful information generated
@@ -147,6 +150,14 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * about with glassPanes. */
         PlotSurface surface = plot_.getSurface();
         surface.getComponent().addMouseListener( new PointClickListener() );
+
+        /* Add error mode selectors. */
+        ErrorModeSelectionModel xErrorModel =
+            new ErrorModeSelectionModel( 0, "X" );
+        ErrorModeSelectionModel yErrorModel =
+            new ErrorModeSelectionModel( 1, "Y" );
+        errorModeModels_ =
+            new ErrorModeSelectionModel[] { xErrorModel, yErrorModel };
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -226,10 +237,26 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         }
         getJMenuBar().add( styleMenu );
 
+        /* Construct a new menu for error modes. */
+        JMenu errorMenu = new JMenu( "Error Bars" );
+        errorMenu.setMnemonic( KeyEvent.VK_B );
+        JMenuItem[] xErrItems = xErrorModel.createMenuItems();
+        for ( int i = 0; i < xErrItems.length; i++ ) {
+            errorMenu.add( xErrItems[ i ] );
+        }
+        errorMenu.addSeparator();
+        JMenuItem[] yErrItems = yErrorModel.createMenuItems();
+        for ( int i = 0; i < yErrItems.length; i++ ) {
+            errorMenu.add( yErrItems[ i ] );
+        }
+        getJMenuBar().add( errorMenu );
+
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( xErrorModel.createOnOffToolbarButton() );
+        getToolBar().add( yErrorModel.createOnOffToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
@@ -264,9 +291,25 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        MarkStyleEditor styleEd =
-            new MarkStyleEditor( true, true, ErrorRenderer.getOptions2d() );
-        return styleEd;
+        return new MarkStyleEditor( true, true, ErrorRenderer.getOptions2d(),
+                                    errorModeModels_ );
+    }
+
+    protected PointSelector createPointSelector() {
+        DefaultPointSelector.ToggleSet[] toggleSets =
+            new DefaultPointSelector.ToggleSet[] {
+                new DefaultPointSelector.ToggleSet( "Log", getLogModels() ),
+                new DefaultPointSelector.ToggleSet( "Flip", getFlipModels() ),
+            };
+        return new DefaultPointSelector( getStyles(), AXIS_NAMES, toggleSets ) {
+            public Icon getStyleLegendIcon( Style style ) {
+                ErrorMode[] modes = new ErrorMode[] {
+                    errorModeModels_[ 0 ].getMode(),
+                    errorModeModels_[ 1 ].getMode(),
+                };
+                return ((MarkStyle) style).getLegendIcon( modes );
+            }
+        };
     }
 
     /*
