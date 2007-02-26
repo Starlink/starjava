@@ -8,6 +8,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import javax.swing.Icon;
+import uk.ac.starlink.topcat.EmptyIcon;
 
 /**
  * Renders error bars.
@@ -17,11 +18,14 @@ import javax.swing.Icon;
  */
 public abstract class ErrorRenderer {
 
-    /** ErrorRenderer which draws nothing. */
+    /** Error renderer which draws nothing. */
     public static ErrorRenderer NONE = new Blank();
 
     /** General purpose error renderer. */
     public static ErrorRenderer DEFAULT = new CappedLine( true, 0 );
+
+    /** Error renderer suitable for use in user controls. */
+    public static ErrorRenderer EXAMPLE = new CappedLine( true, 3 );
 
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
@@ -202,7 +206,7 @@ public abstract class ErrorRenderer {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
-            Graphics2D g2 = (Graphics2D) g;
+            Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  RenderingHints.VALUE_ANTIALIAS_ON );
             renderer_.drawErrors( g2, x + width_ / 2, y + height_ / 2,
@@ -333,7 +337,7 @@ public abstract class ErrorRenderer {
         }
 
         public boolean supportsDimensionality( int ndim ) {
-            return ndim == 1 || ndim == 2;
+            return ndim == 2;
         }
 
         public Icon getLegendIcon() {
@@ -367,7 +371,7 @@ public abstract class ErrorRenderer {
             /* If the X and Y offsets are aligned along X and Y axes we
              * can do it easily. */
             else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                 xoffs[ 2 ] == 0 && xoffs[ 2 ] == 0 ) {
+                      xoffs[ 2 ] == 0 && xoffs[ 2 ] == 0 ) {
                 int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
                 int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
                 int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
@@ -474,7 +478,7 @@ public abstract class ErrorRenderer {
         private final Icon legend_;
 
         Blank() {
-            legend_ = createEmptyIcon( 0, 0 );
+            legend_ = new EmptyIcon( 0, 0 );
         }
 
         public Icon getLegendIcon() {
@@ -483,7 +487,7 @@ public abstract class ErrorRenderer {
 
         public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
                                    int xpad, int ypad ) {
-            return createEmptyIcon( width, height );
+            return new EmptyIcon( width, height );
         }
 
         public boolean supportsDimensionality( int ndim ) {
@@ -497,25 +501,5 @@ public abstract class ErrorRenderer {
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
         }
-    }
-
-    /**
-     * Utility method to return an empty icon.
-     *
-     * @param  width  icon width
-     * @param  height icon height
-     * @return  empty icon
-     */
-    private static Icon createEmptyIcon( final int width, final int height ) {
-        return new Icon() {
-            public int getIconWidth() {
-                return width;
-            }
-            public int getIconHeight() {
-                return height;
-            }
-            public void paintIcon( Component c, Graphics g, int x, int y ) {
-            }
-        };
     }
 }
