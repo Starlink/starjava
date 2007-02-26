@@ -36,6 +36,7 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxStack;
+import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;
@@ -477,6 +478,17 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
+     * Returns the icon used to represent a given style in legends for this
+     * selector.
+     *
+     * @param  style  style to represent
+     * @return  icon
+     */
+    public Icon getStyleLegendIcon( Style style ) {
+        return style.getLegendIcon();
+    }
+
+    /**
      * Adds an action listener.  It will be notified every time something
      * interesting happens to this selector.
      *
@@ -704,18 +716,8 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             actions_ = new HashMap();
             selModel_.addListSelectionListener( this );
             Icon sampleIcon = getStyle( 0 ).getLegendIcon();
-            final int iw = sampleIcon.getIconWidth();
-            final int ih = sampleIcon.getIconHeight();
-            blankIcon_ = new Icon() {
-                public int getIconWidth() {
-                    return iw;
-                }
-                public int getIconHeight() {
-                    return ih;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                }
-            };
+            blankIcon_ = new EmptyIcon( sampleIcon.getIconWidth(),
+                                        sampleIcon.getIconHeight() );
         }
 
         public Component createAnnotation( Object item ) {
@@ -793,7 +795,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
          */
         void setStyleIcon( int index, Style style ) {
             getAction( index ).putValue( Action.SMALL_ICON,
-                                         style.getLegendIcon() );
+                                         getStyleLegendIcon( style ) );
         }
 
         /**
