@@ -143,7 +143,9 @@ public class StyleWindow extends JDialog {
             }
             if ( this == applyAction_ || this == okAction_ || 
                  this == cancelAction_ ) {
-                target_.actionPerformed( evt );
+                if ( target_ != null ) {
+                    target_.actionPerformed( evt );
+                }
             }
             if ( this == cancelAction_ || this == okAction_ ) {
                 dispose();
