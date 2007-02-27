@@ -61,8 +61,12 @@ public class AxisDataSelector extends JPanel {
         }
         
         /* Place the main column selector. */
-        placeSelector( this, axisName + " Axis", atSelector_ );
+        placeSelector( this, axisName + " Axis:", atSelector_ );
         int ntog = toggleNames != null ? toggleNames.length : 0;
+
+        /* Prepare a container to contain the auxiliary column selectors. */
+        extrasBox_ = Box.createHorizontalBox();
+        add( extrasBox_ );
 
         /* Place the toggle buttons. */
         for ( int itog = 0; itog < ntog; itog++ ) {
@@ -76,9 +80,7 @@ public class AxisDataSelector extends JPanel {
             }
         }
 
-        /* Prepare a container to contain the auxiliary column selectors. */
-        extrasBox_ = Box.createHorizontalBox();
-        add( extrasBox_ );
+        /* Pad. */
         add( Box.createHorizontalGlue() );
     }
 
@@ -193,7 +195,7 @@ public class AxisDataSelector extends JPanel {
     private void placeSelector( JComponent box, String label, 
                                 JComboBox selector ) {
         box.add( Box.createHorizontalStrut( 5 ) );
-        box.add( new JLabel( label + ": " ) );
+        box.add( new JLabel( label + " " ) );
         box.add( new ShrinkWrapper( selector ) );
         box.add( Box.createHorizontalStrut( 5 ) );
         box.add( new ComboBoxBumper( selector ) );
