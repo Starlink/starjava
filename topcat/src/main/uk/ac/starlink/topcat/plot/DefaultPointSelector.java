@@ -25,37 +25,64 @@ public class DefaultPointSelector extends PointSelector {
 
     private final int ndim_;
     private final String[] axisNames_;
+    private final ErrorModeSelectionModel[] errorModeModels_;
     private final AxisDataSelector[] dataSelectors_;
     private final JComponent entryBox_;
 
     /**
-     * Constructor.
+     * Constructs a point selector with no error bar capability.
      *
      * @param   styles   initial style set
-     * @param   axisNames  labels for the columns to choose
+     * @param   axisNames  labels for the columns to choose, one per axis
      * @param   toggleSets toggle sets to associate with each axis;
      *                     <code>toggleSets</code> itself or any of
      *                     its elements may be null
      */
     public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
                                  ToggleSet[] toggleSets ) {
+        this( styles, axisNames, toggleSets, new ErrorModeSelectionModel[ 0 ] );
+    }
+    
+
+    /**
+     * Constructs a point selector optionally with error bar capability.
+     *
+     * @param   styles   initial style set
+     * @param   axisNames  labels for the columns to choose, one per axis
+     * @param   toggleSets toggle sets to associate with each axis;
+     *                     <code>toggleSets</code> itself or any of
+     *                     its elements may be null
+     * @param   errorModeModels  selection models for error modes, one per axis
+     */
+    public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
+                                 ToggleSet[] toggleSets,
+                                 ErrorModeSelectionModel[] errorModeModels ) {
         super( styles );
+        axisNames_ = axisNames;
+        errorModeModels_ = errorModeModels;
         ndim_ = axisNames.length;
-        axisNames_ = (String[]) axisNames.clone();
+
+        /* Assemble names for toggle buttons. */
         int ntog = toggleSets == null ? 0 : toggleSets.length;
         String[] togNames = new String[ ntog ];
         for ( int itog = 0; itog < ntog; itog++ ) {
             togNames[ itog ] = toggleSets[ itog ].name_;
         }
+
+        /* Prepare the visual components. */
         entryBox_ = Box.createVerticalBox();
         dataSelectors_ = new AxisDataSelector[ ndim_ ];
         for ( int idim = 0; idim < ndim_; idim++ ) {
+
+            /* Prepare toggle buttons. */
             ToggleButtonModel[] togModels = new ToggleButtonModel[ ntog ];
             for ( int itog = 0; itog < ntog; itog++ ) {
                 ToggleSet togSet = toggleSets[ itog ];
                 togModels[ itog ] = togSet == null ? null
                                                    : togSet.models_[ idim ];
             }
+
+            /* Create and add column selectors. */
             dataSelectors_[ idim ] =
                 new AxisDataSelector( axisNames[ idim ], togNames, togModels );
             dataSelectors_[ idim ].addActionListener( actionForwarder_ ); 
@@ -63,10 +90,25 @@ public class DefaultPointSelector extends PointSelector {
             entryBox_.add( Box.createVerticalStrut( 5 ) );
             entryBox_.add( dataSelectors_[ idim ] );
         }
+
+        /* Place the visual components. */
         int pad = ndim_ == 1 ? dataSelectors_[ 0 ].getPreferredSize().height
                              : 5;
         entryBox_.add( Box.createVerticalStrut( pad ) );
         entryBox_.add( Box.createVerticalGlue() );
+
+        /* Fix for changes to the error mode selections to modify the
+         * state of the axis data selectors. */
+        for ( int id = 0; id < ndim_; id++ ) {
+            final int idim = id;
+            errorModeModels_[ idim ].addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateAnnotator();
+                    dataSelectors_[ idim ]
+                        .setErrorMode( errorModeModels_[ idim ].getMode() );
+                }
+            } );
+        }
     }
 
     /**
