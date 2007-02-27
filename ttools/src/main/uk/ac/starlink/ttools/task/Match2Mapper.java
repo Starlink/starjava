@@ -174,7 +174,8 @@ public class Match2Mapper implements TableMapper {
             String duptag = duptagParams_[ i ].stringValue( env );
             fixacts[ i ] = ( duptag == null || duptag.trim().length() == 0 )
                 ? JoinFixAction.NO_ACTION
-                : JoinFixAction.makeRenameDuplicatesAction( duptag );
+                : JoinFixAction.makeRenameDuplicatesAction( duptag,
+                                                            false, true );
         }
         PrintStream logStrm = env.getErrorStream();
 

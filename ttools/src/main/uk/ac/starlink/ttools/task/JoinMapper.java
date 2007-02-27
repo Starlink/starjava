@@ -75,15 +75,17 @@ public class JoinMapper implements TableMapper {
         if ( FIX_ALL.equals( fixcols ) ) {
             String[] suffixes = getColumnSuffixes( env, nin );
             for ( int i = 0; i < nin; i++ ) {
-                fixActs[ i ] = 
-                    JoinFixAction.makeRenameAllAction( suffixes[ i ] );
+                fixActs[ i ] =
+                    JoinFixAction.makeRenameAllAction( suffixes[ i ],
+                                                       false, true );
             }
         }
         else if ( FIX_DUPS.equals( fixcols ) ) {
             String[] suffixes = getColumnSuffixes( env, nin );
             for ( int i = 0; i < nin; i++ ) {
                 fixActs[ i ] =
-                    JoinFixAction.makeRenameDuplicatesAction( suffixes[ i ] );
+                    JoinFixAction.makeRenameDuplicatesAction( suffixes[ i ],
+                                                              false, true );
             }
         }
         else {
