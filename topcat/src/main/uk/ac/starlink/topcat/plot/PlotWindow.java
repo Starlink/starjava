@@ -301,7 +301,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                 new DefaultPointSelector.ToggleSet( "Log", getLogModels() ),
                 new DefaultPointSelector.ToggleSet( "Flip", getFlipModels() ),
             };
-        return new DefaultPointSelector( getStyles(), AXIS_NAMES, toggleSets ) {
+        return new DefaultPointSelector( getStyles(), AXIS_NAMES, toggleSets,
+                                         errorModeModels_ ) {
             public Icon getStyleLegendIcon( Style style ) {
                 ErrorMode[] modes = new ErrorMode[] {
                     errorModeModels_[ 0 ].getMode(),
