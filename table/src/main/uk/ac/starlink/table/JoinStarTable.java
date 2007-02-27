@@ -3,6 +3,7 @@ package uk.ac.starlink.table;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -85,31 +86,31 @@ public class JoinStarTable extends AbstractStarTable {
         }
         assert icol == nCol;
 
-        /* Set up the column as copies of those from the base tables.
-         * Keep a record of which columns have duplicate names. */
+        /* Set up the column infos as copies of those from the base tables. */
         colInfos = new ColumnInfo[ nCol ];
-        Set colNames = new HashSet();
-        Set colDups = new HashSet();
+        List nameList = new ArrayList();
         icol = 0;
         for ( int itab = 0; itab < nTab; itab++ ) {
             for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
                 colInfos[ icol ] =
-                    new ColumnInfo( tables[ itab ].getColumnInfo( ic ) ); 
-                String name = colInfos[ icol ].getName().toLowerCase();
-                ( colNames.contains( name ) ? colDups : colNames ).add( name );
+                    new ColumnInfo( tables[ itab ].getColumnInfo( ic ) );
+                nameList.add( colInfos[ icol ].getName() );
                 icol++;
-            } 
+            }
         }
         assert icol == nCol;
 
-        /* Fix any duplicated names if required. */
+        /* Deduplicate column names as required. */
         icol = 0;
         for ( int itab = 0; itab < nTab; itab++ ) {
             for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
-                String name = colInfos[ icol ].getName();
-                boolean isDup = colDups.contains( name.toLowerCase() );
-                colInfos[ icol ].setName( fixCols[ itab ]
-                                         .getFixedName( name, isDup ) );
+                String origName = (String) nameList.remove( icol );
+                assert origName.equals( colInfos[ icol ].getName() );
+                String name = fixCols[ itab ]
+                             .getFixedName( origName, nameList );
+                nameList.add( icol, origName );
+                nameList.add( name );
+                colInfos[ icol ].setName( name );
                 icol++;
             }
         }
