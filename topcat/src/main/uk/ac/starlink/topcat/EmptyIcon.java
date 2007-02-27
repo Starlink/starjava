@@ -19,7 +19,7 @@ public class EmptyIcon implements Icon {
      * Constructor.
      *
      * @param  width   icon width
-     * @param  heigth  icon height
+     * @param  height  icon height
      */
     public EmptyIcon( int width, int height ) {
         width_ = width;
