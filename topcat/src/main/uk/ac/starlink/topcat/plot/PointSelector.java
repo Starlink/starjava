@@ -489,6 +489,17 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     }
 
     /**
+     * Ensures that the buttons showing icons for each subset are displaying
+     * up to date images.  This may be necessary if something has happened
+     * to modify icon style.
+     */
+    public void updateAnnotator() {
+        if ( annotator_ != null ) {
+            annotator_.updateStyles();
+        }
+    }
+
+    /**
      * Adds an action listener.  It will be notified every time something
      * interesting happens to this selector.
      *
@@ -782,6 +793,18 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             for ( int i = selModel_.getMinSelectionIndex();
                   i <= selModel_.getMaxSelectionIndex(); i++ ) {
                 if ( selModel_.isSelectedIndex( i ) && ! hasStyle( i ) ) {
+                    setStyleIcon( i, getStyle( i ) );
+                }
+            }
+        }
+
+        /**
+         * Resets the icons for each style.  This may be required if something
+         * has happened to change the way that icons are displayed.
+         */
+        public void updateStyles() {
+            for ( int i = 0; i < list_.size(); i++ ) {
+                if ( hasStyle( i ) ) {
                     setStyleIcon( i, getStyle( i ) );
                 }
             }
