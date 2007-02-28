@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *    20-JUN-2005 (Peter W. Draper):
@@ -20,31 +21,37 @@ import uk.ac.starlink.ast.gui.AstDouble;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class StatsRangesModel 
+public class StatsRangesModel
     extends XGraphicsRangesModel
 {
     /** Associated PlotControl instance. */
     private PlotControl control = null;
 
-    /** Are we showing the Flux value too */
+    /** Are we showing the Flux value. */
     private boolean showFlux = false;
 
-    /** Names of the statistics columns */
+    /** Are we showing the TSYS value. */
+    private boolean showTSYS = false;
+
+    /** Names of the statistics columns. */
     private static final String[] names = {
-        "Mean", "Std dev", "Min", "Max", "Flux"
+        "Mean", "Std dev", "Min", "Max", "Flux", "TSYS"
     };
 
     /**
      * Create an instance of this class.
-     * 
+     *
      * @param control a {@link PlotControl} instance displaying the current
      *                spectrum.
      * @param showFlux whether to include a integrated flux estimate in stats.
+     * @param showTSYS whether to include a TSYS estimate in stats.
      */
-    public StatsRangesModel( PlotControl control, boolean showFlux )
+    public StatsRangesModel( PlotControl control, boolean showFlux,
+                             boolean showTSYS )
     {
         super( control.getPlot() );
         setShowFlux( showFlux );
+        setShowTSYS( showTSYS );
         setPlotControl( control );
     }
 
@@ -55,7 +62,7 @@ public class StatsRangesModel
     {
         if ( this.showFlux != showFlux ) {
             this.showFlux = showFlux;
-            
+
             //  Get an update of all the Fluxes, if needed.
             if ( showFlux ) {
                 Iterator i = rangeIterator();
@@ -63,7 +70,6 @@ public class StatsRangesModel
                     ((StatsRange) i.next()).updateStats();
                 }
             }
-
             fireTableStructureChanged();
         }
         this.showFlux = showFlux;
@@ -78,6 +84,34 @@ public class StatsRangesModel
     }
 
     /**
+     * Set whether we're showing a TSYS value.
+     */
+    protected void setShowTSYS( boolean showTSYS )
+    {
+        if ( this.showTSYS != showTSYS ) {
+            this.showTSYS = showTSYS;
+
+            //  Get an update of all the TSYS values, if needed.
+            if ( showTSYS ) {
+                Iterator i = rangeIterator();
+                while ( i.hasNext() ) {
+                    ((StatsRange) i.next()).updateStats();
+                }
+            }
+            fireTableStructureChanged();
+        }
+        this.showTSYS = showTSYS;
+    }
+
+    /**
+     * Get whether we're showing a TSYS value or not.
+     */
+    protected boolean getShowTSYS()
+    {
+        return showTSYS;
+    }
+
+    /**
      * Set the PlotControl instance. This displays a current spectrum for
      * which the statistics are required.
      */
@@ -87,17 +121,15 @@ public class StatsRangesModel
     }
 
     /**
-     * Return the number of columns. This has extra four or five columns,
-     * mean, std dev, min and max, maybe flux..
+     * Return the number of columns. This has extra four, five or six columns,
+     * mean, std dev, min and max, maybe flux and/or TSYS.
      */
     public int getColumnCount()
     {
-        if ( showFlux ) {
-            return super.getColumnCount() + 5;
-        }
-        else {
-            return super.getColumnCount() + 4;
-        }
+        int extra = 4;
+        if ( showFlux ) extra++;
+        if ( showTSYS ) extra++;
+        return super.getColumnCount() + extra;
     }
 
     /**
@@ -125,8 +157,17 @@ public class StatsRangesModel
             else if ( column == base + 3 ) {
                 value = statsRange.getMax();
             }
-            else if ( showFlux && ( column == base + 4 ) ) {
-                value = statsRange.getFlux();
+            else if ( column == base + 4 ) {
+                //  Could be a flux or TSYS.
+                if ( showFlux ) {
+                    value = statsRange.getFlux();
+                }
+                else if ( showTSYS ) {
+                    value = statsRange.getTSYS();
+                }
+            }
+            else if ( column == base + 5 ) {
+                value = statsRange.getTSYS();
             }
         }
         return new AstDouble( value, plot.getMapping(), 2 );
@@ -151,7 +192,15 @@ public class StatsRangesModel
         if ( column < super.getColumnCount() ) {
             return super.getColumnName( column );
         }
-        return names[ column - super.getColumnCount() ];
+
+        //  Correct for base column count.
+        column = column - super.getColumnCount();
+
+        if ( ! showFlux && showTSYS && column == 4 ) {
+            //  Want TSYS name, not Flux.
+            column++;
+        }
+        return names[column];
     }
 
     /**

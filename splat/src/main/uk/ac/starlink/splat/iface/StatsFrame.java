@@ -40,8 +40,9 @@ import javax.swing.KeyStroke;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.Statistics;
+import uk.ac.starlink.splat.util.JACUtilities;
 import uk.ac.starlink.splat.util.NumericIntegrator;
+import uk.ac.starlink.splat.util.Statistics;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -82,6 +83,9 @@ public class StatsFrame
     /** Include an estimate of the integrated flux in the fast readout */
     protected JCheckBoxMenuItem fluxBox = null;
 
+    /** Include an estimate of the TSYS value (specialist) */
+    protected JCheckBoxMenuItem tSYSBox = null;
+
     /**
      * Create an instance.
      */
@@ -120,7 +124,6 @@ public class StatsFrame
      */
     protected void initUI()
     {
-
         //  Central region.
         JPanel centre = new JPanel();
         GridBagLayouter layouter =
@@ -129,7 +132,8 @@ public class StatsFrame
 
         //  The ranges.
         boolean showFlux = prefs.getBoolean( "StatsFrame_flux", true );
-        rangesModel = new StatsRangesModel( control, showFlux );
+        boolean showTSYS = prefs.getBoolean( "StatsFrame_tsys", false );
+        rangesModel = new StatsRangesModel( control, showFlux , showTSYS );
         JMenu rangesMenu = new JMenu( "Ranges" );
         rangesView = new StatsRangesView( control, rangesMenu, rangesModel );
         layouter.add( rangesView, true );
@@ -281,6 +285,21 @@ public class StatsFrame
         //  User setting for this value.
         fluxBox.setSelected( showFlux );
 
+        //  Option to control whether TSYS is shown in fast readouts.
+        tSYSBox = new JCheckBoxMenuItem( "Show TSYS" );
+        optionsMenu.add( tSYSBox );
+        tSYSBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = tSYSBox.isSelected();
+                    rangesModel.setShowTSYS( state );
+                    prefs.putBoolean( "StatsFrame_tsys", state );
+                }
+            });
+
+        //  User setting for this value.
+        tSYSBox.setSelected( showTSYS );
+
         //  Add the help menu.
         HelpFrame.createHelpMenu( "stats-window", "Help on window",
                                   menuBar, null );
@@ -305,6 +324,8 @@ public class StatsFrame
         SpecData currentSpectrum = control.getCurrentSpectrum();
         double[] yData = currentSpectrum.getYData();
         double[] xData = currentSpectrum.getXData();
+        double[] yErrors = currentSpectrum.getYDataErrors();
+        boolean haveErrors = ( yErrors != null );
 
         if ( type == LocalAction.SELECTEDSTATS ||
              type == LocalAction.ALLSTATS ) {
@@ -330,6 +351,10 @@ public class StatsFrame
             //  Now allocate the necessary memory and copy in the data.
             double[] cleanData = new double[count];
             double[] cleanCoords = new double[count];
+            double[] cleanErrors = null;
+            if ( haveErrors ) {
+                cleanErrors = new double[count];
+            }
             count = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 int low = ranges[i];
@@ -338,6 +363,9 @@ public class StatsFrame
                     if ( yData[j] != SpecData.BAD ) {
                         cleanData[count] = yData[j];
                         cleanCoords[count] = xData[j];
+                        if ( haveErrors ) {
+                            cleanErrors[count] = yErrors[j];
+                        }
                         count++;
                     }
                 }
@@ -357,6 +385,20 @@ public class StatsFrame
             buffer.append( "\n" );
             reportStats( buffer.toString(), stats );
 
+            //  TSYS, requires errors.
+            if ( haveErrors ) {
+                double[] factors =
+                    JACUtilities.gatherTSYSFactors( currentSpectrum );
+                if ( factors != null ) {
+                    double tsys = JACUtilities.calculateTSYS( yErrors, 
+                                                              factors );
+                    if ( tsys != -1.0 ) {
+                        statsResults.append( "  TSYS: " +
+                                             JACUtilities.formatTSYS( tsys ) 
+                                             + "\n" );
+                    }
+                }
+            }
 
             //  2D stats
             NumericIntegrator integ = new NumericIntegrator();
@@ -394,6 +436,14 @@ public class StatsFrame
             String desc =
                 "Statistics of " + currentSpectrum.getShortName() + ":\n";
             reportStats( desc, stats );
+
+            //  TSYS, requires errors.
+            if ( currentSpectrum.haveYDataErrors() ) {
+                String tsys = JACUtilities.calculateTSYS( currentSpectrum );
+                if ( ! "".equals( tsys ) ) {
+                    statsResults.append( "  TSYS: " + tsys + "\n" );
+                }
+            }
 
             //  2D stats.
             NumericIntegrator integ = new NumericIntegrator();

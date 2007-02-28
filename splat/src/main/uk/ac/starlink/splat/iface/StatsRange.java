@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     20-JUN-2005 (Peter W. Draper):
@@ -13,9 +14,10 @@ import uk.ac.starlink.diva.XRangeFigure;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.JACUtilities;
+import uk.ac.starlink.splat.util.NumericIntegrator;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Statistics;
-import uk.ac.starlink.splat.util.NumericIntegrator;
 
 /**
  * StatsRange extends the {@link XGraphicsRange} class to add four or five new
@@ -37,6 +39,9 @@ public class StatsRange
     /** The NumericIntegrator instance */
     protected NumericIntegrator integ = new NumericIntegrator();
 
+    /** The TSYS value */
+    protected double tsys = -1.0;
+
     /**
      * Create a range interactively or non-interactively.
      *
@@ -55,7 +60,7 @@ public class StatsRange
     {
         super( control.getPlot(), model, colour, constrain );
         setControl( control );
-        
+
         //  Do this after construction to avoid problems with initialization
         //  order.
         if ( range == null ) {
@@ -113,13 +118,21 @@ public class StatsRange
                     if ( data[i] != SpecData.BAD ) n++;
                 }
 
-                //  Now allocate the necessary memory and copy in the data.
+                //  What do we need to determine?
                 boolean showFlux = ((StatsRangesModel)model).getShowFlux();
+                boolean showTSYS = ((StatsRangesModel)model).getShowTSYS();
+
+                //  TSYS requires errors, Flux needs a monotonic spectrum.
                 boolean monotonic = currentSpectrum.isMonotonic();
+                showFlux = ( showFlux && monotonic );
+
+                double[] errors = currentSpectrum.getYDataErrors();
+                showTSYS = ( showTSYS && errors != null );
+
+                //  Do the necessary extractions.
                 double[] rangeData = new double[n];
-                double[] rangeCoords = null;
-                if ( showFlux && monotonic ) { 
-                    rangeCoords = new double[n];
+                if ( showFlux ) {
+                    double[] rangeCoords = new double[n];
                     if ( n > 1 ) {
                         n = 0;
                         for ( int i = low; i <= high; i++ ) {
@@ -129,7 +142,7 @@ public class StatsRange
                                 n++;
                             }
                         }
-                        
+
                         //  Set up for flux estimates.
                         integ.setData( rangeCoords, rangeData );
                     }
@@ -144,7 +157,27 @@ public class StatsRange
                         integ.setData( rangeCoords, rangeData );
                     }
                 }
-                else {
+
+                if ( showTSYS ) {
+                    tsys = -1.0;
+                    double[] rangeErrors = new double[n];
+                    n = 0;
+                    for ( int i = low; i <= high; i++ ) {
+                        if ( data[i] != SpecData.BAD ) {
+                            rangeErrors[n] = errors[i];
+                            n++;
+                        }
+                    }
+                    double[] factors =
+                        JACUtilities.gatherTSYSFactors( currentSpectrum );
+                    if ( factors != null ) {
+                        tsys =
+                            JACUtilities.calculateTSYS( rangeErrors, factors );
+                    }
+                }
+
+                //  Need to extract data as we've not done that yet.
+                if ( !showFlux ) {
                     n = 0;
                     for ( int i = low; i <= high; i++ ) {
                         if ( data[i] != SpecData.BAD ) {
@@ -198,6 +231,14 @@ public class StatsRange
     public double getFlux()
     {
         return integ.getIntegral();
+    }
+
+    /**
+     * Get the TSYS value.
+     */
+    public double getTSYS()
+    {
+        return tsys;
     }
 
     //
