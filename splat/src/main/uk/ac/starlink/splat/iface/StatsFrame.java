@@ -324,8 +324,7 @@ public class StatsFrame
         SpecData currentSpectrum = control.getCurrentSpectrum();
         double[] yData = currentSpectrum.getYData();
         double[] xData = currentSpectrum.getXData();
-        double[] yErrors = currentSpectrum.getYDataErrors();
-        boolean haveErrors = ( yErrors != null );
+        Statistics stats = null;
 
         if ( type == LocalAction.SELECTEDSTATS ||
              type == LocalAction.ALLSTATS ) {
@@ -351,10 +350,6 @@ public class StatsFrame
             //  Now allocate the necessary memory and copy in the data.
             double[] cleanData = new double[count];
             double[] cleanCoords = new double[count];
-            double[] cleanErrors = null;
-            if ( haveErrors ) {
-                cleanErrors = new double[count];
-            }
             count = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 int low = ranges[i];
@@ -363,16 +358,13 @@ public class StatsFrame
                     if ( yData[j] != SpecData.BAD ) {
                         cleanData[count] = yData[j];
                         cleanCoords[count] = xData[j];
-                        if ( haveErrors ) {
-                            cleanErrors[count] = yErrors[j];
-                        }
                         count++;
                     }
                 }
             }
 
             //  1D stats.
-            Statistics stats = new Statistics( cleanData );
+            stats = new Statistics( cleanData );
             StringBuffer buffer = new StringBuffer();
             buffer.append( "Statistics of " + currentSpectrum.getShortName() +
                            " over ranges: \n" );
@@ -385,27 +377,11 @@ public class StatsFrame
             buffer.append( "\n" );
             reportStats( buffer.toString(), stats );
 
-            //  TSYS, requires errors.
-            if ( haveErrors ) {
-                double[] factors =
-                    JACUtilities.gatherTSYSFactors( currentSpectrum );
-                if ( factors != null ) {
-                    double tsys = JACUtilities.calculateTSYS( yErrors, 
-                                                              factors );
-                    if ( tsys != -1.0 ) {
-                        statsResults.append( "  TSYS: " +
-                                             JACUtilities.formatTSYS( tsys ) 
-                                             + "\n" );
-                    }
-                }
-            }
-
             //  2D stats
             NumericIntegrator integ = new NumericIntegrator();
             integ.setData( cleanCoords, cleanData );
             statsResults.append( "  Integrated flux: " +
                                  integ.getIntegral() + "\n" );
-            statsResults.append( "\n" );
         }
         else if ( type == LocalAction.WHOLESTATS ) {
 
@@ -432,25 +408,31 @@ public class StatsFrame
             }
 
             //  1D stats.
-            Statistics stats = new Statistics( yData );
+            stats = new Statistics( yData );
             String desc =
                 "Statistics of " + currentSpectrum.getShortName() + ":\n";
             reportStats( desc, stats );
-
-            //  TSYS, requires errors.
-            if ( currentSpectrum.haveYDataErrors() ) {
-                String tsys = JACUtilities.calculateTSYS( currentSpectrum );
-                if ( ! "".equals( tsys ) ) {
-                    statsResults.append( "  TSYS: " + tsys + "\n" );
-                }
-            }
 
             //  2D stats.
             NumericIntegrator integ = new NumericIntegrator();
             integ.setData( xData, yData );
             statsResults.append( "  Integrated flux: " + integ.getIntegral() );
-            statsResults.append( "\n\n" );
+            statsResults.append( "\n" );
         }
+
+        //  TSYS requires the standard deviation.
+        double std = stats.getStandardDeviation();
+        double[] factors = JACUtilities.gatherTSYSFactors( currentSpectrum );
+        if ( factors != null ) {
+            double tsys = JACUtilities.calculateTSYS( factors[0], factors[1],
+                                                      factors[2], std );
+            if ( tsys != -1.0 ) {
+                statsResults.append( "  TSYS: " +
+                                     JACUtilities.formatTSYS( tsys ) 
+                                     + "\n" );
+            }
+        }
+        statsResults.append( "\n" );
     }
 
     /**

@@ -122,12 +122,9 @@ public class StatsRange
                 boolean showFlux = ((StatsRangesModel)model).getShowFlux();
                 boolean showTSYS = ((StatsRangesModel)model).getShowTSYS();
 
-                //  TSYS requires errors, Flux needs a monotonic spectrum.
+                //  Flux needs a monotonic spectrum.
                 boolean monotonic = currentSpectrum.isMonotonic();
                 showFlux = ( showFlux && monotonic );
-
-                double[] errors = currentSpectrum.getYDataErrors();
-                showTSYS = ( showTSYS && errors != null );
 
                 //  Do the necessary extractions.
                 double[] rangeData = new double[n];
@@ -157,27 +154,7 @@ public class StatsRange
                         integ.setData( rangeCoords, rangeData );
                     }
                 }
-
-                if ( showTSYS ) {
-                    tsys = -1.0;
-                    double[] rangeErrors = new double[n];
-                    n = 0;
-                    for ( int i = low; i <= high; i++ ) {
-                        if ( data[i] != SpecData.BAD ) {
-                            rangeErrors[n] = errors[i];
-                            n++;
-                        }
-                    }
-                    double[] factors =
-                        JACUtilities.gatherTSYSFactors( currentSpectrum );
-                    if ( factors != null ) {
-                        tsys =
-                            JACUtilities.calculateTSYS( rangeErrors, factors );
-                    }
-                }
-
-                //  Need to extract data as we've not done that yet.
-                if ( !showFlux ) {
+                else {
                     n = 0;
                     for ( int i = low; i <= high; i++ ) {
                         if ( data[i] != SpecData.BAD ) {
@@ -189,6 +166,21 @@ public class StatsRange
 
                 //  Perform stats...
                 stats.setData( rangeData );
+
+                //  TSYS requires the standard deviation.
+                tsys = -1.0;
+                if ( showTSYS ) {
+                    double std = getStandardDeviation();
+                    double[] factors =
+                        JACUtilities.gatherTSYSFactors( currentSpectrum );
+                    if ( factors != null ) {
+                        tsys = JACUtilities.calculateTSYS( factors[0],
+                                                           factors[1],
+                                                           factors[2],
+                                                           std );
+                    }
+                }
+
             }
         }
     }
