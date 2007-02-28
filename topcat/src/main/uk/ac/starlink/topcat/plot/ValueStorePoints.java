@@ -4,7 +4,7 @@ import uk.ac.starlink.table.ValueStore;
 import uk.ac.starlink.table.storage.ArrayPrimitiveStore;
 
 /**
- * Points implementation based on a ValueStore.
+ * Points implementation based on a {@link uk.ac.starlink.table.ValueStore}.
  * Is writable as well as readable.
  *
  * @author   Mark Taylor
@@ -27,8 +27,8 @@ public class ValueStorePoints implements Points {
         npoint_ = npoint;
 
         /* Currently an ArrayPrimitiveStore implementation is hardwired in.
-         * At some point this should be modified so that it uses the
-         * default storage policy to get a suitable store object. */
+         * This could be modified so that it uses the default storage 
+         * policy to get a suitable store object. */
         store_ = new ArrayPrimitiveStore( double.class, ndim * npoint );
     }
 
