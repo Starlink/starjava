@@ -6,6 +6,11 @@
    When opening 2 or 3D data spectra that do not have valid data
    limits are now automatically removed by default.
 
+   A TSYS value can now be reported by the statistics toolbox. This
+   will only work for JCMT ACSIS data. This is the same value as reported in
+   the spectral synopsis, but uses the the variance from a region, not the
+   whole spectrum. 
+
    3.6-6
    =====
 

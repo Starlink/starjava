@@ -3109,6 +3109,7 @@ Constantly updated statistics for regions are:
 \item Minimum
 \item Maximum
 \item Integrated flux
+\item TSYS
 \end{itemize}
 
 The integrated flux is a numerical estimate and does not require
@@ -3117,6 +3118,9 @@ It can be removed from this list by deselecting the
 \submenuitem{Options}{Show flux integral} item. This can be used to quickly
 estimate the flux in a line, providing your spectra are background
 subtracted. 
+
+The TSYS value is a system temperature estimate and requires data
+from the JCMT.
 
 When you use the buttons along the bottom of the window these statistics are
 extended to also include:
@@ -3607,8 +3611,13 @@ requests for useful features -- thanks to them all.
 \section{Changes}
 
 \subsection{3.6-7}
+
 When opening 2 or 3D data spectra that do not have valid data limits are now
 automatically removed by default.
+
+A TSYS value can now be reported by the statistics toolbox. This will only
+work for JCMT ACSIS data. This is the same value as reported in the spectral
+synopsis, but uses the the variance from a region, not the whole spectrum.
 
 \subsection{3.6-6}
 All the line fitting functions now also report a FWHM value.
