@@ -20,6 +20,9 @@ import uk.ac.starlink.splat.data.SpecData;
  */
 public class JACUtilities
 {
+    /** Formatter for double precision as Kelvins */
+    private static DecimalFormat dtok  = new DecimalFormat( "###.####" );
+
     /**
      * Class of static methods, so no construction.
      */
@@ -29,15 +32,18 @@ public class JACUtilities
     }
 
     /**
-     * Calculate an estimate for the TSYS (system temperature).
-     * This method is sub-millimetre specific, don't expect it to work for
-     * any data other tham that produced on the JCMT as it uses JAC specific
+     * Calculate an estimate for the TSYS (system temperature) for the whole
+     * of a spectrum.
+     * <p>
+     * This method is sub-millimetre specific and don't expect it to work for
+     * any data other than that produced on the JCMT as it uses JAC specific
      * keywords for some parameters.
      * 
      * @param specData an instance of {@link SpecData} should be from data
      *                 taken at the JAC.
+     * @param result the TSYS value formatted as a string (for Kelvins).
      */
-    public static String calculateTsys( SpecData specData )
+    public static String calculateTSYS( SpecData specData )
     {
         String result = "";
         double[] errors = specData.getYDataErrors();
@@ -45,23 +51,32 @@ public class JACUtilities
             return result;
         }
 
-        //  Need the channel spacing and the efficiency factor.
-        String prop = specData.getProperty( "BEDEGFAC" );
-        if ( "".equals( prop ) ) {
+        //  Attempt to gather the necessary meta-data for calculating a TSYS.
+        double factors[] = gatherTSYSFactors( specData );
+        if ( factors == null ) {
             return result;
         }
-        double K = Double.parseDouble( prop );
-
-        //  Work out the channel spacing from the coordinates. These are in
-        //  the axis units, but we need this in Hz.
-        double dnu = specData.channelSpacing( "System=FREQ,Unit=Hz" );
-
-        //  Effective exposure time (x4).
-        prop = specData.getProperty( "EXEFFT" );
-        if ( "".equals( prop ) ) {
-            return result;
+        double tsys = calculateTSYS( errors, factors );
+        if ( tsys != -1.0 ) {
+            result = formatTSYS( tsys );
         }
-        double exposure = 0.25 * Double.parseDouble( prop );
+        return result;
+    }
+
+    /**
+     * Calculate an estimate for the TSYS (system temperature) given 
+     * an array of errors from a spectrum and the necessary meta-data
+     * from {@link gatherTSYSFactors}.
+     * <p>
+     * 
+     * @param errors the errors extracted from a spectrum.
+     * @param factors the various factors from a call to 
+     *                {@link gatherTSYSFactors}
+     * @param result the TSYS value, -1 if not determined.
+     */
+    public static double calculateTSYS( double[] errors, double[] factors )
+    {
+        double tsys = -1.0;
 
         //  Variance, need one value for whole spectrum.
         int n = errors.length;
@@ -74,21 +89,84 @@ public class JACUtilities
             }
         }
         if ( count > 0 ) {
+            //  The one standard deviation.
             double sigma = Math.sqrt ( sum / (double) count );
+            tsys = calculateTSYS( factors[0], factors[1], factors[2], sigma );
+        }
+        return tsys;
+    }
 
-            //  I make this from Jamie's original paper:
-            // double tsys =
-            //    0.5 * sigma * Math.sqrt( 2.0 * dnu * exposure / K );
 
-            //  SpecX says:
-            // double tsys = 0.5 * sigma * Math.sqrt( dnu * exposure );
-            //
+    /**
+     * Format a TSYS value for display.
+     *
+     * @param tsys the TSYS value.
+     * @return the TSYS value formatted as a string for Kelvins.
+     */
+    public static String formatTSYS( double tsys )
+    {
+        return dtok.format( tsys );
+    }
 
-            //  Tim says (current ACSIS docs, circa December 2006):
-            double tsys = sigma * Math.sqrt( dnu * exposure ) / K;
-            DecimalFormat f  = new DecimalFormat( "###.####" );
-            result = f.format( tsys );
+    /**
+     * Gather the necessary meta-data required for a JAC TSYS calculation.
+     * If all found returns an array containing:
+     * <ul>
+     * <li> K the backend degradation factor </li>
+     * <li> the channel spacing in Hz </li>
+     * <li> teff the effective exposure time in seconds </li>
+     * </ul>
+     * Other a null is returned.
+     *
+     * @param specData the SpecData instance.
+     * @return array of three doubles, otherwise a null.
+     */
+    public static double[] gatherTSYSFactors( SpecData specData )
+    {
+        double result[] = null;
+
+        //  Need the channel spacing and the efficiency factor.
+        String prop = specData.getProperty( "BEDEGFAC" );
+        if ( ! "".equals( prop ) ) {
+            double K = Double.parseDouble( prop );
+
+            //  Work out the channel spacing from the coordinates. These are
+            //  in the axis units, but we need this in Hz.
+            double dnu = specData.channelSpacing( "System=FREQ,Unit=Hz" );
+
+            //  Effective exposure time (x4). This value is from GAIA.
+            prop = specData.getProperty( "EXEFFT" );
+            if ( ! "".equals( prop ) ) {
+                double teff = 0.25 * Double.parseDouble( prop );
+
+                // All determined.
+                result = new double[3];
+                result[0] = K;
+                result[1] = dnu;
+                result[2] = teff;
+            }
         }
         return result;
+    }
+
+    /**
+     * Calculate an estimate for the TSYS (system temperature) for the given
+     * data. The effective exposure time is given by:
+     * <pre>
+     *      teff = ton * toff / ( ton + toff )
+     * </pre>
+     * Where ton and toff are the times spent on and off the source for this
+     * measurement.
+     *
+     * @param K the backend degradation factor
+     * @param dnu the channel spacing in Hz
+     * @param teff the effective exposure time in seconds.
+     * @param sigma the data standard deviation
+     */
+    public static double calculateTSYS( double K, double teff, double dnu,
+                                        double sigma )
+    {
+        //  Tim Jenness says (current ACSIS docs, circa December 2006):
+        return ( sigma * Math.sqrt( dnu * teff ) / K );
     }
 }

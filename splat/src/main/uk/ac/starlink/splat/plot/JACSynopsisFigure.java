@@ -407,7 +407,7 @@ public class JACSynopsisFigure
 
         //  Estimated TSYS from variance, if possible.
         if ( "JCMT".equals( telescope ) ) {
-            prop = JACUtilities.calculateTsys( specData );
+            prop = JACUtilities.calculateTSYS( specData );
             if ( ! "".equals( prop ) ) {
                 b.append( "TSYS (est): " + prop + " (K)\n" );
             }
