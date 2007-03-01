@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import javax.swing.Icon;
@@ -72,9 +74,11 @@ public abstract class ErrorRenderer {
 
     /**
      * Indicates whether this renderer is known to produce no output 
-     * for a particular set of ErrorModes.
+     * for a particular set of ErrorModes.  If <code>modes</code> is null,
+     * the question is about whether this renderer will produce no output
+     * regardless of the error mode context.
      *
-     * @param   modes   error mode context
+     * @param   modes   error mode context, or null
      * @return  true if this renderer can be guaranteed to paint nothing
      */
     public abstract boolean isBlank( ErrorMode[] modes );
@@ -106,6 +110,21 @@ public abstract class ErrorRenderer {
      */
     public abstract void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                      int[] yoffs );
+
+    /**
+     * Returns a rectangle which will contain the rendered error bar 
+     * graphics for a given point.
+     * The parameters are the same as for {@link #drawErrors},
+     *
+     * @param  g  graphics context
+     * @param  x  data point X coordinate
+     * @param  y  data point Y coordinate
+     * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
+     * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
+     * @return  bounding box
+     */
+    public abstract Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
+                                         int[] yoffs );
 
     /**
      * Returns an array of ErrorRenderers which can render 2-dimensional errors.
@@ -267,7 +286,7 @@ public abstract class ErrorRenderer {
         }
 
         public boolean isBlank( ErrorMode[] modes ) {
-            return ErrorMode.allBlank( modes );
+            return modes != null && ErrorMode.allBlank( modes );
         }
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
@@ -317,6 +336,57 @@ public abstract class ErrorRenderer {
                 }
             }
         }
+
+        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
+                                    int[] yoffs ) {
+            int xmin = 0;
+            int xmax = 0;
+            int ymin = 0;
+            int ymax = 0;
+            boolean empty = true;
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs[ ip ];
+                int yoff = yoffs[ ip ];
+                if ( xoff != 0 || yoff != 0 ) {
+                    empty = false;
+                    if ( xoff == 0 ) {
+                        xmin = Math.min( xmin, - capsize_ );
+                        xmax = Math.max( xmax, + capsize_ );
+                        ymin = Math.min( ymin, yoff );
+                        ymax = Math.max( ymax, yoff );
+                    }
+                    else if ( yoff == 0 ) {
+                        xmin = Math.min( xmin, xoff );
+                        xmax = Math.max( xmax, xoff );
+                        ymin = Math.min( ymin, - capsize_ );
+                        ymax = Math.max( ymax, + capsize_ );
+                    }
+                    else {
+                        xmin = Math.min( xmin, xoff - capsize_ );
+                        xmax = Math.max( xmax, xoff + capsize_ );
+                        ymin = Math.min( ymin, yoff - capsize_ );
+                        ymax = Math.max( ymax, yoff + capsize_ );
+                    }
+                }
+            }
+            if ( empty ) {
+                return new Rectangle( x, y, 0, 0 );
+            }
+            else {
+                Rectangle box = new Rectangle( x + xmin, y + ymin,
+                                               xmax - xmin, ymax - ymin );
+                if ( g instanceof Graphics2D ) {
+                    box = ((Graphics2D) g).getStroke().createStrokedShape( box )
+                                                      .getBounds();
+                }
+                else {
+                    box.width++;
+                    box.height++;
+                }
+                return box;
+            }
+        }
     }
 
     /**
@@ -351,7 +421,7 @@ public abstract class ErrorRenderer {
         }
 
         public boolean isBlank( ErrorMode[] modes ) {
-            return ErrorMode.allBlank( modes );
+            return modes != null && ErrorMode.allBlank( modes );
         }
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs, 
@@ -413,6 +483,58 @@ public abstract class ErrorRenderer {
                 drawOblong( g2, 0, 0, (int) Math.round( width ),
                             (int) Math.round( height ) );
                 g2.dispose();
+            }
+        }
+
+        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
+                                    int[] yoffs ) {
+            int xmin = 0;
+            int xmax = 0;
+            int ymin = 0;
+            int ymax = 0;
+            int r2max = 0;
+            boolean empty = true;
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs[ ip ];
+                int yoff = yoffs[ ip ];
+                if ( xoff != 0 || yoff != 0 ) {
+                    empty = false;
+                    if ( xoff == 0 ) {
+                        ymin = Math.min( ymin, yoff );
+                        ymax = Math.max( ymax, yoff );
+                    }
+                    else if ( yoff == 0 ) {
+                        xmin = Math.min( xmin, xoff );
+                        xmax = Math.max( xmax, xoff );
+                    }
+                    else {
+                        r2max = Math.max( r2max, xoff * xoff + yoff * yoff );
+                    }
+                }
+            }
+            if ( r2max > 0 ) {
+                int r = (int) Math.ceil( Math.sqrt( r2max ) );
+                xmin = Math.min( xmin, - r );
+                xmax = Math.max( xmax, + r );
+                ymin = Math.min( ymin, - r );
+                ymax = Math.max( ymax, + r );
+            }
+            if ( empty ) {
+                return new Rectangle( x, y, 0, 0 );
+            }
+            else {
+                Rectangle box = new Rectangle( x + xmin, y + ymin,
+                                               xmax - xmin, ymax - ymin ); 
+                if ( g instanceof Graphics2D ) {
+                    box = ((Graphics2D) g).getStroke().createStrokedShape( box )
+                                                      .getBounds();
+                }
+                else {
+                    box.width++;
+                    box.height++;
+                }
+                return box;
             }
         }
 
@@ -500,6 +622,11 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
+        }
+
+        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
+                                    int[] yoffs ) {
+            return new Rectangle( x, y, 0, 0 );
         }
     }
 }
