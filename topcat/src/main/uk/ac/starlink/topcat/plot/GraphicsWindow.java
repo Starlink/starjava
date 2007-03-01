@@ -137,6 +137,8 @@ public abstract class GraphicsWindow extends AuxWindow {
     private boolean forceReread_;
     private double padRatio_ = 0.02;
     private PointsReader pointsReader_;
+    private int nPlot_;
+    private int nRead_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -599,7 +601,7 @@ public abstract class GraphicsWindow extends AuxWindow {
             /* If we're looking at what is effectively a new graph,
              * reset the viewing limits to null, so the visible range
              * will be defined only by the data. */
-            if ( ! sameData ) {
+            if ( ! pointSelection.sameAxes( lastPointSelection_ ) ) {
                 for ( int i = 0; i < viewRanges_.length; i++ ) {
                     viewRanges_[ i ].clear();
                 }
@@ -747,6 +749,7 @@ public abstract class GraphicsWindow extends AuxWindow {
          * time). */
         if ( ! state.equals( lastState_ ) || points_ != lastPoints_ ) {
             doReplot( state, points_ );
+            logger_.info( "Replot " + ++nPlot_ );
             lastState_ = state;
             lastPoints_ = points_;
         }
@@ -1237,6 +1240,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private class PointsReader extends Thread {
         final PointSelection pointSelection_;
+        final long start_;
 
         /**
          * Constructs a new reader ready to read data as defined by 
@@ -1247,6 +1251,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         PointsReader( PointSelection pointSelection ) {
             super( "Point Reader" );
             pointSelection_ = pointSelection;
+            start_ = System.currentTimeMillis();
         }
 
         /**
@@ -1288,6 +1293,10 @@ public abstract class GraphicsWindow extends AuxWindow {
                 points = pointSelection_.readPoints( progModel );
                 error = null;
                 success = true;
+                nPlot_ = 0;
+                logger_.info( "Data read " + ++nRead_ + " ("
+                            + points.getCount() + " in "
+                            + ( System.currentTimeMillis() - start_ ) + "ms)" );
             }
 
             /* In the case of a thread interruption, just bail out. */
