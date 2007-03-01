@@ -48,7 +48,7 @@ public class SphericalPolarPointSelector extends PointSelector {
      */
     public SphericalPolarPointSelector( MutableStyleSet styles,
                                         ToggleButtonModel logToggler ) {
-        super( styles );
+        super( styles, new ErrorModeSelectionModel[ 0 ] );
         logToggler_ = logToggler;
 
         /* Prepare column selection panel. */
@@ -127,6 +127,13 @@ public class SphericalPolarPointSelector extends PointSelector {
     public StarTable getData() {
         return new SphericalPolarTable( getTable(),
                                         getPhi(), getTheta(), getR() );
+    }
+
+    /**
+     * Returns null.
+     */
+    public StarTable getErrorData() {
+        return null;
     }
 
     public AxisEditor[] createAxisEditors() {
