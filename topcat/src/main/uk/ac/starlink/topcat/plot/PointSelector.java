@@ -55,6 +55,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public abstract class PointSelector extends JPanel implements TopcatListener {
 
+    private final ErrorModeSelectionModel[] errorModeModels_;
     private final JComboBox tableSelector_;
     private final JScrollPane subsetScroller_;
     private final JScrollPane entryScroller_;
@@ -77,10 +78,14 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      * Constructor.
      *
      * @param  styles  initial style set
+     * @param  errorModeModels   models for selecting ErrorModes used by 
+     *                           this selector
      */
-    public PointSelector( MutableStyleSet styles ) {
+    public PointSelector( MutableStyleSet styles,
+                          ErrorModeSelectionModel[] errorModeModels ) {
         super( new BorderLayout() );
         styles_ = styles;
+        errorModeModels_ = errorModeModels;
 
         /* Set up a map of labels for the subsets controlled by this selector.
          * Its keys are Integers (giving the subset index) and its values
@@ -260,6 +265,18 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     public abstract StarTable getData();
 
     /**
+     * Returns a StarTable which corresponds to the error data defined
+     * by the current selections.  The details of how the table columns 
+     * are laid out are down to the concrete subclass.
+     *
+     * <p>See the notes in {@link PointSelector#getData}
+     * about table equality - the same constraints apply.
+     *
+     * @return  error data table
+     */
+    public abstract StarTable getErrorData();
+
+    /**
      * Constructs an array of AxisEditor objects suitable for modifying the
      * axes which are defined by this PointSelector.  The number of
      * them is often, but not necessarily, the same as the dimensionality
@@ -268,6 +285,29 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      * @return  array of new AxisEditors 
      */
     public abstract AxisEditor[] createAxisEditors();
+
+    /**
+     * Returns the error mode selection models used by this selector.
+     *
+     * @return   array of error mode selection models
+     */
+    public ErrorModeSelectionModel[] getErrorModeModels() {
+        return (ErrorModeSelectionModel[]) errorModeModels_.clone();
+    }
+
+    /**
+     * Returns an array of the error modes currently in force for this selector.
+     *
+     * @return  array of error modes
+     */
+    public ErrorMode[] getErrorModes() {
+        int nerr = errorModeModels_.length;
+        ErrorMode[] modes = new ErrorMode[ nerr ];
+        for ( int ierr = 0; ierr < nerr; ierr++ ) {
+            modes[ ierr ] = errorModeModels_[ ierr ].getMode();
+        }
+        return modes;
+    }
 
     /**
      * Determines whether the component containing the column selectors
