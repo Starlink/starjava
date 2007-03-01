@@ -263,6 +263,43 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Draws error bars using this style's current error renderer.
+     *
+     * @param  g  graphics context
+     * @param  x  data point X coordinate
+     * @param  y  data point Y coordinate
+     * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
+     * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
+     * @see    ErrorRenderer#drawErrors
+     */
+    public void drawErrors( Graphics g, int x, int y,
+                            int[] xoffs, int[] yoffs ) {
+        drawErrors( g, x, y, xoffs, yoffs, null );
+    }
+
+    /**
+     * Draws error bars using this style's current error renderer in a way
+     * which may be modified by a supplied <code>ColorTweaker</code> object.
+     *
+     * @param  g  graphics context
+     * @param  x  data point X coordinate
+     * @param  y  data point Y coordinate
+     * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
+     * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
+     * @param  fixer  hook for modifying the colour (may be null)
+     * @see    ErrorRenderer#drawErrors
+     */
+    public void drawErrors( Graphics g, int x, int y,
+                            int[] xoffs, int[] yoffs, ColorTweaker fixer ) {
+        Color origColor = g.getColor();
+        Color errColor = fixer == null ? getColor()
+                                       : fixer.tweakColor( getColor() );
+        g.setColor( errColor );
+        errorRenderer_.drawErrors( g, x, y, xoffs, yoffs );
+        g.setColor( origColor );
+    }
+
+    /**
      * Configures the given graphics context ready to do line drawing with
      * a given stroke cap and join policy.
      *
