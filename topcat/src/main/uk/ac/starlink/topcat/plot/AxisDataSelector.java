@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -31,6 +33,7 @@ public class AxisDataSelector extends JPanel {
     private final JComboBox loSelector_;
     private final JComboBox hiSelector_;
     private final JComboBox lhSelector_;
+    private final Map extentMap_;
     private final ActionForwarder actionForwarder_;
     private ErrorMode errorMode_ = ErrorMode.NONE;
 
@@ -59,7 +62,13 @@ public class AxisDataSelector extends JPanel {
         for ( int i = 0; i < selectors.length; i++ ) {
             selectors[ i ].addActionListener( actionForwarder_ );
         }
-        
+
+        /* Cache information about which selectors represent which extents. */
+        extentMap_ = new HashMap();
+        extentMap_.put( ErrorMode.LOWER_EXTENT, loSelector_ );
+        extentMap_.put( ErrorMode.UPPER_EXTENT, hiSelector_ );
+        extentMap_.put( ErrorMode.BOTH_EXTENT, lhSelector_ );
+
         /* Place the main column selector. */
         placeSelector( this, axisName + " Axis:", atSelector_ );
         int ntog = toggleNames != null ? toggleNames.length : 0;
@@ -121,6 +130,23 @@ public class AxisDataSelector extends JPanel {
     }
 
     /**
+     * Returns the currently displayed column selectors which provide
+     * error information.  Which these are will depend on the current 
+     * error mode.
+     *
+     * @return   displayed selectors apart from the main one
+     */
+    public JComboBox[] getErrorSelectors() {
+        ErrorMode.Extent[] extents = errorMode_.getExtents();
+        int nex = extents.length;
+        JComboBox[] selectors = new JComboBox[ nex ];
+        for ( int i = 0; i < nex; i++ ) {
+            selectors[ i ] = (JComboBox) extentMap_.get( extents[ i ] );
+        }
+        return selectors;
+    }
+
+    /**
      * Sets the error mode.  This controls which column selectors are
      * displayed.
      *
@@ -131,21 +157,11 @@ public class AxisDataSelector extends JPanel {
             return;
         }
         extrasBox_.removeAll();
-        if ( ErrorMode.SYMMETRIC.equals( errorMode ) ) {
-            placeSelector( extrasBox_, "+/-", lhSelector_ );
-        }
-        else if ( ErrorMode.LOWER.equals( errorMode ) ) {
-            placeSelector( extrasBox_, "-", loSelector_ );
-        }
-        else if ( ErrorMode.UPPER.equals( errorMode ) ) {
-            placeSelector( extrasBox_, "+", hiSelector_ );
-        }
-        else if ( ErrorMode.BOTH.equals( errorMode ) ) {
-            placeSelector( extrasBox_, "-", loSelector_ );
-            placeSelector( extrasBox_, "+", hiSelector_ );
-        }
-        else {
-            assert ErrorMode.NONE.equals( errorMode );
+        ErrorMode.Extent[] extents = errorMode.getExtents();
+        for ( int i = 0; i < extents.length; i++ ) {
+            ErrorMode.Extent extent = extents[ i ];
+            placeSelector( extrasBox_, extent.getLabel(),
+                           (JComboBox) extentMap_.get( extent ) );
         }
         errorMode_ = errorMode;
         revalidate();
