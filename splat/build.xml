@@ -525,9 +525,9 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="sparc"/>
     </antcall>
-    <antcall target="unpack_jni_arch">
+    <!--antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86"/>
-    </antcall>
+    </antcall-->
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="ppc"/>
     </antcall>
