@@ -152,12 +152,12 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         surface.getComponent().addMouseListener( new PointClickListener() );
 
         /* Add error mode selectors. */
-        ErrorModeSelectionModel xErrorModel =
-            new ErrorModeSelectionModel( 0, "X" );
-        ErrorModeSelectionModel yErrorModel =
-            new ErrorModeSelectionModel( 1, "Y" );
-        errorModeModels_ =
-            new ErrorModeSelectionModel[] { xErrorModel, yErrorModel };
+        errorModeModels_ = new ErrorModeSelectionModel[ 2 ];
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+            errorModeModels_[ ierr ] =
+                new ErrorModeSelectionModel( ierr, AXIS_NAMES[ ierr ] );
+            errorModeModels_[ ierr ].addActionListener( getReplotListener() );
+        };
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -240,14 +240,14 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         /* Construct a new menu for error modes. */
         JMenu errorMenu = new JMenu( "Error Bars" );
         errorMenu.setMnemonic( KeyEvent.VK_B );
-        JMenuItem[] xErrItems = xErrorModel.createMenuItems();
-        for ( int i = 0; i < xErrItems.length; i++ ) {
-            errorMenu.add( xErrItems[ i ] );
-        }
-        errorMenu.addSeparator();
-        JMenuItem[] yErrItems = yErrorModel.createMenuItems();
-        for ( int i = 0; i < yErrItems.length; i++ ) {
-            errorMenu.add( yErrItems[ i ] );
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+            if ( ierr > 0 ) {
+                errorMenu.addSeparator();
+            }
+            JMenuItem[] errItems = errorModeModels_[ ierr ].createMenuItems();
+            for ( int imode = 0; imode < errItems.length; imode++ ) {
+                errorMenu.add( errItems[ imode ] );
+            }
         }
         getJMenuBar().add( errorMenu );
 
@@ -255,8 +255,10 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
-        getToolBar().add( xErrorModel.createOnOffToolbarButton() );
-        getToolBar().add( yErrorModel.createOnOffToolbarButton() );
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+            getToolBar().add( errorModeModels_[ ierr ]
+                             .createOnOffToolbarButton() );
+        }
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
