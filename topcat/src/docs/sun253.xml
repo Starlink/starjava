@@ -5478,8 +5478,8 @@ button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
 <p>You select the quantity or quantities to plot using the
 <ref id="PointSelector" plaintextref="yes">dataset selector</ref>
 at the bottom of the window.
-You can configure the axes, including zooming in and out, with the
-mouse or manually as described in <ref id="axisConfig"/>.
+You can configure the axes, including <strong>zooming</strong> in and out,
+with the mouse or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>The <label>Bin Placement</label> box below the main plot controls
@@ -5684,8 +5684,8 @@ A marker will only be plotted if both the X and Y values are not blank.
 Select the quantities to plot and the plotting symbols with the 
 <ref id="PointSelector" plaintextref="yes">dataset selector</ref>
 at the bottom.
-You can configure the axes, including zooming in and out, with the
-mouse or manually as described in <ref id="axisConfig"/>.
+You can configure the axes, including <strong>zooming</strong> in and out,
+with the mouse or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>Clicking on any of the plotted points will <label>activate</label> it - 
@@ -6451,8 +6451,8 @@ the result as a FITS image, which can then be processed or viewed
 using image-specific software such as GAIA or Aladin.
 </p>
 
-<p>You can configure the axes, including zooming in and out, with the mouse
-or manually as described in <ref id="axisConfig"/>.
+<p>You can configure the axes, including <strong>zooming</strong> in and out,
+with the mouse or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>The <label>Cut Percentile Levels</label> panel below the plot controls
@@ -9730,6 +9730,16 @@ introduced since the last version:
     <p><strong>Graphics upgrades</strong>
     <ul>
     <li>Column selector panels in graphics windows are now in scrollers.</li>
+    </ul>
+    </p></dd>
+
+<dt>Next release</dt>
+<dd><p>
+    <ul>
+    <li>Error bars!</li>
+    <li>Improved deduplication of column names when joining tables.</li>
+    <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
+        cards - write them as numeric not string values.</li>
     </ul>
     </p></dd>
 
