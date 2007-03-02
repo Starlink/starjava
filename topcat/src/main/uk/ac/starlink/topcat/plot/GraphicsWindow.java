@@ -42,6 +42,7 @@ import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JToggleButton;
@@ -118,6 +119,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
+    private final ErrorModeSelectionModel[] errorModeModels_;
     private final JMenu exportMenu_;
     private final JProgressBar progBar_;
     private final BoundedRangeModel noProgress_;
@@ -154,9 +156,11 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param   viewName  name of the view window
      * @param   axisNames  array of labels by which each axis is known;
      *          the length of this array defines the dimensionality of the plot
+     * @param   nerror   the number of dimensions in which errors may
+     *          appear
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( String viewName, String[] axisNames,
+    public GraphicsWindow( String viewName, String[] axisNames, int nerror,
                            Component parent ) {
         super( viewName, parent );
         axisNames_ = axisNames;
@@ -182,6 +186,14 @@ public abstract class GraphicsWindow extends AuxWindow {
                 flipModels_[ 1 ].setIcon( ResourceIcon.YFLIP );
                 logModels_[ 1 ].setIcon( ResourceIcon.YLOG );
             }
+        }
+
+        /* Error mode selectors. */
+        errorModeModels_ = new ErrorModeSelectionModel[ nerror ];
+        for ( int ierr = 0; ierr < nerror; ierr++ ) {
+            errorModeModels_[ ierr ] =
+                new ErrorModeSelectionModel( ierr, axisNames[ ierr ] );
+            errorModeModels_[ ierr ].addActionListener( replotListener_ );
         }
 
         /* Set up point selector component. */
@@ -365,6 +377,27 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Constructs and returns a menu suitable which can be used to select
+     * error modes.
+     *
+     * @return  new error mode selection menu
+     */
+    public JMenu createErrorMenu() {
+        JMenu errorMenu = new JMenu( "Error Bars" );
+        errorMenu.setMnemonic( KeyEvent.VK_B );
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+            if ( ierr > 0 ) {
+                errorMenu.addSeparator();
+            }
+            JMenuItem[] errItems = errorModeModels_[ ierr ].createMenuItems();
+            for ( int imode = 0; imode < errItems.length; imode++ ) {
+                errorMenu.add( errItems[ imode ] );
+            }
+        }
+        return errorMenu;
+    }
+
+    /**
      * Returns the PointSelectorSet component used by this window.
      *
      * @return  point selector set
@@ -426,6 +459,15 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Returns the models for selecting error modes.
+     *
+     * @return  error mode models
+     */
+    public ErrorModeSelectionModel[] getErrorModeModels() {
+        return errorModeModels_;
+    }
+
+    /**
      * Returns the most recently read Points object.
      *
      * @return  points object
@@ -482,7 +524,8 @@ public abstract class GraphicsWindow extends AuxWindow {
                 new DefaultPointSelector.ToggleSet( "Log", logModels_ ),
                 new DefaultPointSelector.ToggleSet( "Flip", flipModels_ ),
             };
-        return new DefaultPointSelector( getStyles(), axisNames_, toggleSets );
+        return new DefaultPointSelector( getStyles(), axisNames_, toggleSets,
+                                         errorModeModels_ );
     };
 
     /**

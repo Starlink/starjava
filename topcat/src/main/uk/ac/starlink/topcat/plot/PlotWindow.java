@@ -56,7 +56,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final Action blobAction_;
     private final Action fromVisibleAction_;
     private final CountsLabel plotStatus_;
-    private final ErrorModeSelectionModel[] errorModeModels_;
 
     private static final StyleSet MARKERS1;
     private static final StyleSet MARKERS2;
@@ -97,7 +96,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( Component parent ) {
-        super( "Scatter Plot", AXIS_NAMES, parent );
+        super( "Scatter Plot", AXIS_NAMES, 2, parent );
 
         /* Construct the plot component.  Provide an implementation of the
          * hook reportStats() method to accept useful information generated
@@ -150,14 +149,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * about with glassPanes. */
         PlotSurface surface = plot_.getSurface();
         surface.getComponent().addMouseListener( new PointClickListener() );
-
-        /* Add error mode selectors. */
-        errorModeModels_ = new ErrorModeSelectionModel[ 2 ];
-        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
-            errorModeModels_[ ierr ] =
-                new ErrorModeSelectionModel( ierr, AXIS_NAMES[ ierr ] );
-            errorModeModels_[ ierr ].addActionListener( getReplotListener() );
-        };
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -238,27 +229,16 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         getJMenuBar().add( styleMenu );
 
         /* Construct a new menu for error modes. */
-        JMenu errorMenu = new JMenu( "Error Bars" );
-        errorMenu.setMnemonic( KeyEvent.VK_B );
-        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
-            if ( ierr > 0 ) {
-                errorMenu.addSeparator();
-            }
-            JMenuItem[] errItems = errorModeModels_[ ierr ].createMenuItems();
-            for ( int imode = 0; imode < errItems.length; imode++ ) {
-                errorMenu.add( errItems[ imode ] );
-            }
-        }
-        getJMenuBar().add( errorMenu );
+        getJMenuBar().add( createErrorMenu() );
 
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
-        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
-            getToolBar().add( errorModeModels_[ ierr ]
-                             .createOnOffToolbarButton() );
-        }
+        getToolBar().add( getErrorModeModels()[ 0 ]
+                                             .createOnOffToolbarButton() );
+        getToolBar().add( getErrorModeModels()[ 1 ]
+                                             .createOnOffToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
@@ -294,25 +274,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( true, true, ErrorRenderer.getOptions2d(),
-                                    errorModeModels_ );
-    }
-
-    protected PointSelector createPointSelector() {
-        DefaultPointSelector.ToggleSet[] toggleSets =
-            new DefaultPointSelector.ToggleSet[] {
-                new DefaultPointSelector.ToggleSet( "Log", getLogModels() ),
-                new DefaultPointSelector.ToggleSet( "Flip", getFlipModels() ),
-            };
-        return new DefaultPointSelector( getStyles(), AXIS_NAMES, toggleSets,
-                                         errorModeModels_ ) {
-            public Icon getStyleLegendIcon( Style style ) {
-                ErrorMode[] modes = new ErrorMode[] {
-                    errorModeModels_[ 0 ].getMode(),
-                    errorModeModels_[ 1 ].getMode(),
-                };
-                return ((MarkStyle) style).getLegendIcon( modes );
-            }
-        };
+                                    getErrorModeModels() );
     }
 
     /*
