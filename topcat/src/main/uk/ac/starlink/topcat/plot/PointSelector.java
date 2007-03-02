@@ -525,7 +525,9 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      * @return  icon
      */
     public Icon getStyleLegendIcon( Style style ) {
-        return style.getLegendIcon();
+        return style instanceof MarkStyle
+             ? ((MarkStyle) style).getLegendIcon( getErrorModes() )
+             : style.getLegendIcon();
     }
 
     /**
