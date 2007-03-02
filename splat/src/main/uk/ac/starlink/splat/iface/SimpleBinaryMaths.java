@@ -328,9 +328,7 @@ public class SimpleBinaryMaths
             }
             String name = operation + " (" + one.getShortName() + ") " + 
                           operator + " (" + two.getShortName() + ") ";
-            FrameSet frameSet = ASTJ.get1DFrameSet( one.getAst().getRef(), 1 );
-            createNewSpectrum( name, frameSet, coords, 
-                               one.getCurrentDataUnits(), newData );
+            createNewSpectrum( name, one, newData );
         }
     }
 
@@ -405,19 +403,20 @@ public class SimpleBinaryMaths
     }
 
     /**
-     * Create a new spectrum from two data arrays of coordinates and
-     * values and add it to the global list. The FrameSet is used to define
-     * the coordinate system and the data units.
+     * Create a new spectrum that is a clone of an existing spectrum, but with
+     * a new data array and add it to the global list. 
      */
-    protected void createNewSpectrum( String name, FrameSet sourceSet, 
-                                      double[] coords, String dataUnits,
+    protected void createNewSpectrum( String name, SpecData spec, 
                                       double[] data )
     {
         try {
             //  Create a memory spectrum to contain the fit.
             EditableSpecData newSpec = SpecDataFactory.getInstance()
-                .createEditable( name );
-            newSpec.setSimpleUnitData( sourceSet, coords, dataUnits, data );
+                .createEditable( name, spec );
+            FrameSet frameSet = ASTJ.get1DFrameSet(spec.getAst().getRef(), 1);
+            String units = spec.getCurrentDataUnits();
+            double[] coords = spec.getXData();
+            newSpec.setSimpleUnitData( frameSet, coords, units, data );
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

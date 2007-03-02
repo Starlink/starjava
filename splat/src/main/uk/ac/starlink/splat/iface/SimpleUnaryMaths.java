@@ -288,7 +288,6 @@ public class SimpleUnaryMaths
             }
 
             //  Get the data.
-            double[] coords = spec.getXData();
             double[] inData = spec.getYData();
             double[] inErrors = spec.getYDataErrors();
             double[] data = new double[inData.length];
@@ -329,9 +328,7 @@ public class SimpleUnaryMaths
             }
             String name = operation + " (" + spec.getShortName() + ") " +
                           operator + " (" + constant + ") ";
-            FrameSet frameSet = ASTJ.get1DFrameSet(spec.getAst().getRef(), 1);
-            createNewSpectrum( name, frameSet, coords, 
-                               spec.getCurrentDataUnits(), data, errors );
+            createNewSpectrum( name, spec, data, errors );
         }
     }
 
@@ -375,23 +372,19 @@ public class SimpleUnaryMaths
      * Create a new spectrum from two data arrays of coordinates and
      * values and add it to the global list.
      */
-    protected void createNewSpectrum( String name, FrameSet sourceSet,
-                                      double[] coords, String dataUnits,
+    protected void createNewSpectrum( String name, SpecData spec,
                                       double[] data, double[] errors )
     {
         try {
-            //  Create a memory spectrum to contain the fit.
+            //  Create a memory spectrum to contain the fit. This is a clone
+            //  of "spec", we replace the data and errors.
             EditableSpecData newSpec = SpecDataFactory.getInstance()
-                .createEditable( name );
+                .createEditable( name, spec );
 
-            if ( errors != null ) {
-                newSpec.setSimpleUnitData( sourceSet, coords, dataUnits,
-                                           data, errors );
-            }
-            else {
-                newSpec.setSimpleUnitData( sourceSet, coords, dataUnits, 
-                                           data );
-            }
+            FrameSet frameSet = ASTJ.get1DFrameSet(spec.getAst().getRef(), 1);
+            double[] coords = spec.getXData();
+            String units = spec.getCurrentDataUnits();
+            newSpec.setSimpleUnitData( frameSet, coords, units, data, errors );
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

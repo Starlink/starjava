@@ -615,17 +615,11 @@ public class GenerateFromInterpFrame
     {
         try {
             EditableSpecData newSpec =
-                SpecDataFactory.getInstance().createEditable( name );
+                SpecDataFactory.getInstance().createEditable( name, spectrum );
             FrameSet frameSet =
                 ASTJ.get1DFrameSet( spectrum.getAst().getRef(), 1 );
-            if ( errors == null ) {
-                newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
-                                     data );
-            }
-            else {
-                newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
+            newSpec.setFullData( frameSet, spectrum.getCurrentDataUnits(),
                                      data, errors );
-            }
             globalList.add( newSpec );
 
             //  Keep a local reference so we can delete it, if asked
