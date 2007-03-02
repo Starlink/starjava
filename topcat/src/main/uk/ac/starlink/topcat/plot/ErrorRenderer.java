@@ -102,6 +102,12 @@ public abstract class ErrorRenderer {
      * in axis order where that makes sense, but note in some contexts
      * (e.g. 3D) these may be data axes rather than graphics plane axes.
      *
+     * <p>This method is quite likely to get called from time to time with
+     * ridiculously large offset arrays.  Implementations should try to 
+     * ensure that they don't attempt graphics operations which may 
+     * cause the graphics system undue grief, such as filling an ellipse
+     * the size of a village.
+     *
      * @param  g  graphics context
      * @param  x  data point X coordinate
      * @param  y  data point Y coordinate
@@ -291,6 +297,9 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
+            Rectangle clip = g.getClipBounds();
+            int xmax = clip.width + 1;
+            int ymax = clip.height + 1;
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
                 int xoff = xoffs[ ip ];
@@ -299,13 +308,46 @@ public abstract class ErrorRenderer {
                 /* Only do drawing for a non-blank line. */
                 if ( xoff != 0 || yoff != 0 ) {
 
+                    /* If the end coordinate is definitely outside the graphics
+                     * clip, shrink the line to something about the right size.
+                     * This is here to defend against the case in which the
+                     * error bound is way off the screen - trying to draw a 
+                     * kilometre long line can have adverse effects on some
+                     * graphics systems. */
+                    boolean xlo = xoff < - xmax;
+                    boolean xhi = xoff > + xmax;
+                    boolean ylo = yoff < - ymax;
+                    boolean yhi = yoff > + ymax;
+                    boolean clipped = xlo || xhi || ylo || yhi;
+                    if ( clipped ) {
+                        if ( xlo && yoff == 0 ) {
+                            xoff = - xmax;
+                        }
+                        else if ( xhi && yoff == 0 ) {
+                            xoff = + xmax;
+                        }
+                        else if ( ylo && xoff == 0 ) {
+                            yoff = - ymax;
+                        }
+                        else if ( yhi && xoff == 0 ) {
+                            yoff = + ymax;
+                        }
+                        else {
+                            double shrink =
+                                Math.sqrt( ( xmax * xmax + ymax * ymax )
+                                         / ( xoff * xoff + yoff * yoff ) );
+                            xoff = (int) Math.ceil( shrink * xoff );
+                            yoff = (int) Math.ceil( shrink * yoff );
+                        }
+                    } 
+
                     /* Draw line if required. */
                     if ( lines_ ) {
-                        g.drawLine( x, y, x + xoffs[ ip ], y + yoffs[ ip ] );
+                        g.drawLine( x, y, x + xoff, y + yoff );
                     }
 
-                    /* Draw bar if required. */
-                    if ( capsize_ > 0 ) {
+                    /* Draw cap if required. */
+                    if ( capsize_ > 0 && ! clipped ) {
 
                         /* For rectilinear offsets, draw the cap manually. */
                         if ( xoff == 0 ) {
@@ -426,15 +468,46 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs, 
                                 int[] yoffs ) {
+            int noff = xoffs.length;
+
+            /* Restrict the offsets to something sensible, to prevent the
+             * graphics system attempting to fill an ellipse with a 
+             * kilometre semi-major axis.  This may result in some 
+             * distortions for ellipses - too bad. */
+            Rectangle clip = g.getClipBounds();
+            int maxcoord = Math.max( Math.max( clip.width, clip.height ) * 3,
+                                     2000 );
+            boolean clipped = false;
+            for ( int ioff = 0; ioff < noff && ! clipped; ioff++ ) {
+                int xoff = xoffs[ ioff ];
+                int yoff = yoffs[ ioff ];
+                clipped = clipped || xoff < - maxcoord || xoff > + maxcoord
+                                  || yoff < - maxcoord || yoff > + maxcoord;
+            }
+            if ( clipped ) {
+                int[] xo = new int[ noff ];
+                int[] yo = new int[ noff ];
+                for ( int ioff = 0; ioff < noff; ioff++ ) {
+                    xo[ ioff ] =
+                        Math.max( - maxcoord,
+                                  Math.min( + maxcoord, xoffs[ ioff ] ) );
+                    yo[ ioff ] =
+                        Math.max( - maxcoord,
+                                  Math.min( + maxcoord, yoffs[ ioff ] ) );
+                }
+                xoffs = xo;
+                yoffs = yo;
+            }
 
             /* If there are only 1-dimensional bounds, just draw a line. */
-            if ( xoffs.length == 2 ) {
+            if ( noff == 2 ) {
                 g.drawLine( x + xoffs[ 0 ], y + yoffs[ 0 ],
                             x + xoffs[ 1 ], y + yoffs[ 1 ] );
             }
 
             /* Otherwise we better have two dimensions. */
-            else if ( xoffs.length != 4 || ! ( g instanceof Graphics2D ) ) {
+            else if ( noff != 4 || yoffs.length != 4 ||
+                      ! ( g instanceof Graphics2D ) ) {
                 return;
             }
 
