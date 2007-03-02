@@ -4194,6 +4194,8 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>Improved deduplication of column names when joining tables.</li>
+    <li>Fix error in output of FITS table <code>TNULL</code><i>n</i> header
+        cards - write them as numeric not string values.</li>
     </ul>
     </p></dd>
 
