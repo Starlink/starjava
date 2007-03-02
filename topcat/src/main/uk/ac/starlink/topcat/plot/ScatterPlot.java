@@ -559,7 +559,7 @@ public abstract class ScatterPlot extends SurfacePlot {
      * @param  hiErrs  upper bounds in data space (2-element array xhi,yhi)
      * @param  surface plotting surface
      * @param  hasErrors  flags indicating whether transformations are to be
-     *         attepmted (2-element array for X and Y dimensions respectively)
+     *         attempted (2-element array for X and Y dimensions respectively)
      * @param  xoffs   array into which X offset values from the central point
      *                 in graphics coordinates will be written
      * @param  yoffs   array into which Y offset values from the central point
@@ -592,7 +592,8 @@ public abstract class ScatterPlot extends SurfacePlot {
         /* Perform transformations in X direction if required. */
         if ( hasErrors[ 0 ] ) {
             if ( loErrs[ 0 ] > 0 ) {
-                Point pe = surface.dataToGraphics( cx - loErrs[ 0 ], cy, true );
+                Point pe =
+                    surface.dataToGraphics( cx - loErrs[ 0 ], cy, false );
                 if ( pe != null ) {
                     xoffs[ ioff ] = pe.x - px;
                     yoffs[ ioff ] = pe.y - py;
@@ -601,7 +602,8 @@ public abstract class ScatterPlot extends SurfacePlot {
             }
             ioff++;
             if ( hiErrs[ 0 ] > 0 ) {
-                Point pe = surface.dataToGraphics( cx + hiErrs[ 0 ], cy, true );
+                Point pe =
+                    surface.dataToGraphics( cx + hiErrs[ 0 ], cy, false );
                 if ( pe != null ) {
                     xoffs[ ioff ] = pe.x - px;
                     yoffs[ ioff ] = pe.y - py;
@@ -614,7 +616,8 @@ public abstract class ScatterPlot extends SurfacePlot {
         /* Perform transformations in Y direction if required. */
         if ( hasErrors[ 1 ] ) {
             if ( loErrs[ 1 ] > 0 ) {
-                Point pe = surface.dataToGraphics( cx, cy - loErrs[ 1 ], true );
+                Point pe =
+                    surface.dataToGraphics( cx, cy - loErrs[ 1 ], false );
                 if ( pe != null ) {
                     xoffs[ ioff ] = pe.x - px;
                     yoffs[ ioff ] = pe.y - py;
@@ -623,7 +626,8 @@ public abstract class ScatterPlot extends SurfacePlot {
             }
             ioff++;
             if ( hiErrs[ 1 ] > 0 ) {
-                Point pe = surface.dataToGraphics( cx, cy + hiErrs[ 1 ], true );
+                Point pe =
+                    surface.dataToGraphics( cx, cy + hiErrs[ 1 ], false );
                 if ( pe != null ) {
                     xoffs[ ioff ] = pe.x - px;
                     yoffs[ ioff ] = pe.y - py;
