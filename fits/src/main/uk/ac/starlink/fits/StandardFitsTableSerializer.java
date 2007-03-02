@@ -282,7 +282,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 /* Blank. */
                 Number bad = colwriter.getBadNumber();
                 if ( bad != null ) {
-                    hdr.addValue( "TNULL" + jcol, bad.toString(),
+                    hdr.addValue( "TNULL" + jcol, bad.longValue(),
                                   "blank value" + forcol );
                 }
 

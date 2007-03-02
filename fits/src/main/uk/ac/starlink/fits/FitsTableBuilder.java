@@ -203,7 +203,13 @@ public class FitsTableBuilder implements TableBuilder {
                                             boolean readAnyway )
             throws IOException, FitsException {
         Header hdr = new Header();
-        FitsConstants.readHeader( hdr, in );
+        try {
+            FitsConstants.readHeader( hdr, in );
+        }
+        catch ( IOException e ) {
+            throw (TableFormatException)
+                  new TableFormatException( "Can't read FITS header", e );
+        }
         String xtension = hdr.getStringValue( "XTENSION" );
         if ( "BINTABLE".equals( xtension ) ) {
             BintableStarTable.streamStarTable( hdr, in, sink );

@@ -726,7 +726,7 @@ abstract class FileColumnStore implements ColumnStore {
             if ( hasNulls_ ) {
                 Number bad = handler_.getBadNumber();
                 if ( bad != null ) {
-                    hdr.addValue( "TNULL" + icol, bad.toString(),
+                    hdr.addValue( "TNULL" + icol, bad.longValue(),
                                   "blank value" );
                 }
             }

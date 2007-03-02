@@ -208,8 +208,9 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
             int icol = 99;
             colStore.addHeaderInfo( hdr, icol );
             String key = tcard + icol;
-            return hdr.containsKey( key ) ? hdr.getStringValue( key ).trim()
-                                          : null;
+            return hdr.containsKey( key )
+                 ? hdr.findCard( key ).getValue().trim()
+                 : null;
         }
         catch ( HeaderCardException e ) {
             throw new AssertionError( e );
