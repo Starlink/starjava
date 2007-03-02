@@ -968,17 +968,12 @@ public class SpecData
     {
         EditableSpecData newSpec = null;
         try {
-            newSpec = SpecDataFactory.getInstance().createEditable( name );
+            newSpec = SpecDataFactory.getInstance().createEditable( name,
+                                                                    this );
             FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(), 1 );
-            if ( errors == null ) {
-                newSpec.setSimpleUnitDataQuick( frameSet, coords,
-                                                getCurrentDataUnits(), data );
-            }
-            else {
-                newSpec.setSimpleUnitDataQuick( frameSet, coords,
-                                                getCurrentDataUnits(), data,
-                                                errors );
-            }
+            newSpec.setSimpleUnitDataQuick( frameSet, coords, 
+                                            getCurrentDataUnits(), data, 
+                                            errors );
         }
         catch ( Exception e ) {
             e.printStackTrace();
