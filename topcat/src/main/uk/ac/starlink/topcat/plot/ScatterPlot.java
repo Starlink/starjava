@@ -110,11 +110,12 @@ public abstract class ScatterPlot extends SurfacePlot {
         List indexList = new ArrayList();
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
-            if ( ! style.getHidePoints() ) {
+            if ( ( ! style.getHidePoints() ) || hasErrors( points, style ) ) {
                 setList.add( sets[ is ] );
                 styleList.add( style );
                 indexList.add( new Integer( is ) );
             }
+  pixels = pixels && ! hasErrors( points, style );
         }
         RowSubset[] activeSets =
             (RowSubset[]) setList.toArray( new RowSubset[ 0 ] );
@@ -308,9 +309,19 @@ public abstract class ScatterPlot extends SurfacePlot {
         int nVisible = 0;
         int nset = sets.length;
         double[] coords = new double[ 2 ];
+        double[] loErrs = new double[ 2 ];
+        double[] hiErrs = new double[ 2 ];
+        boolean[] hasErrors = points.hasErrors();
+        int noff = ( hasErrors[ 0 ] ? 2 : 0 ) + ( hasErrors[ 1 ] ? 2 : 0 );
+        int[] xoffs = new int[ noff ];
+        int[] yoffs = new int[ noff ];
         for ( int is = 0; is < nset; is++ ) {
             RowSubset set = sets[ is ];
             MarkStyle style = styles[ is ];
+            ErrorRenderer errorRenderer = style.getErrorRenderer();
+            boolean showMarks = ! style.getHidePoints();
+            boolean showErrors = hasErrors( points, style );
+            assert showMarks || showErrors : "Why bother?";
             int maxr = style.getMaximumRadius();
             int maxr2 = maxr * 2;
             for ( int ip = 0; ip < np; ip++ ) {
@@ -324,9 +335,23 @@ public abstract class ScatterPlot extends SurfacePlot {
                         nVisible++;
                         int xp = point.x;
                         int yp = point.y;
-                        if ( g.hitClip( xp - maxr, yp - maxr,
-                                        maxr2, maxr2 ) ) {
+                        if ( showMarks &&
+                             g.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
                             style.drawMarker( g, xp, yp );
+                        }
+                        if ( showErrors ) {
+                            points.getErrors( ip, loErrs, hiErrs );
+                            if ( transformErrors( point, coords, loErrs, hiErrs,
+                                                  surface, hasErrors,
+                                                  xoffs, yoffs ) ) {
+                                Rectangle bbox =
+                                    errorRenderer.getBounds( g, xp, yp,
+                                                             xoffs, yoffs );
+                                if ( g.hitClip( bbox.x, bbox.y,
+                                                bbox.width, bbox.height ) ) {
+                                    style.drawErrors( g, xp, yp, xoffs, yoffs );
+                                }
+                            }
                         }
                     }
                 }
@@ -356,13 +381,21 @@ public abstract class ScatterPlot extends SurfacePlot {
         int np = points.getCount();
         int nset = sets.length;
 
+        /* Work out which sets do not have associated markers drawn. */
+        boolean[] hidePoints = new boolean[ nset ];
+        for ( int is = 0; is < nset; is++ ) {
+            hidePoints[ is ] = styles[ is ].getHidePoints();
+        }
+
         /* Work out padding round the edge of the raster we will be drawing on.
          * This has to be big enough that we can draw markers on the edge
          * of the visible part and not have them wrap round.  In this
          * way we can avoid doing some of the edge checking. */
         int maxr = 0;
         for ( int is = 0; is < nset; is++ ) {
-            maxr = Math.max( styles[ is ].getMaximumRadius(), maxr );
+            if ( ! hidePoints[ is ] ) {
+                maxr = Math.max( styles[ is ].getMaximumRadius(), maxr );
+            }
         }
         int pad = maxr * 2 + 1;
 
@@ -400,15 +433,15 @@ public abstract class ScatterPlot extends SurfacePlot {
          * times each of its pixels has been painted. */
         BitSet mask = new BitSet( npix );
         double[] coords = new double[ 2 ];
-        boolean[] includeSets = new boolean[ nset ];
+        boolean[] showMarks = new boolean[ nset ];
         int nIncluded = 0;
         int nVisible = 0;
         for ( int ip = 0; ip < np; ip++ ) {
             boolean use = false;
             for ( int is = 0; is < nset; is++ ) {
-                boolean inc = sets[ is ].isIncluded( (long) ip );
-                includeSets[ is ] = inc;
-                use = use || inc;
+                boolean included = sets[ is ].isIncluded( (long) ip );
+                use = use || included;
+                showMarks[ is ] = included && ! hidePoints[ is ];
             }
             if ( use ) {
                 nIncluded++;
@@ -426,7 +459,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                         nVisible++;
                         int base = xbase + xdim * ybase;
                         for ( int is = 0; is < nset; is++ ) {
-                            if ( includeSets[ is ] ) {
+                            if ( showMarks[ is ] ) {
                                 for ( int ioff = 0; ioff < npixoffs[ is ];
                                       ioff++ ) {
                                     int ipix = base + pixoffs[ is ][ ioff ];
@@ -511,6 +544,115 @@ public abstract class ScatterPlot extends SurfacePlot {
         /* Finally paint the constructed image onto the graphics context. */
         im.setRGB( 0, 0, xdim, ydim, rgbBuf, 0, xdim );    
         g.drawImage( im, xoff, yoff, null );
+    }
+
+    /**
+     * Transforms error bounds from data space to graphics space.
+     * The results are written into supplied X and Y graphics space offset
+     * arrays, in the form required by MarkStyle.drawErrors.  
+     * The return value indicates whether there are any non-empty 
+     * errors bars to draw.
+     *
+     * @param  point  central value in graphics space
+     * @param  centre  central value in data space (2-element array x,y)
+     * @param  loErrs  lower bounds in data space (2-element array xlo,ylo)
+     * @param  hiErrs  upper bounds in data space (2-element array xhi,yhi)
+     * @param  surface plotting surface
+     * @param  hasErrors  flags indicating whether transformations are to be
+     *         attepmted (2-element array for X and Y dimensions respectively)
+     * @param  xoffs   array into which X offset values from the central point
+     *                 in graphics coordinates will be written
+     * @param  yoffs   array into which Y offset values from the central point
+     *                 in graphics coordinates will be written
+     * @return  true   iff any of the elements of <code>xoffs</code>, 
+     *                <code>yoffs</code> are non-zero
+     */
+    private static boolean transformErrors( Point point, double[] centre,
+                                            double[] loErrs, double[] hiErrs, 
+                                            PlotSurface surface,
+                                            boolean[] hasErrors,
+                                            int[] xoffs, int[] yoffs ) {
+
+        /* Initialise output offset values to zero. */
+        int noff = xoffs.length;
+        assert noff == yoffs.length;
+        for ( int ioff = 0; ioff < noff; ioff++ ) {
+            xoffs[ 0 ] = 0;
+            yoffs[ 0 ] = 0;
+        }
+
+        /* Initialise other variables. */
+        boolean hasError = false;
+        int px = point.x;
+        int py = point.y;
+        double cx = centre[ 0 ];
+        double cy = centre[ 1 ];
+        int ioff = 0;
+
+        /* Perform transformations in X direction if required. */
+        if ( hasErrors[ 0 ] ) {
+            if ( loErrs[ 0 ] > 0 ) {
+                Point pe = surface.dataToGraphics( cx - loErrs[ 0 ], cy, true );
+                if ( pe != null ) {
+                    xoffs[ ioff ] = pe.x - px;
+                    yoffs[ ioff ] = pe.y - py;
+                    hasError = true;
+                }
+            }
+            ioff++;
+            if ( hiErrs[ 0 ] > 0 ) {
+                Point pe = surface.dataToGraphics( cx + hiErrs[ 0 ], cy, true );
+                if ( pe != null ) {
+                    xoffs[ ioff ] = pe.x - px;
+                    yoffs[ ioff ] = pe.y - py;
+                    hasError = true;
+                }
+            }
+            ioff++;
+        }
+
+        /* Perform transformations in Y direction if required. */
+        if ( hasErrors[ 1 ] ) {
+            if ( loErrs[ 1 ] > 0 ) {
+                Point pe = surface.dataToGraphics( cx, cy - loErrs[ 1 ], true );
+                if ( pe != null ) {
+                    xoffs[ ioff ] = pe.x - px;
+                    yoffs[ ioff ] = pe.y - py;
+                    hasError = true;
+                }
+            }
+            ioff++;
+            if ( hiErrs[ 1 ] > 0 ) {
+                Point pe = surface.dataToGraphics( cx, cy + hiErrs[ 1 ], true );
+                if ( pe != null ) {
+                    xoffs[ ioff ] = pe.x - px;
+                    yoffs[ ioff ] = pe.y - py;
+                    hasError = true;
+                }
+            }
+            ioff++;
+        }
+
+        /* Return status. */
+        return hasError;
+    }
+
+    /**
+     * Determines whether error bars will be drawn using a given style on 
+     * a given set of points.
+     *
+     * @param   points  point set
+     * @param   style   plotting style
+     * @return  true if it is necessary to render error bars
+     */
+    private static boolean hasErrors( Points points, MarkStyle style ) {
+        boolean[] hasErrs = points.hasErrors();
+        for ( int i = 0; i < hasErrs.length; i++ ) {
+            if ( hasErrs[ i ] ) {
+                return true;
+            }
+        }
+        return ! style.getErrorRenderer().isBlank( null );
     }
 
     /**
