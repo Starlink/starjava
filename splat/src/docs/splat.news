@@ -1,5 +1,7 @@
 1 Starlink SPLAT news.
 
+   FITS headers are now preserved when creating derived spectra.
+
    3.6-7
    =====
 
