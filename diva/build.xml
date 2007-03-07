@@ -480,9 +480,9 @@
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
-           failonerror="${chmod.fail}"/>
+           failonerror="${chmod.fail}" maxparallel="50"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
-           failonerror="${chmod.fail}"/>
+           failonerror="${chmod.fail}" maxparallel="50"/>
     <!--<chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>-->
