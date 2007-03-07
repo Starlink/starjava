@@ -626,7 +626,7 @@
     <copy todir="${build.jni}">
       <fileset dir="${src.jni.dir}" includes="*"/>
     </copy>
-    <chmod perm="ugo+rx" dir="${build.jni}" includes="*"/>
+    <chmod perm="ugo+rx" dir="${build.jni}" includes="*" maxparallel="50"/>
 
     <!-- Local and installed versions of any shareable libraries that we
      !   require to resolve against in a form for the UNIX "ld" command
@@ -925,14 +925,15 @@ JNI libraries not built (NDF library not installed in ${stardev})"
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
-           failonerror="${chmod.fail}"/>
+           failonerror="${chmod.fail}" maxparallel="50"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
-           failonerror="${chmod.fail}"/>
-    <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
+           failonerror="${chmod.fail}" maxparallel="50"/>
+    <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}"
+           maxparallel="50">
        <fileset dir="${dist.bin}"/>
     </chmod>
     <chmod perm="ugo+rx" dir="${dist.lib}" type="file" includes="libsplat*"
-           failonerror="${chmod.fail}"/>
+           failonerror="${chmod.fail}" maxparallel="50"/>
   </target>
 
 
