@@ -913,9 +913,9 @@
 
     <!-- Set the value of the uncomment.pattern property to "DOM3" under
      !   JDK1.5 or something which isn't going to crop up in the source 
-     !   under 1.4. -->
+     !   under 1.4. Use one of the new DOM3 classes to test for this. -->
     <condition property="uncomment.pattern" value="DOM3">
-      <contains string="${java.version}" substring="1.5"/>
+        <available classname="org.w3c.dom.DOMError"/>
     </condition>
     <condition property="uncomment.pattern" value="NOT_APPEARING">
       <not>
