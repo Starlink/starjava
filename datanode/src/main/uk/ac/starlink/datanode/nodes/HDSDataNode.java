@@ -344,14 +344,14 @@ public class HDSDataNode extends DefaultDataNode {
                 if ( HDSType.fromName( type ) == null ) {
                     dv.addScalingPane( "Array data", new ComponentMaker() {
                         public JComponent getComponent() 
-                                throws HDSException {
+                                throws Exception {
                             ArrayStructure ary = new ArrayStructure( hobj );
                             return new ArrayBrowser( ary );
                         }
                     } );
                 }
             }
-            catch ( HDSException e ) {
+            catch ( Exception e ) {
                 dv.logError( e );
             }
         }
