@@ -64,21 +64,22 @@ public class CsvStarTable extends StreamStarTable {
 
         /* Read and store the first column.  It could be a special header
          * row, or it could be just data. */
+        long lrow = 0;
         String[] row0 = (String[]) readRow( in ).toArray( new String[ 0 ] );
+        lrow++;
 
         /* Look at each subsequent row assessing what sort of data they
          * look like. */
         RowEvaluator evaluator = new RowEvaluator();
-        long lrow = 0;
         try {
             for ( List row; ( row = readRow( in ) ) != null; ) {
-                lrow++;
                 evaluator.submitRow( row );
+                lrow++;
             }
         }
         catch ( TableFormatException e ) {
-            throw new TableFormatException( e.getMessage() + " at row " + lrow,
-                                            e );
+            throw new TableFormatException( e.getMessage() + " at line "
+                                          + ( lrow + 1 ), e );
         }
         finally {
             if ( in != null ) {
