@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -36,9 +37,30 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-public class jlink extends Object {
+// CheckStyle:TypeNameCheck OFF - bc
+/**
+ * jlink links together multiple .jar files.
+ */
+public class jlink {
 
-    /** The file that will be created by this instance of jlink.  */
+
+    private String outfile = null;
+
+    private Vector mergefiles = new Vector(10);
+
+    private Vector addfiles = new Vector(10);
+
+    private boolean compression = false;
+
+    // CheckStyle:VisibilityModifier OFF - bc
+
+    byte[] buffer = new byte[8192];
+
+    // CheckStyle:VisibilityModifier OFF - bc
+
+    /** The file that will be created by this instance of jlink.
+     * @param outfile the file to create.
+     */
     public void setOutfile(String outfile) {
         if (outfile == null) {
             return;
@@ -47,47 +69,61 @@ public class jlink extends Object {
     }
 
 
-    /** Adds a file to be merged into the output.  */
-    public void addMergeFile(String mergefile) {
-        if (mergefile == null) {
+    /**
+     * Adds a file to be merged into the output.
+     * @param fileToMerge the file to merge into the output.
+     */
+    public void addMergeFile(String fileToMerge) {
+        if (fileToMerge == null) {
             return;
         }
-        mergefiles.addElement(mergefile);
+        mergefiles.addElement(fileToMerge);
     }
 
 
-    /** Adds a file to be added into the output.  */
-    public void addAddFile(String addfile) {
-        if (addfile == null) {
+    /** Adds a file to be added into the output.
+     * @param fileToAdd the file to add to the output.
+     */
+    public void addAddFile(String fileToAdd) {
+        if (fileToAdd == null) {
             return;
         }
-        addfiles.addElement(addfile);
+        addfiles.addElement(fileToAdd);
     }
 
 
-    /** Adds several files to be merged into the output.  */
-    public void addMergeFiles(String[] mergefiles) {
-        if (mergefiles == null) {
+    /**
+     * Adds several files to be merged into the output.
+     * @param filesToMerge an array of files to merge into the output.
+     */
+    public void addMergeFiles(String[] filesToMerge) {
+        if (filesToMerge == null) {
             return;
         }
-        for (int i = 0; i < mergefiles.length; i++) {
-            addMergeFile(mergefiles[i]);
-        }
-    }
-
-
-    /** Adds several file to be added into the output.  */
-    public void addAddFiles(String[] addfiles) {
-        if (addfiles == null) {
-            return;
-        }
-        for (int i = 0; i < addfiles.length; i++) {
-            addAddFile(addfiles[i]);
+        for (int i = 0; i < filesToMerge.length; i++) {
+            addMergeFile(filesToMerge[i]);
         }
     }
 
 
-    /** Determines whether output will be compressed.  */
+    /**
+     * Adds several file to be added into the output.
+     * @param filesToAdd an array of files to add to the output.
+     */
+    public void addAddFiles(String[] filesToAdd) {
+        if (filesToAdd == null) {
+            return;
+        }
+        for (int i = 0; i < filesToAdd.length; i++) {
+            addAddFile(filesToAdd[i]);
+        }
+    }
+
+
+    /**
+     * Determines whether output will be compressed.
+     * @param compress if true use compression.
+     */
     public void setCompression(boolean compress) {
         this.compression = compress;
     }
@@ -103,6 +139,7 @@ public class jlink extends Object {
      * the root entry of all the files below it. Thus, you can provide
      * multiple, disjoint directories, as addfiles: they will all be added in
      * a rational manner to outfile.
+     * @throws Exception on error.
      */
     public void link() throws Exception {
         ZipOutputStream output = new ZipOutputStream(new FileOutputStream(outfile));
@@ -147,11 +184,16 @@ public class jlink extends Object {
             try {
                 output.close();
             } catch (IOException ioe) {
+                //do nothing
             }
         }
     }
 
 
+    /**
+     * The command line entry point for jlink.
+     * @param args an array of arguments
+     */
     public static void main(String[] args) {
         // jlink output input1 ... inputN
         if (args.length < 2) {
@@ -271,11 +313,13 @@ public class jlink extends Object {
                     return className.replace('.', '/') + ".class";
                 }
             } catch (IOException ioe) {
+                //do nothing
             } finally {
                 if (input != null) {
                     try {
                         input.close();
                     } catch (IOException e) {
+                        //do nothing
                     }
                 }
             }
@@ -336,7 +380,7 @@ public class jlink extends Object {
      * The big deal is to set the right parameters in the ZipEntry
      * on the output stream.
      */
-    private ZipEntry processEntry(ZipFile zip, ZipEntry inputEntry) throws IOException {
+    private ZipEntry processEntry(ZipFile zip, ZipEntry inputEntry) {
         /*
           First, some notes.
           On MRJ 2.2.2, getting the size, compressed size, and CRC32 from the
@@ -361,6 +405,7 @@ public class jlink extends Object {
                     name = className.replace('.', '/') + ".class";
                 }
             } catch (IOException ioe) {
+                //do nothing
             }
         }
         ZipEntry outputEntry = new ZipEntry(name);
@@ -410,16 +455,6 @@ public class jlink extends Object {
         return crc.getValue();
     }
 
-
-    private String outfile = null;
-
-    private Vector mergefiles = new Vector(10);
-
-    private Vector addfiles = new Vector(10);
-
-    private boolean compression = false;
-
-    byte[] buffer = new byte[8192];
 
 }
 

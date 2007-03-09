@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -42,6 +43,7 @@ public final class ChainReaderHelper {
 
     // default buffer size
     private static final int DEFAULT_BUFFER_SIZE = 8192;
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * The primary reader to which the reader chain is to be attached.
      */
@@ -60,11 +62,13 @@ public final class ChainReaderHelper {
     /** The Ant project */
     private Project project = null;
 
+    // CheckStyle:VisibilityModifier ON
+
     /**
      * Sets the primary reader
      * @param rdr the reader object
      */
-    public final void setPrimaryReader(Reader rdr) {
+    public void setPrimaryReader(Reader rdr) {
         primaryReader = rdr;
     }
 
@@ -72,7 +76,7 @@ public final class ChainReaderHelper {
      * Set the project to work with
      * @param project the current project
      */
-    public final void setProject(final Project project) {
+    public void setProject(final Project project) {
         this.project = project;
     }
 
@@ -81,16 +85,16 @@ public final class ChainReaderHelper {
      *
      * @return the current project
      */
-    public final Project getProject() {
+    public Project getProject() {
         return project;
     }
 
     /**
-     * Sets the buffer size to be used.  Defaults to 4096,
+     * Sets the buffer size to be used.  Defaults to 8192,
      * if this method is not invoked.
      * @param size the buffer size to use
      */
-    public final void setBufferSize(int size) {
+    public void setBufferSize(int size) {
         bufferSize = size;
     }
 
@@ -99,7 +103,7 @@ public final class ChainReaderHelper {
      *
      * @param fchain the filter chains collection
      */
-    public final void setFilterChains(Vector fchain) {
+    public void setFilterChains(Vector fchain) {
         filterChains = fchain;
     }
 
@@ -108,7 +112,7 @@ public final class ChainReaderHelper {
      * @return the assembled reader
      * @exception BuildException if an error occurs
      */
-    public final Reader getAssembledReader() throws BuildException {
+    public Reader getAssembledReader() throws BuildException {
         if (primaryReader == null) {
             throw new BuildException("primaryReader must not be null.");
         }
@@ -138,7 +142,7 @@ public final class ChainReaderHelper {
                         = (AntFilterReader) finalFilters.elementAt(i);
                     final String className = filter.getClassName();
                     final Path classpath = filter.getClasspath();
-                    final Project project = filter.getProject();
+                    final Project pro = filter.getProject();
                     if (className != null) {
                         try {
                             Class clazz = null;
@@ -146,7 +150,7 @@ public final class ChainReaderHelper {
                                 clazz = Class.forName(className);
                             } else {
                                 AntClassLoader al
-                                    = project.createClassLoader(classpath);
+                                    = pro.createClassLoader(classpath);
                                 clazz = Class.forName(className, true, al);
                             }
                             if (clazz != null) {
@@ -175,7 +179,7 @@ public final class ChainReaderHelper {
                                 }
                                 final Reader[] rdr = {instream};
                                 instream =
-                                    (Reader) constructors[j].newInstance(rdr);
+                                    (Reader) constructors[j].newInstance((Object[]) rdr);
                                 setProjectOnObject(instream);
                                 if (Parameterizable.class.isAssignableFrom(clazz)) {
                                     final Parameter[] params = filter.getParams();
@@ -226,7 +230,7 @@ public final class ChainReaderHelper {
      * @return the contents of the file as a string
      * @exception IOException if an error occurs
      */
-    public final String readFully(Reader rdr)
+    public String readFully(Reader rdr)
         throws IOException {
         return FileUtils.readFully(rdr, bufferSize);
     }

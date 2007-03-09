@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,7 +29,7 @@ import javax.ejb.deployment.DeploymentDescriptor;
  * interface class files referenced in the deployment descriptors being built.
  *
  */
-public class DDCreatorHelper {
+public final class DDCreatorHelper {
     /**
      * The root directory of the tree containing the textual deployment descriptors.
      */
@@ -39,16 +40,20 @@ public class DDCreatorHelper {
      */
     private File generatedFilesDirectory;
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * The descriptor text files for which a serialised descriptor is to be created.
      */
     String[] descriptors;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * The main method.
      *
      * The main method creates an instance of the DDCreatorHelper, passing it the
      * args which it then processes.
+     * @param args the arguments
+     * @throws Exception on error
      */
     public static void main(String[] args) throws Exception {
         DDCreatorHelper helper = new DDCreatorHelper(args);

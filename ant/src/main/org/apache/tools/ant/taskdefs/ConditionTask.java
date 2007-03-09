@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,8 +33,6 @@ import org.apache.tools.ant.taskdefs.condition.ConditionBase;
  * <p>This task does not extend Task to take advantage of
  * ConditionBase.</p>
  *
- * @version $Revision: 1.16.2.4 $
- *
  * @since Ant 1.4
  *
  * @ant.task category="control"
@@ -42,6 +41,14 @@ public class ConditionTask extends ConditionBase {
 
     private String property = null;
     private String value = "true";
+    private String alternative = null;
+
+    /**
+     * Constructor, names this task "condition".
+     */
+    public ConditionTask() {
+        super("condition");
+    }
 
     /**
      * The name of the property to set. Required.
@@ -63,6 +70,16 @@ public class ConditionTask extends ConditionBase {
     }
 
     /**
+     * The value for the property to set, if condition evaluates to false.
+     * If this attribute is not specified, the property will not be set.
+     * @param e the alternate value of the property.
+     * @since Ant 1.6.3
+     */
+    public void setElse(String e) {
+        alternative = e;
+    }
+
+    /**
      * See whether our nested condition holds and set the property.
      *
      * @since Ant 1.4
@@ -71,21 +88,25 @@ public class ConditionTask extends ConditionBase {
     public void execute() throws BuildException {
         if (countConditions() > 1) {
             throw new BuildException("You must not nest more than one "
-                + "condition into <condition>");
+                + "condition into <"
+                + getTaskName() + ">");
         }
         if (countConditions() < 1) {
-            throw new BuildException("You must nest a condition into "
-                + "<condition>");
+            throw new BuildException("You must nest a condition into <"
+                + getTaskName() + ">");
         }
         if (property == null) {
             throw new BuildException("The property attribute is required.");
         }
-
         Condition c = (Condition) getConditions().nextElement();
         if (c.eval()) {
             log("Condition true; setting " + property + " to " + value,
                 Project.MSG_DEBUG);
             getProject().setNewProperty(property, value);
+        } else if (alternative != null) {
+            log("Condition false; setting " + property + " to " + alternative,
+                Project.MSG_DEBUG);
+            getProject().setNewProperty(property, alternative);
         } else {
             log("Condition false; not setting " + property,
                 Project.MSG_DEBUG);

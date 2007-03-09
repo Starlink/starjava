@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,15 +23,16 @@
 
 package org.apache.tools.ant.taskdefs.optional.perforce;
 
-
 import java.io.File;
 import java.util.Vector;
+
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.FileSet;
 
-/** Adds specified files to Perforce.
+/**
+ * Adds specified files to Perforce.
  *
  * <b>Example Usage:</b>
  * <table border="1">
@@ -47,7 +49,6 @@ import org.apache.tools.ant.types.FileSet;
  * <td>&lt;p4add Commandlength="450"&gt;</td></tr>
  * </table>
  *
- *
  * @ant.task category="scm"
  */
 public class P4Add extends P4Base {
@@ -58,7 +59,7 @@ public class P4Add extends P4Base {
     private int cmdLength = DEFAULT_CMD_LENGTH;
 
     /**
-     *   positive integer specifying the maximum length
+     *   Set the maximum length
      *   of the commandline when calling Perforce to add the files.
      *   Defaults to 450, higher values mean faster execution,
      *   but also possible failures.
@@ -78,7 +79,7 @@ public class P4Add extends P4Base {
      * specified pending changelist number; otherwise the open files are
      * associated with the default changelist.
      *
-     * @param changelist the change list number
+     * @param changelist the change list number.
      *
      * @throws BuildException if trying to set a change list number &lt;=0.
      */
@@ -86,30 +87,27 @@ public class P4Add extends P4Base {
         if (changelist <= 0) {
             throw new BuildException("P4Add: Changelist# should be a positive number");
         }
-
         this.changelist = changelist;
     }
 
     /**
-     * files to add
+     * Add a fileset whose files will be added to Perforce.
      *
-     * @param set the FileSet that one wants to add to Perforce Source Control
+     * @param set the FileSet that one wants to add to Perforce Source Control.
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
     }
 
     /**
-     * run the task.
+     * Run the task.
      *
      * @throws BuildException if the execution of the Perforce command fails.
      */
     public void execute() throws BuildException {
-
         if (P4View != null) {
             addCmd = P4View;
         }
-
         P4CmdOpts = (changelist > 0) ? ("-c " + changelist) : "";
 
         StringBuffer filelist = new StringBuffer();
@@ -117,7 +115,6 @@ public class P4Add extends P4Base {
         for (int i = 0; i < filesets.size(); i++) {
             FileSet fs = (FileSet) filesets.elementAt(i);
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-            //File fromDir = fs.getDir(project);
 
             String[] srcFiles = ds.getIncludedFiles();
             if (srcFiles != null) {
@@ -136,12 +133,10 @@ public class P4Add extends P4Base {
                 log("No files specified to add!", Project.MSG_WARN);
             }
         }
-
     }
 
     private void execP4Add(StringBuffer list) {
         log("Execing add " + P4CmdOpts + " " + addCmd + list, Project.MSG_INFO);
-
         execP4Command("-s add " + P4CmdOpts + " " + addCmd + list, new SimpleP4OutputHandler(this));
     }
 }

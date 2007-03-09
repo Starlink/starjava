@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,10 +29,19 @@ import org.apache.tools.ant.BuildException;
  */
 public class JakartaOroRegexp extends JakartaOroMatcher implements Regexp {
 
+    /** Constructor for JakartaOroRegexp */
     public JakartaOroRegexp() {
         super();
     }
 
+    /**
+     * Perform a substitution on the regular expression.
+     * @param input The string to substitute on
+     * @param argument The string which defines the substitution
+     * @param options The list of options for the match and replace.
+     * @return the result of the operation
+     * @throws BuildException on error
+     */
     public String substitute(String input, String argument, int options)
         throws BuildException {
         // translate \1 to $1 so that the Perl5Substitution will work
@@ -71,6 +81,12 @@ public class JakartaOroRegexp extends JakartaOroMatcher implements Regexp {
                                getSubsOptions(options));
     }
 
+    /**
+     * Convert ant regexp substitution option to oro options.
+     *
+     * @param options the ant regexp options
+     * @return the oro substition options
+     */
     protected int getSubsOptions(int options) {
         boolean replaceAll = RegexpUtil.hasFlag(options, REPLACE_ALL);
         int subsOptions = 1;

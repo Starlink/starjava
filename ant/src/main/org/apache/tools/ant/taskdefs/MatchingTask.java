@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -55,11 +56,11 @@ import org.apache.tools.ant.types.selectors.modifiedselector.ModifiedSelector;
 
 public abstract class MatchingTask extends Task implements SelectorContainer {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     protected FileSet fileset = new FileSet();
+    // CheckStyle:VisibilityModifier ON
 
-    /**
-     * @see org.apache.tools.ant.ProjectComponent#setProject
-     */
+    /** {@inheritDoc}. */
     public void setProject(Project project) {
         super.setProject(project);
         fileset.setProject(project);
@@ -115,6 +116,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
         fileset.setIncludes(includes);
     }
 
+    // CheckStyle:MethodNameCheck OFF - bc
     /**
      * Set this to be the items in the base directory that you want to be
      * included. You can also specify "*" for the items (ie: items="*")
@@ -167,6 +169,8 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
         }
     }
 
+    // CheckStyle:VisibilityModifier ON
+
     /**
      * Sets whether default exclusions should be used or not.
      *
@@ -180,6 +184,8 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * Returns the directory scanner needed to access the files to process.
+     * @param baseDir the base directory to use with the fileset
+     * @return a directory scanner
      */
     protected DirectoryScanner getDirectoryScanner(File baseDir) {
         fileset.setDir(baseDir);
@@ -430,7 +436,7 @@ public abstract class MatchingTask extends Task implements SelectorContainer {
 
     /**
      * Accessor for the implicit fileset.
-     *
+     * @return the implicit fileset
      * @since Ant 1.5.2
      */
     protected final FileSet getImplicitFileSet() {

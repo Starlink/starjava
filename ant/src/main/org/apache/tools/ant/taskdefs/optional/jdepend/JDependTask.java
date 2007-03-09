@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -37,6 +38,7 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.Reference;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.LoaderUtils;
 
 /**
@@ -184,7 +186,7 @@ public class JDependTask extends Task {
     /**
      * Adds a path to source code to analyze.
      * @return a source path
-     * @deprecated
+     * @deprecated since 1.6.x.
      */
     public Path createSourcespath() {
         if (sourcesPath == null) {
@@ -196,8 +198,7 @@ public class JDependTask extends Task {
     /**
      * Gets the sourcepath.
      * @return the sources path
-     * @deprecated
-     *
+     * @deprecated since 1.6.x.
      */
     public Path getSourcespath() {
         return sourcesPath;
@@ -472,18 +473,17 @@ public class JDependTask extends Task {
             if (getClassespath() != null) {
                 // This is the new, better way - use classespath instead
                 // of sourcespath.  The code is currently the same - you
-                // need class files in a directory to use this - jar files
-                // coming soon....
-                String[] classesPath = getClassespath().list();
-                for (int i = 0; i < classesPath.length; i++) {
-                    File f = new File(classesPath[i]);
+                // need class files in a directory to use this or jar files.
+                String[] cP = getClassespath().list();
+                for (int i = 0; i < cP.length; i++) {
+                    File f = new File(cP[i]);
                     // not necessary as JDepend would fail, but why loose
                     // some time?
-                    if (!f.exists() || !f.isDirectory()) {
+                    if (!f.exists()) {
                         String msg = "\""
                             + f.getPath()
                             + "\" does not represent a valid"
-                            + " directory. JDepend would fail.";
+                            + " file or directory. JDepend would fail.";
                         log(msg);
                         throw new BuildException(msg);
                     }
@@ -502,9 +502,9 @@ public class JDependTask extends Task {
 
                 // This is the old way and is deprecated - classespath is
                 // the right way to do this and is above
-                String[] sourcesPath = getSourcespath().list();
-                for (int i = 0; i < sourcesPath.length; i++) {
-                    File f = new File(sourcesPath[i]);
+                String[] sP = getSourcespath().list();
+                for (int i = 0; i < sP.length; i++) {
+                    File f = new File(sP[i]);
 
                     // not necessary as JDepend would fail, but why loose
                     // some time?
@@ -551,13 +551,7 @@ public class JDependTask extends Task {
 
             jdepend.analyze();
         } finally {
-            if (fw != null) {
-                try {
-                    fw.close();
-                } catch (Throwable t) {
-                    // Ignore
-                }
-            }
+            FileUtils.close(fw);
         }
         return SUCCESS;
     }
@@ -618,9 +612,9 @@ public class JDependTask extends Task {
 
         if (getSourcespath() != null) {
             // This is deprecated - use classespath in the future
-            String[] sourcesPath = getSourcespath().list();
-            for (int i = 0; i < sourcesPath.length; i++) {
-                File f = new File(sourcesPath[i]);
+            String[] sP = getSourcespath().list();
+            for (int i = 0; i < sP.length; i++) {
+                File f = new File(sP[i]);
 
                 // not necessary as JDepend would fail, but why loose
                 // some time?
@@ -637,15 +631,15 @@ public class JDependTask extends Task {
         if (getClassespath() != null) {
             // This is the new way - use classespath - code is the
             // same for now
-            String[] classesPath = getClassespath().list();
-            for (int i = 0; i < classesPath.length; i++) {
-                File f = new File(classesPath[i]);
+            String[] cP = getClassespath().list();
+            for (int i = 0; i < cP.length; i++) {
+                File f = new File(cP[i]);
                 // not necessary as JDepend would fail, but why loose
                 // some time?
-                if (!f.exists() || !f.isDirectory()) {
+                if (!f.exists()) {
                     throw new BuildException("\"" + f.getPath()
                                              + "\" does not represent a valid"
-                                             + " directory. JDepend would"
+                                             + " file or directory. JDepend would"
                                              + " fail.");
                 }
                 commandline.createArgument().setValue(f.getPath());

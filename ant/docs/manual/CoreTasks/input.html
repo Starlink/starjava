@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Input Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -18,8 +34,8 @@ input.  To do so, it uses the configured
 <p>The prompt can be set via the message attribute or as character
 data nested into the element.</p>
 
-<p>Optinonally a set of valid imput arguments can be defined via the
-validargs attribute. Input task will no accept value that don't match
+<p>Optionally a set of valid input arguments can be defined via the
+validargs attribute. Input task will not accept a value that doesn't match
 one of the predefined.</p>
 
 <p>Optionally a property can be created from the value entered by the
@@ -29,6 +45,16 @@ task</a> which means that existing properties cannot be overriden.
 Since Ant 1.6, <code>&lt;input&gt;</code> will not prompt for input if
 a property should be set by the task that has already been set in the
 project (and the task wouldn't have any effect).</p>
+
+<p>A regular complaint about this task is that it echoes characters to the
+console, this is a critical security defect, we must fix it immediately, etc, etc.
+We know it leaves something to be desired, but the problem is Java, not Ant.
+There is nothing we can do to stop the console echoing. </p>
+
+<p>
+IDE behaviour depends upon the IDE: some hang waiting for input, some let you
+type it in. For this situation, place the password in a (secured) property
+file and load in before the input task.</p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -57,7 +83,7 @@ project (and the task wouldn't have any effect).</p>
     <td valign="top">the name of a property to be created from
     input. Behaviour is equal to <a href="property.html">property
     task</a> which means that existing properties cannot be
-    overriden.</td>
+    overridden.</td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
@@ -68,6 +94,55 @@ project (and the task wouldn't have any effect).</p>
     <td valign="top" align="center">No</td>
   </tr>
 </table>
+<h3>Parameters Specified as Nested Elements</h3>
+<h4>Handler</h4>
+<p>Since <b>Ant 1.7</b>, a nested &lt;handler&gt; element can be used to
+specify an InputHandler, so that different InputHandlers may be used
+among different Input tasks.
+
+<table border="1" cellpadding="2" cellspacing="0">
+  <tr>
+    <td valign="top"><b>Attribute</b></td>
+    <td valign="top"><b>Description</b></td>
+    <td align="center" valign="top"><b>Required</b></td>
+  </tr>
+  <tr>
+    <td valign="top">type</td>
+    <td valign="top">one of "default","propertyfile", or "greedy".
+    </td>
+    <td align="center" valign="top" rowspan="3">One of these</td>
+  </tr>
+  <tr>
+    <td valign="top">refid</td>
+    <td valign="top">Reference to an <code>InputHandler</code>
+        defined elsewhere in the project.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">classname</td>
+    <td valign="top">The name of an <code>InputHandler</code> subclass.</td>
+  </tr>
+  <tr>
+    <td valign="top">classpath</td>
+    <td valign="top">The classpath to use with <i>classname</i>.</td>
+    <td valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">classpathref</td>
+    <td valign="top">The refid of a classpath to use with <i>classname</i>.</td>
+    <td valign="top">No</td>
+  </tr>
+  <tr>
+    <td valign="top">loaderref</td>
+    <td valign="top">The refid of a classloader to use with <i>classname</i>.
+    </td>
+    <td valign="top">No</td>
+  </tr>
+</table>
+<br />
+The classpath can also be specified by means of one or more nested
+&lt;classpath&gt; elements.</p>
+
 <h3>Examples</h3>
 <pre>  &lt;input/&gt;</pre>
 <p>Will pause the build run until return key is pressed when using the
@@ -115,8 +190,6 @@ property <code>db.user</code> to the value entered by the user.</p>
 <i>Scott- Tiger</i> if the user enters no value (simply types
 &lt;return&gt;).</p>
 
-<hr>
-<p align="center">Copyright &copy; 2001-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 </body>
 </html>

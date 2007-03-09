@@ -1,21 +1,39 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<title>Xslt/Style Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
+<title>XSLT Task</title>
 </head>
 
 <body>
 
-<h2><a name="style">Xslt/Style</a></h2>
+<h2><a name="style">XSLT</a></h2>
+<p><em>The name <code>style</code> is a deprecated name for the same task.</em></p>
 <h3>Description</h3>
 <p>Process a set of documents via XSLT.</p>
 <p>This is useful for building views of XML based documentation,
 or for generating code.</p>
 <p><b>Note:</b> If you are using JDK 1.4 or higher, this task does not require external libraries
-not supplied in the Ant distribution. Otherwise,
-see <a href="../install.html#librarydependencies">Library Dependencies</a> for more information.</p>
+not supplied in the Ant distribution. However, often the built in XSL engine is not as up
+to date as a fresh download, so an update is still highly recommended.
+See <a href="../install.html#librarydependencies">Library Dependencies</a> for more information.</p>
 <p>It is possible to refine the set of files that are being processed. This can be
 done with the <i>includes</i>, <i>includesfile</i>, <i>excludes</i>, <i>excludesfile</i> and <i>defaultexcludes</i>
 attributes. With the <i>includes</i> or <i>includesfile</i> attribute you specify the files you want to
@@ -29,12 +47,26 @@ inclusion/exclusion of files works, and how to write patterns.</p>
   attributes of <code>&lt;fileset&gt;</code> (<code>dir</code> becomes <code>basedir</code>)
   as well as the nested <code>&lt;include&gt;</code>, <code>&lt;exclude&gt;</code>
   and <code>&lt;patternset&gt;</code> elements.</p>
-<p>This task supports the use of a nested &lt;param&gt; element which is used to pass values
-  to an &lt;xsl:param&gt; declaration.</p>
+
+<p><b>Note</b>: Unlike other similar tasks, this task treats
+directories that have been matched by the include/exclude patterns of
+the implicit fileset in a special way.  It will apply the stylesheets
+to all files contain in them as well.  Since the default include
+pattern is <code>**</code> this means it will apply the stylesheet to
+all files.  If you specify an excludes pattern, it may still work on
+the files matched by those patterns because the parent directory has
+been matched.  If this behavior is not what you want, set the
+scanincludedirectories attribute to false.</p>
+
+<p>Starting with Ant 1.7 this task supports nested <a
+href="../CoreTypes/resources.html#collection">resource collection</a>s
+in addition to (or instead of, depending on the useImplicitFileset
+attribute) the implicit fileset formed by this task.</p>
+
+<p>This task supports the use of a nested <code>&lt;param&gt;</code> element which is used to pass values
+  to an <code>&lt;xsl:param&gt;</code> declaration.</p>
 <p>This task supports the use of a nested <a href="../CoreTypes/xmlcatalog.html">xmlcatalog</a>
-element which is used to perform Entity and URI resolution</p>
-<p><i>&lt;style&gt; and &lt;xslt&gt; refer to the same Ant task and can be used interchangeably.</i></p>
-<p>If you want to use Xalan-J 1 or XSL:P, you also need Ant's optional.jar</p>
+element which is used to perform Entity and URI resolution.</p>
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -58,17 +90,23 @@ element which is used to perform Entity and URI resolution</p>
     <td valign="top">extension</td>
     <td valign="top">desired file extension to be used for the targets. If not
       specified, the default is &quot;.html&quot;.  Will be ignored if
-      a nested &lt;mapper&gt; has been specified.</td>
+      a nested <code>&lt;mapper&gt;</code> has been specified.</td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
     <td valign="top">style</td>
     <td valign="top">name of the stylesheet to use - given either relative
-      to the project's basedir or as an absolute path
-      <em><strong>DEPRECATED</strong> - can be specified as a path relative
-          to the basedir attribute of this task as well</em>.
+      to the project's basedir or as an absolute path.<br/>
+      <br/>
+      Alternatively, a nested element which ant can interpret as a resource
+      can be used to indicate where to find the stylesheet<br/>
+      <em>deprecated variation :</em> <br/>
+      If the stylesheet cannot be found, and if you have specified the
+      attribute basedir for the task, ant will assume that the style
+      attribute is relative to the basedir of the task.
     </td>
-    <td align="center" valign="top">Yes</td>
+    <td align="center" valign="top">No, if the location of
+        the stylesheet is specified using a nested &lt;style&gt; element</td>
   </tr>
   <tr>
     <td valign="top">classpath</td>
@@ -91,17 +129,13 @@ element which is used to perform Entity and URI resolution</p>
   <tr>
     <td valign="top">processor</td>
 
-    <td valign="top">name of the XSLT processor to use.  Permissible values are
-      &quot;trax&quot; for a TraX compliant processor (ie JAXP interface
-      implementation such as Xalan 2 or Saxon),
-      &quot;xslp&quot; for the XSL:P processor, &quot;xalan&quot; for
-      the Apache XML Xalan (version 1) processor the name of an
-      arbitrary XSLTLiaison class. Defaults to trax, followed by xalan
-      and then xslp (in that order). The first one found in your class
-      path is the one that is used.
-
-      <em><strong>DEPRECATED</strong> - XSL:P and xalan are deprecated and no
-      more supported.</em>.
+    <td valign="top">name of the XSLT processor to use.
+      Permissible value is :<ul>
+      <li>&quot;trax&quot; for a TraX compliant processor (ie JAXP interface
+      implementation such as Xalan 2 or Saxon)</li></ul>
+      Defaults to trax.
+      <br/>
+      Support for xalan1 has been removed in ant 1.7.
       </td>
     <td align="center" valign="top">No</td>
   </tr>
@@ -162,8 +196,44 @@ element which is used to perform Entity and URI resolution</p>
     Default is <code>false</code>.  <em>Since Ant 1.5.2</em>.</td>
     <td valign="top" align="center">No</td>
   </tr>
+  <tr>
+    <td valign="top">useImplicitFileset</td>
+    <td valign="top">Whether the implicit fileset formed by this task
+    shall be used.  If you set this to false you must use nested
+    resource collections - or the in attribute, in which case this
+    attribute has no impact anyway.  Default is <code>true</code>.
+    <em>Since Ant 1.7</em>.</td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">filenameparameter</td>
+    <td valign="top">Specifies a xsl parameter for accessing the name
+    of the current processed file. If not set, the file name is not
+    passed to the transformation.
+    <em>Since Ant 1.7</em>.</td>
+    <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">filedirparameter</td>
+    <td valign="top">Specifies a xsl parameter for accessing the directory
+    of the current processed file. For files in the current directory a
+    value of '.' will be passed to the transformation.
+    If not set, the directory is not passed to the transformation. 
+    <em>Since Ant 1.7</em>.</td>
+    <td valign="top" align="center">No</td>
+  </tr>
 </table>
 <h3>Parameters specified as nested elements</h3>
+
+<h4>any <a href="../CoreTypes/resources.html#collection">resource
+collection</a></h4>
+
+<p><em>since Ant 1.7</em></p>
+
+<p>Use resource collections to specify resources that the stylesheet
+should be applied to.  Use a nested mapper and the task's destdir
+attribute to specify the output files.</p>
+
 <h4>classpath</h4>
 <p>The classpath to load the processor from can be specified via a
 nested <code>&lt;classpath&gt;</code>, as well - that is, a
@@ -175,6 +245,7 @@ element is used to perform Entity and URI resolution.</p>
 
 <h4>param</h4>
 <p>Param is used to pass a parameter to the XSL stylesheet.</p>
+<blockquote>
 <h4>Parameters</h4>
 <table width="60%" border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -189,7 +260,7 @@ element is used to perform Entity and URI resolution.</p>
   </tr>
   <tr>
     <td valign="top">expression</td>
-    <td valign="top">Text value to be placed into the param.<br/>
+    <td valign="top">Text value to be placed into the param.<br>
     Was originally intended to be an XSL expression.</td>
     <td align="center" valign="top">Yes</td>
   </tr>
@@ -205,11 +276,13 @@ element is used to perform Entity and URI resolution.</p>
   </tr>
 
 </table>
+</blockquote>
 
 <h4>outputproperty ('trax' processors only)</h4>
 <p>Used to specify how you wish the result tree to be output
 as specified in the <a href="http://www.w3.org/TR/xslt#output">
 XSLT specifications</a>.
+<blockquote>
 <h4>Parameters</h4>
 <table width="60%" border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -228,9 +301,11 @@ XSLT specifications</a>.
     <td align="center" valign="top">Yes</td>
   </tr>
 </table>
+</blockquote>
 
 <h4>factory ('trax' processors only)</h4>
 Used to specify factory settings.
+<blockquote>
 <h4>Parameters</h4>
 <table width="60%" border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -249,7 +324,7 @@ Used to specify factory settings.
     <td align="center" valign="top">No. Defaults to the JAXP lookup mechanism.</td>
   </tr>
 </table>
-<blockquote>
+<h3>Parameters specified as nested elements</h3>
 <h4>attribute </h4>
 <p>Used to specify settings of the processor factory.
 The attribute names and values are entirely processor specific
@@ -270,6 +345,7 @@ And in Saxon 7.x:
 <li>http://saxon.sf.net/feature/linenumbering (integer)</li>
 <li>...</li>
 </ul>
+<blockquote>
 <h4>Parameters</h4>
 <table width="60%" border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -289,7 +365,7 @@ And in Saxon 7.x:
   </tr>
 </table>
 </blockquote>
-
+</blockquote>
 <h4>mapper</h4>
 
 <p><em>since Ant 1.6.2</em></p>
@@ -300,13 +376,24 @@ used by <code>&lt;xslt&gt;</code> removes the file extension from the
 source file and adds the extension specified via the extension
 attribute.</p>
 
+<h4>style</h4>
+
+<p><em>Since Ant 1.7</em></p>
+
+<p>The nested style element can be used to specify your stylesheet in terms
+of Ant's <a href="../CoreTypes/resources.html">resource</a> types.  With
+this element, the stylesheet should be specified as a nested resource or
+single-element collection.  Alternatively, use the <code>refid</code> to
+specify the resource or collection as a reference.</p>
+
 <h3>Examples</h3>
 <blockquote>
   <pre>
 &lt;style basedir=&quot;doc&quot; destdir=&quot;build/doc&quot;
        extension=&quot;.html&quot; style=&quot;style/apache.xsl&quot;/&gt;</pre>
   <h4>Using an xmlcatalog</h4>
-  <pre>&lt;xslt basedir=&quot;doc&quot; destdir=&quot;build/doc&quot;
+  <pre>
+&lt;xslt basedir=&quot;doc&quot; destdir=&quot;build/doc&quot;
       extension=&quot;.html&quot; style=&quot;style/apache.xsl&quot;&gt;
   &lt;xmlcatalog refid=&quot;mycatalog&quot;/&gt;
 &lt;/xslt&gt;
@@ -318,9 +405,11 @@ attribute.</p>
          publicId=&quot;-//ArielPartners//DTD XML Article V1.0//EN&quot;
          location=&quot;com/arielpartners/knowledgebase/dtd/article.dtd&quot;/&gt;
    &lt;/xmlcatalog&gt;
-&lt;/xslt&gt;</pre>
+&lt;/xslt&gt;
+</pre>
   <h4>Using XSL parameters</h4>
-<pre>&lt;xslt basedir=&quot;doc&quot; destdir=&quot;build/doc&quot;
+<pre>
+&lt;xslt basedir=&quot;doc&quot; destdir=&quot;build/doc&quot;
       extension=&quot;.html&quot; style=&quot;style/apache.xsl&quot;&gt;
   &lt;param name=&quot;date&quot; expression=&quot;07-01-2000&quot;/&gt;
 &lt;/xslt&gt;</pre>
@@ -331,16 +420,19 @@ attribute.</p>
   </p>
 
   <h4>Using output properties</h4>
-<pre>&lt;xslt in=&quot;doc.xml&quot; out=&quot;build/doc/output.xml&quot;
+<pre>
+&lt;xslt in=&quot;doc.xml&quot; out=&quot;build/doc/output.xml&quot;
       style=&quot;style/apache.xsl&quot;&gt;
-  &lt;outputproperty name=&quot;method&quot; value=&quot;xml&quot;;/&gt;
+  &lt;outputproperty name=&quot;method&quot; value=&quot;xml&quot;/&gt;
   &lt;outputproperty name=&quot;standalone&quot; value=&quot;yes&quot;/&gt;
   &lt;outputproperty name=&quot;encoding&quot; value=&quot;iso8859_1&quot;/&gt;
   &lt;outputproperty name=&quot;indent&quot; value=&quot;yes&quot;/&gt;
-&lt;/xslt&gt;</pre>
+&lt;/xslt&gt;
+</pre>
 
   <h4>Using factory settings</h4>
-<pre>&lt;xslt in=&quot;doc.xml&quot; out=&quot;build/doc/output.xml&quot;
+<pre>
+&lt;xslt in=&quot;doc.xml&quot; out=&quot;build/doc/output.xml&quot;
       style=&quot;style/apache.xsl&quot;&gt;
   &lt;factory name=&quot;org.apache.xalan.processor.TransformerFactoryImpl&quot;&gt;
     &lt;attribute name=&quot;http://xml.apache.org/xalan/features/optimize&quot; value=&quot;true&quot;/&gt;
@@ -348,15 +440,46 @@ attribute.</p>
 &lt;/xslt&gt;</pre>
 
   <h4>Using a mapper</h4>
-<pre>&lt;xslt basedir=&quot;in&quot; destdir=&quot;out&quot;
+<pre>
+&lt;xslt basedir=&quot;in&quot; destdir=&quot;out&quot;
       style=&quot;style/apache.xsl&quot;&gt;
   &lt;mapper type=&quot;glob&quot; from=&quot;*.xml.en&quot; to=&quot;*.html.en&quot;/&gt;
 &lt;/xslt&gt;</pre>
 
- </blockquote>
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+  <h4>Using a nested resource to define the stylesheet</h4>
+    <pre>
+&lt;xslt in="data.xml" out="${out.dir}/out.xml"&gt;
+    &lt;style&gt;
+        &lt;url url="${printParams.xsl.url}"/&gt;
+    &lt;/style&gt;
+    &lt;param name="set" expression="value"/&gt;
+&lt;/xslt&gt;</pre>
+
+  <h4>Print the current processed file name</h4>
+<pre>
+&lt;project&gt;
+  &lt;xslt style=&quot;printFilename.xsl&quot; destdir=&quot;out&quot; basedir=&quot;in&quot; extension=&quot;.txt&quot;
+        filenameparameter=&quot;filename&quot;
+        filedirparameter=&quot;filedir&quot;
+  /&gt;
+&lt;/project&gt;
+
+&lt;xsl:stylesheet
+  version=&quot;1.0&quot;
+  xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;&gt;
+
+    &lt;xsl:param name=&quot;filename&quot;&gt;&lt;/xsl:param&gt;
+    &lt;xsl:param name=&quot;filedir&quot;&gt;.&lt;/xsl:param&gt;
+
+&lt;xsl:template match=&quot;/&quot;&gt;
+  Current file is &lt;xsl:value-of select=&quot;$filename&quot;/&gt; in directory &lt;xsl:value-of select=&quot;$filedir&quot;/&gt;.
+&lt;/xsl:template&gt;
+
+&lt;/xsl:stylesheet&gt;
+</pre>
+
+</blockquote>
+
 
 </body>
 </html>

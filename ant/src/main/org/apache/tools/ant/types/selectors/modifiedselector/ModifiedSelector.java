@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,9 +28,18 @@ import java.io.File;
 // Ant
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.IntrospectionHelper;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.BuildListener;
+import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Parameter;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
 import org.apache.tools.ant.types.selectors.BaseExtendSelector;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.ResourceUtils;
 
 
 /**
@@ -42,41 +52,52 @@ import org.apache.tools.ant.types.selectors.BaseExtendSelector;
  *
  * <p>The ModifiedSelector is implemented as a <b>CoreSelector</b> and uses default
  * values for all its attributes therefore the simpliest example is <pre>
- *   <copy todir="dest">
- *       <filelist dir="src">
- *           <modified/>
- *       </filelist>
- *   </copy>
+ *   &lt;copy todir="dest"&gt;
+ *       &lt;filelist dir="src"&gt;
+ *           &lt;modified/&gt;
+ *       &lt;/filelist&gt;
+ *   &lt;/copy&gt;
  * </pre></p>
  *
  * <p>The same example rewritten as CoreSelector with setting the all values
  * (same as defaults are) would be <pre>
- *   <copy todir="dest">
- *       <filelist dir="src">
- *           <modified update="true"
+ *   &lt;copy todir="dest"&gt;
+ *       &lt;filelist dir="src"&gt;
+ *           &lt;modified update="true"
  *                     cache="propertyfile"
  *                     algorithm="digest"
- *                     comparator="equal">
- *               <param name="cache.cachefile"     value="cache.properties"/>
- *               <param name="algorithm.algorithm" value="MD5"/>
- *           </modified>
- *       </filelist>
- *   </copy>
+ *                     comparator="equal"&gt;
+ *               &lt;param name="cache.cachefile"     value="cache.properties"/&gt;
+ *               &lt;param name="algorithm.algorithm" value="MD5"/&gt;
+ *           &lt;/modified&gt;
+ *       &lt;/filelist&gt;
+ *   &lt;/copy&gt;
  * </pre></p>
  *
  * <p>And the same rewritten as CustomSelector would be<pre>
- *   <copy todir="dest">
- *       <filelist dir="src">
- *           <custom class="org.apache.tools.ant.type.selectors.ModifiedSelector">
- *               <param name="update"     value="true"/>
- *               <param name="cache"      value="propertyfile"/>
- *               <param name="algorithm"  value="digest"/>
- *               <param name="comparator" value="equal"/>
- *               <param name="cache.cachefile"     value="cache.properties"/>
- *               <param name="algorithm.algorithm" value="MD5"/>
- *           </custom>
- *       </filelist>
- *   </copy>
+ *   &lt;copy todir="dest"&gt;
+ *       &lt;filelist dir="src"&gt;
+ *           &lt;custom class="org.apache.tools.ant.type.selectors.ModifiedSelector"&gt;
+ *               &lt;param name="update"     value="true"/&gt;
+ *               &lt;param name="cache"      value="propertyfile"/&gt;
+ *               &lt;param name="algorithm"  value="digest"/&gt;
+ *               &lt;param name="comparator" value="equal"/&gt;
+ *               &lt;param name="cache.cachefile"     value="cache.properties"/&gt;
+ *               &lt;param name="algorithm.algorithm" value="MD5"/&gt;
+ *           &lt;/custom&gt;
+ *       &lt;/filelist&gt;
+ *   &lt;/copy&gt;
+ * </pre></p>
+ *
+ * <p>If you want to provide your own interface implementation you can do
+ * that via the *classname attributes. If the classes are not on Ant's core
+ * classpath, you will have to provide the path via nested &lt;classpath&gt;
+ * element, so that the selector can find the classes. <pre>
+ *   &lt;modified cacheclassname="com.mycompany.MyCache"&gt;
+ *       &lt;classpath&gt;
+ *           &lt;pathelement location="lib/mycompony-antutil.jar"/&gt;
+ *       &lt;/classpath&gt;
+ *   &lt;/modified&gt;
  * </pre></p>
  *
  * <p>All these three examples copy the files from <i>src</i> to <i>dest</i>
@@ -93,85 +114,22 @@ import org.apache.tools.ant.types.selectors.BaseExtendSelector;
  * comparison.</p>
  *
  * <p>A useful scenario for this selector is inside a build environment
- * for homepage generation (e.g. with <a href="http://xml.apache.org/forrest/">
+ * for homepage generation (e.g. with <a href="http://forrest.apache.org/">
  * Apache Forrest</a>). <pre>
- * <target name="generate-and-upload-site">
- *     <echo> generate the site using forrest </echo>
- *     <antcall target="site"/>
+ * &lt;target name="generate-and-upload-site"&gt;
+ *     &lt;echo&gt; generate the site using forrest &lt;/echo&gt;
+ *     &lt;antcall target="site"/&gt;
  *
- *     <echo> upload the changed files </echo>
- *     <ftp server="${ftp.server}" userid="${ftp.user}" password="${ftp.pwd}">
- *         <fileset dir="htdocs/manual">
- *             <modified/>
- *         </fileset>
- *     </ftp>
- * </target>
+ *     &lt;echo&gt; upload the changed files &lt;/echo&gt;
+ *     &lt;ftp server="${ftp.server}" userid="${ftp.user}" password="${ftp.pwd}"&gt;
+ *         &lt;fileset dir="htdocs/manual"&gt;
+ *             &lt;modified/&gt;
+ *         &lt;/fileset&gt;
+ *     &lt;/ftp&gt;
+ * &lt;/target&gt;
  * </pre> Here all <b>changed</b> files are uploaded to the server. The
  * ModifiedSelector saves therefore much upload time.</p>
  *
- * <p>This selector supports the following nested param's:
- * <table>
- * <tr><th>name</th><th>values</th><th>description</th><th>required</th></tr>
- * <tr>
- *     <td> cache </td>
- *     <td> propertyfile </td>
- *     <td> which cache implementation should be used <ul>
- *          <li><b>propertyfile</b> - using java.util.Properties </li>
- *     </td>
- *     <td> no, defaults to 'propertyfile' </td>
- * </tr>
- * <tr>
- *     <td> algorithm </td>
- *     <td> hashvalue | digest </td>
- *     <td> which algorithm implementation should be used
- *          <li><b>hashvalue</b> - loads the file content into a String and
- *                                 uses its hashValue() method </li>
- *          <li><b>digest</b> - uses java.security.MessageDigest class </i>
- *     </td>
- *     <td> no, defaults to digest </td>
- * </tr>
- * <tr>
- *     <td> comparator </td>
- *     <td> equal | role </td>
- *     <td> which comparator implementation should be used
- *          <li><b>equal</b> - simple comparison using String.equals() </li>
- *          <li><b>role</b> - uses java.text.RuleBasedCollator class </i>
- *     </td>
- *     <td> no, defaults to equal </td>
- * </tr>
- * <tr>
- *     <td> update </td>
- *     <td> true | false </td>
- *     <td> If set to <i>true</i>, the cache will be stored, otherwise the values
- *          will be lost. </td>
- *     <td> no, defaults to true </td>
- * </tr>
- * <tr>
- *     <td> seldirs </td>
- *     <td> true | false </td>
- *     <td> If set to <i>true</i>, directories will be selected otherwise not </td>
- *     <td> no, defaults to true </td>
- * </tr>
- * <tr>
- *     <td> cache.* </td>
- *     <td> depends on used cache </td>
- *     <td> value is stored and given to the Cache-Object for initialisation </td>
- *     <td> depends on used cache </td>
- * </tr>
- * <tr>
- *     <td> algorithm.* </td>
- *     <td> depends on used algorithm </td>
- *     <td> value is stored and given to the Algorithm-Object for initialisation </td>
- *     <td> depends on used algorithm </td>
- * </tr>
- * <tr>
- *     <td> comparator.* </td>
- *     <td> depends on used comparator </td>
- *     <td> value is stored and given to the Comparator-Object for initialisation </td>
- *     <td> depends on used comparator </td>
- * </tr>
- * </table>
- * If another name is used a BuildException "Invalid parameter" is thrown. </p>
  *
  * <p>This selector uses reflection for setting the values of its three interfaces
  * (using org.apache.tools.ant.IntrospectionHelper) therefore no special
@@ -179,26 +137,35 @@ import org.apache.tools.ant.types.selectors.BaseExtendSelector;
  * comparators. All present <i>set</i>XX methods can be used. E.g. the DigestAlgorithm
  * can use a specified provider for computing its value. For selecting this
  * there is a <i>setProvider(String providername)</i> method. So you can use
- * a nested <i><param name="algorithm.provider" value="MyProvider"/></i>.
+ * a nested <i>&lt;param name="algorithm.provider" value="MyProvider"/&gt;</i>.
  *
  *
- * @version 2003-09-13
  * @since  Ant 1.6
-*/
-public class ModifiedSelector extends BaseExtendSelector {
+ */
+public class ModifiedSelector extends BaseExtendSelector
+                              implements BuildListener, ResourceSelector {
 
 
-    // -----  member variables - configuration
+    // -----  attributes  -----
 
 
-    /** The Cache containing the old values. */
-    private Cache cache = null;
+    /** Cache name for later instantiation. */
+    private CacheName cacheName = null;
 
-    /** Algorithm for computing new values and updating the cache. */
-    private Algorithm algorithm = null;
+    /** User specified classname for Cache. */
+    private String cacheClass;
 
-    /** How should the cached value and the new one compared? */
-    private Comparator comparator = null;
+    /** Algorithm name for later instantiation. */
+    private AlgorithmName algoName = null;
+
+    /** User specified classname for Algorithm. */
+    private String algorithmClass;
+
+    /** Comparator name for later instantiation. */
+    private ComparatorName compName = null;
+
+    /** User specified classname for Comparator. */
+    private String comparatorClass;
 
     /** Should the cache be updated? */
     private boolean update = true;
@@ -206,22 +173,33 @@ public class ModifiedSelector extends BaseExtendSelector {
     /** Are directories selected? */
     private boolean selectDirectories = true;
 
+    /**
+     * Should Resources whithout an InputStream, and
+     * therefore without checking, be selected?
+     */
+    private boolean selectResourcesWithoutInputStream = true;
 
-    // -----  member variables - internal use
+    /** Delay the writing of the cache file */
+    private boolean delayUpdate = true;
 
+
+    // ----- internal member variables -----
+
+
+    /** How should the cached value and the new one compared? */
+    private Comparator comparator = null;
+
+    /** Algorithm for computing new values and updating the cache. */
+    private Algorithm algorithm = null;
+
+    /** The Cache containing the old values. */
+    private Cache cache = null;
+
+    /** Count of modified properties */
+    private int modified = 0;
 
     /** Flag whether this object is configured. Configuration is only done once. */
     private boolean isConfigured = false;
-
-    /** Algorithm name for later instantiation. */
-    private AlgorithmName algoName = null;
-
-    /** Cache name for later instantiation. */
-    private CacheName cacheName = null;
-
-    /** Comparator name for later instantiation. */
-    private ComparatorName compName = null;
-
 
     /**
      * Parameter vector with parameters for later initialization.
@@ -236,6 +214,12 @@ public class ModifiedSelector extends BaseExtendSelector {
      * @see #configure
      */
     private Vector specialParameter = new Vector();
+
+    /** The classloader of this class. */
+    private ClassLoader myClassLoader = null;
+
+    /** provided classpath for the classloader */
+    private Path classpath = null;
 
 
     // -----  constructors  -----
@@ -293,22 +277,25 @@ public class ModifiedSelector extends BaseExtendSelector {
         //
         // -----  Set default values  -----
         //
-        org.apache.tools.ant.Project project = getProject();
+        Project p = getProject();
         String filename = "cache.properties";
         File cachefile = null;
-        if (project != null) {
+        if (p != null) {
             // normal use inside Ant
-            cachefile = new File(project.getBaseDir(), filename);
+            cachefile = new File(p.getBaseDir(), filename);
+
+            // set self as a BuildListener to delay cachefile saves
+            getProject().addBuildListener(this);
         } else {
-            // no reference to project - e.g. during JUnit tests
+            // no reference to project - e.g. during normal JUnit tests
             cachefile = new File(filename);
+            setDelayUpdate(false);
         }
-        cache = new PropertiesfileCache(cachefile);
-        algorithm = new DigestAlgorithm();
-        comparator = new EqualComparator();
+        Cache      defaultCache      = new PropertiesfileCache(cachefile);
+        Algorithm  defaultAlgorithm  = new DigestAlgorithm();
+        Comparator defaultComparator = new EqualComparator();
         update = true;
         selectDirectories = true;
-
 
         //
         // -----  Set the main attributes, pattern '*'  -----
@@ -324,58 +311,68 @@ public class ModifiedSelector extends BaseExtendSelector {
         }
         configParameter = new Vector();
 
-        //
-        // -----  Instantiate the interfaces  -----
-        //
-        String className = null;
-        String pkg = "org.apache.tools.ant.types.selectors.cacheselector";
-
-        // the algorithm
-        if (algorithm == null) {
+        // specify the algorithm classname
+        if (algoName != null) {
+            // use Algorithm defined via name
             if ("hashvalue".equals(algoName.getValue())) {
-                className = pkg + ".HashvalueAlgorithm";
+                algorithm = new HashvalueAlgorithm();
             } else if ("digest".equals(algoName.getValue())) {
-                className = pkg + ".DigestAlgorithm";
+                algorithm = new DigestAlgorithm();
+            } else if ("checksum".equals(algoName.getValue())) {
+                algorithm = new ChecksumAlgorithm();
             }
-            if (className != null) {
-                try {
-                    // load the specified Algorithm, save the reference and configure it
-                    algorithm = (Algorithm) Class.forName(className).newInstance();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        } else {
+            if (algorithmClass != null) {
+                // use Algorithm specified by classname
+                algorithm = (Algorithm) loadClass(
+                    algorithmClass,
+                    "is not an Algorithm.",
+                    Algorithm.class);
+            } else {
+                // nothing specified - use default
+                algorithm = defaultAlgorithm;
             }
         }
 
-        // the cache
-        if (cache == null) {
+        // specify the cache classname
+        if (cacheName != null) {
+            // use Cache defined via name
             if ("propertyfile".equals(cacheName.getValue())) {
-                className = pkg + ".PropertiesfileCache";
+                cache = new PropertiesfileCache();
             }
-            if (className != null) {
-                try {
-                    // load the specified Cache, save the reference and configure it
-                    cache = (Cache) Class.forName(className).newInstance();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        } else {
+            if (cacheClass != null) {
+                // use Cache specified by classname
+                cache = (Cache) loadClass(cacheClass, "is not a Cache.", Cache.class);
+            } else {
+                // nothing specified - use default
+                cache = defaultCache;
             }
         }
 
-        // the comparator
-        if (comparator == null) {
+        // specify the comparator classname
+        if (compName != null) {
+            // use Algorithm defined via name
             if ("equal".equals(compName.getValue())) {
-                className = pkg + ".EqualComparator";
-            } else if ("role".equals(compName.getValue())) {
-                className = "java.text.RuleBasedCollator";
+                comparator = new EqualComparator();
+             } else if ("rule".equals(compName.getValue())) {
+                // TODO there is a problem with the constructor for the RBC.
+                // you have to provide the rules in the constructors - no setters
+                // available.
+                throw new BuildException("RuleBasedCollator not yet supported.");
+                // Have to think about lazy initialization here...  JHM
+                // comparator = new java.text.RuleBasedCollator();
             }
-            if (className != null) {
-                try {
-                    // load the specified Cache, save the reference and configure it
-                    comparator = (Comparator) Class.forName(className).newInstance();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        } else {
+            if (comparatorClass != null) {
+                // use Algorithm specified by classname
+                comparator = (Comparator) loadClass(
+                    comparatorClass,
+                    "is not a Comparator.",
+                    Comparator.class);
+            } else {
+                // nothing specified - use default
+                comparator = defaultComparator;
             }
         }
 
@@ -390,17 +387,110 @@ public class ModifiedSelector extends BaseExtendSelector {
     }
 
 
+    /**
+     * Loads the specified class and initializes an object of that class.
+     * Throws a BuildException using the given message if an error occurs during
+     * loading/instantiation or if the object is not from the given type.
+     * @param classname the classname
+     * @param msg the message-part for the BuildException
+     * @param type the type to check against
+     * @return a castable object
+     */
+    protected Object loadClass(String classname, String msg, Class type) {
+        try {
+            // load the specified class
+            ClassLoader cl = getClassLoader();
+            Class clazz = null;
+            if (cl != null) {
+                clazz = cl.loadClass(classname);
+            } else {
+                clazz = Class.forName(classname);
+            }
+
+            Object rv = clazz.newInstance();
+
+            if (!type.isInstance(rv)) {
+                throw new BuildException("Specified class (" + classname + ") " + msg);
+            }
+            return rv;
+        } catch (ClassNotFoundException e) {
+            throw new BuildException("Specified class (" + classname + ") not found.");
+        } catch (Exception e) {
+            throw new BuildException(e);
+        }
+    }
+
+
     // -----  the selection work  -----
 
 
     /**
+     * Implementation of ResourceSelector.isSelected().
+     *
+     * @param resource The resource to check
+     * @return whether the resource is selected
+     * @see ResourceSelector#isSelected(Resource)
+     */
+    public boolean isSelected(Resource resource) {
+        if (resource.isFilesystemOnly()) {
+            // We have a 'resourced' file, so reconvert it and use
+            // the 'old' implementation.
+            FileResource fileResource = (FileResource) resource;
+            File file = fileResource.getFile();
+            String filename = fileResource.getName();
+            File basedir = fileResource.getBaseDir();
+            return isSelected(basedir, filename, file);
+        } else {
+            try {
+                // How to handle non-file-Resources? I copy temporarily the
+                // resource to a file and use the file-implementation.
+                FileUtils fu = FileUtils.getFileUtils();
+                File tmpFile = fu.createTempFile("modified-", ".tmp", null);
+                Resource tmpResource = new FileResource(tmpFile);
+                ResourceUtils.copyResource(resource, tmpResource);
+                boolean isSelected = isSelected(tmpFile.getParentFile(),
+                                                tmpFile.getName(),
+                                                resource.toLongString());
+                tmpFile.delete();
+                return isSelected;
+            } catch (UnsupportedOperationException uoe) {
+                log("The resource '"
+                  + resource.getName()
+                  + "' does not provide an InputStream, so it is not checked. "
+                  + "Akkording to 'selres' attribute value it is "
+                  + ((selectResourcesWithoutInputStream) ? "" : " not")
+                  + "selected.", Project.MSG_INFO);
+                return selectResourcesWithoutInputStream;
+            } catch (Exception e) {
+                throw new BuildException(e);
+            }
+        }
+    }
+
+
+    /**
      * Implementation of BaseExtendSelector.isSelected().
+     *
      * @param basedir as described in BaseExtendSelector
      * @param filename as described in BaseExtendSelector
      * @param file as described in BaseExtendSelector
      * @return as described in BaseExtendSelector
      */
     public boolean isSelected(File basedir, String filename, File file) {
+        return isSelected(basedir, filename, file.getAbsolutePath());
+    }
+
+
+    /**
+     * The business logic of this selector for use as ResourceSelector of
+     * FileSelector.
+     *
+     * @param basedir as described in BaseExtendSelector
+     * @param filename as described in BaseExtendSelector
+     * @param cacheKey the name for the key for storing the hashvalue
+     * @return
+     */
+    private boolean isSelected(File basedir, String filename, String cacheKey) {
         validate();
         File f = new File(basedir, filename);
 
@@ -411,20 +501,62 @@ public class ModifiedSelector extends BaseExtendSelector {
 
         // Get the values and do the comparison
         String cachedValue = String.valueOf(cache.get(f.getAbsolutePath()));
-        String newValue    = algorithm.getValue(f);
+        String newValue = algorithm.getValue(f);
+
         boolean rv = (comparator.compare(cachedValue, newValue) != 0);
 
         // Maybe update the cache
-        if (update && !cachedValue.equals(newValue)) {
+        if (update && rv) {
             cache.put(f.getAbsolutePath(), newValue);
-            cache.save();
+            setModified(getModified() + 1);
+            if (!getDelayUpdate()) {
+                saveCache();
+            }
         }
 
         return rv;
     }
 
 
+   /**
+    * save the cache file
+    */
+    protected void saveCache() {
+        if (getModified() > 1) {
+            cache.save();
+            setModified(0);
+        }
+    }
+
+
     // -----  attribute and nested element support  -----
+
+
+    /**
+     * Setter for algorithmClass.
+     * @param classname  new value
+     */
+    public void setAlgorithmClass(String classname) {
+        algorithmClass = classname;
+    }
+
+
+    /**
+     * Setter for comparatorClass.
+     * @param classname  new value
+     */
+    public void setComparatorClass(String classname) {
+        comparatorClass = classname;
+    }
+
+
+    /**
+     * Setter for cacheClass.
+     * @param classname  new value
+     */
+    public void setCacheClass(String classname) {
+        cacheClass = classname;
+    }
 
 
     /**
@@ -442,6 +574,92 @@ public class ModifiedSelector extends BaseExtendSelector {
      */
     public void setSeldirs(boolean seldirs) {
         selectDirectories = seldirs;
+    }
+
+
+    /**
+     * Support for <i>selres</i> attribute.
+     * @param newValue the new value
+     */
+    public void setSelres(boolean newValue) {
+        this.selectResourcesWithoutInputStream = newValue;
+    }
+
+
+    /**
+     * Getter for the modified count
+     * @return modified count
+     */
+    public int getModified() {
+        return modified;
+    }
+
+
+    /**
+     * Setter for the modified count
+     * @param modified count
+     */
+    public void setModified(int modified) {
+        this.modified = modified;
+    }
+
+
+    /**
+     * Getter for the delay update
+     * @return true if we should delay for performance
+     */
+    public boolean getDelayUpdate() {
+        return delayUpdate;
+    }
+
+
+    /**
+     * Setter for the delay update
+     * @param delayUpdate true if we should delay for performance
+     */
+    public void setDelayUpdate(boolean delayUpdate) {
+        this.delayUpdate = delayUpdate;
+    }
+
+
+    /**
+     * Add the classpath.
+     * @param path the classpath
+     */
+    public void addClasspath(Path path) {
+        if (classpath != null) {
+            throw new BuildException("<classpath> can be set only once.");
+        }
+        classpath = path;
+    }
+
+
+    /**
+     * Returns and initializes the classloader for this class.
+     * @return the classloader
+     */
+    public ClassLoader getClassLoader() {
+        if (myClassLoader == null) {
+            myClassLoader = (classpath == null)
+                // the usual classloader
+                ? getClass().getClassLoader()
+                // additional use the provided classpath
+                : getProject().createClassLoader(classpath);
+        }
+        return myClassLoader;
+    }
+
+
+    /**
+     * Set the used ClassLoader.
+     * If you invoke this selector by API (e.g. inside some testcases) the selector
+     * will use a different classloader for loading the interface implementations than
+     * the caller. Therefore you will get a ClassCastException if you get the
+     * implementations from the selector and cast them.
+     * @param loader the ClassLoader to use
+     */
+    public void setClassLoader(ClassLoader loader) {
+        myClassLoader = loader;
     }
 
 
@@ -471,7 +689,8 @@ public class ModifiedSelector extends BaseExtendSelector {
      * Defined in org.apache.tools.ant.types.Parameterizable.
      * Overwrite implementation in superclass because only special
      * parameters are valid.
-     * @see #addParam(String,String).
+     * @see #addParam(String,Object).
+     * @param parameters the parameters to set.
      */
     public void setParameters(Parameter[] parameters) {
         if (parameters != null) {
@@ -516,6 +735,12 @@ public class ModifiedSelector extends BaseExtendSelector {
                 ? true
                 : false;
             setUpdate(updateValue);
+        } else if ("delayupdate".equals(key)) {
+            boolean updateValue =
+                ("true".equalsIgnoreCase(value))
+                ? true
+                : false;
+            setDelayUpdate(updateValue);
         } else if ("seldirs".equals(key)) {
             boolean sdValue =
                 ("true".equalsIgnoreCase(value))
@@ -548,7 +773,6 @@ public class ModifiedSelector extends BaseExtendSelector {
         Project prj = (getProject() != null) ? getProject() : new Project();
         IntrospectionHelper iHelper
             = IntrospectionHelper.getHelper(prj, obj.getClass());
-
         try {
             iHelper.setAttribute(prj, obj, name, value);
         } catch (org.apache.tools.ant.BuildException e) {
@@ -576,37 +800,156 @@ public class ModifiedSelector extends BaseExtendSelector {
     }
 
 
+    // ----- BuildListener interface methods -----
+
+
+    /**
+     * Signals that the last target has finished.
+     * @param event recieved BuildEvent
+    */
+    public void buildFinished(BuildEvent event) {
+        if (getDelayUpdate()) {
+            saveCache();
+        }
+    }
+
+
+    /**
+     * Signals that a target has finished.
+     * @param event recieved BuildEvent
+    */
+    public void targetFinished(BuildEvent event) {
+        if (getDelayUpdate()) {
+            saveCache();
+        }
+    }
+
+
+    /**
+     * Signals that a task has finished.
+     * @param event recieved BuildEvent
+    */
+    public void taskFinished(BuildEvent event) {
+        if (getDelayUpdate()) {
+            saveCache();
+        }
+    }
+
+
+    /**
+     * Signals that a build has started.
+     * @param event recieved BuildEvent
+    */
+    public void buildStarted(BuildEvent event) {
+        // no-op
+    }
+
+
+    /**
+     * Signals that a target is starting.
+     * @param event received BuildEvent
+    */
+    public void targetStarted(BuildEvent event) {
+        // no-op
+    }
+
+
+
+    /**
+     * Signals that a task is starting.
+     * @param event recieved BuildEvent
+    */
+    public void taskStarted(BuildEvent event) {
+        // no-op
+    }
+
+
+    /**
+     * Signals a message logging event.
+     * @param event recieved BuildEvent
+    */
+    public void messageLogged(BuildEvent event) {
+        // no-op
+    }
+
+
     // The EnumeratedAttributes for the three interface implementations.
     // Name-Classname mapping is done in the configure() method.
 
 
+    /**
+     * Get the cache type to use.
+     * @return the enumerated cache type
+     */
     public Cache getCache() { return cache; }
+
+    /**
+     * Set the cache type to use.
+     * @param name an enumerated cache type.
+     */
     public void setCache(CacheName name) {
         cacheName = name;
     }
+
+    /**
+     * The enumerated type for cache.
+     * The values are "propertyfile".
+     */
     public static class CacheName extends EnumeratedAttribute {
+        /** @see EnumeratedAttribute#getValues() */
+        /** {@inheritDoc} */
         public String[] getValues() {
             return new String[] {"propertyfile" };
         }
     }
 
-
+    /**
+     * Get the algorithm type to use.
+     * @return the enumerated algorithm type
+     */
     public Algorithm getAlgorithm() { return algorithm; }
+
+    /**
+     * Set the algorithm type to use.
+     * @param name an enumerated algorithm type.
+     */
     public void setAlgorithm(AlgorithmName name) {
         algoName = name;
     }
+
+    /**
+     * The enumerated type for algorithm.
+     * The values are "hashValue", "digest" and "checksum".
+     */
     public static class AlgorithmName extends EnumeratedAttribute {
+        /** @see EnumeratedAttribute#getValues() */
+        /** {@inheritDoc} */
         public String[] getValues() {
-            return new String[] {"hashvalue", "digest" };
+            return new String[] {"hashvalue", "digest", "checksum" };
         }
     }
 
-
+    /**
+     * Get the comparator type to use.
+     * @return the enumerated comparator type
+     */
     public Comparator getComparator() { return comparator; }
+
+    /**
+     * Set the comparator type to use.
+     * @param name an enumerated comparator type.
+     */
     public void setComparator(ComparatorName name) {
         compName = name;
     }
+
+    /**
+     * The enumerated type for algorithm.
+     * The values are "equal" and "rule".
+     */
     public static class ComparatorName extends EnumeratedAttribute {
+        /** @see EnumeratedAttribute#getValues() */
+        /** {@inheritDoc} */
         public String[] getValues() {
             return new String[] {"equal", "rule" };
         }

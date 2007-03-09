@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,6 +24,8 @@ import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.Properties;
+import java.util.Locale;
+
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -81,6 +84,7 @@ public class SQLExampleTask extends JDBCTask {
 
 
 </pre></code>
+
 
 
  * @since Ant 1.5
@@ -150,7 +154,7 @@ public abstract class JDBCTask extends Task {
      * Caching loaders / driver. This is to avoid
      * getting an OutOfMemoryError when calling this task
      * multiple times in a row; default: true
-     * @param enable
+     * @param enable a <code>boolean</code> value
      */
     public void setCaching(boolean enable) {
         caching = enable;
@@ -158,6 +162,7 @@ public abstract class JDBCTask extends Task {
 
     /**
      * Add a path to the classpath for loading the driver.
+     * @return a path to be configured
      */
     public Path createClasspath() {
         if (this.classpath == null) {
@@ -169,6 +174,7 @@ public abstract class JDBCTask extends Task {
     /**
      * Set the classpath for loading the driver
      * using the classpath reference.
+     * @param r a reference to a classpath
      */
     public void setClasspathRef(Reference r) {
         createClasspath().setRefid(r);
@@ -179,7 +185,7 @@ public abstract class JDBCTask extends Task {
      * @param driver The driver to set
      */
     public void setDriver(String driver) {
-        this.driver = driver;
+        this.driver = driver.trim();
     }
 
     /**
@@ -227,6 +233,8 @@ public abstract class JDBCTask extends Task {
 
     /**
      * Verify we are connected to the correct RDBMS
+     * @param conn the jdbc connection
+     * @return true if we are connected to the correct RDBMS
      */
     protected boolean isValidRdbms(Connection conn) {
         if (rdbms == null && version == null) {
@@ -247,8 +255,7 @@ public abstract class JDBCTask extends Task {
             }
 
             if (version != null) {
-                // XXX maybe better toLowerCase(Locale.US)
-                String theVersion = dmd.getDatabaseProductVersion().toLowerCase();
+                String theVersion = dmd.getDatabaseProductVersion().toLowerCase(Locale.ENGLISH);
 
                 log("Version = " + theVersion, Project.MSG_VERBOSE);
                 if (theVersion == null
@@ -267,10 +274,18 @@ public abstract class JDBCTask extends Task {
         return true;
     }
 
+    /**
+     * Get the cache of loaders and drivers.
+     * @return a hashtable
+     */
     protected static Hashtable getLoaderMap() {
         return loaderMap;
     }
 
+    /**
+     * Get the classloader used to create a driver.
+     * @return the classloader
+     */
     protected AntClassLoader getLoader() {
         return loader;
     }
@@ -287,7 +302,7 @@ public abstract class JDBCTask extends Task {
      */
     protected Connection getConnection() throws BuildException {
         if (userId == null) {
-            throw new BuildException("User Id attribute must be set!", getLocation());
+            throw new BuildException("UserId attribute must be set!", getLocation());
         }
         if (password == null) {
             throw new BuildException("Password attribute must be set!", getLocation());
@@ -365,20 +380,27 @@ public abstract class JDBCTask extends Task {
         } catch (ClassNotFoundException e) {
             throw new BuildException(
                     "Class Not Found: JDBC driver " + driver + " could not be loaded",
+                    e,
                     getLocation());
         } catch (IllegalAccessException e) {
             throw new BuildException(
                     "Illegal Access: JDBC driver " + driver + " could not be loaded",
+                    e,
                     getLocation());
         } catch (InstantiationException e) {
             throw new BuildException(
                     "Instantiation Exception: JDBC driver " + driver + " could not be loaded",
+                    e,
                     getLocation());
         }
         return driverInstance;
     }
 
 
+    /**
+     * Set the caching attribute.
+     * @param value a <code>boolean</code> value
+     */
     public void isCaching(boolean value) {
         caching = value;
     }

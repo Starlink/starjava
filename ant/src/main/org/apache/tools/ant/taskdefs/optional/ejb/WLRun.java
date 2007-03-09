@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -108,6 +109,7 @@ public class WLRun extends Task {
 
     /**
      * Add the classpath for the user classes
+     * @return a path to be configured
      */
     public Path createClasspath() {
         if (classpath == null) {
@@ -118,6 +120,7 @@ public class WLRun extends Task {
 
     /**
      * Get the classpath to the weblogic classpaths
+     * @return a path to be configured
      */
     public Path createWLClasspath() {
         if (weblogicClasspath == null) {
@@ -192,7 +195,7 @@ public class WLRun extends Task {
                                     + "to start the server");
         }
 
-        Java weblogicServer = (Java) getProject().createTask("java");
+        Java weblogicServer = new Java(this);
         weblogicServer.setTaskName(getTaskName());
         weblogicServer.setFork(true);
         weblogicServer.setDir(weblogicSystemHome);
@@ -247,8 +250,7 @@ public class WLRun extends Task {
             }
         }
 
-        Java weblogicServer = (Java) getProject().createTask("java");
-        weblogicServer.setTaskName(getTaskName());
+        Java weblogicServer = new Java(this);
         weblogicServer.setFork(true);
         weblogicServer.setClassname(weblogicMainClass);
 
@@ -403,6 +405,7 @@ public class WLRun extends Task {
     /**
      * Additional argument string passed to the Weblogic instance;
      * optional.
+     * @param args the argument string
      */
     public void setArgs(String args) {
         additionalArgs = args;
@@ -410,6 +413,7 @@ public class WLRun extends Task {
 
     /**
      * name of the main class for weblogic; optional.
+     * @param c the name of the class
      */
     public void setWeblogicMainClass(String c) {
         weblogicMainClass = c;

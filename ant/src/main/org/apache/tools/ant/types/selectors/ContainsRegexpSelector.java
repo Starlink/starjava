@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,13 +20,15 @@ package org.apache.tools.ant.types.selectors;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.Parameter;
 import org.apache.tools.ant.types.RegularExpression;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
 import org.apache.tools.ant.util.regexp.Regexp;
 
 /**
@@ -33,7 +36,8 @@ import org.apache.tools.ant.util.regexp.Regexp;
  *
  * @since Ant 1.6
  */
-public class ContainsRegexpSelector extends BaseExtendSelector {
+public class ContainsRegexpSelector extends BaseExtendSelector
+        implements ResourceSelector {
 
     private String userProvidedExpression = null;
     private RegularExpression myRegExp = null;
@@ -106,6 +110,16 @@ public class ContainsRegexpSelector extends BaseExtendSelector {
      * @return whether the file should be selected or not
      */
     public boolean isSelected(File basedir, String filename, File file) {
+        return isSelected(new FileResource(file));
+    }
+
+    /**
+     * Tests a regular expression against each line of text in a Resource.
+     *
+     * @param r the Resource to check.
+     * @return whether the Resource is selected or not
+     */
+    public boolean isSelected(Resource r) {
         String teststr = null;
         BufferedReader in = null;
 
@@ -113,7 +127,7 @@ public class ContainsRegexpSelector extends BaseExtendSelector {
 
         validate();
 
-        if (file.isDirectory()) {
+        if (r.isDirectory()) {
             return true;
         }
 
@@ -124,9 +138,12 @@ public class ContainsRegexpSelector extends BaseExtendSelector {
         }
 
         try {
-            in = new BufferedReader(new InputStreamReader(
-                    new FileInputStream(file)));
-
+            in = new BufferedReader(new InputStreamReader(r.getInputStream()));
+        } catch (Exception e) {
+            throw new BuildException("Could not get InputStream from "
+                    + r.toLongString(), e);
+        }
+        try {
             teststr = in.readLine();
 
             while (teststr != null) {
@@ -139,14 +156,14 @@ public class ContainsRegexpSelector extends BaseExtendSelector {
 
             return false;
         } catch (IOException ioe) {
-            throw new BuildException("Could not read file " + filename);
+            throw new BuildException("Could not read " + r.toLongString());
         } finally {
             if (in != null) {
                 try {
                     in.close();
                 } catch (Exception e) {
-                    throw new BuildException("Could not close file "
-                                             + filename);
+                    throw new BuildException("Could not close "
+                                             + r.toLongString());
                 }
             }
         }

@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Tar Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -18,7 +34,8 @@ defines which files, relative to the <i>basedir</i>, will be included in the
 archive. The tar task supports all the attributes of Fileset to refine the
 set of files to be included in the implicit fileset.</p>
 
-<p>In addition to the implicit fileset, the tar task supports nested filesets. These
+<p>In addition to the implicit fileset, the tar task supports nested
+      resource collections and a special form of filesets. These
 filesets are extended to allow control over the access mode, username and groupname
 to be applied to the tar entries. This is useful, for example, when preparing archives for
 Unix systems where some files need to have execute permission.</p>
@@ -110,8 +127,11 @@ or "bzip2".</p>
 </table>
 
 <h3>Nested Elements</h3>
-The tar task supports nested <a href="../CoreTypes/fileset.html">tarfileset</a> elements. These are
-extended Filesets which, in addition to the standard fileset elements, support three additional
+
+The tar task supports nested <a
+href="../CoreTypes/tarfileset.html">tarfileset</a> elements. These are
+extended <a href="../CoreTypes/fileset.html">FileSets</a> which,
+in addition to the standard elements, support one additional
 attributes
 
 <table border="1" cellpadding="2" cellspacing="0">
@@ -121,59 +141,6 @@ attributes
     <td valign="top" align="center"><b>Required</b></td>
   </tr>
   <tr>
-    <td valign="top">mode</td>
-    <td valign="top">A 3 digit octal string, specify the user, group
-    and other modes in the standard Unix fashion.  Only applies to
-    plain files.  Default is 644.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">dirmode</td>
-    <td valign="top">A 3 digit octal string, specify the user, group
-    and other modes in the standard Unix fashion.  Only applies to
-    directories.  Default is 755. <em>since Ant 1.6</em>.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">username</td>
-    <td valign="top">The username for the tar entry. This is not the same as the UID.
-                     </td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">group</td>
-    <td valign="top">The groupname for the tar entry. This is not the same as the GID.
-                     </td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">uid</td>
-    <td valign="top">The user identifier (UID) for the tar entry. This is an integer value
-      and is not the same as the username. <em>since Ant 1.6.2</em>.
-                     </td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">gid</td>
-    <td valign="top">The group identifier (GID) for the tar entry. <em>since Ant 1.6.2</em>.
-                     </td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">prefix</td>
-    <td valign="top">If the prefix attribute is set, all files in the fileset
-    are prefixed with that path in the archive.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
-    <td valign="top">fullpath</td>
-    <td valign="top">If the fullpath attribute is set, the file in the fileset
-    is written with that path in the archive. The prefix attribute, if specified, is
-    ignored. It is an error to have more than one file specified in
-    such a fileset.</td>
-    <td align="center" valign="top">No</td>
-  </tr>
-  <tr>
     <td valign="top">preserveLeadingSlashes</td>
     <td valign="top">Indicates whether leading `/'s should
     be preserved in the file names. Default is <code>false</code>.</td>
@@ -181,22 +148,30 @@ attributes
   </tr>
 </table>
 
+<h4>any other resource collection</h4>
+<p><a href="../CoreTypes/resources.html#collection">Resource
+Collection</a>s are used to select groups of files to archive.</p>
+<p>Prior to Ant 1.7 only <code>&lt;fileset&gt;</code> has been
+supported as a nested element.</p>
+
 <h3>Examples</h3>
-<pre>  &lt;tar tarfile=&quot;${dist}/manual.tar&quot; basedir=&quot;htdocs/manual&quot;/&gt;
-  &lt;gzip zipfile=&quot;${dist}/manual.tar.gz&quot; src=&quot;${dist}/manual.tar&quot;/&gt;</pre>
+<pre>
+&lt;tar tarfile=&quot;${dist}/manual.tar&quot; basedir=&quot;htdocs/manual&quot;/&gt;
+&lt;gzip zipfile=&quot;${dist}/manual.tar.gz&quot; src=&quot;${dist}/manual.tar&quot;/&gt;</pre>
 <p>tars all files in the <code>htdocs/manual</code> directory into a file called <code>manual.tar</code>
 in the <code>${dist}</code>  directory, then applies the gzip task to compress
 it.</p>
-<pre>  &lt;tar destfile=&quot;${dist}/manual.tar&quot;
-       basedir=&quot;htdocs/manual&quot;
-       excludes=&quot;mydocs/**, **/todo.html&quot;
-  /&gt;</pre>
+<pre>
+&lt;tar destfile=&quot;${dist}/manual.tar&quot;
+      basedir=&quot;htdocs/manual&quot;
+      excludes=&quot;mydocs/**, **/todo.html&quot;
+/&gt;</pre>
 <p>tars all files in the <code>htdocs/manual</code> directory into a file called <code>manual.tar</code>
 in the <code>${dist}</code> directory. Files in the directory <code>mydocs</code>,
 or files with the name <code>todo.html</code> are excluded.</p>
 
 <pre>
-&lt;tar destfile=&quot;${basedir}/docs.tar&quot;&gt;
+&lt;tar destfile=&quot;/Users/antoine/dev/asf/ant-core/docs.tar&quot;&gt;
   &lt;tarfileset dir=&quot;${dir.src}/docs&quot;
               fullpath=&quot;/usr/doc/ant/README&quot;
               preserveLeadingSlashes=&quot;true&quot;&gt;
@@ -219,18 +194,20 @@ or files with the name <code>todo.html</code> are excluded.</p>
 </p>
 
 
-<pre>&lt;tar longfile=&quot;gnu&quot;
-     destfile=&quot;${dist.base}/${dist.name}-src.tar&quot; &gt;
-  &lt;tarfileset dir=&quot;${dist.name}/..&quot; mode=&quot;755&quot; username=&quot;ant&quot; group=&quot;ant&quot;&gt;
-    &lt;include name=&quot;${dist.name}/bootstrap.sh&quot;/&gt;
-    &lt;include name=&quot;${dist.name}/build.sh&quot;/&gt;
+<pre>
+&lt;tar longfile=&quot;gnu&quot;
+     destfile=&quot;distribution/apache-ant-1.7.0-src.tar&quot; &gt;
+  &lt;tarfileset dir=&quot;apache-ant-1.7.0/..&quot; mode=&quot;755&quot; username=&quot;ant&quot; group=&quot;ant&quot;&gt;
+    &lt;include name=&quot;apache-ant-1.7.0/bootstrap.sh&quot;/&gt;
+    &lt;include name=&quot;apache-ant-1.7.0/build.sh&quot;/&gt;
   &lt;/tarfileset&gt;
-  &lt;tarfileset dir=&quot;${dist.name}/..&quot; username=&quot;ant&quot; group=&quot;ant&quot;&gt;
-    &lt;include name=&quot;${dist.name}/**&quot;/&gt;
-    &lt;exclude name=&quot;${dist.name}/bootstrap.sh&quot;/&gt;
-    &lt;exclude name=&quot;${dist.name}/build.sh&quot;/&gt;
+  &lt;tarfileset dir=&quot;apache-ant-1.7.0/..&quot; username=&quot;ant&quot; group=&quot;ant&quot;&gt;
+    &lt;include name=&quot;apache-ant-1.7.0/**&quot;/&gt;
+    &lt;exclude name=&quot;apache-ant-1.7.0/bootstrap.sh&quot;/&gt;
+    &lt;exclude name=&quot;apache-ant-1.7.0/build.sh&quot;/&gt;
   &lt;/tarfileset&gt;
-&lt;/tar&gt; </pre>
+&lt;/tar&gt;
+</pre>
 
 <p>This example shows building a tar which uses the GNU extensions for long paths and
 where some files need to be marked as executable (mode 755)
@@ -238,20 +215,36 @@ and the rest are use the default mode (read-write by owner). The first
 fileset selects just the executable files. The second fileset must exclude
 the executable files and include all others. </p>
 
+
+
 <p><strong>Note: </strong> The tar task does not ensure that a file is only selected
-by one fileset. If the same file is selected by more than one fileset, it will be included in the
+by one resource collection. If the same file is selected by more than one collection, it will be included in the
 tar file twice, with the same path.</p>
 
 <p><strong>Note:</strong> The patterns in the include and exclude
 elements are considered to be relative to the corresponding dir
 attribute as with all other filesets.  In the example above,
-<code>${dist.name}</code> is not an absolute path, but a simple name
-of a directory, so <code>${dist.name}</code> is a valid path relative
-to <code>${dist.name}/..</code>.</p>
+<code>apache-ant-1.7.0</code> is not an absolute path, but a simple name
+of a directory, so <code>apache-ant-1.7.0</code> is a valid path relative
+to <code>apache-ant-1.7.0/..</code>.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2002,2004 The Apache Software Foundation. All rights
-Reserved.</p>
+<pre>
+&lt;tar dest="release.tar.gz" compress="gzip"&gt;
+  &lt;zipfileset src="release.zip"/&gt;
+&lt;/tar&gt;
+</pre>
+
+<p>Re-packages a ZIP archive as a GZip compressed tar archive.  If
+Unix file permissions have been stored as part of the ZIP file, they
+will be retained in the resulting tar archive.</p>
+
+  <p><strong>Note:</strong>
+    Please note the tar task creates a tar file, it does not append 
+    to an existing tar file. The existing tar file is replaced instead.
+    As with most tasks in Ant, the task only takes action if the output
+    file (the tar file in this case) is older than the input files, or
+    if the output file does not exist.
+  </p>
 
 </body>
 </html>

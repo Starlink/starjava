@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -116,11 +117,11 @@ public class ReplaceRegExp extends Task {
     private File file;
     private String flags;
     private boolean byline;
-    private Vector filesets;// Keep jdk 1.1 compliant so others can use this
+    private Vector filesets; // Keep jdk 1.1 compliant so others can use this
     private RegularExpression regex;
     private Substitution subs;
 
-    private FileUtils fileUtils = FileUtils.newFileUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * Encoding to assume for the files
@@ -209,7 +210,8 @@ public class ReplaceRegExp extends Task {
      * each line, which is not easy to do when processing the file as a whole.
      * Defaults to <i>false</i>.</td>
      * @param byline the byline attribute as a string
-     * @deprecated - use setByLine(boolean)
+     * @deprecated since 1.6.x.
+     *             Use setByLine(boolean).
      */
     public void setByLine(String byline) {
         Boolean res = Boolean.valueOf(byline);
@@ -321,7 +323,7 @@ public class ReplaceRegExp extends Task {
      */
     protected void doReplace(File f, int options)
          throws IOException {
-        File temp = fileUtils.createTempFile("replace", ".txt", null);
+        File temp = FILE_UTILS.createTempFile("replace", ".txt", null);
         temp.deleteOnExit();
 
         Reader r = null;
@@ -422,7 +424,7 @@ public class ReplaceRegExp extends Task {
 
                 pw.flush();
             } else {
-                String buf = fileUtils.readFully(br);
+                String buf = FileUtils.readFully(br);
                 if (buf == null) {
                     buf = "";
                 }
@@ -445,7 +447,7 @@ public class ReplaceRegExp extends Task {
             if (changes) {
                 log("File has changed; saving the updated file", Project.MSG_VERBOSE);
                 try {
-                    fileUtils.rename(temp, f);
+                    FILE_UTILS.rename(temp, f);
                     temp = null;
                 } catch (IOException e) {
                     throw new BuildException("Couldn't rename temporary file "
@@ -455,21 +457,8 @@ public class ReplaceRegExp extends Task {
                 log("No change made", Project.MSG_DEBUG);
             }
         } finally {
-            try {
-                if (r != null) {
-                    r.close();
-                }
-            } catch (Exception e) {
-                // ignore any secondary exceptions
-            }
-
-            try {
-                if (w != null) {
-                    w.close();
-                }
-            } catch (Exception e) {
-                // ignore any secondary exceptions
-            }
+            FileUtils.close(r);
+            FileUtils.close(w);
             if (temp != null) {
                 temp.delete();
             }

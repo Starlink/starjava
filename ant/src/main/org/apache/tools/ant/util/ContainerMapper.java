@@ -1,9 +1,10 @@
 /*
- * Copyright 2004 The Apache Software Foundation.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,7 +26,7 @@ import org.apache.tools.ant.types.Mapper;
 
 /**
  * A <code>FileNameMapper</code> that contains
- * other <CODE>FileNameMapper</CODE>s.
+ * other <code>FileNameMapper</code>s.
  * @see FileNameMapper
  */
 public abstract class ContainerMapper implements FileNameMapper {
@@ -41,17 +42,30 @@ public abstract class ContainerMapper implements FileNameMapper {
     }
 
     /**
+     * An add configured version of the add method.
+     * This class used to contain an add method and an
+     * addConfiguredMapper method. Dur to ordering,
+     * the add method was always called first. This
+     * addConfigued method has been added to allow
+     * chaining to work correctly.
+     * @param fileNameMapper a <code>FileNameMapper</code>.
+     */
+    public void addConfigured(FileNameMapper fileNameMapper) {
+        add(fileNameMapper);
+    }
+
+    /**
      * Add a <code>FileNameMapper</code>.
-     * @param fileNameMapper a <CODE>FileNameMapper</CODE>.
-     * @throws <CODE>IllegalArgumentException</CODE> if attempting to add this
-     *         <CODE>ContainerMapper</CODE> to itself, or if the specified
-     *         <CODE>FileNameMapper</CODE> is itself a <CODE>ContainerMapper</CODE>
-     *         that contains this <CODE>ContainerMapper</CODE>.
+     * @param fileNameMapper a <code>FileNameMapper</code>.
+     * @throws IllegalArgumentException if attempting to add this
+     *         <code>ContainerMapper</code> to itself, or if the specified
+     *         <code>FileNameMapper</code> is itself a <code>ContainerMapper</code>
+     *         that contains this <code>ContainerMapper</code>.
      */
     public synchronized void add(FileNameMapper fileNameMapper) {
         if (this == fileNameMapper
             || (fileNameMapper instanceof ContainerMapper
-            && ((ContainerMapper)fileNameMapper).contains(this))) {
+            && ((ContainerMapper) fileNameMapper).contains(this))) {
             throw new IllegalArgumentException(
                 "Circular mapper containment condition detected");
         } else {
@@ -60,25 +74,25 @@ public abstract class ContainerMapper implements FileNameMapper {
     }
 
     /**
-     * Return <CODE>true</CODE> if this <CODE>ContainerMapper</CODE> or any of
-     * its sub-elements contains the specified <CODE>FileNameMapper</CODE>.
-     * @param fileNameMapper   the <CODE>FileNameMapper</CODE> to search for.
-     * @return <CODE>boolean</CODE>.
+     * Return <code>true</code> if this <code>ContainerMapper</code> or any of
+     * its sub-elements contains the specified <code>FileNameMapper</code>.
+     * @param fileNameMapper   the <code>FileNameMapper</code> to search for.
+     * @return <code>boolean</code>.
      */
     protected synchronized boolean contains(FileNameMapper fileNameMapper) {
         boolean foundit = false;
         for (Iterator iter = mappers.iterator(); iter.hasNext() && !foundit;) {
-            FileNameMapper next = (FileNameMapper)(iter.next());
-            foundit|= (next == fileNameMapper
+            FileNameMapper next = (FileNameMapper) (iter.next());
+            foundit |= (next == fileNameMapper
                 || (next instanceof ContainerMapper
-                && ((ContainerMapper)next).contains(fileNameMapper)));
+                && ((ContainerMapper) next).contains(fileNameMapper)));
         }
         return foundit;
     }
 
     /**
-     * Get the <CODE>List</CODE> of <CODE>FileNameMapper</CODE>s.
-     * @return <CODE>List</CODE>.
+     * Get the <code>List</code> of <code>FileNameMapper</code>s.
+     * @return <code>List</code>.
      */
     public synchronized List getMappers() {
         return Collections.unmodifiableList(mappers);
@@ -86,14 +100,18 @@ public abstract class ContainerMapper implements FileNameMapper {
 
     /**
      * Empty implementation.
+     * @param ignore ignored.
      */
     public void setFrom(String ignore) {
+        //Empty
     }
 
     /**
      * Empty implementation.
+     * @param ignore ignored.
      */
     public void setTo(String ignore) {
+        //Empty
     }
 
 }

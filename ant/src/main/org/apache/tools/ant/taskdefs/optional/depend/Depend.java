@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -31,8 +32,11 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.MatchingTask;
+import org.apache.tools.ant.taskdefs.rmic.DefaultRmicAdapter;
+import org.apache.tools.ant.taskdefs.rmic.WLRmic;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.depend.DependencyAnalyzer;
 
 /**
@@ -96,6 +100,11 @@ public class Depend extends MatchingTask {
     private boolean closure = false;
 
     /**
+     * flag to enable warning if we encounter RMI stubs
+     */
+    private boolean warnOnRmiStubs = true;
+
+    /**
      * Flag which controls whether the reversed dependencies should be
      * dumped to the log
      */
@@ -152,6 +161,16 @@ public class Depend extends MatchingTask {
      */
     public void setClasspathRef(Reference r) {
         createClasspath().setRefid(r);
+    }
+
+    /**
+     * Flag to set to true if you want dependency issues with RMI
+     * stubs to appear at warning level.
+     * @param warnOnRmiStubs if true set dependency issues to appear at warning level.
+     * @since Ant1.7
+     */
+    public void setWarnOnRmiStubs(boolean warnOnRmiStubs) {
+        this.warnOnRmiStubs = warnOnRmiStubs;
     }
 
     /**
@@ -326,10 +345,8 @@ public class Depend extends MatchingTask {
                 while (depEnum.hasMoreElements()) {
                     dependencyList.addElement(depEnum.nextElement());
                 }
-                if (dependencyList != null) {
-                    cacheDirty = true;
-                    dependencyMap.put(info.className, dependencyList);
-                }
+                cacheDirty = true;
+                dependencyMap.put(info.className, dependencyList);
             }
 
             // This class depends on each class in the dependency list. For each
@@ -378,14 +395,20 @@ public class Depend extends MatchingTask {
                             if (classURL != null) {
                                 if (classURL.getProtocol().equals("jar")) {
                                     String jarFilePath = classURL.getFile();
+                                    int classMarker = jarFilePath.indexOf('!');
+                                    jarFilePath = jarFilePath.substring(0, classMarker);
                                     if (jarFilePath.startsWith("file:")) {
-                                        int classMarker = jarFilePath.indexOf('!');
-                                        jarFilePath = jarFilePath.substring(5, classMarker);
+                                        classpathFileObject = new File(
+                                            FileUtils.getFileUtils().fromURI(jarFilePath));
+                                    } else {
+                                        throw new IOException(
+                                            "Bizarre nested path in jar: protocol: "
+                                            + jarFilePath);
                                     }
-                                    classpathFileObject = new File(jarFilePath);
                                 } else if (classURL.getProtocol().equals("file")) {
-                                    String classFilePath = classURL.getFile();
-                                    classpathFileObject = new File(classFilePath);
+                                    classpathFileObject = new File(
+                                        FileUtils.getFileUtils()
+                                        .fromURI(classURL.toExternalForm()));
                                 }
                                 log("Class " + className
                                     + " depends on " + classpathFileObject
@@ -454,14 +477,7 @@ public class Depend extends MatchingTask {
             }
 
             if (affectedClassInfo.sourceFile == null) {
-                if (!affectedClassInfo.isUserWarned) {
-                    log("The class " + affectedClass + " in file "
-                        + affectedClassInfo.absoluteFile.getPath()
-                        + " is out of date due to " + className
-                        + " but has not been deleted because its source file"
-                        + " could not be determined", Project.MSG_WARN);
-                    affectedClassInfo.isUserWarned = true;
-                }
+                warnOutOfDateButNotDeleted(affectedClassInfo, affectedClass, className);
                 continue;
             }
 
@@ -501,6 +517,54 @@ public class Depend extends MatchingTask {
             }
         }
         return count;
+    }
+
+    /**
+     * warn when a class is out of date, but not deleted as its source is unknown.
+     * MSG_WARN is the normal level, but we downgrade to MSG_VERBOSE for RMI files
+     * if {@link #warnOnRmiStubs is false}
+     * @param affectedClassInfo info about the affectd class
+     * @param affectedClass the name of the affected .class file
+     * @param className the file that is triggering the out of dateness
+     */
+    private void warnOutOfDateButNotDeleted(
+            ClassFileInfo affectedClassInfo, String affectedClass,
+            String className) {
+        if (affectedClassInfo.isUserWarned) {
+            return;
+        }
+        int level = Project.MSG_WARN;
+        if (!warnOnRmiStubs) {
+            //downgrade warnings on RMI stublike classes, as they are generated
+            //by rmic, so there is no need to tell the user that their source is
+            //missing.
+            if (isRmiStub(affectedClass, className)) {
+                level = Project.MSG_VERBOSE;
+            }
+        }
+        log("The class " + affectedClass + " in file "
+            + affectedClassInfo.absoluteFile.getPath()
+            + " is out of date due to " + className
+            + " but has not been deleted because its source file"
+            + " could not be determined", level);
+        affectedClassInfo.isUserWarned = true;
+    }
+
+    /**
+     * test for being an RMI stub
+     * @param affectedClass  class being tested
+     * @param className      possible origin of the RMI stub
+     * @return whether the class affectedClass is a RMI stub
+     */
+    private boolean isRmiStub(String affectedClass, String className) {
+        return isStub(affectedClass, className, DefaultRmicAdapter.RMI_STUB_SUFFIX)
+                || isStub(affectedClass, className, DefaultRmicAdapter.RMI_SKEL_SUFFIX)
+                || isStub(affectedClass, className, WLRmic.RMI_STUB_SUFFIX)
+                || isStub(affectedClass, className, WLRmic.RMI_SKEL_SUFFIX);
+    }
+
+    private boolean isStub(String affectedClass, String baseClass, String suffix) {
+        return (baseClass + suffix).equals(affectedClass);
     }
 
     /**
@@ -548,7 +612,7 @@ public class Depend extends MatchingTask {
     private void determineOutOfDateClasses() {
         outOfDateClasses = new Hashtable();
         for (int i = 0; i < srcPathList.length; i++) {
-            File srcDir = (File) getProject().resolveFile(srcPathList[i]);
+            File srcDir = getProject().resolveFile(srcPathList[i]);
             if (srcDir.exists()) {
                 DirectoryScanner ds = this.getDirectoryScanner(srcDir);
                 String[] files = ds.getIncludedFiles();
@@ -630,14 +694,14 @@ public class Depend extends MatchingTask {
             int count = deleteAllAffectedFiles();
 
             long duration = (System.currentTimeMillis() - start) / 1000;
-            
+
             final int summaryLogLevel;
-            if(count>0) {
+            if (count > 0) {
                 summaryLogLevel = Project.MSG_INFO;
             }  else {
                 summaryLogLevel = Project.MSG_DEBUG;
             }
-            
+
             log("Deleted " + count + " out of date files in "
                 + duration + " seconds", summaryLogLevel);
         } catch (Exception e) {
@@ -654,7 +718,7 @@ public class Depend extends MatchingTask {
      * @param files the names of the files in the source dir which are to be
      *      checked.
      */
-    protected void scanDir(File srcDir, String files[]) {
+    protected void scanDir(File srcDir, String[] files) {
 
         for (int i = 0; i < files.length; i++) {
             File srcFile = new File(srcDir, files[i]);

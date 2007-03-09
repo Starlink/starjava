@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Jar Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -43,6 +59,13 @@ note that ZIP files store file modification times with a granularity
 of two seconds.  If a file is less than two seconds newer than the
 entry in the archive, Ant will not consider it newer.</p>
 
+<p>The <code>whenmanifestonly</code> parameter controls what happens when no
+files, apart from the manifest file, or nested services, match.
+If <code>skip</code>, the JAR is not created and a warning is issued.
+If <code>fail</code>, the JAR is not created and the build is halted with an error.
+If <code>create</code>, (default) an empty JAR file (only containing a manifest and services)
+is created.</p>
+
 <p>(The Jar task is a shortcut for specifying the manifest file of a JAR file.
 The same thing can be accomplished by using the <i>fullpath</i>
 attribute of a zipfileset in a Zip task. The one difference is that if the
@@ -54,6 +77,12 @@ include an empty one for you.)</p>
 Note in particular that this may result in manifest lines greater than 72 bytes
 being wrapped and continued on the next line.
 </p>
+
+<p><b>Please note that the zip format allows multiple files of the same
+fully-qualified name to exist within a single archive.  This has been
+documented as causing various problems for unsuspecting users.  If you wish
+to avoid this behavior you must set the <code>duplicate</code> attribute
+to a value other than its default, <code>"add"</code>.</b></p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -150,8 +179,8 @@ being wrapped and continued on the next line.
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
-    <td valign="top">whenempty</td>
-    <td valign="top">behavior when no files match.  Valid values are &quot;fail&quot;, &quot;skip&quot;, and &quot;create&quot;.  Default is &quot;skip&quot;.</td>
+    <td valign="top">whenmanifestonly</td>
+    <td valign="top">behavior when no files match.  Valid values are &quot;fail&quot;, &quot;skip&quot;, and &quot;create&quot;.  Default is &quot;create&quot;.</td>
     <td valign="top" align="center">No</td>
   </tr>
   <tr>
@@ -189,6 +218,13 @@ being wrapped and continued on the next line.
     Defaults to true.  <em>Since Ant 1.6.2</em></td>
     <td align="center" valign="top">No</td>
   </tr>
+  <tr>
+    <td valign="top">level</td>
+    <td valign="top">Non-default level at which file compression should be
+    performed. Valid values range from 0 (no compression/fastest) to 9
+    (maximum compression/slowest). <em>Since Ant 1.7</em></td>
+    <td valign="top" align="center">No</td>
+  </tr>
 </table>
 
 <h3>Nested elements</h3>
@@ -210,9 +246,9 @@ If both an inline manifest and an external file are both specified, the
 manifests are merged.
 </p>
 
-<p>When using inline manifests, the Jar task will check whether the manifest 
-contents have changed (i.e. the manifest as specified is different in any way 
-from the manifest that exists in the Jar, if it exists. 
+<p>When using inline manifests, the Jar task will check whether the manifest
+contents have changed (i.e. the manifest as specified is different in any way
+from the manifest that exists in the Jar, if it exists.
 If the manifest values have changed the jar will be updated or rebuilt, as
 appropriate.
 </p>
@@ -242,7 +278,52 @@ depend on your manifest:</p>
 
 <p>This task will not create any index entries for archives that are
 empty or only contain files inside the META-INF directory.</p>
+<a name="service"><h4>service</h4></a>
 
+<p><em>since ant 1.7.0</em></p>
+
+<p>
+  The nested <code>service</code> element specifies a service.
+  Services are described by
+  <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jar/jar.html#Service%20Provider">http://java.sun.com/j2se/1.5.0/docs/guide/jar/jar.html#Service%20Provider</a>.
+  The approach is to have providers JARs include files named by the service
+  provided, for example,
+  META-INF/services/javax.script.ScriptEngineFactory
+  which can include implementation class names, one per line (usually just one per JAR).
+
+  The name of the
+  service is set by the "type" attribute. The classname implementing
+  the service is the the "provider" attribute, or it one wants to
+  specify a number of classes that implement the service, by
+  "provider" nested elements.
+</p>
+<p>
+<table border="1" cellpadding="2" cellspacing="0">
+  <tr>
+    <td valign="top"><b>Attribute</b></td>
+    <td valign="top"><b>Description</b></td>
+    <td align="center" valign="top"><b>Required</b></td>
+  </tr>
+  <tr>
+    <td valign="top">type</td>
+    <td valign="top">The name of the service.</td>
+    <td valign="top" align="center">Yes</td>
+  </tr>
+  <tr>
+    <td valign="top">provider</td>
+    <td valign="top">
+      The classname of the class implemening the service.
+    </td>
+    <td valign="top" align="center">Yes, unless there is a nested
+      <code>&lt;provider&gt;</code> element.</td>
+  </tr>
+</table>
+  <p>
+    The provider classname is specified either by the "provider" attribute, or
+    by a nested &lt;provider&gt; element, which has a single "classname" attribute.
+    If a JAR file has more that one implementation of the service, a number of
+    nested &lt;provider&gt; elements may be used.
+  </p>
 <h3>Examples</h3>
 <pre>  &lt;jar destfile=&quot;${dist}/lib/app.jar&quot; basedir=&quot;${build}/classes&quot;/&gt;</pre>
 <p>jars all files in the <code>${build}/classes</code> directory into a file
@@ -281,7 +362,7 @@ by Java).</p>
 <pre>  &lt;jar destfile=&quot;test.jar&quot; basedir=&quot;.&quot;&gt;
     &lt;include name=&quot;build&quot;/&gt;
     &lt;manifest&gt;
-      &lt;attribute name=&quot;Built-By&quot; value=&quot;${user.name}&quot;/&gt;
+      &lt;attribute name=&quot;Built-By&quot; value=&quot;antoine&quot;/&gt;
       &lt;section name=&quot;common/class1.class&quot;&gt;
         &lt;attribute name=&quot;Sealed&quot; value=&quot;false&quot;/&gt;
       &lt;/section&gt;
@@ -289,20 +370,39 @@ by Java).</p>
   &lt;/jar&gt;</pre>
 <p>
 This is an example of an inline manifest specification. Note that the Built-By
-attribute will take the value of the Ant property ${user.name}. The manifest
+attribute will take the value of the Ant property antoine. The manifest
 produced by the above would look like this:
 </p>
 <pre><code>Manifest-Version: 1.0
 Built-By: conor
-Created-By: Apache Ant 1.5alpha
+Created-By: Apache Ant 1.6.5
 
-Name: common/class1.class
+Name: common/MyClass.class
 Sealed: false</code></pre>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
 
+<p>
+  The following shows how to create a jar file specifing a service
+  with an implementation of the JDK6 scripting interface:
+</p>
+<blockquote><pre>&lt;jar jarfile="pinky.jar"&gt;
+  &lt;fileset dir="build/classes"/&gt;
+  &lt;service type="javax.script.ScriptEngineFactory"
+           provider="org.acme.PinkyLanguage"/&gt;
+&lt;/jar&gt;
+</pre></blockquote>
+<p>
+  The following shows how to create a jar file specifing a service
+  with two implementations of the JDK6 scripting interface:
+</p>
+<blockquote><pre>
+&lt;jar jarfile="pinkyandbrain.jar"&gt;
+  &lt;fileset dir="classes"/&gt;
+  &lt;service type="javax.script.ScriptEngineFactory"&gt;
+    &lt;provider classname="org.acme.PinkyLanguage"/&gt;
+    &lt;provider classname="org.acme.BrainLanguage"/&gt;
+  &lt;/service&gt;
+&lt;/jar&gt;
+</pre></blockquote>
 </body>
 </html>
-

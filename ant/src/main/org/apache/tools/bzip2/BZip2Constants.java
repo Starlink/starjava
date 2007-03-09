@@ -1,9 +1,10 @@
 /*
- * Copyright  2001,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,7 +27,10 @@ package org.apache.tools.bzip2;
 /**
  * Base class for both the compress and decompress classes.
  * Holds common arrays, and static data.
- *
+ * <p>
+ * This interface is public for historical purposes.
+ * You should have no need to use it.
+ * </p>
  */
 public interface BZip2Constants {
 
@@ -41,6 +45,13 @@ public interface BZip2Constants {
     int MAX_SELECTORS = (2 + (900000 / G_SIZE));
     int NUM_OVERSHOOT_BYTES = 20;
 
+    /**
+     * This array really shouldn't be here.
+     * Again, for historical purposes it is.
+     *
+     * <p>FIXME: This array should be in a private or package private
+     * location, since it could be modified by malicious code.</p>
+     */
     int[] rNums = {
         619, 720, 127, 481, 931, 816, 813, 233, 566, 247,
         985, 724, 205, 454, 863, 491, 741, 242, 949, 214,

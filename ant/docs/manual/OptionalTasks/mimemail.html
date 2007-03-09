@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>MimeMail Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -84,7 +100,7 @@ Activation Framework</a> are required for this task.</p>
 <h3>Examples</h3>
 <p><b>Send a single HTML file as the body of a message</b></p>
 <pre>    &lt;mimemail messageMimeType=&quot;text/html&quot; messageFile=&quot;overview-summary.html&quot;
-        tolist=&quot;you&quot; subject=&quot;JUnit Test Results: ${TODAY}&quot; from=&quot;me&quot;/&gt;</pre>
+        tolist=&quot;you&quot; subject=&quot;JUnit Test Results: December 13 2006&quot; from=&quot;me&quot;/&gt;</pre>
 <p><b>Sends all files in a directory as attachments</b></p>
 <pre>    &lt;mimemail message=&quot;See attached files&quot; tolist=&quot;you&quot; subject=&quot;Attachments&quot; from=&quot;me&quot;&gt;
         &lt;fileset dir=&quot;.&quot;&gt;
@@ -92,8 +108,7 @@ Activation Framework</a> are required for this task.</p>
         &lt;/fileset&gt;
     &lt;/mimemail&gt;
 </pre>
-<hr><p align="center">Copyright &copy; 2001-2002,2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

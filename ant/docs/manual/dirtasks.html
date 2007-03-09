@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="stylesheets/style.css">
 <title>Directory-based Tasks</title>
-<link rel="stylesheet" type="text/css" href="stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -50,6 +66,7 @@ either:</p>
     <code>&lt;includesfile&gt;</code> and <code>&lt;excludesfile&gt;</code>.
   </li>
 </ul>
+<p>
 When dealing with an external file, each line of the file
 is taken as a pattern that is added to the list of include or exclude
 patterns.</p>
@@ -66,6 +83,15 @@ the default excludes).</p>
 of files. These patterns look very much like the patterns used in DOS and
 UNIX:</p>
 <p>'*' matches zero or more characters, '?' matches one character.</p>
+
+<p>In general, patterns are considered relative paths, relative to a
+task dependent base directory (the dir attribute in the case of
+<code>&lt;fileset&gt;</code>).  Only files found below that base
+directory are considered.  So while a pattern like
+<code>../foo.java</code> is possible, it will not match anything when
+applied since the base directory's parent is never scanned for
+files.</p>
+
 <p><b>Examples:</b></p>
 <p>
 <code>*.java</code>&nbsp;&nbsp;matches&nbsp;&nbsp;<code>.java</code>,
@@ -97,7 +123,7 @@ For example:
 <code>/test/**</code> matches all files/directories under <code>/test/</code>,
 such as <code>/test/x.java</code>,
 or <code>/test/foo/bar/xyz.html</code>, but not <code>/xyz.xml</code>.</p>
-<p>There is one &quot;shorthand&quot; - if a pattern ends
+<p>There is one &quot;shorthand&quot;: if a pattern ends
 with <code>/</code>
 or <code>\</code>, then <code>**</code>
 is appended.
@@ -119,8 +145,9 @@ For example, <code>mypackage/test/</code> is interpreted as if it were
       But not:
       <pre>
       org/apache/CVS/foo/bar/Entries (<code>foo/bar/</code>
-      part does not match)</td>
+      part does not match)
       </pre>
+    </td>
   </tr>
   <tr>
     <td valign="top"><code>org/apache/jakarta/**</code></td>
@@ -177,39 +204,35 @@ information.</p>
 the rules given here. This list, a subset of those, is a list of standard ant
 tasks that can act as an implicit fileset:</p>
 <ul>
-  <li><a href="CoreTasks/checksum.html">&lt;checksum&gt;</a></li>
-  <li><a href="CoreTasks/copydir.html">&lt;copydir&gt;</a> (deprecated)</li>
-  <li><a href="CoreTasks/delete.html">&lt;delete&gt;</a></li>
-  <li><a href="CoreTasks/dependset.html">&lt;dependset&gt;</a></li>
-  <li><a href="CoreTasks/fixcrlf.html">&lt;fixcrlf&gt;</a></li>
-  <li><a href="CoreTasks/javac.html">&lt;javac&gt;</a></li>
-  <li><a href="CoreTasks/replace.html">&lt;replace&gt;</a></li>
-  <li><a href="CoreTasks/rmic.html">&lt;rmic&gt;</a></li>
-  <li><a href="CoreTasks/style.html">&lt;style&gt; (aka &lt;xslt&gt;)</a></li>
-  <li><a href="CoreTasks/tar.html">&lt;tar&gt;</a></li>
-  <li><a href="CoreTasks/zip.html">&lt;zip&gt;</a></li>
-  <li><a href="OptionalTasks/ejb.html#ddcreator">&lt;ddcreator&gt;</a></li>
-  <li><a href="OptionalTasks/ejb.html#ejbjar">&lt;ejbjar&gt;</a></li>
-  <li><a href="OptionalTasks/ejb.html#ejbc">&lt;ejbc&gt;</a></li>
-  <li><a href="OptionalTasks/cab.html">&lt;cab&gt;</a></li>
-  <li><a href="OptionalTasks/icontract.html">&lt;icontract&gt;</a></li>
-  <li><a href="OptionalTasks/native2ascii.html">&lt;native2ascii&gt;</a></li>
-  <li><a href="OptionalTasks/netrexxc.html">&lt;netrexxc&gt;</a></li>
+      <li><a href="CoreTasks/checksum.html"><code>&lt;checksum&gt;</code></a></li>
+  <li><a href="CoreTasks/copydir.html"><code>&lt;copydir&gt;</code></a> (deprecated)</li>
+  <li><a href="CoreTasks/delete.html"><code>&lt;delete&gt;</code></a></li>
+  <li><a href="CoreTasks/dependset.html"><code>&lt;dependset&gt;</code></a></li>
+  <li><a href="CoreTasks/fixcrlf.html"><code>&lt;fixcrlf&gt;</code></a></li>
+  <li><a href="CoreTasks/javac.html"><code>&lt;javac&gt;</code></a></li>
+  <li><a href="CoreTasks/replace.html"><code>&lt;replace&gt;</code></a></li>
+  <li><a href="CoreTasks/rmic.html"><code>&lt;rmic&gt;</code></a></li>
+  <li><a href="CoreTasks/style.html"><code>&lt;style&gt;</code> (aka <code>&lt;xslt&gt;</code>)</a></li>
+  <li><a href="CoreTasks/tar.html"><code>&lt;tar&gt;</code></a></li>
+  <li><a href="CoreTasks/zip.html"><code>&lt;zip&gt;</code></a></li>
+  <li><a href="OptionalTasks/ejb.html#ddcreator"><code>&lt;ddcreator&gt;</code></a></li>
+  <li><a href="OptionalTasks/ejb.html#ejbjar"><code>&lt;ejbjar&gt;</code></a></li>
+  <li><a href="OptionalTasks/ejb.html#ejbc"><code>&lt;ejbc&gt;</code></a></li>
+  <li><a href="OptionalTasks/cab.html"><code>&lt;cab&gt;</code></a></li>
+  <li><a href="OptionalTasks/native2ascii.html"><code>&lt;native2ascii&gt;</code></a></li>
+  <li><a href="OptionalTasks/netrexxc.html"><code>&lt;netrexxc&gt;</code></a></li>
   <li>
-    <a href="OptionalTasks/renameextensions.html">&lt;renameextensions&gt;</a>
+    <a href="OptionalTasks/renameextensions.html"><code>&lt;renameextensions&gt;</code></a>
   </li>
-  <li><a href="OptionalTasks/depend.html">&lt;depend&gt;</a></li>
-  <li><a href="OptionalTasks/dotnet.html">&lt;ilasm&gt;</a></li>
-  <li><a href="OptionalTasks/dotnet.html">&lt;csc&gt;</a></li>
-  <li><a href="OptionalTasks/dotnet.html">&lt;vbc&gt;</a></li>
-  <li><a href="OptionalTasks/translate.html">&lt;translate&gt;</a></li>
-  <li>
-    <a href="Integration/VAJAntTool.html#vajexport">&lt;vajexport&gt;</a>
-  </li>
-  <li>&lt;image&gt;</li>
-  <li><a href="OptionalTasks/jlink.html">&lt;jlink&gt;</a> (deprecated)</li>
-  <li><a href="OptionalTasks/jspc.html">&lt;jspc&gt;</a></li>
-  <li><a href="OptionalTasks/wljspc.html">&lt;wljspc&gt;</a></li>
+  <li><a href="OptionalTasks/depend.html"><code>&lt;depend&gt;</code></a></li>
+  <li><a href="OptionalTasks/dotnet.html"><code>&lt;ilasm&gt;</code></a></li>
+  <li><a href="OptionalTasks/dotnet.html"><code>&lt;csc&gt;</code></a></li>
+  <li><a href="OptionalTasks/dotnet.html"><code>&lt;vbc&gt;</code></a></li>
+  <li><a href="OptionalTasks/translate.html"><code>&lt;translate&gt;</code></a></li>
+  <li><a href="OptionalTasks/image.html"><code>&lt;image&gt;</code></a></li>
+  <li><a href="OptionalTasks/jlink.html"><code>&lt;jlink&gt;</code></a> (deprecated)</li>
+  <li><a href="OptionalTasks/jspc.html"><code>&lt;jspc&gt;</code></a></li>
+  <li><a href="OptionalTasks/wljspc.html"><code>&lt;wljspc&gt;</code></a></li>
 </ul>
 
 <h3><a name="examples">Examples</a></h3>
@@ -266,13 +289,11 @@ directory-based tasks. They are:</p>
 them with the <code>defaultexcludes=&quot;no&quot;</code>
 attribute.</p>
 
-<p>This is the default list, note that you can modify the list of
+<p>This is the default list; note that you can modify the list of
 default excludes by using the <a
 href="CoreTasks/defaultexcludes.html">defaultexcludes</a> task.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All
-rights Reserved.</p>
+
 
 </body>
 </html>

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,47 +28,68 @@ import org.apache.tools.ant.taskdefs.optional.extension.ExtensionResolver;
 /**
  * Resolver that just returns s specified location.
  *
- * @version $Revision: 1.6.2.4 $ $Date: 2004/03/09 17:01:46 $
  */
-public class URLResolver
-    implements ExtensionResolver {
-    private File m_destfile;
-    private File m_destdir;
-    private URL m_url;
+public class URLResolver implements ExtensionResolver {
+    private File destfile;
+    private File destdir;
+    private URL url;
 
+    /**
+     * Sets the URL
+     * @param url the url
+     */
     public void setUrl(final URL url) {
-        m_url = url;
+        this.url = url;
     }
 
+    /**
+     * Sets the destination file
+     * @param destfile the destination file
+     */
     public void setDestfile(final File destfile) {
-        m_destfile = destfile;
+        this.destfile = destfile;
     }
 
+    /**
+     * Sets the destination directory
+     * @param destdir the destination directory
+     */
     public void setDestdir(final File destdir) {
-        m_destdir = destdir;
+        this.destdir = destdir;
     }
 
+    /**
+     * Returns the file resolved from URL and directory
+     * @param extension the extention
+     * @param project the project
+     * @return file the file resolved
+     * @throws BuildException if the URL is invalid
+     */
     public File resolve(final Extension extension,
-                         final Project project)
-        throws BuildException {
+                         final Project project) throws BuildException {
         validate();
 
         final File file = getDest();
 
-        final Get get = (Get) project.createTask("get");
+        final Get get = new Get();
+        get.setProject(project);
         get.setDest(file);
-        get.setSrc(m_url);
+        get.setSrc(url);
         get.execute();
 
         return file;
     }
 
+    /*
+     * Gets the destination file
+     */
     private File getDest() {
-        if (null != m_destfile) {
-            return m_destfile;
+        File result;
+        if (null != destfile) {
+            result = destfile;
         } else {
-            final String file = m_url.getFile();
-            String filename = null;
+            final String file = url.getFile();
+            String filename;
             if (null == file || file.length() <= 1) {
                 filename = "default.file";
             } else {
@@ -77,27 +99,34 @@ public class URLResolver
                 }
                 filename = file.substring(index);
             }
-
-            return new File(m_destdir, filename);
+            result = new File(destdir, filename);
         }
+        return result;
     }
 
+    /*
+     * Validates URL
+     */
     private void validate() {
-        if (null == m_url) {
+        if (null == url) {
             final String message = "Must specify URL";
             throw new BuildException(message);
         }
 
-        if (null == m_destdir && null == m_destfile) {
+        if (null == destdir && null == destfile) {
             final String message = "Must specify destination file or directory";
             throw new BuildException(message);
-        } else if (null != m_destdir && null != m_destfile) {
+        } else if (null != destdir && null != destfile) {
             final String message = "Must not specify both destination file or directory";
             throw new BuildException(message);
         }
     }
 
+    /**
+     * Returns a string representation of the URL
+     * @return the string representation
+     */
     public String toString() {
-        return "URL[" + m_url + "]";
+        return "URL[" + url + "]";
     }
 }

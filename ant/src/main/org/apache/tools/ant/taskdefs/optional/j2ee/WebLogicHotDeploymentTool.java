@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,7 +29,6 @@ import org.apache.tools.ant.taskdefs.Java;
  *  assembled and is supplied as the "source" attribute.
  *  <p>In the end, this task assembles the commadline parameters
  *  and runs the weblogic.deploy tool in a seperate JVM.
- *
  *
  *  @see org.apache.tools.ant.taskdefs.optional.j2ee.HotDeploymentTool
  *  @see org.apache.tools.ant.taskdefs.optional.j2ee.AbstractHotDeploymentTool
@@ -59,7 +59,7 @@ public class WebLogicHotDeploymentTool extends AbstractHotDeploymentTool
      *  @exception org.apache.tools.ant.BuildException if the attributes are invalid or incomplete.
      */
     public void deploy() {
-        Java java = (Java) getTask().getProject().createTask("java");
+        Java java = new Java(getTask());
         java.setFork(true);
         java.setFailonerror(true);
         java.setClasspath(getClasspath());
@@ -84,43 +84,49 @@ public class WebLogicHotDeploymentTool extends AbstractHotDeploymentTool
         String action = getTask().getAction();
 
         // check that the password has been set
-        if ((getPassword() == null))
+        if ((getPassword() == null)) {
             throw new BuildException("The password attribute must be set.");
+        }
 
         // check for missing application on deploy & update
         if ((action.equals(ACTION_DEPLOY) || action.equals(ACTION_UPDATE))
-            && application == null)
+            && application == null) {
             throw new BuildException("The application attribute must be set "
                 + "if action = " + action);
+        }
 
         // check for missing source on deploy & update
         if ((action.equals(ACTION_DEPLOY) || action.equals(ACTION_UPDATE))
-            && getTask().getSource() == null)
+            && getTask().getSource() == null) {
             throw new BuildException("The source attribute must be set if "
                 + "action = " + action);
+        }
 
         // check for missing application on delete & undeploy
         if ((action.equals(ACTION_DELETE) || action.equals(ACTION_UNDEPLOY))
-            && application == null)
+            && application == null) {
             throw new BuildException("The application attribute must be set if "
                 + "action = " + action);
+        }
     }
 
     /**
      *  Builds the arguments to pass to weblogic.deploy according to the
      *  supplied action.
      *  @return A String containing the arguments for the weblogic.deploy tool.
+     * @throws BuildException if there is an error.
      */
     public String getArguments() throws BuildException {
         String action = getTask().getAction();
         String args = null;
 
-        if (action.equals(ACTION_DEPLOY) || action.equals(ACTION_UPDATE))
+        if (action.equals(ACTION_DEPLOY) || action.equals(ACTION_UPDATE)) {
             args = buildDeployArgs();
-        else if (action.equals(ACTION_DELETE) || action.equals(ACTION_UNDEPLOY))
+        } else if (action.equals(ACTION_DELETE) || action.equals(ACTION_UNDEPLOY)) {
             args = buildUndeployArgs();
-        else if (action.equals(ACTION_LIST))
+        } else if (action.equals(ACTION_LIST)) {
             args = buildListArgs();
+        }
 
         return args;
     }

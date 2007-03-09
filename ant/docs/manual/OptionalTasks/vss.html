@@ -1,7 +1,23 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Microsoft Visual SourceSafe(VSS) Tasks</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 <body>
 <h1>Microsoft Visual SourceSafe Tasks User Manual</h1>
@@ -18,7 +34,6 @@
     <li>Gary S. Weaver</li>
     <li>Jesse Stockall</li>
  </ul>
-<p>$Date: 2004/02/09 22:12:12 $</p>
 <hr>
 <h2>Contents</h2>
 <ul>
@@ -119,7 +134,7 @@ label only one will be used in the order version, date, label.</p>
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>ss.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
   <tr>
@@ -234,7 +249,7 @@ project.</p>
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>srssafe.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
    <tr>
@@ -245,7 +260,7 @@ project.</p>
    <tr>
       <td>version</td>
       <td>An existing file or project version to label. By default the current
-      version is labelled.</td>
+      version is labeled.</td>
       <td>No</td>
    </tr>
    <tr>
@@ -324,7 +339,7 @@ Task to perform HISTORY commands to Microsoft Visual SourceSafe.
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>srssafe.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
   <tr>
@@ -419,7 +434,7 @@ Task to perform HISTORY commands to Microsoft Visual SourceSafe.
 <blockquote>
   <pre>
 &lt;tstamp&gt;
-  &lt;format property=&quot;to.tstamp&quot; pattern=&quot;M-d-yy;h:mma&quot; /&gt;
+  &lt;format property=&quot;to.tstamp&quot; pattern=&quot;M-d-yy;h:mma&quot;/&gt;
 &lt;/tstamp&gt;
 
 &lt;vsshistory vsspath=&quot;$/myProject&quot; recursive=&quot;true&quot;
@@ -470,7 +485,7 @@ Task to perform CHECKIN commands to Microsoft Visual SourceSafe.
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>srssafe.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
   <tr>
@@ -553,7 +568,7 @@ label only one will be used in the order version, date, label.</p>
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>srssafe.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
   <tr>
@@ -650,7 +665,7 @@ Task to perform ADD commands to Microsoft Visual SourceSafe.
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>srssafe.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
   <tr>
@@ -726,7 +741,7 @@ directory (see vsscp).</p>
   </tr>
   <tr>
      <td>serverPath</td>
-     <td>directory where <code>srssafe.ini</code> resides.</td>
+     <td>directory where <code>srcsafe.ini</code> resides.</td>
      <td>No</td>
   </tr>
   <tr>
@@ -804,7 +819,5 @@ directory (see vsscp).</p>
 <hr>
 
 <!-- Footer -->
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
 </body>
 </html>

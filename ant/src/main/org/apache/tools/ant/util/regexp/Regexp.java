@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,12 +27,12 @@ import org.apache.tools.ant.BuildException;
 public interface Regexp extends RegexpMatcher {
 
     /**
-     * Replace only the first occurance of the regular expression
+     * Replace only the first occurrence of the regular expression
      */
     int REPLACE_FIRST          = 0x00000001;
 
     /**
-     * Replace all occurances of the regular expression
+     * Replace all occurrences of the regular expression
      */
     int REPLACE_ALL            = 0x00000010;
 
@@ -41,6 +42,8 @@ public interface Regexp extends RegexpMatcher {
      * @param argument The string which defines the substitution
      * @param options The list of options for the match and replace. See the
      *                MATCH_ and REPLACE_ constants above.
+     * @return the result of the operation
+     * @throws BuildException on error
      */
     String substitute(String input, String argument, int options)
         throws BuildException;

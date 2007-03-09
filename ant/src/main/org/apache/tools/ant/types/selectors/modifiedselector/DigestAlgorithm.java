@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,7 +21,6 @@ package org.apache.tools.ant.types.selectors.modifiedselector;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -51,7 +51,7 @@ import org.apache.tools.ant.BuildException;
  * </tr>
  * </table>
  *
- * @version 2003-09-13
+ * @version 2004-07-08
  * @since  Ant 1.6
  */
 public class DigestAlgorithm implements Algorithm {
@@ -132,12 +132,11 @@ public class DigestAlgorithm implements Algorithm {
 
 
     /**
-     * This algorithm doesn't need any configuration.
-     * Therefore it's always valid.
+     * This algorithm supports only MD5 and SHA.
      * @return <i>true</i> if all is ok, otherwise <i>false</i>.
      */
     public boolean isValid() {
-        return true;
+        return "SHA".equalsIgnoreCase(algorithm) || "MD5".equalsIgnoreCase(algorithm);
     }
 
 
@@ -155,7 +154,7 @@ public class DigestAlgorithm implements Algorithm {
                 return null;
             }
             FileInputStream fis = null;
-            FileOutputStream fos = null;
+
             byte[] buf = new byte[readBufferSize];
             try {
                 messageDigest.reset();

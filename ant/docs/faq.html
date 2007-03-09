@@ -75,6 +75,7 @@
       <div class="bluebar"></div>
                     
   <div class="menucontainer">
+
     <div class="menu">
       <ul>
               <li class="menuheader">Apache Ant
@@ -131,13 +132,13 @@
                                     <a href="./mail.html">Mailing Lists</a>
                                 </li>
                             <li>
-                                    <a href="./cvs.html">CVS Repositories</a>
+                                    <a href="./svn.html">Subversion Repositories</a>
                                 </li>
                             <li>
-                                    <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=Ant">Bug Database</a>
+                                    <a href="./nightlies.html">Nightly Builds</a>
                                 </li>
                             <li>
-                                    <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=Ant&amp;bug_severity=Enhancement">Enhancement Requests</a>
+                                    <a href="./bugs.html">Bug Database</a>
                                 </li>
                             <li>
                                     <a href="http://www.apache.org/foundation/contributing.html">Donations</a>
@@ -203,6 +204,10 @@
   I get checksum errors when I try to extract the
       <code>tar.gz</code> distribution file. Why?
       </a></li>
+                <li><a href="#RedHat_ES_3">
+  How do you get ant-1.6.x (or any version later than
+      1.5.2) to work on on RedHat ES 3?
+      </a></li>
             </ul>
                 <h4 class="toc">How do I ...</h4>
         <ul>
@@ -211,7 +216,10 @@
       </a></li>
                 <li><a href="#adding-external-tasks">
   How do I add an external task that I've written to the
-      page "External Tools and Task"?
+      page "External Tools and Tasks"?
+      </a></li>
+                <li><a href="#create-extensions">
+  How do I create new tasks?
       </a></li>
                 <li><a href="#passing-cli-args">
   How do I pass parameters from the command line to my
@@ -250,6 +258,9 @@
             </ul>
                 <h4 class="toc">It doesn't work (as expected)</h4>
         <ul>
+                <li><a href="#genral-advice">
+  General Advice
+      </a></li>
                 <li><a href="#always-recompiles">
   Why does Ant always recompile all my Java files?
       </a></li>
@@ -282,6 +293,24 @@
   Ant creates WAR files with a lower-case
         <code>web-inf</code> or JAR files with a lower-case
         <code>meta-inf</code> directory.
+      </a></li>
+                <li><a href="#NoClassDefFoundError">
+  I installed Ant 1.6.x and now get
+        <code>Exception in thread "main" java.lang.NoClassDefFoundError:
+        </code>
+      
+      </a></li>
+                <li><a href="#InstantiationException">
+  I installed Ant 1.6.x and now get
+        <code>java.lang.InstantiationException: org.apache.tools.ant.Main</code>
+      
+      </a></li>
+                <li><a href="#mangled-manifest">
+  
+        Whenever I use the Ant jar or manifest related tasks, long lines in
+        my manifest are wrapped at 70 characters and the resulting jar does
+        not work in my application server. Why does Ant do this?
+      
       </a></li>
             </ul>
                 <h4 class="toc">Ant and IDEs/Editors</h4>
@@ -324,6 +353,14 @@
                 <li><a href="#delegating-classloader">
   &lt;style&gt; or &lt;junit&gt; ignores my
       &lt;classpath&gt;
+      </a></li>
+                <li><a href="#delegating-classloader-1.5">
+  &lt;style&gt; or &lt;junit&gt; ignores my
+      &lt;classpath&gt; - Ant 1.5.x version
+      </a></li>
+                <li><a href="#delegating-classloader-1.6">
+  &lt;style&gt; or &lt;junit&gt; ignores my
+      &lt;classpath&gt; - Ant 1.6.x version
       </a></li>
                 <li><a href="#winxp-jdk14-ant14">
   When running Ant 1.4 on Windows XP and JDK 1.4, I get
@@ -378,7 +415,7 @@
       How can I contribute to this FAQ?
     </p>
                   <p>The page you are looking it is generated from
-          <a href="http://cvs.apache.org/viewcvs.cgi/~checkout~/ant/xdocs/faq.xml">this</a>
+          <a href="http://svn.apache.org/repos/asf/ant/core/trunk/xdocs/faq.xml">this</a>
           document.  If you want to add a new question, please submit
           a patch against this document to one of Ant's mailing lists;
           hopefully, the structure is self-explanatory.</p>
@@ -395,9 +432,9 @@
         to render the HTML version from the original XML file.</p>
                         <p>The Velocity stylesheets used to process the XML files can
         be found in the <code>xdocs/stylesheets</code> subdirectory of
-        Ant's CVS repository - the build file
-        <code>docs.xml</code> at the top level of the ant CVS
-        module is used to drive Anakia.</p>
+        Ant's SVN repository - the build file
+        <code>docs.xml</code> at the top level of the ant SVN
+        module (trunk) is used to drive Anakia.</p>
                         <p>This file assumes that you have the
         <code>jakarta-site2</code> CVS module checked out as well, but
         if you follow the instruction from Anakia's homepage, you
@@ -587,7 +624,47 @@
           16 July 2004
       </td>
       </tr>
-        </table>
+                  <tr>
+                      <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          1.6.3
+      </td>
+                          <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          28 April 2005
+      </td>
+      </tr>
+                  <tr>
+                      <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          1.6.4
+      </td>
+                          <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          19 May 2005
+      </td>
+      </tr>
+                  <tr>
+                      <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          1.6.5
+      </td>
+                          <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          2 June 2005
+      </td>
+      </tr>
+                  <tr>
+                      <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          1.7.0
+      </td>
+                          <td colspan="1" rowspan="1"
+      valign="top" align="left">
+          19 December 2006
+      </td>
+      </tr>
+          </table>
                                 <p class="faq">
       <a name="no-gnu-tar"></a>
       I get checksum errors when I try to extract the
@@ -607,6 +684,27 @@
         found <a href="http://www.gnu.org/software/tar/tar.html">here</a>,
         or use the zip archive instead (you can extract it using
         <code>jar xf</code>).</p>
+                    <p class="faq">
+      <a name="RedHat_ES_3"></a>
+      How do you get ant-1.6.x (or any version later than
+      1.5.2) to work on on RedHat ES 3?
+    </p>
+                  <p>Redhat ES 3.0 comes installed with ant 1.5.2. Even if you
+        have your PATH and ANT_HOME variables set correctly to a later
+        version of ant, you will always be forced to use the
+        preinstalled version.</p>
+                        <p>To use a later version of ant on this OS you could do the
+        following:</p>
+                        <pre class="code">
+$ ant -version
+Apache Ant version 1.5.2-23 compiled on November 12 2003
+$ su -
+# rpm -e ant ant-libs
+# exit
+$ hash -r
+$ ant -version
+Apache Ant version 1.6.2 compiled on July 16 2004
+</pre>
                                 <p class="faq">
       <a name="implement-os-specific-configuration"></a>
       How do I realize os--specific configurations?
@@ -615,16 +713,16 @@
         os-name. Then simply use the build-in property <tt>os.name</tt>.</p>
                         <p>For better use you should also provide a file with defaul values.
         But be careful with the correct os-names. For test simply &lt;echo&gt;
-        the ${os.name} on all machines and you can be sure to use the right
+        the Mac OS X on all machines and you can be sure to use the right
         file names.</p>
                         <pre class="code">
-          &lt;property file=&quot;${os.name}.properties&quot;/&gt;
+          &lt;property file=&quot;Mac OS X.properties&quot;/&gt;
           &lt;property file=&quot;default.properties&quot;/&gt;
 </pre>
                     <p class="faq">
       <a name="adding-external-tasks"></a>
       How do I add an external task that I've written to the
-      page "External Tools and Task"?
+      page "External Tools and Tasks"?
     </p>
                   <p>Join and post a message to the dev or user mailing
         list (one list is enough), including the following
@@ -644,12 +742,24 @@
           <li>a License: entry containing the type of license for the
           tool/task</li>
         </ul>
-                        <p>The preferred format for this information is a patch to <a href="http://cvs.apache.org/viewcvs.cgi/~checkout~/ant/xdocs/external.xml">this</a>
+                        <p>The preferred format for this information is a patch to <a href="http://svn.apache.org/repos/asf/ant/core/trunk/xdocs/external.xml">this</a>
         document.</p>
                         <p>If you have written something bigger than a 'simple plugin' to Ant it
         may be better to add the link to <a href="projects.html">projects.html</a>.
-        The procedure to add it is the same. The file to patch is <a href="http://cvs.apache.org/viewcvs.cgi/~checkout~/ant/xdocs/projects.xml">this</a>
+        The procedure to add it is the same. The file to patch is <a href="http://svn.apache.org/repos/asf/ant/core/trunk/xdocs/projects.xml">this</a>
         document. The syntax of that file is the same.</p>
+                    <p class="faq">
+      <a name="create-extensions"></a>
+      How do I create new tasks?
+    </p>
+                  <p>Apart from a lot of information on using Ant, the
+        <a href="manual/index.html">Manual</a> also contains information
+        on how to extend Ant with new tasks. This information
+        can be found under "Developing with Ant".</p>
+                        <p>Chances are that someone else already created the task you
+        want to create, it may be wise to see
+        <a href="external.html">External Tools and Tasks</a> and
+        <a href="projects.html">Related Projects</a> first.</p>
                     <p class="faq">
       <a name="passing-cli-args"></a>
       How do I pass parameters from the command line to my
@@ -742,7 +852,7 @@
           true == not set
       </td>
       </tr>
-        </table>
+          </table>
                         <p>With Ant &gt;= 1.5, you can also use nested
           <code>&lt;compilerarg&gt;</code> elements with the
           <code>&lt;javac&gt;</code> task.</p>
@@ -847,7 +957,7 @@ shell-prompt&gt; m4 foo.m4 &gt; foo
 </pre>
                         <p>Note: <code>&lt;antcall&gt;</code> tasks do <em>not</em> pass
         property changes back up to the environment they were called
-        from, so you would'nt be able to, for example, set a
+        from, so you wouldn't be able to, for example, set a
         <code>result</code> property in the <code>cond-if-3</code> target,
         then do
         <code>&lt;echo message="result is ${result}"/&gt;</code>
@@ -861,12 +971,12 @@ shell-prompt&gt; m4 foo.m4 &gt; foo
   &lt;condition property=&quot;cond-is-true&quot;&gt;
     &lt;and&gt;
       &lt;not&gt;
-        &lt;equals arg1=&quot;${prop1}&quot; arg2=&quot;$${prop1}&quot; /&gt;
+        &lt;equals arg1=&quot;${prop1}&quot; arg2=&quot;${prop1}&quot; /&gt;
       &lt;/not&gt;
       &lt;not&gt;
-        &lt;equals arg1=&quot;${prop2}&quot; arg2=&quot;$${prop2}&quot; /&gt;
+        &lt;equals arg1=&quot;${prop2}&quot; arg2=&quot;${prop2}&quot; /&gt;
       &lt;/not&gt;
-      &lt;equals arg1=&quot;${prop3}&quot; arg2=&quot;$${prop3}&quot; /&gt;
+      &lt;equals arg1=&quot;${prop3}&quot; arg2=&quot;${prop3}&quot; /&gt;
     &lt;/and&gt;
   &lt;/condition&gt;
 &lt;/target&gt;
@@ -941,7 +1051,7 @@ shell-prompt&gt; m4 foo.m4 &gt; foo
         MANIFEST you can simply use <code>&lt;zip&gt;</code>.</p>
                         <p>If your file names contain national characters you should
         know that Sun's <code>jar</code> utility like Ant's
-        <code>&lt;jar&gt;</code> uses UFT8 to encode their names while
+        <code>&lt;jar&gt;</code> uses UTF-8 to encode their names while
         <code>&lt;zip&gt;</code> uses your platforms default encoding.
         Use the encoding attribute of <code>&lt;zip&gt;</code> if
         necessary.</p>
@@ -972,6 +1082,13 @@ shell-prompt&gt; m4 foo.m4 &gt; foo
 &lt;/macrodef&gt;
 </pre>
                                 <p class="faq">
+      <a name="genral-advice"></a>
+      General Advice
+    </p>
+                  <p>There are many reasons why Ant doesn't behave as
+        expected, not all of them are due to Ant bugs.  See our <a href="problems.html">Having Problems?</a> page for hints that
+        may help pinning down the reasons for your problem.</p>
+                    <p class="faq">
       <a name="always-recompiles"></a>
       Why does Ant always recompile all my Java files?
     </p>
@@ -1079,7 +1196,7 @@ shell-prompt&gt; m4 foo.m4 &gt; foo
       <code>pathelement</code> or <code>classpath refid</code>.
     </p>
                   <p>When <code>ant</code> loads properties from an external
-        file it dosn't touch the value of properties, trailing blanks
+        file it doesn't touch the value of properties, trailing blanks
         will not be trimmed for example.</p>
                         <p>If the value represents a file path, like a jar needed to
         compile, the task which requires the value, javac for example
@@ -1103,6 +1220,82 @@ shell-prompt&gt; m4 foo.m4 &gt; foo
         configuration.  In the Options/Configuration menu, in the View tab, General
         section, check the "Allow all upper case files names" box.  The META-INF and
         WEB-INF will look correct.</p>
+                    <p class="faq">
+      <a name="NoClassDefFoundError"></a>
+      I installed Ant 1.6.x and now get
+        <code>Exception in thread "main" java.lang.NoClassDefFoundError:
+        </code>
+      
+    </p>
+                  <p>
+          The cause of this is that there is an old version of ant somewhere in the
+          class path or configuration.
+        </p>
+                        <p>
+          A version of this problem happens with jars that are in the classpath
+          that include an embedded copy of ant classes.
+          An example of this is some copies of weblogic.jar.
+        </p>
+                        <p>
+        One can check if this is the case by doing (on unix/sh):
+        <code><pre>
+        unset CLASSPATH
+        ant -version
+        </pre>
+        </code>
+        </p>
+                    <p class="faq">
+      <a name="InstantiationException"></a>
+      I installed Ant 1.6.x and now get
+        <code>java.lang.InstantiationException: org.apache.tools.ant.Main</code>
+      
+    </p>
+                  <p>
+          The cause of this is that there is an old version of ant somewhere in the
+          class path or configuration.
+        </p>
+                        <p>
+          A version of this problem may be seen on some linux systems.
+          Some linux systems (Fedora Core 2 for example), comes with a version
+          of ant pre-installed. There is a configuration file called
+          <code>/etc/ant.conf</code> which if present, the ant shell
+          script will 'dot' include. On Fedora Core 2, the /etc/ant.conf
+          file resets the <code>ANT_HOME</code> environment variable to
+          <code>/usr/share/ant</code>. This causes the problem that
+          an old version of ant (1.5.x in this cause) will be used
+          with a new version of the ant script file.
+        </p>
+                        <p>
+          One can check if this is the case by doing
+          <code>ant --noconfig -version</code>.
+        </p>
+                    <p class="faq">
+      <a name="mangled-manifest"></a>
+      
+        Whenever I use the Ant jar or manifest related tasks, long lines in
+        my manifest are wrapped at 70 characters and the resulting jar does
+        not work in my application server. Why does Ant do this?
+      
+    </p>
+                  <p>
+          Ant implements the Java
+          <a href="http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html">Jar
+          file specification</a>. Please refer to the notes section where it
+          discusses the maximum allowable length of a line and the concept of
+          continuation characters.
+        </p>
+                        <p>
+          If a jar file produced by Ant does not work in your appserver, and
+          that failure is due to the wrapped manifest, then you need
+          to consult your appserver provider, as it is a bug in their
+          appserver. Far more likely, however, is a problem in your
+          specification of your classpath. It is not Ant's wrapping of your
+          classpath that is the problem.
+        </p>
+                        <p>
+          Do not raise a bug about this issue until you have checked to ensure
+          that the problem is not due to your classpath specification.
+        </p>
                                 <p class="faq">
       <a name="integration"></a>
       Is Ant supported by my IDE/Editor?
@@ -1205,7 +1398,7 @@ while(&lt;STDIN&gt;) {
 &lt;?xml version=&quot;1.0&quot;?&gt;
 
 &lt;!DOCTYPE project [
-    &lt;!ENTITY common SYSTEM &quot;file:./common.xml&quot;&gt;
+       &lt;!ENTITY common SYSTEM &quot;common.xml&quot;&gt;
 ]&gt;
 
 &lt;project name=&quot;test&quot; default=&quot;test&quot; basedir=&quot;.&quot;&gt;
@@ -1222,10 +1415,13 @@ while(&lt;STDIN&gt;) {
 </pre>
                         <p>will literally include the contents of <code>common.xml</code> where
         you've placed the <code>&amp;common;</code> entity.</p>
+                        <p>(The filename <code>common.xml</code> in this example is resolved
+        relative to the containing XML file by the XML parser. You may also use
+        an absolute <code>file:</code> protocol URI.)</p>
                         <p>In combination with a DTD, this would look like this:</p>
                         <pre class="code">
-&lt;!DOCTYPE project PUBLIC &quot;-//ANT//DTD project//EN&quot; &quot;file:./ant.dtd&quot; [
-   &lt;!ENTITY include SYSTEM &quot;file:./header.xml&quot;&gt;
+&lt;!DOCTYPE project PUBLIC &quot;-//ANT//DTD project//EN&quot; &quot;ant.dtd&quot; [
+   &lt;!ENTITY include SYSTEM &quot;header.xml&quot;&gt;
 ]&gt;
 </pre>
                         <p>Starting with Ant 1.6, there is a new
@@ -1260,7 +1456,7 @@ while(&lt;STDIN&gt;) {
                         <pre class="code">
          ant -logger org.apache.tools.ant.listener.MailLogger
 </pre>
-                        <p>See the <a href="http://cvs.apache.org/viewcvs/~checkout~/ant/docs/manual/listeners.html?content-type=text/html">Listeners
+                        <p>See the <a href="http://svn.apache.org/repos/asf/ant/core/trunk/docs/manual/listeners.html">Listeners
         &amp; Loggers</a> documentation for details on the properties
         required.</p>
                         <p>For older versions of Ant, you can use a custom
@@ -1453,38 +1649,35 @@ mv /tmp/foo $ANT_HOME/bin/antRun
       &lt;style&gt; or &lt;junit&gt; ignores my
       &lt;classpath&gt;
     </p>
-                  <p>These tasks don't ignore your classpath setting, you
+                  <p>Starting with Ant 1.7.0, &lt;junit&gt; will honor your
+        nested &lt;classpath&gt;.</p>
+                        <p>These tasks don't ignore your classpath setting, you
         are facing a common problem with delegating classloaders.</p>
-                        <p>First of all let's state that Ant adds all
-        <code>.jar</code> files from <code>ANT_HOME/lib</code> to
-        <code>CLASSPATH</code>, therefore "in
-        <code>CLASSPATH</code>" shall mean "either in your
-        <code>CLASSPATH</code> environment variable or
-        <code>ANT_HOME/lib</code>" for the rest of this
-        answer.</p>
-                        <p>Technically the sentence above isn't true for Ant 1.6
-        and later anymore, but the result is the same.  For the sake
-        of this discussion, <code>CLASSPATH</code> and
-        <code>ANT_HOME/lib</code> are identical.</p>
                         <p>This question collects a common type of problem: A task
         needs an external library and it has a nested classpath
         element so that you can point it to this external library, but
-        that doesn't work unless you put the external library into the
-        <code>CLASSPATH</code>.</p>
-                        <p>The root of the problem is that the class that needs the
-        external library is on the <code>CLASSPATH</code>.</p>
+        that doesn't work unless you put the external library
+        into the <code>CLASSPATH</code> or place it in
+        <code>ANT_HOME/lib</code>.</p>
+                        <p>Some background is necessary before we can discuss
+        solutions for <a href="#delegating-classloader-1.5">Ant
+        1.5.x</a> and <a href="#delegating-classloader-1.6">Ant
+        1.6.x</a>.</p>
                         <p>When you specify a nested <code>&lt;classpath&gt;</code> in
         Ant, Ant creates a new class loader that uses the path you
         have specified.  It then tries to load additional classes from
         this classloader.</p>
-                        <p>In most cases - for example the two cases above - Ant
-        doesn't load the external library directly, it is the loaded
-        class that does so.</p>
+                        <p>In most cases - for example using &lt;style&gt; or
+        &lt;junit&gt; - Ant doesn't load the external library
+        directly, it is the loaded class that does so.</p>
                         <p>In the case of <code>&lt;junit&gt;</code> it is the task
         implementation itself and in the case of
         <code>&lt;style&gt;</code> it is the implementation of the
         <code>org.apache.tools.ant.taskdefs.XSLTLiaison</code>
         class.</p>
+                        <p><em>As of Ant 1.7</em> <code>&lt;junit&gt;</code> no longer
+        requires you to have <code>junit.jar</code> in Ant's startup
+        classpath even if <code>ant-junit.jar</code> is present there.</p>
                         <p>Ant's class loader implementation uses Java's
         delegation model, see <a href="http://java.sun.com/products/jdk/1.2/docs/api/java/lang/ClassLoader.html">http://java.sun.com/products/jdk/1.2/docs/api/java/lang/ClassLoader.html</a>
         the paragraph</p>
@@ -1499,16 +1692,37 @@ mv /tmp/foo $ANT_HOME/bin/antRun
         class loader, does not itself have a parent but may serve as
         the parent of a <code>ClassLoader</code>
         instance.</blockquote>
-                        <p>This means, Ant's class loader will consult the
+                        <p>The possible solutions depend on the version of Ant you
+        use, see the next sections.</p>
+                    <p class="faq">
+      <a name="delegating-classloader-1.5"></a>
+      &lt;style&gt; or &lt;junit&gt; ignores my
+      &lt;classpath&gt; - Ant 1.5.x version
+    </p>
+                  <p>Please read <a href="#delegating-classloader">the previous
+        entry</a> before you go ahead.</p>
+                        <p>First of all let's state that Ant's wrapper script
+        (<code>ant</code> or <code>ant.bat</code>) adds all
+        <code>.jar</code> files from <code>ANT_HOME/lib</code> to
+        <code>CLASSPATH</code>, therefore "in
+        <code>CLASSPATH</code>" shall mean "either in your
+        <code>CLASSPATH</code> environment variable or
+        <code>ANT_HOME/lib</code>" for the rest of this
+        answer.</p>
+                        <p>The root of the problem is that the class that needs the
+        external library is on the <code>CLASSPATH</code>.</p>
+                        <p>Let's see what happens when you load the &lt;junit&gt;
+        task.  Ant's class loader will consult the
         bootstrap class loader first, which tries to load classes from
         <code>CLASSPATH</code>.  The bootstrap class loader
         doesn't know anything about Ant's class loader or
         even the path you have specified.</p>
                         <p>If the bootstrap class loader can load the class Ant has
-        asked it to load, this class will try to load the external
-        library from <code>CLASSPATH</code> as well - it doesn't
-        know anything else - and will not find it unless the library
-        is in <code>CLASSPATH</code> as well.</p>
+        asked it to load (which it can if <code>optional.jar</code> is
+        part of <code>CLASSPATH</code>), this class will try to load
+        the external library from <code>CLASSPATH</code> as well - it
+        doesn't know anything else - and will not find it unless
+        the library is in <code>CLASSPATH</code> as well.</p>
                         <p>To solve this, you have two major options:</p>
                         <ol>
           <li>put all external libraries you need in
@@ -1518,8 +1732,6 @@ mv /tmp/foo $ANT_HOME/bin/antRun
           <li>remove the class that loads the external library from
           the <code>CLASSPATH</code>.</li>
         </ol>
-                        <p><strong>Using The Second Option with Ant 1.5.4 and
-        Earlier:</strong></p>
                         <p>The easiest way to do this is to remove
         <code>optional.jar</code> from <code>ANT_HOME/lib</code>.  If
         you do so, you will have to <code>&lt;taskdef&gt;</code> all
@@ -1546,22 +1758,98 @@ mv /tmp/foo $ANT_HOME/bin/antRun
         directory, in the <code>&lt;style&gt;</code> case it is one of
         the <code>*Liaison</code> classes in
         <code>org/apache/tools/ant/taskdefs/optional</code>.</p>
-                        <p><strong>Using The Second Option with Ant 1.6 and
-        later:</strong></p>
-                        <p>In Ant 1.6 <code>optional.jar</code> has been split into
-        multiple jars, each one containing classes with the same
-        dependencies on external libraries.  You can move the
-        "offending" jar out of ANT_HOME/lib.  For the
-        <code>&lt;junit&gt;</code> task it would be
-        <code>ant-junit.jar</code> and for <code>&lt;style&gt;</code>
-        it would be <code>ant-trax.jar</code>,
-        <code>ant-xalan1.jar</code> or <code>ant-xslp.jar</code> -
-        depending on the processor you use.</p>
                         <p>If you use the option to break up <code>optional.jar</code>
         for <code>&lt;junit&gt;</code> or remove
         <code>ant-junit.jar</code>, you still have to use a
         <code>&lt;taskdef&gt;</code> with a nested
         <code>&lt;classpath&gt;</code> to define the junit task.</p>
+                    <p class="faq">
+      <a name="delegating-classloader-1.6"></a>
+      &lt;style&gt; or &lt;junit&gt; ignores my
+      &lt;classpath&gt; - Ant 1.6.x version
+    </p>
+                  <p>Please read <a href="#delegating-classloader">the general
+        entry</a> before you go ahead.</p>
+                        <p>The wrapper script of Ant 1.6.x no longer adds the contents
+        of <code>ANT_HOME/lib</code> to <code>CLASSPATH</code>,
+        instead Ant will create a classloader on top of the bootstrap
+        classloader - let's call it the coreloader for the rest of
+        this answer - which holds the contents of
+        <code>ANT_HOME/lib</code>.  Ant's core and its tasks will be
+        loaded through this classloader and not the bootstrap
+        classloader.</p>
+                        <p>This causes some small but notable differences between Ant
+        1.5.x and 1.6.x.  Most importantly, a third-party task that is
+        part of <code>CLASSPATH</code> will no longer work in Ant
+        1.6.x since the task now can't find Ant's classes.  In a sense
+        this is the same problem this entry is about, only
+        <code>ant.jar</code> has become the external library in
+        question now.</p>
+                        <p>This coreloader also holds the contents of
+        <code>~/.ant/lib</code> and any file or directory that has
+        been specified using Ant's <code>-lib</code> command line
+        argument.</p>
+                        <p>Let's see what happens when you load the &lt;junit&gt;
+        task.  Ant's class loader will consult the bootstrap
+        class loader first, which tries to load classes from
+        <code>CLASSPATH</code>.  The bootstrap class loader
+        doesn't know anything about Ant's class loader or
+        even the path you have specified.  If it fails to find the
+        class using the bootstrap classloader it will try the
+        coreloader next.  Again, the coreloader doesn't know anything
+        about your path.</p>
+                        <p>If the coreloader can load the class Ant has asked it to
+        load (which it can if <code>ant-junit.jar</code> is in
+        <code>ANT_HOME/lib</code>), this class will try to load the
+        external library from coreloader as well - it doesn't
+        know anything else - and will not find it unless the library
+        is in <code>CLASSPATH</code> or the coreloader as well.</p>
+                        <p>To solve this, you have the following major options:</p>
+                        <ol>
+          <li>put all external libraries you need in
+          <code>CLASSPATH</code> as well this is not what you want,
+          otherwise you wouldn't have found this FAQ entry.</li>
+
+          <li>put all external libraries you need in
+          <code>ANT_HOME/lib</code> or <code>.ant/lib</code>.  This
+          probably still isn't what you want, but you might reconsider
+          the <code>.ant/lib</code> option.</li>
+
+          <li>Always start Ant with the <code>-lib</code> command line
+          switch and point to your external libraries (or the
+          directories holding them).</li>
+
+          <li>remove the class that loads the external library from
+          the coreloader.</li>
+        </ol>
+                        <p>In Ant 1.6 <code>optional.jar</code> has been split into
+        multiple jars, each one containing classes with the same
+        dependencies on external libraries.  You can move the
+        "offending" jar out of <code>ANT_HOME/lib</code>.  For the
+        <code>&lt;junit&gt;</code> task it would be
+        <code>ant-junit.jar</code> and for <code>&lt;style&gt;</code>
+        it would be <code>ant-trax.jar</code>
+        or <code>ant-xslp.jar</code> - 
+        depending on the processor you use.</p>
+                        <p>If you do so, you will have to <code>&lt;taskdef&gt;</code>
+        all optional tasks that need the external library and use
+        nested <code>&lt;classpath&gt;</code> elements in the
+        <code>&lt;taskdef&gt;</code> tasks that point to the new
+        location of <code>ant-*.jar</code>.  Also, don't forget
+        to add the new location of <code>ant-*.jar</code> to the
+        <code>&lt;classpath&gt;</code> of your
+        <code>&lt;style&gt;</code> or <code>&lt;junit&gt;</code>
+        task.</p>
+                        <p>For example</p>
+                        <pre class="code">
+    &lt;taskdef name=&quot;junit&quot;
+            class=&quot;org.apache.tools.ant.taskdefs.optional.junit.JUnitTask&quot;&gt;
+      &lt;classpath&gt;
+        &lt;pathelement location=&quot;HOME-OF/junit.jar&quot;/&gt;
+        &lt;pathelement location=&quot;NEW-HOME-OF/ant-junit.jar&quot;/&gt;
+      &lt;/classpath&gt;
+    &lt;/taskdef&gt;
+</pre>
                     <p class="faq">
       <a name="winxp-jdk14-ant14"></a>
       When running Ant 1.4 on Windows XP and JDK 1.4, I get
@@ -1687,7 +1975,7 @@ mv /tmp/foo $ANT_HOME/bin/antRun
         up a different XML parser for your tests, the easiest solution
         is to add</p>
                         <pre class="code">
-&lt;pathelement path=&quot;${ant.home}/lib/xml-apis.jar:${ant.home}/lib/xercesImpl.jar&quot;/&gt;
+&lt;pathelement path=&quot;/Users/antoine/dev/asf/ant-core/bootstrap/lib/xml-apis.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/xercesImpl.jar&quot;/&gt;
 </pre>
                         <p>to your task's &lt;classpath&gt;.</p>
                     <p class="faq">
@@ -1700,16 +1988,15 @@ mv /tmp/foo $ANT_HOME/bin/antRun
                   <p>While JDK 1.4.x contains a version of Xalan-J 2, JDK 1.5
         (and later?) have <a href="http://java.sun.com/j2se/1.5.0/compatibility.html#4959783">moved
         to XSLTC</a>.  Since this task uses Xalan's redirect
-        extensions for its internal stylesheet, Ant doesn't support
-        XSLTC yet.  This means that you have to install <a href="http://xml.apache.org/xalan-j/">Xalan-J 2</a> in order
-        to use this task with JDK 1.5.</p>
+        extensions for its internal stylesheet, Ant prior to 1.6.2 didn't support
+        XSLTC.  This means that you have to install <a href="http://xml.apache.org/xalan-j/">Xalan-J 2</a> in order
+        to use this task with JDK 1.5 in older versions of Ant.</p>
                         <p>Starting with Ant 1.6.2 <code>&lt;junitreport&gt;</code>
-        will support JDK 1.5.</p>
+        supports JDK 1.5.</p>
                     </div>
   </div>
 
         <p class="copyright">
-        Copyright &copy; 2000-2004&nbsp;The Apache Software Foundation. All rights reserved.
         <script type="text/javascript" language="JavaScript"><!--
                 document.write(" - "+"Last Published: " + document.lastModified);
               //  -->
@@ -1717,6 +2004,7 @@ mv /tmp/foo $ANT_HOME/bin/antRun
       </p>
     </body>
   </html>
+
 
 
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -30,11 +31,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 
 /**
@@ -128,6 +131,10 @@ public class PropertyFile extends Task {
     * Methods
     */
 
+    /**
+     * Execute the task.
+     * @throws BuildException on error.
+     */
     public void execute() throws BuildException {
         checkParameters();
         readFile();
@@ -135,6 +142,10 @@ public class PropertyFile extends Task {
         writeFile();
     }
 
+    /**
+     * The entry nested element.
+     * @return an entry nested element to be configured.
+     */
     public Entry createEntry() {
         Entry e = new Entry();
         entries.addElement(e);
@@ -191,6 +202,7 @@ public class PropertyFile extends Task {
 
     /**
      * Location of the property file to be edited; required.
+     * @param file the property file.
      */
     public void setFile(File file) {
         propertyfile = file;
@@ -198,6 +210,7 @@ public class PropertyFile extends Task {
 
     /**
      * optional header comment for the file
+     * @param hdr the string to use for the comment.
      */
     public void setComment(String hdr) {
         comment = hdr;
@@ -211,13 +224,7 @@ public class PropertyFile extends Task {
         } catch (IOException ioe) {
             throw new BuildException(ioe, getLocation());
         } finally {
-            if (bos != null) {
-                try {
-                    bos.close();
-                } catch (IOException ioex) {
-                    // ignore
-                }
-            }
+            FileUtils.close(bos);
         }
     }
 
@@ -245,6 +252,7 @@ public class PropertyFile extends Task {
 
         /**
          * Name of the property name/value pair
+         * @param value the key.
          */
         public void setKey(String value) {
             this.key = value;
@@ -252,6 +260,7 @@ public class PropertyFile extends Task {
 
         /**
          * Value to set (=), to add (+) or subtract (-)
+         * @param value the value.
          */
         public void setValue(String value) {
             this.value = value;
@@ -261,6 +270,7 @@ public class PropertyFile extends Task {
          * operation to apply.
          * &quot;+&quot; or &quot;=&quot;
          *(default) for all datatypes; &quot;-&quot; for date and int only)\.
+         * @param value the operation enumerated value.
          */
         public void setOperation(Operation value) {
             this.operation = Operation.toOperation(value.getValue());
@@ -268,6 +278,7 @@ public class PropertyFile extends Task {
 
         /**
          * Regard the value as : int, date or string (default)
+         * @param value the type enumerated value.
          */
         public void setType(Type value) {
             this.type = Type.toType(value.getValue());
@@ -277,8 +288,8 @@ public class PropertyFile extends Task {
          * Initial value to set for a property if it is not
          * already defined in the property file.
          * For type date, an additional keyword is allowed: &quot;now&quot;
+         * @param value the default value.
          */
-
         public void setDefault(String value) {
             this.defaultValue = value;
         }
@@ -286,6 +297,7 @@ public class PropertyFile extends Task {
         /**
          * For int and date type only. If present, Values will
          * be parsed and formatted accordingly.
+         * @param value the pattern to use.
          */
         public void setPattern(String value) {
             this.pattern = value;
@@ -305,12 +317,18 @@ public class PropertyFile extends Task {
          *               <li>year</li>
          *            </ul>
          *            This only applies to date types using a +/- operation.
+         * @param unit the unit enumerated value.
          * @since Ant 1.5
          */
         public void setUnit(PropertyFile.Unit unit) {
             field = unit.getCalendarField();
         }
 
+        /**
+         * Apply the nested element to the properties.
+         * @param props the properties to apply the entry on.
+         * @throws BuildException if there is an error.
+         */
         protected void executeOn(Properties props) throws BuildException {
             checkParameters();
 
@@ -397,7 +415,7 @@ public class PropertyFile extends Task {
         */
         private void executeInteger(String oldValue) throws BuildException {
             int currentValue = DEFAULT_INT_VALUE;
-            int newValue  = DEFAULT_INT_VALUE;
+            int newV  = DEFAULT_INT_VALUE;
 
 
             DecimalFormat fmt = (pattern != null) ? new DecimalFormat(pattern)
@@ -416,7 +434,7 @@ public class PropertyFile extends Task {
             }
 
             if (operation == Operation.EQUALS_OPER) {
-                newValue = currentValue;
+                newV = currentValue;
             } else {
                 int operationValue = 1;
                 if (value != null) {
@@ -430,13 +448,13 @@ public class PropertyFile extends Task {
                 }
 
                 if (operation == Operation.INCREMENT_OPER) {
-                    newValue = currentValue + operationValue;
+                    newV = currentValue + operationValue;
                 } else if (operation == Operation.DECREMENT_OPER) {
-                    newValue = currentValue - operationValue;
+                    newV = currentValue - operationValue;
                 }
             }
 
-            this.newValue = fmt.format(newValue);
+            this.newValue = fmt.format(newV);
         }
 
         /**
@@ -447,7 +465,7 @@ public class PropertyFile extends Task {
         *                 not contained in the property file.
         */
         private void executeString(String oldValue) throws BuildException {
-            String newValue  = DEFAULT_STRING_VALUE;
+            String newV  = DEFAULT_STRING_VALUE;
 
             String currentValue = getCurrentValue(oldValue);
 
@@ -456,11 +474,11 @@ public class PropertyFile extends Task {
             }
 
             if (operation == Operation.EQUALS_OPER) {
-                newValue = currentValue;
+                newV = currentValue;
             } else if (operation == Operation.INCREMENT_OPER) {
-                newValue = currentValue + value;
+                newV = currentValue + value;
             }
-            this.newValue = newValue;
+            this.newValue = newV;
         }
 
         /**
@@ -534,14 +552,23 @@ public class PropertyFile extends Task {
         public static class Operation extends EnumeratedAttribute {
 
             // Property type operations
+            /** + */
             public static final int INCREMENT_OPER =   0;
+            /** - */
             public static final int DECREMENT_OPER =   1;
+            /** = */
             public static final int EQUALS_OPER =      2;
 
+            /** {@inheritDoc}. */
             public String[] getValues() {
                 return new String[] {"+", "-", "="};
             }
 
+            /**
+             * Convert string to index.
+             * @param oper the string to convert.
+             * @return the index.
+             */
             public static int toOperation(String oper) {
                 if ("+".equals(oper)) {
                     return INCREMENT_OPER;
@@ -558,14 +585,23 @@ public class PropertyFile extends Task {
         public static class Type extends EnumeratedAttribute {
 
             // Property types
+            /** int */
             public static final int INTEGER_TYPE =     0;
+            /** date */
             public static final int DATE_TYPE =        1;
+            /** string */
             public static final int STRING_TYPE =      2;
 
+            /** {@inheritDoc} */
             public String[] getValues() {
                 return new String[] {"int", "date", "string"};
             }
 
+            /**
+             * Convert string to index.
+             * @param type the string to convert.
+             * @return the index.
+             */
             public static int toType(String type) {
                 if ("int".equals(type)) {
                     return INTEGER_TYPE;
@@ -597,8 +633,9 @@ public class PropertyFile extends Task {
             = {MILLISECOND, SECOND, MINUTE, HOUR,
                DAY, WEEK, MONTH, YEAR };
 
-        private Hashtable calendarFields = new Hashtable();
+        private Map calendarFields = new HashMap();
 
+        /** no arg constructor */
         public Unit() {
             calendarFields.put(MILLISECOND,
                                     new Integer(Calendar.MILLISECOND));
@@ -611,12 +648,17 @@ public class PropertyFile extends Task {
             calendarFields.put(YEAR, new Integer(Calendar.YEAR));
         }
 
+        /**
+         * Convert the value to a Calendar field index.
+         * @return the calander value.
+         */
         public int getCalendarField() {
             String key = getValue().toLowerCase();
             Integer i = (Integer) calendarFields.get(key);
             return i.intValue();
         }
 
+        /** {@inheritDoc}. */
         public String[] getValues() {
             return UNITS;
         }

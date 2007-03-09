@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -39,12 +40,14 @@ public class ScriptDefBase extends Task implements DynamicConfigurator {
     /** Attributes */
     private Map attributes = new HashMap();
 
+    private String text;
+
     /**
      * Locate the script defining task and execute the script by passing
      * control to it
      */
     public void execute() {
-        getScript().executeScript(attributes, nestedElementMap);
+        getScript().executeScript(attributes, nestedElementMap, this);
     }
 
     private ScriptDef getScript() {
@@ -93,6 +96,36 @@ public class ScriptDefBase extends Task implements DynamicConfigurator {
         }
 
         attributes.put(name, value);
+    }
+
+    /**
+     * Set the script text.
+     *
+     * @param text a component of the script text to be added.
+     * @since ant1.7
+     */
+    public void addText(String text) {
+        this.text = getProject().replaceProperties(text);
+    }
+
+    /**
+     * get the text of this element; may be null
+     * @return text or null for no nested text
+     * @since ant1.7
+     */
+    public String getText() {
+        return text;
+    }
+
+    /**
+     * Utility method for nested scripts; throws a BuildException
+     * with the given message.
+     * @param message text to pass to the BuildException
+     * @throws BuildException always.
+     * @since ant1.7
+     */
+    public void fail(String message) {
+        throw new BuildException(message);
     }
 }
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -48,44 +49,40 @@ class PlainMailer extends Mailer {
             while (e.hasMoreElements()) {
                 mailMessage.replyto(e.nextElement().toString());
             }
-
             e = toList.elements();
             while (e.hasMoreElements()) {
                 mailMessage.to(e.nextElement().toString());
             }
-
             e = ccList.elements();
             while (e.hasMoreElements()) {
                 mailMessage.cc(e.nextElement().toString());
             }
-
             e = bccList.elements();
             while (e.hasMoreElements()) {
                 mailMessage.bcc(e.nextElement().toString());
             }
-
             if (subject != null) {
                 mailMessage.setSubject(subject);
             }
-
             mailMessage.setHeader("Date", getDate());
             if (message.getCharset() != null) {
                 mailMessage.setHeader("Content-Type", message.getMimeType()
                     + "; charset=\"" + message.getCharset() + "\"");
-
             } else {
                 mailMessage.setHeader("Content-Type", message.getMimeType());
+            }
+            e = headers.elements();
+            while (e.hasMoreElements()) {
+                Header h = (Header) e.nextElement();
+                mailMessage.setHeader(h.getName(), h.getValue());
             }
             PrintStream out = mailMessage.getPrintStream();
             message.print(out);
 
             e = files.elements();
             while (e.hasMoreElements()) {
-                File file = (File) e.nextElement();
-
-                attach(file, out);
+                attach((File) e.nextElement(), out);
             }
-
             mailMessage.sendAndClose();
         } catch (IOException ioe) {
             throw new BuildException("IO error sending mail", ioe);

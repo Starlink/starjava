@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -145,7 +146,7 @@ public class Translate extends MatchingTask {
 
      * Used to resolve file names.
      */
-    private FileUtils fileUtils = FileUtils.newFileUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * Last Modified Timestamp of resource bundle file being used.
@@ -492,13 +493,14 @@ public class Translate extends MatchingTask {
      * newer than the destination file.
      */
     private void translate() throws BuildException {
+        int filesProcessed = 0;
         for (int i = 0; i < filesets.size(); i++) {
             FileSet fs = (FileSet) filesets.elementAt(i);
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             String[] srcFiles = ds.getIncludedFiles();
             for (int j = 0; j < srcFiles.length; j++) {
                 try {
-                    File dest = fileUtils.resolveFile(toDir, srcFiles[j]);
+                    File dest = FILE_UTILS.resolveFile(toDir, srcFiles[j]);
                     //Make sure parent dirs exist, else, create them.
                     try {
                         File destDir = new File(dest.getParent());
@@ -511,7 +513,7 @@ public class Translate extends MatchingTask {
                             Project.MSG_DEBUG);
                     }
                     destLastModified = dest.lastModified();
-                    File src = fileUtils.resolveFile(ds.getBasedir(), srcFiles[j]);
+                    File src = FILE_UTILS.resolveFile(ds.getBasedir(), srcFiles[j]);
                     srcLastModified = src.lastModified();
                     //Check to see if dest file has to be recreated
                     boolean needsWork = forceOverwrite
@@ -538,66 +540,67 @@ public class Translate extends MatchingTask {
                         lineTokenizer.setIncludeDelims(true);
                         line = lineTokenizer.getToken(in);
                         while ((line) != null) {
-                        // 2003-02-21 new replace algorithm by tbee (tbee@tbee.org)
-                        // because it wasn't able to replace something like "@aaa;@bbb;"
+                            // 2003-02-21 new replace algorithm by tbee (tbee@tbee.org)
+                            // because it wasn't able to replace something like "@aaa;@bbb;"
 
-                        // is there a startToken
-                        // and there is still stuff following the startToken
-                        int startIndex = line.indexOf(startToken);
-                        while (startIndex >= 0
-                            && (startIndex + startToken.length()) <= line.length()) {
-                            // the new value, this needs to be here
-                            // because it is required to calculate the next position to search from
-                            // at the end of the loop
-                            String replace = null;
+                            // is there a startToken
+                            // and there is still stuff following the startToken
+                            int startIndex = line.indexOf(startToken);
+                            while (startIndex >= 0
+                                && (startIndex + startToken.length()) <= line.length()) {
+                                // the new value, this needs to be here
+                                // because it is required to calculate the next position to
+                                // search from at the end of the loop
+                                String replace = null;
 
-                            // we found a starttoken, is there an endtoken following?
-                            // start at token+tokenlength because start and end
-                            // token may be indentical
-                            int endIndex = line.indexOf(endToken, startIndex + startToken.length());
-                            if (endIndex < 0) {
-                                startIndex += 1;
-                            } else {
-                                // grab the token
-                                String token
-                                    = line.substring(startIndex + startToken.length(), endIndex);
-
-                                // If there is a white space or = or :, then
-                                // it isn't to be treated as a valid key.
-                                boolean validToken = true;
-                                for (int k = 0; k < token.length() && validToken; k++) {
-                                    char c = token.charAt(k);
-                                    if (c == ':' || c == '='
-                                        || Character.isSpaceChar(c)) {
-                                        validToken = false;
-                                    }
-                                }
-                                if (!validToken) {
+                                // we found a starttoken, is there an endtoken following?
+                                // start at token+tokenlength because start and end
+                                // token may be indentical
+                                int endIndex = line.indexOf(
+                                    endToken, startIndex + startToken.length());
+                                if (endIndex < 0) {
                                     startIndex += 1;
                                 } else {
-                                    // find the replace string
-                                    if (resourceMap.containsKey(token)) {
-                                        replace = (String) resourceMap.get(token);
-                                    } else {
-                                        replace = token;
+                                    // grab the token
+                                    String token = line.substring(
+                                        startIndex + startToken.length(), endIndex);
+
+                                    // If there is a white space or = or :, then
+                                    // it isn't to be treated as a valid key.
+                                    boolean validToken = true;
+                                    for (int k = 0; k < token.length() && validToken; k++) {
+                                        char c = token.charAt(k);
+                                        if (c == ':' || c == '='
+                                            || Character.isSpaceChar(c)) {
+                                            validToken = false;
+                                        }
                                     }
+                                    if (!validToken) {
+                                        startIndex += 1;
+                                    } else {
+                                        // find the replace string
+                                        if (resourceMap.containsKey(token)) {
+                                            replace = (String) resourceMap.get(token);
+                                        } else {
+                                            log("Replacement string missing for: "
+                                                + token, Project.MSG_VERBOSE);
+                                            replace = startToken + token + endToken;
+                                        }
 
 
-                                    // generate the new line
-                                    line = line.substring(0, startIndex)
-                                         + replace
-                                         + line.substring(endIndex + endToken.length());
+                                        // generate the new line
+                                        line = line.substring(0, startIndex)
+                                             + replace
+                                             + line.substring(endIndex + endToken.length());
 
-                                    // set start position for next search
-                                    startIndex += replace.length();
+                                        // set start position for next search
+                                        startIndex += replace.length();
+                                    }
                                 }
+
+                                // find next starttoken
+                                startIndex = line.indexOf(startToken, startIndex);
                             }
-
-                            // find next starttoken
-                            startIndex = line.indexOf(startToken, startIndex);
-                        }
-
-
                             out.write(line);
                             line = lineTokenizer.getToken(in);
                         }
@@ -607,6 +610,7 @@ public class Translate extends MatchingTask {
                         if (out != null) {
                             out.close();
                         }
+                        ++filesProcessed;
                     } else {
                         log("Skipping " + srcFiles[j]
                             + " as destination file is up to date",
@@ -617,5 +621,6 @@ public class Translate extends MatchingTask {
                 }
             }
         }
+        log("Translation performed on " + filesProcessed + " file(s).", Project.MSG_DEBUG);
     }
 }

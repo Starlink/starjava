@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -30,7 +31,6 @@ import org.apache.tools.ant.types.Path;
 
 /**
  * Precompiles JSP's using WebLogic's JSP compiler (weblogic.jspc).
- *
  *
  * Tested only on Weblogic 4.5.1 - NT4.0 and Solaris 5.7
  *
@@ -99,6 +99,10 @@ public class WLJspc extends MatchingTask {
     private String pathToPackage = "";
     private Vector filesToDo = new Vector();
 
+    /**
+     * Run the task.
+     * @throws BuildException if there is an error.
+     */
     public void execute() throws BuildException {
         if (!destinationDirectory.isDirectory()) {
             throw new BuildException("destination directory "
@@ -133,7 +137,7 @@ public class WLJspc extends MatchingTask {
         // Therefore, takes loads of time
         // Can pass directories at a time (*.jsp) but easily runs out of
         // memory on hefty dirs (even on  a Sun)
-        Java helperTask = (Java) getProject().createTask("java");
+        Java helperTask = new Java(this);
         helperTask.setFork(true);
         helperTask.setClassname("weblogic.jspc");
         helperTask.setTaskName(getTaskName());
@@ -196,7 +200,7 @@ public class WLJspc extends MatchingTask {
 
     /**
      * Set the classpath to be used for this compilation.
-     *
+     * @param classpath the classpath to use.
      */
     public void setClasspath(Path classpath) {
         if (compileClasspath == null) {
@@ -208,6 +212,7 @@ public class WLJspc extends MatchingTask {
 
     /**
      * Maybe creates a nested classpath element.
+     * @return a path to be configured.
      */
     public Path createClasspath() {
         if (compileClasspath == null) {
@@ -248,9 +253,12 @@ public class WLJspc extends MatchingTask {
         destinationPackage = packageName;
     }
 
-
-
-    protected void scanDir(String files[]) {
+    /**
+     * Scan the array of files and add the jsp
+     * files that need to be compiled to the filesToDo field.
+     * @param files the files to scan.
+     */
+    protected void scanDir(String[] files) {
 
         long now = (new Date()).getTime();
         File jspFile = null;
@@ -297,6 +305,13 @@ public class WLJspc extends MatchingTask {
     }
 
 
+    /**
+     * Replace occurances of a string with a replacement string.
+     * @param inpString the string to convert.
+     * @param escapeChars the string to replace.
+     * @param replaceChars the string to place.
+     * @return the converted string.
+     */
     protected String replaceString(String inpString, String escapeChars,
                                    String replaceChars) {
         String localString = "";

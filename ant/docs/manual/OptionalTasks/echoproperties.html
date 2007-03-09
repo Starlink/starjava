@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Echoproperties Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -42,9 +58,15 @@ files.</p>
     </td>
     <td valign="top" align="center">No</td>
   </tr>
-  
-  
-   
+  <tr>
+    <td valign="top">regex</td>
+    <td valign="top">
+        a regular expression which is used to filter the
+        properties
+        only those properties whose names match it will be echoed.
+    </td>
+    <td valign="top" align="center">No</td>
+  </tr>   
   <tr>
     <td valign="top">failonerror</td>
     <td valign="top">By default, the "failonerror" attribute is enabled.
@@ -54,7 +76,6 @@ files.</p>
     statement, and the build will continue without failure from this task.</td>
     <td valign="top" align="center">No</td>
   </tr>
-
   <tr>
     <td valign="top">format</td>
     <td valign="top">One of <code>text</code> or <code>xml</code>.
@@ -68,7 +89,11 @@ files.</p>
 <h4>propertyset</h4>
 
 <p>You can specify subsets of properties to be echoed with <a
-href="../CoreTypes/propertyset.html">propertyset</a>s.</p>
+href="../CoreTypes/propertyset.html">propertyset</a>s. Using
+<tt>propertyset</tt>s gives more control on which properties will be
+picked up. The attributes <tt>prefix</tt> and <tt>regex</tt> are just
+shorcuts that use <tt>propertyset</tt>s internally.
+</p>
 
 <p><em>since Ant 1.6</em>.</p>
 
@@ -83,7 +108,7 @@ href="../CoreTypes/propertyset.html">propertyset</a>s.</p>
 <p>Report the current properties to the file "my.properties", and will
 fail the build if the file could not be created or written to.</p>
 <blockquote><pre>
-  &lt;echoproperties destfile="my.properties" failonerror="false" /&gt;
+  &lt;echoproperties destfile="my.properties" failonerror="false"/&gt;
 </pre></blockquote>
 <p>Report the current properties to the file "my.properties", and will
 log a message if the file could not be created or written to, but will still
@@ -99,11 +124,22 @@ allow the build to continue.</p>
     &lt;/propertyset&gt;
   &lt;/echoproperties&gt;
 </pre></blockquote>
-<p>List all properties beginning with "java."</p>
+<p>This again lists all properties beginning with "java." using a nested
+<tt>&lt;/propertyset&gt;</tt> which is an equivalent but longer way.</p>
+<blockquote><pre>
+  &lt;echoproperties regex=".*ant.*"/&gt;
+</pre></blockquote>
+<p>Lists all properties that contain "ant" in their names.
+The equivalent snippet with <tt>&lt;/propertyset&gt;</tt> is:</p>
+<blockquote><pre>
+  &lt;echoproperties&gt;
+    &lt;propertyset&gt;
+      &lt;propertyref regex=".*ant.*"/&gt;
+    &lt;/propertyset&gt;
+  &lt;/echoproperties&gt;
+</pre></blockquote>
 
-<hr>
-<p align="center">Copyright &copy; 2002-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,11 +18,13 @@
 
 package org.apache.tools.ant.types;
 
-
 import java.util.Stack;
-import org.apache.tools.ant.BuildException;
+
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.ComponentHelper;
 import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.util.IdentityStack;
 
 /**
  * Base class for those classes that can appear inside the build file
@@ -34,21 +37,15 @@ import org.apache.tools.ant.ProjectComponent;
  * but not &lt;path&gt;).</p>
  *
  */
-public abstract class DataType extends ProjectComponent {
-    /**
-     * The description the user has set.
-     *
-     * @deprecated The user should not be directly referencing
-     *   variable. Please use {@link #setDescription} or
-     *   {@link #getDescription} instead.
-     */
-    protected String description;
+public abstract class DataType extends ProjectComponent implements Cloneable {
+    // CheckStyle:VisibilityModifier OFF
 
     /**
      * Value to the refid attribute.
      *
-     * @deprecated The user should not be directly referencing
-     *   variable. Please use {@link #getRefid} instead.
+     * @deprecated since 1.7.
+     *             The user should not be directly referencing
+     *             variable. Please use {@link #getRefid} instead.
      */
     protected Reference ref;
 
@@ -60,29 +57,17 @@ public abstract class DataType extends ProjectComponent {
      * child element has been added that is a subclass of
      * DataType).</p>
      *
-     * @deprecated The user should not be directly referencing
-     *   variable. Please use {@link #setChecked} or
-     *   {@link #isChecked} instead.
+     * @deprecated since 1.7.
+     *             The user should not be directly referencing
+     *             variable. Please use {@link #setChecked} or
+     *             {@link #isChecked} instead.
      */
     protected boolean checked = true;
-
-    /**
-     * Sets a description of the current data type. It will be useful
-     * in commenting what we are doing.
-     */
-    public void setDescription(final String desc) {
-        description = desc;
-    }
-
-    /**
-     * Return the description for the current data type.
-     */
-    public String getDescription() {
-        return description;
-    }
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Has the refid attribute of this element been set?
+     * @return true if the refid attribute has been set
      */
     public boolean isReference() {
         return ref != null;
@@ -95,10 +80,39 @@ public abstract class DataType extends ProjectComponent {
      * have been set as well or child elements have been created and
      * thus override this method. if they do the must call
      * <code>super.setRefid</code>.</p>
+     * @param ref the reference to use
      */
     public void setRefid(final Reference ref) {
         this.ref = ref;
         checked = false;
+    }
+
+    /**
+     * Gets as descriptive as possible a name used for this datatype instance.
+     * @return <code>String</code> name.
+     */
+    protected String getDataTypeName() {
+        return ComponentHelper.getElementName(getProject(), this, true);
+    }
+
+    /**
+     * Convenience method.
+     * @since Ant 1.7
+     */
+    protected void dieOnCircularReference() {
+        dieOnCircularReference(getProject());
+    }
+
+    /**
+     * Convenience method.
+     * @param p the Ant Project instance against which to resolve references.
+     * @since Ant 1.7
+     */
+    protected void dieOnCircularReference(Project p) {
+        if (checked || !isReference()) {
+            return;
+        }
+        dieOnCircularReference(new IdentityStack(this), p);
     }
 
     /**
@@ -116,6 +130,9 @@ public abstract class DataType extends ProjectComponent {
      * <p>The general contract of this method is that it shouldn't do
      * anything if {@link #checked <code>checked</code>} is true and
      * set it to true on exit.</p>
+     * @param stack the stack of references to check.
+     * @param project the project to use to dereference the references.
+     * @throws BuildException on error.
      */
     protected void dieOnCircularReference(final Stack stack,
                                           final Project project)
@@ -127,41 +144,102 @@ public abstract class DataType extends ProjectComponent {
         Object o = ref.getReferencedObject(project);
 
         if (o instanceof DataType) {
-            if (stack.contains(o)) {
+            IdentityStack id = IdentityStack.getInstance(stack);
+
+            if (id.contains(o)) {
                 throw circularReference();
             } else {
-                stack.push(o);
-                ((DataType) o).dieOnCircularReference(stack, project);
-                stack.pop();
+                id.push(o);
+                ((DataType) o).dieOnCircularReference(id, project);
+                id.pop();
             }
         }
         checked = true;
     }
 
     /**
+     * Allow DataTypes outside org.apache.tools.ant.types to indirectly call
+     * dieOnCircularReference on nested DataTypes.
+     * @param dt the DataType to check.
+     * @param stk the stack of references to check.
+     * @param p the project to use to dereference the references.
+     * @throws BuildException on error.
+     * @since Ant 1.7
+     */
+    public static void invokeCircularReferenceCheck(DataType dt, Stack stk,
+                                                    Project p) {
+        dt.dieOnCircularReference(stk, p);
+    }
+
+    /**
      * Performs the check for circular references and returns the
      * referenced object.
+     * @return the dereferenced object.
+     * @throws BuildException if the reference is invalid (circular ref, wrong class, etc).
+     * @since Ant 1.7
+     */
+    protected Object getCheckedRef() {
+        return getCheckedRef(getProject());
+    }
+
+    /**
+     * Performs the check for circular references and returns the
+     * referenced object.
+     * @param p the Ant Project instance against which to resolve references.
+     * @return the dereferenced object.
+     * @throws BuildException if the reference is invalid (circular ref, wrong class, etc).
+     * @since Ant 1.7
+     */
+    protected Object getCheckedRef(Project p) {
+        return getCheckedRef(getClass(), getDataTypeName(), p);
+    }
+
+    /**
+     * Performs the check for circular references and returns the
+     * referenced object.
+     * @param requiredClass the class that this reference should be a subclass of.
+     * @param dataTypeName  the name of the datatype that the reference should be
+     *                      (error message use only).
+     * @return the dereferenced object.
+     * @throws BuildException if the reference is invalid (circular ref, wrong class, etc).
      */
     protected Object getCheckedRef(final Class requiredClass,
                                    final String dataTypeName) {
-        if (!checked) {
-            Stack stk = new Stack();
-            stk.push(this);
-            dieOnCircularReference(stk, getProject());
-        }
+        return getCheckedRef(requiredClass, dataTypeName, getProject());
+    }
 
-        Object o = ref.getReferencedObject(getProject());
+    /**
+     * Performs the check for circular references and returns the
+     * referenced object.  This version allows the fallback Project instance to be specified.
+     * @param requiredClass the class that this reference should be a subclass of.
+     * @param dataTypeName  the name of the datatype that the reference should be
+     *                      (error message use only).
+     * @param project       the fallback Project instance for dereferencing.
+     * @return the dereferenced object.
+     * @throws BuildException if the reference is invalid (circular ref, wrong class, etc),
+     *                        or if <code>project</code> is <code>null</code>.
+     * @since Ant 1.7
+     */
+    protected Object getCheckedRef(final Class requiredClass,
+                                   final String dataTypeName, final Project project) {
+        if (project == null) {
+            throw new BuildException("No Project specified");
+        }
+        dieOnCircularReference(project);
+        Object o = ref.getReferencedObject(project);
         if (!(requiredClass.isAssignableFrom(o.getClass()))) {
+            log("Class " + o.getClass() + " is not a subclass of " + requiredClass,
+                    Project.MSG_VERBOSE);
             String msg = ref.getRefId() + " doesn\'t denote a " + dataTypeName;
             throw new BuildException(msg);
-        } else {
-            return o;
         }
+        return o;
     }
 
     /**
      * Creates an exception that indicates that refid has to be the
      * only attribute if it is set.
+     * @return the exception to throw
      */
     protected BuildException tooManyAttributes() {
         return new BuildException("You must not specify more than one "
@@ -171,6 +249,7 @@ public abstract class DataType extends ProjectComponent {
     /**
      * Creates an exception that indicates that this XML element must
      * not have child elements if the refid attribute is set.
+     * @return the exception to throw
      */
     protected BuildException noChildrenAllowed() {
         return new BuildException("You must not specify nested elements "
@@ -180,16 +259,25 @@ public abstract class DataType extends ProjectComponent {
     /**
      * Creates an exception that indicates the user has generated a
      * loop of data types referencing each other.
+     * @return the exception to throw
      */
     protected BuildException circularReference() {
         return new BuildException("This data type contains a circular "
             + "reference.");
     }
 
+    /**
+     * The flag that is used to indicate that circular references have been checked.
+     * @return true if circular references have been checked
+     */
     protected boolean isChecked() {
         return checked;
     }
 
+    /**
+     * Set the flag that is used to indicate that circular references have been checked.
+     * @param checked if true, if circular references have been checked
+     */
     protected void setChecked(final boolean checked) {
         this.checked = checked;
     }
@@ -198,7 +286,7 @@ public abstract class DataType extends ProjectComponent {
      * get the reference set on this object
      * @return the reference or null
      */
-    protected Reference getRefid() {
+    public Reference getRefid() {
         return ref;
     }
 
@@ -223,4 +311,29 @@ public abstract class DataType extends ProjectComponent {
             throw noChildrenAllowed();
         }
     }
+
+    /**
+     * Basic DataType toString().
+     * @return this DataType formatted as a String.
+     */
+    public String toString() {
+        String d = getDescription();
+        return d == null ? getDataTypeName() : getDataTypeName() + " " + d;
+    }
+
+    /**
+     * @since Ant 1.7
+     * @return a shallow copy of this DataType.
+     * @throws CloneNotSupportedException if there is a problem.
+     */
+    public Object clone() throws CloneNotSupportedException {
+        DataType dt = (DataType) super.clone();
+        dt.setDescription(getDescription());
+        if (getRefid() != null) {
+            dt.setRefid(getRefid());
+        }
+        dt.setChecked(isChecked());
+        return dt;
+    }
 }
+

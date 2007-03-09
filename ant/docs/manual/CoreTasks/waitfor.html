@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>WaitFor Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -86,32 +102,31 @@ true within the specified time.</p>
 <a href="conditions.html">here</a> for the full list.</p>
 
 <h3>Examples</h3>
-<blockquote>
-  <p><code>&lt;waitfor maxwait=&quot;30&quot; maxwaitunit=&quot;second&quot;&gt;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;available file="errors.log"/&gt;<br>
-    &lt;/waitfor&gt;</code></p>
-</blockquote>
+<blockquote><pre>
+&lt;waitfor maxwait="30" maxwaitunit="second"&gt;
+        &lt;available file="errors.log"/&gt;
+&lt;/waitfor&gt;
+</pre></blockquote>
 <p>waits up to 30 seconds for a file called errors.log to appear.</p>
-<blockquote>
-  <p><code>&lt;waitfor maxwait=&quot;3&quot; maxwaitunit=&quot;minute&quot; checkevery=&quot;500&quot;&gt;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;http url=&quot;http://localhost/myapp/index.html&quot;/&gt;<br>
-    &lt;/waitfor&gt;</code></p>
-</blockquote>
+<blockquote><pre>
+&lt;waitfor maxwait="3" maxwaitunit="minute" checkevery="500"&gt;
+        &lt;http url="http://localhost/myapp/index.html"/&gt;
+&lt;/waitfor&gt;
+</pre></blockquote>
 <p>waits up to 3 minutes (and checks every 500 milliseconds) for a web server on localhost
   to serve up the specified URL.</p>
-<blockquote>
-  <p><code>&lt;waitfor maxwait=&quot;10&quot; maxwait=&quot;second&quot;&gt;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;and&gt;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;socket server=&quot;dbserver&quot; port=&quot;1521&quot;/&gt;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;http url=&quot;http://webserver/mypage.html&quot;/&gt;<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;/and&gt;<br>
-    &lt;/waitfor&gt;</code></p>
-</blockquote>
+<blockquote><pre>
+&lt;waitfor maxwait="10" maxwaitunit="second"&gt;
+        &lt;and&gt;
+            &lt;socket server="dbserver" port="1521"/&gt;
+            &lt;http url="http://webserver/mypage.html"/&gt;
+        &lt;/and&gt;
+&lt;/waitfor&gt;
+</pre></blockquote>
 <p>waits up to 10 seconds for a server on the dbserver machine to begin listening
   on port 1521 and for the http://webserver/mypage.html web page
   to become available.</p>
-<hr><p align="center">Copyright &copy; 2001,2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

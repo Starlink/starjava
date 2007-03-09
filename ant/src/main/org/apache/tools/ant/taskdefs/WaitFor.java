@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,8 +18,10 @@
 
 package org.apache.tools.ant.taskdefs;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.condition.Condition;
 import org.apache.tools.ant.taskdefs.condition.ConditionBase;
 import org.apache.tools.ant.types.EnumeratedAttribute;
@@ -42,11 +45,12 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  * The maxwaitunit and checkeveryunit are allowed to have the following values:
  * millisecond, second, minute, hour, day and week. The default is millisecond.
  *
+ * For programmatic use/subclassing, there are two methods that may be overrridden,
+ * <code>processSuccess</code> and <code>processTimeout</code>
  * @since Ant 1.5
  *
  * @ant.task category="control"
  */
-
 public class WaitFor extends ConditionBase {
     /** default max wait time */
     private long maxWaitMillis = 1000L * 60L * 3L;
@@ -56,7 +60,15 @@ public class WaitFor extends ConditionBase {
     private String timeoutProperty;
 
     /**
-     * Set the maximum length of time to wait
+     * Constructor, names this task "waitfor".
+     */
+    public WaitFor() {
+        super("waitfor");
+    }
+
+    /**
+     * Set the maximum length of time to wait.
+     * @param time a <code>long</code> value
      */
     public void setMaxWait(long time) {
         maxWaitMillis = time;
@@ -64,6 +76,7 @@ public class WaitFor extends ConditionBase {
 
     /**
      * Set the max wait time unit
+     * @param unit an enumerated <code>Unit</code> value
      */
     public void setMaxWaitUnit(Unit unit) {
         maxWaitMultiplier = unit.getMultiplier();
@@ -71,6 +84,7 @@ public class WaitFor extends ConditionBase {
 
     /**
      * Set the time between each check
+     * @param time a <code>long</code> value
      */
     public void setCheckEvery(long time) {
         checkEveryMillis = time;
@@ -78,6 +92,7 @@ public class WaitFor extends ConditionBase {
 
     /**
      * Set the check every time unit
+     * @param unit an enumerated <code>Unit</code> value
      */
     public void setCheckEveryUnit(Unit unit) {
         checkEveryMultiplier = unit.getMultiplier();
@@ -85,6 +100,7 @@ public class WaitFor extends ConditionBase {
 
     /**
      * Name the property to set after a timeout.
+     * @param p the property name
      */
     public void setTimeoutProperty(String p) {
         timeoutProperty = p;
@@ -93,15 +109,17 @@ public class WaitFor extends ConditionBase {
     /**
      * Check repeatedly for the specified conditions until they become
      * true or the timeout expires.
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
         if (countConditions() > 1) {
             throw new BuildException("You must not nest more than one "
-                                     + "condition into <waitfor>");
+                                     + "condition into "
+                                     + getTaskName());
         }
         if (countConditions() < 1) {
             throw new BuildException("You must nest a condition into "
-                                     + "<waitfor>");
+                                     + getTaskName());
         }
         Condition c = (Condition) getConditions().nextElement();
 
@@ -115,6 +133,7 @@ public class WaitFor extends ConditionBase {
 
             while (System.currentTimeMillis() < end) {
                 if (c.eval()) {
+                    processSuccess();
                     return;
                 }
                 try {
@@ -123,13 +142,33 @@ public class WaitFor extends ConditionBase {
                     // ignore
                 }
             }
-
-            if (timeoutProperty != null) {
-                getProject().setNewProperty(timeoutProperty, "true");
-            }
+            processTimeout();
         } finally {
             maxWaitMillis = savedMaxWaitMillis;
             checkEveryMillis = savedCheckEveryMillis;
+        }
+    }
+
+    /**
+     * Actions to be taken on a successful waitfor.
+     * This is an override point. The base implementation does nothing.
+     * @since Ant1.7
+     */
+    protected void processSuccess() {
+        log(getTaskName() + ": condition was met", Project.MSG_VERBOSE);
+    }
+
+    /**
+     * Actions to be taken on an unsuccessful wait.
+     * This is an override point. It is where the timeout processing takes place.
+     * The base implementation sets the timeoutproperty if there was a timeout
+     * and the property was defined.
+     * @since Ant1.7
+     */
+    protected void processTimeout() {
+        log(getTaskName() + ": timeout", Project.MSG_VERBOSE);
+        if (timeoutProperty != null) {
+            getProject().setNewProperty(timeoutProperty, "true");
         }
     }
 
@@ -140,19 +179,26 @@ public class WaitFor extends ConditionBase {
      */
     public static class Unit extends EnumeratedAttribute {
 
-        private static final String MILLISECOND = "millisecond";
-        private static final String SECOND = "second";
-        private static final String MINUTE = "minute";
-        private static final String HOUR = "hour";
-        private static final String DAY = "day";
-        private static final String WEEK = "week";
+        /** millisecond string */
+        public static final String MILLISECOND = "millisecond";
+        /** second string */
+        public static final String SECOND = "second";
+        /** minute string */
+        public static final String MINUTE = "minute";
+        /** hour string */
+        public static final String HOUR = "hour";
+        /** day string */
+        public static final String DAY = "day";
+        /** week string */
+        public static final String WEEK = "week";
 
-        private static final String[] units = {
+        private static final String[] UNITS = {
             MILLISECOND, SECOND, MINUTE, HOUR, DAY, WEEK
         };
 
-        private Hashtable timeTable = new Hashtable();
+        private Map timeTable = new HashMap();
 
+        /** Constructor the Unit enumerated type. */
         public Unit() {
             timeTable.put(MILLISECOND, new Long(1L));
             timeTable.put(SECOND,      new Long(1000L));
@@ -162,14 +208,22 @@ public class WaitFor extends ConditionBase {
             timeTable.put(WEEK,        new Long(1000L * 60L * 60L * 24L * 7L));
         }
 
+        /**
+         * Convert the value to a multipler (millisecond to unit).
+         * @return a multipler (a long value)
+         */
         public long getMultiplier() {
             String key = getValue().toLowerCase();
             Long l = (Long) timeTable.get(key);
             return l.longValue();
         }
 
+        /**
+         * @see EnumeratedAttribute#getValues()
+         */
+        /** {@inheritDoc} */
         public String[] getValues() {
-            return units;
+            return UNITS;
         }
     }
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,7 +27,6 @@ import org.apache.tools.ant.BuildException;
  * Reads input from a property file, the file name is read from the
  * system property ant.input.properties, the prompt is the key for input.
  *
- * @version $Revision: 1.6.2.4 $
  * @since Ant 1.5
  */
 public class PropertyFileInputHandler implements InputHandler {
@@ -46,6 +46,7 @@ public class PropertyFileInputHandler implements InputHandler {
     /**
      * Picks up the input from a property, using the prompt as the
      * name of the property.
+     * @param request an input request.
      *
      * @exception BuildException if no property of that name can be found.
      */

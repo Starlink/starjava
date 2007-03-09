@@ -5,8 +5,6 @@
  *
  * Version tracking now done with following ID:
  *
- * $Id: java.tree.g,v 1.1 2000/11/06 12:35:13 bodewig Exp $
- *
  * This grammar is in the PUBLIC DOMAIN
  *
  * BUGS

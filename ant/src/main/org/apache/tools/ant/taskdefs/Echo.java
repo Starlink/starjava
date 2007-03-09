@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,25 +21,35 @@ package org.apache.tools.ant.taskdefs;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.EnumeratedAttribute;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.types.LogLevel;
+
 /**
  * Writes a message to the Ant logging facilities.
- *
  *
  * @since Ant 1.1
  *
  * @ant.task category="utility"
  */
 public class Echo extends Task {
-    protected String message = ""; // required
+    // CheckStyle:VisibilityModifier OFF - bc
+    protected String message = "";
     protected File file = null;
     protected boolean append = false;
+    /** encoding; set to null or empty means 'default' */
+    private String encoding = "";
 
     // by default, messages are always displayed
     protected int logLevel = Project.MSG_WARN;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Does the work.
@@ -49,20 +60,21 @@ public class Echo extends Task {
         if (file == null) {
             log(message, logLevel);
         } else {
-            FileWriter out = null;
+            Writer out = null;
             try {
-                out = new FileWriter(file.getAbsolutePath(), append);
+                String filename = file.getAbsolutePath();
+                if (encoding == null || encoding.length() == 0) {
+                    out = new FileWriter(filename, append);
+                } else {
+                    out = new BufferedWriter(
+                            new OutputStreamWriter(
+                                new FileOutputStream(filename, append), encoding));
+                }
                 out.write(message, 0, message.length());
             } catch (IOException ioe) {
                 throw new BuildException(ioe, getLocation());
             } finally {
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException ioex) {
-                        //ignore
-                    }
-                }
+                FileUtils.close(out);
             }
         }
     }
@@ -116,32 +128,22 @@ public class Echo extends Task {
      * @param echoLevel the logging level
      */
     public void setLevel(EchoLevel echoLevel) {
-        String option = echoLevel.getValue();
-        if (option.equals("error")) {
-            logLevel = Project.MSG_ERR;
-        } else if (option.equals("warning")) {
-            logLevel = Project.MSG_WARN;
-        } else if (option.equals("info")) {
-            logLevel = Project.MSG_INFO;
-        } else if (option.equals("verbose")) {
-            logLevel = Project.MSG_VERBOSE;
-        } else {
-            // must be "debug"
-            logLevel = Project.MSG_DEBUG;
-        }
+        logLevel = echoLevel.getLevel();
+    }
+
+    /**
+     * Declare the encoding to use when outputting to a file;
+     * Use "" for the platform's default encoding.
+     * @param encoding the character encoding to use.
+     * @since 1.7
+     */
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 
     /**
      * The enumerated values for the level attribute.
      */
-    public static class EchoLevel extends EnumeratedAttribute {
-        /**
-         * @see EnumeratedAttribute#getValues
-         * @return the strings allowed for the level attribute
-         */
-        public String[] getValues() {
-            return new String[] {"error", "warning", "info",
-                                 "verbose", "debug"};
-        }
+    public static class EchoLevel extends LogLevel {
     }
 }

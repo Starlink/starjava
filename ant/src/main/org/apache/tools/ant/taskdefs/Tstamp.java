@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,8 +22,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -47,7 +49,8 @@ public class Tstamp extends Task {
 
     /**
      * Set a prefix for the properties. If the prefix does not end with a "."
-     * one is automatically added
+     * one is automatically added.
+     * @param prefix the prefix to use.
      * @since Ant 1.5
      */
     public void setPrefix(String prefix) {
@@ -60,7 +63,7 @@ public class Tstamp extends Task {
     /**
      * create the timestamps. Custom ones are done before
      * the standard ones, to get their retaliation in early.
-     * @throws BuildException
+     * @throws BuildException on error.
      */
     public void execute() throws BuildException {
         try {
@@ -132,7 +135,7 @@ public class Tstamp extends Task {
 
         /**
          *  The property to receive the date/time string in the given pattern
-         * @param propertyName
+         * @param propertyName the name of the property.
          */
         public void setProperty(String propertyName) {
             this.propertyName = propertyName;
@@ -141,7 +144,7 @@ public class Tstamp extends Task {
         /**
          * The date/time pattern to be used. The values are as
          * defined by the Java SimpleDateFormat class.
-         * @param pattern
+         * @param pattern the pattern to use.
          * @see java.text.SimpleDateFormat
          */
         public void setPattern(String pattern) {
@@ -154,7 +157,7 @@ public class Tstamp extends Task {
          * either variant or variant and country may be omitted.
          * For more information please refer to documentation
          * for the java.util.Locale  class.
-         * @param locale
+         * @param locale the locale to use.
          * @see java.util.Locale
          */
         public void setLocale(String locale) {
@@ -182,7 +185,7 @@ public class Tstamp extends Task {
         /**
          * The timezone to use for displaying time.
          * The values are as defined by the Java TimeZone class.
-         * @param id
+         * @param id the timezone value.
          * @see java.util.TimeZone
          */
         public void setTimezone(String id) {
@@ -191,14 +194,17 @@ public class Tstamp extends Task {
 
         /**
          * The numeric offset to the current time.
-         * @param offset
+         * @param offset the offset to use.
          */
         public void setOffset(int offset) {
             this.offset = offset;
         }
 
         /**
-         * @deprecated setUnit(String) is deprecated and is replaced with
+         * Set the unit type (using String).
+         * @param unit the unit to use.
+         * @deprecated since 1.5.x.
+         *             setUnit(String) is deprecated and is replaced with
          *             setUnit(Tstamp.Unit) to make Ant's
          *             Introspection mechanism do the work and also to
          *             encapsulate operations on the unit in its own
@@ -226,16 +232,16 @@ public class Tstamp extends Task {
          *    <li>year</li>
          * </ul>
          * The default unit is day.
-         * @param unit
+         * @param unit the unit to use.
          */
         public void setUnit(Unit unit) {
             field = unit.getCalendarField();
         }
 
         /**
-         * validate parameter and execute the format
-         * @param project project to set property in
-         * @param date date to use as a starting point
+         * validate parameter and execute the format.
+         * @param project project to set property in.
+         * @param date date to use as a starting point.
          * @param location line in file (for errors)
          */
         public void execute(Project project, Date date, Location location) {
@@ -287,7 +293,7 @@ public class Tstamp extends Task {
         private static final String MONTH = "month";
         private static final String YEAR = "year";
 
-        private static final String[] units = {
+        private static final String[] UNITS = {
                                                 MILLISECOND,
                                                 SECOND,
                                                 MINUTE,
@@ -298,8 +304,9 @@ public class Tstamp extends Task {
                                                 YEAR
                                               };
 
-        private Hashtable calendarFields = new Hashtable();
+        private Map calendarFields = new HashMap();
 
+        /** Constructor for Unit enumerated type. */
         public Unit() {
             calendarFields.put(MILLISECOND,
                                new Integer(Calendar.MILLISECOND));
@@ -312,14 +319,22 @@ public class Tstamp extends Task {
             calendarFields.put(YEAR, new Integer(Calendar.YEAR));
         }
 
+        /**
+         * Convert the value to int unit value.
+         * @return an int value.
+         */
         public int getCalendarField() {
             String key = getValue().toLowerCase();
             Integer i = (Integer) calendarFields.get(key);
             return i.intValue();
         }
 
+        /**
+         * Get the valid values.
+         * @return the value values.
+         */
         public String[] getValues() {
-            return units;
+            return UNITS;
         }
     }
 }

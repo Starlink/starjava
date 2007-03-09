@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -24,7 +25,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 
@@ -35,9 +38,9 @@ import org.apache.tools.ant.Task;
  * implementation of Ant's &lt;exec&gt; task - it is considered to be
  * dead code by the Ant developers and is unmaintained.  Don't use
  * it.</strong></p>
-
  *
- * @deprecated delegate to {@link org.apache.tools.ant.taskdefs.Execute Execute}
+ * @deprecated since 1.2.
+ *             delegate to {@link org.apache.tools.ant.taskdefs.Execute Execute}
  *             instead.
  */
 public class Exec extends Task {
@@ -45,9 +48,15 @@ public class Exec extends Task {
     private String out;
     private File dir;
     private String command;
+    // CheckStyle:VisibilityModifier OFF - bc
     protected PrintWriter fos = null;
+    // CheckStyle:VisibilityModifier ON
     private boolean failOnError = false;
 
+    /**
+     * Constructor for Exec.
+     * Prints a warning message to std error.
+     */
     public Exec() {
         System.err.println("As of Ant 1.2 released in October 2000, "
             + "the Exec class");
@@ -56,10 +65,20 @@ public class Exec extends Task {
         System.err.println("Don\'t use it!");
     }
 
+    /**
+     * Execute the task.
+     * @throws BuildException on error
+     */
     public void execute() throws BuildException {
         run(command);
     }
 
+    /**
+     * Execute the command.
+     * @param command the command to exec
+     * @return the exit value of the command
+     * @throws BuildException on error
+     */
     protected int run(String command) throws BuildException {
 
         int err = -1; // assume the worst
@@ -83,9 +102,9 @@ public class Exec extends Task {
                 if (myos.toLowerCase().indexOf("nt") >= 0) {
                     command = "cmd /c cd " + dir + " && " + command;
                 } else {
-                    String ant = getProject().getProperty("ant.home");
+                    String ant = getProject().getProperty(MagicNames.ANT_HOME);
                     if (ant == null) {
-                        throw new BuildException("Property 'ant.home' not "
+                        throw new BuildException("Property '" + MagicNames.ANT_HOME + "' not "
                             + "found", getLocation());
                     }
 
@@ -94,9 +113,9 @@ public class Exec extends Task {
                 }
             }
         } else {
-            String ant = getProject().getProperty("ant.home");
+            String ant = getProject().getProperty(MagicNames.ANT_HOME);
             if (ant == null) {
-              throw new BuildException("Property 'ant.home' not found",
+              throw new BuildException("Property '" + MagicNames.ANT_HOME + "' not found",
                                        getLocation());
             }
             String antRun = getProject().resolveFile(ant + "/bin/antRun").toString();
@@ -153,26 +172,53 @@ public class Exec extends Task {
         return err;
     }
 
+    /**
+     * Set the directory.
+     * @param d a <code>String</code> value
+     */
     public void setDir(String d) {
         this.dir = getProject().resolveFile(d);
     }
 
+    /**
+     * Set the Operating System that this exec is to run in.
+     * @param os a <code>String</code> value
+     */
     public void setOs(String os) {
         this.os = os;
     }
 
+    /**
+     * Set the command to exec.
+     * @param command a <code>String</code> value
+     */
     public void setCommand(String command) {
         this.command = command;
     }
 
+    /**
+     * Set the output filename.
+     * @param out a <code>String</code> value
+     */
     public void setOutput(String out) {
         this.out = out;
     }
 
+    /**
+     * Set the failOnError attribute.
+     * Default is false.
+     * @param fail a <code>boolean</code> value
+     */
     public void setFailonerror(boolean fail) {
         failOnError = fail;
     }
 
+    /**
+     * Log an output message.
+     * @param line the line to putput
+     * @param messageLevel the level of logging - ignored
+     *                     if output is going to a file
+     */
     protected void outputLog(String line, int messageLevel) {
         if (fos == null) {
             log(line, messageLevel);
@@ -181,6 +227,9 @@ public class Exec extends Task {
         }
     }
 
+    /**
+     * Close output.
+     */
     protected void logFlush() {
         if (fos != null) {
           fos.close();
@@ -193,7 +242,7 @@ public class Exec extends Task {
         private BufferedReader din;
         private int messageLevel;
         private boolean endOfStream = false;
-        private int SLEEP_TIME = 5;
+        private static final int SLEEP_TIME = 5;
 
         public StreamPumper(InputStream is, int messageLevel) {
             this.din = new BufferedReader(new InputStreamReader(is));

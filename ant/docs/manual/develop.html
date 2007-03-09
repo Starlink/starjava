@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="stylesheets/style.css">
 <title>Writing Your Own Task</title>
-<link rel="stylesheet" type="text/css" href="stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -13,7 +29,7 @@
 <p>It is very easy to write your own task:</p>
 <ol>
   <li>Create a Java class that extends <code>org.apache.tools.ant.Task</code>
-      or <a href="base_task_classes.html">another class</a> that was desgined to be extended.</li>
+      or <a href="base_task_classes.html">another class</a> that was designed to be extended.</li>
   <li>For each attribute, write a <i>setter</i> method. The setter method must be a
     <code>public void</code> method that takes a single argument. The
     name of the method must begin with <code>set</code>, followed by the
@@ -155,6 +171,15 @@ is more!  If the argument of you setter method is</p>
   inner <code>AddAsisRemove</code> class used in <code>setCr</code>
   for an example.</li>
 
+  <li>A (Java 5) enumeration. Ant will call the setter with the enum constant
+  matching the value given in the build file. This is easier than using
+  <code>EnumeratedAttribute</code> and can result in cleaner code, but of course
+  your task will not run on JDK 1.4 or earlier. Note that any override of
+  <code>toString()</code> in the enumeration is ignored; the build file must use
+  the declared name (see <code>Enum.getName()</code>). You may wish to use lowercase
+  enum constant names, in contrast to usual Java style, to look better in build files.
+  <em>As of Ant 1.7.0.</em></li>
+
 </ul>
 
 <p>What happens if more than one setter method is present for a given
@@ -211,7 +236,7 @@ the implementation of your Java virtual machine.</p>
 
   <h3><a name="nestedtype">Nested Types</a></h3>
 If your task needs to nest an arbitary type that has been defined
-  using &lt;typedef&gt; you have two options.
+  using <code>&lt;typedef&gt;</code> you have two options.
   <ol>
     <li><code>public void add(Type type)</code></li>
     <li><code>public void addConfigured(Type type)</code></li>
@@ -245,7 +270,7 @@ public class MyTask extends Task {
 &lt;typedef name="condition.equals"
          classname="org.apache.tools.ant.taskdefs.conditions.Equals"/&gt;
 &lt;mytask&gt;
-    &lt;condition.equals arg1="${debug}" arg2="true"/&gt;
+    &lt;condition.equals arg1="true" arg2="true"/&gt;
 &lt;/mytask&gt;
     </pre>
   </blockquote>
@@ -364,7 +389,6 @@ public class MyVeryOwnTask extends Task {
   <li>Use your task in the rest of the buildfile.</li>
 </ol>
 
-
 <h3>Example</h3>
 <blockquote>
 <pre>
@@ -409,7 +433,6 @@ compiled.
 </pre>
 </blockquote>
 
-
 <p>Another way to add a task (more permanently), is to add the task name and
 implementing class name to the <code>default.properties</code> file in the
 <code>org.apache.tools.ant.taskdefs</code>
@@ -436,9 +459,9 @@ for the following events</P>
 </ul>
 
 <p>If the build file invokes another build file via <a
-href="CoreTasks/ant.html">&lt;ant&gt;</a> or <a
-href="CoreTasks/subant.html">&lt;subant&gt;</a> or uses <a
-href="CoreTasks/antcall.html">&lt;antcall&gt;</a>, you are creating a
+href="CoreTasks/ant.html"><code>&lt;ant&gt;</code></a> or <a
+href="CoreTasks/subant.html"><code>&lt;subant&gt;</code></a> or uses <a
+href="CoreTasks/antcall.html"><code>&lt;antcall&gt;</code></a>, you are creating a
 new Ant "project" that will send target and task level events of its
 own but never sends build started/finished events.  Ant 1.6.2
 introduces an extension of the BuildListener interface named
@@ -471,7 +494,6 @@ been configured.
 <hr>
 <h2><a name="integration">Source code integration</a></h2>
 
-
 The other way to extend Ant through Java is to make changes to existing tasks, which is positively encouraged.
 Both changes to the existing source and new tasks can be incorporated back into the Ant codebase, which
 benefits all users and spreads the maintenance load around.
@@ -486,10 +508,6 @@ Ant also has some
 <a href="http://ant.apache.org/ant_task_guidelines.html">task guidelines</a>
 which provides some advice to people developing and testing tasks. Even if you intend to
 keep your tasks to yourself, you should still read this as it should be informative.
-
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
 
 </body>
 </html>

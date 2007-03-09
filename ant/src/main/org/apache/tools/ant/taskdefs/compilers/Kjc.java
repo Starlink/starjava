@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,9 +18,9 @@
 
 package org.apache.tools.ant.taskdefs.compilers;
 
-import java.lang.reflect.Method;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.ExecuteJava;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Path;
 
@@ -34,41 +35,21 @@ public class Kjc extends DefaultCompilerAdapter {
 
     /**
      * Run the compilation.
-     *
+     * @return true if the compilation succeeded
      * @exception BuildException if the compilation has problems.
      */
     public boolean execute() throws BuildException {
         attributes.log("Using kjc compiler", Project.MSG_VERBOSE);
         Commandline cmd = setupKjcCommand();
-
-        try {
-            Class c = Class.forName("at.dms.kjc.Main");
-
-            // Call the compile() method
-            Method compile = c.getMethod("compile",
-                                         new Class [] {String [].class});
-            Boolean ok =
-                (Boolean) compile.invoke(null,
-                                        new Object[] {cmd.getArguments()});
-            return ok.booleanValue();
-        } catch (ClassNotFoundException ex) {
-            throw new BuildException("Cannot use kjc compiler, as it is not "
-                                     + "available. A common solution is to "
-                                     + "set the environment variable CLASSPATH "
-                                     + "to your kjc archive (kjc.jar).",
-                                     location);
-        } catch (Exception ex) {
-            if (ex instanceof BuildException) {
-                throw (BuildException) ex;
-            } else {
-                throw new BuildException("Error starting kjc compiler: ",
-                                         ex, location);
-            }
-        }
+        cmd.setExecutable("at.dms.kjc.Main");
+        ExecuteJava ej = new ExecuteJava();
+        ej.setJavaCommand(cmd);
+        return ej.fork(getJavac()) == 0;
     }
 
     /**
      * setup kjc command arguments.
+     * @return the command line
      */
     protected Commandline setupKjcCommand() {
         Commandline cmd = new Commandline();
@@ -76,7 +57,7 @@ public class Kjc extends DefaultCompilerAdapter {
         // generate classpath, because kjc doesn't support sourcepath.
         Path classpath = getCompileClasspath();
 
-        if (deprecation == true) {
+        if (deprecation) {
             cmd.createArgument().setValue("-deprecation");
         }
 
@@ -91,8 +72,9 @@ public class Kjc extends DefaultCompilerAdapter {
         Path cp = new Path(project);
 
         // kjc don't have bootclasspath option.
-        if (bootclasspath != null) {
-            cp.append(bootclasspath);
+        Path p = getBootClassPath();
+        if (p.size() > 0) {
+            cp.append(p);
         }
 
         if (extdirs != null) {

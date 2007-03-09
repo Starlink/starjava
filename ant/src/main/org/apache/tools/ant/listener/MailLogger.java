@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,11 +28,13 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 
 import org.apache.tools.ant.BuildEvent;
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.email.EmailAddress;
 import org.apache.tools.ant.taskdefs.email.Message;
 import org.apache.tools.ant.taskdefs.email.Mailer;
+import org.apache.tools.ant.util.ClasspathUtils;
 import org.apache.tools.ant.util.DateUtils;
 import org.apache.tools.ant.util.StringUtils;
 import org.apache.tools.mail.MailMessage;
@@ -61,7 +64,6 @@ import org.apache.tools.mail.MailMessage;
  *  by specifying the filename of a properties file in the <i>
  *  MailLogger.properties.file property</i> . Any properties defined in that
  *  file will override Ant properties.
- *
  *
  */
 public class MailLogger extends DefaultLogger {
@@ -240,14 +242,15 @@ public class MailLogger extends DefaultLogger {
                               String message)  {
         // convert the replyTo string into a vector of emailaddresses
         Mailer mailer = null;
-            try {
-                mailer =
-                    (Mailer) Class.forName("org.apache.tools.ant.taskdefs.email.MimeMailer")
-                    .newInstance();
-            } catch (Throwable e) {
-                log("Failed to initialise MIME mail: " + e.getMessage());
-                return;
-            }
+        try {
+            mailer = (Mailer) ClasspathUtils.newInstance(
+                    "org.apache.tools.ant.taskdefs.email.MimeMailer",
+                    MailLogger.class.getClassLoader(), Mailer.class);
+        } catch (BuildException e) {
+            Throwable t = e.getCause() == null ? e : e.getCause();
+            log("Failed to initialise MIME mail: " + t.getMessage());
+            return;
+        }
         Vector replyToList = vectorizeEmailAddresses(replyToString);
         mailer.setHost(host);
         mailer.setPort(port);

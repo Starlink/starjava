@@ -4,6 +4,9 @@
 
   <target name="cleanup">
     <delete file="asf-logo.gif" />
+    <delete file="untartest.tar" />
+    <delete dir="untartestin"/>
+    <delete dir="untartestout"/>
   </target>
 
   <target name="testTarTask">
@@ -44,4 +47,40 @@
   <target name="encoding">
     <untar src="expected/asf-logo.gif.tar" dest="." encoding="foo"/>
   </target>
+
+  <target name="resourceCollection">
+    <mkdir dir="untartestout"/>
+    <zip destfile="untartestout/test.zip">
+      <fileset dir="expected">
+        <include name="asf-logo.gif.tar"/>
+      </fileset>
+    </zip>
+    <untar dest=".">
+      <zipfileset src="untartestout/test.zip">
+        <include name="*.tar"/>
+      </zipfileset>
+    </untar>
+  </target>
+
+  <target name="prepareTestTar">
+    <mkdir dir="untartestin/1"/>
+    <mkdir dir="untartestin/2"/>
+    <touch file="untartestin/1/foo"/>
+    <touch file="untartestin/2/bar"/>
+    <copy todir="untartestin/2">
+      <fileset dir="expected" includes="*md5*"/>
+    </copy>
+    <tar destfile="untartest.tar" basedir="untartestin"/>
+  </target>
+
+  <target name="testDocumentationClaimsOnCopy" depends="prepareTestTar">
+    <copy todir="untartestout" preservelastmodified="true"> 
+      <tarfileset src="untartest.tar">
+        <patternset>
+          <include name="2/"/>
+        </patternset>
+      </tarfileset>
+    </copy>
+  </target>
+  
 </project>

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -38,8 +39,8 @@ class SplashScreen extends JWindow implements ActionListener, BuildListener {
     private JLabel text;
     private JProgressBar pb;
     private int total;
-    private final int min = 0;
-    private final int max = 200;
+    private static final int MIN = 0;
+    private static final int MAX = 200;
 
     public SplashScreen(String msg) {
         init(null);
@@ -65,7 +66,7 @@ class SplashScreen extends JWindow implements ActionListener, BuildListener {
         text.setFont(new Font("Sans-Serif", Font.BOLD, 12));
         text.setBorder(BorderFactory.createEtchedBorder());
 
-        pb = new JProgressBar(min, max);
+        pb = new JProgressBar(MIN, MAX);
         pb.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
         JPanel pan2 = new JPanel();
         pan2.setLayout(new BorderLayout());
@@ -93,10 +94,10 @@ class SplashScreen extends JWindow implements ActionListener, BuildListener {
     }
 
     public void actionPerformed(ActionEvent a) {
-        if (total < max) {
+        if (total < MAX) {
             total++;
         } else {
-            total = min;
+            total = MIN;
         }
         pb.setValue(total);
     }
@@ -106,7 +107,7 @@ class SplashScreen extends JWindow implements ActionListener, BuildListener {
     }
 
     public void buildFinished(BuildEvent event) {
-        pb.setValue(max);
+        pb.setValue(MAX);
         setVisible(false);
         dispose();
     }

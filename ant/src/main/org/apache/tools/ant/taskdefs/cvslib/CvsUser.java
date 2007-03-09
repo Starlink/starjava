@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,13 +22,12 @@ import org.apache.tools.ant.BuildException;
 /**
  * Represents a CVS user with a userID and a full name.
  *
- * @version $Revision: 1.5.2.4 $ $Date: 2004/03/09 17:01:40 $
  */
 public class CvsUser {
     /** The user's Id */
-    private String m_userID;
+    private String userID;
     /** The user's full name */
-    private String m_displayName;
+    private String displayName;
 
 
     /**
@@ -36,7 +36,7 @@ public class CvsUser {
      * @param displayName the user's full name
      */
     public void setDisplayname(final String displayName) {
-        m_displayName = displayName;
+        this.displayName = displayName;
     }
 
 
@@ -46,7 +46,7 @@ public class CvsUser {
      * @param userID the user's new id value.
      */
     public void setUserid(final String userID) {
-        m_userID = userID;
+        this.userID = userID;
     }
 
 
@@ -55,8 +55,8 @@ public class CvsUser {
      *
      * @return The userID value
      */
-    String getUserID() {
-        return m_userID;
+    public String getUserID() {
+        return userID;
     }
 
 
@@ -65,26 +65,26 @@ public class CvsUser {
      *
      * @return the user's full name
      */
-    String getDisplayname() {
-        return m_displayName;
+    public String getDisplayname() {
+        return displayName;
     }
 
 
     /**
-     * validate that this object is configured.
+     * Validate that this object is configured.
      *
      * @exception BuildException if the instance has not be correctly
      *            configured.
      */
-    void validate() throws BuildException {
-        if (null == m_userID) {
+    public void validate() throws BuildException {
+        if (null == userID) {
             final String message = "Username attribute must be set.";
 
             throw new BuildException(message);
         }
-        if (null == m_displayName) {
+        if (null == displayName) {
             final String message =
-                "Displayname attribute must be set for userID " + m_userID;
+                "Displayname attribute must be set for userID " + userID;
 
             throw new BuildException(message);
         }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,11 +21,17 @@ import java.io.File;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.launch.Locator;
 
+// CheckStyle:HideUtilityClassConstructorCheck OFF - bc
+
 /**
  * ClassLoader utility methods
  *
  */
 public class LoaderUtils {
+
+    /** Utilities used for file operations */
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
     /**
      * Set the context classloader
      *
@@ -67,9 +74,8 @@ public class LoaderUtils {
      */
     private static File normalizeSource(File source) {
         if (source != null) {
-            FileUtils fileUtils = FileUtils.newFileUtils();
             try {
-                source = fileUtils.normalize(source.getAbsolutePath());
+                source = FILE_UTILS.normalize(source.getAbsolutePath());
             } catch (BuildException e) {
                 // relative path
             }
@@ -107,6 +113,27 @@ public class LoaderUtils {
             c = LoaderUtils.class.getClassLoader();
         }
         return normalizeSource(Locator.getResourceSource(c, resource));
+    }
+
+    /**
+     * Return the resource name of a class name.
+     * @param className the name of the class to convert.
+     * @return the corresponding resource name.
+     * @since Ant 1.7.0.
+     */
+    public static String classNameToResource(String className) {
+        return className.replace('.', '/') + ".class";
+    }
+
+    /**
+     * Check if a classloader has a classname resource.
+     * @param loader the classloader to look it.
+     * @param className the name of the class to look for.
+     * @return true if the classexists, false otherwise
+     * @since Ant 1.7.0.
+     */
+    public static boolean classExists(ClassLoader loader, String className) {
+        return loader.getResource(classNameToResource(className)) != null;
     }
 }
 

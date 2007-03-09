@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,6 +29,7 @@ import java.util.Vector;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.FileSet;
 
@@ -59,6 +61,8 @@ import org.apache.tools.ant.types.FileSet;
 public class Ilasm
          extends DotnetBaseMatchingTask {
 
+    // CheckStyle:VisibilityModifier OFF - bc
+    // CheckStyle:ConstantNameCheck OFF - bc
     /**
      *  Name of the executable. The .exe suffix is deliberately not included in
      *  anticipation of the unix version
@@ -130,6 +134,13 @@ public class Ilasm
      */
     protected Vector referenceFilesets = new Vector();
 
+    // CheckStyle:ConstantNameCheck ON
+    // CheckStyle:VisibilityModifier ON
+
+    /**
+     * @since Ant 1.7
+     */
+    private boolean isMono = !Os.isFamily("windows");
 
     /**
      *  constructor inits everything and set up the search pattern
@@ -139,7 +150,7 @@ public class Ilasm
         setIncludes(file_pattern);
     }
 
-
+    // CheckStyle:MethodNameCheck OFF - bc
     /**
      *  reset all contents.
      */
@@ -154,6 +165,7 @@ public class Ilasm
         resourceFile = null;
         extraOptions = null;
     }
+    // CheckStyle:MethodNameCheck ON
 
 
 
@@ -262,7 +274,10 @@ public class Ilasm
      *@return    the appropriate string from the state of the listing flag
      */
     protected String getListingParameter() {
-        return listing ? "/listing" : "/nolisting";
+        if (!isMono) {
+            return listing ? "/listing" : "/nolisting";
+        }
+        return null;
     }
 
 
@@ -423,10 +438,21 @@ public class Ilasm
 
     /**
      * set the target type to one of exe|library
-     * @param targetType
+     * @param targetType the enumerated value.
      */
     public void setTargetType(TargetTypes targetType) {
         this.targetType = targetType.getValue();
+    }
+
+    /**
+     * Explicitly override the Mono auto-detection.
+     *
+     * <p>Defaults to false on Windows and true on any other platform.</p>
+     * @param b a <code>boolean</code> value.
+     * @since Ant 1.7
+     */
+    public void setMono(boolean b) {
+        isMono = b;
     }
 
     /**
@@ -437,6 +463,10 @@ public class Ilasm
      */
     public void execute()
              throws BuildException {
+        log("This task is deprecated and will be removed in a future version\n"
+            + "of Ant.  It is now part of the .NET Antlib:\n"
+            + "http://ant.apache.org/antlibs/dotnet/index.html",
+            Project.MSG_WARN);
         NetCommand command = buildIlasmCommand();
 
         addFilesAndExecute(command, false);
@@ -472,7 +502,7 @@ public class Ilasm
 
     /**
      * add a new reference fileset to the compilation
-     * @param reference
+     * @param reference the fileset to use.
      */
     public void addReference(FileSet reference) {
         referenceFilesets.add(reference);
@@ -480,6 +510,7 @@ public class Ilasm
 
     /**
      * test for a file being managed or not
+     * @param file the file to test.
      * @return true if we think this is a managed executable, and thus OK
      * for linking
      * @todo look at the PE header of the exe and see if it is managed or not.
@@ -496,6 +527,7 @@ public class Ilasm
      * valid build types are exe|library|module|winexe
      */
     public static class TargetTypes extends EnumeratedAttribute {
+        /** {@inheritDoc}. */
         public String[] getValues() {
             return new String[]{
                 "exe",

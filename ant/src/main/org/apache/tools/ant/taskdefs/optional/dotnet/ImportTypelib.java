@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -44,6 +45,7 @@ import java.io.File;
  */
 public class ImportTypelib extends Task {
 
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * input file; precedes options
@@ -77,9 +79,9 @@ public class ImportTypelib extends Task {
 
     /**
      * This method names the output file.
-     * 
+     *
      * This is an operation which is required to have been performed.
-     * @param destFile
+     * @param destFile the output file.
      */
     public void setDestFile(File destFile) {
         this.destFile = destFile;
@@ -88,16 +90,16 @@ public class ImportTypelib extends Task {
     /**
      * This method sets what namespace the typelib is to be in.
      * This is an operation which is required to have been performed.
-     * @param namespace
+     * @param namespace the namespace to use.
      */
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
 
     /**
-     * This method sets which is the source .tlb file. 
+     * This method sets which is the source .tlb file.
      * This is an operation which is required to have been performed.
-     * @param srcFile
+     * @param srcFile the source file.
      */
     public void setSrcFile(File srcFile) {
         this.srcFile = srcFile;
@@ -105,7 +107,7 @@ public class ImportTypelib extends Task {
 
     /**
      * do you want unsafe code.
-     * @param unsafe
+     * @param unsafe a <code>boolean</code> value.
      */
     public void setUnsafe(boolean unsafe) {
         this.unsafe = unsafe;
@@ -113,7 +115,7 @@ public class ImportTypelib extends Task {
 
     /**
      * set this to map a COM SafeArray to the System.Array class
-     * @param useSysArray
+     * @param useSysArray a <code>boolean</code> value.
      */
     public void setUseSysArray(boolean useSysArray) {
         this.useSysArray = useSysArray;
@@ -121,7 +123,7 @@ public class ImportTypelib extends Task {
 
     /**
      * set any extra options that are not yet supported by this task.
-     * @param extraOptions
+     * @param extraOptions the options to use.
      */
     public void setExtraOptions(String extraOptions) {
         this.extraOptions = extraOptions;
@@ -166,7 +168,7 @@ public class ImportTypelib extends Task {
         }
         long sourceTime = srcFile.lastModified();
         long destTime = destFile.lastModified();
-        if (sourceTime > (destTime + FileUtils.newFileUtils().getFileTimestampGranularity())) {
+        if (sourceTime > (destTime + FILE_UTILS.getFileTimestampGranularity())) {
             log("Source file is newer than the dest file: a rebuild is required",
                     Project.MSG_VERBOSE);
             return true;
@@ -183,12 +185,16 @@ public class ImportTypelib extends Task {
      * @exception BuildException if something goes wrong with the build
      */
     public void execute() throws BuildException {
+        log("This task is deprecated and will be removed in a future version\n"
+            + "of Ant.  It is now part of the .NET Antlib:\n"
+            + "http://ant.apache.org/antlibs/dotnet/index.html",
+            Project.MSG_WARN);
         validate();
         log("Importing typelib " + srcFile
             + " to assembly " + destFile
             + " in namespace " + namespace, Project.MSG_VERBOSE);
         //rebuild unless the dest file is newer than the source file
-        if(!isExecuteNeeded()) {
+        if (!isExecuteNeeded()) {
             return;
         }
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,6 +18,12 @@
 package org.apache.tools.ant;
 
 import org.apache.tools.ant.util.LoaderUtils;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.JAXPUtils;
+import org.apache.tools.ant.util.ProxySetup;
+import org.apache.tools.ant.util.JavaEnvUtils;
+import org.apache.tools.ant.launch.Launcher;
+import org.xml.sax.XMLReader;
 
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;
@@ -25,8 +32,11 @@ import java.io.FilenameFilter;
 import java.io.PrintStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.FileOutputStream;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
@@ -39,11 +49,34 @@ import java.lang.reflect.InvocationTargetException;
  */
 public final class Diagnostics {
 
+    /**
+     * value for which a difference between clock and temp file time triggers
+     * a warning.
+     * {@value}
+     */
+    private static final int BIG_DRIFT_LIMIT = 10000;
+    /**
+     * How big a test file to write.
+     * {@value}
+     */
+    private static final int TEST_FILE_SIZE = 32;
+    private static final int KILOBYTE = 1024;
+    private static final int SECONDS_PER_MILLISECOND = 1000;
+    private static final int SECONDS_PER_MINUTE = 60;
+    private static final int MINUTES_PER_HOUR = 60;
     private static final String TEST_CLASS
         = "org.apache.tools.ant.taskdefs.optional.Test";
 
+    /**
+     * The error text when a security manager blocks access to a property.
+     * {@value}
+     */
+    protected static final String ERROR_PROPERTY_ACCESS_BLOCKED
+        = "Access to this property blocked by a security manager";
+
     /** utility class */
     private Diagnostics() {
+        // hidden constructor
     }
 
     /**
@@ -68,7 +101,7 @@ public final class Diagnostics {
     public static void validateVersion() throws BuildException {
         try {
             Class optional
-                = Class.forName("org.apache.tools.ant.taskdefs.optional.Test");
+                = Class.forName(TEST_CLASS);
             String coreVersion = getImplementationVersion(Main.class);
             String optionalVersion = getImplementationVersion(optional);
 
@@ -80,6 +113,7 @@ public final class Diagnostics {
             }
         } catch (ClassNotFoundException e) {
             // ignore
+            ignoreThrowable(e);
         }
     }
 
@@ -90,25 +124,28 @@ public final class Diagnostics {
      * <tt>null</tt> if an error occurs.
      */
     public static File[] listLibraries() {
-        String home = System.getProperty("ant.home");
+        String home = System.getProperty(MagicNames.ANT_HOME);
         if (home == null) {
             return null;
         }
         File libDir = new File(home, "lib");
+        return listJarFiles(libDir);
+
+    }
+
+    /**
+     * get a list of all JAR files in a directory
+     * @param libDir directory
+     * @return array of files (or null for no such directory)
+     */
+    private static File[] listJarFiles(File libDir) {
         FilenameFilter filter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.endsWith(".jar");
             }
         };
-        // listFiles is JDK 1.2+ method...
-        String[] filenames = libDir.list(filter);
-        if (filenames == null) {
-            return null;
-        }
-        File[] files = new File[filenames.length];
-        for (int i = 0; i < filenames.length; i++) {
-            files[i] = new File(libDir, filenames[i]);
-        }
+
+        File[] files  = libDir.listFiles(filter);
         return files;
     }
 
@@ -128,21 +165,8 @@ public final class Diagnostics {
      * '?.?' for JDK 1.0 or 1.1.
      */
     private static String getImplementationVersion(Class clazz) {
-        try {
-          // Package pkg = clazz.getPackage();
-          Method method = Class.class.getMethod("getPackage", new Class[0]);
-          Object pkg = method.invoke(clazz, null);
-          if (pkg != null) {
-              // pkg.getImplementationVersion();
-              method = pkg.getClass().getMethod("getImplementationVersion", new Class[0]);
-              Object version = method.invoke(pkg, null);
-              return (String) version;
-          }
-        } catch (Exception e) {
-          // JDK < 1.2 should land here because the methods above don't exist.
-          return "?.?";
-        }
-        return null;
+        Package pkg = clazz.getPackage();
+        return pkg.getImplementationVersion();
     }
 
     /**
@@ -174,6 +198,7 @@ public final class Diagnostics {
             saxParser = saxParserFactory.newSAXParser();
         } catch (Exception e) {
             // ignore
+            ignoreThrowable(e);
         }
         return saxParser;
     }
@@ -190,6 +215,36 @@ public final class Diagnostics {
         }
         String location = getClassLocation(saxParser.getClass());
         return location;
+    }
+
+    private static String getNamespaceParserName() {
+        try {
+            XMLReader reader = JAXPUtils.getNamespaceXMLReader();
+            return reader.getClass().getName();
+        } catch (BuildException e) {
+            //ignore
+            ignoreThrowable(e);
+            return null;
+        }
+    }
+
+    private static String getNamespaceParserLocation() {
+        try {
+            XMLReader reader = JAXPUtils.getNamespaceXMLReader();
+            return getClassLocation(reader.getClass());
+        } catch (BuildException e) {
+            //ignore
+            ignoreThrowable(e);
+            return null;
+        }
+    }
+
+    /**
+     * ignore exceptions. This is to allow future
+     * implementations to log at a verbose level
+     * @param thrown
+     */
+    private static void ignoreThrowable(Throwable thrown) {
     }
 
     /**
@@ -211,54 +266,59 @@ public final class Diagnostics {
     public static void doReport(PrintStream out) {
         out.println("------- Ant diagnostics report -------");
         out.println(Main.getAntVersion());
-        out.println();
-        out.println("-------------------------------------------");
-        out.println(" Implementation Version (JDK1.2+ only)");
-        out.println("-------------------------------------------");
+        header(out, "Implementation Version");
+
         out.println("core tasks     : " + getImplementationVersion(Main.class));
 
         Class optional = null;
         try {
-            optional = Class.forName(
-                    "org.apache.tools.ant.taskdefs.optional.Test");
+            optional = Class.forName(TEST_CLASS);
             out.println("optional tasks : "
                 + getImplementationVersion(optional));
         } catch (ClassNotFoundException e) {
+            ignoreThrowable(e);
             out.println("optional tasks : not available");
         }
 
-        out.println();
-        out.println("-------------------------------------------");
-        out.println(" ANT_HOME/lib jar listing");
-        out.println("-------------------------------------------");
-        doReportLibraries(out);
+        header(out, "ANT PROPERTIES");
+        doReportAntProperties(out);
 
-        out.println();
-        out.println("-------------------------------------------");
-        out.println(" Tasks availability");
-        out.println("-------------------------------------------");
+        header(out, "ANT_HOME/lib jar listing");
+        doReportAntHomeLibraries(out);
+
+        header(out, "USER_HOME/.ant/lib jar listing");
+        doReportUserHomeLibraries(out);
+
+        header(out, "Tasks availability");
         doReportTasksAvailability(out);
 
-        out.println();
-        out.println("-------------------------------------------");
-        out.println(" org.apache.env.Which diagnostics");
-        out.println("-------------------------------------------");
+        header(out, "org.apache.env.Which diagnostics");
         doReportWhich(out);
 
-
-        out.println();
-        out.println("-------------------------------------------");
-        out.println(" XML Parser information");
-        out.println("-------------------------------------------");
+        header(out, "XML Parser information");
         doReportParserInfo(out);
 
-        out.println();
-        out.println("-------------------------------------------");
-        out.println(" System properties");
-        out.println("-------------------------------------------");
+        header(out, "System properties");
         doReportSystemProperties(out);
 
+        header(out, "Temp dir");
+        doReportTempDir(out);
+
+        header(out, "Locale information");
+        doReportLocale(out);
+
+        header(out, "Proxy information");
+        doReportProxy(out);
+
         out.println();
+    }
+
+    private static void header(PrintStream out, String section) {
+        out.println();
+        out.println("-------------------------------------------");
+        out.print(" ");
+        out.println(section);
+        out.println("-------------------------------------------");
     }
 
     /**
@@ -266,23 +326,84 @@ public final class Diagnostics {
      * @param out the stream to print the properties to.
      */
     private static void doReportSystemProperties(PrintStream out) {
-        for (Enumeration keys = System.getProperties().keys();
+        Properties sysprops = null;
+        try {
+            sysprops = System.getProperties();
+        } catch (SecurityException  e) {
+            ignoreThrowable(e);
+            out.println("Access to System.getProperties() blocked "
+                    + "by a security manager");
+        }
+        for (Enumeration keys = sysprops.propertyNames();
             keys.hasMoreElements();) {
             String key = (String) keys.nextElement();
-            out.println(key + " : " + System.getProperty(key));
+            String value = getProperty(key);
+            out.println(key + " : " + value);
         }
     }
 
+    /**
+     * Get the value of a system property. If a security manager
+     * blocks access to a property it fills the result in with an error
+     * @param key
+     * @return the system property's value or error text
+     * @see #ERROR_PROPERTY_ACCESS_BLOCKED
+     */
+    private static String getProperty(String key) {
+        String value;
+        try {
+            value = System.getProperty(key);
+        } catch (SecurityException e) {
+            value = ERROR_PROPERTY_ACCESS_BLOCKED;
+        }
+        return value;
+    }
 
     /**
      * Report the content of ANT_HOME/lib directory
      * @param out the stream to print the content to
      */
-    private static void doReportLibraries(PrintStream out) {
-        out.println("ant.home: " + System.getProperty("ant.home"));
+    private static void doReportAntProperties(PrintStream out) {
+        Project p = new Project();
+        p.initProperties();
+        out.println(MagicNames.ANT_VERSION + ": " + p.getProperty(MagicNames.ANT_VERSION));
+        out.println(MagicNames.ANT_JAVA_VERSION + ": "
+                    + p.getProperty(MagicNames.ANT_JAVA_VERSION));
+        out.println(MagicNames.ANT_LIB + ": " + p.getProperty(MagicNames.ANT_LIB));
+        out.println(MagicNames.ANT_HOME + ": " + p.getProperty(MagicNames.ANT_HOME));
+    }
+
+    /**
+     * Report the content of ANT_HOME/lib directory
+     * @param out the stream to print the content to
+     */
+    private static void doReportAntHomeLibraries(PrintStream out) {
+        out.println(MagicNames.ANT_HOME + ": " + System.getProperty(MagicNames.ANT_HOME));
         File[] libs = listLibraries();
+        printLibraries(libs, out);
+    }
+
+    /**
+     * Report the content of ~/.ant/lib directory
+     *
+     * @param out the stream to print the content to
+     */
+    private static void doReportUserHomeLibraries(PrintStream out) {
+        String home = System.getProperty(Launcher.USER_HOMEDIR);
+        out.println("user.home: " + home);
+        File libDir = new File(home, Launcher.USER_LIBDIR);
+        File[] libs = listJarFiles(libDir);
+        printLibraries(libs, out);
+    }
+
+    /**
+     * list the libraries
+     * @param libs array of libraries (can be null)
+     * @param out output stream
+     */
+    private static void printLibraries(File[] libs, PrintStream out) {
         if (libs == null) {
-            out.println("Unable to list libraries.");
+            out.println("No such directory.");
             return;
         }
         for (int i = 0; i < libs.length; i++) {
@@ -328,7 +449,7 @@ public final class Diagnostics {
      */
     private static void doReportTasksAvailability(PrintStream out) {
         InputStream is = Main.class.getResourceAsStream(
-                "/org/apache/tools/ant/taskdefs/defaults.properties");
+                MagicNames.TASKDEF_PROPERTIES_RESOURCE);
         if (is == null) {
             out.println("None available");
         } else {
@@ -342,16 +463,20 @@ public final class Diagnostics {
                         Class.forName(classname);
                         props.remove(key);
                     } catch (ClassNotFoundException e) {
-                        out.println(key + " : Not Available");
+                        out.println(key + " : Not Available "
+                                + "(the implementation class is not present)");
                     } catch (NoClassDefFoundError e) {
                         String pkg = e.getMessage().replace('/', '.');
                         out.println(key + " : Missing dependency " + pkg);
-                    } catch (Error e) {
+                    } catch (LinkageError e) {
                         out.println(key + " : Initialization error");
                     }
                 }
                 if (props.size() == 0) {
                     out.println("All defined tasks are available");
+                } else {
+                    out.println("A task being missing/unavailable should only "
+                            + "matter if you are trying to use it");
                 }
             } catch (IOException e) {
                 out.println(e.getMessage());
@@ -366,13 +491,160 @@ public final class Diagnostics {
     private static void doReportParserInfo(PrintStream out) {
         String parserName = getXmlParserName();
         String parserLocation = getXMLParserLocation();
+        printParserInfo(out, "XML Parser", parserName, parserLocation);
+        printParserInfo(out, "Namespace-aware parser",
+                getNamespaceParserName(),
+                getNamespaceParserLocation());
+    }
+
+    private static void printParserInfo(PrintStream out,
+                                        String parserType,
+                                        String parserName,
+                                        String parserLocation) {
         if (parserName == null) {
             parserName = "unknown";
         }
         if (parserLocation == null) {
             parserLocation = "unknown";
         }
-        out.println("XML Parser : " + parserName);
-        out.println("XML Parser Location: " + parserLocation);
+        out.println(parserType + " : " + parserName);
+        out.println(parserType + " Location: " + parserLocation);
     }
+
+    /**
+     * try and create a temp file in our temp dir; this
+     * checks that it has space and access.
+     * We also do some clock reporting.
+     * @param out
+     */
+    private static void doReportTempDir(PrintStream out) {
+        String tempdir = System.getProperty("java.io.tmpdir");
+        if (tempdir == null) {
+            out.println("Warning: java.io.tmpdir is undefined");
+            return;
+        }
+        out.println("Temp dir is " + tempdir);
+        File tempDirectory = new File(tempdir);
+        if (!tempDirectory.exists()) {
+            out.println("Warning, java.io.tmpdir directory does not exist: "
+                    + tempdir);
+            return;
+        }
+        //create the file
+        long now = System.currentTimeMillis();
+        File tempFile = null;
+        FileOutputStream fileout = null;
+        try {
+            tempFile = File.createTempFile("diag", "txt", tempDirectory);
+            //do some writing to it
+            fileout = new FileOutputStream(tempFile);
+            byte[] buffer = new byte[KILOBYTE];
+            for (int i = 0; i < TEST_FILE_SIZE; i++) {
+                fileout.write(buffer);
+            }
+            fileout.close();
+            fileout = null;
+            long filetime = tempFile.lastModified();
+            tempFile.delete();
+            out.println("Temp dir is writeable");
+            long drift = filetime - now;
+            out.println("Temp dir alignment with system clock is " + drift + " ms");
+            if (Math.abs(drift) > BIG_DRIFT_LIMIT) {
+                out.println("Warning: big clock drift -maybe a network filesystem");
+            }
+        } catch (IOException e) {
+            ignoreThrowable(e);
+            out.println("Failed to create a temporary file in the temp dir "
+                + tempdir);
+            out.println("File  " + tempFile + " could not be created/written to");
+        } finally {
+            FileUtils.close(fileout);
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    /**
+     * Report locale information
+     * @param out stream to print to
+     */
+    private static void doReportLocale(PrintStream out) {
+        //calendar stuff.
+        Calendar cal = Calendar.getInstance();
+        TimeZone tz = cal.getTimeZone();
+        out.println("Timezone " + tz.getDisplayName()
+                + " offset=" + tz.getOffset(cal.get(Calendar.ERA),
+                        cal.get(Calendar.YEAR),
+                        cal.get(Calendar.MONTH),
+                        cal.get(Calendar.DAY_OF_MONTH),
+                        cal.get(Calendar.DAY_OF_WEEK),
+                        ((cal.get(Calendar.HOUR_OF_DAY) * MINUTES_PER_HOUR
+                         + cal.get(Calendar.MINUTE)) * SECONDS_PER_MINUTE
+                         + cal.get(Calendar.SECOND)) * SECONDS_PER_MILLISECOND
+                         + cal.get(Calendar.MILLISECOND)));
+    }
+
+    /**
+     * print a property name="value" pair if the property is set;
+     * print nothing if it is null
+     * @param out stream to print on
+     * @param key property name
+     */
+    private static void printProperty(PrintStream out, String key) {
+        String value = getProperty(key);
+        if (value != null) {
+            out.print(key);
+            out.print(" = ");
+            out.print('"');
+            out.print(value);
+            out.println('"');
+        }
+    }
+
+    /**
+     * Report proxy information
+     *
+     * @param out stream to print to
+     * @since Ant1.7
+     */
+    private static void doReportProxy(PrintStream out) {
+        printProperty(out, ProxySetup.HTTP_PROXY_HOST);
+        printProperty(out, ProxySetup.HTTP_PROXY_PORT);
+        printProperty(out, ProxySetup.HTTP_PROXY_USERNAME);
+        printProperty(out, ProxySetup.HTTP_PROXY_PASSWORD);
+        printProperty(out, ProxySetup.HTTP_NON_PROXY_HOSTS);
+        printProperty(out, ProxySetup.HTTPS_PROXY_HOST);
+        printProperty(out, ProxySetup.HTTPS_PROXY_PORT);
+        printProperty(out, ProxySetup.HTTPS_NON_PROXY_HOSTS);
+        printProperty(out, ProxySetup.FTP_PROXY_HOST);
+        printProperty(out, ProxySetup.FTP_PROXY_PORT);
+        printProperty(out, ProxySetup.FTP_NON_PROXY_HOSTS);
+        printProperty(out, ProxySetup.SOCKS_PROXY_HOST);
+        printProperty(out, ProxySetup.SOCKS_PROXY_PORT);
+        printProperty(out, ProxySetup.SOCKS_PROXY_USERNAME);
+        printProperty(out, ProxySetup.SOCKS_PROXY_PASSWORD);
+
+        if (JavaEnvUtils.getJavaVersionNumber() < 15) {
+            return;
+        }
+        printProperty(out, ProxySetup.USE_SYSTEM_PROXIES);
+        final String proxyDiagClassname
+            = "org.apache.tools.ant.util.java15.ProxyDiagnostics";
+        try {
+            Class proxyDiagClass = Class.forName(proxyDiagClassname);
+            Object instance = proxyDiagClass.newInstance();
+            out.println("Java1.5+ proxy settings:");
+            out.println(instance.toString());
+        } catch (ClassNotFoundException e) {
+            //not included, do nothing
+        } catch (IllegalAccessException e) {
+            //not included, do nothing
+        } catch (InstantiationException e) {
+            //not included, do nothing
+        } catch (NoClassDefFoundError e) {
+            // not included, to nothing
+        }
+    }
+
 }

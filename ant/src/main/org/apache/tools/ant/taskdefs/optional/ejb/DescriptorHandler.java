@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -39,6 +40,7 @@ import org.xml.sax.SAXException;
  * list can then be accessed through the getFiles() method.
  */
 public class DescriptorHandler extends org.xml.sax.HandlerBase {
+    private static final int DEFAULT_HASH_TABLE_SIZE = 10;
     private static final int STATE_LOOKING_EJBJAR = 1;
     private static final int STATE_IN_EJBJAR = 2;
     private static final int STATE_IN_BEANS = 3;
@@ -74,6 +76,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
      */
     private int parseState = STATE_LOOKING_EJBJAR;
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * Instance variable used to store the name of the current element being
      * processed by the SAX parser.  Accessed by the SAX parser call-back methods
@@ -105,6 +108,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
     private boolean inEJBRef = false;
 
     private Hashtable urlDTDs = new Hashtable();
+    // CheckStyle:VisibilityModifier OFF - bc
 
     /**
      * The directory containing the bean classes and interfaces. This is
@@ -112,11 +116,23 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
      */
     private File srcDir;
 
+    /**
+     * Constructor for DescriptorHandler.
+     * @param task the task that owns this desciptor
+     * @param srcDir the source directory
+     */
     public DescriptorHandler(Task task, File srcDir) {
         this.owningTask = task;
         this.srcDir = srcDir;
     }
 
+    /**
+     * Register a dtd with a location.
+     * The location is one of a filename, a resource name in the classpath, or
+     * a URL.
+     * @param publicId the public identity of the dtd
+     * @param location the location of the dtd
+     */
     public void registerDTD(String publicId, String location) {
         if (location == null) {
             return;
@@ -156,6 +172,16 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
 
     }
 
+    /**
+     * Resolve the entity.
+     * @see org.xml.sax.EntityResolver#resolveEntity(String, String).
+     * @param publicId The public identifier, or <code>null</code>
+     *                 if none is available.
+     * @param systemId The system identifier provided in the XML
+     *                 document. Will not be <code>null</code>.
+     * @return an inputsource for this identifier
+     * @throws SAXException if there is a problem.
+     */
     public InputSource resolveEntity(String publicId, String systemId)
         throws SAXException {
         this.publicId = publicId;
@@ -201,6 +227,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
 
     /**
      * Getter method that returns the set of files to include in the EJB jar.
+     * @return the map of files
      */
     public Hashtable getFiles() {
         return (ejbFiles == null) ? new Hashtable() : ejbFiles;
@@ -208,6 +235,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
 
     /**
      * Get the publicId of the DTD
+     * @return the public id
      */
     public String getPublicId() {
         return publicId;
@@ -215,6 +243,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
 
      /**
      * Getter method that returns the value of the &lt;ejb-name&gt; element.
+     * @return the ejb name
      */
     public String getEjbName() {
         return ejbName;
@@ -223,9 +252,10 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
     /**
      * SAX parser call-back method that is used to initialize the values of some
      * instance variables to ensure safe operation.
+     * @throws SAXException on error
      */
     public void startDocument() throws SAXException {
-        this.ejbFiles = new Hashtable(10, 1);
+        this.ejbFiles = new Hashtable(DEFAULT_HASH_TABLE_SIZE, 1);
         this.currentElement = null;
         inEJBRef = false;
     }
@@ -237,6 +267,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
      * instance variable.
      * @param name The name of the element being entered.
      * @param attrs Attributes associated to the element.
+     * @throws SAXException on error
      */
     public void startElement(String name, AttributeList attrs)
         throws SAXException {
@@ -266,6 +297,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
      * data this is a simpler and workable solution.
      * @param name The name of the attribute being exited. Ignored
      *        in this implementation.
+     * @throws SAXException on error
      */
     public void endElement(String name) throws SAXException {
         processElement();
@@ -300,6 +332,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
      *        array to start reading from.
      * @param length An integer representing an offset into the
      *        char array where the current data terminates.
+     * @throws SAXException on error
      */
     public void characters(char[] ch, int start, int length)
         throws SAXException {
@@ -308,6 +341,12 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
     }
 
 
+    /**
+     * Called when an endelement is seen.
+     * This may be overridden in derived classes.
+     * This updates the ejbfiles if the element is an interface or a bean class.
+     * This updates the ejbname if the element is an ejb name.
+     */
     protected void processElement() {
         if (inEJBRef
             || (parseState != STATE_IN_ENTITY
@@ -340,7 +379,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
             }
         }
 
-    // Get the value of the <ejb-name> tag.  Only the first occurrence.
+        // Get the value of the <ejb-name> tag.  Only the first occurrence.
         if (currentElement.equals(EJB_NAME)) {
             if (ejbName == null) {
                 ejbName = currentText.trim();

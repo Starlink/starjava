@@ -1,9 +1,10 @@
 /*
- * Copyright  2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -45,22 +46,23 @@ public class CvsVersion extends AbstractCvsTask {
     private String serverVersion;
     private String clientVersionProperty;
     private String serverVersionProperty;
+
     /**
-     * get the CVS client version
+     * Get the CVS client version
      * @return CVS client version
      */
     public String getClientVersion() {
         return clientVersion;
     }
     /**
-     * get the CVS server version
+     * Get the CVS server version
      * @return CVS server version
      */
     public String getServerVersion() {
         return serverVersion;
     }
     /**
-     * set a property where to store the CVS client version
+     * Set a property where to store the CVS client version
      * @param clientVersionProperty  property for CVS client version
      */
     public void setClientVersionProperty(String clientVersionProperty) {
@@ -68,26 +70,25 @@ public class CvsVersion extends AbstractCvsTask {
     }
 
     /**
-     * set a property where to store the CVS server version
+     * Set a property where to store the CVS server version
      * @param serverVersionProperty  property for CVS server version
      */
     public void setServerVersionProperty(String serverVersionProperty) {
         this.serverVersionProperty = serverVersionProperty;
     }
     /**
-     * find out if the server version supports log with S option
+     * Find out if the server version supports log with S option
      * @return  boolean indicating if the server version supports log with S option
      */
     public boolean supportsCvsLogWithSOption() {
         if (serverVersion == null) {
             return false;
         }
-        StringTokenizer mySt = new StringTokenizer(serverVersion, ".");
-        long versionNumber;
+        StringTokenizer tokenizer = new StringTokenizer(serverVersion, ".");
         long counter = MULTIPLY * MULTIPLY;
         long version = 0;
-        while (mySt.hasMoreTokens()) {
-            String s = mySt.nextToken();
+        while (tokenizer.hasMoreTokens()) {
+            String s = tokenizer.nextToken();
             int i = 0;
             for (i = 0; i < s.length(); i++) {
                 if (!Character.isDigit(s.charAt(i))) {

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,11 +28,12 @@ import org.apache.tools.ant.util.FileUtils;
 /**
  * Renames a file.
  *
- *
  * @deprecated The rename task is deprecated since Ant 1.2.  Use move instead.
  * @since Ant 1.1
  */
 public class Rename extends Task {
+
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     private File src;
     private File dest;
@@ -84,7 +86,7 @@ public class Rename extends Task {
         }
 
         try {
-            FileUtils.newFileUtils().rename(src, dest);
+            FILE_UTILS.rename(src, dest);
         } catch (IOException e) {
             throw new BuildException("Unable to rename " + src + " to "
                 + dest, e, getLocation());

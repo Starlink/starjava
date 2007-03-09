@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -47,12 +48,6 @@ public class DirectoryIterator implements ClassFileIterator {
     private Enumeration currentEnum;
 
     /**
-     * The length of the root directory. This is used to remove the root
-     * directory from full paths.
-     */
-    private int rootLength;
-
-    /**
      * Creates a directory iterator. The directory iterator is created to
      * scan the root directory. If the changeInto flag is given, then the
      * entries returned will be relative to this directory and not the
@@ -70,12 +65,6 @@ public class DirectoryIterator implements ClassFileIterator {
         super();
 
         enumStack = new Stack();
-
-        if (rootDirectory.isAbsolute() || changeInto) {
-            rootLength = rootDirectory.getPath().length() + 1;
-        } else {
-            rootLength = 0;
-        }
 
         Vector filesInRoot = getDirectoryEntries(rootDirectory);
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,6 +20,9 @@ package org.apache.tools.ant.taskdefs.condition;
 
 import java.util.Enumeration;
 import java.util.Vector;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.DynamicElement;
+import org.apache.tools.ant.ComponentHelper;
 import org.apache.tools.ant.ProjectComponent;
 import org.apache.tools.ant.taskdefs.Available;
 import org.apache.tools.ant.taskdefs.Checksum;
@@ -30,10 +34,38 @@ import org.apache.tools.ant.taskdefs.UpToDate;
  * and the "container" conditions are in sync.
  *
  * @since Ant 1.4
- * @version $Revision: 1.22.2.4 $
  */
-public abstract class ConditionBase extends ProjectComponent {
+public abstract class ConditionBase extends ProjectComponent
+    implements DynamicElement {
+
+    private static final String CONDITION_ANTLIB
+        = "antlib:org.apache.tools.ant.types.conditions:";
+
+    /**
+     * name of the component
+     */
+    private String taskName = "condition";
+
+    /**
+     *
+     */
     private Vector conditions = new Vector();
+
+    /**
+     * Simple constructor.
+     */
+    protected ConditionBase() {
+        taskName = "component";
+    }
+
+    /**
+     * Constructor that takes the name of the task in the task name.
+     * @param taskName the name of the task.
+     * @since Ant 1.7
+     */
+    protected ConditionBase(String taskName) {
+        this.taskName = taskName;
+    }
 
     /**
      * Count the conditions.
@@ -53,6 +85,27 @@ public abstract class ConditionBase extends ProjectComponent {
      */
     protected final Enumeration getConditions() {
         return conditions.elements();
+    }
+
+    /**
+     * Sets the name to use in logging messages.
+     *
+     * @param name The name to use in logging messages.
+     *             Should not be <code>null</code>.
+     * @since Ant 1.7
+     */
+    public void setTaskName(String name) {
+        this.taskName = name;
+    }
+
+    /**
+     * Returns the name to use in logging messages.
+     *
+     * @return the name to use in logging messages.
+     * @since Ant 1.7
+     */
+    public String getTaskName() {
+        return taskName;
     }
 
     /**
@@ -215,11 +268,39 @@ public abstract class ConditionBase extends ProjectComponent {
     }
 
     /**
+     * Add an &lt;isfileselected&gt; condition.
+     * @param test the condition
+     */
+    public void addIsFileSelected(IsFileSelected test) {
+        conditions.addElement(test);
+    }
+
+    /**
      * Add an arbitrary condition
-     * @param c a  condition
+     * @param c a condition
      * @since Ant 1.6
      */
     public void add(Condition c) {
         conditions.addElement(c);
     }
+
+    /**
+     * Create a dynamically discovered condition.  Built-in conditions can
+     * be discovered from the org.apache.tools.ant.taskdefs.condition
+     * antlib.
+     * @param name the condition to create.
+     * @return the dynamic condition if found, null otherwise.
+     */
+    public Object createDynamicElement(String name) {
+        Object cond = ComponentHelper.getComponentHelper(getProject())
+            .createComponent(CONDITION_ANTLIB + name);
+        if (!(cond instanceof Condition)) {
+            return null;
+        }
+        log("Dynamically discovered '" + name + "' " + cond,
+            Project.MSG_DEBUG);
+        add((Condition) cond);
+        return cond;
+    }
+
 }

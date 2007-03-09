@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,15 +29,16 @@ import org.apache.tools.ant.BuildException;
  * @todo What to do if file is already open in one of our changelists perhaps
  * (See also {@link P4Edit P4Edit})?<br>
  *
- *
  * @ant.task category="scm"
  */
 public class P4Delete extends P4Base {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * number of the change list to work on
      */
     public String change = null;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * An existing changelist number for the deletion; optional

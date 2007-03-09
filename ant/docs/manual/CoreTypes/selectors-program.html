@@ -1,8 +1,24 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
   <head>
     <meta http-equiv="Content-Language" content="en-us">
-    <title>Programming Selectors in Ant</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
+    <link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
+<title>Programming Selectors in Ant</title>
   </head>
 
   <body>
@@ -122,7 +138,7 @@
 
     <h3>Testing Selectors</h3>
 
-    <p>For a robust component (and selectors are (Project)Component´s) tests are
+    <p>For a robust component (and selectors are (Project)Components) tests are
     necessary. For testing Tasks we use JUnit TestCases - more specific
     <tt>org.apache.tools.ant.BuildFileTest extends junit.framework.TestCase</tt>.
     Some of its features like configure the (test) project by reading its buildfile and
@@ -132,10 +148,10 @@
     extend <tt>BaseExtendSelector</tt> its features have to be tested also (e.g. setError()).
     </p>
 
-    <p>That´s why we have a base class for doing our selector tests:
+    <p>That's why we have a base class for doing our selector tests:
     <tt>org.apache.tools.ant.types.selectors.BaseSelectorTest</tt>.</p>
 
-    <p>This class extends TestCase and therefore can included in the set of Ant´s
+    <p>This class extends TestCase and therefore can included in the set of Ant's
     unit tests. It holds an instance of preconfigured BuildFileTest. Configuration
     is done by parsing the src/etc/testcases/types/selectors.xml. BaseSelectorTest
     then gives us helper methods for handling multiple selections. </p>
@@ -161,7 +177,7 @@
     BaseSelectorTest provides the method <tt>performTests()</tt> which
     iterates over all files (and directories) in the String array <tt>filenames</tt>
     and checks whether the given selector returns the expected result. If an error
-    occured (especially the selector does not return the expected result) the test
+    occurred (especially the selector does not return the expected result) the test
     fails and the failing filenames are logged.</p>
 
     <p>An example test would be:<pre>
@@ -202,15 +218,15 @@ public class MySelectorTest extends BaseSelectorTest {
     As an example of an error JUnit could log<pre>
     [junit]     FAILED
     [junit] Error for files: <font color=blue>.;copy.filterset.filtered;tar/gz/asf-logo.gif.tar.gz</font>
-    [junit] expected:&lt;<font color=blue>FTTTFTTTF...</font>> but was:&lt;TTTTTTTTT...>
+    [junit] expected:&lt;<font color=blue>FTTTFTTTF...</font>&gt; but was:&lt;TTTTTTTTT...&gt;
     [junit] junit.framework.ComparisonFailure: Error for files: .;copy.filterset.filtered;tar/gz/asf-logo.gif.tar.gz
-    [junit] expected:&lt;FTTTFTTTF...> but was:&lt;TTTTTTTTT...>
+    [junit] expected:&lt;FTTTFTTTF...&gt; but was:&lt;TTTTTTTTT...&gt;
     [junit]     at junit.framework.Assert.assertEquals(Assert.java:81)
     [junit]     at org.apache.tools.ant.types.selectors.BaseSelectorTest.performTest(BaseSelectorTest.java:194)
     </pre></p>
 
     <p>Described above the test class should provide a <tt>getInstance()</tt>
-    method. But that isn´t used here. The used <tt>getSelector()</tt> method is
+    method. But that isn't used here. The used <tt>getSelector()</tt> method is
     implemented in the base class and gives an instance of an Ant Project to
     the selector. This is usually done inside normal build file runs, but not
     inside this special environment, so this method gives the selector the
@@ -242,9 +258,7 @@ public class MySelectorTest extends BaseSelectorTest {
     </ul>
     </p>
 
-    <hr>
-    <p align="center">Copyright &copy; 2002-2004 The Apache Software
-    Foundation. All rights Reserved.</p>
+    
   </body>
 
 </html>

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,14 +29,15 @@ import java.io.OutputStream;
  */
 public class StreamPumper implements Runnable {
 
-    // TODO: make SIZE an instance variable.
-    // TODO: add a status flag to note if an error occurred in run.
-
-    private static final int SIZE = 128;
     private InputStream is;
     private OutputStream os;
-    private boolean finished;
+    private volatile boolean finish;
+    private volatile boolean finished;
     private boolean closeWhenExhausted;
+    private boolean autoflush = false;
+    private Exception exception = null;
+    private int bufferSize = 128;
+    private boolean started = false;
 
     /**
      * Create a new stream pumper.
@@ -62,6 +64,14 @@ public class StreamPumper implements Runnable {
         this(is, os, false);
     }
 
+    /**
+     * Set whether data should be flushed through to the output stream.
+     * @param autoflush if true, push through data; if false, let it be buffered
+     * @since Ant 1.6.3
+     */
+    /*package*/ void setAutoflush(boolean autoflush) {
+        this.autoflush = autoflush;
+    }
 
     /**
      * Copies data from the input stream to the output stream.
@@ -70,19 +80,26 @@ public class StreamPumper implements Runnable {
      */
     public void run() {
         synchronized (this) {
-            // Just in case this object is reused in the future
-            finished = false;
+            started = true;
         }
+        finished = false;
+        finish = false;
 
-        final byte[] buf = new byte[SIZE];
+        final byte[] buf = new byte[bufferSize];
 
         int length;
         try {
-            while ((length = is.read(buf)) > 0) {
+            while ((length = is.read(buf)) > 0 && !finish) {
                 os.write(buf, 0, length);
+                if (autoflush) {
+                    os.flush();
+                }
             }
+            os.flush();
         } catch (Exception e) {
-            // ignore errors
+            synchronized (this) {
+                exception = e;
+            }
         } finally {
             if (closeWhenExhausted) {
                 try {
@@ -91,8 +108,8 @@ public class StreamPumper implements Runnable {
                     // ignore
                 }
             }
+            finished = true;
             synchronized (this) {
-                finished = true;
                 notifyAll();
             }
         }
@@ -101,19 +118,61 @@ public class StreamPumper implements Runnable {
     /**
      * Tells whether the end of the stream has been reached.
      * @return true is the stream has been exhausted.
-     **/
-    public synchronized boolean isFinished() {
+     */
+    public boolean isFinished() {
         return finished;
     }
 
     /**
      * This method blocks until the stream pumper finishes.
+     * @throws InterruptedException if interrupted.
      * @see #isFinished()
-     **/
+     */
     public synchronized void waitFor()
         throws InterruptedException {
         while (!isFinished()) {
             wait();
         }
+    }
+
+    /**
+     * Set the size in bytes of the read buffer.
+     * @param bufferSize the buffer size to use.
+     * @throws IllegalStateException if the StreamPumper is already running.
+     */
+    public synchronized void setBufferSize(int bufferSize) {
+        if (started) {
+            throw new IllegalStateException(
+                "Cannot set buffer size on a running StreamPumper");
+        }
+        this.bufferSize = bufferSize;
+    }
+
+    /**
+     * Get the size in bytes of the read buffer.
+     * @return the int size of the read buffer.
+     */
+    public synchronized int getBufferSize() {
+        return bufferSize;
+    }
+
+    /**
+     * Get the exception encountered, if any.
+     * @return the Exception encountered.
+     */
+    public synchronized Exception getException() {
+        return exception;
+    }
+
+    /**
+     * Stop the pumper as soon as possible.
+     * Note that it may continue to block on the input stream
+     * but it will really stop the thread as soon as it gets EOF
+     * or any byte, and it will be marked as finished.
+     * @since Ant 1.6.3
+     */
+    /*package*/ synchronized void stop() {
+        finish = true;
+        notifyAll();
     }
 }

@@ -70,6 +70,29 @@
     </unzip>
   </target>
 
+  <target name="testTwoPatternSets" depends="prepareTestZip">
+    <unzip dest="unziptestout" src="unziptest.zip">
+      <patternset>
+        <include name="2/**"/>
+      </patternset>
+      <patternset>
+        <include name="3/**"/>
+      </patternset>
+    </unzip>
+  </target>
+
+  <target name="testTwoPatternSetsWithExcludes" depends="prepareTestZip">
+    <unzip dest="unziptestout" src="unziptest.zip">
+      <patternset>
+        <include name="2/**"/>
+      </patternset>
+      <patternset>
+        <exclude name="1/**"/>
+        <exclude name="2/**"/>
+      </patternset>
+    </unzip>
+  </target>
+
   <target name="selfExtractingArchive">
     <mkdir dir="unziptestout"/>
     <unzip dest="unziptestout" src="zip/test.exe"/>
@@ -93,4 +116,55 @@
     <unzip src="unziptest.zip" dest="unziptestout" encoding="UnicodeBig"/>
   </target>
 
+  <!-- Bugzilla Report 21996 -->
+  <target name="testFlattenMapper" depends="prepareTestZip">
+    <unzip dest="unziptestout" src="unziptest.zip">
+      <patternset>
+        <include name="1/**"/>
+      </patternset>
+      <mapper type="flatten"/>
+    </unzip>
+  </target>
+
+  <!-- Bugzilla Report 21996 -->
+  <target name="testGlobMapper" depends="prepareTestZip">
+    <unzip dest="unziptestout" src="unziptest.zip">
+      <patternset>
+        <include name="1/**"/>
+      </patternset>
+      <mapper type="glob" from="*" to="*.txt"/>
+    </unzip>
+  </target>
+
+  <target name="testTwoMappers" depends="prepareTestZip">
+    <unzip dest="unziptestout" src="unziptest.zip">
+      <patternset>
+        <include name="1/**"/>
+      </patternset>
+      <mapper type="glob" from="*" to="*.txt"/>
+      <mapper type="flatten"/>      
+    </unzip>
+  </target>
+
+  <target name="testResourceCollection">
+    <unzip dest="unziptestout">
+      <patternset>
+        <include name="junit/**"/>
+      </patternset>
+      <restrict>
+        <path path="${java.class.path}"/>
+        <type type="file" xmlns="antlib:org.apache.tools.ant.types.resources.selectors"/>
+      </restrict>
+    </unzip>
+  </target>
+
+  <target name="testDocumentationClaimsOnCopy" depends="prepareTestZip">
+    <copy todir="unziptestout" preservelastmodified="true"> 
+      <zipfileset src="unziptest.zip">
+        <patternset>
+          <include name="2/"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+  </target>
 </project>

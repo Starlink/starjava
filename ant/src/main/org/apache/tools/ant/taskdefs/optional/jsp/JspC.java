@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -58,6 +59,7 @@ import org.apache.tools.ant.types.Reference;
  * &lt;/jspc&gt;
  * </pre>
  *
+ * <p> Large Amount of cutting and pasting from the Javac task...
  * @since 1.5
  */
 public class JspC extends MatchingTask {
@@ -65,16 +67,17 @@ public class JspC extends MatchingTask {
     private Path compilerClasspath;
     private Path src;
     private File destDir;
-    private String packageName ;
+    private String packageName;
     /** name of the compiler to use */
     private String compilerName = "jasper";
 
     /**
      *  -ieplugin &lt;clsid&gt; Java Plugin classid for Internet Explorer
      */
-    private String iepluginid ;
-    private boolean mapped ;
+    private String iepluginid;
+    private boolean mapped;
     private int verbose = 0;
+    // CheckStyle:VisibilityModifier OFF - bc
     protected Vector compileList = new Vector();
     Vector javaFiles = new Vector();
 
@@ -110,8 +113,11 @@ public class JspC extends MatchingTask {
     private static final String FAIL_MSG
         = "Compile failed, messages should have been provided.";
 
+    // CheckStyle:VisibilityModifier ON
+
     /**
      * Set the path for source JSP files.
+     * @param srcDir the source path.
      */
     public void setSrcDir(Path srcDir) {
         if (src == null) {
@@ -120,6 +126,11 @@ public class JspC extends MatchingTask {
             src.append(srcDir);
         }
     }
+
+    /**
+     * Get the source dir.
+     * @return the source path.
+     */
     public Path getSrcDir() {
         return src;
     }
@@ -127,31 +138,48 @@ public class JspC extends MatchingTask {
     /**
      * Set the destination directory into which the JSP source
      * files should be compiled.
+     * @param destDir the destination directory.
      */
     public void setDestdir(File destDir) {
         this.destDir = destDir;
     }
+
+    /**
+     * Get the destination directory.
+     * @return the directory.
+     */
     public File getDestdir() {
         return destDir;
     }
 
     /**
      * Set the name of the package the compiled jsp files should be in.
+     * @param pkg the name of the package.
      */
     public void setPackage(String pkg) {
         this.packageName = pkg;
     }
 
+    /**
+     * Get the name of the package.
+     * @return the package.
+     */
     public String getPackage() {
         return packageName;
     }
 
     /**
      * Set the verbose level of the compiler
+     * @param i the verbose level to use.
      */
     public void setVerbose(int i) {
         verbose = i;
     }
+
+    /**
+     * Get the verbose level.
+     * @return the level.
+     */
     public int getVerbose() {
         return verbose;
     }
@@ -159,22 +187,29 @@ public class JspC extends MatchingTask {
     /**
      * Whether or not the build should halt if compilation fails.
      * Defaults to <code>true</code>.
+     * @param fail a <code>boolean</code> value.
      */
     public void setFailonerror(boolean fail) {
         failOnError = fail;
     }
     /**
      * Gets the failonerror flag.
+     * @return the flag.
      */
     public boolean getFailonerror() {
         return failOnError;
     }
 
+    /**
+     * Get the IE CLASSID value.
+     * @return the value.
+     */
     public String getIeplugin() {
         return iepluginid;
     }
     /**
      * Java Plugin CLASSID for Internet Explorer
+     * @param iepluginid the id to use.
      */
     public void setIeplugin(String iepluginid) {
         this.iepluginid = iepluginid;
@@ -192,6 +227,7 @@ public class JspC extends MatchingTask {
     /**
      * If true, generate separate write() calls for each HTML line
      * in the JSP.
+     * @param mapped a <code>boolean</code> value.
      */
     public void setMapped(boolean mapped) {
         this.mapped = mapped;
@@ -208,6 +244,10 @@ public class JspC extends MatchingTask {
         log("Uribase is currently an unused parameter", Project.MSG_WARN);
     }
 
+    /**
+     * Get the uri base value.
+     * @return the value.
+     */
     public File getUribase() {
         return uriroot;
     }
@@ -222,6 +262,10 @@ public class JspC extends MatchingTask {
         this.uriroot = uriroot;
     }
 
+    /**
+     * Get the uri root value.
+     * @return the value.
+     */
     public File getUriroot() {
         return uriroot;
     }
@@ -229,6 +273,7 @@ public class JspC extends MatchingTask {
 
     /**
      * Set the classpath to be used for this compilation.
+     * @param cp the path to be used.
      */
     public void setClasspath(Path cp) {
         if (classpath == null) {
@@ -240,6 +285,7 @@ public class JspC extends MatchingTask {
 
     /**
      * Adds a path to the classpath.
+     * @return a path to be configured.
      */
     public Path createClasspath() {
         if (classpath == null) {
@@ -250,16 +296,23 @@ public class JspC extends MatchingTask {
 
     /**
      * Adds a reference to a classpath defined elsewhere
+     * @param r a reference to a classpath.
      */
     public void setClasspathRef(Reference r) {
         createClasspath().setRefid(r);
     }
+
+    /**
+     * Get the classpath.
+     * @return the classpath.
+     */
     public Path getClasspath() {
         return classpath;
     }
 
     /**
      * Set the classpath to be used to find this compiler adapter
+     * @param cp the compiler classpath.
      */
     public void setCompilerclasspath(Path cp) {
         if (compilerClasspath == null) {
@@ -271,6 +324,7 @@ public class JspC extends MatchingTask {
 
     /**
      * get the classpath used to find the compiler adapter
+     * @return the compiler classpath.
      */
     public Path getCompilerclasspath() {
         return compilerClasspath;
@@ -278,6 +332,7 @@ public class JspC extends MatchingTask {
 
     /**
      * Support nested compiler classpath, used to locate compiler adapter
+     * @return a path to be configured.
      */
     public Path createCompilerclasspath() {
         if (compilerClasspath == null) {
@@ -312,6 +367,10 @@ public class JspC extends MatchingTask {
         this.webinc = webinc;
     }
 
+    /**
+     * Get the webinc attribute.
+     * @return the webinc attribute.
+     */
     public File getWebinc() {
         return this.webinc;
     }
@@ -320,6 +379,7 @@ public class JspC extends MatchingTask {
      * Adds a single webapp.
      *
      * @param  webappParam  add a web app parameter
+     * @throws BuildException if more than one webapp is specified.
      */
     public void addWebApp(WebAppParameter webappParam)
         throws BuildException {
@@ -331,12 +391,17 @@ public class JspC extends MatchingTask {
         }
     }
 
+    /**
+     * Get the web app.
+     * @return the web app attribute.
+     */
     public WebAppParameter getWebApp() {
         return webApp;
     }
 
     /**
      * Class name of a JSP compiler adapter.
+     * @param compiler the compiler class name.
      */
     public void setCompiler(String compiler) {
         this.compilerName = compiler;
@@ -344,6 +409,7 @@ public class JspC extends MatchingTask {
 
     /**
     * get the list of files to compile
+    * @return the list of files.
     */
     public Vector getCompileList() {
         return compileList;
@@ -352,6 +418,7 @@ public class JspC extends MatchingTask {
     /**
      * execute by building up a list of files that
      * have changed and hand them off to a jsp compiler
+     * @throws BuildException on error.
      */
     public void execute()
         throws BuildException {
@@ -482,8 +549,13 @@ public class JspC extends MatchingTask {
     /**
      * Scans the directory looking for source files to be compiled.
      * The results are returned in the class variable compileList
+     * @param srcDir the source directory.
+     * @param dest   the destination directory.
+     * @param mangler the jsp filename mangler.
+     * @param files   the file names to mangle.
      */
-    protected void scanDir(File srcDir, File dest, JspMangler mangler, String files[]) {
+    protected void scanDir(
+        File srcDir, File dest, JspMangler mangler, String[] files) {
 
         long now = (new Date()).getTime();
 
@@ -552,7 +624,12 @@ public class JspC extends MatchingTask {
 
 
     /**
-     * get a filename from our jsp file
+     * get a filename from our jsp file.
+     * @param mangler the jsp filename managler.
+     * @param srcFile the source file.
+     * @param srcDir  the source directory.
+     * @param dest    the destination directory.
+     * @return the filename.
      * @todo support packages and subdirs
      */
     protected File mapToJavaFile(JspMangler mangler, File srcFile, File srcDir, File dest) {
@@ -594,14 +671,15 @@ public class JspC extends MatchingTask {
 
         /**
          * query current directory
+         * @return the directory.
          */
-
         public File getDirectory() {
             return directory;
         }
 
         /**
          * set directory; alternate syntax
+         * @param directory the base dir.
          */
         public void setBaseDir(File directory) {
             this.directory = directory;

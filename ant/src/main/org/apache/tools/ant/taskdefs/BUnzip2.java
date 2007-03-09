@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,17 +20,17 @@ package org.apache.tools.ant.taskdefs;
 
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.bzip2.CBZip2InputStream;
 
 /**
  * Expands a file that has been compressed with the BZIP2
  * algorithm. Normally used to compress non-compressed archives such
  * as TAR files.
- *
  *
  * @since Ant 1.5
  *
@@ -40,10 +41,17 @@ public class BUnzip2 extends Unpack {
 
     private static final String DEFAULT_EXTENSION = ".bz2";
 
+    /**
+     * Get the default extension.
+     * @return the string ".bz2"
+     */
     protected String getDefaultExtension() {
         return DEFAULT_EXTENSION;
     }
 
+    /**
+     * Do the unbzipping.
+     */
     protected void extract() {
         if (source.lastModified() > dest.lastModified()) {
             log("Expanding " + source.getAbsolutePath() + " to "
@@ -51,11 +59,11 @@ public class BUnzip2 extends Unpack {
 
             FileOutputStream out = null;
             CBZip2InputStream zIn = null;
-            FileInputStream fis = null;
+            InputStream fis = null;
             BufferedInputStream bis = null;
             try {
                 out = new FileOutputStream(dest);
-                fis = new FileInputStream(source);
+                fis = srcResource.getInputStream();
                 bis = new BufferedInputStream(fis);
                 int b = bis.read();
                 if (b != 'B') {
@@ -76,35 +84,26 @@ public class BUnzip2 extends Unpack {
                 String msg = "Problem expanding bzip2 " + ioe.getMessage();
                 throw new BuildException(msg, ioe, getLocation());
             } finally {
-                if (bis != null) {
-                    try {
-                        bis.close();
-                    } catch (IOException ioex) {
-                        // ignore
-                    }
-                }
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    } catch (IOException ioex) {
-                        // ignore
-                    }
-                }
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException ioex) {
-                        // ignore
-                    }
-                }
-                if (zIn != null) {
-                    try {
-                        zIn.close();
-                    } catch (IOException ioex) {
-                        // ignore
-                    }
-                }
+                FileUtils.close(bis);
+                FileUtils.close(fis);
+                FileUtils.close(out);
+                FileUtils.close(zIn);
             }
         }
+    }
+
+    /**
+     * Whether this task can deal with non-file resources.
+     *
+     * <p>This implementation returns true only if this task is
+     * &lt;gunzip&gt;.  Any subclass of this class that also wants to
+     * support non-file resources needs to override this method.  We
+     * need to do so for backwards compatibility reasons since we
+     * can't expect subclasses to support resources.</p>
+     * @return true if this class supports non file resources.
+     * @since Ant 1.7
+     */
+    protected boolean supportsNonFileResources() {
+        return getClass().equals(BUnzip2.class);
     }
 }

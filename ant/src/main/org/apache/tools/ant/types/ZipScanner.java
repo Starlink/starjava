@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,198 +20,51 @@ package org.apache.tools.ant.types;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Vector;
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.zip.ZipException;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.types.resources.ZipResource;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 
 /**
- * ZipScanner accesses the pattern matching algorithm in DirectoryScanner,
- * which are protected methods that can only be accessed by subclassing.
- *
- * This implementation of FileScanner defines getIncludedFiles to return
- * the matching Zip entries.
- *
+ * Scans zip archives for resources.
  */
-public class ZipScanner extends DirectoryScanner {
+public class ZipScanner extends ArchiveScanner {
 
     /**
-     * The zip file which should be scanned.
-     */
-    protected File srcFile;
-    /**
-     * to record the last scanned zip file with its modification date
-     */
-    private Resource lastScannedResource;
-    /**
-     * record list of all zip entries
-     */
-    private Hashtable myentries;
-
-    /**
-     * encoding of file names.
+     * Fills the file and directory maps with resources read from the
+     * archive.
      *
-     * @since Ant 1.6
+     * @param src the archive to scan.
+     * @param encoding encoding used to encode file names inside the archive.
+     * @param fileEntries Map (name to resource) of non-directory
+     * resources found inside the archive.
+     * @param matchFileEntries Map (name to resource) of non-directory
+     * resources found inside the archive that matched all include
+     * patterns and didn't match any exclude patterns.
+     * @param dirEntries Map (name to resource) of directory
+     * resources found inside the archive.
+     * @param matchDirEntries Map (name to resource) of directory
+     * resources found inside the archive that matched all include
+     * patterns and didn't match any exclude patterns.
      */
-    private String encoding;
-
-    /**
-     * Sets the srcFile for scanning. This is the jar or zip file that
-     * is scanned for matching entries.
-     *
-     * @param srcFile the (non-null) zip file name for scanning
-     */
-    public void setSrc(File srcFile) {
-        this.srcFile = srcFile;
-    }
-
-    /**
-     * Sets encoding of file names.
-     *
-     * @since Ant 1.6
-     */
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
-    /**
-     * Returns the names of the files which matched at least one of the
-     * include patterns and none of the exclude patterns.
-     * The names are relative to the base directory.
-     *
-     * @return the names of the files which matched at least one of the
-     *         include patterns and none of the exclude patterns.
-     */
-    public String[] getIncludedFiles() {
-        if (srcFile != null) {
-            Vector myvector = new Vector();
-            // first check if the archive needs to be scanned again
-            scanme();
-            for (Enumeration e = myentries.elements(); e.hasMoreElements();) {
-                Resource myresource = (Resource) e.nextElement();
-                if (!myresource.isDirectory() && match(myresource.getName())) {
-                    myvector.addElement(myresource.getName());
-                }
-            }
-            String[] files = new String[myvector.size()];
-            myvector.copyInto(files);
-            Arrays.sort(files);
-            return files;
-        } else {
-            return super.getIncludedFiles();
-        }
-    }
-
-    /**
-     * Returns the names of the directories which matched at least one of the
-     * include patterns and none of the exclude patterns.
-     * The names are relative to the base directory.
-     *
-     * @return the names of the directories which matched at least one of the
-     * include patterns and none of the exclude patterns.
-     */
-    public String[] getIncludedDirectories() {
-        if (srcFile != null) {
-            Vector myvector = new Vector();
-            // first check if the archive needs to be scanned again
-            scanme();
-            for (Enumeration e = myentries.elements(); e.hasMoreElements();) {
-                Resource myresource = (Resource) e.nextElement();
-                if (myresource.isDirectory() && match(myresource.getName())) {
-                    myvector.addElement(myresource.getName());
-                }
-            }
-            String[] files = new String[myvector.size()];
-            myvector.copyInto(files);
-            Arrays.sort(files);
-            return files;
-        } else {
-            return super.getIncludedDirectories();
-        }
-    }
-
-    /**
-     * Initialize DirectoryScanner data structures.
-     */
-    public void init() {
-        if (includes == null) {
-            // No includes supplied, so set it to 'matches all'
-            includes = new String[1];
-            includes[0] = "**";
-        }
-        if (excludes == null) {
-            excludes = new String[0];
-        }
-    }
-
-    /**
-     * Matches a jar entry against the includes/excludes list,
-     * normalizing the path separator.
-     *
-     * @param path the (non-null) path name to test for inclusion
-     *
-     * @return <code>true</code> if the path should be included
-     *         <code>false</code> otherwise.
-     */
-    public boolean match(String path) {
-        String vpath = path.replace('/', File.separatorChar).
-            replace('\\', File.separatorChar);
-        return isIncluded(vpath) && !isExcluded(vpath);
-    }
-
-    /**
-     * @param name path name of the file sought in the archive
-     *
-     * @since Ant 1.5.2
-     */
-    public Resource getResource(String name) {
-        if (srcFile == null) {
-            return super.getResource(name);
-        } else if (name.equals("")) {
-            // special case in ZIPs, we do not want this thing included
-            return new Resource("", true, Long.MAX_VALUE, true);
-        }
-
-        // first check if the archive needs to be scanned again
-        scanme();
-        if (myentries.containsKey(name)) {
-            return (Resource) myentries.get(name);
-        } else if (myentries.containsKey(name + "/")) {
-            return (Resource) myentries.get(name + "/");
-        } else {
-            return new Resource(name);
-        }
-    }
-
-    /**
-     * if the datetime of the archive did not change since
-     * lastScannedResource was initialized returns immediately else if
-     * the archive has not been scanned yet, then all the zip entries
-     * are put into the vector myentries as a vector of the resource
-     * type
-     */
-    private void scanme() {
-        Resource thisresource = new Resource(srcFile.getAbsolutePath(),
-                                             srcFile.exists(),
-                                             srcFile.lastModified());
-
-        // spare scanning again and again
-        if (lastScannedResource != null
-            && lastScannedResource.getName().equals(thisresource.getName())
-            && lastScannedResource.getLastModified()
-            == thisresource.getLastModified()) {
-            return;
-        }
-
+    protected void fillMapsFromArchive(Resource src, String encoding,
+                                       Map fileEntries, Map matchFileEntries,
+                                       Map dirEntries, Map matchDirEntries) {
         ZipEntry entry = null;
         ZipFile zf = null;
-        myentries = new Hashtable();
+
+        File srcFile = null;
+        if (src instanceof FileResource) {
+            srcFile = ((FileResource) src).getFile();
+        } else {
+            throw new BuildException("only file resources are supported");
+        }
+
         try {
             try {
                 zf = new ZipFile(srcFile, encoding);
@@ -219,14 +73,23 @@ public class ZipScanner extends DirectoryScanner {
             } catch (IOException ex) {
                 throw new BuildException("problem opening " + srcFile, ex);
             }
-
             Enumeration e = zf.getEntries();
             while (e.hasMoreElements()) {
                 entry = (ZipEntry) e.nextElement();
-                myentries.put(new String(entry.getName()),
-                              new Resource(entry.getName(), true,
-                                           entry.getTime(),
-                                           entry.isDirectory()));
+                Resource r = new ZipResource(srcFile, encoding, entry);
+                String name = entry.getName();
+                if (entry.isDirectory()) {
+                    name = trimSeparator(name);
+                    dirEntries.put(name, r);
+                    if (match(name)) {
+                        matchDirEntries.put(name, r);
+                    }
+                } else {
+                    fileEntries.put(name, r);
+                    if (match(name)) {
+                        matchFileEntries.put(name, r);
+                    }
+                }
             }
         } finally {
             if (zf != null) {
@@ -237,7 +100,5 @@ public class ZipScanner extends DirectoryScanner {
                 }
             }
         }
-        // record data about the last scanned resource
-        lastScannedResource = thisresource;
     }
 }

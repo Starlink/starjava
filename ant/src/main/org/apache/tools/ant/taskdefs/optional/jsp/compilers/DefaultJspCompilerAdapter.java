@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -38,6 +39,9 @@ public abstract class DefaultJspCompilerAdapter
     /**
      * Logs the compilation parameters, adds the files to compile and logs the
      * &quot;niceSourceList&quot;
+     * @param jspc the compiler task for logging
+     * @param compileList the list of files to compile
+     * @param cmd the command line used
      */
     protected void logAndAddFilesToCompile(JspC jspc,
                                            Vector compileList,
@@ -57,19 +61,26 @@ public abstract class DefaultJspCompilerAdapter
         while (e.hasMoreElements()) {
             String arg = (String) e.nextElement();
             cmd.createArgument().setValue(arg);
-            niceSourceList.append("    " + arg + lSep);
+            niceSourceList.append("    ");
+            niceSourceList.append(arg);
+            niceSourceList.append(lSep);
         }
 
         jspc.log(niceSourceList.toString(), Project.MSG_VERBOSE);
     }
+
+    // CheckStyle:VisibilityModifier OFF - bc
 
     /**
      * our owner
      */
     protected JspC owner;
 
+    // CheckStyle:VisibilityModifier ON
+
     /**
      * set the owner
+     * @param owner the owner JspC compiler
      */
     public void setJspc(JspC owner) {
         this.owner = owner;
@@ -85,7 +96,7 @@ public abstract class DefaultJspCompilerAdapter
 
     /**
      *  add an argument oneple to the argument list, if the value aint null
-     *
+     * @param cmd the command line
      * @param  argument  The argument
      */
     protected void addArg(CommandlineJava cmd, String argument) {
@@ -97,7 +108,7 @@ public abstract class DefaultJspCompilerAdapter
 
     /**
      *  add an argument tuple to the argument list, if the value aint null
-     *
+     * @param cmd the command line
      * @param  argument  The argument
      * @param  value     the parameter
      */
@@ -110,7 +121,7 @@ public abstract class DefaultJspCompilerAdapter
 
     /**
      *  add an argument tuple to the arg list, if the file parameter aint null
-     *
+     * @param cmd the command line
      * @param  argument  The argument
      * @param  file     the parameter
      */

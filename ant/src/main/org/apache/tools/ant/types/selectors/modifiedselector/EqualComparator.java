@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -41,12 +42,10 @@ public class EqualComparator implements Comparator {
         if (o1 == null) {
             if (o2 == null) {
                 return 1;
-            } else {
-                return 0;
             }
-        } else {
-            return (o1.equals(o2)) ? 0 : 1;
+            return 0;
         }
+        return (o1.equals(o2)) ? 0 : 1;
     }
 
     /**

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -31,7 +32,6 @@ import java.io.IOException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
 import java.util.Hashtable;
 
 import org.apache.tools.ant.BuildException;
@@ -55,6 +55,9 @@ import org.apache.tools.ant.types.Commandline;
  */
 
 public class NetCommand {
+
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+    // CheckStyle:VisibilityModifier OFF - bc
 
     /**
      *  owner project
@@ -91,6 +94,8 @@ public class NetCommand {
      */
     protected boolean failOnError;
 
+    // CheckStyle:VisibilityModifier ON
+
     /**
      * the directory to execute the command in. When null, the current
      * directory is used.
@@ -100,7 +105,7 @@ public class NetCommand {
     /**
      * flag to set to to use @file based command cache
      */
-    private boolean useResponseFile=false;
+    private boolean useResponseFile = false;
 
     /**
      * name of a temp file; may be null
@@ -126,7 +131,6 @@ public class NetCommand {
         this.program = program;
         commandLine = new Commandline();
         commandLine.setExecutable(program);
-        prepareExecutor();
     }
 
 
@@ -163,7 +167,7 @@ public class NetCommand {
 
     /**
      * set the directory to run from, if the default is inadequate
-     * @param directory
+     * @param directory the directory to use.
      */
     public void setDirectory(File directory) {
         this.directory = directory;
@@ -202,12 +206,27 @@ public class NetCommand {
     }
 
     /**
+     *  add an argument to a command line; do nothing if the arg is null or
+     *  empty string
+     *
+     *@param  arguments  The features to be added to the Argument attribute
+     */
+    public void addArguments(String[] arguments) {
+        if (arguments != null && arguments.length != 0) {
+            for (int i = 0; i < arguments.length; i++) {
+                addArgument(arguments[i]);
+            }
+        }
+    }
+
+    /**
      *  concatenate two strings together and add them as a single argument,
      *  but only if argument2 is non-null and non-zero length
      *
      *@param  argument1  The first argument
      *@param  argument2  The second argument
-     */   public void addArgument(String argument1, String argument2) {
+     */
+    public void addArgument(String argument1, String argument2) {
         if (argument2 != null && argument2.length() != 0) {
             commandLine.createArgument().setValue(argument1 + argument2);
         }
@@ -223,7 +242,7 @@ public class NetCommand {
 
     /**
      * set this to true to always use the response file
-     * @param useResponseFile
+     * @param useResponseFile a <code>boolean</code> value.
      */
     public void setUseResponseFile(boolean useResponseFile) {
         this.useResponseFile = useResponseFile;
@@ -239,7 +258,7 @@ public class NetCommand {
 
     /**
      * set threshold for automatically using response files -use 0 for off
-     * @param automaticResponseFileThreshold
+     * @param automaticResponseFileThreshold the threshold value to use.
      */
     public void setAutomaticResponseFileThreshold(int automaticResponseFileThreshold) {
         this.automaticResponseFileThreshold = automaticResponseFileThreshold;
@@ -277,13 +296,16 @@ public class NetCommand {
      */
     public void runCommand()
              throws BuildException {
+        prepareExecutor();
         int err = -1;
         // assume the worst
         try {
             if (traceCommandLine) {
+                owner.log("In directory " + executable.getWorkingDirectory());
                 owner.log(commandLine.describeCommand());
             } else {
                 //in verbose mode we always log stuff
+                logVerbose("In directory " + executable.getWorkingDirectory());
                 logVerbose(commandLine.describeCommand());
             }
             setExecutableCommandLine();
@@ -311,8 +333,8 @@ public class NetCommand {
 
         String[] commands = commandLine.getCommandline();
         //always trigger file mode if commands are big enough
-        if (automaticResponseFileThreshold>0 &&
-                commands.length > automaticResponseFileThreshold) {
+        if (automaticResponseFileThreshold > 0
+            && commands.length > automaticResponseFileThreshold) {
             useResponseFile = true;
         }
         if (!useResponseFile || commands.length <= 1) {
@@ -323,10 +345,9 @@ public class NetCommand {
             //and set @tmpfile as the command -then we remember to delete the tempfile
             //afterwards
             FileOutputStream fos = null;
-            FileUtils fileUtils = FileUtils.newFileUtils();
 
-            temporaryCommandFile = fileUtils.createTempFile("cmd", ".txt", null);
-            owner.log("Using response file"+temporaryCommandFile,Project.MSG_VERBOSE);
+            temporaryCommandFile = FILE_UTILS.createTempFile("cmd", ".txt", null);
+            owner.log("Using response file " + temporaryCommandFile, Project.MSG_VERBOSE);
 
             try {
                 fos = new FileOutputStream(temporaryCommandFile);
@@ -341,9 +362,10 @@ public class NetCommand {
                 throw new BuildException("saving command stream to " + temporaryCommandFile, ex);
             }
 
-            String newCommandLine[] = new String[2];
+            String[] newCommandLine = new String[2];
             newCommandLine[0] = commands[0];
             newCommandLine[1] = "@" + temporaryCommandFile.getAbsolutePath();
+            logVerbose(Commandline.describeCommand(newCommandLine));
             executable.setCommandline(newCommandLine);
         }
     }
@@ -351,11 +373,11 @@ public class NetCommand {
 
     /**
      * scan through one fileset for files to include
-     * @param scanner
-     * @param filesToBuild
+     * @param scanner the directory scanner to use.
+     * @param filesToBuild the map to place the files.
      * @param outputTimestamp timestamp to compare against
      * @return #of files out of date
-     * @todo: should FAT granularity be included here?
+     * @todo should FAT granularity be included here?
      */
     public int scanOneFileset(DirectoryScanner scanner, Hashtable filesToBuild,
                                         long outputTimestamp) {
@@ -370,14 +392,13 @@ public class NetCommand {
                 if (targetFile.lastModified() > outputTimestamp) {
                     filesOutOfDate++;
                     owner.log(targetFile.toString() + " is out of date",
-                            Project.MSG_VERBOSE);
+                              Project.MSG_VERBOSE);
                 } else {
                     owner.log(targetFile.toString(),
-                            Project.MSG_VERBOSE);
+                              Project.MSG_VERBOSE);
                 }
             }
         }
         return filesOutOfDate;
     }
 }
-

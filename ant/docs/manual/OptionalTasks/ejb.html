@@ -1,10 +1,26 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>EJB Tasks</title>
 
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -23,9 +39,6 @@
   <li>Rob van Oostrum(<a href="mailto:rob@springwellfarms.ca">rob@springwellfarms.ca</a>)</li>
 </ul>
 
-<p>Version 1.6.2<br>
-$Id: ejb.html,v 1.36.2.4 2004/02/09 22:12:11 antoine Exp $
-</p>
 <hr>
 <h2>Table of Contents</h2>
 <ul>
@@ -35,11 +48,11 @@ $Id: ejb.html,v 1.36.2.4 2004/02/09 22:12:11 antoine Exp $
 
 <hr>
 <h2><a name="introduction">Introduction</a></h2>
-<p>Ant provides a number of optional tasks for developing
+<p>Ant provides a number of optional tasks for developing 1.x and 2.x
 <a href="http://java.sun.com/products/ejb" target="_top">Enterprise Java Beans (EJBs)</a>.
 In general these tasks are specific to the particular vendor's EJB Server.</p>
 
-<p> At present the tasks support:<br>
+<p> The tasks support:<br>
 
 <ul>
   <li><a href="http://www.borland.com">Borland </a>
@@ -54,7 +67,12 @@ In general these tasks are specific to the particular vendor's EJB Server.</p>
    2.4.x and 2.5 Open Source EJB server</li>
   <li><a href="http://www.ibm.com/websphere">IBM WebSphere</a> 4.0</li>
 </ul>
-  Over time we expect further optional tasks  to support additional EJB Servers.
+    Vendors such as BEA and IBM now provide custom Ant tasks to work with their
+    particular products. More importantly, EJB3.0 renders this whole process obsolete.
+    Accordingly, developement of these tasks is effectively frozen. Bug reports
+    and especially patches are welcome, but there is no pressing need to add
+    support for new application servers. Nobody should be writing new EJB2.x applications
+    and definitely not new EJB2.x servers.
 </p>
 
 <hr>
@@ -110,7 +128,8 @@ is based on the standard Ant include and exclude selection mechanisms.
   </tr>
 </table>
 <h3>Examples</h3>
-<pre>&lt;ddcreator descriptors=&quot;${dd.dir}&quot;
+<pre>
+&lt;ddcreator descriptors=&quot;${dd.dir}&quot;
            dest=&quot;${gen.classes}&quot;
            classpath=&quot;${descriptorbuild.classpath}&quot;&gt;
   &lt;include name=&quot;*.txt&quot;/&gt;
@@ -180,8 +199,9 @@ or are out of date, the ejbc tool is run to generate new versions.</p>
   </tr>
 </table>
 <h3>Examples</h3>
-<pre>&lt;ejbc descriptors=&quot;${gen.classes}&quot;
-           src=&quot;${src.dir}&quot;
+<pre>
+&lt;ejbc descriptors=&quot;${gen.classes}&quot;
+           src=&quot;src&quot;
            dest=&quot;${gen.classes}&quot;
            manifest=&quot;${build.manifest}&quot;
            classpath=&quot;${descriptorbuild.classpath}&quot;&gt;
@@ -212,89 +232,90 @@ and skeletons.</p>
 <h3>
 Parameters:</h3>
 
-<table BORDER CELLSPACING=0 CELLPADDING=2 >
+<table border="1" cellspacing="0" cellpadding="2">
 <tr>
-<td VALIGN=TOP><b>Attribute</b></td>
+<td valign="top"><b>Attribute</b></td>
 
-<td VALIGN=TOP><b>Description</b></td>
+<td valign="top"><b>Description</b></td>
 
-<td ALIGN=CENTER VALIGN=TOP><b>Required</b></td>
+<td align="center" valign="top"><b>Required</b></td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>ejbdescriptor</td>
+<td valign="top">ejbdescriptor</td>
 
-<td VALIGN=TOP>Standard EJB 1.1 XML descriptor (typically titled "ejb-jar.xml").</td>
+<td valign="top">Standard EJB 1.1 XML descriptor (typically titled "ejb-jar.xml").</td>
 
-<td ALIGN=CENTER VALIGN=TOP>Yes</td>
+<td align="center" valign="top">Yes</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>iasdescriptor</td>
+<td valign="top">iasdescriptor</td>
 
-<td VALIGN=TOP>iAS-specific EJB XML descriptor (typically titled "ias-ejb-jar.xml").</td>
+<td valign="top">iAS-specific EJB XML descriptor (typically titled "ias-ejb-jar.xml").</td>
 
-<td ALIGN=CENTER VALIGN=TOP>Yes</td>
+<td align="center" valign="top">Yes</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>dest</td>
+<td valign="top">dest</td>
 
-<td VALIGN=TOP>The is the base directory where the RMI stubs and skeletons
+<td valign="top">The is the base directory where the RMI stubs and skeletons
 are written. In addition, the class files for each bean (home interface,
 remote interface, and EJB implementation) must be found in this directory.</td>
 
-<td ALIGN=CENTER VALIGN=TOP>Yes</td>
+<td align="center" valign="top">Yes</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>classpath</td>
+<td valign="top">classpath</td>
 
-<td VALIGN=TOP>The classpath used when generating EJB stubs and skeletons.
+<td valign="top">The classpath used when generating EJB stubs and skeletons.
 If omitted, the classpath specified when Ant was started will be used.
 Nested "classpath" elements may also be used.</td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>keepgenerated</td>
+<td valign="top">keepgenerated</td>
 
-<td VALIGN=TOP>Indicates whether or not the Java source files which are
+<td valign="top">Indicates whether or not the Java source files which are
 generated by ejbc will be saved or automatically deleted. If "yes", the
 source files will be retained. If omitted, it defaults to "no". </td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>debug</td>
+<td valign="top">debug</td>
 
 <td>Indicates whether or not the ejbc utility should log additional debugging
 statements to the standard output. If "yes", the additional debugging statements
 will be generated.  If omitted, it defaults to "no". </td>
 
-<td ALIGN=CENTER VALIGN=TOP>
+<td align="center" valign="top">
 <center>No</center>
 </td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>iashome</td>
+<td valign="top">iashome</td>
 
 <td>May be used to specify the "home" directory for this iAS installation.
 This is used to find the ejbc utility if it isn't included in the user's
 system path. If specified, it should refer to the "[install-location]/iplanet/ias6/ias"
 directory. If omitted, the ejbc utility must be on the user's system path. </td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 </table>
 
 <h3>
 Examples</h3>
 
-<pre>&lt;iplanet-ejbc ejbdescriptor="ejb-jar.xml"
+<pre>
+&lt;iplanet-ejbc ejbdescriptor="ejb-jar.xml"
               iasdescriptor="ias-ejb-jar.xml"
               dest="${build.classesdir}"
               classpath="${ias.ejbc.cpath}"/&gt;
@@ -427,8 +448,8 @@ and hence ant, will not complete until the weblogic instance is stopped.</p>
 
 <h3>Nested Elements</h3>
 
-<p>The wlrun task supports nested &lt;classpath&gt; and &lt;wlclasspath&gt;
-elements to set the repsective classpaths.</p>
+<p>The wlrun task supports nested <code>&lt;classpath&gt;</code> and <code>&lt;wlclasspath&gt;</code>
+elements to set the respective classpaths.</p>
 
 <h3>Examples</h3>
 
@@ -513,7 +534,7 @@ specify the BEA Home to have this task work correctly under 6.0</p>
 
 <h3>Nested Element</h3>
 
-<p>The classpath of the wlstop task can be set by a &lt;classpath&gt; nested element.</p>
+<p>The classpath of the wlstop task can be set by a <code>&lt;classpath&gt;</code> nested element.</p>
 
 <h3>Examples</h3>
 
@@ -555,7 +576,7 @@ server descriptors are found. For each descriptor found, ejbjar will parse the
 deployment descriptor to determine the necessary class files which implement the
 bean. These files are assembled along with the deployment descriptors into a
 well formed EJB jar file. Any support files which need to be included in the
-generated jar can be added with the &lt;support&gt; nested element. For each
+generated jar can be added with the <code>&lt;support&gt;</code> nested element. For each
 class included in the jar, ejbjar will scan for any super classes or super
 interfaces. These will be added to the generated jar.</p>
 
@@ -601,10 +622,10 @@ is deployed in separate beans.
 deploying the same bean classes in different beans, with different deployment characteristics.
 
 <li>ejb-name</li>
-<p> This naming scheme uses the &lt;ejb-name&gt; element from the deployment descriptor to
+<p> This naming scheme uses the <code>&lt;ejb-name&gt;</code> element from the deployment descriptor to
 determine the bean name. In this situation, the descriptors normally use the generic
 descriptor names, such as <code>ejb-jar.xml</code> along with any associated vendor specific descriptor
-names. For example, If the value of the &lt;ejb-name&gt; were to be given in the deployment descriptor
+names. For example, If the value of the <code>&lt;ejb-name&gt;</code> were to be given in the deployment descriptor
 as follows:
 <pre>
 &lt;ejb-jar&gt;
@@ -635,7 +656,7 @@ although that is not mandatory. This scheme can handle multiple beans per jar.
 
 <li>basejarname</li>
 <p>
-The final scheme supported by the &lt;ejbjar&gt; task is used when you want to specify the generated
+The final scheme supported by the <code>&lt;ejbjar&gt;</code> task is used when you want to specify the generated
 bean jar name directly. In this case the name of the generated jar is specified by the
 &quot;basejarname&quot; attribute. Since all generated beans will have the same name, this task should
 be only used when each descriptor is in its own directory.
@@ -721,8 +742,8 @@ the value <code>none</code>.</p>
   </tr>
   <tr>
     <td valign="top">cmpversion</td>
-    <td valign="top">Either <code>1.0</code> or <code>2.0</code>.<br/>
-    Default is <code>1.0</code>.<br/>
+    <td valign="top">Either <code>1.0</code> or <code>2.0</code>.<br>
+    Default is <code>1.0</code>.<br>
     A CMP 2.0 implementation exists currently only for JBoss.</td>
     <td valign="top" align="center">No</td>
   </tr>
@@ -797,22 +818,22 @@ three nested elements. </p>
 
 <h4>Classpath</h4>
 
-<p>The &lt;classpath&gt; nested element allows the classpath
+<p>The <code>&lt;classpath&gt;</code> nested element allows the classpath
 to be set. It is useful when setting the classpath from a reference path. In all
 other respects the behaviour is the same as the classpath attribute.</p>
 
 <a name="ejbjar-dtd"><h4>dtd</h4></a>
 
-<p>The &lt;dtd&gt; element is used to specify the local location of DTDs to be
+<p>The <code>&lt;dtd&gt;</code> element is used to specify the local location of DTDs to be
 used when parsing the EJB deployment descriptor. Using a local DTD is much
 faster than loading the DTD across the net. If you are running ejbjar behind a
 firewall you may not even be able to access the remote DTD. The supported
 vendor-specific nested elements know the location of the required DTDs within
-the vendor class hierarchy and, in general, this means &lt;dtd&gt; elements are
+the vendor class hierarchy and, in general, this means <code>&lt;dtd&gt;</code> elements are
 not required. It does mean, however, that the vendor's class hierarchy must be
 available in the classpath when Ant is started. If your want to run Ant without
 requiring the vendor classes in the classpath, you would need to use a
-&lt;dtd&gt; element.</p>
+<code>&lt;dtd&gt;</code> element.</p>
 
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -835,10 +856,10 @@ requiring the vendor classes in the classpath, you would need to use a
 
 <h4>support</h4>
 
-<p>The &lt;support&gt; nested element is used to supply additional classes
-(files) to be included in the generated jars. The &lt;support&gt; element is a
+<p>The <code>&lt;support&gt;</code> nested element is used to supply additional classes
+(files) to be included in the generated jars. The <code>&lt;support&gt;</code> element is a
 <a href="../CoreTypes/fileset.html">FileSet</a>, so it can either reference a fileset declared elsewhere or it can be
-defined in-place with the appropriate &lt;include&gt; and &lt;exclude&gt; nested
+defined in-place with the appropriate <code>&lt;include&gt;</code> and <code>&lt;exclude&gt;</code> nested
 elements. The files in the support fileset are added into the generated EJB jar
 in the same relative location as their location within the support fileset. Note
 that when ejbjar generates more than one jar file, the support files are added
@@ -856,7 +877,7 @@ deployment element are detailed here.
 <p>The jboss element searches for the JBoss specific deployment descriptors and adds them
 to the final ejb jar file. JBoss has two deployment descriptors:
 <ul><li>jboss.xml</li>
-<li>for container manager persistence:<br/>
+<li>for container manager persistence:<br>
 <table border="1">
 <tr><td><b>CMP version</b></td><td><b>File name</b></td></tr>
 <tr><td>CMP 1.0</td><td>jaws.xml</td></tr>
@@ -864,7 +885,7 @@ to the final ejb jar file. JBoss has two deployment descriptors:
 </table>
 </li>
 </ul>
-<br/>
+<br>
 . The JBoss server uses hot deployment and does
 not require compilation of additional stubs and skeletons.</p>
 
@@ -915,7 +936,7 @@ generating weblogic EJB jars. Prior to Ant 1.3, the method of locating CMP
 descriptors was to use the ejbjar naming convention. So if your ejb-jar was
 called, Customer-ejb-jar.xml, your weblogic descriptor was called Customer-
 weblogic-ejb-jar.xml and your CMP descriptor had to be Customer-weblogic-cmp-
-rdbms-jar.xml. In addition, the &lt;type-storage&gt; element in the weblogic
+rdbms-jar.xml. In addition, the <code>&lt;type-storage&gt;</code> element in the weblogic
 descriptor had to be set to the standard name META-INF/weblogic-cmp-rdbms-
 jar.xml, as that is where the CMP descriptor was mapped to in the generated
 jar.</p>
@@ -928,7 +949,7 @@ deployment descriptors generated by some tools.</p>
 CMP descriptors, which are then included automatically. This behaviour is
 controlled by the newCMP attribute. Note that if you move to the new method of
 determining CMP descriptors, you will need to update your weblogic deployment
-descriptor's &lt;type-storage&gt; element. In the above example, you would
+descriptor's <code>&lt;type-storage&gt;</code> element. In the above example, you would
 define this as META-INF/Customer-weblogic-cmp-rdbms-jar.xml.</p>
 
 <table border="1" cellpadding="2" cellspacing="0">
@@ -1030,9 +1051,9 @@ define this as META-INF/Customer-weblogic-cmp-rdbms-jar.xml.</p>
     <td valign="top"><b>Deprecated</b>. Defines the location of the ejb-jar DTD in
                      the weblogic class hierarchy. This should not be necessary if you
                      have weblogic in your classpath. If you do not, you should use a
-                     nested &lt;dtd&gt; element, described above. If you do choose
+                     nested <code>&lt;dtd&gt;</code> element, described above. If you do choose
                      to use an attribute, you should use a
-                     nested &lt;dtd&gt; element.
+                     nested <code>&lt;dtd&gt;</code> element.
                      </td>
     <td valign="top" align="center">No.</td>
   </tr>
@@ -1041,7 +1062,7 @@ define this as META-INF/Customer-weblogic-cmp-rdbms-jar.xml.</p>
     <td valign="top"><b>Deprecated</b>. Defines the location of the weblogic-ejb-jar
                      DTD which covers the Weblogic specific deployment descriptors.
                      This should not be necessary if you have weblogic in your
-                     classpath. If you do not, you should use a nested &lt;dtd&gt;
+                     classpath. If you do not, you should use a nested <code>&lt;dtd&gt;</code>
                      element, described above.
                      </td>
     <td valign="top" align="center">No.</td>
@@ -1051,7 +1072,7 @@ define this as META-INF/Customer-weblogic-cmp-rdbms-jar.xml.</p>
     <td valign="top"><b>Deprecated</b>. Defines the location of the ejb-jar DTD in
                      the weblogic class hierarchy. This should not be necessary if you
                      have weblogic in your classpath. If you do not, you should use a
-                     nested &lt;dtd&gt; element, described above.
+                     nested <code>&lt;dtd&gt;</code> element, described above.
                      </td>
     <td valign="top" align="center">No.</td>
   </tr>
@@ -1108,9 +1129,9 @@ define this as META-INF/Customer-weblogic-cmp-rdbms-jar.xml.</p>
 </table>
 
 <p>The weblogic nested element supports three nested elements. The
-first two, &lt;classpath&gt; and &lt;wlclasspath&gt;, are used to set the
+first two, <code>&lt;classpath&gt;</code> and <code>&lt;wlclasspath&gt;</code>, are used to set the
 respective classpaths. These nested elements are useful when setting up
-class paths using reference Ids. The last, &lt;sysproperty&gt;, allows
+class paths using reference Ids. The last, <code>&lt;sysproperty&gt;</code>, allows
 Java system properties to be set during the compiler run. This turns out
 to be necessary for supporting CMP EJB compilation in all environments.
 </p>
@@ -1157,7 +1178,7 @@ each variation of '*-ejb-jar.xml' that is found in the deployment descriptor
 directory.</p>
 
 <pre>
-    &lt;ejbjar srcdir=&quot;${build.classes}&quot;
+    &lt;ejbjar srcdir=&quot;build/classes&quot;
             descriptordir=&quot;${descriptor.dir}&quot;&gt;
       &lt;weblogic destdir=&quot;${deploymentjars.dir}&quot;
                 classpath=&quot;${descriptorbuild.classpath}&quot;/&gt;
@@ -1171,7 +1192,7 @@ shows how to specify the location of the weblogic DTDs. This
 example also show the use of a nested classpath element.</p>
 
 <pre>
-    &lt;ejbjar descriptordir=&quot;${src.dir}&quot; srcdir=&quot;${build.classes}&quot;&gt;
+    &lt;ejbjar descriptordir=&quot;src&quot; srcdir=&quot;build/classes&quot;&gt;
        &lt;weblogic destdir=&quot;${deployment.webshop.dir}&quot;
                  keepgeneric=&quot;true&quot;
                  args=&quot;-g -keepgenerated ${ejbc.compiler}&quot;
@@ -1198,7 +1219,7 @@ descriptors to use the naming standard. This will create only one ejb jar file -
 
 
 <pre>
-    &lt;ejbjar srcdir=&quot;${build.classes}&quot;
+    &lt;ejbjar srcdir=&quot;build/classes&quot;
             descriptordir=&quot;${descriptor.dir}&quot;
             basejarname=&quot;TheEJBJar&quot;&gt;
       &lt;weblogic destdir=&quot;${deploymentjars.dir}&quot;
@@ -1213,12 +1234,12 @@ Weblogic EJB container. This example does not require the deployment descriptors
 This will create only one TOPLink-enabled ejb jar file - 'Address.jar'.</p>
 
 <pre>
-    &lt;ejbjar srcdir=&quot;${build.dir}&quot;
+    &lt;ejbjar srcdir=&quot;build&quot;
             destdir=&quot;${solant.ejb.dir}&quot;
             descriptordir=&quot;${descriptor.dir}&quot;
             basejarname=&quot;Address&quot;&gt;
             &lt;weblogictoplink destdir=&quot;${solant.ejb.dir}&quot;
-                    classpath=&quot;${java.class.path}&quot;
+                    classpath=&quot;/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-launcher.jar:/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Classes/.compatibility/14compatibility.jar:/Users/antoine/dev/asf/ant-core/lib/optional/activation.jar:/Users/antoine/dev/asf/ant-core/lib/optional/ant-antunit-1.0Beta2.jar:/Users/antoine/dev/asf/ant-core/lib/optional/antlrall.jar:/Users/antoine/dev/asf/ant-core/lib/optional/bcel.jar:/Users/antoine/dev/asf/ant-core/lib/optional/bsf-2.4.0.jar:/Users/antoine/dev/asf/ant-core/lib/optional/bsh-2.0b4.jar:/Users/antoine/dev/asf/ant-core/lib/optional/bsh-core-2.0b4.jar:/Users/antoine/dev/asf/ant-core/lib/optional/commons-logging-api.jar:/Users/antoine/dev/asf/ant-core/lib/optional/commons-logging.jar:/Users/antoine/dev/asf/ant-core/lib/optional/commons-net-1.4.0.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jai_codec.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jai_core.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jakarta-oro-2.0.8.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jakarta-regexp-1.2.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jdepend.jar:/Users/antoine/dev/asf/ant-core/lib/optional/js-1.6R3.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jsch-0.1.29.jar:/Users/antoine/dev/asf/ant-core/lib/optional/junit-3.8.2.jar:/Users/antoine/dev/asf/ant-core/lib/optional/jython.jar:/Users/antoine/dev/asf/ant-core/lib/optional/log4j-1.2.9.jar:/Users/antoine/dev/asf/ant-core/lib/optional/mail.jar:/Users/antoine/dev/asf/ant-core/lib/optional/NetRexxC.jar:/Users/antoine/dev/asf/ant-core/lib/optional/NetRexxR.jar:/Users/antoine/dev/asf/ant-core/lib/optional/resolver.jar:/Users/antoine/dev/asf/ant-core/lib/optional/starteam-sdk.jar:/Users/antoine/dev/asf/ant-core/lib/optional/stylebook-1.0-b2.jar:/Users/antoine/dev/asf/ant-core/lib/optional/weblogic.jar:/Users/antoine/dev/asf/ant-core/lib/optional/weblogicaux.jar:/Users/antoine/dev/asf/ant-core/lib/optional/weblogicclasses.jar:/Users/antoine/dev/asf/ant-core/lib/optional/xalan.jar:/Users/antoine/dev/asf/ant-core/lib/optional/xalan1.jar:/Users/antoine/dev/asf/ant-core/lib/optional/xercesSamples.jar:/Users/antoine/dev/asf/ant-core/lib/optional/xmlParserAPIs.jar:/Users/antoine/dev/asf/ant-core/lib/optional/xsltc.jar:/Users/antoine/dev/asf/ant-core/lib/optional:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-antlr.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-apache-bcel.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-apache-bsf.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-apache-log4j.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-apache-oro.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-apache-regexp.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-apache-resolver.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-commons-logging.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-commons-net.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-jai.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-javamail.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-jdepend.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-jmf.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-jsch.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-junit.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-launcher.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-netrexx.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-nodeps.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-starteam.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-stylebook.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-swing.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-testutil.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-trax.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant-weblogic.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/ant.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/xercesImpl.jar:/Users/antoine/dev/asf/ant-core/bootstrap/lib/xml-apis.jar&quot;
                     keepgeneric=&quot;false&quot;
                     toplinkdescriptor=&quot;Address.xml&quot;
                     toplinkdtd=&quot;file:///dtdfiles/toplink-cmp_2_5_1.dtd&quot;
@@ -1229,7 +1250,7 @@ This will create only one TOPLink-enabled ejb jar file - 'Address.jar'.</p>
 </pre>
 
 <p>This final example shows how you would set-up ejbjar under Weblogic 6.0. It also shows the use of the
-&lt;support&gt; element to add support files</p>
+<code>&lt;support&gt;</code> element to add support files</p>
 
 <pre>
     &lt;ejbjar descriptordir=&quot;${dd.dir}&quot; srcdir=&quot;${build.classes.server}&quot;&gt;
@@ -1297,7 +1318,7 @@ the classpath of the ejbdeploy tool and set the <i>websphere.home</i> property (
   </tr>
   <tr>
     <td valign="top">ejbdeploy</td>
-    <td valign="top">Decides wether ejbdeploy is called. When you set this to true,
+    <td valign="top">Decides whether ejbdeploy is called. When you set this to true,
                      be sure, to run ant with the ibm jdk.</td>
     <td valign="top" align="center">No, defaults to true</td>
   </tr>
@@ -1332,14 +1353,14 @@ the classpath of the ejbdeploy tool and set the <i>websphere.home</i> property (
   </tr>
   <tr>
     <td valign="top">dbVendor</td>
-    <td valign="top">This option is passed to ejbdeploy. Valid options are for example:
-                     <ul>
-                     <li>SQL92</li> <li>SQL99</li> <li>DB2UDBWIN_V71</li>
-                     <li>DB2UDBOS390_V6</li> <li>DB2UDBAS400_V4R5</li> <li>ORACLE_V8</li>
-                     <li>INFORMIX_V92</li> <li>SYBASE_V1192</li> <li>MYSQL_V323</li>
-                     <li>MSSQLSERVER_V7</li>
-                     </ul>
-                     This is also used to determine the name of the Map.mapxmi and
+    <td valign="top">This option is passed to ejbdeploy. 
+                   <p>
+                   Valid options can be obtained by running the following command:
+                   <code>
+                   &lt;WAS_HOME&gt;/bin/EJBDeploy.[sh/bat] -help
+                   </code>
+                   </p>
+                    This is also used to determine the name of the Map.mapxmi and
                      Schema.dbxmi files, for example Account-DB2UDBWIN_V71-Map.mapxmi
                      and Account-DB2UDBWIN_V71-Schema.dbxmi.
                      </td>
@@ -1364,8 +1385,8 @@ the classpath of the ejbdeploy tool and set the <i>websphere.home</i> property (
 in the descriptor dir:</p>
 
 <pre>
-     &lt;property name=&quot;webpshere.home&quot; value=&quot;${was4.home}&quot;/&gt;
-     &lt;ejbjar srcdir="${build.class}" descriptordir="etc/ejb"&gt;
+    &lt;property name=&quot;webpshere.home&quot; value=&quot;${was4.home}&quot;/&gt;
+    &lt;ejbjar srcdir="${build.class}" descriptordir="etc/ejb"&gt;
       &lt;include name="*-ejb-jar.xml"/&gt;
       &lt;websphere dbvendor="DB2UDBOS390_V6"
                  ejbdeploy="true"
@@ -1380,9 +1401,9 @@ in the descriptor dir:</p>
           &lt;pathelement location="${was4.home}/lib/j2ee.jar"/&gt;
           &lt;pathelement location="${was4.home}/lib/vaprt.jar"/&gt;
         &lt;/wasclasspath&gt;
-      &lt;classpath&gt;
-        &lt;path refid="build.classpath"/&gt;
-      &lt;/classpath&gt;
+        &lt;classpath&gt;
+          &lt;path refid="build.classpath"/&gt;
+        &lt;/classpath&gt;
       &lt;/websphere&gt;
       &lt;dtd publicId="-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 1.1//EN"
            location="${lib}/dtd/ejb-jar_1_1.dtd"/&gt;
@@ -1413,59 +1434,59 @@ appropriate documentation for more details.</p>
 <h3>
 Parameters:</h3>
 
-<table BORDER CELLSPACING=0 CELLPADDING=2 >
+<table border="1" cellpadding="2" cellspacing="0">
 <tr>
-<td VALIGN=TOP><b>Attribute</b></td>
+<td valign="top"><b>Attribute</b></td>
 
-<td VALIGN=TOP><b>Description</b></td>
+<td valign="top"><b>Description</b></td>
 
-<td ALIGN=CENTER VALIGN=TOP><b>Required</b></td>
+<td align="center" valign="top"><b>Required</b></td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>destdir</td>
+<td valign="top">destdir</td>
 
-<td VALIGN=TOP>The base directory into which the generated JAR files will
+<td valign="top">The base directory into which the generated JAR files will
 be written. Each JAR file is written in directories which correspond to
 their location within the "descriptordir" namespace.</td>
 
-<td ALIGN=CENTER VALIGN=TOP>Yes</td>
+<td align="center" valign="top">Yes</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>classpath</td>
+<td valign="top">classpath</td>
 
-<td VALIGN=TOP>The classpath used when generating EJB stubs and skeletons.
+<td valign="top">The classpath used when generating EJB stubs and skeletons.
 If omitted, the classpath specified in the "ejbjar" parent task will be
 used.  If specified, the classpath elements will be prepended to the
 classpath specified in the parent "ejbjar" task. Note that nested "classpath"
 elements may also be used.</td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>keepgenerated</td>
+<td valign="top">keepgenerated</td>
 
-<td VALIGN=TOP>Indicates whether or not the Java source files which are
+<td valign="top">Indicates whether or not the Java source files which are
 generated by ejbc will be saved or automatically deleted. If "yes", the
 source files will be retained.  If omitted, it defaults to "no". </td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>debug</td>
+<td valign="top">debug</td>
 
 <td>Indicates whether or not the ejbc utility should log additional debugging
 statements to the standard output. If "yes", the additional debugging statements
 will be generated.  If omitted, it defaults to "no". </td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>iashome</td>
+<td valign="top">iashome</td>
 
 <td>May be used to specify the "home" directory for this iAS installation.
 This is used to find the ejbc utility if it isn't included in the user's
@@ -1473,28 +1494,29 @@ system path.  If specified, it should refer to the [install-location]/iplanet/ia
 directory.  If omitted, the ejbc utility must be on the user's system
 path. </td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 
 <tr>
-<td VALIGN=TOP>suffix</td>
+<td valign="top">suffix</td>
 
 <td>String value appended to the JAR filename when creating each JAR.
 If omitted, it defaults to ".jar". </td>
 
-<td ALIGN=CENTER VALIGN=TOP>No</td>
+<td align="center" valign="top">No</td>
 </tr>
 </table>
 
-<p>As noted above, the iplanet element supports additional &lt;classpath&gt;
+<p>As noted above, the iplanet element supports additional <code>&lt;classpath&gt;</code>
 nested elements.</p>
 <h3>
 Examples</h3>
-This example demonstrates the typical use of the &lt;iplanet&gt; nested element.
+This example demonstrates the typical use of the <code>&lt;iplanet&gt;</code> nested element.
 It will name each EJB-JAR using the "basename" prepended to each standard
 EJB descriptor.  For example, if the descriptor named "Account-ejb-jar.xml"
 is processed, the EJB-JAR will be named "Account.jar"
-<pre>    &lt;ejbjar srcdir="${build.classesdir}"
+<pre>
+    &lt;ejbjar srcdir="${build.classesdir}"
             descriptordir="${src}"&gt;
 
             &lt;iplanet destdir="${assemble.ejbjar}"
@@ -1505,7 +1527,8 @@ is processed, the EJB-JAR will be named "Account.jar"
 
 This example demonstrates the use of a nested classpath element as well
 as some of the other optional attributes.
-<pre>    &lt;ejbjar srcdir="${build.classesdir}"
+<pre>
+    &lt;ejbjar srcdir="${build.classesdir}"
             descriptordir="${src}"&gt;
 
             &lt;iplanet destdir="${assemble.ejbjar}"
@@ -1525,7 +1548,8 @@ This example demonstrates the use of basejarname attribute.  In this
 case, the completed EJB-JAR will be named "HelloWorld.jar"  If multiple
 EJB descriptors might be found, care must be taken to ensure that the completed
 JAR files don't overwrite each other.
-<pre>    &lt;ejbjar srcdir="${build.classesdir}"
+<pre>
+    &lt;ejbjar srcdir="${build.classesdir}"
             descriptordir="${src}"
             basejarname="HelloWorld"&gt;
 
@@ -1539,7 +1563,8 @@ copies of the DTDs are included in the classpath, they will be automatically
 referenced without the nested elements.  In iAS 6.0 SP2, these local DTDs are
 found in the [iAS-install-directory]/APPS directory.  In iAS 6.0 SP3, these
 local DTDs are found in the [iAS-install-directory]/dtd directory.
-<pre>    &lt;ejbjar srcdir="${build.classesdir}"
+<pre>
+    &lt;ejbjar srcdir="${build.classesdir}"
             descriptordir="${src}"&gt;
             &lt;iplanet destdir="${assemble.ejbjar}"&gt;
                      classpath="${ias.ejbc.cpath}"/&gt;
@@ -1554,7 +1579,7 @@ local DTDs are found in the [iAS-install-directory]/dtd directory.
 
 <h3><a name="ejbjar_jonas">JOnAS (Java Open Application Server) element</a></h3>
 
-<p>The &lt;jonas&gt; nested element is used to build JOnAS-specific stubs and
+<p>The <code>&lt;jonas&gt;</code> nested element is used to build JOnAS-specific stubs and
 skeletons thanks to the <code>GenIC</code> specific tool, and construct a JAR
 file which may be deployed to the JOnAS Application Server. The build process
 will always determine if the EJB stubs/skeletons and the EJB-JAR file are up to
@@ -1563,13 +1588,13 @@ date, and it will do the minimum amount of work required.</p>
 <p>Like the WebLogic element, a naming convention for the EJB descriptors is
 most commonly used to specify the name for the completed JAR file. For example,
 if the EJB descriptor <code>ejb/Account-ejb-jar.xml</code> is found in the
-descriptor directory, the &lt;jonas&gt; element will search for a JOnAS-specific
+descriptor directory, the <code>&lt;jonas&gt;</code> element will search for a JOnAS-specific
 EJB descriptor file named <code>ejb/Account-jonas-ejb-jar.xml</code> and a JAR
 file named <code>ejb/Account.jar</code> will be written in the destination
-directory. But the &lt;jonas&gt; element can also use the JOnAS naming
+directory. But the <code>&lt;jonas&gt;</code> element can also use the JOnAS naming
 convention. With the same example as below, the EJB descriptor can also be named
 <code>ejb/Account.xml</code> (no base name terminator here) in the descriptor
-directory. Then the &lt;jonas&gt; element will search for a JOnAS-specific EJB
+directory. Then the <code>&lt;jonas&gt;</code> element will search for a JOnAS-specific EJB
 descriptor file called <code>ejb/jonas-Account.xml</code>. This convention do
 not follow strictly the ejb-jar naming convention recommendation but is
 supported for backward compatibility with previous version of JOnAS.</p>
@@ -1664,6 +1689,7 @@ documentation for more details.</p>
       omitted, it defaults to <code>false</code>.</td>
       <td align="Center" valign="Top">No</td>
     </tr>
+    <tr>
       <td valign="Top">additionalargs</td>
       <td valign="Top">Add additional args to GenIC.</td>
       <td align="Center" valign="Top">No</td>
@@ -1699,7 +1725,7 @@ documentation for more details.</p>
   </tbody>
 </table>
 
-<p>As noted above, the jonas element supports additional &lt;classpath&gt;
+<p>As noted above, the jonas element supports additional <code>&lt;classpath&gt;</code>
 nested elements.</p>
 
 <h3>Examples</h3>
@@ -1711,14 +1737,14 @@ each variation of &nbsp;'*-jar.xml' that is found in the deployment descriptor
 directory.&nbsp;</p>
 
 <pre>
-      &lt;ejbjar srcdir="${build.classes}"
+      &lt;ejbjar srcdir="build/classes"
               descriptordir="${descriptor.dir}"&gt;
         &lt;jonas destdir="${deploymentjars.dir}"
              jonasroot="${jonas.root}"
              orb="RMI"/&gt;
         &lt;include name="**/*.xml"/&gt;
         &lt;exclude name="**/jonas-*.xml"/&gt;
-        &lt;support dir="${build.classes}"&gt;
+        &lt;support dir="build/classes"&gt;
              &lt;include name="**/*.class"/&gt;
         &lt;/support&gt;
       &lt;/ejbjar&gt;
@@ -1730,7 +1756,7 @@ descriptors to use the naming standard. This will create only one ejb jar file -
 'TheEJBJar.jar'.</p>
 
 <pre>
-      &lt;ejbjar srcdir="${build.classes}"
+      &lt;ejbjar srcdir="build/classes"
               descriptordir="${descriptor.dir}"
               basejarname="TheEJBJar"&gt;
         &lt;jonas destdir="${deploymentjars.dir}"
@@ -1742,9 +1768,7 @@ descriptors to use the naming standard. This will create only one ejb jar file -
       &lt;/ejbjar&gt;
 </pre>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 
 </body>

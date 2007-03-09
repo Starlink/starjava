@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,27 +27,46 @@ import java.awt.image.BufferedImage;
  * @see org.apache.tools.ant.taskdefs.optional.image.Image
  */
 public class Rectangle extends BasicShape implements DrawOperation {
+    // CheckStyle:VisibilityModifier OFF - bc
     protected int width = 0;
     protected int height = 0;
     protected int arcwidth = 0;
     protected int archeight = 0;
+    // CheckStyle:VisibilityModifier ON
 
+    /**
+     * Set the width.
+     * @param w the value to use.
+     */
     public void setWidth(int w) {
         width = w;
     }
 
+    /**
+     * Set the height.
+     * @param h the value to use.
+     */
     public void setHeight(int h) {
         height = h;
     }
 
+    /**
+     * Set the arc width.
+     * @param w the value to use.
+     */
     public void setArcwidth(int w) {
         arcwidth = w;
     }
 
+    /**
+     * Set the arc height.
+     * @param h the value to use.
+     */
     public void setArcheight(int h) {
         archeight = h;
     }
 
+    /** {@inheritDoc}. */
     public PlanarImage executeDrawOperation() {
         log("\tCreating Rectangle w=" + width + " h=" + height + " arcw="
             + arcwidth + " arch=" + archeight);
@@ -55,9 +75,9 @@ public class Rectangle extends BasicShape implements DrawOperation {
         Graphics2D graphics = (Graphics2D) bi.getGraphics();
 
         if (!stroke.equals("transparent")) {
-            BasicStroke b_stroke = new BasicStroke(stroke_width);
+            BasicStroke bStroke = new BasicStroke(stroke_width);
             graphics.setColor(ColorMapper.getColorByName(stroke));
-            graphics.setStroke(b_stroke);
+            graphics.setStroke(bStroke);
 
             if ((arcwidth != 0) || (archeight != 0)) {
                 graphics.drawRoundRect(0, 0, width, height, arcwidth, archeight);
@@ -87,7 +107,8 @@ public class Rectangle extends BasicShape implements DrawOperation {
             } else if (instr instanceof TransformOperation) {
                 graphics = (Graphics2D) bi.getGraphics();
                 PlanarImage image
-                    = ((TransformOperation) instr).executeTransformOperation(PlanarImage.wrapRenderedImage(bi));
+                    = ((TransformOperation) instr)
+                    .executeTransformOperation(PlanarImage.wrapRenderedImage(bi));
                 bi = image.getAsBufferedImage();
             }
         }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,8 +18,6 @@
 package org.apache.tools.ant.types;
 
 
-import java.util.Stack;
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
 /***
@@ -38,10 +37,15 @@ public class Substitution extends DataType {
 
     private String expression;
 
+    /** Constructor for Substitution. */
     public Substitution() {
         this.expression = null;
     }
 
+    /**
+     * Set the pattern string for this regular expression substitution.
+     * @param expression the regular expression to use
+     */
     public void setExpression(String expression) {
         this.expression = expression;
     }
@@ -49,6 +53,9 @@ public class Substitution extends DataType {
     /***
      * Gets the pattern string for this RegularExpression in the
      * given project.
+     * @param p the project to look for the regular expression if this object is
+     *          a reference
+     * @return the pattern string
      */
     public String getExpression(Project p) {
         if (isReference()) {
@@ -60,22 +67,11 @@ public class Substitution extends DataType {
 
     /***
      * Get the RegularExpression this reference refers to in
-     * the given project.  Check for circular references too
+     * the given project.  Check for circular references too.
+     * @param p the project to look for the regular expression reference
+     * @return the resolved reference
      */
     public Substitution getRef(Project p) {
-        if (!isChecked()) {
-            Stack stk = new Stack();
-            stk.push(this);
-            dieOnCircularReference(stk, p);
-        }
-
-
-        Object o = getRefid().getReferencedObject(p);
-        if (!(o instanceof Substitution)) {
-            String msg = getRefid().getRefId() + " doesn\'t denote a substitution";
-            throw new BuildException(msg);
-        } else {
-            return (Substitution) o;
-        }
+        return (Substitution) getCheckedRef(p);
     }
 }

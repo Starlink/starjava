@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -58,6 +59,15 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
     private LogFactory logFactory;
 
     /**
+     * name of the category under which target events are logged
+     */
+    public static final String TARGET_LOG = "org.apache.tools.ant.Target";
+    /**
+     * name of the category under which project events are logged
+     */
+    public static final String PROJECT_LOG = "org.apache.tools.ant.Project";
+
+    /**
      * Construct the listener and make sure that a LogFactory
      * can be obtained.
      */
@@ -91,11 +101,9 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
         return log;
     }
 
-    /**
-     * @see BuildListener#buildStarted
-     */
+    /** {@inheritDoc}. */
     public void buildStarted(BuildEvent event) {
-        String categoryString = "org.apache.tools.ant.Project";
+        String categoryString = PROJECT_LOG;
         Log log = getLog(categoryString, null);
 
         if (initialized) {
@@ -103,12 +111,10 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
         }
     }
 
-    /**
-     * @see BuildListener#buildFinished
-     */
+    /** {@inheritDoc}. */
     public void buildFinished(BuildEvent event) {
         if (initialized) {
-            String categoryString = "org.apache.tools.ant.Project";
+            String categoryString = PROJECT_LOG;
             Log log = getLog(categoryString, event.getProject().getName());
 
             if (event.getException() == null) {
@@ -123,24 +129,26 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
     /**
      * @see BuildListener#targetStarted
      */
+    /** {@inheritDoc}. */
     public void targetStarted(BuildEvent event) {
         if (initialized) {
-            Log log = getLog("org.apache.tools.ant.Target",
+            Log log = getLog(TARGET_LOG,
                     event.getTarget().getName());
             // Since task log category includes target, we don't really
             // need this message
             realLog(log, "Start: " + event.getTarget().getName(),
-                    Project.MSG_DEBUG, null);
+                    Project.MSG_VERBOSE, null);
         }
     }
 
     /**
      * @see BuildListener#targetFinished
      */
+    /** {@inheritDoc}. */
     public void targetFinished(BuildEvent event) {
         if (initialized) {
             String targetName = event.getTarget().getName();
-            Log log = getLog("org.apache.tools.ant.Target",
+            Log log = getLog(TARGET_LOG,
                     event.getTarget().getName());
             if (event.getException() == null) {
                 realLog(log, "Target end: " + targetName, Project.MSG_DEBUG, null);
@@ -155,6 +163,7 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
     /**
      * @see BuildListener#taskStarted
      */
+    /** {@inheritDoc}. */
     public void taskStarted(BuildEvent event) {
         if (initialized) {
             Task task = event.getTask();
@@ -176,6 +185,7 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
     /**
      * @see BuildListener#taskFinished
      */
+    /** {@inheritDoc}. */
     public void taskFinished(BuildEvent event) {
         if (initialized) {
             Task task = event.getTask();
@@ -204,6 +214,7 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
     /**
      * @see BuildListener#messageLogged
      */
+    /** {@inheritDoc}. */
     public void messageLogged(BuildEvent event) {
         if (initialized) {
             Object categoryObject = event.getTask();
@@ -214,10 +225,10 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
                 categoryObject = event.getTarget();
                 if (categoryObject == null) {
                     categoryObject = event.getProject();
-                    categoryString = "org.apache.tools.ant.Project";
+                    categoryString = PROJECT_LOG;
                     categoryDetail = event.getProject().getName();
                 } else {
-                    categoryString = "org.apache.tools.ant.Target";
+                    categoryString = TARGET_LOG;
                     categoryDetail = event.getTarget().getName();
                 }
             } else {
@@ -279,21 +290,41 @@ public class CommonsLoggingListener implements BuildListener, BuildLogger {
         System.setErr(tmpErr);
     }
 
+    // CheckStyle:VisibilityModifier OFF - bc
     PrintStream out = System.out;
     PrintStream err = System.err;
+    // CheckStyle:VisibilityModifier ON
 
+    /**
+     * Set the the output level.
+     * This is not used, the logger config is used instead.
+     * @param level ignored
+     */
     public void setMessageOutputLevel(int level) {
         // Use the logger config
     }
 
+    /**
+     * Set the output print stream.
+     * @param output the output stream
+     */
     public void setOutputPrintStream(PrintStream output) {
         this.out = output;
     }
 
+    /**
+     * Set emacs mode.
+     * This is ignored.
+     * @param emacsMode ignored
+     */
     public void setEmacsMode(boolean emacsMode) {
         // Doesn't make sense for c-l. Use the logger config
     }
 
+    /**
+     * Set the error print stream.
+     * @param err the error stream
+     */
     public void setErrorPrintStream(PrintStream err) {
         this.err = err;
     }

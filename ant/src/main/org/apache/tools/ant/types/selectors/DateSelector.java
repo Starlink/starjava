@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -24,9 +25,9 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.taskdefs.condition.Os;
-import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Parameter;
+import org.apache.tools.ant.types.TimeComparison;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Selector that chooses files based on their last modified date.
@@ -35,12 +36,16 @@ import org.apache.tools.ant.types.Parameter;
  */
 public class DateSelector extends BaseExtendSelector {
 
+    /** Utilities used for file operations */
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
     private long millis = -1;
     private String dateTime = null;
     private boolean includeDirs = false;
-    private int granularity = 0;
-    private int cmp = 2;
+    private long granularity = 0;
     private String pattern;
+    private TimeComparison when = TimeComparison.EQUAL;
+
     /** Key to used for parameterized custom selector */
     public static final String MILLIS_KEY = "millis";
     /** Key to used for parameterized custom selector */
@@ -59,9 +64,7 @@ public class DateSelector extends BaseExtendSelector {
      *
      */
     public DateSelector() {
-        if (Os.isFamily("dos")) {
-            granularity = 2000;
-        }
+        granularity = FILE_UTILS.getFileTimestampGranularity();
     }
 
     /**
@@ -70,14 +73,7 @@ public class DateSelector extends BaseExtendSelector {
     public String toString() {
         StringBuffer buf = new StringBuffer("{dateselector date: ");
         buf.append(dateTime);
-        buf.append(" compare: ");
-        if (cmp == 0) {
-            buf.append("before");
-        } else if (cmp == 1) {
-            buf.append("after");
-        } else {
-            buf.append("equal");
-        }
+        buf.append(" compare: ").append(when.getValue());
         buf.append(" granularity: ");
         buf.append(granularity);
         if (pattern != null) {
@@ -88,10 +84,10 @@ public class DateSelector extends BaseExtendSelector {
     }
 
     /**
-     * For users that prefer to express time in milliseconds since 1970
+     * Set the time; for users who prefer to express time in ms since 1970.
      *
      * @param millis the time to compare file's last modified date to,
-     *        expressed in milliseconds
+     *        expressed in milliseconds.
      */
     public void setMillis(long millis) {
         this.millis = millis;
@@ -99,7 +95,7 @@ public class DateSelector extends BaseExtendSelector {
 
     /**
      * Returns the millisecond value the selector is set for.
-     * @return the millisecond value
+     * @return the millisecond value.
      */
     public long getMillis() {
         if (dateTime != null) {
@@ -109,19 +105,20 @@ public class DateSelector extends BaseExtendSelector {
     }
 
     /**
-     * Sets the date. The user must supply it in MM/DD/YYYY HH:MM AM_PM
-     * format
+     * Sets the date. The user must supply it in MM/DD/YYYY HH:MM AM_PM format,
+     * unless an alternate pattern is specified via the pattern attribute.
      *
-     * @param dateTime a string in MM/DD/YYYY HH:MM AM_PM format
+     * @param dateTime a formatted date <code>String</code>.
      */
     public void setDatetime(String dateTime) {
         this.dateTime = dateTime;
+        millis = -1;
     }
 
     /**
-     * Should we be checking dates on directories?
+     * Set whether to check dates on directories.
      *
-     * @param includeDirs whether to check the timestamp on directories
+     * @param includeDirs whether to check the timestamp on directories.
      */
     public void setCheckdirs(boolean includeDirs) {
         this.includeDirs = includeDirs;
@@ -130,7 +127,7 @@ public class DateSelector extends BaseExtendSelector {
     /**
      * Sets the number of milliseconds leeway we will give before we consider
      * a file not to have matched a date.
-     * @param granularity the number of milliconds leeway
+     * @param granularity the number of milliseconds leeway.
      */
     public void setGranularity(int granularity) {
         this.granularity = granularity;
@@ -140,16 +137,24 @@ public class DateSelector extends BaseExtendSelector {
      * Sets the type of comparison to be done on the file's last modified
      * date.
      *
-     * @param cmp The comparison to perform, an EnumeratedAttribute
+     * @param tcmp The comparison to perform, an EnumeratedAttribute.
      */
-    public void setWhen(TimeComparisons cmp) {
-        this.cmp = cmp.getIndex();
+    public void setWhen(TimeComparisons tcmp) {
+        setWhen((TimeComparison) tcmp);
     }
 
     /**
-     * Sets the pattern to be used for the SimpleDateFormat
+     * Set the comparison type.
+     * @param t TimeComparison object.
+     */
+    public void setWhen(TimeComparison t) {
+        when = t;
+    }
+
+    /**
+     * Sets the pattern to be used for the SimpleDateFormat.
      *
-     * @param pattern the pattern that defines the date format
+     * @param pattern the pattern that defines the date format.
      */
     public void setPattern(String pattern) {
         this.pattern = pattern;
@@ -159,7 +164,7 @@ public class DateSelector extends BaseExtendSelector {
      * When using this as a custom selector, this method will be called.
      * It translates each parameter into the appropriate setXXX() call.
      *
-     * @param parameters the complete set of parameters for this selector
+     * @param parameters the complete set of parameters for this selector.
      */
     public void setParameters(Parameter[] parameters) {
         super.setParameters(parameters);
@@ -187,9 +192,7 @@ public class DateSelector extends BaseExtendSelector {
                             + parameters[i].getValue());
                     }
                 } else if (WHEN_KEY.equalsIgnoreCase(paramname)) {
-                    TimeComparisons cmp = new TimeComparisons();
-                    cmp.setValue(parameters[i].getValue());
-                    setWhen(cmp);
+                    setWhen(new TimeComparison(parameters[i].getValue()));
                 } else if (PATTERN_KEY.equalsIgnoreCase(paramname)) {
                     setPattern(parameters[i].getValue());
                 } else {
@@ -234,38 +237,24 @@ public class DateSelector extends BaseExtendSelector {
      * The heart of the matter. This is where the selector gets to decide
      * on the inclusion of a file in a particular fileset.
      *
-     * @param basedir the base directory the scan is being done from
-     * @param filename is the name of the file to check
-     * @param file is a java.io.File object the selector can use
-     * @return whether the file should be selected or not
+     * @param basedir the base directory from which the scan is being performed.
+     * @param filename is the name of the file to check.
+     * @param file is a java.io.File object the selector can use.
+     * @return whether the file is selected.
      */
     public boolean isSelected(File basedir, String filename, File file) {
 
         validate();
 
-        if (file.isDirectory() && (!includeDirs)) {
-            return true;
-        }
-        if (cmp == 0) {
-            return ((file.lastModified() - granularity) < millis);
-        } else if (cmp == 1) {
-            return ((file.lastModified() + granularity) > millis);
-        } else {
-            return (Math.abs(file.lastModified() - millis) <= granularity);
-        }
+        return (file.isDirectory() && !includeDirs)
+            || when.evaluate(file.lastModified(), millis, granularity);
     }
 
     /**
      * Enumerated attribute with the values for time comparison.
      * <p>
      */
-    public static class TimeComparisons extends EnumeratedAttribute {
-        /**
-         * @return the values as an array of strings
-         */
-        public String[] getValues() {
-            return new String[]{"before", "after", "equal"};
-        }
+    public static class TimeComparisons extends TimeComparison {
     }
 
 }

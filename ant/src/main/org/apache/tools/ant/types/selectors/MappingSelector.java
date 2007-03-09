@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -30,17 +31,25 @@ import java.io.File;
  * selector
  */
 public abstract class MappingSelector extends BaseSelector {
+
+    /** Utilities used for file operations */
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
+    // CheckStyle:VisibilityModifier OFF - bc
+
     protected File targetdir = null;
     protected Mapper mapperElement = null;
     protected FileNameMapper map = null;
     protected int granularity = 0;
+
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Creates a new <code>MappingSelector</code> instance.
      *
      */
     public MappingSelector() {
-        granularity = (int) FileUtils.newFileUtils().getFileTimestampGranularity();
+        granularity = (int) FILE_UTILS.getFileTimestampGranularity();
     }
 
 
@@ -128,8 +137,8 @@ public abstract class MappingSelector extends BaseSelector {
 
     /**
      * Sets the number of milliseconds leeway we will give before we consider
-     * a file out of date. Defaults to 2000 on MS-DOS derivatives as the FAT
-     * file system.
+     * a file out of date. Defaults to 2000 on MS-DOS derivatives and 1000 on
+     * others.
      * @param granularity the leeway in milliseconds
      */
     public void setGranularity(int granularity) {

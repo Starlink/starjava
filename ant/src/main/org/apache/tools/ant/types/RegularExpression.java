@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,9 +17,6 @@
  */
 package org.apache.tools.ant.types;
 
-
-import java.util.Stack;
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.util.regexp.Regexp;
 import org.apache.tools.ant.util.regexp.RegexpFactory;
@@ -61,58 +59,83 @@ import org.apache.tools.ant.util.regexp.RegexpFactory;
 public class RegularExpression extends DataType {
     /** Name of this data type */
     public static final String DATA_TYPE_NAME = "regexp";
+    private boolean alreadyInit = false;
 
     // The regular expression factory
-    private static final RegexpFactory factory = new RegexpFactory();
+    private static final RegexpFactory FACTORY = new RegexpFactory();
 
-    private Regexp regexp;
+    private Regexp regexp = null;
+    // temporary variable
+    private String myPattern;
+    private boolean setPatternPending = false;
 
+    /**
+     * default constructor
+     */
     public RegularExpression() {
-        this.regexp = factory.newRegexp();
     }
 
+    private void init(Project p) {
+        if (!alreadyInit) {
+            this.regexp = FACTORY.newRegexp(p);
+            alreadyInit = true;
+        }
+    }
+    private void setPattern() {
+        if (setPatternPending) {
+            regexp.setPattern(myPattern);
+            setPatternPending = false;
+        }
+    }
+    /**
+     * sets the regular expression pattern
+     * @param pattern regular expression pattern
+     */
     public void setPattern(String pattern) {
-        this.regexp.setPattern(pattern);
+        if (regexp == null) {
+            myPattern = pattern;
+            setPatternPending = true;
+        } else {
+            regexp.setPattern(pattern);
+        }
     }
 
     /***
      * Gets the pattern string for this RegularExpression in the
      * given project.
+     * @param p project
+     * @return pattern
      */
     public String getPattern(Project p) {
+        init(p);
         if (isReference()) {
             return getRef(p).getPattern(p);
         }
-
+        setPattern();
         return regexp.getPattern();
     }
 
+    /**
+     * provides a reference to the Regexp contained in this
+     * @param p  project
+     * @return   Regexp instance associated with this RegularExpression instance
+     */
     public Regexp getRegexp(Project p) {
+        init(p);
         if (isReference()) {
             return getRef(p).getRegexp(p);
         }
+        setPattern();
         return this.regexp;
     }
 
     /***
      * Get the RegularExpression this reference refers to in
      * the given project.  Check for circular references too
+     * @param p project
+     * @return resolved RegularExpression instance
      */
     public RegularExpression getRef(Project p) {
-        if (!isChecked()) {
-            Stack stk = new Stack();
-            stk.push(this);
-            dieOnCircularReference(stk, p);
-        }
-
-
-        Object o = getRefid().getReferencedObject(p);
-        if (!(o instanceof RegularExpression)) {
-            String msg = getRefid().getRefId() + " doesn\'t denote a "
-                + DATA_TYPE_NAME;
-            throw new BuildException(msg);
-        } else {
-            return (RegularExpression) o;
-        }
+        return (RegularExpression) getCheckedRef(p);
     }
 }

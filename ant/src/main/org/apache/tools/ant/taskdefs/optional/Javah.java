@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,18 +19,20 @@
 package org.apache.tools.ant.taskdefs.optional;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.taskdefs.optional.javah.JavahAdapter;
+import org.apache.tools.ant.taskdefs.optional.javah.JavahAdapterFactory;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
-import org.apache.tools.ant.util.JavaEnvUtils;
+import org.apache.tools.ant.util.facade.FacadeTaskHelper;
+import org.apache.tools.ant.util.facade.ImplementationSpecificArgument;
 
 /**
  * Generates JNI header files using javah.
@@ -76,9 +79,18 @@ public class Javah extends Task {
     private Path bootclasspath;
     //private Path extdirs;
     private static String lSep = System.getProperty("line.separator");
+    private FacadeTaskHelper facade = null;
+
+    /**
+     * No arg constructor.
+     */
+    public Javah() {
+        facade = new FacadeTaskHelper(JavahAdapterFactory.getDefault());
+    }
 
     /**
      * the fully-qualified name of the class (or classes, separated by commas).
+     * @param cls the classname (or classnames).
      */
     public void setClass(String cls) {
         this.cls = cls;
@@ -86,6 +98,7 @@ public class Javah extends Task {
 
     /**
      * Adds class to process.
+     * @return a <code>ClassArgument</code> to be configured.
      */
     public ClassArgument createClass() {
         ClassArgument ga = new ClassArgument();
@@ -93,32 +106,77 @@ public class Javah extends Task {
         return ga;
     }
 
+    /**
+     * A class corresponding the the nested "class" element.
+     * It contains a "name" attribute.
+     */
     public class ClassArgument {
         private String name;
 
+        /** Constructor for ClassArgument. */
         public ClassArgument() {
         }
 
+        /**
+         * Set the name attribute.
+         * @param name the name attribute.
+         */
         public void setName(String name) {
             this.name = name;
-            log("ClassArgument.name=" + name);
         }
 
+        /**
+         * Get the name attribute.
+         * @return the name attribute.
+         */
         public String getName() {
             return name;
         }
     }
 
     /**
+     * Names of the classes to process.
+     * @return the array of classes.
+     * @since Ant 1.6.3
+     */
+    public String[] getClasses() {
+        ArrayList al = new ArrayList();
+        if (cls != null) {
+            StringTokenizer tok = new StringTokenizer(cls, ",", false);
+            while (tok.hasMoreTokens()) {
+                al.add(tok.nextToken().trim());
+            }
+        }
+
+        Enumeration e = classes.elements();
+        while (e.hasMoreElements()) {
+            ClassArgument arg = (ClassArgument) e.nextElement();
+            al.add(arg.getName());
+        }
+        return (String[]) al.toArray(new String[al.size()]);
+    }
+
+    /**
      * Set the destination directory into which the Java source
      * files should be compiled.
+     * @param destDir the destination directory.
      */
     public void setDestdir(File destDir) {
         this.destDir = destDir;
     }
 
     /**
+     * The destination directory, if any.
+     * @return the destination directory.
+     * @since Ant 1.6.3
+     */
+    public File getDestdir() {
+        return destDir;
+    }
+
+    /**
      * the classpath to use.
+     * @param src the classpath.
      */
     public void setClasspath(Path src) {
         if (classpath == null) {
@@ -130,6 +188,7 @@ public class Javah extends Task {
 
     /**
      * Path to use for classpath.
+     * @return a path to be configured.
      */
     public Path createClasspath() {
         if (classpath == null) {
@@ -140,14 +199,25 @@ public class Javah extends Task {
 
     /**
      * Adds a reference to a classpath defined elsewhere.
-     * @todo this needs to be documented in the HTML docs
+     * @param r a reference to a classpath.
+     * @todo this needs to be documented in the HTML docs.
      */
     public void setClasspathRef(Reference r) {
         createClasspath().setRefid(r);
     }
 
     /**
+     * The classpath to use.
+     * @return the classpath.
+     * @since Ant 1.6.3
+     */
+    public Path getClasspath() {
+        return classpath;
+    }
+
+    /**
      * location of bootstrap class files.
+     * @param src the bootstrap classpath.
      */
     public void setBootclasspath(Path src) {
         if (bootclasspath == null) {
@@ -159,6 +229,7 @@ public class Javah extends Task {
 
     /**
      * Adds path to bootstrap class files.
+     * @return a path to be configured.
      */
     public Path createBootclasspath() {
         if (bootclasspath == null) {
@@ -168,72 +239,147 @@ public class Javah extends Task {
     }
 
     /**
-     * Adds a reference to a classpath defined elsewhere.
-     * @todo this needs to be documented in the HTML
+     * To the bootstrap path, this adds a reference to a classpath defined elsewhere.
+     * @param r a reference to a classpath
+     * @todo this needs to be documented in the HTML.
      */
     public void setBootClasspathRef(Reference r) {
         createBootclasspath().setRefid(r);
     }
 
-    ///**
-    // * Sets the extension directories that will be used during the
-    // * compilation.
-    // */
-    //public void setExtdirs(Path extdirs) {
-    //    if (this.extdirs == null) {
-    //        this.extdirs = extdirs;
-    //    } else {
-    //        this.extdirs.append(extdirs);
-    //    }
-    //}
-
-    ///**
-    // * Maybe creates a nested classpath element.
-    // */
-    //public Path createExtdirs() {
-    //    if (extdirs == null) {
-    //        extdirs = new Path(project);
-    //    }
-    //    return extdirs.createPath();
-    //}
+    /**
+     * The bootclasspath to use.
+     * @return the bootclass path.
+     * @since Ant 1.6.3
+     */
+    public Path getBootclasspath() {
+        return bootclasspath;
+    }
 
     /**
      * Concatenates the resulting header or source files for all
      * the classes listed into this file.
+     * @param outputFile the output file.
      */
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
     }
 
     /**
+     * The destination file, if any.
+     * @return the destination file.
+     * @since Ant 1.6.3
+     */
+    public File getOutputfile() {
+        return outputFile;
+    }
+
+    /**
      * If true, output files should always be written (JDK1.2 only).
+     * @param force the value to use.
      */
     public void setForce(boolean force) {
         this.force = force;
     }
 
     /**
+     * Whether output files should always be written.
+     * @return the force attribute.
+     * @since Ant 1.6.3
+     */
+    public boolean getForce() {
+        return force;
+    }
+
+    /**
      * If true, specifies that old JDK1.0-style header files should be
      * generated.
-     * (otherwise output file contain JNI-style native method function prototypes) (JDK1.2 only)
+     * (otherwise output file contain JNI-style native method function
+     *  prototypes) (JDK1.2 only).
+     * @param old if true use old 1.0 style header files.
      */
     public void setOld(boolean old) {
         this.old = old;
     }
 
     /**
+     * Whether old JDK1.0-style header files should be generated.
+     * @return the old attribute.
+     * @since Ant 1.6.3
+     */
+    public boolean getOld() {
+        return old;
+    }
+
+    /**
      * If true, generate C declarations from the Java object file (used with old).
+     * @param stubs if true, generated C declarations.
      */
     public void setStubs(boolean stubs) {
         this.stubs = stubs;
     }
 
     /**
+     * Whether C declarations from the Java object file should be generated.
+     * @return the stubs attribute.
+     * @since Ant 1.6.3
+     */
+    public boolean getStubs() {
+        return stubs;
+    }
+
+    /**
      * If true, causes Javah to print a message concerning
      * the status of the generated files.
+     * @param verbose if true, do verbose printing.
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    /**
+     * Whether verbose output should get generated.
+     * @return the verbose attribute.
+     * @since Ant 1.6.3
+     */
+    public boolean getVerbose() {
+        return verbose;
+    }
+
+    /**
+     * Choose the implementation for this particular task.
+     * @param impl the name of the implemenation.
+     * @since Ant 1.6.3
+     */
+    public void setImplementation(String impl) {
+        if ("default".equals(impl)) {
+            facade.setImplementation(JavahAdapterFactory.getDefault());
+        } else {
+            facade.setImplementation(impl);
+        }
+    }
+
+    /**
+     * Adds an implementation specific command-line argument.
+     * @return a ImplementationSpecificArgument to be configured.
+     *
+     * @since Ant 1.6.3
+     */
+    public ImplementationSpecificArgument createArg() {
+        ImplementationSpecificArgument arg =
+            new ImplementationSpecificArgument();
+        facade.addImplementationArgument(arg);
+        return arg;
+    }
+
+    /**
+     * Returns the (implementation specific) settings given as nested
+     * arg elements.
+     * @return the arguments.
+     * @since Ant 1.6.3
+     */
+    public String[] getCurrentArgs() {
+        return facade.getArgs();
     }
 
     /**
@@ -271,157 +417,43 @@ public class Javah extends Task {
             classpath = classpath.concatSystemClasspath("ignore");
         }
 
-        String compiler = getProject().getProperty("build.compiler");
-        if (compiler == null) {
-            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)
-                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)) {
-                compiler = "modern";
-            } else {
-                compiler = "classic";
-            }
+        JavahAdapter ad =
+            JavahAdapterFactory.getAdapter(facade.getImplementation(),
+                                           this);
+        if (!ad.compile(this)) {
+            throw new BuildException("compilation failed");
         }
-
-        doClassicCompile();
-    }
-
-    // XXX
-    // we need a way to not use the current classpath.
-
-    /**
-     * Performs a compile using the classic compiler that shipped with
-     * JDK 1.1 and 1.2.
-     */
-
-    private void doClassicCompile() throws BuildException {
-        Commandline cmd = setupJavahCommand();
-
-        // Use reflection to be able to build on all JDKs
-        /*
-        // provide the compiler a different message sink - namely our own
-        sun.tools.javac.Main compiler =
-                new sun.tools.javac.Main(new LogOutputStream(this, Project.MSG_WARN), "javac");
-
-        if (!compiler.compile(cmd.getArguments())) {
-            throw new BuildException("Compile failed");
-        }
-        */
-
-
-        try {
-            Class javahMainClass = null;
-            try {
-                // first search for the "old" javah class in 1.4.2 tools.jar
-                javahMainClass = Class.forName("com.sun.tools.javah.oldjavah.Main");
-            } catch (ClassNotFoundException cnfe) {
-                // assume older than 1.4.2 tools.jar
-                javahMainClass = Class.forName("com.sun.tools.javah.Main");
-            }
-
-            // now search for the constructor that takes in String[] arguments.
-            Class[] strings = new Class[] {String[].class};
-            Constructor constructor = javahMainClass.getConstructor(strings);
-
-            // construct the javah Main instance
-            Object javahMain = constructor.newInstance(new Object[] {cmd.getArguments()});
-
-            // find the run method
-            Method runMethod = javahMainClass.getMethod("run", new Class[0]);
-
-            runMethod.invoke(javahMain, new Object[0]);
-        } catch (Exception ex) {
-            if (ex instanceof BuildException) {
-                throw (BuildException) ex;
-            } else {
-                throw new BuildException("Error starting javah: " + ex, ex, getLocation());
-            }
-        }
-    }
-
-    /**
-     * Does the command line argument processing common to classic and
-     * modern.
-     */
-    private Commandline setupJavahCommand() {
-        Commandline cmd = new Commandline();
-
-        if (destDir != null) {
-            cmd.createArgument().setValue("-d");
-            cmd.createArgument().setFile(destDir);
-        }
-
-        if (outputFile != null) {
-            cmd.createArgument().setValue("-o");
-            cmd.createArgument().setFile(outputFile);
-        }
-
-        if (classpath != null) {
-            cmd.createArgument().setValue("-classpath");
-            cmd.createArgument().setPath(classpath);
-        }
-
-        // JDK1.1 is rather simpler than JDK1.2
-        if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-            if (verbose) {
-                cmd.createArgument().setValue("-v");
-            }
-        } else {
-            if (verbose) {
-                cmd.createArgument().setValue("-verbose");
-            }
-            if (old) {
-                cmd.createArgument().setValue("-old");
-            }
-            if (force) {
-                cmd.createArgument().setValue("-force");
-            }
-        }
-
-        if (stubs) {
-            if (!old) {
-                throw new BuildException("stubs only available in old mode.", getLocation());
-            }
-            cmd.createArgument().setValue("-stubs");
-        }
-        if (bootclasspath != null) {
-            cmd.createArgument().setValue("-bootclasspath");
-            cmd.createArgument().setPath(bootclasspath);
-        }
-
-        logAndAddFilesToCompile(cmd);
-        return cmd;
     }
 
     /**
      * Logs the compilation parameters, adds the files to compile and logs the
      * &quot;niceSourceList&quot;
+     * @param cmd the command line.
+     */
+    public void logAndAddFiles(Commandline cmd) {
+        logAndAddFilesToCompile(cmd);
+    }
+
+    /**
+     * Logs the compilation parameters, adds the files to compile and logs the
+     * &quot;niceSourceList&quot;
+     * @param cmd the command line to add parameters to.
      */
     protected void logAndAddFilesToCompile(Commandline cmd) {
-        int n = 0;
         log("Compilation " + cmd.describeArguments(),
             Project.MSG_VERBOSE);
 
         StringBuffer niceClassList = new StringBuffer();
-        if (cls != null) {
-            StringTokenizer tok = new StringTokenizer(cls, ",", false);
-            while (tok.hasMoreTokens()) {
-                String aClass = tok.nextToken().trim();
-                cmd.createArgument().setValue(aClass);
-                niceClassList.append("    " + aClass + lSep);
-                n++;
-            }
-        }
-
-        Enumeration e = classes.elements();
-        while (e.hasMoreElements()) {
-            ClassArgument arg = (ClassArgument) e.nextElement();
-            String aClass = arg.getName();
-            cmd.createArgument().setValue(aClass);
-            niceClassList.append("    " + aClass + lSep);
-            n++;
+        String[] c = getClasses();
+        for (int i = 0; i < c.length; i++) {
+            cmd.createArgument().setValue(c[i]);
+            niceClassList.append("    ");
+            niceClassList.append(c[i]);
+            niceClassList.append(lSep);
         }
 
         StringBuffer prefix = new StringBuffer("Class");
-        if (n > 1) {
+        if (c.length > 1) {
             prefix.append("es");
         }
         prefix.append(" to be compiled:");

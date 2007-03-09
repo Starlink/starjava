@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,6 +18,14 @@
 
 package org.apache.tools.ant;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.InvocationTargetException;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.File;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.HashSet;
@@ -25,13 +34,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 
-import java.util.Vector;
-import java.io.InputStream;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Modifier;
-
 import org.apache.tools.ant.taskdefs.Typedef;
+import org.apache.tools.ant.taskdefs.Definer;
+import org.apache.tools.ant.launch.Launcher;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Component creation and configuration.
@@ -75,32 +81,65 @@ public class ComponentHelper  {
     private String antLibCurrentUri = null;
 
     /**
-     * Map from task names to vectors of created tasks
-     * (String to Vector of Task). This is used to invalidate tasks if
-     * the task definition changes.
+     * this does not appear to be used anywhere in the Ant codebase
+     * even via its accessors
      */
-    private Hashtable createdTasks = new Hashtable();
-
     private ComponentHelper next;
+
+    /**
+     * Project that owns a component helper
+     */
     private Project project;
 
     /**
-     * find a project component for a specific project, creating
-     * it if it does not exist
-     * @param project the project
-     * @return the project component for a specific project
+     * Error string when the file taskdefs/defaults.properties cannot be found
+     */
+    private static final String ERROR_NO_TASK_LIST_LOAD = "Can't load default task list";
+    /**
+     * Error string when the typedefs/defaults.properties cannot be found
+     */
+    private static final String ERROR_NO_TYPE_LIST_LOAD = "Can't load default type list";
+
+    /**
+     * reference under which we register ourselves with a project -{@value}
+     */
+    public static final String COMPONENT_HELPER_REFERENCE = "ant.ComponentHelper";
+
+    /**
+     * string used to control build.syspath policy {@value}
+     */
+    private static final String BUILD_SYSCLASSPATH_ONLY = "only";
+
+    /**
+     * special name of ant's property task -{@value}. There is some
+     * contrived work here to enable this early.
+     */
+    private static final String ANT_PROPERTY_TASK = "property";
+
+    // {tasks, types}
+    private static Properties[] defaultDefinitions = new Properties[2];
+
+
+    /**
+     * Find a project component for a specific project, creating
+     * it if it does not exist.
+     * @param project the project.
+     * @return the project component for a specific project.
      */
     public static ComponentHelper getComponentHelper(Project project) {
+        if (project == null) {
+            return null;
+        }
         // Singleton for now, it may change ( per/classloader )
         ComponentHelper ph = (ComponentHelper) project.getReference(
-            "ant.ComponentHelper");
+                COMPONENT_HELPER_REFERENCE);
         if (ph != null) {
             return ph;
         }
         ph = new ComponentHelper();
         ph.setProject(project);
 
-        project.addReference("ant.ComponentHelper", ph);
+        project.addReference(COMPONENT_HELPER_REFERENCE, ph);
         return ph;
     }
 
@@ -111,27 +150,27 @@ public class ComponentHelper  {
     }
 
     /**
-     * Set the next chained component helper
+     * Set the next chained component helper.
      *
-     * @param next the next chained component helper
+     * @param next the next chained component helper.
      */
     public void setNext(ComponentHelper next) {
         this.next = next;
     }
 
     /**
-     * Get the next chained component helper
+     * Get the next chained component helper.
      *
-     * @return the next chained component helper
+     * @return the next chained component helper.
      */
     public ComponentHelper getNext() {
         return next;
     }
 
     /**
-     * Sets the project for this component helper
+     * Sets the project for this component helper.
      *
-     * @param project the project for this helper
+     * @param project the project for this helper.
      */
     public void setProject(Project project) {
         this.project = project;
@@ -142,7 +181,7 @@ public class ComponentHelper  {
      * Used with creating child projects. Each child
      * project inherits the component definitions
      * from its parent.
-     * @param helper the component helper of the parent project
+     * @param helper the component helper of the parent project.
      */
     public void initSubProject(ComponentHelper helper) {
         // add the types of the parent project
@@ -157,26 +196,23 @@ public class ComponentHelper  {
         }
     }
 
-    /** Factory method to create the components.
+    /**
+     * Factory method to create the components.
      *
      * This should be called by UnknownElement.
      *
-     * @param ue The Unknown Element creating this component
-     * @param ns Namespace URI. Also available as ue.getNamespace()
+     * @param ue The Unknown Element creating this component.
+     * @param ns Namespace URI. Also available as ue.getNamespace().
      * @param componentType The component type,
-     *                       Also available as ue.getComponentName()
-     * @return the created component
-     * @throws BuildException if an error occurs
+     *                       Also available as ue.getComponentName().
+     * @return the created component.
+     * @throws BuildException if an error occurs.
      */
     public Object createComponent(UnknownElement ue,
                                   String ns,
                                   String componentType)
         throws BuildException {
         Object component = createComponent(componentType);
-        if (component == null) {
-            return null;
-        }
-
         if (component instanceof Task) {
             Task task = (Task) component;
             task.setLocation(ue.getLocation());
@@ -184,9 +220,7 @@ public class ComponentHelper  {
             task.setTaskName(ue.getTaskName());
             task.setOwningTarget(ue.getOwningTarget());
             task.init();
-            addCreatedTask(componentType, task);
         }
-
         return component;
     }
 
@@ -195,15 +229,12 @@ public class ComponentHelper  {
      *
      * @param componentName the name of the component, if
      *                      the component is in a namespace, the
-     *                      name is prefixed with the namespace uri and ":"
+     *                      name is prefixed with the namespace uri and ":".
      * @return the class if found or null if not.
      */
     public Object createComponent(String componentName) {
         AntTypeDefinition def = getDefinition(componentName);
-        if (def == null) {
-            return null;
-        }
-        return def.create(project);
+        return (def == null) ? null : def.create(project);
     }
 
     /**
@@ -211,27 +242,22 @@ public class ComponentHelper  {
      *
      * @param componentName the name of the component, if
      *                      the component is in a namespace, the
-     *                      name is prefixed with the namespace uri and ":"
+     *                      name is prefixed with the namespace uri and ":".
      * @return the class if found or null if not.
      */
     public Class getComponentClass(String componentName) {
         AntTypeDefinition def = getDefinition(componentName);
-        if (def == null) {
-            return null;
-        }
-        return def.getExposedClass(project);
+        return (def == null) ? null : def.getExposedClass(project);
     }
 
     /**
-     * Return the antTypeDefinition for a componentName
-     * @param componentName the name of the component
-     * @return the ant definition or null if not present
+     * Return the antTypeDefinition for a componentName.
+     * @param componentName the name of the component.
+     * @return the ant definition or null if not present.
      */
     public AntTypeDefinition getDefinition(String componentName) {
         checkNamespace(componentName);
-        AntTypeDefinition ret = null;
-        ret = antTypeTable.getDefinition(componentName);
-        return ret;
+        return antTypeTable.getDefinition(componentName);
     }
 
     /**
@@ -249,9 +275,7 @@ public class ComponentHelper  {
      * Attempting to override an existing definition with an
      * equivalent one (i.e. with the same classname) results in
      * a verbose log message. Attempting to override an existing definition
-     * with a different one results in a warning log message and
-     * invalidates any tasks which have already been created with the
-     * old definition.
+     * with a different one results in a warning log message.
      *
      * @param taskName The name of the task to add.
      *                 Must not be <code>null</code>.
@@ -300,7 +324,7 @@ public class ComponentHelper  {
             throw new BuildException(message);
         }
         try {
-            taskClass.getConstructor(null);
+            taskClass.getConstructor((Class[]) null);
             // don't have to check for public, since
             // getConstructor finds public constructors only.
         } catch (NoSuchMethodException e) {
@@ -329,8 +353,7 @@ public class ComponentHelper  {
                     for (Iterator i = antTypeTable.keySet().iterator();
                          i.hasNext();) {
                         String name = (String) i.next();
-                        Class clazz =
-                            (Class) antTypeTable.getExposedClass(name);
+                        Class clazz = antTypeTable.getExposedClass(name);
                         if (clazz == null) {
                             continue;
                         }
@@ -362,8 +385,7 @@ public class ComponentHelper  {
                     for (Iterator i = antTypeTable.keySet().iterator();
                          i.hasNext();) {
                         String name = (String) i.next();
-                        Class clazz =
-                            (Class) antTypeTable.getExposedClass(name);
+                        Class clazz = antTypeTable.getExposedClass(name);
                         if (clazz == null) {
                             continue;
                         }
@@ -397,15 +419,14 @@ public class ComponentHelper  {
         def.setName(typeName);
         def.setClass(typeClass);
         updateDataTypeDefinition(def);
-        String msg = " +User datatype: " + typeName + "     "
-                + typeClass.getName();
-        project.log(msg, Project.MSG_DEBUG);
+        project.log(" +User datatype: " + typeName + "     "
+                + typeClass.getName(), Project.MSG_DEBUG);
     }
 
     /**
      * Describe <code>addDataTypeDefinition</code> method here.
      *
-     * @param def an <code>AntTypeDefinition</code> value
+     * @param def an <code>AntTypeDefinition</code> value.
      */
     public void addDataTypeDefinition(AntTypeDefinition def) {
         updateDataTypeDefinition(def);
@@ -423,12 +444,9 @@ public class ComponentHelper  {
     }
 
     /**
-     * Creates a new instance of a task, adding it to a list of
-     * created tasks for later invalidation. This causes all tasks
-     * to be remembered until the containing project is removed
+     * Creates a new instance of a task.
      *
      *  Called from Project.createTask(), which can be called by tasks.
-     *  The method should be deprecated, as it doesn't support ns and libs.
      *
      * @param taskType The name of the task to create an instance of.
      *                 Must not be <code>null</code>.
@@ -441,23 +459,18 @@ public class ComponentHelper  {
      */
     public Task createTask(String taskType) throws BuildException {
         Task task = createNewTask(taskType);
-        if (task == null && taskType.equals("property")) {
+        if (task == null && taskType.equals(ANT_PROPERTY_TASK)) {
             // quick fix for Ant.java use of property before
             // initializing the project
-            addTaskDefinition("property",
+            addTaskDefinition(ANT_PROPERTY_TASK,
                               org.apache.tools.ant.taskdefs.Property.class);
             task = createNewTask(taskType);
-        }
-
-        if (task != null) {
-            addCreatedTask(taskType, task);
         }
         return task;
     }
 
     /**
-     * Creates a new instance of a task. This task is not
-     * cached in the createdTasks list.
+     * Creates a new instance of a task.
      * @since ant1.6
      * @param taskType The name of the task to create an instance of.
      *                 Must not be <code>null</code>.
@@ -470,73 +483,27 @@ public class ComponentHelper  {
      */
     private Task createNewTask(String taskType) throws BuildException {
         Class c = getComponentClass(taskType);
-        if (c == null) {
+        if (c == null || !(Task.class.isAssignableFrom(c))) {
             return null;
         }
-
-        if (!(Task.class.isAssignableFrom(c))) {
+        Object obj = createComponent(taskType);
+        if (obj == null) {
             return null;
         }
-        Task task = (Task) createComponent(taskType);
-        if (task == null) {
-            return null;
+        if (!(obj instanceof Task)) {
+            throw new BuildException(
+                "Expected a Task from '" + taskType
+                + "' but got an instance of " + obj.getClass().getName()
+                + " instead");
         }
+        Task task = (Task) obj;
         task.setTaskType(taskType);
 
         // set default value, can be changed by the user
         task.setTaskName(taskType);
 
-        String msg = "   +Task: " + taskType;
-        project.log (msg, Project.MSG_DEBUG);
+        project.log("   +Task: " + taskType, Project.MSG_DEBUG);
         return task;
-    }
-
-    /**
-     * Keeps a record of all tasks that have been created so that they
-     * can be invalidated if a new task definition overrides the current one.
-     *
-     * @param type The name of the type of task which has been created.
-     *             Must not be <code>null</code>.
-     *
-     * @param task The freshly created task instance.
-     *             Must not be <code>null</code>.
-     */
-    private void addCreatedTask(String type, Task task) {
-        synchronized (createdTasks) {
-            Vector v = (Vector) createdTasks.get(type);
-            if (v == null) {
-                v = new Vector();
-                createdTasks.put(type, v);
-            }
-            v.addElement(new WeakReference(task));
-        }
-    }
-
-    /**
-     * Mark tasks as invalid which no longer are of the correct type
-     * for a given taskname.
-     *
-     * @param type The name of the type of task to invalidate.
-     *             Must not be <code>null</code>.
-     */
-    private void invalidateCreatedTasks(String type) {
-        synchronized (createdTasks) {
-            Vector v = (Vector) createdTasks.get(type);
-            if (v != null) {
-                Enumeration taskEnum = v.elements();
-                while (taskEnum.hasMoreElements()) {
-                    WeakReference ref =
-                            (WeakReference) taskEnum.nextElement();
-                    Task t = (Task) ref.get();
-                    //being a weak ref, it may be null by this point
-                    if (t != null) {
-                        t.markInvalid();
-                    }
-                }
-                v.removeAllElements();
-                createdTasks.remove(type);
-            }
-        }
     }
 
     /**
@@ -563,59 +530,113 @@ public class ComponentHelper  {
      * @param element The element to describe.
      *                Must not be <code>null</code>.
      *
-     * @return a description of the element type
+     * @return a description of the element type.
      *
      * @since Ant 1.6
      */
     public String getElementName(Object element) {
+        return getElementName(element, false);
+    }
+
+    /**
+     * Returns a description of the type of the given element.
+     * <p>
+     * This is useful for logging purposes.
+     *
+     * @param o     The element to describe.
+     *              Must not be <code>null</code>.
+     * @param brief whether to use a brief description.
+     * @return a description of the element type.
+     *
+     * @since Ant 1.7
+     */
+    public String getElementName(Object o, boolean brief) {
         //  PR: I do not know what to do if the object class
         //      has multiple defines
         //      but this is for logging only...
-        Class elementClass = element.getClass();
+        Class elementClass = o.getClass();
+        String elementClassname = elementClass.getName();
         for (Iterator i = antTypeTable.values().iterator(); i.hasNext();) {
             AntTypeDefinition def = (AntTypeDefinition) i.next();
-            if (elementClass == def.getExposedClass(project)) {
-                return "The <" + def.getName() + "> type";
+            if (elementClassname.equals(def.getClassName())
+                    && (elementClass == def.getExposedClass(project))) {
+                String name = def.getName();
+                return brief ? name : "The <" + name + "> type";
             }
         }
-        return "Class " + elementClass.getName();
+        return getUnmappedElementName(o.getClass(), brief);
     }
 
+    /**
+     * Convenient way to get some element name even when you may not have a
+     * Project context.
+     * @param p       The optional Project instance.
+     * @param o       The element to describe.
+     *                Must not be <code>null</code>.
+     * @param brief   whether to use a brief description.
+     * @return a description of the element type.
+     * @since Ant 1.7
+     */
+    public static String getElementName(Project p, Object o, boolean brief) {
+        if (p == null) {
+            p = getProject(o);
+        }
+        return p == null ? getUnmappedElementName(o.getClass(), brief)
+                : getComponentHelper(p).getElementName(o, brief);
+    }
+
+    private static String getUnmappedElementName(Class c, boolean brief) {
+        if (brief) {
+            String name = c.getName();
+            return name.substring(name.lastIndexOf('.') + 1);
+        }
+        return c.toString();
+    }
+
+    private static Project getProject(Object o) {
+        if (o instanceof ProjectComponent) {
+            return ((ProjectComponent) o).getProject();
+        }
+        try {
+            Method m = o.getClass().getMethod("getProject", (Class[]) null);
+            if (Project.class == m.getReturnType()) {
+                return (Project) m.invoke(o, (Object[]) null);
+            }
+        } catch (Exception e) {
+            //too bad
+        }
+        return null;
+    }
 
     /**
-     * check if definition is a valid definition - it
-     * may be a definition of an optional task that
-     * does not exist
-     * @param def the definition to test
-     * @return true if exposed type of definition is present
+     * Check if definition is a valid definition--it may be a
+     * definition of an optional task that does not exist.
+     * @param def the definition to test.
+     * @return true if exposed type of definition is present.
      */
     private boolean validDefinition(AntTypeDefinition def) {
-        if (def.getTypeClass(project) == null
-            || def.getExposedClass(project) == null) {
-            return false;
-        }
-        return true;
+        return !(def.getTypeClass(project) == null
+            || def.getExposedClass(project) == null);
     }
 
     /**
-     * check if two definitions are the same
-     * @param def  the new definition
-     * @param old the old definition
-     * @return true if the two definitions are the same
+     * Check if two definitions are the same.
+     * @param def  the new definition.
+     * @param old the old definition.
+     * @return true if the two definitions are the same.
      */
     private boolean sameDefinition(
         AntTypeDefinition def, AntTypeDefinition old) {
-        if (!validDefinition(def) || !validDefinition(old)) {
-            return validDefinition(def) == validDefinition(old);
-        }
-        return def.sameDefinition(old, project);
+        boolean defValid = validDefinition(def);
+        boolean sameValidity = (defValid == validDefinition(old));
+        //must have same validity; then if they are valid they must also be the same:
+        return sameValidity && (!defValid || def.sameDefinition(old, project));
     }
 
-
     /**
-     * update the component definition table with a new or
+     * Update the component definition table with a new or
      * modified definition.
-     * @param def the definition to update or insert
+     * @param def the definition to update or insert.
      */
     private void updateDataTypeDefinition(AntTypeDefinition def) {
         String name = def.getName();
@@ -627,20 +648,13 @@ public class ComponentHelper  {
                 if (sameDefinition(def, old)) {
                     return;
                 }
-                int logLevel = Project.MSG_WARN;
-                if (def.similarDefinition(old, project)) {
-                    logLevel = Project.MSG_VERBOSE;
-                }
                 Class oldClass = antTypeTable.getExposedClass(name);
                 boolean isTask =
                     (oldClass != null && Task.class.isAssignableFrom(oldClass));
-                project.log(
-                    "Trying to override old definition of "
-                    + (isTask ? "task" : "datatype")
-                    + " " + name, logLevel);
-                if (isTask) {
-                    invalidateCreatedTasks(name);
-                }
+                project.log("Trying to override old definition of "
+                    + (isTask ? "task " : "datatype ") + name,
+                    (def.similarDefinition(old, project))
+                    ? Project.MSG_VERBOSE : Project.MSG_WARN);
             }
             project.log(" +Datatype " + name + " " + def.getClassName(),
                         Project.MSG_DEBUG);
@@ -649,8 +663,8 @@ public class ComponentHelper  {
     }
 
     /**
-     * Called at the start of processing an antlib
-     * @param uri the uri that is associated with this antlib
+     * Called at the start of processing an antlib.
+     * @param uri the uri that is associated with this antlib.
      */
     public void enterAntLib(String uri) {
         antLibCurrentUri = uri;
@@ -658,122 +672,115 @@ public class ComponentHelper  {
     }
 
     /**
-     * @return the current antlib uri
+     * @return the current antlib uri.
      */
     public String getCurrentAntlibUri() {
         return antLibCurrentUri;
     }
 
     /**
-     * Called at the end of processing an antlib
+     * Called at the end of processing an antlib.
      */
     public void exitAntLib() {
         antLibStack.pop();
-        if (antLibStack.size() != 0) {
-            antLibCurrentUri = (String) antLibStack.peek();
-        } else {
-            antLibCurrentUri = null;
-        }
+        antLibCurrentUri = (antLibStack.size() == 0)
+            ? null : (String) antLibStack.peek();
     }
 
     /**
-     * load ant's tasks
+     * Load ant's tasks.
      */
     private void initTasks() {
-        ClassLoader classLoader = null;
-        if (project.getCoreLoader() != null
-            && !("only".equals(project.getProperty("build.sysclasspath")))) {
-            classLoader = project.getCoreLoader();
-        }
-        String dataDefs = "/org/apache/tools/ant/taskdefs/defaults.properties";
-
-        InputStream in = null;
-        try {
-            Properties props = new Properties();
-            in = this.getClass().getResourceAsStream(dataDefs);
-            if (in == null) {
-                throw new BuildException("Can't load default task list");
-            }
-            props.load(in);
-
-            Enumeration e = props.propertyNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                String className = props.getProperty(name);
-                AntTypeDefinition def = new AntTypeDefinition();
-                def.setName(name);
-                def.setClassName(className);
-                def.setClassLoader(classLoader);
-                def.setAdaptToClass(Task.class);
-                def.setAdapterClass(TaskAdapter.class);
-                antTypeTable.put(name, def);
-            }
-        } catch (IOException ex) {
-            throw new BuildException("Can't load default type list");
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (Exception ignore) {
-                    // Ignore
-                }
-            }
+        ClassLoader classLoader = getClassLoader(null);
+        Properties props = getDefaultDefinitions(false);
+        Enumeration e = props.propertyNames();
+        while (e.hasMoreElements()) {
+            String name = (String) e.nextElement();
+            String className = props.getProperty(name);
+            AntTypeDefinition def = new AntTypeDefinition();
+            def.setName(name);
+            def.setClassName(className);
+            def.setClassLoader(classLoader);
+            def.setAdaptToClass(Task.class);
+            def.setAdapterClass(TaskAdapter.class);
+            antTypeTable.put(name, def);
         }
     }
 
+    private ClassLoader getClassLoader(ClassLoader classLoader) {
+        String buildSysclasspath = project.getProperty(MagicNames.BUILD_SYSCLASSPATH);
+        if (project.getCoreLoader() != null
+            && !(BUILD_SYSCLASSPATH_ONLY.equals(buildSysclasspath))) {
+            classLoader = project.getCoreLoader();
+        }
+        return classLoader;
+    }
+
     /**
-     * load ant's datatypes
+     * Load default task or type definitions - just the names,
+     *  no class loading.
+     * Caches results between calls to reduce overhead.
+     * @param type true for typedefs, false for taskdefs
+     * @return a mapping from definition names to class names
+     * @throws BuildException if there was some problem loading
+     *                        or parsing the definitions list
+     */
+    private static synchronized Properties getDefaultDefinitions(boolean type)
+        throws BuildException {
+        int idx = type ? 1 : 0;
+        if (defaultDefinitions[idx] == null) {
+            String resource = type
+                ? MagicNames.TYPEDEFS_PROPERTIES_RESOURCE
+                : MagicNames.TASKDEF_PROPERTIES_RESOURCE;
+            String errorString = type
+                ? ERROR_NO_TYPE_LIST_LOAD
+                : ERROR_NO_TASK_LIST_LOAD;
+            InputStream in = null;
+            try {
+                in = ComponentHelper.class.getResourceAsStream(
+                    resource);
+                if (in == null) {
+                    throw new BuildException(errorString);
+                }
+                Properties p = new Properties();
+                p.load(in);
+                defaultDefinitions[idx] = p;
+            } catch (IOException e) {
+                throw new BuildException(errorString, e);
+            } finally {
+                FileUtils.close(in);
+            }
+        }
+        return defaultDefinitions[idx];
+    }
+
+    /**
+     * Load ant's datatypes.
      */
     private void initTypes() {
-        ClassLoader classLoader = null;
-        if (project.getCoreLoader() != null
-            && !("only".equals(project.getProperty("build.sysclasspath")))) {
-            classLoader = project.getCoreLoader();
-        }
-        String dataDefs = "/org/apache/tools/ant/types/defaults.properties";
-
-        InputStream in = null;
-        try {
-            Properties props = new Properties();
-            in = this.getClass().getResourceAsStream(dataDefs);
-            if (in == null) {
-                throw new BuildException("Can't load default datatype list");
-            }
-            props.load(in);
-
-            Enumeration e = props.propertyNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                String className = props.getProperty(name);
-                AntTypeDefinition def = new AntTypeDefinition();
-                def.setName(name);
-                def.setClassName(className);
-                def.setClassLoader(classLoader);
-                antTypeTable.put(name, def);
-            }
-        } catch (IOException ex) {
-            throw new BuildException("Can't load default type list");
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (Exception ignore) {
-                    // ignore
-                }
-            }
+        ClassLoader classLoader = getClassLoader(null);
+        Properties props = getDefaultDefinitions(true);
+        Enumeration e = props.propertyNames();
+        while (e.hasMoreElements()) {
+            String name = (String) e.nextElement();
+            String className = props.getProperty(name);
+            AntTypeDefinition def = new AntTypeDefinition();
+            def.setName(name);
+            def.setClassName(className);
+            def.setClassLoader(classLoader);
+            antTypeTable.put(name, def);
         }
     }
 
     /**
-     * called for each component name, check if the
+     * Called for each component name, check if the
      * associated URI has been examined for antlibs.
      */
     private synchronized void checkNamespace(String componentName) {
-        if (componentName.indexOf(':') == -1) {
-            return; // not a namespaced name
-        }
-
         String uri = ProjectHelper.extractUriFromComponentName(componentName);
+        if ("".equals(uri)) {
+            uri = ProjectHelper.ANT_CORE_URI;
+        }
         if (!uri.startsWith(ProjectHelper.ANTLIB_URI)) {
             return; // namespace that does not contain antlib
         }
@@ -783,69 +790,233 @@ public class ComponentHelper  {
         checkedNamespaces.add(uri);
         Typedef definer = new Typedef();
         definer.setProject(project);
-        definer.setURI(uri);
-        definer.setResource(
-            uri.substring("antlib:".length()).replace('.', '/')
-            + "/antlib.xml");
-        // a fishing expedition :- ignore errors if antlib not present
-        definer.setOnError(new Typedef.OnError("ignore"));
         definer.init();
+        definer.setURI(uri);
+        //there to stop error messages being "null"
+        definer.setTaskName(uri);
+        //if this is left out, bad things happen. like all build files break
+        //on the first element encountered.
+        definer.setResource(Definer.makeResourceFromURI(uri));
+        // a fishing expedition :- ignore errors if antlib not present
+        definer.setOnError(new Typedef.OnError(Typedef.OnError.POLICY_IGNORE));
         definer.execute();
     }
 
     /**
-     * map that contains the component definitions
+     * Handler called to do decent diagnosis on instantiation failure.
+     * @param componentName component name.
+     * @param type component type, used in error messages
+     * @return a string containing as much diagnostics info as possible.
+     */
+    public String diagnoseCreationFailure(String componentName, String type) {
+        StringWriter errorText = new StringWriter();
+        PrintWriter out = new PrintWriter(errorText);
+        out.println("Problem: failed to create " + type + " " + componentName);
+        //class of problem
+        boolean lowlevel = false;
+        boolean jars = false;
+        boolean definitions = false;
+        boolean antTask;
+        String home = System.getProperty(Launcher.USER_HOMEDIR);
+        File libDir = new File(home, Launcher.USER_LIBDIR);
+        String antHomeLib;
+        boolean probablyIDE = false;
+        String anthome = System.getProperty(MagicNames.ANT_HOME);
+        if (anthome != null) {
+            File antHomeLibDir = new File(anthome, "lib");
+            antHomeLib = antHomeLibDir.getAbsolutePath();
+        } else {
+            //running under an IDE that doesn't set ANT_HOME
+            probablyIDE = true;
+            antHomeLib = "ANT_HOME" + File.separatorChar + "lib";
+        }
+        StringBuffer dirListingText = new StringBuffer();
+        final String tab = "        -";
+        dirListingText.append(tab);
+        dirListingText.append(antHomeLib);
+        dirListingText.append('\n');
+        if (probablyIDE) {
+            dirListingText.append(tab);
+            dirListingText.append("the IDE Ant configuration dialogs");
+        } else {
+            dirListingText.append(tab);
+            dirListingText.append(libDir);
+            dirListingText.append('\n');
+            dirListingText.append(tab);
+            dirListingText.append(
+                    "a directory added on the command line with the -lib argument");
+        }
+
+        String dirListing = dirListingText.toString();
+
+        //look up the name
+        AntTypeDefinition def = getDefinition(componentName);
+        if (def == null) {
+            //not a known type
+            boolean isAntlib = componentName.indexOf(MagicNames.ANTLIB_PREFIX) == 0;
+            out.println("Cause: The name is undefined.");
+            out.println("Action: Check the spelling.");
+            out.println("Action: Check that any custom tasks/types have been declared.");
+            out.println("Action: Check that any <presetdef>/<macrodef>"
+                        + " declarations have taken place.");
+            if (isAntlib) {
+                out.println();
+                out.println("This appears to be an antlib declaration. ");
+                out.println("Action: Check that the implementing library exists in one of:");
+                out.println(dirListing);
+            }
+            definitions = true;
+        } else {
+            //we are defined, so it is an instantiation problem
+            final String classname = def.getClassName();
+            antTask = classname.startsWith("org.apache.tools.ant.");
+            boolean optional = classname.startsWith("org.apache.tools.ant.taskdefs.optional");
+            optional |= classname.startsWith("org.apache.tools.ant.types.optional");
+
+            //start with instantiating the class.
+            Class clazz = null;
+            try {
+                clazz = def.innerGetTypeClass();
+            } catch (ClassNotFoundException e) {
+                out.println("Cause: the class " + classname + " was not found.");
+                jars = true;
+                if (optional) {
+                    out.println("        This looks like one of Ant's optional components.");
+                    out.println("Action: Check that the appropriate optional JAR exists in");
+                    out.println(dirListing);
+                } else {
+                    out.println("Action: Check that the component has been correctly declared");
+                    out.println("        and that the implementing JAR is in one of:");
+                    out.println(dirListing);
+                    definitions = true;
+                }
+            } catch (NoClassDefFoundError ncdfe) {
+                jars = true;
+                out.println("Cause: Could not load a dependent class "
+                        +  ncdfe.getMessage());
+                if (optional) {
+                    out.println("       It is not enough to have Ant's optional JARs");
+                    out.println("       you need the JAR files that the"
+                                + " optional tasks depend upon.");
+                    out.println("       Ant's optional task dependencies are"
+                                + " listed in the manual.");
+                } else {
+                    out.println("       This class may be in a separate JAR"
+                                + " that is not installed.");
+                }
+                out.println("Action: Determine what extra JAR files are"
+                            + " needed, and place them in one of:");
+                out.println(dirListing);
+            }
+            //here we successfully loaded the class or failed.
+            if (clazz != null) {
+                //success: proceed with more steps
+                try {
+                    def.innerCreateAndSet(clazz, project);
+                    //hey, there is nothing wrong with us
+                    out.println("The component could be instantiated.");
+                } catch (NoSuchMethodException e) {
+                    lowlevel = true;
+                    out.println("Cause: The class " + classname
+                            + " has no compatible constructor.");
+
+                } catch (InstantiationException e) {
+                    lowlevel = true;
+                    out.println("Cause: The class " + classname
+                            + " is abstract and cannot be instantiated.");
+                } catch (IllegalAccessException e) {
+                    lowlevel = true;
+                    out.println("Cause: The constructor for " + classname
+                            + " is private and cannot be invoked.");
+                } catch (InvocationTargetException ex) {
+                    lowlevel = true;
+                    Throwable t = ex.getTargetException();
+                    out.println("Cause: The constructor threw the exception");
+                    out.println(t.toString());
+                    t.printStackTrace(out);
+                }  catch (NoClassDefFoundError ncdfe) {
+                    jars = true;
+                    out.println("Cause:  A class needed by class "
+                            + classname + " cannot be found: ");
+                    out.println("       " + ncdfe.getMessage());
+                    out.println("Action: Determine what extra JAR files are"
+                                + " needed, and place them in:");
+                    out.println(dirListing);
+                }
+            }
+            out.println();
+            out.println("Do not panic, this is a common problem.");
+            if (definitions) {
+                out.println("It may just be a typographical error in the build file "
+                        + "or the task/type declaration.");
+            }
+            if (jars) {
+                out.println("The commonest cause is a missing JAR.");
+            }
+            if (lowlevel) {
+                out.println("This is quite a low level problem, which may need "
+                        + "consultation with the author of the task.");
+                if (antTask) {
+                    out.println("This may be the Ant team. Please file a "
+                            + "defect or contact the developer team.");
+                } else {
+                    out.println("This does not appear to be a task bundled with Ant.");
+                    out.println("Please take it up with the supplier of the third-party "
+                            + type + ".");
+                    out.println("If you have written it yourself, you probably have a bug to fix.");
+                }
+            } else {
+                out.println();
+                out.println("This is not a bug; it is a configuration problem");
+            }
+        }
+        out.flush();
+        out.close();
+        return errorText.toString();
+    }
+
+    /**
+     * Map that contains the component definitions.
      */
     private static class AntTypeTable extends Hashtable {
         private Project project;
 
-        public AntTypeTable(Project project) {
+        AntTypeTable(Project project) {
             this.project = project;
         }
 
-        public AntTypeDefinition getDefinition(String key) {
-            AntTypeDefinition ret = (AntTypeDefinition) super.get(key);
-            return ret;
+        AntTypeDefinition getDefinition(String key) {
+            return (AntTypeDefinition) (super.get(key));
         }
 
-        /** Equivalent to getTypeType */
         public Object get(Object key) {
             return getTypeClass((String) key);
         }
 
-        public Object create(String name) {
+        Object create(String name) {
             AntTypeDefinition def = getDefinition(name);
-            if (def == null) {
-                return null;
-            }
-            return def.create(project);
+            return (def == null) ? null : def.create(project);
         }
 
-        public Class getTypeClass(String name) {
+        Class getTypeClass(String name) {
             AntTypeDefinition def = getDefinition(name);
-            if (def == null) {
-                return null;
-            }
-            return def.getTypeClass(project);
+            return (def == null) ? null : def.getTypeClass(project);
         }
 
-        public Class getExposedClass(String name) {
+        Class getExposedClass(String name) {
             AntTypeDefinition def = getDefinition(name);
-            if (def == null) {
-                return null;
-            }
-            return def.getExposedClass(project);
+            return (def == null) ? null : def.getExposedClass(project);
         }
 
         public boolean contains(Object clazz) {
-            for (Iterator i = values().iterator(); i.hasNext();) {
-                AntTypeDefinition def = (AntTypeDefinition) i.next();
-                Class c = def.getExposedClass(project);
-                if (c == clazz) {
-                    return true;
+            boolean found = false;
+            if (clazz instanceof Class) {
+                for (Iterator i = values().iterator(); i.hasNext() && !found;) {
+                    found |= (((AntTypeDefinition) (i.next())).getExposedClass(
+                        project) == clazz);
                 }
             }
-            return false;
+            return found;
         }
 
         public boolean containsValue(Object value) {

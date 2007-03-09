@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,6 +33,9 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.FileList;
 import org.apache.tools.ant.types.PropertySet;
 import org.apache.tools.ant.types.Reference;
+import org.apache.tools.ant.types.ResourceCollection;
+
+import org.apache.tools.ant.taskdefs.Ant.TargetElement;
 
 
 /**
@@ -62,9 +66,10 @@ public class SubAnt
     private Path buildpath;
 
     private Ant ant = null;
-    private String target = null;
+    private String subTarget = null;
     private String antfile = "build.xml";
     private File genericantfile = null;
+    private boolean verbose = false;
     private boolean inheritAll = false;
     private boolean inheritRefs = false;
     private boolean failOnError = true;
@@ -73,6 +78,9 @@ public class SubAnt
     private Vector properties = new Vector();
     private Vector references = new Vector();
     private Vector propertySets = new Vector();
+
+    /** the targets to call on the new project */
+    private Vector/*<TargetElement>*/ targets = new Vector();
 
     /**
      * Pass output sent to System.out to the new project.
@@ -173,18 +181,23 @@ public class SubAnt
         }
 /*
     //REVISIT: there must be cleaner way of doing this, if it is merited at all
-        if (target == null) {
-            target = getOwningTarget().getName();
+        if (subTarget == null) {
+            subTarget = getOwningTarget().getName();
         }
 */
         BuildException buildException = null;
         for (int i = 0; i < count; ++i) {
             File file = null;
+            String subdirPath = null;
             Throwable thrownException = null;
             try {
                 File directory = null;
                 file = new File(filenames[i]);
                 if (file.isDirectory()) {
+                    if (verbose) {
+                        subdirPath = file.getPath();
+                        log("Entering directory: " + subdirPath + "\n", Project.MSG_INFO);
+                    }
                     if (genericantfile != null) {
                         directory = file;
                         file = genericantfile;
@@ -193,13 +206,22 @@ public class SubAnt
                     }
                 }
                 execute(file, directory);
+                if (verbose && subdirPath != null) {
+                    log("Leaving directory: " + subdirPath + "\n", Project.MSG_INFO);
+                }
             } catch (RuntimeException ex) {
                 if (!(getProject().isKeepGoingMode())) {
+                    if (verbose && subdirPath != null) {
+                        log("Leaving directory: " + subdirPath + "\n", Project.MSG_INFO);
+                    }
                     throw ex; // throw further
                 }
                 thrownException = ex;
             } catch (Throwable ex) {
                 if (!(getProject().isKeepGoingMode())) {
+                    if (verbose && subdirPath != null) {
+                        log("Leaving directory: " + subdirPath + "\n", Project.MSG_INFO);
+                    }
                     throw new BuildException(ex);
                 }
                 thrownException = ex;
@@ -222,6 +244,9 @@ public class SubAnt
                         buildException =
                             new BuildException(thrownException);
                     }
+                }
+                if (verbose && subdirPath != null) {
+                    log("Leaving directory: " + subdirPath + "\n", Project.MSG_INFO);
                 }
             }
         }
@@ -253,39 +278,38 @@ public class SubAnt
         }
 
         ant = createAntTask(directory);
-        String antfilename = null;
-        try {
-            antfilename = file.getCanonicalPath();
-        } catch (IOException e) {
-            throw new BuildException(e);
+        String antfilename = file.getAbsolutePath();
+        ant.setAntfile(antfilename);
+        for (int i = 0; i < targets.size(); i++) {
+            TargetElement targetElement = (TargetElement) targets.get(i);
+            ant.addConfiguredTarget(targetElement);
         }
 
-        ant.setAntfile(antfilename);
         try {
             ant.execute();
         } catch (BuildException e) {
             if (failOnError) {
                 throw e;
             }
-            log("Failure for target '" + target
+            log("Failure for target '" + subTarget
                + "' of: " +  antfilename + "\n"
                + e.getMessage(), Project.MSG_WARN);
         } catch (Throwable e) {
             if (failOnError) {
                 throw new BuildException(e);
             }
-            log("Failure for target '" + target
+            log("Failure for target '" + subTarget
                 + "' of: " + antfilename + "\n"
                 + e.toString(),
                 Project.MSG_WARN);
         } finally {
             ant = null;
-        }        
+        }
     }
 
     /**
      * This method builds the file name to use in conjunction with directories.
-     * 
+     *
      * <p>Defaults to "build.xml".
      * If <code>genericantfile</code> is set, this attribute is ignored.</p>
      *
@@ -297,7 +321,7 @@ public class SubAnt
 
     /**
      * This method builds a file path to use in conjunction with directories.
-     * 
+     *
      * <p>Use <code>genericantfile</code>, in order to run the same build file
      * with different basedirs.</p>
      * If this attribute is set, <code>antfile</code> is ignored.
@@ -326,7 +350,29 @@ public class SubAnt
      */
     //     REVISIT: Defaults to the target name that contains this task if not specified.
     public void setTarget(String target) {
-        this.target = target;
+        this.subTarget = target;
+    }
+
+    /**
+     * Add a target to this Ant invocation.
+     * @param t the <code>TargetElement</code> to add.
+     * @since Ant 1.7
+     */
+    public void addConfiguredTarget(TargetElement t) {
+        String name = t.getName();
+        if ("".equals(name)) {
+            throw new BuildException("target name must not be empty");
+        }
+        targets.add(t);
+    }
+
+    /**
+     * Enable/ disable verbose log messages showing when each sub-build path is entered/ exited.
+     * The default value is "false".
+     * @param on true to enable verbose mode, false otherwise (default).
+     */
+    public void setVerbose(boolean on) {
+        this.verbose = on;
     }
 
     /**
@@ -398,7 +444,7 @@ public class SubAnt
      * @param  set the directory set to add.
      */
     public void addDirset(DirSet set) {
-        getBuildpath().addDirset(set);
+        add(set);
     }
 
     /**
@@ -411,7 +457,7 @@ public class SubAnt
      * @param  set the file set to add.
      */
     public void addFileset(FileSet set) {
-        getBuildpath().addFileset(set);
+        add(set);
     }
 
     /**
@@ -423,7 +469,17 @@ public class SubAnt
      * @param  list the file list to add.
      */
     public void addFilelist(FileList list) {
-        getBuildpath().addFilelist(list);
+        add(list);
+    }
+
+    /**
+     * Adds a resource collection to the implicit build path.
+     *
+     * @param  rc the resource collection to add.
+     * @since Ant 1.7
+     */
+    public void add(ResourceCollection rc) {
+        getBuildpath().add(rc);
     }
 
     /**
@@ -484,38 +540,36 @@ public class SubAnt
      *         references necessary to run the sub-build.
      */
     private Ant createAntTask(File directory) {
-        Ant ant = (Ant) getProject().createTask("ant");
-        ant.setOwningTarget(getOwningTarget());
-        ant.setTaskName(getTaskName());
-        ant.init();
-        if (target != null && target.length() > 0) {
-            ant.setTarget(target);
+        Ant antTask = new Ant(this);
+        antTask.init();
+        if (subTarget != null && subTarget.length() > 0) {
+            antTask.setTarget(subTarget);
         }
 
 
         if (output != null) {
-            ant.setOutput(output);
+            antTask.setOutput(output);
         }
 
         if (directory != null) {
-            ant.setDir(directory);
+            antTask.setDir(directory);
         }
 
-        ant.setInheritAll(inheritAll);
+        antTask.setInheritAll(inheritAll);
         for (Enumeration i = properties.elements(); i.hasMoreElements();) {
-            copyProperty(ant.createProperty(), (Property) i.nextElement());
+            copyProperty(antTask.createProperty(), (Property) i.nextElement());
         }
 
         for (Enumeration i = propertySets.elements(); i.hasMoreElements();) {
-            ant.addPropertyset((PropertySet) i.nextElement());
+            antTask.addPropertyset((PropertySet) i.nextElement());
         }
 
-        ant.setInheritRefs(inheritRefs);
+        antTask.setInheritRefs(inheritRefs);
         for (Enumeration i = references.elements(); i.hasMoreElements();) {
-            ant.addReference((Ant.Reference) i.nextElement());
+            antTask.addReference((Ant.Reference) i.nextElement());
         }
 
-        return ant;
+        return antTask;
     }
 
     /**

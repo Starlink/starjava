@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,7 +33,6 @@ import org.apache.tools.ant.BuildException;
  * Example Usage:<br>
  * &lt;p4edit change="${p4.change}" view="//depot/project/foo.txt" /&gt;
  *
- *
  * @todo Should call reopen if file is already open in one of our changelists perhaps?
  *
  * @ant.task category="scm"
@@ -40,10 +40,13 @@ import org.apache.tools.ant.BuildException;
 
 public class P4Edit extends P4Base {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * number of the change list to work on
      */
     public String change = null;
+
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * An existing changelist number to assign files to; optional

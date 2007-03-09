@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,24 +18,22 @@
 
 package org.apache.tools.ant.taskdefs;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.Vector;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.taskdefs.condition.Os;
+import org.apache.tools.ant.filters.FixCrLfFilter;
+import org.apache.tools.ant.filters.ChainableReader;
+import org.apache.tools.ant.types.FilterChain;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.util.FileUtils;
 
@@ -54,6 +53,7 @@ import org.apache.tools.ant.util.FileUtils;
  * <li>tab
  * <li>eof
  * <li>encoding
+ * <li>targetencoding
  * </ul>
  * Of these arguments, only <b>sourcedir</b> is required.
  * <p>
@@ -61,7 +61,7 @@ import org.apache.tools.ant.util.FileUtils;
  * and exclude properties.
  * <p>
  * This version generalises the handling of EOL characters, and allows
- * for CR-only line endings (which I suspect is the standard on Macs.)
+ * for CR-only line endings (the standard on Mac systems prior to OS X).
  * Tab handling has also been generalised to accommodate any tabwidth
  * from 2 to 80, inclusive.  Importantly, it will leave untouched any
  * literal TAB characters embedded within string or character constants.
@@ -76,51 +76,25 @@ import org.apache.tools.ant.util.FileUtils;
  * CRCRLF is regarded as a single EOL to handle cases where other
  * programs have converted CRLF into CRCRLF.
  *
- * @version $Revision: 1.54.2.6 $ $Name:  $
  * @since Ant 1.1
  *
  * @ant.task category="filesystem"
  */
 
-public class FixCRLF extends MatchingTask {
+public class FixCRLF extends MatchingTask implements ChainableReader {
 
-    private static final int UNDEF = -1;
-    private static final int NOTJAVA = 0;
-    private static final int LOOKING = 1;
-    private static final int IN_CHAR_CONST = 2;
-    private static final int IN_STR_CONST = 3;
-    private static final int IN_SINGLE_COMMENT = 4;
-    private static final int IN_MULTI_COMMENT = 5;
+    /** error string for using srcdir and file */
+    public static final String ERROR_FILE_AND_SRCDIR
+        = "srcdir and file are mutually exclusive";
 
-    private static final int ASIS = 0;
-    private static final int CR = 1;
-    private static final int LF = 2;
-    private static final int CRLF = 3;
-    private static final int ADD = 1;
-    private static final int REMOVE = -1;
-    private static final int SPACES = -1;
-    private static final int TABS = 1;
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
-    private static final int INBUFLEN = 8192;
-    private static final int LINEBUFLEN = 200;
-
-    private static final char CTRLZ = '\u001A';
-
-    private int tablength = 8;
-    private String spaces = "        ";
-    private StringBuffer linebuf = new StringBuffer(1024);
-    private StringBuffer linebuf2 = new StringBuffer(1024);
-    private int eol;
-    private String eolstr;
-    private int ctrlz;
-    private int tabs;
-    private boolean javafiles = false;
-    private boolean fixlast = true;
-
+    private boolean preserveLastModified = false;
     private File srcDir;
     private File destDir = null;
-
-    private FileUtils fileUtils = FileUtils.newFileUtils();
+    private File file;
+    private FixCrLfFilter filter = new FixCrLfFilter();
+    private Vector fcv = null;
 
     /**
      * Encoding to assume for the files
@@ -128,30 +102,23 @@ public class FixCRLF extends MatchingTask {
     private String encoding = null;
 
     /**
-     * Defaults the properties based on the system type.
-     * <ul><li>Unix: eol="LF" tab="asis" eof="remove"
-     *     <li>Mac: eol="CR" tab="asis" eof="remove"
-     *     <li>DOS: eol="CRLF" tab="asis" eof="asis"</ul>
+     * Encoding to use for output files
      */
-    public FixCRLF () {
-        tabs = ASIS;
-        if (Os.isFamily("mac")) {
-            ctrlz = REMOVE;
-            eol = CR;
-            eolstr = "\r";
-        } else if (Os.isFamily("dos")) {
-            ctrlz = ASIS;
-            eol = CRLF;
-            eolstr = "\r\n";
-        } else {
-            ctrlz = REMOVE;
-            eol = LF;
-            eolstr = "\n";
-        }
+    private String outputEncoding = null;
+
+    /**
+     * Chain this task as a reader.
+     * @param rdr Reader to chain.
+     * @return a Reader.
+     * @since Ant 1.7?
+     */
+    public final Reader chain(final Reader rdr) {
+        return filter.chain(rdr);
     }
 
     /**
      * Set the source dir to find the source text files.
+     * @param srcDir the source directory.
      */
     public void setSrcdir(File srcDir) {
         this.srcDir = srcDir;
@@ -160,6 +127,7 @@ public class FixCRLF extends MatchingTask {
     /**
      * Set the destination where the fixed files should be placed.
      * Default is to replace the original file.
+     * @param destDir the destination directory.
      */
     public void setDestdir(File destDir) {
         this.destDir = destDir;
@@ -167,11 +135,20 @@ public class FixCRLF extends MatchingTask {
 
     /**
      * Set to true if modifying Java source files.
+     * @param javafiles whether modifying Java files.
      */
     public void setJavafiles(boolean javafiles) {
-        this.javafiles = javafiles;
+        filter.setJavafiles(javafiles);
     }
 
+    /**
+     * Set a single file to convert.
+     * @since Ant 1.6.3
+     * @param file the file to convert.
+     */
+    public void setFile(File file) {
+        this.file = file;
+    }
 
     /**
      * Specify how EndOfLine characters are to be handled.
@@ -185,20 +162,7 @@ public class FixCRLF extends MatchingTask {
      * </ul>
      */
     public void setEol(CrLf attr) {
-        String option = attr.getValue();
-        if (option.equals("asis")) {
-            eol = ASIS;
-        } else if (option.equals("cr") || option.equals("mac")) {
-            eol = CR;
-            eolstr = "\r";
-        } else if (option.equals("lf") || option.equals("unix")) {
-            eol = LF;
-            eolstr = "\n";
-        } else {
-            // Must be "crlf"
-            eol = CRLF;
-            eolstr = "\r\n";
-        }
+        filter.setEol(FixCrLfFilter.CrLf.newInstance(attr.getValue()));
     }
 
     /**
@@ -211,7 +175,8 @@ public class FixCRLF extends MatchingTask {
      * <li>remove: remove all CR characters
      * </ul>
      *
-     * @deprecated use {@link #setEol setEol} instead.
+     * @deprecated since 1.4.x.
+     *             Use {@link #setEol setEol} instead.
      */
     public void setCr(AddAsisRemove attr) {
         log("DEPRECATED: The cr attribute has been deprecated,",
@@ -241,33 +206,21 @@ public class FixCRLF extends MatchingTask {
      * </ul>
      */
     public void setTab(AddAsisRemove attr) {
-        String option = attr.getValue();
-        if (option.equals("remove")) {
-            tabs = SPACES;
-        } else if (option.equals("asis")) {
-            tabs = ASIS;
-        } else {
-            // must be "add"
-            tabs = TABS;
-        }
+        filter.setTab(FixCrLfFilter.AddAsisRemove.newInstance(attr.getValue()));
     }
 
     /**
      * Specify tab length in characters.
      *
-     * @param tlength specify the length of tab in spaces,
+     * @param tlength specify the length of tab in spaces.
+     * @throws BuildException on error.
      */
     public void setTablength(int tlength) throws BuildException {
-        if (tlength < 2 || tlength > 80) {
-            throw new BuildException("tablength must be between 2 and 80",
-                                     getLocation());
+        try {
+            filter.setTablength(tlength);
+        } catch (IOException e) {
+            throw new BuildException(e);
         }
-        tablength = tlength;
-        StringBuffer sp = new StringBuffer();
-        for (int i = 0; i < tablength; i++) {
-            sp.append(' ');
-        }
-        spaces = sp.toString();
     }
 
     /**
@@ -281,39 +234,83 @@ public class FixCRLF extends MatchingTask {
      * </ul>
      */
     public void setEof(AddAsisRemove attr) {
-        String option = attr.getValue();
-        if (option.equals("remove")) {
-            ctrlz = REMOVE;
-        } else if (option.equals("asis")) {
-            ctrlz = ASIS;
-        } else {
-            // must be "add"
-            ctrlz = ADD;
-        }
+        filter.setEof(FixCrLfFilter.AddAsisRemove.newInstance(attr.getValue()));
     }
 
     /**
-     * Specifies the encoding Ant expects the files to be in -
-     * defaults to the platforms default encoding.
+     * Specifies the encoding Ant expects the files to be
+     * in--defaults to the platforms default encoding.
+     * @param encoding String encoding name.
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
 
     /**
+     * Specifies the encoding that the files are
+     * to be written in--same as input encoding by default.
+     * @param outputEncoding String outputEncoding name.
+     */
+    public void setOutputEncoding(String outputEncoding) {
+        this.outputEncoding = outputEncoding;
+    }
+
+    /**
      * Specify whether a missing EOL will be added
      * to the final line of a file.
+     * @param fixlast whether to fix the last line.
      */
     public void setFixlast(boolean fixlast) {
-        this.fixlast = fixlast;
+        filter.setFixlast(fixlast);
+    }
+
+    /**
+     * Set whether to preserve the last modified time as the original files.
+     * @param preserve true if timestamps should be preserved.
+     * @since Ant 1.6.3
+     */
+    public void setPreserveLastModified(boolean preserve) {
+        preserveLastModified = preserve;
     }
 
     /**
      * Executes the task.
+     * @throws BuildException on error.
      */
     public void execute() throws BuildException {
         // first off, make sure that we've got a srcdir and destdir
+        validate();
 
+        // log options used
+        String enc = encoding == null ? "default" : encoding;
+        log("options:"
+            + " eol=" + filter.getEol().getValue()
+            + " tab=" + filter.getTab().getValue()
+            + " eof=" + filter.getEof().getValue()
+            + " tablength=" + filter.getTablength()
+            + " encoding=" + enc
+            + " outputencoding="
+            + (outputEncoding == null ? enc : outputEncoding),
+            Project.MSG_VERBOSE);
+
+        DirectoryScanner ds = super.getDirectoryScanner(srcDir);
+        String[] files = ds.getIncludedFiles();
+
+        for (int i = 0; i < files.length; i++) {
+            processFile(files[i]);
+        }
+    }
+
+    private void validate() throws BuildException {
+        if (file != null) {
+            if (srcDir != null) {
+                throw new BuildException(ERROR_FILE_AND_SRCDIR);
+            }
+            //patch file into the fileset
+            fileset.setFile(file);
+            //set our parent dir
+            srcDir = file.getParentFile();
+        }
         if (srcDir == null) {
             throw new BuildException("srcdir attribute must be set!");
         }
@@ -331,195 +328,25 @@ public class FixCRLF extends MatchingTask {
                 throw new BuildException("destdir is not a directory!");
             }
         }
-
-        // log options used
-        log("options:"
-            + " eol="
-            + (eol == ASIS ? "asis" : eol == CR ? "cr" : eol == LF ? "lf" : "crlf")
-            + " tab=" + (tabs == TABS ? "add" : tabs == ASIS ? "asis" : "remove")
-            + " eof=" + (ctrlz == ADD ? "add" : ctrlz == ASIS ? "asis" : "remove")
-            + " tablength=" + tablength
-            + " encoding=" + (encoding == null ? "default" : encoding),
-            Project.MSG_VERBOSE);
-
-        DirectoryScanner ds = super.getDirectoryScanner(srcDir);
-        String[] files = ds.getIncludedFiles();
-
-        for (int i = 0; i < files.length; i++) {
-            processFile(files[i]);
-        }
     }
-
-    /**
-     * Creates a Reader reading from a given file an taking the user
-     * defined encoding into account.
-     */
-    private Reader getReader(File f) throws IOException {
-        return (encoding == null) ? new FileReader(f)
-            : new InputStreamReader(new FileInputStream(f), encoding);
-    }
-
 
     private void processFile(String file) throws BuildException {
         File srcFile = new File(srcDir, file);
+        long lastModified = srcFile.lastModified();
         File destD = destDir == null ? srcDir : destDir;
-        File tmpFile = null;
-        BufferedWriter outWriter;
-        OneLiner.BufferLine line;
 
-        // read the contents of the file
-        OneLiner lines = new OneLiner(srcFile);
-
+        if (fcv == null) {
+            FilterChain fc = new FilterChain();
+            fc.add(filter);
+            fcv = new Vector(1);
+            fcv.add(fc);
+        }
+        File tmpFile = FILE_UTILS.createTempFile("fixcrlf", "", null);
+        tmpFile.deleteOnExit();
         try {
-            // Set up the output Writer
-            try {
-                tmpFile = fileUtils.createTempFile("fixcrlf", "", null);
-                tmpFile.deleteOnExit();
-                Writer writer = (encoding == null) ? new FileWriter(tmpFile)
-                    : new OutputStreamWriter(new FileOutputStream(tmpFile),
-                                             encoding);
-                outWriter = new BufferedWriter(writer);
-            } catch (IOException e) {
-                throw new BuildException(e);
-            }
-
-            while (lines.hasMoreElements()) {
-                // In-line states
-                int endComment;
-
-                try {
-                    line = (OneLiner.BufferLine) lines.nextElement();
-                } catch (NoSuchElementException e) {
-                    throw new BuildException(e);
-                }
-
-                String lineString = line.getLineString();
-                int linelen = line.length();
-
-                // Note - all of the following processing NOT done for
-                // tabs ASIS
-
-                if (tabs == ASIS) {
-                    // Just copy the body of the line across
-                    try {
-                        outWriter.write(lineString);
-                    } catch (IOException e) {
-                        throw new BuildException(e);
-                    } // end of try-catch
-
-                } else { // (tabs != ASIS)
-
-                    while (line.getNext() < linelen) {
-
-                        switch (lines.getState()) {
-
-                        case NOTJAVA:
-                            notInConstant(line, line.length(), outWriter);
-                            break;
-
-                        case IN_MULTI_COMMENT:
-                            endComment
-                                = lineString.indexOf("*/", line.getNext());
-                            if (endComment >= 0) {
-                                // End of multiLineComment on this line
-                                endComment += 2;  // Include the end token
-                                lines.setState(LOOKING);
-                            } else {
-                                endComment = linelen;
-                            }
-
-                            notInConstant(line, endComment, outWriter);
-                            break;
-
-                        case IN_SINGLE_COMMENT:
-                            notInConstant(line, line.length(), outWriter);
-                            lines.setState(LOOKING);
-                            break;
-
-                        case IN_CHAR_CONST:
-                        case IN_STR_CONST:
-                            // Got here from LOOKING by finding an
-                            // opening "\'" next points to that quote
-                            // character.
-                            // Find the end of the constant.  Watch
-                            // out for backslashes.  Literal tabs are
-                            // left unchanged, and the column is
-                            // adjusted accordingly.
-
-                            int begin = line.getNext();
-                            char terminator = (lines.getState() == IN_STR_CONST
-                                               ? '\"'
-                                               : '\'');
-                            endOfCharConst(line, terminator);
-                            while (line.getNext() < line.getLookahead()) {
-                                if (line.getNextCharInc() == '\t') {
-                                    line.setColumn(line.getColumn()
-                                        + tablength
-                                        - (line.getColumn() % tablength));
-                                } else {
-                                    line.incColumn();
-                                }
-                            }
-
-                            // Now output the substring
-                            try {
-                                outWriter.write(line.substring(begin,
-                                                               line.getNext()));
-                            } catch (IOException e) {
-                                throw new BuildException(e);
-                            }
-
-                            lines.setState(LOOKING);
-
-                            break;
-
-
-                        case LOOKING:
-                            nextStateChange(line);
-                            notInConstant(line, line.getLookahead(), outWriter);
-                            break;
-
-                        } // end of switch (state)
-
-                    } // end of while (line.getNext() < linelen)
-
-                } // end of else (tabs != ASIS)
-
-                if (!("".equals(line.getEol())) || fixlast) {
-                    try {
-                        outWriter.write(eolstr);
-                    } catch (IOException e) {
-                        throw new BuildException(e);
-                    } // end of try-catch
-                } //end if non-blank original eol or fixlast
-
-            } // end of while (lines.hasNext())
-
-            try {
-                // Handle CTRLZ
-                if (ctrlz == ASIS) {
-                    outWriter.write(lines.getEofStr());
-                } else if (ctrlz == ADD) {
-                    outWriter.write(CTRLZ);
-                }
-            } catch (IOException e) {
-                throw new BuildException(e);
-            } finally {
-                try {
-                    outWriter.close();
-                } catch (IOException e) {
-                    throw new BuildException(e);
-                }
-            }
-
-
-            try {
-                lines.close();
-                lines = null;
-            } catch (IOException e) {
-                throw new BuildException("Unable to close source file "
-                                         + srcFile);
-            }
+            FILE_UTILS.copyFile(srcFile, tmpFile, null, fcv, false, false,
+                encoding, outputEncoding == null ? encoding : outputEncoding,
+                getProject());
 
             File destFile = new File(destD, file);
 
@@ -527,227 +354,37 @@ public class FixCRLF extends MatchingTask {
             if (destFile.exists()) {
                 // Compare the destination with the temp file
                 log("destFile exists", Project.MSG_DEBUG);
-                if (!fileUtils.contentEquals(destFile, tmpFile)) {
-                    log(destFile + " is being written", Project.MSG_DEBUG);
-                } else {
-                    log(destFile + " is not written, as the contents "
-                        + "are identical", Project.MSG_DEBUG);
-                    destIsWrong = false;
-                }
+                destIsWrong = !FILE_UTILS.contentEquals(destFile, tmpFile);
+                log(destFile + (destIsWrong ? " is being written"
+                    : " is not written, as the contents are identical"),
+                    Project.MSG_DEBUG);
             }
-
             if (destIsWrong) {
-                fileUtils.rename(tmpFile, destFile);
+                FILE_UTILS.rename(tmpFile, destFile);
+                if (preserveLastModified) {
+                    log("preserved lastModified", Project.MSG_DEBUG);
+                    FILE_UTILS.setFileLastModified(destFile, lastModified);
+                }
                 tmpFile = null;
             }
-
         } catch (IOException e) {
             throw new BuildException(e);
-        } finally {
-            try {
-                if (lines != null) {
-                    lines.close();
-                }
-            } catch (IOException io) {
-                log("Error closing " + srcFile, Project.MSG_ERR);
-            } // end of catch
-
-            if (tmpFile != null) {
-                tmpFile.delete();
-            }
-        } // end of finally
+        }
     }
 
     /**
-     * Scan a BufferLine for the next state changing token: the beginning
-     * of a single or multi-line comment, a character or a string constant.
-     *
-     * As a side-effect, sets the buffer state to the next state, and sets
-     * field lookahead to the first character of the state-changing token, or
-     * to the next eol character.
-     *
-     * @param bufline       BufferLine containing the string
-     *                                 to be processed
-     * @exception org.apache.tools.ant.BuildException
-     *                                 Thrown when end of line is reached
-     *                                 before the terminator is found.
+     * Deprecated, the functionality has been moved to filters.FixCrLfFilter.
+     * @deprecated since 1.7.0.
      */
-    private void nextStateChange(OneLiner.BufferLine bufline)
-        throws BuildException {
-        int eol = bufline.length();
-        int ptr = bufline.getNext();
+    protected class OneLiner implements Enumeration {
+        private static final int UNDEF = -1;
+        private static final int NOTJAVA = 0;
+        private static final int LOOKING = 1;
+        private static final int INBUFLEN = 8192;
+        private static final int LINEBUFLEN = 200;
+        private static final char CTRLZ = '\u001A';
 
-
-        //  Look for next single or double quote, double slash or slash star
-        while (ptr < eol) {
-            switch (bufline.getChar(ptr++)) {
-            case '\'':
-                bufline.setState(IN_CHAR_CONST);
-                bufline.setLookahead(--ptr);
-                return;
-            case '\"':
-                bufline.setState(IN_STR_CONST);
-                bufline.setLookahead(--ptr);
-                return;
-            case '/':
-                if (ptr < eol) {
-                    if (bufline.getChar(ptr) == '*') {
-                        bufline.setState(IN_MULTI_COMMENT);
-                        bufline.setLookahead(--ptr);
-                        return;
-                    } else if (bufline.getChar(ptr) == '/') {
-                        bufline.setState(IN_SINGLE_COMMENT);
-                        bufline.setLookahead(--ptr);
-                        return;
-                    }
-                }
-                break;
-            } // end of switch (bufline.getChar(ptr++))
-
-        } // end of while (ptr < eol)
-        // Eol is the next token
-        bufline.setLookahead(ptr);
-    }
-
-
-    /**
-     * Scan a BufferLine forward from the 'next' pointer
-     * for the end of a character constant.  Set 'lookahead' pointer to the
-     * character following the terminating quote.
-     *
-     * @param bufline       BufferLine containing the string
-     *                                 to be processed
-     * @param terminator          The constant terminator
-     *
-     * @exception org.apache.tools.ant.BuildException
-     *                                 Thrown when end of line is reached
-     *                                 before the terminator is found.
-     */
-    private void endOfCharConst(OneLiner.BufferLine bufline, char terminator)
-        throws BuildException {
-        int ptr = bufline.getNext();
-        int eol = bufline.length();
-        char c;
-        ptr++;          // skip past initial quote
-        while (ptr < eol) {
-            if ((c = bufline.getChar(ptr++)) == '\\') {
-                ptr++;
-            } else {
-                if (c == terminator) {
-                    bufline.setLookahead(ptr);
-                    return;
-                }
-            }
-        } // end of while (ptr < eol)
-        // Must have fallen through to the end of the line
-        throw new BuildException("endOfCharConst: unterminated char constant");
-    }
-
-
-    /**
-     * Process a BufferLine string which is not part of a string constant.
-     * The start position of the string is given by the 'next' field.
-     * Sets the 'next' and 'column' fields in the BufferLine.
-     *
-     * @param bufline       BufferLine containing the string
-     *                                 to be processed
-     * @param end                  Index just past the end of the
-     *                                 string
-     * @param outWriter Sink for the processed string
-     */
-    private void notInConstant(OneLiner.BufferLine bufline, int end,
-                                BufferedWriter outWriter) {
-        // N.B. both column and string index are zero-based
-        // Process a string not part of a constant;
-        // i.e. convert tabs<->spaces as required
-        // This is NOT called for ASIS tab handling
-        int nextTab;
-        int nextStop;
-        int tabspaces;
-        String line = bufline.substring(bufline.getNext(), end);
-        int place = 0;          // Zero-based
-        int col = bufline.getColumn();  // Zero-based
-
-        // process sequences of white space
-        // first convert all tabs to spaces
-        linebuf = new StringBuffer();
-        while ((nextTab = line.indexOf((int) '\t', place)) >= 0) {
-            linebuf.append(line.substring(place, nextTab)); // copy to the TAB
-            col += nextTab - place;
-            tabspaces = tablength - (col % tablength);
-            linebuf.append(spaces.substring(0, tabspaces));
-            col += tabspaces;
-            place = nextTab + 1;
-        } // end of while
-        linebuf.append(line.substring(place, line.length()));
-        // if converting to spaces, all finished
-        String linestring = new String(linebuf.substring(0));
-        if (tabs == REMOVE) {
-            try {
-                outWriter.write(linestring);
-            } catch (IOException e) {
-                throw new BuildException(e);
-            } // end of try-catch
-        } else { // tabs == ADD
-            int tabCol;
-            linebuf2 = new StringBuffer();
-            place = 0;
-            col = bufline.getColumn();
-            int placediff = col - 0;
-            // for the length of the string, cycle through the tab stop
-            // positions, checking for a space preceded by at least one
-            // other space at the tab stop.  if so replace the longest possible
-            // preceding sequence of spaces with a tab.
-            nextStop = col + (tablength - col % tablength);
-            if (nextStop - col < 2) {
-                linebuf2.append(linestring.substring(
-                                        place, nextStop - placediff));
-                place = nextStop - placediff;
-                nextStop += tablength;
-            }
-
-            for (; nextStop - placediff <= linestring.length();
-                    nextStop += tablength) {
-                for (tabCol = nextStop;
-                             --tabCol - placediff >= place
-                             && linestring.charAt(tabCol - placediff) == ' ';) {
-                    ; // Loop for the side-effects
-                }
-                // tabCol is column index of the last non-space character
-                // before the next tab stop
-                if (nextStop - tabCol > 2) {
-                    linebuf2.append(linestring.substring(
-                                    place, ++tabCol - placediff));
-                    linebuf2.append('\t');
-                } else {
-                    linebuf2.append(linestring.substring(
-                                    place, nextStop - placediff));
-                } // end of else
-
-                place = nextStop - placediff;
-            } // end of for (nextStop ... )
-
-            // pick up that last bit, if any
-            linebuf2.append(linestring.substring(place, linestring.length()));
-
-            try {
-                outWriter.write(linebuf2.substring(0));
-            } catch (IOException e) {
-                throw new BuildException(e);
-            } // end of try-catch
-
-        } // end of else tabs == ADD
-
-        // Set column position as modified by this method
-        bufline.setColumn(bufline.getColumn() + linestring.length());
-        bufline.setNext(end);
-
-    }
-
-
-    class OneLiner implements Enumeration {
-
-        private int state = javafiles ? LOOKING : NOTJAVA;
+        private int state = filter.getJavafiles() ? LOOKING : NOTJAVA;
 
         private StringBuffer eolStr = new StringBuffer(LINEBUFLEN);
         private StringBuffer eofStr = new StringBuffer();
@@ -757,12 +394,20 @@ public class FixCRLF extends MatchingTask {
         private boolean reachedEof = false;
         private File srcFile;
 
+        /**
+         * Constructor.
+         * @param srcFile the file to read.
+         * @throws BuildException if there is an error.
+         */
         public OneLiner(File srcFile)
             throws BuildException {
             this.srcFile = srcFile;
             try {
-                reader = new BufferedReader
-                        (getReader(srcFile), INBUFLEN);
+                reader = new BufferedReader(
+                    ((encoding == null) ? new FileReader(srcFile)
+                    : new InputStreamReader(
+                    new FileInputStream(srcFile), encoding)), INBUFLEN);
+
                 nextLine();
             } catch (IOException e) {
                 throw new BuildException(srcFile + ": " + e.getMessage(),
@@ -770,6 +415,10 @@ public class FixCRLF extends MatchingTask {
             }
         }
 
+        /**
+         * Move to the next line.
+         * @throws BuildException if there is an error.
+         */
         protected void nextLine()
             throws BuildException {
             int ch = -1;
@@ -798,9 +447,11 @@ public class FixCRLF extends MatchingTask {
                     ++eolcount;
                     eolStr.append('\r');
                     reader.mark(2);
-                    switch ((ch = reader.read())) {
+                    ch = reader.read();
+                    switch (ch) {
                     case '\r':
-                        if ((char) (ch = reader.read()) == '\n') {
+                        ch = reader.read();
+                        if ((char) (ch) == '\n') {
                             eolcount += 2;
                             eolStr.append("\r\n");
                         } else {
@@ -825,7 +476,8 @@ public class FixCRLF extends MatchingTask {
                     ++eolcount;
                     eolStr.append('\n');
                     break;
-
+                default:
+                    // Fall tru
                 } // end of switch ((char) ch)
 
                 // if at eolcount == 0 and trailing characters of string
@@ -855,22 +507,42 @@ public class FixCRLF extends MatchingTask {
             }
         }
 
+        /**
+         * get the eof string.
+         * @return the eof string.
+         */
         public String getEofStr() {
             return eofStr.substring(0);
         }
 
+        /**
+         * get the state.
+         * @return the state.
+         */
         public int getState() {
             return state;
         }
 
+        /**
+         * Set the state.
+         * @param state the value to use.
+         */
         public void setState(int state) {
             this.state = state;
         }
 
+        /**
+         * @return true if there is more elements.
+         */
         public boolean hasMoreElements() {
             return !reachedEof;
         }
 
+        /**
+         * get the next element.
+         * @return the next element.
+         * @throws NoSuchElementException if there is no more.
+         */
         public Object nextElement()
             throws NoSuchElementException {
             if (!hasMoreElements()) {
@@ -882,6 +554,10 @@ public class FixCRLF extends MatchingTask {
             return tmpLine;
         }
 
+        /**
+         * Close the reader.
+         * @throws IOException if there is an error.
+         */
         public void close() throws IOException {
             if (reader != null) {
                 reader.close();
@@ -981,6 +657,7 @@ public class FixCRLF extends MatchingTask {
      * Enumerated attribute with the values "asis", "add" and "remove".
      */
     public static class AddAsisRemove extends EnumeratedAttribute {
+        /** {@inheritDoc}. */
         public String[] getValues() {
             return new String[] {"add", "asis", "remove"};
         }
@@ -993,6 +670,7 @@ public class FixCRLF extends MatchingTask {
         /**
          * @see EnumeratedAttribute#getValues
          */
+        /** {@inheritDoc}. */
         public String[] getValues() {
             return new String[] {"asis", "cr", "lf", "crlf",
                                  "mac", "unix", "dos"};
@@ -1000,3 +678,4 @@ public class FixCRLF extends MatchingTask {
     }
 
 }
+

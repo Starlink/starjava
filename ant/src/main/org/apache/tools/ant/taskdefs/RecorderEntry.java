@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,8 +17,11 @@
  */
 package org.apache.tools.ant.taskdefs;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import org.apache.tools.ant.BuildEvent;
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.BuildLogger;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
@@ -28,7 +32,6 @@ import org.apache.tools.ant.util.StringUtils;
  * This is a class that represents a recorder. This is the listener to the
  * build process.
  *
- * @version 0.5
  * @since Ant 1.4
  */
 public class RecorderEntry implements BuildLogger, SubBuildListener {
@@ -72,7 +75,6 @@ public class RecorderEntry implements BuildLogger, SubBuildListener {
         return filename;
     }
 
-
     /**
      * Turns off or on this recorder.
      *
@@ -80,27 +82,36 @@ public class RecorderEntry implements BuildLogger, SubBuildListener {
      */
     public void setRecordState(Boolean state) {
         if (state != null) {
+            flush();
             record = state.booleanValue();
         }
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#buildStarted(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void buildStarted(BuildEvent event) {
         log("> BUILD STARTED", Project.MSG_DEBUG);
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#buildFinished(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void buildFinished(BuildEvent event) {
         log("< BUILD FINISHED", Project.MSG_DEBUG);
 
-        Throwable error = event.getException();
+        if (record && out != null) {
+            Throwable error = event.getException();
 
-        if (error == null) {
-            out.println(StringUtils.LINE_SEP + "BUILD SUCCESSFUL");
-        } else {
-            out.println(StringUtils.LINE_SEP + "BUILD FAILED"
-                 + StringUtils.LINE_SEP);
-            error.printStackTrace(out);
+            if (error == null) {
+                out.println(StringUtils.LINE_SEP + "BUILD SUCCESSFUL");
+            } else {
+                out.println(StringUtils.LINE_SEP + "BUILD FAILED"
+                            + StringUtils.LINE_SEP);
+                error.printStackTrace(out);
+            }
         }
         cleanup();
     }
@@ -130,7 +141,10 @@ public class RecorderEntry implements BuildLogger, SubBuildListener {
     public void subBuildStarted(BuildEvent event) {
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#targetStarted(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void targetStarted(BuildEvent event) {
         log(">> TARGET STARTED -- " + event.getTarget(), Project.MSG_DEBUG);
         log(StringUtils.LINE_SEP + event.getTarget().getName() + ":",
@@ -138,28 +152,40 @@ public class RecorderEntry implements BuildLogger, SubBuildListener {
         targetStartTime = System.currentTimeMillis();
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#targetFinished(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void targetFinished(BuildEvent event) {
         log("<< TARGET FINISHED -- " + event.getTarget(), Project.MSG_DEBUG);
 
         String time = formatTime(System.currentTimeMillis() - targetStartTime);
 
         log(event.getTarget() + ":  duration " + time, Project.MSG_VERBOSE);
-        out.flush();
+        flush();
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#taskStarted(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void taskStarted(BuildEvent event) {
         log(">>> TASK STARTED -- " + event.getTask(), Project.MSG_DEBUG);
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#taskFinished(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void taskFinished(BuildEvent event) {
         log("<<< TASK FINISHED -- " + event.getTask(), Project.MSG_DEBUG);
-        out.flush();
+        flush();
     }
 
-
+    /**
+     * @see org.apache.tools.ant.BuildListener#messageLogged(BuildEvent)
+     */
+    /** {@inheritDoc}. */
     public void messageLogged(BuildEvent event) {
         log("--- MESSAGE LOGGED", Project.MSG_DEBUG);
 
@@ -191,31 +217,52 @@ public class RecorderEntry implements BuildLogger, SubBuildListener {
      * @param level The verbosity level of the message.
      */
     private void log(String mesg, int level) {
-        if (record && (level <= loglevel)) {
+        if (record && (level <= loglevel) && out != null) {
             out.println(mesg);
         }
     }
 
+    private void flush() {
+        if (record && out != null) {
+            out.flush();
+        }
+    }
 
+    /**
+     * @see BuildLogger#setMessageOutputLevel(int)
+     */
+    /** {@inheritDoc}. */
     public void setMessageOutputLevel(int level) {
         if (level >= Project.MSG_ERR && level <= Project.MSG_DEBUG) {
             loglevel = level;
         }
     }
 
-
+    /**
+     * @see BuildLogger#setOutputPrintStream(PrintStream)
+     */
+    /** {@inheritDoc}. */
     public void setOutputPrintStream(PrintStream output) {
+        closeFile();
         out = output;
     }
 
 
+    /**
+     * @see BuildLogger#setEmacsMode(boolean)
+     */
+    /** {@inheritDoc}. */
     public void setEmacsMode(boolean emacsMode) {
         this.emacsMode = emacsMode;
     }
 
 
+    /**
+     * @see BuildLogger#setErrorPrintStream(PrintStream)
+     */
+    /** {@inheritDoc}. */
     public void setErrorPrintStream(PrintStream err) {
-        out = err;
+        setOutputPrintStream(err);
     }
 
 
@@ -254,12 +301,56 @@ public class RecorderEntry implements BuildLogger, SubBuildListener {
      * @since 1.6.2
      */
     public void cleanup() {
-        out.flush();
-        out.close();
+        closeFile();
         if (project != null) {
             project.removeBuildListener(this);
         }
         project = null;
     }
-}
 
+    /**
+     * Initially opens the file associated with this recorder.
+     * Used by Recorder.
+     * @param append Indicates if output must be appended to the logfile or that
+     * the logfile should be overwritten.
+     * @throws BuildException
+     * @since 1.6.3
+     */
+    void openFile(boolean append) throws BuildException {
+        openFileImpl(append);
+    }
+
+    /**
+     * Closes the file associated with this recorder.
+     * Used by Recorder.
+     * @since 1.6.3
+     */
+    void closeFile() {
+        if (out != null) {
+            out.close();
+            out = null;
+        }
+    }
+
+    /**
+     * Re-opens the file associated with this recorder.
+     * Used by Recorder.
+     * @throws BuildException
+     * @since 1.6.3
+     */
+    void reopenFile() throws BuildException {
+        openFileImpl(true);
+    }
+
+    private void openFileImpl(boolean append) throws BuildException {
+        if (out == null) {
+            try {
+                out = new PrintStream(new FileOutputStream(filename, append));
+            } catch (IOException ioe) {
+                throw new BuildException("Problems opening file using a "
+                                         + "recorder entry", ioe);
+            }
+        }
+    }
+
+}

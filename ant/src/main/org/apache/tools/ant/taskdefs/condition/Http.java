@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,22 +33,21 @@ import org.apache.tools.ant.ProjectComponent;
  * @since Ant 1.5
  */
 public class Http extends ProjectComponent implements Condition {
+    private static final int ERROR_BEGINS = 400;
     private String spec = null;
 
     /**
      * Set the url attribute
-     *
      * @param url the url of the request
      */
     public void setUrl(String url) {
         spec = url;
     }
 
-    private int errorsBeginAt = 400;
+    private int errorsBeginAt = ERROR_BEGINS;
 
     /**
      * Set the errorsBeginAt attribute
-     *
      * @param errorsBeginAt number at which errors begin at, default is
      *                      400
      */
@@ -75,9 +75,8 @@ public class Http extends ProjectComponent implements Condition {
                         Project.MSG_VERBOSE);
                     if (code > 0 && code < errorsBeginAt) {
                         return true;
-                    } else {
-                        return false;
                     }
+                    return false;
                 }
             } catch (java.io.IOException e) {
                 return false;

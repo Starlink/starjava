@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,6 +20,7 @@ package org.apache.tools.ant.filters;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Vector;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.Parameter;
 
 /**
@@ -49,6 +51,9 @@ public final class LineContains
     /** Parameter name for the words to filter on. */
     private static final String CONTAINS_KEY = "contains";
 
+    /** Parameter name for the words to filter on. */
+    private static final String NEGATE_KEY = "negate";
+
     /** Vector that holds the strings that input lines must contain. */
     private Vector contains = new Vector();
 
@@ -58,6 +63,8 @@ public final class LineContains
      * to find the next matching line.
      */
     private String line = null;
+
+    private boolean negate = false;
 
     /**
      * Constructor for "dummy" instances.
@@ -88,7 +95,7 @@ public final class LineContains
      * @exception IOException if the underlying stream throws an IOException
      * during reading
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
         if (!getInitialized()) {
             initialize();
             setInitialized(true);
@@ -104,31 +111,22 @@ public final class LineContains
                 line = line.substring(1);
             }
         } else {
-            line = readLine();
             final int containsSize = contains.size();
 
-            while (line != null) {
-                for (int i = 0; i < containsSize; i++) {
+            for (line = readLine(); line != null; line = readLine()) {
+                boolean matches = true;
+                for (int i = 0; matches && i < containsSize; i++) {
                     String containsStr = (String) contains.elementAt(i);
-                    if (line.indexOf(containsStr) == -1) {
-                        line = null;
-                        break;
-                    }
+                    matches = line.indexOf(containsStr) >= 0;
                 }
-
-                if (line == null) {
-                    // line didn't match
-                    line = readLine();
-                } else {
+                if (matches ^ isNegated()) {
                     break;
                 }
             }
-
             if (line != null) {
                 return read();
             }
         }
-
         return ch;
     }
 
@@ -138,8 +136,24 @@ public final class LineContains
      * @param contains The <code>contains</code> element to add.
      *                 Must not be <code>null</code>.
      */
-    public final void addConfiguredContains(final Contains contains) {
+    public void addConfiguredContains(final Contains contains) {
         this.contains.addElement(contains.getValue());
+    }
+
+    /**
+     * Set the negation mode.  Default false (no negation).
+     * @param b the boolean negation mode to set.
+     */
+    public void setNegate(boolean b) {
+        negate = b;
+    }
+
+    /**
+     * Find out whether we have been negated.
+     * @return boolean negation flag.
+     */
+    public boolean isNegated() {
+        return negate;
     }
 
     /**
@@ -162,7 +176,7 @@ public final class LineContains
      * returned object is "live" - in other words, changes made to the
      * returned object are mirrored in the filter.
      */
-    private final Vector getContains() {
+    private Vector getContains() {
         return contains;
     }
 
@@ -176,22 +190,24 @@ public final class LineContains
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         LineContains newFilter = new LineContains(rdr);
         newFilter.setContains(getContains());
-        newFilter.setInitialized(true);
+        newFilter.setNegate(isNegated());
         return newFilter;
     }
 
     /**
      * Parses the parameters to add user-defined contains strings.
      */
-    private final void initialize() {
+    private void initialize() {
         Parameter[] params = getParameters();
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
                 if (CONTAINS_KEY.equals(params[i].getType())) {
                     contains.addElement(params[i].getValue());
+                } else if (NEGATE_KEY.equals(params[i].getType())) {
+                    setNegate(Project.toBoolean(params[i].getValue()));
                 }
             }
         }

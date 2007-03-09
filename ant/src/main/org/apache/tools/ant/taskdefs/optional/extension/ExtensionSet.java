@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,8 +29,7 @@ import org.apache.tools.ant.types.Reference;
  * The Extension set lists a set of "Optional Packages" /
  * "Extensions".
  *
- * @version $Revision: 1.4.2.4 $ $Date: 2004/03/09 17:01:45 $
- * @ant.data-type name="extension-set"
+ * @ant.datatype name="extension-set"
  */
 public class ExtensionSet
     extends DataType {
@@ -73,14 +73,14 @@ public class ExtensionSet
     /**
      * Extract a set of Extension objects from the ExtensionSet.
      *
-     * @param project the project instance.
+     * @param proj the project instance.
      * @return an array containing the Extensions from this set
      * @throws BuildException if an error occurs
      */
-    public Extension[] toExtensions(final Project project)
+    public Extension[] toExtensions(final Project proj)
         throws BuildException {
         final ArrayList extensionsList = ExtensionUtil.toExtensions(extensions);
-        ExtensionUtil.extractExtensions(project, extensionsList, extensionsFilesets);
+        ExtensionUtil.extractExtensions(proj, extensionsList, extensionsFilesets);
         return (Extension[]) extensionsList.toArray(new Extension[extensionsList.size()]);
     }
 
@@ -117,6 +117,7 @@ public class ExtensionSet
 
     /**
      * @see java.lang.Object#toString()
+     * @return the extensions in a string.
      */
     public String toString() {
         return "ExtensionSet" + Arrays.asList(toExtensions(getProject()));

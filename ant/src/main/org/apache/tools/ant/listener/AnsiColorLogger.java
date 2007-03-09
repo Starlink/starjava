@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -144,7 +145,7 @@ public final class AnsiColorLogger extends DefaultLogger {
      * Set the colors to use from a property file specified by the
      * special ant property ant.logger.defaults
      */
-    private final void setColors() {
+    private void setColors() {
         String userColorFile = System.getProperty("ant.logger.defaults");
         String systemColorFile =
             "/org/apache/tools/ant/listener/defaults.properties";
@@ -164,13 +165,13 @@ public final class AnsiColorLogger extends DefaultLogger {
                 prop.load(in);
             }
 
-            String err = prop.getProperty("AnsiColorLogger.ERROR_COLOR");
+            String errC = prop.getProperty("AnsiColorLogger.ERROR_COLOR");
             String warn = prop.getProperty("AnsiColorLogger.WARNING_COLOR");
             String info = prop.getProperty("AnsiColorLogger.INFO_COLOR");
             String verbose = prop.getProperty("AnsiColorLogger.VERBOSE_COLOR");
             String debug = prop.getProperty("AnsiColorLogger.DEBUG_COLOR");
-            if (err != null) {
-                errColor = PREFIX + err + SUFFIX;
+            if (errC != null) {
+                errColor = PREFIX + errC + SUFFIX;
             }
             if (warn != null) {
                 warnColor = PREFIX + warn + SUFFIX;
@@ -200,7 +201,8 @@ public final class AnsiColorLogger extends DefaultLogger {
     /**
      * @see DefaultLogger#printMessage
      */
-    protected final void printMessage(final String message,
+    /** {@inheritDoc}. */
+    protected void printMessage(final String message,
                                       final PrintStream stream,
                                       final int priority) {
         if (message != null && stream != null) {
@@ -228,6 +230,8 @@ public final class AnsiColorLogger extends DefaultLogger {
                     msg.append(END_COLOR);
                     break;
                 case Project.MSG_DEBUG:
+                    // Fall through
+                default:
                     msg.insert(0, debugColor);
                     msg.append(END_COLOR);
                     break;

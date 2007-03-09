@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,10 +18,9 @@
 
 package org.apache.tools.ant.taskdefs.rmic;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.ExecuteJava;
 import org.apache.tools.ant.types.Commandline;
 
 /**
@@ -29,33 +29,76 @@ import org.apache.tools.ant.types.Commandline;
  * @since Ant 1.4
  */
 public class KaffeRmic extends DefaultRmicAdapter {
+    // sorted by newest Kaffe version first
+    private static final String[] RMIC_CLASSNAMES = new String[] {
+        "gnu.classpath.tools.rmi.rmic.RMIC",
+        // pre Kaffe 1.1.5
+        "gnu.java.rmi.rmic.RMIC",
+        // pre Kaffe 1.1.2
+        "kaffe.rmi.rmic.RMIC",
+    };
 
+    /**
+     * the name of this adapter for users to select
+     */
+    public static final String COMPILER_NAME = "kaffe";
+
+    /** {@inheritDoc} */
     public boolean execute() throws BuildException {
         getRmic().log("Using Kaffe rmic", Project.MSG_VERBOSE);
         Commandline cmd = setupRmicCommand();
 
-        try {
+        Class c = getRmicClass();
+        if (c == null) {
+            StringBuffer buf = new StringBuffer("Cannot use Kaffe rmic, as it"
+                                                + " is not available.  None"
+                                                + " of ");
+            for (int i = 0; i < RMIC_CLASSNAMES.length; i++) {
+                if (i != 0) {
+                    buf.append(", ");
+                }
 
-            Class c = Class.forName("kaffe.rmi.rmic.RMIC");
-            Constructor cons = c.getConstructor(new Class[] {String[].class});
-            Object rmic = cons.newInstance(new Object[] {cmd.getArguments()});
-            Method doRmic = c.getMethod("run", null);
-            Boolean ok = (Boolean) doRmic.invoke(rmic, null);
-
-            return ok.booleanValue();
-        } catch (ClassNotFoundException ex) {
-            throw new BuildException("Cannot use Kaffe rmic, as it is not "
-                                     + "available.  A common solution is to "
-                                     + "set the environment variable "
-                                     + "JAVA_HOME or CLASSPATH.",
+                buf.append(RMIC_CLASSNAMES[i]);
+            }
+            buf.append(" have been found. A common solution is to set the"
+                       + " environment variable JAVA_HOME or CLASSPATH.");
+            throw new BuildException(buf.toString(),
                                      getRmic().getLocation());
-        } catch (Exception ex) {
-            if (ex instanceof BuildException) {
-                throw (BuildException) ex;
-            } else {
-                throw new BuildException("Error starting Kaffe rmic: ",
-                                         ex, getRmic().getLocation());
+        }
+
+        cmd.setExecutable(c.getName());
+        if (!c.getName().equals(RMIC_CLASSNAMES[RMIC_CLASSNAMES.length - 1])) {
+            // only supported since Kaffe 1.1.2
+            cmd.createArgument().setValue("-verbose");
+            getRmic().log(Commandline.describeCommand(cmd));
+        }
+        ExecuteJava ej = new ExecuteJava();
+        ej.setJavaCommand(cmd);
+        return ej.fork(getRmic()) == 0;
+    }
+
+    /**
+     * test for kaffe being on the system
+     * @return true if kaffe is on the current classpath
+     */
+    public static boolean isAvailable() {
+        return getRmicClass() != null;
+    }
+
+    /**
+     * tries to load Kaffe RMIC and falls back to the older class name
+     * if necessary.
+     *
+     * @return null if neither class can get loaded.
+     */
+    private static Class getRmicClass() {
+        for (int i = 0; i < RMIC_CLASSNAMES.length; i++) {
+            try {
+                return Class.forName(RMIC_CLASSNAMES[i]);
+            } catch (ClassNotFoundException cnfe) {
+                // Ignore
             }
         }
+        return null;
     }
 }

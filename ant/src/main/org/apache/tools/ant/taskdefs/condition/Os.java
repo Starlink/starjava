@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,13 +19,13 @@
 package org.apache.tools.ant.taskdefs.condition;
 
 import java.util.Locale;
+
 import org.apache.tools.ant.BuildException;
 
 /**
  * Condition that tests the OS type.
  *
  * @since Ant 1.4
- * @version $Revision: 1.30.2.4 $
  */
 public class Os implements Condition {
     private static final String OS_NAME =
@@ -36,21 +37,79 @@ public class Os implements Condition {
     private static final String PATH_SEP =
         System.getProperty("path.separator");
 
+    /**
+     * OS family to look for
+     */
     private String family;
+    /**
+     * Name of OS
+     */
     private String name;
+    /**
+     * version of OS
+     */
     private String version;
+    /**
+     * OS architecture
+     */
     private String arch;
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_WINDOWS = "windows";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_9X = "win9x";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_NT = "winnt";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_OS2 = "os/2";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_NETWARE = "netware";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_DOS = "dos";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_MAC = "mac";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_TANDEM = "tandem";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_UNIX = "unix";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_VMS = "openvms";
+    /**
+     * OS family that can be tested for. {@value}
+     */
+    public static final String FAMILY_ZOS = "z/os";
+    /** OS family that can be tested for. {@value} */
+    public static final String FAMILY_OS400 = "os/400";
 
     /**
      * Default constructor
      *
      */
     public Os() {
+        //default
     }
 
     /**
      * Constructor that sets the family attribute
-     *
      * @param family a String value
      */
     public Os(String family) {
@@ -109,6 +168,8 @@ public class Os implements Condition {
     /**
      * Determines if the OS on which Ant is executing matches the type of
      * that set in setFamily.
+     * @return true if the os matches.
+     * @throws BuildException if there is an error.
      * @see Os#setFamily(String)
      */
     public boolean eval() throws BuildException {
@@ -186,35 +247,49 @@ public class Os implements Condition {
             boolean isVersion = true;
 
             if (family != null) {
-                if (family.equals("windows")) {
-                    isFamily = OS_NAME.indexOf("windows") > -1;
-                } else if (family.equals("os/2")) {
-                    isFamily = OS_NAME.indexOf("os/2") > -1;
-                } else if (family.equals("netware")) {
-                    isFamily = OS_NAME.indexOf("netware") > -1;
-                } else if (family.equals("dos")) {
-                    isFamily = PATH_SEP.equals(";") && !isFamily("netware");
-                } else if (family.equals("mac")) {
-                    isFamily = OS_NAME.indexOf("mac") > -1;
-                } else if (family.equals("tandem")) {
-                    isFamily = OS_NAME.indexOf("nonstop_kernel") > -1;
-                } else if (family.equals("unix")) {
-                    isFamily = PATH_SEP.equals(":")
-                        && !isFamily("openvms")
-                        && (!isFamily("mac") || OS_NAME.endsWith("x"));
-                } else if (family.equals("win9x")) {
-                    isFamily = isFamily("windows")
-                        && (OS_NAME.indexOf("95") >= 0
+
+                //windows probing logic relies on the word 'windows' in
+                //the OS
+                boolean isWindows = OS_NAME.indexOf(FAMILY_WINDOWS) > -1;
+                boolean is9x = false;
+                boolean isNT = false;
+                if (isWindows) {
+                    //there are only four 9x platforms that we look for
+                    is9x = (OS_NAME.indexOf("95") >= 0
                             || OS_NAME.indexOf("98") >= 0
                             || OS_NAME.indexOf("me") >= 0
+                            //wince isn't really 9x, but crippled enough to
+                            //be a muchness. Ant doesnt run on CE, anyway.
                             || OS_NAME.indexOf("ce") >= 0);
-                } else if (family.equals("z/os")) {
-                    isFamily = OS_NAME.indexOf("z/os") > -1
+                    isNT = !is9x;
+                }
+                if (family.equals(FAMILY_WINDOWS)) {
+                    isFamily = isWindows;
+                } else if (family.equals(FAMILY_9X)) {
+                    isFamily = isWindows && is9x;
+                } else if (family.equals(FAMILY_NT)) {
+                    isFamily = isWindows && isNT;
+                } else if (family.equals(FAMILY_OS2)) {
+                    isFamily = OS_NAME.indexOf(FAMILY_OS2) > -1;
+                } else if (family.equals(FAMILY_NETWARE)) {
+                    isFamily = OS_NAME.indexOf(FAMILY_NETWARE) > -1;
+                } else if (family.equals(FAMILY_DOS)) {
+                    isFamily = PATH_SEP.equals(";") && !isFamily(FAMILY_NETWARE);
+                } else if (family.equals(FAMILY_MAC)) {
+                    isFamily = OS_NAME.indexOf(FAMILY_MAC) > -1;
+                } else if (family.equals(FAMILY_TANDEM)) {
+                    isFamily = OS_NAME.indexOf("nonstop_kernel") > -1;
+                } else if (family.equals(FAMILY_UNIX)) {
+                    isFamily = PATH_SEP.equals(":")
+                        && !isFamily(FAMILY_VMS)
+                        && (!isFamily(FAMILY_MAC) || OS_NAME.endsWith("x"));
+                } else if (family.equals(FAMILY_ZOS)) {
+                    isFamily = OS_NAME.indexOf(FAMILY_ZOS) > -1
                         || OS_NAME.indexOf("os/390") > -1;
-                } else if (family.equals("os/400")) {
-                    isFamily = OS_NAME.indexOf("os/400") > -1;
-                } else if (family.equals("openvms")) {
-                    isFamily = OS_NAME.indexOf("openvms") > -1;
+                } else if (family.equals(FAMILY_OS400)) {
+                    isFamily = OS_NAME.indexOf(FAMILY_OS400) > -1;
+                } else if (family.equals(FAMILY_VMS)) {
+                    isFamily = OS_NAME.indexOf(FAMILY_VMS) > -1;
                 } else {
                     throw new BuildException(
                         "Don\'t know how to detect os family \""

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,17 +17,13 @@
  */
 package org.apache.tools.ant.taskdefs.cvslib;
 
-import org.apache.tools.ant.taskdefs.LogOutputStream;
+import org.apache.tools.ant.util.LineOrientedOutputStream;
 
 /**
  * A dummy stream that just passes stuff to the parser.
- *
- * @version $Revision: 1.6.2.4 $ $Date: 2004/03/09 17:01:40 $
  */
-class RedirectingOutputStream
-     extends LogOutputStream {
+class RedirectingOutputStream extends LineOrientedOutputStream {
     private final ChangeLogParser parser;
-
 
     /**
      * Creates a new instance of this class.
@@ -34,10 +31,8 @@ class RedirectingOutputStream
      * @param parser the parser to which output is sent.
      */
     public RedirectingOutputStream(final ChangeLogParser parser) {
-        super(null, 0);
         this.parser = parser;
     }
-
 
     /**
      * Logs a line to the log system of ant.

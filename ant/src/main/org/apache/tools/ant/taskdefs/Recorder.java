@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,14 +17,14 @@
  */
 package org.apache.tools.ant.taskdefs;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Hashtable;
+import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.SubBuildListener;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.EnumeratedAttribute;
+import org.apache.tools.ant.types.LogLevel;
 
 /**
  * Adds a listener to the current build process that records the
@@ -43,7 +44,7 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  * @since Ant 1.4
  * @ant.task name="record" category="utility"
  */
-public class Recorder extends Task {
+public class Recorder extends Task implements SubBuildListener {
 
     //////////////////////////////////////////////////////////////////////
     // ATTRIBUTES
@@ -68,6 +69,15 @@ public class Recorder extends Task {
 
     //////////////////////////////////////////////////////////////////////
     // CONSTRUCTORS / INITIALIZERS
+
+    /**
+     * Overridden so we can add the task as build listener.
+     *
+     * @since Ant 1.7
+     */
+    public void init() {
+        getProject().addBuildListener(this);
+    }
 
     //////////////////////////////////////////////////////////////////////
     // ACCESSOR METHODS
@@ -97,12 +107,19 @@ public class Recorder extends Task {
     }
 
 
-    /** Whether or not the logger should append to a previous file.  */
+    /**
+     * Whether or not the logger should append to a previous file.
+     * @param append if true, append to a previous file.
+     */
     public void setAppend(boolean append) {
-        this.append = new Boolean(append);
+        this.append = (append ? Boolean.TRUE : Boolean.FALSE);
     }
 
 
+    /**
+     * Set emacs mode.
+     * @param emacsMode if true use emacs mode
+     */
     public void setEmacsMode(boolean emacsMode) {
         this.emacsMode = emacsMode;
     }
@@ -110,30 +127,20 @@ public class Recorder extends Task {
 
     /**
      * Sets the level to which this recorder entry should log to.
-     *
+     * @param level the level to set.
      * @see VerbosityLevelChoices
      */
     public void setLoglevel(VerbosityLevelChoices level) {
-        //I hate cascading if/elseif clauses !!!
-        String lev = level.getValue();
-
-        if (lev.equalsIgnoreCase("error")) {
-            loglevel = Project.MSG_ERR;
-        } else if (lev.equalsIgnoreCase("warn")) {
-            loglevel = Project.MSG_WARN;
-        } else if (lev.equalsIgnoreCase("info")) {
-            loglevel = Project.MSG_INFO;
-        } else if (lev.equalsIgnoreCase("verbose")) {
-            loglevel = Project.MSG_VERBOSE;
-        } else if (lev.equalsIgnoreCase("debug")) {
-            loglevel = Project.MSG_DEBUG;
-        }
+        loglevel = level.getLevel();
     }
 
     //////////////////////////////////////////////////////////////////////
     // CORE / MAIN BODY
 
-    /** The main execution.  */
+    /**
+     * The main execution.
+     * @throws BuildException on error
+     */
     public void execute() throws BuildException {
         if (filename == null) {
             throw new BuildException("No filename specified");
@@ -146,8 +153,16 @@ public class Recorder extends Task {
         RecorderEntry recorder = getRecorder(filename, getProject());
         // set the values on the recorder
         recorder.setMessageOutputLevel(loglevel);
-        recorder.setRecordState(start);
         recorder.setEmacsMode(emacsMode);
+        if (start != null) {
+            if (start.booleanValue()) {
+                recorder.reopenFile();
+                recorder.setRecordState(start);
+            } else {
+                recorder.setRecordState(start);
+                recorder.closeFile();
+            }
+        }
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -158,11 +173,14 @@ public class Recorder extends Task {
      * Possible values include: start and stop.
      */
     public static class ActionChoices extends EnumeratedAttribute {
-        private static final String[] values = {"start", "stop"};
+        private static final String[] VALUES = {"start", "stop"};
 
-
+        /**
+         * @see EnumeratedAttribute#getValues()
+         */
+        /** {@inheritDoc}. */
         public String[] getValues() {
-            return values;
+            return VALUES;
         }
     }
 
@@ -171,20 +189,17 @@ public class Recorder extends Task {
      * A list of possible values for the <code>setLoglevel()</code> method.
      * Possible values include: error, warn, info, verbose, debug.
      */
-    public static class VerbosityLevelChoices extends EnumeratedAttribute {
-        private static final String[] values = {"error", "warn", "info",
-            "verbose", "debug"};
-
-
-        public String[] getValues() {
-            return values;
-        }
+    public static class VerbosityLevelChoices extends LogLevel {
     }
 
 
     /**
      * Gets the recorder that's associated with the passed in name. If the
      * recorder doesn't exist, then a new one is created.
+     * @param name the name of the recoder
+     * @param proj the current project
+     * @return a recorder
+     * @throws BuildException on error
      */
     protected RecorderEntry getRecorder(String name, Project proj)
          throws BuildException {
@@ -193,23 +208,12 @@ public class Recorder extends Task {
 
         if (o == null) {
             // create a recorder entry
-            try {
-                entry = new RecorderEntry(name);
+            entry = new RecorderEntry(name);
 
-                PrintStream out = null;
-
-                if (append == null) {
-                    out = new PrintStream(
-                        new FileOutputStream(name));
-                } else {
-                    out = new PrintStream(
-                        new FileOutputStream(name, append.booleanValue()));
-                }
-                entry.setErrorPrintStream(out);
-                entry.setOutputPrintStream(out);
-            } catch (IOException ioe) {
-                throw new BuildException("Problems creating a recorder entry",
-                    ioe);
+            if (append == null) {
+                entry.openFile(false);
+            } else {
+                entry.openFile(append.booleanValue());
             }
             entry.setProject(proj);
             recorderEntries.put(name, entry);
@@ -219,5 +223,91 @@ public class Recorder extends Task {
         return entry;
     }
 
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void buildStarted(BuildEvent event) {
+    }
+
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void subBuildStarted(BuildEvent event) {
+    }
+
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void targetStarted(BuildEvent event) {
+    }
+
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void targetFinished(BuildEvent event) {
+    }
+
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void taskStarted(BuildEvent event) {
+    }
+
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void taskFinished(BuildEvent event) {
+    }
+
+    /**
+     * Empty implementation required by SubBuildListener interface.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void messageLogged(BuildEvent event) {
+    }
+
+    /**
+     * Cleans recorder registry.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void buildFinished(BuildEvent event) {
+        cleanup();
+    }
+
+    /**
+     * Cleans recorder registry, if this is the subbuild the task has
+     * been created in.
+     * @param event ignored.
+     * @since Ant 1.7
+     */
+    public void subBuildFinished(BuildEvent event) {
+        if (event.getProject() == getProject()) {
+            cleanup();
+        }
+    }
+
+    /**
+     * cleans recorder registry and removes itself from BuildListener list.
+     *
+     * @since Ant 1.7
+     */
+    private void cleanup() {
+        recorderEntries.clear();
+        getProject().removeBuildListener(this);
+    }
 }
 

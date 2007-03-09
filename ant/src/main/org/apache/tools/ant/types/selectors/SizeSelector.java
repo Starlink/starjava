@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,6 +20,7 @@ package org.apache.tools.ant.types.selectors;
 
 import java.io.File;
 
+import org.apache.tools.ant.types.Comparison;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Parameter;
 
@@ -29,16 +31,17 @@ import org.apache.tools.ant.types.Parameter;
  */
 public class SizeSelector extends BaseExtendSelector {
 
-    private long size = -1;
-    private long multiplier = 1;
-    private long sizelimit = -1;
-    private int cmp = 2;
     /** Used for parameterized custom selector */
     public static final String SIZE_KEY = "value";
     /** Used for parameterized custom selector */
     public static final String UNITS_KEY = "units";
     /** Used for parameterized custom selector */
     public static final String WHEN_KEY = "when";
+
+    private long size = -1;
+    private long multiplier = 1;
+    private long sizelimit = -1;
+    private Comparison when = Comparison.EQUAL;
 
     /**
      * Creates a new <code>SizeSelector</code> instance.
@@ -48,19 +51,15 @@ public class SizeSelector extends BaseExtendSelector {
     }
 
     /**
+     * Returns a <code>String</code> object representing the specified
+     * SizeSelector. This is "{sizeselector value: " + <"compare",
+     * "less", "more", "equal"> + "}".
      * @return a string describing this object
      */
     public String toString() {
         StringBuffer buf = new StringBuffer("{sizeselector value: ");
         buf.append(sizelimit);
-        buf.append("compare: ");
-        if (cmp == 0) {
-            buf.append("less");
-        } else if (cmp == 1) {
-            buf.append("more");
-        } else {
-            buf.append("equal");
-        }
+        buf.append("compare: ").append(when.getValue());
         buf.append("}");
         return buf.toString();
     }
@@ -70,11 +69,11 @@ public class SizeSelector extends BaseExtendSelector {
      * This will be further modified by the multiplier to get an
      * actual size limit.
      *
-     * @param size the size to select against expressed in units
+     * @param size the size to select against expressed in units.
      */
     public void setValue(long size) {
         this.size = size;
-        if ((multiplier != 0) && (size > -1)) {
+        if (multiplier != 0 && size > -1) {
             sizelimit = size * multiplier;
         }
     }
@@ -103,29 +102,29 @@ public class SizeSelector extends BaseExtendSelector {
      * multiplier.
      *
      * @param units The units to compare the size to, using an
-     *        EnumeratedAttribute
+     *        EnumeratedAttribute.
      */
     public void setUnits(ByteUnits units) {
         int i = units.getIndex();
         multiplier = 0;
-        if ((i > -1) && (i < 4)) {
+        if (i > -1 && i < 4) {
             multiplier = 1000;
-        } else if ((i > 3) && (i < 9)) {
+        } else if (i > 3 && i < 9) {
             multiplier = 1024;
-        } else if ((i > 8) && (i < 13)) {
+        } else if (i > 8 && i < 13) {
             multiplier = 1000000;
-        } else if ((i > 12) && (i < 18)) {
+        } else if (i > 12 && i < 18) {
             multiplier = 1048576;
-        } else if ((i > 17) && (i < 22)) {
+        } else if (i > 17 && i < 22) {
             multiplier = 1000000000L;
-        } else if ((i > 21) && (i < 27)) {
+        } else if (i > 21 && i < 27) {
             multiplier = 1073741824L;
-        } else if ((i > 26) && (i < 31)) {
+        } else if (i > 26 && i < 31) {
             multiplier = 1000000000000L;
-        } else if ((i > 30) && (i < 36)) {
+        } else if (i > 30 && i < 36) {
             multiplier = 1099511627776L;
         }
-        if ((multiplier > 0) && (size > -1)) {
+        if (multiplier > 0 && size > -1) {
             sizelimit = size * multiplier;
         }
     }
@@ -135,17 +134,17 @@ public class SizeSelector extends BaseExtendSelector {
      * when the file matches a particular size, when it is smaller,
      * or whether it is larger.
      *
-     * @param cmp The comparison to perform, an EnumeratedAttribute
+     * @param when The comparison to perform, an EnumeratedAttribute.
      */
-    public void setWhen(SizeComparisons cmp) {
-        this.cmp = cmp.getIndex();
+    public void setWhen(SizeComparisons when) {
+        this.when = when;
     }
 
     /**
      * When using this as a custom selector, this method will be called.
      * It translates each parameter into the appropriate setXXX() call.
      *
-     * @param parameters the complete set of parameters for this selector
+     * @param parameters the complete set of parameters for this selector.
      */
     public void setParameters(Parameter[] parameters) {
         super.setParameters(parameters);
@@ -165,9 +164,9 @@ public class SizeSelector extends BaseExtendSelector {
                     units.setValue(parameters[i].getValue());
                     setUnits(units);
                 } else if (WHEN_KEY.equalsIgnoreCase(paramname)) {
-                    SizeComparisons cmp = new SizeComparisons();
-                    cmp.setValue(parameters[i].getValue());
-                    setWhen(cmp);
+                    SizeComparisons scmp = new SizeComparisons();
+                    scmp.setValue(parameters[i].getValue());
+                    setWhen(scmp);
                 } else {
                     setError("Invalid parameter " + paramname);
                 }
@@ -199,10 +198,10 @@ public class SizeSelector extends BaseExtendSelector {
      * The heart of the matter. This is where the selector gets to decide
      * on the inclusion of a file in a particular fileset.
      *
-     * @param basedir A java.io.File object for the base directory
-     * @param filename The name of the file to check
-     * @param file A File object for this filename
-     * @return whether the file should be selected or not
+     * @param basedir A java.io.File object for the base directory.
+     * @param filename The name of the file to check.
+     * @param file A File object for this filename.
+     * @return whether the file should be selected or not.
      */
     public boolean isSelected(File basedir, String filename, File file) {
 
@@ -213,13 +212,8 @@ public class SizeSelector extends BaseExtendSelector {
         if (file.isDirectory()) {
             return true;
         }
-        if (cmp == 0) {
-            return (file.length() < sizelimit);
-        } else if (cmp == 1) {
-            return (file.length() > sizelimit);
-        } else {
-            return (file.length() == sizelimit);
-        }
+        long diff = file.length() - sizelimit;
+        return when.evaluate(diff == 0 ? 0 : (int) (diff / Math.abs(diff)));
     }
 
 
@@ -261,13 +255,7 @@ public class SizeSelector extends BaseExtendSelector {
     /**
      * Enumerated attribute with the values for size comparison.
      */
-    public static class SizeComparisons extends EnumeratedAttribute {
-        /**
-         * @return the values as an array of strings
-         */
-        public String[] getValues() {
-            return new String[]{"less", "more", "equal"};
-        }
+    public static class SizeComparisons extends Comparison {
     }
 
 }

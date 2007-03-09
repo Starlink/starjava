@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,48 +23,88 @@ import java.util.Vector;
 /**
  * CVS Entry.
  *
- * @version $Revision: 1.8.2.4 $ $Date: 2004/03/09 17:01:40 $
  */
-class CVSEntry {
-    private Date m_date;
-    private String m_author;
-    private final String m_comment;
-    private final Vector m_files = new Vector();
+public class CVSEntry {
+    private Date date;
+    private String author;
+    private final String comment;
+    private final Vector files = new Vector();
 
-    public CVSEntry(Date date, String author, String comment) {
-        m_date = date;
-        m_author = author;
-        m_comment = comment;
+    /**
+     * Creates a new instance of a CVSEntry
+     * @param date the date
+     * @param author the author
+     * @param comment a comment to be added to the revision
+     */
+    public CVSEntry(final Date date, final String author, final String comment) {
+        this.date = date;
+        this.author = author;
+        this.comment = comment;
     }
 
-    public void addFile(String file, String revision) {
-        m_files.addElement(new RCSFile(file, revision));
+    /**
+     * Adds a file to the CVSEntry
+     * @param file the file to add
+     * @param revision the revision
+     */
+    public void addFile(final String file, final String revision) {
+        files.addElement(new RCSFile(file, revision));
     }
 
-    public void addFile(String file, String revision, String previousRevision) {
-        m_files.addElement(new RCSFile(file, revision, previousRevision));
+    /**
+     * Adds a file to the CVSEntry
+     * @param file the file to add
+     * @param revision the revision
+     * @param previousRevision the previous revision
+     */
+    public void addFile(final String file, final String revision, final String previousRevision) {
+        files.addElement(new RCSFile(file, revision, previousRevision));
     }
 
-    Date getDate() {
-        return m_date;
+    /**
+     * Gets the date of the CVSEntry
+     * @return the date
+     */
+    public Date getDate() {
+        return date;
     }
 
-    void setAuthor(final String author) {
-        m_author = author;
+    /**
+     * Sets the author of the CVSEntry
+     * @param author the author
+     */
+    public void setAuthor(final String author) {
+        this.author = author;
     }
 
-    String getAuthor() {
-        return m_author;
+    /**
+     * Gets the author of the CVSEntry
+     * @return the author
+     */
+    public String getAuthor() {
+        return author;
     }
 
-    String getComment() {
-        return m_comment;
+    /**
+     * Gets the comment for the CVSEntry
+     * @return the comment
+     */
+    public String getComment() {
+        return comment;
     }
 
-    Vector getFiles() {
-        return m_files;
+    /**
+     * Gets the files in this CVSEntry
+     * @return the files
+     */
+    public Vector getFiles() {
+        return files;
     }
 
+    /**
+     * Gets a String containing author, date, files and comment
+     * @return a string representation of this CVSEntry
+     */
     public String toString() {
         return getAuthor() + "\n" + getDate() + "\n" + getFiles() + "\n"
             + getComment();

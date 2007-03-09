@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,18 +17,19 @@
  */
 package org.apache.tools.ant.taskdefs.email;
 
-// Ant imports
-
 import java.io.File;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.util.ClasspathUtils;
 
 /**
  * A task to send SMTP email. This is a refactoring of the SendMail and
@@ -36,8 +38,7 @@ import org.apache.tools.ant.types.FileSet;
  * @since Ant 1.5
  * @ant.task name="mail" category="network"
  */
-public class EmailTask
-     extends Task {
+public class EmailTask extends Task {
     /** Constant to show that the best available mailer should be used.  */
     public static final String AUTO = "auto";
     /** Constant to allow the Mime mailer to be requested  */
@@ -47,9 +48,8 @@ public class EmailTask
     /** Constant to allow the plaintext mailer to be requested  */
     public static final String PLAIN = "plain";
 
-
     /**
-     * Enumerates the encoding constants
+     * Enumerates the encoding constants.
      */
     public static class Encoding extends EnumeratedAttribute {
         /**
@@ -74,7 +74,7 @@ public class EmailTask
     private boolean failOnError = true;
     private boolean includeFileNames = false;
     private String messageMimeType = null;
-    /** special headers */
+    /* special headers */
     /** sender  */
     private EmailAddress from = null;
     /** replyto */
@@ -86,9 +86,11 @@ public class EmailTask
     /** BCC (Blind Carbon Copy) recipients  */
     private Vector bccList = new Vector();
 
+    /** generic headers */
+    private Vector headers = new Vector();
+
     /** file list  */
-    private Vector files = new Vector();
-    private Vector filesets = new Vector();
+    private Path attachments = null;
     /** Character set for MimeMailer*/
     private String charset = null;
     /** User for SMTP auth */
@@ -96,67 +98,64 @@ public class EmailTask
     /** Password for SMTP auth */
     private String password = null;
     /** indicate if the user wishes SSL-TLS */
-    private boolean SSL = false;
+    private boolean ssl = false;
 
     /**
-     * sets the user for SMTP auth; this requires JavaMail
-     * @param user
-     * @since ant 1.6
+     * Set the user for SMTP auth; this requires JavaMail.
+     * @param user the String username.
+     * @since Ant 1.6
      */
     public void setUser(String user) {
         this.user = user;
     }
 
     /**
-     * sets the password for SMTP auth; this requires JavaMail
-     * @param password
-     * @since ant 1.6
+     * Set the password for SMTP auth; this requires JavaMail.
+     * @param password the String password.
+     * @since Ant 1.6
      */
     public void setPassword(String password) {
         this.password = password;
     }
 
     /**
-     * tells if the user needs to send his data over SSL
-     * @param SSL
-     * @since ant 1.6
+     * Set whether to send data over SSL.
+     * @param ssl boolean; if true SSL will be used.
+     * @since Ant 1.6
      */
-    public void setSSL(boolean SSL) {
-        this.SSL = SSL;
+    public void setSSL(boolean ssl) {
+        this.ssl = ssl;
     }
 
     /**
-     * Allows the build writer to choose the preferred encoding method
+     * Set the preferred encoding method.
      *
-     * @param encoding The encoding (one of AUTO,MIME,UU,PLAIN)
+     * @param encoding The encoding (one of AUTO, MIME, UU, PLAIN).
      */
     public void setEncoding(Encoding encoding) {
         this.encoding = encoding.getValue();
     }
 
-
     /**
-     * Sets the mail server port
+     * Set the mail server port.
      *
-     * @param port The port to use
+     * @param port The port to use.
      */
     public void setMailport(int port) {
         this.port = port;
     }
 
-
     /**
-     * Sets the host
+     * Set the host.
      *
-     * @param host The host to connect to
+     * @param host The host to connect to.
      */
     public void setMailhost(String host) {
         this.host = host;
     }
 
-
     /**
-     * Sets the subject line of the email
+     * Set the subject line of the email.
      *
      * @param subject Subject of this email.
      */
@@ -164,9 +163,8 @@ public class EmailTask
         this.subject = subject;
     }
 
-
     /**
-     * Shorthand method to set the message
+     * Shorthand method to set the message.
      *
      * @param message Message body of this email.
      */
@@ -175,120 +173,105 @@ public class EmailTask
             throw new BuildException("Only one message can be sent in an "
                  + "email");
         }
-
         this.message = new Message(message);
         this.message.setProject(getProject());
     }
 
-
     /**
-     * Shorthand method to set the message from a file
+     * Shorthand method to set the message from a file.
      *
-     * @param file The file from which to take the message
+     * @param file The file from which to take the message.
      */
     public void setMessageFile(File file) {
         if (this.message != null) {
             throw new BuildException("Only one message can be sent in an "
                  + "email");
         }
-
         this.message = new Message(file);
         this.message.setProject(getProject());
     }
-
 
     /**
      * Shorthand method to set type of the text message, text/plain by default
      * but text/html or text/xml is quite feasible.
      *
-     * @param type The new MessageMimeType value
+     * @param type The new MessageMimeType value.
      */
     public void setMessageMimeType(String type) {
         this.messageMimeType = type;
     }
 
-
     /**
-     * Add a message element
+     * Add a message element.
      *
-     * @param message The message object
-     * @throws BuildException if a message has already been added
+     * @param message The message object.
+     * @throws BuildException if a message has already been added.
      */
-    public void addMessage(Message message)
-         throws BuildException {
+    public void addMessage(Message message) throws BuildException {
         if (this.message != null) {
-            throw new BuildException("Only one message can be sent in an "
-                 + "email");
+            throw new BuildException(
+                "Only one message can be sent in an email");
         }
-
         this.message = message;
     }
 
-
     /**
-     * Adds a from address element
+     * Add a from address element.
      *
-     * @param address The address to send from
+     * @param address The address to send from.
      */
     public void addFrom(EmailAddress address) {
         if (this.from != null) {
             throw new BuildException("Emails can only be from one address");
         }
-
         this.from = address;
     }
 
-
     /**
-     * Shorthand to set the from address element
+     * Shorthand to set the from address element.
      *
-     * @param address The address to send mail from
+     * @param address The address to send mail from.
      */
     public void setFrom(String address) {
         if (this.from != null) {
             throw new BuildException("Emails can only be from one address");
         }
-
         this.from = new EmailAddress(address);
     }
 
-
     /**
-     * Adds a replyto address element
+     * Add a replyto address element.
      *
-     * @param address The address to reply to
-     * @since ant 1.6
+     * @param address The address to reply to.
+     * @since Ant 1.6
      */
     public void addReplyTo(EmailAddress address) {
         this.replyToList.add(address);
     }
 
-
     /**
-     * Shorthand to set the replyto address element
+     * Shorthand to set the replyto address element.
      *
-     * @param address The address to which replies should be directed
-     * @since ant 1.6
+     * @param address The address to which replies should be directed.
+     * @since Ant 1.6
      */
     public void setReplyTo(String address) {
         this.replyToList.add(new EmailAddress(address));
     }
 
-
     /**
-     * Adds a to address element
+     * Add a to address element.
      *
-     * @param address An email address
+     * @param address An email address.
      */
     public void addTo(EmailAddress address) {
         toList.addElement(address);
     }
 
-
     /**
-     * Adds "to" address elements
+     * Shorthand to set the "to" address element.
      *
-     * @param list Comma separated list of addresses
+     * @param list Comma-separated list of addresses.
      */
     public void setToList(String list) {
         StringTokenizer tokens = new StringTokenizer(list, ",");
@@ -298,21 +281,19 @@ public class EmailTask
         }
     }
 
-
     /**
-     * Adds "cc" address element
+     * Add a "cc" address element.
      *
-     * @param address The email address
+     * @param address The email address.
      */
     public void addCc(EmailAddress address) {
         ccList.addElement(address);
     }
 
-
     /**
-     * Adds "cc" address elements
+     * Shorthand to set the "cc" address element.
      *
-     * @param list Comma separated list of addresses
+     * @param list Comma separated list of addresses.
      */
     public void setCcList(String list) {
         StringTokenizer tokens = new StringTokenizer(list, ",");
@@ -322,21 +303,19 @@ public class EmailTask
         }
     }
 
-
     /**
-     * Adds "bcc" address elements
+     * Add a "bcc" address element.
      *
-     * @param address The email address
+     * @param address The email address.
      */
     public void addBcc(EmailAddress address) {
         bccList.addElement(address);
     }
 
-
     /**
-     * Adds "bcc" address elements
+     * Shorthand to set the "bcc" address element.
      *
-     * @param list comma separated list of addresses
+     * @param list comma separated list of addresses.
      */
     public void setBccList(String list) {
         StringTokenizer tokens = new StringTokenizer(list, ",");
@@ -346,66 +325,85 @@ public class EmailTask
         }
     }
 
-
     /**
-     * Indicates whether BuildExceptions should be passed back to the core
+     * Set whether BuildExceptions should be passed back to the core.
      *
-     * @param failOnError The new FailOnError value
+     * @param failOnError The new FailOnError value.
      */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
     }
 
-
     /**
-     * Adds a list of files to be attached
+     * Set the list of files to be attached.
      *
-     * @param filenames Comma separated list of files
+     * @param filenames Comma-separated list of files.
      */
     public void setFiles(String filenames) {
         StringTokenizer t = new StringTokenizer(filenames, ", ");
 
         while (t.hasMoreTokens()) {
-            files.addElement(getProject().resolveFile(t.nextToken()));
+            createAttachments()
+                .add(new FileResource(getProject().resolveFile(t.nextToken())));
         }
     }
 
-
     /**
-     * Adds a set of files (nested fileset attribute).
+     * Add a set of files (nested fileset attribute).
      *
-     * @param fs The fileset
+     * @param fs The fileset.
      */
     public void addFileset(FileSet fs) {
-        filesets.addElement(fs);
+        createAttachments().add(fs);
     }
 
+    /**
+     * Creates a Path as container for attachments.  Supports any
+     * filesystem resource-collections that way.
+     * @return the path to be configured.
+     * @since Ant 1.7
+     */
+    public Path createAttachments() {
+        if (attachments == null) {
+            attachments = new Path(getProject());
+        }
+        return attachments.createPath();
+    }
 
     /**
-     * Sets Includefilenames attribute
+     * Create a nested header element.
+     * @return a Header instance.
+     */
+    public Header createHeader() {
+        Header h = new Header();
+        headers.add(h);
+        return h;
+    }
+
+    /**
+     * Set whether to include filenames.
      *
      * @param includeFileNames Whether to include filenames in the text of the
-     *      message
+     *      message.
      */
     public void setIncludefilenames(boolean includeFileNames) {
         this.includeFileNames = includeFileNames;
     }
 
-
     /**
-     * Identifies whether file names should be included
+     * Get whether file names should be included.
      *
-     * @return Identifies whether file names should be included
+     * @return Identifies whether file names should be included.
      */
     public boolean getIncludeFileNames() {
         return includeFileNames;
     }
 
-
-    /** Sends an email  */
+    /**
+     * Send an email.
+     */
     public void execute() {
         Message savedMessage = message;
-        Vector savedFiles = (Vector) files.clone();
 
         try {
             Mailer mailer = null;
@@ -416,42 +414,44 @@ public class EmailTask
             if (encoding.equals(MIME)
                  || (encoding.equals(AUTO) && !autoFound)) {
                 try {
-                    mailer =
-                        (Mailer) Class.forName("org.apache.tools.ant.taskdefs.email.MimeMailer")
-                        .newInstance();
+                    mailer = (Mailer) ClasspathUtils.newInstance(
+                            "org.apache.tools.ant.taskdefs.email.MimeMailer",
+                            EmailTask.class.getClassLoader(), Mailer.class);
                     autoFound = true;
                     log("Using MIME mail", Project.MSG_VERBOSE);
-                } catch (Throwable e) {
-                    log("Failed to initialise MIME mail: "
-                        + e.getMessage(), Project.MSG_WARN);
+                } catch (BuildException e) {
+                    Throwable t = e.getCause() == null ? e : e.getCause();
+                    log("Failed to initialise MIME mail: " + t.getMessage(),
+                            Project.MSG_WARN);
+                    return;
                 }
             }
             // SMTP auth only allowed with MIME mail
-            if (autoFound == false && ((user != null) || (password != null))
+            if (!autoFound && ((user != null) || (password != null))
                 && (encoding.equals(UU) || encoding.equals(PLAIN))) {
                 throw new BuildException("SMTP auth only possible with MIME mail");
             }
             // SSL only allowed with MIME mail
-            if (autoFound == false && (SSL)
+            if (!autoFound  && (ssl)
                 && (encoding.equals(UU) || encoding.equals(PLAIN))) {
                 throw new BuildException("SSL only possible with MIME mail");
             }
-
-
             // try UU format
             if (encoding.equals(UU)
                  || (encoding.equals(AUTO) && !autoFound)) {
                 try {
-                    mailer =
-                        (Mailer) Class.forName("org.apache.tools.ant.taskdefs.email.UUMailer")
-                        .newInstance();
+                    mailer = (Mailer) ClasspathUtils.newInstance(
+                            "org.apache.tools.ant.taskdefs.email.UUMailer",
+                            EmailTask.class.getClassLoader(), Mailer.class);
                     autoFound = true;
                     log("Using UU mail", Project.MSG_VERBOSE);
-                } catch (Throwable e) {
-                    log("Failed to initialise UU mail", Project.MSG_WARN);
+                } catch (BuildException e) {
+                    Throwable t = e.getCause() == null ? e : e.getCause();
+                    log("Failed to initialise UU mail: " + t.getMessage(),
+                            Project.MSG_WARN);
+                    return;
                 }
             }
-
             // try plain format
             if (encoding.equals(PLAIN)
                  || (encoding.equals(AUTO) && !autoFound)) {
@@ -459,66 +459,52 @@ public class EmailTask
                 autoFound = true;
                 log("Using plain mail", Project.MSG_VERBOSE);
             }
-
             // a valid mailer must be present by now
             if (mailer == null) {
                 throw new BuildException("Failed to initialise encoding: "
                      + encoding);
             }
-
             // a valid message is required
             if (message == null) {
                 message = new Message();
                 message.setProject(getProject());
             }
-
             // an address to send from is required
             if (from == null || from.getAddress() == null) {
                 throw new BuildException("A from element is required");
             }
-
             // at least one address to send to/cc/bcc is required
             if (toList.isEmpty() && ccList.isEmpty() && bccList.isEmpty()) {
-                throw new BuildException("At least one of to,cc or bcc must "
+                throw new BuildException("At least one of to, cc or bcc must "
                      + "be supplied");
             }
-
             // set the mimetype if not done already (and required)
             if (messageMimeType != null) {
                 if (message.isMimeTypeSpecified()) {
                     throw new BuildException("The mime type can only be "
                          + "specified in one location");
-                } else {
-                    message.setMimeType(messageMimeType);
                 }
+                message.setMimeType(messageMimeType);
             }
             // set the character set if not done already (and required)
             if (charset != null) {
                 if (message.getCharset() != null) {
                     throw new BuildException("The charset can only be "
                          + "specified in one location");
-                } else {
-                    message.setCharset(charset);
                 }
+                message.setCharset(charset);
             }
 
             // identify which files should be attached
-            Enumeration e = filesets.elements();
+            Vector files = new Vector();
+            if (attachments != null) {
+                Iterator iter = attachments.iterator();
 
-            while (e.hasMoreElements()) {
-                FileSet fs = (FileSet) e.nextElement();
-
-                DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-                String[] includedFiles = ds.getIncludedFiles();
-                File baseDir = ds.getBasedir();
-
-                for (int j = 0; j < includedFiles.length; ++j) {
-                    File file = new File(baseDir, includedFiles[j]);
-
-                    files.addElement(file);
+                while (iter.hasNext()) {
+                    FileResource fr = (FileResource) iter.next();
+                    files.addElement(fr.getFile());
                 }
             }
-
             // let the user know what's going to happen
             log("Sending email: " + subject, Project.MSG_INFO);
             log("From " + from, Project.MSG_VERBOSE);
@@ -532,7 +518,7 @@ public class EmailTask
             mailer.setPort(port);
             mailer.setUser(user);
             mailer.setPassword(password);
-            mailer.setSSL(SSL);
+            mailer.setSSL(ssl);
             mailer.setMessage(message);
             mailer.setFrom(from);
             mailer.setReplyToList(replyToList);
@@ -543,6 +529,7 @@ public class EmailTask
             mailer.setSubject(subject);
             mailer.setTask(this);
             mailer.setIncludeFileNames(includeFileNames);
+            mailer.setHeaders(headers);
 
             // send the email
             mailer.send();
@@ -553,29 +540,32 @@ public class EmailTask
             log("Sent email with " + count + " attachment"
                  + (count == 1 ? "" : "s"), Project.MSG_INFO);
         } catch (BuildException e) {
-            log("Failed to send email", Project.MSG_WARN);
+            Throwable t = e.getCause() == null ? e : e.getCause();
+            log("Failed to send email: " + t.getMessage(), Project.MSG_WARN);
             if (failOnError) {
                 throw e;
             }
         } catch (Exception e) {
-          log("Failed to send email", Project.MSG_WARN);
+          log("Failed to send email: " + e.getMessage(), Project.MSG_WARN);
           if (failOnError) {
             throw new BuildException(e);
           }
         } finally {
             message = savedMessage;
-            files = savedFiles;
         }
     }
+
     /**
      * Sets the character set of mail message.
      * Will be ignored if mimeType contains ....; Charset=... substring or
-     * encoding is not a <code>mime</code>
+     * encoding is not a <code>mime</code>.
+     * @param charset the character encoding to use.
      * @since Ant 1.6
      */
     public void setCharset(String charset) {
-      this.charset = charset;
+        this.charset = charset;
     }
+
     /**
      * Returns the character set of mail message.
      *
@@ -583,7 +573,8 @@ public class EmailTask
      * @since Ant 1.6
      */
     public String getCharset() {
-      return charset;
+        return charset;
     }
+
 }
 

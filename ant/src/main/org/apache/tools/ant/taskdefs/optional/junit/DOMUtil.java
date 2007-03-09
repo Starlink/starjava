@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -59,6 +60,7 @@ public final class DOMUtil {
      * @param   filter  the filter that children should match.
      * @param   recurse <tt>true</tt> if you want the list to be made recursively
      *                  otherwise <tt>false</tt>.
+     * @return the node list that matches the filter.
      */
     public static NodeList listChildNodes(Node parent, NodeFilter filter, boolean recurse) {
         NodeListImpl matches = new NodeListImpl();
@@ -72,7 +74,7 @@ public final class DOMUtil {
                 }
                 if (recurse) {
                     NodeList recmatches = listChildNodes(child, filter, recurse);
-                    final int reclength = matches.getLength();
+                    final int reclength = recmatches.getLength();
                     for (int j = 0; j < reclength; j++) {
                         matches.addElement(recmatches.item(i));
                     }
@@ -84,9 +86,18 @@ public final class DOMUtil {
 
     /** custom implementation of a nodelist */
     public static class NodeListImpl extends Vector implements NodeList {
+        /**
+         * Get the number of nodes in the list.
+         * @return the length of the list.
+         */
         public int getLength() {
             return size();
         }
+        /**
+         * Get a particular node.
+         * @param i the index of the node to get.
+         * @return the node if the index is in bounds, null otherwise.
+         */
         public Node item(int i) {
             try {
                 return (Node) elementAt(i);
@@ -149,7 +160,7 @@ public final class DOMUtil {
      *              appended to <tt>parent</tt>.
      * @return  the cloned node that is appended to <tt>parent</tt>
      */
-    public static final Node importNode(Node parent, Node child) {
+    public static Node importNode(Node parent, Node child) {
         Node copy = null;
         final Document doc = parent.getOwnerDocument();
 
@@ -204,6 +215,7 @@ public final class DOMUtil {
                 }
             }
         } catch (DOMException ignored) {
+            // Ignore
         }
 
         // bingo append it. (this should normally not be done here)

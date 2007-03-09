@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,6 +26,7 @@ import org.apache.tools.ant.taskdefs.ExecTask;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.LogStreamHandler;
 import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.util.FileUtils;
 
 
 
@@ -54,7 +56,7 @@ public abstract class ClearCase extends Task {
      * @param dir the directory containing the cleartool executable
      */
     public final void setClearToolDir(String dir) {
-        mClearToolDir = getProject().translatePath(dir);
+        mClearToolDir = FileUtils.translatePath(dir);
     }
 
     /**
@@ -144,17 +146,15 @@ public abstract class ClearCase extends Task {
      */
     protected String runS(Commandline cmdline) {
         String   outV  = "opts.cc.runS.output" + pcnt++;
-        Project  aProj = getProject();
-        ExecTask exe   = (ExecTask) aProj.createTask("exec");
+        ExecTask exe   = new ExecTask(this);
         Commandline.Argument arg = exe.createArg();
 
         exe.setExecutable(cmdline.getExecutable());
-        arg.setLine(cmdline.toString(cmdline.getArguments()));
+        arg.setLine(Commandline.toString(cmdline.getArguments()));
         exe.setOutputproperty(outV);
         exe.execute();
-        // System.out.println( "runS: " + outV + " : " + aProj.getProperty( outV ));
 
-        return aProj.getProperty(outV);
+        return getProject().getProperty(outV);
     }
     /**
      * If true, command will throw an exception on failure.

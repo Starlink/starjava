@@ -1,12 +1,33 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>.NET Tasks</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <h1>.NET tasks</h1>
 <h2>Introduction</h2>
 
+
+<p><strong>These tasks are deprecated and will be removed in a future
+release of Ant.  They are now part of the <a
+href="http://ant.apache.org/antlibs/dotnet/index.html">.NET
+Antlib</a>.</strong></p>
 
 Ant support for .NET goes back to before .NET was released, and
 continues to be expanded based on user demand. Users writing nothing but
@@ -46,7 +67,7 @@ the server's WSDL and running it against the server.
 Axis tasks to create JUnit tests to call the endpoints.
 
 <li>Patching .NET type libraries to work with more complex IDL than the
-basic &lt;importtypelib&gt; wrapper around tlbimport supports. Hence the
+basic <code>&lt;importtypelib&gt;</code> wrapper around tlbimport supports. Hence the
 disassembler and the reassembler.
 </li>
 
@@ -58,22 +79,24 @@ version of the tasks. Going the other way -generating Java client
 code and JUnit testcases is covered in
 <A href="http://www.iseran.com/Steve/papers/interop/">The Wondrous curse
 of Interop</A>. The final trick, IDL and Typelib abuse, is not
-documented as we do not want to encourage such an ugly practice. It,
-can, however, be done if absolutely necessary. The trick is a sequence
-of &lt;importtypelib/&gt;, &lt;ildasm&gt;, &lt;replace&gt; and finally
-&lt;ilasm&gt;.
+documented as we do not want to encourage such an ugly practise. It,
+can, however, be done if absolutely necessary. 
 
 <h3>Task List</h3>
 
 <table border="0" >
 <tr>
-  <td><a href="csc.html">Csc</a></td>
+  <td><b>Task</b></td>
+  <td><b>Description</b></td>
+</tr>
+<tr>
+  <td><a href="csc.html">csc</a></td>
   <td>Compiles C# code</td>
 </tr>
 
 <tr>
   <td><a href="vbc.html">vbc</a></td>
-  <td>Compiles VB.Net code</td>
+  <td>Compiles VB.NET code</td>
 </tr>
 
 <tr>
@@ -92,12 +115,12 @@ of &lt;importtypelib/&gt;, &lt;ildasm&gt;, &lt;replace&gt; and finally
 </tr>
 
 <tr>
-  <td><a href="wsdltodotnet.html">WsdlToDotnet</a></td>
+  <td><a href="wsdltodotnet.html">wsdltodotnet</a></td>
   <td>Generates .NET code (C# or VB) from a WSDL file</td>
 </tr>
 
 <tr>
-  <td><a href="importtypelib.html">ImportTypelib</a></td>
+  <td><a href="importtypelib.html">importtypelib</a></td>
   <td>Imports a COM type library into .NET</td>
 </tr>
 
@@ -151,7 +174,7 @@ executable or library will be rebuilt.
 <h5>Examples</h5>
 
 <pre>
-&lt;resource file="app.ico" name="icon" /&gt;
+&lt;resource file="app.ico" name="icon"/&gt;
 &lt;resource file="splash.jpg"/&gt;
 &lt;resource name="splash" file="splash.jpg" public="false"/&gt;
 </pre>
@@ -197,7 +220,7 @@ build the code when the defines are likely to be different.
 <h5>Examples</h5>
 
 <pre>
-&lt;define name="unsafe" /&gt;
+&lt;define name="unsafe"/&gt;
 &lt;define name="debug" if="build.debug"/&gt;
 &lt;define name="dotnet" unless="build.mono"/&gt;
 </pre>
@@ -298,9 +321,6 @@ at this time.
 
 <h4>Version 0.1</h4>
 Initial proof of concept; very rudimentary support for CSC only.
-
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
 
 </body>
 </html>

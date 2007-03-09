@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -37,7 +38,8 @@ import org.apache.tools.ant.BuildException;
  * starteamurl="server:port/project/view"/&gt;
  * </pre>
  *
- * @see <A HREF="http://www.starbase.com/">StarBase Web Site</A>
+  * @see <a href="http://www.borland.com/us/products/starteam/index.html"
+  * >borland StarTeam Web Site</a>
  *
  * @ant.task name="stlabel" category="scm"
  */
@@ -77,14 +79,16 @@ public class StarTeamLabel extends StarTeamTask {
 
 
     /**
-    * The name to be given to the label; required.
-    */
+     * The name to be given to the label; required.
+     * @param label the name to be used
+     */
     public void setLabel(String label) {
         this.labelName = label;
     }
 
     /**
      * Description of the label to be stored in the StarTeam project.
+     * @param description the description to be used
      */
     public void setDescription(String description) {
         this.description = description;
@@ -117,6 +121,8 @@ public class StarTeamLabel extends StarTeamTask {
     /**
      * The timestamp of the build that will be stored with the label; required.
      * Must be formatted <code>yyyyMMddHHmmss</code>
+     * @param lastbuild the timestamp of the last build
+     * @throws BuildException on error
      */
     public void setLastBuild(String lastbuild) throws BuildException {
         try {
@@ -131,7 +137,7 @@ public class StarTeamLabel extends StarTeamTask {
     /**
      * This method does the work of creating the new view and checking it into
      * Starteam.
-     *
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
 

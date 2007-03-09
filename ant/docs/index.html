@@ -77,6 +77,7 @@
       <div class="bluebar"></div>
                     
   <div class="menucontainer">
+
     <div class="menu">
       <ul>
               <li class="menuheader">Apache Ant
@@ -133,13 +134,13 @@
                                     <a href="./mail.html">Mailing Lists</a>
                                 </li>
                             <li>
-                                    <a href="./cvs.html">CVS Repositories</a>
+                                    <a href="./svn.html">Subversion Repositories</a>
                                 </li>
                             <li>
-                                    <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=Ant">Bug Database</a>
+                                    <a href="./nightlies.html">Nightly Builds</a>
                                 </li>
                             <li>
-                                    <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=Ant&amp;bug_severity=Enhancement">Enhancement Requests</a>
+                                    <a href="./bugs.html">Bug Database</a>
                                 </li>
                             <li>
                                     <a href="http://www.apache.org/foundation/contributing.html">Donations</a>
@@ -172,17 +173,44 @@
   <div class="content">
     <h1 class="title">Welcome</h1>
             <h3 class="section">
-      <a name="Ant 1.6.2"></a>
-      Ant 1.6.2
+      <a name="Ant 1.7.0"></a>
+      Ant 1.7.0
     </h3>
-                        <h3>July 16, 2004 - Ant 1.6.2 Available</h3>
-                                <p>Apache Ant 1.6.2 is now available for <a href="http://ant.apache.org/bindownload.cgi">download</a>.</p>
-                                <p>Nested elements for namespaced tasks and types may belong to the
-Ant default namespace as well as the task's or type's namespace.</p>
-                                <p>All exceptions thrown by tasks are now wrapped in a
-buildexception giving the location in the buildfile of the task.</p>
-                                <p>Ant 1.6.2 fixes a large number of bugs and adds a number of
-features which were asked for by users on Bugzilla.</p>
+                        <h3>December 19, 2006 - Ant 1.7.0 Available</h3>
+                                <p>Apache Ant 1.7.0 is now available for <a href="http://ant.apache.org/bindownload.cgi">download</a>.</p>
+                                <p>Ant 1.7 introduces a resource framework. Some of the core ant 
+    tasks such as &lt;copy/&gt; are now able to process not only file 
+    system resources but also zip entries, tar entries, paths, ... 
+    Resource collections group resources, and can be further 
+    combined with operators such as union and intersection. This 
+    can be extended by custom resources and custom tasks using resources.</p>
+                                <p>
+    Ant 1.7 starts outsourcing of optional tasks to Antlibs. 
+    The .NET antlib in preparation will replace the .NET optional tasks which ship in Ant.
+    Support for the version control system Subversion will be only provided as an antlib to
+    be released shortly. 
+    </p>
+                                <p>Ant 1.7 fixes also a large number of bugs.</p>
+                                <p>Ant 1.7 has some initial support for Java6 features.</p>
+                        <h3 class="section">
+      <a name=".NET Ant Library 1.0"></a>
+      .NET Ant Library 1.0
+    </h3>
+                        <h3>November 6, 2006 - Apache .NET Ant Library 1.0 Available</h3>
+                                <p>Apache .NET Ant Library 1.0 is now available for <a href="http://ant.apache.org/antlibs/bindownload.cgi">download</a>.</p>
+                                <p>This Ant Library contains support for tools like NUnit as well
+    as the "old .NET tasks of Ant's core.  It has been tested
+    Microsoft's frameworks as well as Mono.</p>
+                                <p>For more information see the <a href="antlibs/dotnet/">Antlib's
+    home page</a></p>
+                        <h3 class="section">
+      <a name="AntUnit 1.0Beta2"></a>
+      AntUnit 1.0Beta2
+    </h3>
+                        <h3>October 29, 2006 - Apache AntUnit 1.0Beta2 Available</h3>
+                                <p>Apache AntUnit 1.0Beta1 is now available for <a href="http://ant.apache.org/antlibs/bindownload.cgi">download</a>.</p>
+                                <p>This Ant Library contains tasks to test Ant tasks using Ant
+    instead of JUnit.  For more information see the <a href="antlibs/antunit/">AntUnit home page</a>.</p>
                         <h3 class="section">
       <a name="Apache Ant"></a>
       Apache Ant
@@ -231,20 +259,12 @@ on.
       Documentation
     </h3>
                         <p>
-You can view the documentation for the current release (Apache Ant 1.6.2)
+You can view the documentation for the current release (Apache Ant 1.6.5)
 <a href="manual/index.html">online</a>
 </p>
                                 <p>
 Comprehensive documentation is included in the source and binary distributions.
 </p>
-                        <h3 class="section">
-      <a name="Nightly Builds"></a>
-      Nightly Builds
-    </h3>
-                        <p>
-    If you wish to use the latest Ant features, you can try downloading a nightly
-    build from <a href="http://cvs.apache.org/builds/ant/nightly/">here</a>
-    </p>
                         <h3 class="section">
       <a name="Get Involved"></a>
       Get Involved
@@ -262,7 +282,6 @@ Comprehensive documentation is included in the source and binary distributions.
   </div>
 
         <p class="copyright">
-        Copyright &copy; 2000-2004&nbsp;The Apache Software Foundation. All rights reserved.
         <script type="text/javascript" language="JavaScript"><!--
                 document.write(" - "+"Last Published: " + document.lastModified);
               //  -->
@@ -270,6 +289,7 @@ Comprehensive documentation is included in the source and binary distributions.
       </p>
     </body>
   </html>
+
 
 
 

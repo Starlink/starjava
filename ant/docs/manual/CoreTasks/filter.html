@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Filter Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -13,7 +29,8 @@
 <p>Sets a token filter for this project or read multiple token filter from
 an input file and sets these as filters.
 Token filters are used by all tasks that perform file copying operations
-through the Project commodity methods.</p>
+through the Project commodity methods. See the warning
+<a href="../using.html#filters"><em>here</em></a> before using.</p>
 <p>Note 1: the token string must not contain the separators chars (@).<br>
 Note 2: Either token and value attributes must be provided, or only the
 filtersfile attribute.</p>
@@ -46,7 +63,7 @@ filtersfile attribute.</p>
 <h3>Examples</h3>
 <pre>  &lt;filter token=&quot;year&quot; value=&quot;2000&quot;/&gt;
   &lt;copy todir=&quot;${dest.dir}&quot; filtering=&quot;true&quot;&gt;
-    &lt;fileset dir=&quot;${src.dir}&quot;/&gt;
+    &lt;fileset dir=&quot;src&quot;/&gt;
   &lt;/copy&gt;</pre> 
 <p>will copy recursively all the files from the <i>src.dir</i> directory into
 the <i>dest.dir</i> directory replacing all the occurrences of the string <i>@year@</i>
@@ -55,9 +72,7 @@ with <i>2000.</i></p>
 will read all property entries from the <i>deploy_env.properties</i> file
 and set these as filters.
 
-<hr>
-<p align="center">Copyright &copy; 2000-2002,2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

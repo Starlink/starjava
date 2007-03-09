@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -64,6 +65,11 @@ import org.xml.sax.SAXException;
  * @ant.task ignore="true"
  */
 public class IPlanetEjbc {
+
+    private static final int MIN_NUM_ARGS = 2;
+    private static final int MAX_NUM_ARGS = 8;
+    private static final int NUM_CLASSES_WITH_IIOP = 15;
+    private static final int NUM_CLASSES_WITHOUT_IIOP = 9;
 
     /* Constants used for the "beantype" attribute */
     private static final String ENTITY_BEAN       = "entity";
@@ -253,7 +259,7 @@ public class IPlanetEjbc {
         boolean     retainSource  = false;
         IPlanetEjbc ejbc;
 
-        if ((args.length < 2) || (args.length > 8)) {
+        if ((args.length < MIN_NUM_ARGS) || (args.length > MAX_NUM_ARGS)) {
             usage();
             return;
         }
@@ -601,6 +607,18 @@ public class IPlanetEjbc {
      * @see    IPlanetEjbc.EjbInfo
      */
     private class EjbcHandler extends HandlerBase {
+        /** EJB 1.1 ID */
+        private static final String PUBLICID_EJB11 =
+            "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 1.1//EN";
+        /** IPlanet ID */
+        private static final String PUBLICID_IPLANET_EJB_60 =
+            "-//Sun Microsystems, Inc.//DTD iAS Enterprise JavaBeans 1.0//EN";
+        /** EJB 1.1 location */
+        private static final String DEFAULT_IAS60_EJB11_DTD_LOCATION =
+            "ejb-jar_1_1.dtd";
+        /** IAS60 location */
+        private static final String DEFAULT_IAS60_DTD_LOCATION =
+            "IASEjb_jar_1_0.dtd";
 
         /*
          * Two Maps are used to track local DTDs that will be used in case the
@@ -624,17 +642,6 @@ public class IPlanetEjbc {
          * descriptor DTD.
          */
         public EjbcHandler() {
-            final String PUBLICID_EJB11 =
-                "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 1.1//EN";
-            final String PUBLICID_IPLANET_EJB_60 =
-                "-//Sun Microsystems, Inc.//DTD iAS Enterprise JavaBeans 1.0//EN";
-
-
-            final String DEFAULT_IAS60_EJB11_DTD_LOCATION =
-                "ejb-jar_1_1.dtd";
-            final String DEFAULT_IAS60_DTD_LOCATION =
-                "IASEjb_jar_1_0.dtd";
-
             registerDTD(PUBLICID_EJB11, DEFAULT_IAS60_EJB11_DTD_LOCATION);
             registerDTD(PUBLICID_IPLANET_EJB_60, DEFAULT_IAS60_DTD_LOCATION);
         }
@@ -1266,7 +1273,9 @@ public class IPlanetEjbc {
          *         names for the stubs and skeletons to be generated.
          */
         private String[] classesToGenerate() {
-            String[] classnames = (iiop) ? new String[15] : new String[9];
+            String[] classnames = (iiop)
+                ? new String[NUM_CLASSES_WITH_IIOP]
+                : new String[NUM_CLASSES_WITHOUT_IIOP];
 
             final String remotePkg     = remote.getPackageName() + ".";
             final String remoteClass   = remote.getClassName();
@@ -1443,7 +1452,8 @@ public class IPlanetEjbc {
      *
      */
     private static class RedirectOutput extends Thread {
-        InputStream stream;  // Stream to read and redirect to standard output
+
+        private InputStream stream;  // Stream to read and redirect to standard output
 
         /**
          * Constructs a new instance that will redirect output from the

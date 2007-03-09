@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Rmic Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -15,7 +31,7 @@
 attribute) or a number of classes at once (all classes below base that
 are neither _Stub nor _Skel classes).  If you want to rmic a single
 class and this class is a class nested into another class, you have to
-specify the classname in the form <code>Outer$$Inner</code> instead of
+specify the classname in the form <code>Outer$Inner</code> instead of
 <code>Outer.Inner</code>.</p>
 <p>It is possible to refine the set of files that are being rmiced. This can be
 done with the <i>includes</i>, <i>includesfile</i>, <i>excludes</i>, <i>excludesfile</i> and <i>defaultexcludes</i>
@@ -33,11 +49,21 @@ supports all attributes of <code>&lt;fileset&gt;</code>
 <code>&lt;patternset&gt;</code> elements.</p>
 <p>It is possible to use different compilers. This can be selected
 with the &quot;build.rmic&quot; property or the <code>compiler</code>
-attribute. <a name="compilervalues">There are three choices</a>:</p>
+attribute.
+<a name="compilervalues">Here are the choices</a>:</p>
 <ul>
+  <li>default -the default compiler (kaffe or sun) for the platform.
   <li>sun (the standard compiler of the JDK)</li>
   <li>kaffe (the standard compiler of <a href="http://www.kaffe.org" target="_top">Kaffe</a>)</li>
   <li>weblogic</li>
+  <li>forking - the sun compiler forked into a separate process (since Ant 1.7)</li>
+  <li>xnew - the sun compiler forked into a separate process,
+      with the -Xnew option (since Ant 1.7).
+      This is the most reliable way to use -Xnew</li>
+    <li> "" (empty string). This has the same behaviour as not setting the compiler attribute.
+    First the value of <tt>build.rmic</tt> is used if defined, and if not, the default
+    for the platform is chosen. If build.rmic is set to this, you get the default.
+
 </ul>
 
 <p>The <a href="http://dione.zcu.cz/~toman40/miniRMI/">miniRMI</a>
@@ -75,8 +101,13 @@ please consult miniRMI's documentation to learn how to use it.</p>
   <tr>
     <td valign="top">stubversion</td>
     <td valign="top">Specify the JDK version for the generated stub code.
- Specify &quot;1.1&quot; to pass the &quot;-v1.1&quot; option to rmic.</td>
-    <td align="center" valign="top">No</td>
+ Specify &quot;1.1&quot; to pass the &quot;-v1.1&quot; option to rmic,
+ "1.2" for -v12, compat for -vcompat. <br>
+        Since Ant1.7, if you do not specify a version, and do not ask
+        for iiop or idl files, "compat" is selected.
+ 
+ </td>
+    <td align="center" valign="top">No, default="compat"</td>
   </tr>
   <tr>
     <td valign="top">classpath</td>
@@ -234,9 +265,7 @@ files below <code>${build}/classes</code> whose classname starts with
 <i>Remote</i>. The compiled files will be stored in the directory
 <code>${build}/classes</code>.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

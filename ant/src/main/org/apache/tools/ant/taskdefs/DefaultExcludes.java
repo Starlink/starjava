@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,10 +22,10 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.util.StringUtils;
 
 /**
  * Alters the default excludes for the <strong>entire</strong> build..
- *
  *
  * @since Ant 1.6
  *
@@ -61,10 +62,13 @@ public class DefaultExcludes extends Task {
         }
         if (echo) {
             StringBuffer message
-                = new StringBuffer("Current Default Excludes:\n");
+                = new StringBuffer("Current Default Excludes:");
+            message.append(StringUtils.LINE_SEP);
             String[] excludes = DirectoryScanner.getDefaultExcludes();
             for (int i = 0; i < excludes.length; i++) {
-                message.append("  " + excludes[i] + "\n");
+                message.append("  ");
+                message.append(excludes[i]);
+                message.append(StringUtils.LINE_SEP);
             }
             log(message.toString(), logLevel);
         }

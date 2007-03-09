@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,11 +29,13 @@ import org.apache.tools.ant.BuildException;
  *
  */
 public abstract class EnumeratedAttribute {
-
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * The selected value in this enumeration.
      */
     protected String value;
+
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * the index of the selected value in the array.
@@ -53,19 +56,51 @@ public abstract class EnumeratedAttribute {
     }
 
     /**
+     * Factory method for instantiating EAs via API in a more
+     * developer friendly way.
+     * @param clazz             Class, extending EA, which to instantiate
+     * @param value             The value to set on that EA
+     * @return                  Configured EA
+     * @throws BuildException   If the class could not be found or the value
+     *                          is not valid for the given EA-class.
+     * @see <a href="http://issues.apache.org/bugzilla/show_bug.cgi?id=14831">
+     * http://issues.apache.org/bugzilla/show_bug.cgi?id=14831</a>
+     */
+    public static EnumeratedAttribute getInstance(
+        Class/*<? extends EnumeratedAttribute>*/ clazz,
+        String value) throws BuildException {
+        if (!EnumeratedAttribute.class.isAssignableFrom(clazz)) {
+            throw new BuildException(
+                "You have to provide a subclass from EnumeratedAttribut as clazz-parameter.");
+        }
+        EnumeratedAttribute ea = null;
+        try {
+            ea = (EnumeratedAttribute) clazz.newInstance();
+        } catch (Exception e) {
+            throw new BuildException(e);
+        }
+        ea.setValue(value);
+        return ea;
+    }
+
+    /**
      * Invoked by {@link org.apache.tools.ant.IntrospectionHelper IntrospectionHelper}.
+     * @param value the <code>String</code> value of the attribute
+     * @throws BuildException if the value is not valid for the attribute
      */
     public final void setValue(String value) throws BuildException {
-        int index = indexOfValue(value);
-        if (index == -1) {
+        int idx = indexOfValue(value);
+        if (idx == -1) {
             throw new BuildException(value + " is not a legal value for this attribute");
         }
-        this.index = index;
+        this.index = idx;
         this.value = value;
     }
 
     /**
      * Is this value included in the enumeration?
+     * @param value the <code>String</code> value to look up
+     * @return true if the value is valid
      */
     public final boolean containsValue(String value) {
         return (indexOfValue(value) != -1);
@@ -105,7 +140,6 @@ public abstract class EnumeratedAttribute {
     public final int getIndex() {
         return index;
     }
-
 
     /**
      * Convert the value to its string form.

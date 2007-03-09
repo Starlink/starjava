@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,8 +21,10 @@ package org.apache.tools.ant.taskdefs;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.FilterSet;
 import org.apache.tools.ant.types.FilterSetCollection;
 
@@ -42,7 +45,6 @@ import org.apache.tools.ant.types.FilterSetCollection;
  * document, the following mailing list discussions, and the
  * copyfile/copydir tasks.</p>
  *
- * @version $Revision: 1.41.2.4 $
  *
  * @since Ant 1.2
  *
@@ -61,6 +63,26 @@ public class Move extends Copy {
         setOverwrite(true);
     }
 
+    /** {@inheritDoc}. */
+    protected void validateAttributes() throws BuildException {
+        if (file != null && file.isDirectory()) {
+            if ((destFile != null && destDir != null)
+                || (destFile == null && destDir == null)) {
+                throw new BuildException("One and only one of tofile and todir "
+                                         + "must be set.");
+            }
+            destFile = (destFile == null)
+                ? new File(destDir, file.getName()) : destFile;
+            destDir = (destDir == null)
+                ? destFile.getParentFile() : destDir;
+
+            completeDirMap.put(file, destFile);
+            file = null;
+        } else {
+            super.validateAttributes();
+        }
+    }
+
 //************************************************************************
 //  protected and private methods
 //************************************************************************
@@ -76,21 +98,35 @@ public class Move extends Copy {
             while (e.hasMoreElements()) {
                 File fromDir = (File) e.nextElement();
                 File toDir = (File) completeDirMap.get(fromDir);
+                boolean renamed = false;
                 try {
                     log("Attempting to rename dir: " + fromDir
                         + " to " + toDir, verbosity);
-                    renameFile(fromDir, toDir, filtering, forceOverwrite);
+                    renamed =
+                        renameFile(fromDir, toDir, filtering, forceOverwrite);
                 } catch (IOException ioe) {
                     String msg = "Failed to rename dir " + fromDir
                         + " to " + toDir
                         + " due to " + ioe.getMessage();
                     throw new BuildException(msg, ioe, getLocation());
                 }
+                if (!renamed) {
+                    FileSet fs = new FileSet();
+                    fs.setProject(getProject());
+                    fs.setDir(fromDir);
+                    addFileset(fs);
+                    DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+                    String[] files = ds.getIncludedFiles();
+                    String[] dirs = ds.getIncludedDirectories();
+                    scan(fromDir, toDir, files, dirs);
+                }
             }
         }
-        if (fileCopyMap.size() > 0) {   // files to move
-            log("Moving " + fileCopyMap.size() + " files to "
-                + destDir.getAbsolutePath());
+        int moveCount = fileCopyMap.size();
+        if (moveCount > 0) {   // files to move
+            log("Moving " + moveCount + " file"
+                + ((moveCount == 1) ? "" : "s")
+                + " to " + destDir.getAbsolutePath());
 
             Enumeration e = fileCopyMap.keys();
             while (e.hasMoreElements()) {
@@ -273,6 +309,15 @@ public class Move extends Copy {
      * @param d the directory to delete
      */
     protected void deleteDir(File d) {
+        deleteDir(d, false);
+    }
+
+    /**
+     * Go and delete the directory tree.
+     * @param d the directory to delete
+     * @param deleteFiles whether to delete files
+     */
+    protected void deleteDir(File d, boolean deleteFiles) {
         String[] list = d.list();
         if (list == null) {
             return;
@@ -283,6 +328,9 @@ public class Move extends Copy {
             File f = new File(d, s);
             if (f.isDirectory()) {
                 deleteDir(f);
+            } else if (deleteFiles && !(f.delete())) {
+                throw new BuildException("Unable to delete file "
+                                         + f.getAbsolutePath());
             } else {
                 throw new BuildException("UNEXPECTED ERROR - The file "
                                          + f.getAbsolutePath()
@@ -318,32 +366,20 @@ public class Move extends Copy {
                                  boolean filtering, boolean overwrite)
         throws IOException, BuildException {
 
-        boolean renamed = true;
-        if ((getFilterSets() != null && getFilterSets().size() > 0)
-            || (getFilterChains() != null && getFilterChains().size() > 0)) {
-            renamed = false;
-        } else {
-            if (!filtering) {
-                // ensure that parent dir of dest file exists!
-                // not using getParentFile method to stay 1.1 compatibility
-                String parentPath = destFile.getParent();
-                if (parentPath != null) {
-                    File parent = new File(parentPath);
-                    if (!parent.exists()) {
-                        parent.mkdirs();
-                    }
-                }
-
-                if (destFile.exists() && destFile.isFile()) {
-                    if (!destFile.delete()) {
-                        throw new BuildException("Unable to remove existing "
-                                                 + "file " + destFile);
-                    }
-                }
-                renamed = sourceFile.renameTo(destFile);
-            } else {
-                renamed = false;
+        boolean renamed = false;
+        if ((getFilterSets().size() + getFilterChains().size() == 0)
+            && !(filtering || destFile.isDirectory())) {
+            // ensure that parent dir of dest file exists!
+            File parent = destFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
             }
+            if (destFile.isFile() && !destFile.equals(sourceFile)
+                && !destFile.delete()) {
+                throw new BuildException("Unable to remove existing "
+                                         + "file " + destFile);
+            }
+            renamed = sourceFile.renameTo(destFile);
         }
         return renamed;
     }

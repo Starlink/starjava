@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -51,7 +53,7 @@ public class JJDoc extends Task {
     private static final String DEFAULT_SUFFIX_TEXT = ".txt";
 
     // required attributes
-    private File target          = null;
+    private File targetFile      = null;
     private File javaccHome      = null;
 
     private CommandlineJava cmdl = new CommandlineJava();
@@ -59,23 +61,26 @@ public class JJDoc extends Task {
 
     /**
      * Sets the TEXT BNF documentation option.
+     * @param plainText a <code>boolean</code> value.
      */
     public void setText(boolean plainText) {
-        optionalAttrs.put(TEXT, new Boolean(plainText));
+        optionalAttrs.put(TEXT, plainText ? Boolean.TRUE : Boolean.FALSE);
         this.plainText = plainText;
     }
 
     /**
      * Sets the ONE_TABLE documentation option.
+     * @param oneTable a <code>boolean</code> value.
      */
     public void setOnetable(boolean oneTable) {
-        optionalAttrs.put(ONE_TABLE, new Boolean(oneTable));
+        optionalAttrs.put(ONE_TABLE, oneTable ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * The outputfile to write the generated BNF documentation file to.
      * If not set, the file is written with the same name as
      * the JavaCC grammar file with a suffix .html or .txt.
+     * @param outputFile the name of the output file.
      */
     public void setOutputfile(String outputFile) {
         this.outputFile = outputFile;
@@ -83,22 +88,31 @@ public class JJDoc extends Task {
 
     /**
      * The javacc grammar file to process.
+     * @param target the grammar file.
      */
     public void setTarget(File target) {
-        this.target = target;
+        this.targetFile = target;
     }
 
     /**
      * The directory containing the JavaCC distribution.
+     * @param javaccHome the home directory.
      */
     public void setJavacchome(File javaccHome) {
         this.javaccHome = javaccHome;
     }
 
+    /**
+     * Constructor
+     */
     public JJDoc() {
         cmdl.setVm(JavaEnvUtils.getJreExecutable("java"));
     }
 
+    /**
+     * Do the task.
+     * @throws BuildException if there is an error.
+     */
     public void execute() throws BuildException {
 
         // load command line with optional attributes
@@ -110,8 +124,8 @@ public class JJDoc extends Task {
                 .setValue("-" + name + ":" + value.toString());
         }
 
-        if (target == null || !target.isFile()) {
-            throw new BuildException("Invalid target: " + target);
+        if (targetFile == null || !targetFile.isFile()) {
+            throw new BuildException("Invalid target: " + targetFile);
         }
 
         if (outputFile != null) {
@@ -120,25 +134,25 @@ public class JJDoc extends Task {
         }
 
         // use the directory containing the target as the output directory
-        File javaFile = new File(createOutputFileName(target, outputFile,
+        File javaFile = new File(createOutputFileName(targetFile, outputFile,
                                                       plainText));
 
         if (javaFile.exists()
-             && target.lastModified() < javaFile.lastModified()) {
-            log("Target is already built - skipping (" + target + ")",
+             && targetFile.lastModified() < javaFile.lastModified()) {
+            log("Target is already built - skipping (" + targetFile + ")",
                 Project.MSG_VERBOSE);
             return;
         }
 
-        cmdl.createArgument().setValue(target.getAbsolutePath());
-
-        cmdl.setClassname(JavaCC.getMainClass(javaccHome,
-                                              JavaCC.TASKDEF_TYPE_JJDOC));
+        cmdl.createArgument().setValue(targetFile.getAbsolutePath());
 
         final Path classpath = cmdl.createClasspath(getProject());
         final File javaccJar = JavaCC.getArchiveFile(javaccHome);
         classpath.createPathElement().setPath(javaccJar.getAbsolutePath());
         classpath.addJavaRuntime();
+
+        cmdl.setClassname(JavaCC.getMainClass(classpath,
+                                              JavaCC.TASKDEF_TYPE_JJDOC));
 
         final Commandline.Argument arg = cmdl.createVmArgument();
         arg.setValue("-mx140M");
@@ -161,12 +175,12 @@ public class JJDoc extends Task {
         }
     }
 
-    private String createOutputFileName(File target, String optionalOutputFile,
-                                        boolean plainText) {
+    private String createOutputFileName(File destFile, String optionalOutputFile,
+                                        boolean plain) {
         String suffix = DEFAULT_SUFFIX_HTML;
-        String javaccFile = target.getAbsolutePath().replace('\\', '/');
+        String javaccFile = destFile.getAbsolutePath().replace('\\', '/');
 
-        if (plainText) {
+        if (plain) {
             suffix = DEFAULT_SUFFIX_TEXT;
         }
 

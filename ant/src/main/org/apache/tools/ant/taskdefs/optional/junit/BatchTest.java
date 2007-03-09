@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,10 +21,13 @@ package org.apache.tools.ant.taskdefs.optional.junit;
 
 import java.io.File;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Vector;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
+import org.apache.tools.ant.types.resources.Resources;
 
 /**
  * <p> Create then run <code>JUnitTest</code>'s based on the list of files
@@ -42,7 +46,7 @@ public final class BatchTest extends BaseTest {
     private Project project;
 
     /** the list of filesets containing the testcase filename rules */
-    private Vector filesets = new Vector();
+    private Resources resources = new Resources();
 
     /**
      * create a new batchtest instance
@@ -59,7 +63,33 @@ public final class BatchTest extends BaseTest {
      * @param     fs the new fileset containing the rules to get the testcases.
      */
     public void addFileSet(FileSet fs) {
-        filesets.addElement(fs);
+        add(fs);
+
+        // this one is here because the changes to support ResourceCollections
+        // have broken Magic's JUnitTestTask.
+        //
+        // The task adds a FileSet to a BatchTest instance using the
+        // Java API and without telling the FileSet about its project
+        // instance.  The original code would pass in project on the
+        // call to getDirectoryScanner - which is now hidden deep into
+        // Resources.iterator() and not reachable.
+        if (fs.getProject() == null) {
+            fs.setProject(project);
+        }
+    }
+
+
+    /**
+     * Add a new ResourceCollection instance to this
+     * batchtest. Whatever the collection is, only names that are
+     * <tt>.java</tt> or <tt>.class</tt> will be considered as
+     * 'candidates'.
+     * @param rc the new ResourceCollection containing the rules to
+     * get the testcases.
+     * @since Ant 1.7
+     */
+    public void add(ResourceCollection rc) {
+        resources.add(rc);
     }
 
     /**
@@ -67,7 +97,7 @@ public final class BatchTest extends BaseTest {
      * @return  an enumeration of all elements of this batchtest that are
      * a <tt>JUnitTest</tt> instance.
      */
-    public final Enumeration elements() {
+    public Enumeration elements() {
         JUnitTest[] tests = createAllJUnitTest();
         return Enumerations.fromArray(tests);
     }
@@ -78,7 +108,7 @@ public final class BatchTest extends BaseTest {
      * @param v the vector to which should be added all individual tests of this
      * batch test.
      */
-    final void addTestsTo(Vector v) {
+    void addTestsTo(Vector v) {
         JUnitTest[] tests = createAllJUnitTest();
         v.ensureCapacity(v.size() + tests.length);
         for (int i = 0; i < tests.length; i++) {
@@ -113,14 +143,11 @@ public final class BatchTest extends BaseTest {
      */
     private String[] getFilenames() {
         Vector v = new Vector();
-        final int size = this.filesets.size();
-        for (int j = 0; j < size; j++) {
-            FileSet fs = (FileSet) filesets.elementAt(j);
-            DirectoryScanner ds = fs.getDirectoryScanner(project);
-            ds.scan();
-            String[] f = ds.getIncludedFiles();
-            for (int k = 0; k < f.length; k++) {
-                String pathname = f[k];
+        Iterator iter = resources.iterator();
+        while (iter.hasNext()) {
+            Resource r = (Resource) iter.next();
+            if (r.isExists()) {
+                String pathname = r.getName();
                 if (pathname.endsWith(".java")) {
                     v.addElement(pathname.substring(0, pathname.length() - ".java".length()));
                 } else if (pathname.endsWith(".class")) {
@@ -141,8 +168,9 @@ public final class BatchTest extends BaseTest {
      * @param filename the filename to "convert" to a classname.
      * @return the classname matching the filename.
      */
-    public static final String javaToClass(String filename) {
-        return filename.replace(File.separatorChar, '.');
+    public static String javaToClass(String filename) {
+        return filename.replace(File.separatorChar, '.').replace('/', '.')
+            .replace('\\', '.');
     }
 
     /**

@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>SSHEXEC Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -19,9 +35,11 @@
 <p><b>Note:</b> This task depends on external libraries not included
 in the Ant distribution.  See <a
 href="../install.html#librarydependencies">Library Dependencies</a>
-for more information.  This task has been tested with jsch-0.1.7 to
-jsch-0.1.9 and won't work with versions of jsch earlier than
-0.1.7.</p>
+for more information.  This task has been tested with jsch-0.1.29 and above
+and won't work with versions of jsch earlier than
+0.1.28.</p>
+
+<p>See also the <a href="scp.html">scp task</a></p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -32,7 +50,7 @@ jsch-0.1.9 and won't work with versions of jsch earlier than
   </tr>
   <tr>
     <td valign="top">host</td>
-    <td valign="top">The hostname or IP adress of the remote host to which you wish to connect.</td>
+    <td valign="top">The hostname or IP address of the remote host to which you wish to connect.</td>
     <td valign="top" align="center">Yes</td>
   </tr>
   <tr>
@@ -65,7 +83,7 @@ jsch-0.1.9 and won't work with versions of jsch earlier than
     the identity of the remote host.  This must be a SSH2 format file.
     SSH1 format is not supported.</td>
     <td valian="top" align="center">No, defaults to
-    ${user.home}/.ssh/known_hosts.</td>
+    /Users/antoine/.ssh/known_hosts.</td>
   </tr>
   <tr>
     <td valign="top">failonerror</td>
@@ -128,7 +146,7 @@ jsch-0.1.9 and won't work with versions of jsch earlier than
 <pre>
   &lt;sshexec host=&quot;somehost&quot;
 	username=&quot;dude&quot;
-	keyfile=&quot;${user.home}/.ssh/id_dsa&quot;
+	keyfile=&quot;/Users/antoine/.ssh/id_dsa&quot;
 	passphrase=&quot;yo its a secret&quot;
 	command=&quot;touch somefile&quot;/&gt;
 </pre>
@@ -137,13 +155,13 @@ jsch-0.1.9 and won't work with versions of jsch earlier than
 <pre>
   &lt;sshexec host=&quot;somehost&quot;
 	username=&quot;dude&quot;
-	keyfile=&quot;${user.home}/.ssh/id_dsa&quot;
+	keyfile=&quot;/Users/antoine/.ssh/id_dsa&quot;
 	command=&quot;touch somefile&quot;/&gt;
 </pre>
 
 <p><strong>Security Note:</strong>  Hard coding passwords and/or usernames
 in sshexec task can be a serious security hole.  Consider using variable
-substituion and include the password on the command line.  For example:<br>
+substitution and include the password on the command line.  For example:<br>
 <pre>
   &lt;sshexec host=&quot;somehost&quot;
 	username=&quot;${username}&quot;
@@ -156,8 +174,7 @@ Invoke ant with the following command line:
 </pre>
 </p>
 
-<hr><p align="center">Copyright &copy; 2003-2004 The Apache Software Foundation.
-All rights Reserved.</p>
+
 
 </body>
 </html>

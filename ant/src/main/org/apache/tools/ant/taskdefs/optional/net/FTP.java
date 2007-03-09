@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,9 +17,6 @@
  */
 package org.apache.tools.ant.taskdefs.optional.net;
 
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -29,16 +27,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPClientConfig;
+import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
@@ -48,6 +54,8 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.selectors.SelectorUtils;
 import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.RetryHandler;
+import org.apache.tools.ant.util.Retryable;
 
 /**
  * Basic FTP client. Performs the following actions:
@@ -79,21 +87,31 @@ public class FTP
     protected static final int MK_DIR = 4;
     protected static final int CHMOD = 5;
     protected static final int RM_DIR = 6;
+    protected static final int SITE_CMD = 7;
     /** return code of ftp - not implemented in commons-net version 1.0 */
     private static final int CODE_521 = 521;
+
+    /** adjust uptodate calculations where server timestamps are HH:mm and client's
+     * are HH:mm:ss */
+    private static final long GRANULARITY_MINUTE = 60000L;
+
     /** Default port for FTP */
     public static final int DEFAULT_FTP_PORT = 21;
+
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     private String remotedir;
     private String server;
     private String userid;
     private String password;
+    private String account;
     private File listing;
     private boolean binary = true;
     private boolean passive = false;
     private boolean verbose = false;
     private boolean newerOnly = false;
     private long timeDiffMillis = 0;
+    private long granularityMillis = 0L;
     private boolean timeDiffAuto = false;
     private int action = SEND_FILES;
     private Vector filesets = new Vector();
@@ -107,7 +125,17 @@ public class FTP
     private boolean preserveLastModified = false;
     private String chmod = null;
     private String umask = null;
-    private FileUtils fileUtils = FileUtils.newFileUtils();
+    private FTPSystemType systemTypeKey = FTPSystemType.getDefault();
+    private String defaultDateFormatConfig = null;
+    private String recentDateFormatConfig = null;
+    private LanguageCode serverLanguageCodeConfig = LanguageCode.getDefault();
+    private String serverTimeZoneConfig = null;
+    private String shortMonthNamesConfig = null;
+    private Granularity timestampGranularity = Granularity.getDefault();
+    private boolean isConfigurationSet = false;
+    private int retriesAllowed = 0;
+    private String siteCommand = null;
+    private String initialSiteCommand = null;
 
     protected static final String[] ACTION_STRS = {
         "sending",
@@ -116,7 +144,8 @@ public class FTP
         "listing",
         "making directory",
         "chmod",
-        "removing"
+        "removing",
+        "site"
         };
 
     protected static final String[] COMPLETED_ACTION_STRS = {
@@ -126,7 +155,8 @@ public class FTP
         "listed",
         "created directory",
         "mode changed",
-        "removed"
+        "removed",
+        "site command executed"
         };
 
     protected static final String[] ACTION_TARGET_STRS = {
@@ -136,7 +166,8 @@ public class FTP
         "files",
         "directory",
         "files",
-        "directories"
+        "directories",
+        "site command"
         };
 
 
@@ -149,8 +180,12 @@ public class FTP
      * followSymlinks defaults to false
      */
     protected class FTPDirectoryScanner extends DirectoryScanner {
+        // CheckStyle:VisibilityModifier OFF - bc
         protected FTPClient ftp = null;
+        // CheckStyle:VisibilityModifier ON
+
         private String rootPath = null;
+
         /**
          * since ant 1.6
          * this flag should be set to true on UNIX and can save scanning time
@@ -193,6 +228,7 @@ public class FTP
             try {
                 String cwd = ftp.printWorkingDirectory();
                 // always start from the current ftp working dir
+                forceRemoteSensitivityCheck();
 
                 checkIncludePatterns();
                 clearCaches();
@@ -209,6 +245,7 @@ public class FTP
          * @since ant1.6
          */
         private void checkIncludePatterns() {
+
             Hashtable newroots = new Hashtable();
             // put in the newroots vector the include patterns without
             // wildcard tokens
@@ -245,6 +282,7 @@ public class FTP
                     String path = null;
 
                     if (myfile.exists()) {
+                        forceRemoteSensitivityCheck();
                         if (remoteSensitivityChecked
                             && remoteSystemCaseSensitive && isFollowSymlinks()) {
                             // cool case,
@@ -261,7 +299,6 @@ public class FTP
                                 throw new BuildException(be, getLocation());
                             } catch (BuildException be) {
                                 isOK = false;
-
                             }
                         }
                     } else {
@@ -507,6 +544,16 @@ public class FTP
                 checkRemoteSensitivity(result, directory);
             }
             return result;
+        }
+
+        private void forceRemoteSensitivityCheck() {
+            if (!remoteSensitivityChecked) {
+                try {
+                    checkRemoteSensitivity(ftp.listFiles(), ftp.printWorkingDirectory());
+                } catch (IOException ioe) {
+                    throw new BuildException(ioe, getLocation());
+                }
+            }
         }
         /**
          * cd into one directory and
@@ -762,14 +809,18 @@ public class FTP
                     if (theFiles != null) {
                         theFile = getFile(theFiles, currentElement);
                     }
+                    if (!relPath.equals("")) {
+                        relPath = relPath + remoteFileSep;
+                    }
                     if (theFile == null) {
-                        throw new BuildException("could not find " + currentElement
-                            + " from " + currentPath);
+                        // hit a hidden file assume not a symlink
+                        relPath = relPath + currentElement;
+                        currentPath = currentPath + remoteFileSep + currentElement;
+                        log("Hidden file " + relPath
+                            + " assumed to not be a symlink.",
+                            Project.MSG_VERBOSE);
                     } else {
                         traversesSymlinks = traversesSymlinks || theFile.isSymbolicLink();
-                        if (!relPath.equals("")) {
-                            relPath = relPath + remoteFileSep;
-                        }
                         relPath = relPath + theFile.getName();
                         currentPath = currentPath + remoteFileSep + theFile.getName();
                     }
@@ -849,9 +900,17 @@ public class FTP
             public boolean isTraverseSymlinks() throws IOException, BuildException {
                 if (!relativePathCalculated) {
                     // getRelativePath also finds about symlinks
-                    String relpath = getRelativePath();
+                    getRelativePath();
                 }
                 return traversesSymlinks;
+            }
+
+            /**
+             * Get a string rep of this object.
+             * @return a string containing the pwd and the file.
+             */
+            public String toString() {
+                return "AntFtpFile: " + curpwd + "%" + ftpFile;
             }
         }
         /**
@@ -1009,6 +1068,16 @@ public class FTP
         this.password = password;
     }
 
+    /**
+     * Sets the login account to use on the specified server.
+     *
+     * @param pAccount the account name on remote system
+     * @since Ant 1.7
+     */
+    public void setAccount(String pAccount) {
+        this.account = pAccount;
+    }
+
 
     /**
      * If true, uses binary mode, otherwise text mode (default is binary).
@@ -1153,9 +1222,10 @@ public class FTP
 
     /**
      * Sets the FTP action to be taken. Currently accepts "put", "get", "del",
-     * "mkdir" and "list".
+     * "mkdir", "chmod", "list", and "site".
      *
-     * @deprecated setAction(String) is deprecated and is replaced with
+     * @deprecated since 1.5.x.
+     *             setAction(String) is deprecated and is replaced with
      *      setAction(FTP.Action) to make Ant's Introspection mechanism do the
      *      work and also to encapsulate operations on the type in its own
      *      class.
@@ -1178,7 +1248,7 @@ public class FTP
 
     /**
      * Sets the FTP action to be taken. Currently accepts "put", "get", "del",
-     * "mkdir", "chmod" and "list".
+     * "mkdir", "chmod", "list", and "site".
      *
      * @param action the FTP action to be performed.
      *
@@ -1223,13 +1293,199 @@ public class FTP
         this.ignoreNoncriticalErrors = ignoreNoncriticalErrors;
     }
 
+    private void configurationHasBeenSet() {
+        this.isConfigurationSet = true;
+    }
 
+    /**
+     * Sets the systemTypeKey attribute.
+     * Method for setting <code>FTPClientConfig</code> remote system key.
+     *
+     * @param systemKey the key to be set - BUT if blank
+     * the default value of null (which signifies "autodetect") will be kept.
+     * @see org.apache.commons.net.ftp.FTPClientConfig
+     */
+    public void setSystemTypeKey(FTPSystemType systemKey) {
+        if (systemKey != null && !systemKey.getValue().equals("")) {
+            this.systemTypeKey = systemKey;
+            configurationHasBeenSet();
+        }
+    }
+
+    /**
+     * Sets the defaultDateFormatConfig attribute.
+     * @param defaultDateFormat configuration to be set, unless it is
+     * null or empty string, in which case ignored.
+     * @see org.apache.commons.net.ftp.FTPClientConfig
+     */
+    public void setDefaultDateFormatConfig(String defaultDateFormat) {
+        if (defaultDateFormat != null && !defaultDateFormat.equals("")) {
+            this.defaultDateFormatConfig = defaultDateFormat;
+            configurationHasBeenSet();
+        }
+    }
+
+    /**
+     * Sets the recentDateFormatConfig attribute.
+     * @param recentDateFormat configuration to be set, unless it is
+     * null or empty string, in which case ignored.
+     * @see org.apache.commons.net.ftp.FTPClientConfig
+     */
+    public void setRecentDateFormatConfig(String recentDateFormat) {
+        if (recentDateFormat != null && !recentDateFormat.equals("")) {
+            this.recentDateFormatConfig = recentDateFormat;
+            configurationHasBeenSet();
+        }
+    }
+
+    /**
+     * Sets the serverLanguageCode attribute.
+     * @param serverLanguageCode configuration to be set, unless it is
+     * null or empty string, in which case ignored.
+     * @see org.apache.commons.net.ftp.FTPClientConfig
+     */
+    public void setServerLanguageCodeConfig(LanguageCode serverLanguageCode) {
+        if (serverLanguageCode != null && !serverLanguageCode.equals("")) {
+            this.serverLanguageCodeConfig = serverLanguageCode;
+            configurationHasBeenSet();
+        }
+    }
+
+    /**
+     * Sets the serverTimeZoneConfig attribute.
+     * @param serverTimeZoneId configuration to be set, unless it is
+     * null or empty string, in which case ignored.
+     * @see org.apache.commons.net.ftp.FTPClientConfig
+     */
+    public void setServerTimeZoneConfig(String serverTimeZoneId) {
+        if (serverTimeZoneId != null && !serverTimeZoneId.equals("")) {
+            this.serverTimeZoneConfig = serverTimeZoneId;
+            configurationHasBeenSet();
+        }
+    }
+
+    /**
+     * Sets the shortMonthNamesConfig attribute
+     *
+     * @param shortMonthNames configuration to be set, unless it is
+     * null or empty string, in which case ignored.
+     * @see org.apache.commons.net.ftp.FTPClientConfig
+     */
+    public void setShortMonthNamesConfig(String shortMonthNames) {
+        if (shortMonthNames != null && !shortMonthNames.equals("")) {
+            this.shortMonthNamesConfig = shortMonthNames;
+            configurationHasBeenSet();
+        }
+    }
+
+
+
+    /**
+     * Defines how many times to retry executing FTP command before giving up.
+     * Default is 0 - try once and if failure then give up.
+     *
+     * @param retriesAllowed number of retries to allow.  -1 means
+     * keep trying forever. "forever" may also be specified as a
+     * synonym for -1.
+     */
+    public void setRetriesAllowed(String retriesAllowed) {
+        if ("FOREVER".equalsIgnoreCase(retriesAllowed)) {
+            this.retriesAllowed = Retryable.RETRY_FOREVER;
+        } else {
+            try {
+                int retries = Integer.parseInt(retriesAllowed);
+                if (retries < Retryable.RETRY_FOREVER) {
+                    throw new BuildException(
+                            "Invalid value for retriesAllowed attribute: "
+                            + retriesAllowed);
+
+                }
+                this.retriesAllowed = retries;
+            } catch (NumberFormatException px) {
+                throw new BuildException(
+                        "Invalid value for retriesAllowed attribute: "
+                        + retriesAllowed);
+
+            }
+
+        }
+    }
+    /**
+     * @return Returns the systemTypeKey.
+     */
+    String getSystemTypeKey() {
+        return systemTypeKey.getValue();
+    }
+    /**
+     * @return Returns the defaultDateFormatConfig.
+     */
+    String getDefaultDateFormatConfig() {
+        return defaultDateFormatConfig;
+    }
+    /**
+     * @return Returns the recentDateFormatConfig.
+     */
+    String getRecentDateFormatConfig() {
+        return recentDateFormatConfig;
+    }
+    /**
+     * @return Returns the serverLanguageCodeConfig.
+     */
+    String getServerLanguageCodeConfig() {
+        return serverLanguageCodeConfig.getValue();
+    }
+    /**
+     * @return Returns the serverTimeZoneConfig.
+     */
+    String getServerTimeZoneConfig() {
+        return serverTimeZoneConfig;
+    }
+    /**
+     * @return Returns the shortMonthNamesConfig.
+     */
+    String getShortMonthNamesConfig() {
+        return shortMonthNamesConfig;
+    }
+    /**
+     * @return Returns the timestampGranularity.
+     */
+    Granularity getTimestampGranularity() {
+        return timestampGranularity;
+    }
+    /**
+     * Sets the timestampGranularity attribute
+     * @param timestampGranularity The timestampGranularity to set.
+     */
+    public void setTimestampGranularity(Granularity timestampGranularity) {
+        if (null == timestampGranularity || "".equals(timestampGranularity)) {
+            return;
+        }
+        this.timestampGranularity = timestampGranularity;
+     }
+    /**
+     * Sets the siteCommand attribute.  This attribute
+     * names the command that will be executed if the action
+     * is "site".
+     * @param siteCommand The siteCommand to set.
+     */
+    public void setSiteCommand(String siteCommand) {
+        this.siteCommand = siteCommand;
+    }
+    /**
+     * Sets the initialSiteCommand attribute.  This attribute
+     * names a site command that will be executed immediately
+     * after connection.
+     * @param initialCommand The initialSiteCommand to set.
+     */
+    public void setInitialSiteCommand(String initialCommand) {
+        this.initialSiteCommand = initialCommand;
+    }
     /**
      * Checks to see that all required parameters are set.
      *
      * @throws BuildException if the configuration is not valid.
      */
-    protected void checkConfiguration() throws BuildException {
+    protected void checkAttributes() throws BuildException {
         if (server == null) {
             throw new BuildException("server attribute must be set!");
         }
@@ -1254,6 +1510,34 @@ public class FTP
             throw new BuildException("chmod attribute must be set for chmod "
                  + "action!");
         }
+        if (action == SITE_CMD && siteCommand == null) {
+            throw new BuildException("sitecommand attribute must be set for site "
+                 + "action!");
+        }
+
+
+        if (this.isConfigurationSet) {
+            try {
+                Class.forName("org.apache.commons.net.ftp.FTPClientConfig");
+            } catch (ClassNotFoundException e) {
+                throw new BuildException(
+                 "commons-net.jar >= 1.4.0 is required for at least one"
+                 + " of the attributes specified.");
+            }
+        }
+    }
+
+    /**
+     * Executable a retryable object.
+     * @param h the retry hander.
+     * @param r the object that should be retried until it succeeds
+     *          or the number of retrys is reached.
+     * @param descr a description of the command that is being run.
+     * @throws IOException if there is a problem.
+     */
+    protected void executeRetryable(RetryHandler h, Retryable r, String descr)
+        throws IOException {
+        h.execute(r, descr);
     }
 
 
@@ -1269,10 +1553,9 @@ public class FTP
      * @throws IOException if there is a problem reading a file
      * @throws BuildException if there is a problem in the configuration.
      */
-    protected int transferFiles(FTPClient ftp, FileSet fs)
+    protected int transferFiles(final FTPClient ftp, FileSet fs)
          throws IOException, BuildException {
         DirectoryScanner ds;
-
         if (action == SEND_FILES) {
             ds = fs.getDirectoryScanner(getProject());
         } else {
@@ -1310,41 +1593,59 @@ public class FTP
 
         try {
             if (action == LIST_FILES) {
-                File pd = fileUtils.getParentFile(listing);
+                File pd = listing.getParentFile();
 
                 if (!pd.exists()) {
                     pd.mkdirs();
                 }
                 bw = new BufferedWriter(new FileWriter(listing));
             }
+            RetryHandler h = new RetryHandler(this.retriesAllowed, this);
             if (action == RM_DIR) {
                 // to remove directories, start by the end of the list
                 // the trunk does not let itself be removed before the leaves
                 for (int i = dsfiles.length - 1; i >= 0; i--) {
-                    rmDir(ftp, dsfiles[i]);
+                    final String dsfile = dsfiles[i];
+                    executeRetryable(h, new Retryable() {
+                        public void execute() throws IOException {
+                            rmDir(ftp, dsfile);
+                        }
+                    }, dsfile);
                 }
-            }   else {
+            } else {
+                final BufferedWriter fbw = bw;
+                final String fdir = dir;
+                if (this.newerOnly) {
+                    this.granularityMillis =
+                        this.timestampGranularity.getMilliseconds(action);
+                }
                 for (int i = 0; i < dsfiles.length; i++) {
-                    switch (action) {
-                        case SEND_FILES:
-                            sendFile(ftp, dir, dsfiles[i]);
-                            break;
-                        case GET_FILES:
-                            getFile(ftp, dir, dsfiles[i]);
-                            break;
-                        case DEL_FILES:
-                            delFile(ftp, dsfiles[i]);
-                            break;
-                        case LIST_FILES:
-                            listFile(ftp, bw, dsfiles[i]);
-                            break;
-                        case CHMOD:
-                            doSiteCommand(ftp, "chmod " + chmod + " " + resolveFile(dsfiles[i]));
-                            transferred++;
-                            break;
-                        default:
-                            throw new BuildException("unknown ftp action " + action);
-                    }
+                    final String dsfile = dsfiles[i];
+                    executeRetryable(h, new Retryable() {
+                        public void execute() throws IOException {
+                            switch (action) {
+                                case SEND_FILES:
+                                    sendFile(ftp, fdir, dsfile);
+                                    break;
+                                case GET_FILES:
+                                    getFile(ftp, fdir, dsfile);
+                                    break;
+                                case DEL_FILES:
+                                    delFile(ftp, dsfile);
+                                    break;
+                                case LIST_FILES:
+                                    listFile(ftp, fbw, dsfile);
+                                    break;
+                                case CHMOD:
+                                    doSiteCommand(ftp, "chmod " + chmod
+                                                  + " " + resolveFile(dsfile));
+                                    transferred++;
+                                    break;
+                                default:
+                                    throw new BuildException("unknown ftp action " + action);
+                            }
+                        }
+                    }, dsfile);
                 }
             }
         } finally {
@@ -1487,7 +1788,7 @@ public class FTP
         File tempFile = findFileName(ftp);
         try {
             // create a local temporary file
-            fileUtils.createNewFile(tempFile);
+            FILE_UTILS.createNewFile(tempFile);
             long localTimeStamp = tempFile.lastModified();
             BufferedInputStream instream = new BufferedInputStream(new FileInputStream(tempFile));
             ftp.storeFile(tempFile.getName(), instream);
@@ -1497,13 +1798,14 @@ public class FTP
                 FTPFile [] ftpFiles = ftp.listFiles(tempFile.getName());
                 if (ftpFiles.length == 1) {
                     long remoteTimeStamp = ftpFiles[0].getTimestamp().getTime().getTime();
-                    returnValue = remoteTimeStamp - localTimeStamp;
+                    returnValue = localTimeStamp - remoteTimeStamp;
                 }
                 ftp.deleteFile(ftpFiles[0].getName());
             }
             // delegate the deletion of the local temp file to the delete task
             // because of race conditions occuring on Windows
-            Delete mydelete = (Delete) getProject().createTask("delete");
+            Delete mydelete = new Delete();
+            mydelete.bindToOwner(this);
             mydelete.setFile(tempFile.getCanonicalFile());
             mydelete.execute();
         } catch (Exception e) {
@@ -1518,7 +1820,7 @@ public class FTP
         FTPFile [] theFiles = null;
         final int maxIterations = 1000;
         for (int counter = 1; counter < maxIterations; counter++) {
-            File localFile = fileUtils.createTempFile("ant" + Integer.toString(counter), ".tmp",
+            File localFile = FILE_UTILS.createTempFile("ant" + Integer.toString(counter), ".tmp",
                 null);
             String fileName = localFile.getName();
             boolean found = false;
@@ -1542,6 +1844,10 @@ public class FTP
         }
         return null;
     }
+
+    private static final SimpleDateFormat TIMESTAMP_LOGGING_SDF =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     /**
      * Checks to see if the remote file is current as compared with the local
      * file. Returns true if the target file is up to date.
@@ -1578,11 +1884,30 @@ public class FTP
 
         long remoteTimestamp = files[0].getTimestamp().getTime().getTime();
         long localTimestamp = localFile.lastModified();
+        long adjustedRemoteTimestamp =
+            remoteTimestamp + this.timeDiffMillis + this.granularityMillis;
+
+        StringBuffer msg = new StringBuffer("   [")
+                .append(TIMESTAMP_LOGGING_SDF.format(new Date(localTimestamp)))
+                .append("] local");
+        log(msg.toString(), Project.MSG_VERBOSE);
+
+        msg = new StringBuffer("   [")
+                  .append(TIMESTAMP_LOGGING_SDF.format(new Date(adjustedRemoteTimestamp)))
+                .append("] remote");
+        if (remoteTimestamp != adjustedRemoteTimestamp) {
+            msg.append(" - (raw: ")
+                .append(TIMESTAMP_LOGGING_SDF.format(new Date(remoteTimestamp)))
+            .append(")");
+        }
+        log(msg.toString(), Project.MSG_VERBOSE);
+
+
 
         if (this.action == SEND_FILES) {
-            return remoteTimestamp + timeDiffMillis > localTimestamp;
+            return adjustedRemoteTimestamp >= localTimestamp;
         } else {
-            return localTimestamp > remoteTimestamp + timeDiffMillis;
+            return localTimestamp >= adjustedRemoteTimestamp;
         }
     }
 
@@ -1769,7 +2094,6 @@ public class FTP
     protected void getFile(FTPClient ftp, String dir, String filename)
          throws IOException, BuildException {
         OutputStream outstream = null;
-
         try {
             File file = getProject().resolveFile(new File(dir, filename).getPath());
 
@@ -1782,7 +2106,7 @@ public class FTP
                      + file.getAbsolutePath());
             }
 
-            File pdir = fileUtils.getParentFile(file);
+            File pdir = file.getParentFile();
 
             if (!pdir.exists()) {
                 pdir.mkdirs();
@@ -1809,7 +2133,7 @@ public class FTP
                     outstream = null;
                     FTPFile[] remote = ftp.listFiles(resolveFile(filename));
                     if (remote.length > 0) {
-                        fileUtils.setFileLastModified(file,
+                        FILE_UTILS.setFileLastModified(file,
                                                       remote[0].getTimestamp()
                                                       .getTime().getTime());
                     }
@@ -1842,17 +2166,17 @@ public class FTP
      * @throws BuildException in unknown circumstances
      */
     protected void listFile(FTPClient ftp, BufferedWriter bw, String filename)
-         throws IOException, BuildException {
+            throws IOException, BuildException {
         if (verbose) {
             log("listing " + filename);
         }
+        FTPFile[] ftpfiles = ftp.listFiles(resolveFile(filename));
 
-        FTPFile ftpfile = ftp.listFiles(resolveFile(filename))[0];
-
-        bw.write(ftpfile.toString());
-        bw.newLine();
-
-        transferred++;
+        if (ftpfiles != null && ftpfiles.length > 0) {
+            bw.write(ftpfiles[0].toString());
+            bw.newLine();
+            transferred++;
+        }
     }
 
 
@@ -1933,7 +2257,7 @@ public class FTP
      *         correctly.
      */
     public void execute() throws BuildException {
-        checkConfiguration();
+        checkAttributes();
 
         FTPClient ftp = null;
 
@@ -1941,6 +2265,9 @@ public class FTP
             log("Opening FTP connection to " + server, Project.MSG_VERBOSE);
 
             ftp = new FTPClient();
+            if (this.isConfigurationSet) {
+                ftp = FTPConfigurator.configure(ftp, this);
+            }
 
             ftp.connect(server, port);
             if (!FTPReply.isPositiveCompletion(ftp.getReplyCode())) {
@@ -1951,7 +2278,8 @@ public class FTP
             log("connected", Project.MSG_VERBOSE);
             log("logging in to FTP server", Project.MSG_VERBOSE);
 
-            if (!ftp.login(userid, password)) {
+            if ((this.account != null && !ftp.login(userid, password, account))
+                    || (this.account == null && !ftp.login(userid, password))) {
                 throw new BuildException("Could not login to FTP server");
             }
 
@@ -1980,18 +2308,53 @@ public class FTP
                 }
             }
 
+            // If an initial command was configured then send it.
+            // Some FTP servers offer different modes of operation,
+            // E.G. switching between a UNIX file system mode and
+            // a legacy file system.
+            if (this.initialSiteCommand != null) {
+                RetryHandler h = new RetryHandler(this.retriesAllowed, this);
+                final FTPClient lftp = ftp;
+                executeRetryable(h, new Retryable() {
+                    public void execute() throws IOException {
+                        doSiteCommand(lftp, FTP.this.initialSiteCommand);
+                    }
+                }, "initial site command: " + this.initialSiteCommand);
+            }
+
+
             // For a unix ftp server you can set the default mask for all files
             // created.
 
             if (umask != null) {
-                doSiteCommand(ftp, "umask " + umask);
+                RetryHandler h = new RetryHandler(this.retriesAllowed, this);
+                final FTPClient lftp = ftp;
+                executeRetryable(h, new Retryable() {
+                    public void execute() throws IOException {
+                        doSiteCommand(lftp, "umask " + umask);
+                    }
+                }, "umask " + umask);
             }
 
             // If the action is MK_DIR, then the specified remote
             // directory is the directory to create.
 
             if (action == MK_DIR) {
-                makeRemoteDir(ftp, remotedir);
+                RetryHandler h = new RetryHandler(this.retriesAllowed, this);
+                final FTPClient lftp = ftp;
+                executeRetryable(h, new Retryable() {
+                    public void execute() throws IOException {
+                        makeRemoteDir(lftp, remotedir);
+                    }
+                }, remotedir);
+            } else if (action == SITE_CMD) {
+                    RetryHandler h = new RetryHandler(this.retriesAllowed, this);
+                    final FTPClient lftp = ftp;
+                    executeRetryable(h, new Retryable() {
+                        public void execute() throws IOException {
+                            doSiteCommand(lftp, FTP.this.siteCommand);
+                        }
+                    }, "Site Command: " + this.siteCommand);
             } else {
                 if (remotedir != null) {
                     log("changing the remote directory", Project.MSG_VERBOSE);
@@ -2011,7 +2374,7 @@ public class FTP
             }
 
         } catch (IOException ex) {
-            throw new BuildException("error during FTP transfer: " + ex);
+            throw new BuildException("error during FTP transfer: " + ex, ex);
         } finally {
             if (ftp != null && ftp.isConnected()) {
                 try {
@@ -2035,7 +2398,7 @@ public class FTP
 
         private static final String[] VALID_ACTIONS = {
             "send", "put", "recv", "get", "del", "delete", "list", "mkdir",
-            "chmod", "rmdir"
+            "chmod", "rmdir", "site"
             };
 
 
@@ -2071,9 +2434,128 @@ public class FTP
                 return MK_DIR;
             } else if (actionL.equals("rmdir")) {
                 return RM_DIR;
+            } else if (actionL.equals("site")) {
+                return SITE_CMD;
             }
             return SEND_FILES;
         }
     }
-}
+    /**
+     * represents one of the valid timestamp adjustment values
+     * recognized by the <code>timestampGranularity</code> attribute.<p>
 
+     * A timestamp adjustment may be used in file transfers for checking
+     * uptodateness. MINUTE means to add one minute to the server
+     * timestamp.  This is done because FTP servers typically list
+     * timestamps HH:mm and client FileSystems typically use HH:mm:ss.
+     *
+     * The default is to use MINUTE for PUT actions and NONE for GET
+     * actions, since GETs have the <code>preserveLastModified</code>
+     * option, which takes care of the problem in most use cases where
+     * this level of granularity is an issue.
+     *
+     */
+    public static class Granularity extends EnumeratedAttribute {
+
+        private static final String[] VALID_GRANULARITIES = {
+                "", "MINUTE", "NONE"
+        };
+
+        /**
+         * Get the valid values.
+         * @return the list of valid Granularity values
+         */
+        public String[] getValues() {
+            // TODO Auto-generated method stub
+            return VALID_GRANULARITIES;
+        }
+        /**
+         * returns the number of milliseconds associated with
+         * the attribute, which can vary in some cases depending
+         * on the value of the action parameter.
+         * @param action SEND_FILES or GET_FILES
+         * @return the number of milliseconds associated with
+         * the attribute, in the context of the supplied action
+         */
+        public long getMilliseconds(int action) {
+            String granularityU = getValue().toUpperCase(Locale.US);
+
+            if ("".equals(granularityU)) {
+                if (action == SEND_FILES) {
+                    return GRANULARITY_MINUTE;
+                }
+            } else if ("MINUTE".equals(granularityU)) {
+                return GRANULARITY_MINUTE;
+                }
+                return 0L;
+        }
+        static final Granularity getDefault() {
+            Granularity g = new Granularity();
+            g.setValue("");
+            return g;
+        }
+
+   }
+   /**
+         * one of the valid system type keys recognized by the systemTypeKey
+         * attribute.
+         */
+    public static class FTPSystemType extends EnumeratedAttribute {
+
+       private static final String[] VALID_SYSTEM_TYPES = {
+                   "", "UNIX", "VMS", "WINDOWS", "OS/2", "OS/400",
+                   "MVS"
+           };
+
+
+            /**
+             * Get the valid values.
+             * @return the list of valid system types.
+             */
+            public String[] getValues() {
+                return VALID_SYSTEM_TYPES;
+            }
+
+            static final FTPSystemType getDefault() {
+                FTPSystemType ftpst = new FTPSystemType();
+                ftpst.setValue("");
+                return ftpst;
+            }
+    }
+    /**
+     * Enumerated class for languages.
+     */
+    public static class LanguageCode extends EnumeratedAttribute {
+
+
+        private static final String[] VALID_LANGUAGE_CODES =
+            getValidLanguageCodes();
+
+        private static String[] getValidLanguageCodes() {
+            Collection c = FTPClientConfig.getSupportedLanguageCodes();
+            String[] ret = new String[c.size() + 1];
+            int i = 0;
+            ret[i++] = "";
+            for (Iterator it = c.iterator(); it.hasNext(); i++) {
+                ret[i] = (String) it.next();
+            }
+            return ret;
+        }
+
+
+             /**
+              * Return the value values.
+              * @return the list of valid language types.
+              */
+             public String[] getValues() {
+                 return VALID_LANGUAGE_CODES;
+             }
+
+             static final LanguageCode getDefault() {
+                 LanguageCode lc = new LanguageCode();
+                 lc.setValue("");
+                 return lc;
+             }
+     }
+
+}

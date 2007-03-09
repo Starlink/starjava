@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,8 +22,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Encapsulates a Jikes compiler, by directly executing an external
@@ -32,18 +35,22 @@ import org.apache.tools.ant.Project;
  * by the Ant developers and is unmaintained.  Don't use
  * it.</strong></p>
  *
- * @deprecated merged into the class Javac.
+ * @deprecated since 1.2.
+ *             Merged into the class Javac.
  */
 public class Jikes {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     protected JikesOutputParser jop;
     protected String command;
     protected Project project;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Constructs a new Jikes object.
-     * @param jop - Parser to send jike's output to
-     * @param command - name of jikes executable
+     * @param jop      Parser to send jike's output to
+     * @param command  name of jikes executable
+     * @param project  the current project
      */
     protected Jikes(JikesOutputParser jop, String command, Project project) {
         super();
@@ -93,13 +100,7 @@ public class Jikes {
                     throw new BuildException("Error creating temporary file",
                                              e);
                 } finally {
-                    if (out != null) {
-                        try {
-                            out.close();
-                        } catch (Throwable t) {
-                            // ignore
-                        }
-                    }
+                    FileUtils.close(out);
                 }
             } else {
                 commandArray = new String[args.length + 1];

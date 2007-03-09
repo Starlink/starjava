@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -31,12 +32,14 @@ import java.io.InputStreamReader;
  *
  */
 public class SmtpResponseReader {
-
+    // CheckStyle:VisibilityModifier OFF - bc
     protected BufferedReader reader = null;
+    // CheckStyle:VisibilityModifier ON
     private StringBuffer result = new StringBuffer();
 
     /**
      * Wrap this input stream.
+     * @param in the stream to wrap.
      */
     public SmtpResponseReader(InputStream in) {
         reader = new BufferedReader(new InputStreamReader(in));
@@ -48,6 +51,7 @@ public class SmtpResponseReader {
      * @return Responsecode (3 digits) + Blank + Text from all
      *         response line concatenated (with blanks replacing the \r\n
      *         sequences).
+     * @throws IOException on error.
      */
     public String getResponse() throws IOException {
         result.setLength(0);
@@ -69,6 +73,7 @@ public class SmtpResponseReader {
 
     /**
      * Closes the underlying stream.
+     * @throws IOException on error.
      */
     public void close() throws IOException {
         reader.close();
@@ -76,6 +81,8 @@ public class SmtpResponseReader {
 
     /**
      * Should we expect more input?
+     * @param line the line to check.
+     * @return true if there are more lines to check.
      */
     protected boolean hasMoreLines(String line) {
         return line.length() > 3 && line.charAt(3) == '-';

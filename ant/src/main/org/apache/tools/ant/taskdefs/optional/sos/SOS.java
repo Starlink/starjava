@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -24,11 +25,12 @@ import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.LogStreamHandler;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * A base class for creating tasks for executing commands on SourceOffSite.
  *
- *  These tasks were inspired by the VSS tasks
+ *  These tasks were inspired by the VSS tasks.
  *
  */
 
@@ -52,8 +54,10 @@ public abstract class SOS extends Task implements SOSCmd {
     private boolean recursive = false;
     private boolean verbose = false;
 
-    /** Commandline to be executed */
+    // CheckStyle:VisibilityModifier OFF - bc
+    /** Commandline to be executed. */
     protected Commandline commandLine;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Flag to disable the cache when set.
@@ -79,16 +83,16 @@ public abstract class SOS extends Task implements SOSCmd {
      * The directory where soscmd(.exe) is located.
      * soscmd must be on the path if omitted.
      *
-     * @param  dir  The new sosCmd value
+     * @param  dir  The new sosCmd value.
      */
     public final void setSosCmd(String dir) {
-        sosCmdDir = Project.translatePath(dir);
+        sosCmdDir = FileUtils.translatePath(dir);
     }
 
     /**
      * The SourceSafe username.
      *
-     * @param  username  The new username value
+     * @param  username  The new username value.
      *
      * @ant.attribute group="required"
      */
@@ -99,7 +103,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * The SourceSafe password.
      *
-     * @param  password  The new password value
+     * @param  password  The new password value.
      */
     public final void setPassword(String password) {
         sosPassword = password;
@@ -108,7 +112,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * The SourceSafe project path.
      *
-     * @param  projectpath  The new projectpath value
+     * @param  projectpath  The new projectpath value.
      *
      * @ant.attribute group="required"
      */
@@ -123,7 +127,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * The path to the location of the ss.ini file.
      *
-     * @param  vssServerPath  The new vssServerPath value
+     * @param  vssServerPath  The new vssServerPath value.
      *
      * @ant.attribute group="required"
      */
@@ -134,7 +138,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * Path to the SourceOffSite home directory.
      *
-     * @param  sosHome  The new sosHome value
+     * @param  sosHome  The new sosHome value.
      */
     public final void setSosHome(String sosHome) {
         this.sosHome = sosHome;
@@ -144,7 +148,7 @@ public abstract class SOS extends Task implements SOSCmd {
      * The address and port of SourceOffSite Server,
      * for example 192.168.0.1:8888.
      *
-     * @param  sosServerPath  The new sosServerPath value
+     * @param  sosServerPath  The new sosServerPath value.
      *
      * @ant.attribute group="required"
      */
@@ -155,7 +159,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * Override the working directory and get to the specified path.
      *
-     * @param  path  The new localPath value
+     * @param  path  The new localPath value.
      */
     public final void setLocalPath(Path path) {
         localPath = path.toString();
@@ -172,22 +176,42 @@ public abstract class SOS extends Task implements SOSCmd {
 
     // Special setters for the sub-classes
 
+    /**
+     * Set the file name.
+     * @param file the filename to use.
+     */
     protected void setInternalFilename(String file) {
         filename = file;
     }
 
+    /**
+     * Set the recursive flag.
+     * @param recurse if true use the recursive flag on the command line.
+     */
     protected void setInternalRecursive(boolean recurse) {
         recursive = recurse;
     }
 
+    /**
+     * Set the comment text.
+     * @param text the comment text to use.
+     */
     protected void setInternalComment(String text) {
         comment = text;
     }
 
+    /**
+     * Set the label.
+     * @param text the label to use.
+     */
     protected void setInternalLabel(String text) {
         label = text;
     }
 
+    /**
+     * Set the version.
+     * @param text the version to use.
+     */
     protected void setInternalVersion(String text) {
         version = text;
     }
@@ -195,7 +219,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * Get the executable to run. Add the path if it was specifed in the build file
      *
-     * @return the executable to run
+     * @return the executable to run.
      */
     protected String getSosCommand() {
         if (sosCmdDir == null) {
@@ -207,7 +231,7 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the comment
-     * @return if it was set, null if not
+     * @return if it was set, null if not.
      */
     protected String getComment() {
         return comment;
@@ -215,7 +239,7 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the version
-     * @return if it was set, null if not
+     * @return if it was set, null if not.
      */
     protected String getVersion() {
         return version;
@@ -223,7 +247,7 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the label
-     * @return if it was set, null if not
+     * @return if it was set, null if not.
      */
     protected String getLabel() {
         return label;
@@ -231,7 +255,7 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the username
-     * @return if it was set, null if not
+     * @return if it was set, null if not.
      */
     protected String getUsername() {
         return sosUsername;
@@ -239,7 +263,7 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the password
-     * @return empty string if it wans't set
+     * @return empty string if it wasn't set.
      */
     protected String getPassword() {
         return sosPassword;
@@ -247,7 +271,7 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the project path
-     * @return if it was set, null if not
+     * @return if it was set, null if not.
      */
     protected String getProjectPath() {
         return projectPath;
@@ -255,68 +279,68 @@ public abstract class SOS extends Task implements SOSCmd {
 
     /**
      * Get the VSS server path
-     * @return if it was set, null if not
+     * @return if it was set, null if not.
      */
     protected String getVssServerPath() {
         return vssServerPath;
     }
 
     /**
-     * Get the SOS home directory
-     * @return if it was set, null if not
+     * Get the SOS home directory.
+     * @return if it was set, null if not.
      */
     protected String getSosHome() {
         return sosHome;
     }
 
     /**
-     * Get the SOS serve path
-     * @return if it was set, null if not
+     * Get the SOS serve path.
+     * @return if it was set, null if not.
      */
     protected String getSosServerPath() {
         return sosServerPath;
     }
 
     /**
-     * Get the filename to be acted upon
-     * @return if it was set, null if not
+     * Get the filename to be acted upon.
+     * @return if it was set, null if not.
      */
     protected String getFilename() {
         return filename;
     }
 
     /**
-     * Get the NoCompress flag
+     * Get the NoCompress flag.
      *
      * @return the 'nocompress' Flag if the attribute was 'true',
-     *         otherwise an empty string
+     *         otherwise an empty string.
      */
     protected String getNoCompress() {
         return noCompress ? FLAG_NO_COMPRESSION : "";
     }
 
     /**
-     * Get the NoCache flag
+     * Get the NoCache flag.
      *
-     * @return the 'nocache' Flag if the attribute was 'true', otherwise an empty string
+     * @return the 'nocache' Flag if the attribute was 'true', otherwise an empty string.
      */
     protected String getNoCache() {
         return noCache ? FLAG_NO_CACHE : "";
     }
 
     /**
-     * Get the 'verbose' Flag
+     * Get the 'verbose' Flag.
      *
-     * @return the 'verbose' Flag if the attribute was 'true', otherwise an empty string
+     * @return the 'verbose' Flag if the attribute was 'true', otherwise an empty string.
      */
     protected String getVerbose() {
         return verbose ? FLAG_VERBOSE : "";
     }
 
     /**
-     * Get the 'recursive' Flag
+     * Get the 'recursive' Flag.
      *
-     * @return the 'recursive' Flag if the attribute was 'true', otherwise an empty string
+     * @return the 'recursive' Flag if the attribute was 'true', otherwise an empty string.
      */
     protected String getRecursive() {
         return recursive ? FLAG_RECURSION : "";
@@ -325,9 +349,9 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * Builds and returns the working directory.
      * <p>
-     * The localpath is created if it didn't exist
+     * The localpath is created if it didn't exist.
      *
-     * @return the absolute path of the working directory
+     * @return the absolute path of the working directory.
      */
     protected String getLocalPath() {
         if (localPath == null) {
@@ -359,7 +383,7 @@ public abstract class SOS extends Task implements SOSCmd {
     /**
      * Execute the created command line.
      *
-     * @throws BuildException
+     * @throws BuildException on error.
      */
     public void execute()
         throws BuildException {

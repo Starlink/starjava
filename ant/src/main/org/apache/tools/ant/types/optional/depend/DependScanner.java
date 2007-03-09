@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,9 +28,7 @@ import org.apache.tools.ant.util.depend.DependencyAnalyzer;
 
 
 /**
- * An interface used to describe the actions required by any type of
- * directory scanner.
- *
+ * DirectoryScanner for finding class dependencies.
  */
 public class DependScanner extends DirectoryScanner {
     /**
@@ -39,24 +38,19 @@ public class DependScanner extends DirectoryScanner {
         = "org.apache.tools.ant.util.depend.bcel.FullAnalyzer";
 
     /**
-     * The base directory for the scan
-     */
-    private File basedir;
-
-    /**
-     * The root classes to drive the search for dependent classes
+     * The root classes to drive the search for dependent classes.
      */
     private Vector rootClasses;
 
     /**
-     * The names of the classes to include in the fileset
+     * The names of the classes to include in the fileset.
      */
     private Vector included;
 
     /**
      * The parent scanner which gives the basic set of files. Only files which
      * are in this set and which can be reached from a root class will end
-     * up being included in the result set
+     * up being included in the result set.
      */
     private DirectoryScanner parentScanner;
 
@@ -72,51 +66,41 @@ public class DependScanner extends DirectoryScanner {
     }
 
     /**
-     * Sets the basedir for scanning. This is the directory that is scanned
-     * recursively.
-     *
-     * @param basedir the basedir for scanning
-     */
-    public void setBasedir(File basedir) {
-        this.basedir = basedir;
-    }
-
-    /**
-     * Gets the basedir that is used for scanning.
-     *
-     * @return the basedir that is used for scanning
-     */
-    public File getBasedir() { return basedir; }
-
-    /**
      * Sets the root classes to be used to drive the scan.
      *
-     * @param rootClasses the rootClasses to be used for this scan
+     * @param rootClasses the rootClasses to be used for this scan.
      */
-    public void setRootClasses(Vector rootClasses) {
+    public synchronized void setRootClasses(Vector rootClasses) {
         this.rootClasses = rootClasses;
     }
 
     /**
-     * Get the names of the class files, baseClass depends on
+     * Get the names of the class files on which baseClass depends.
      *
-     * @return the names of the files
+     * @return the names of the files.
      */
     public String[] getIncludedFiles() {
-        int count = included.size();
-        String[] files = new String[count];
-        for (int i = 0; i < count; i++) {
+        String[] files = new String[getIncludedFilesCount()];
+        for (int i = 0; i < files.length; i++) {
             files[i] = (String) included.elementAt(i);
         }
         return files;
     }
 
+    /** {@inheritDoc}. */
+    public synchronized int getIncludedFilesCount() {
+        if (included == null) {
+            throw new IllegalStateException();
+        }
+        return included.size();
+    }
+
     /**
-     * Scans the base directory for files that baseClass depends on
+     * Scans the base directory for files on which baseClass depends.
      *
-     * @exception IllegalStateException when basedir was set incorrecly
+     * @exception IllegalStateException when basedir was set incorrectly.
      */
-    public void scan() throws IllegalStateException {
+    public synchronized void scan() throws IllegalStateException {
         included = new Vector();
         String analyzerClassName = DEFAULT_ANALYZER_CLASS;
         DependencyAnalyzer analyzer = null;
@@ -133,7 +117,6 @@ public class DependScanner extends DirectoryScanner {
             String rootClass = (String) e.nextElement();
             analyzer.addRootClass(rootClass);
         }
-
         Enumeration e = analyzer.getClassDependencies();
 
         String[] parentFiles = parentScanner.getIncludedFiles();
@@ -141,7 +124,6 @@ public class DependScanner extends DirectoryScanner {
         for (int i = 0; i < parentFiles.length; ++i) {
             parentSet.put(parentFiles[i], parentFiles[i]);
         }
-
         while (e.hasMoreElements()) {
             String classname = (String) e.nextElement();
             String filename = classname.replace('.', File.separatorChar);
@@ -163,6 +145,7 @@ public class DependScanner extends DirectoryScanner {
     /**
      * @see DirectoryScanner#getExcludedDirectories
      */
+    /** {@inheritDoc}. */
     public String[] getExcludedDirectories() {
         return null;
     }
@@ -170,6 +153,7 @@ public class DependScanner extends DirectoryScanner {
     /**
      * @see DirectoryScanner#getExcludedFiles
      */
+    /** {@inheritDoc}. */
     public String[] getExcludedFiles() {
         return null;
     }
@@ -177,13 +161,23 @@ public class DependScanner extends DirectoryScanner {
     /**
      * @see DirectoryScanner#getIncludedDirectories
      */
+    /** {@inheritDoc}. */
     public String[] getIncludedDirectories() {
         return new String[0];
     }
 
     /**
+     * @see DirectoryScanner#getIncludedDirsCount
+     */
+    /** {@inheritDoc}. */
+    public int getIncludedDirsCount() {
+        return 0;
+    }
+
+    /**
      * @see DirectoryScanner#getNotIncludedDirectories
      */
+    /** {@inheritDoc}. */
     public String[] getNotIncludedDirectories() {
         return null;
     }
@@ -191,6 +185,7 @@ public class DependScanner extends DirectoryScanner {
     /**
      * @see DirectoryScanner#getNotIncludedFiles
      */
+    /** {@inheritDoc}. */
     public String[] getNotIncludedFiles() {
         return null;
     }
@@ -198,18 +193,21 @@ public class DependScanner extends DirectoryScanner {
     /**
      * @see DirectoryScanner#setExcludes
      */
+    /** {@inheritDoc}. */
     public void setExcludes(String[] excludes) {
     }
 
     /**
      * @see DirectoryScanner#setIncludes
      */
+    /** {@inheritDoc}. */
     public void setIncludes(String[] includes) {
     }
 
     /**
      * @see DirectoryScanner#setCaseSensitive
      */
+    /** {@inheritDoc}. */
     public void setCaseSensitive(boolean isCaseSensitive) {
     }
 }

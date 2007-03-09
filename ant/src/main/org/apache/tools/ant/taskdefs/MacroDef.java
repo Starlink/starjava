@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -40,8 +41,10 @@ import org.apache.tools.ant.UnknownElement;
  * @since Ant 1.6
  */
 public class MacroDef extends AntlibDefinition  {
+
     private NestedSequential nestedSequential;
     private String     name;
+    private boolean    backTrace = true;
     private List       attributes = new ArrayList();
     private Map        elements   = new HashMap();
     private String     textName   = null;
@@ -87,9 +90,30 @@ public class MacroDef extends AntlibDefinition  {
      * @return the nested text element
      * @since ant 1.6.1
      */
-
     public Text getText() {
         return text;
+    }
+
+    /**
+     * Set the backTrace attribute.
+     *
+     * @param backTrace if true and the macro instance generates
+     *                  an error, a backtrace of the location within
+     *                  the macro and call to the macro will be output.
+     *                  if false, only the location of the call to the
+     *                  macro will be shown. Default is true.
+     * @since ant 1.7
+     */
+    public void setBackTrace(boolean backTrace) {
+        this.backTrace = backTrace;
+    }
+
+    /**
+     * @return the backTrace attribute.
+     * @since ant 1.7
+     */
+    public boolean getBackTrace() {
+        return backTrace;
     }
 
     /**
@@ -171,6 +195,8 @@ public class MacroDef extends AntlibDefinition  {
     }
 
     /**
+     * Gets this macro's attribute (and define?) list.
+     *
      * @return the nested Attributes
      */
     public List getAttributes() {
@@ -178,7 +204,10 @@ public class MacroDef extends AntlibDefinition  {
     }
 
     /**
-     * @return the nested elements
+     * Gets this macro's elements.
+     *
+     * @return the map nested elements, keyed by element name, with
+     *         {@link TemplateElement} values.
      */
     public Map getElements() {
         return elements;
@@ -186,7 +215,8 @@ public class MacroDef extends AntlibDefinition  {
 
     /**
      * Check if a character is a valid character for an element or
-     * attribute name
+     * attribute name.
+     *
      * @param c the character to check
      * @return true if the character is a letter or digit or '.' or '-'
      *         attribute name
@@ -197,8 +227,8 @@ public class MacroDef extends AntlibDefinition  {
     }
 
     /**
-     * Check if a string is a valid name for an element or
-     * attribute
+     * Check if a string is a valid name for an element or attribute.
+     *
      * @param name the string to check
      * @return true if the name consists of valid name characters
      */
@@ -226,15 +256,16 @@ public class MacroDef extends AntlibDefinition  {
         }
         if (attribute.getName().equals(textName)) {
             throw new BuildException(
-                "the attribute name \"" + attribute.getName()
+                "the name \"" + attribute.getName()
                 + "\" has already been used by the text element");
         }
         for (int i = 0; i < attributes.size(); ++i) {
-            if (((Attribute) attributes.get(i)).getName().equals(
-                    attribute.getName())) {
+            Attribute att = (Attribute) attributes.get(i);
+            if (att.getName().equals(attribute.getName())) {
                 throw new BuildException(
-                    "the attribute " + attribute.getName()
-                    + " has already been specified");
+                    "the name \"" + attribute.getName()
+                        + "\" has already been used in "
+                        + "another attribute element");
             }
         }
         attributes.add(attribute);
@@ -266,7 +297,6 @@ public class MacroDef extends AntlibDefinition  {
 
     /**
      * Create a new ant type based on the embedded tasks and types.
-     *
      */
     public void execute() {
         if (nestedSequential == null) {
@@ -286,11 +316,12 @@ public class MacroDef extends AntlibDefinition  {
             getProject());
 
         helper.addDataTypeDefinition(def);
+        log("creating macro  " + name, Project.MSG_VERBOSE);
     }
 
 
     /**
-     * A nested element for the MacroDef task.
+     * An attribute for the MacroDef task.
      *
      */
     public static class Attribute {
@@ -509,28 +540,30 @@ public class MacroDef extends AntlibDefinition  {
 
     /**
      * A nested element for the MacroDef task.
-     *
      */
     public static class TemplateElement {
+
         private String name;
+        private String description;
         private boolean optional = false;
         private boolean implicit = false;
-        private String description;
 
         /**
-         * The name of the element.
+         * Sets the name of this element.
          *
-         * @param name the name of the element.
+         * @param name the name of the element
          */
         public void setName(String name) {
             if (!isValidName(name)) {
                 throw new BuildException(
-                    "Illegal name [" + name + "] for attribute");
+                    "Illegal name [" + name + "] for macro element");
             }
             this.name = name.toLowerCase(Locale.US);
         }
 
         /**
+         * Gets the name of this element.
+         *
          * @return the name of the element.
          */
         public String getName() {
@@ -538,40 +571,9 @@ public class MacroDef extends AntlibDefinition  {
         }
 
         /**
-         * is this element optional ?
+         * Sets a textual description of this element,
+         * for build documentation purposes only.
          *
-         * @param optional if true this element may be left out, default
-         *                 is false.
-         */
-        public void setOptional(boolean optional) {
-            this.optional = optional;
-        }
-
-        /**
-         * @return the optional attribute
-         */
-        public boolean isOptional() {
-            return optional;
-        }
-
-        /**
-         * is this element implicit ?
-         *
-         * @param implicit if true this element may be left out, default
-         *                 is false.
-         */
-        public void setImplicit(boolean implicit) {
-            this.implicit = implicit;
-        }
-
-        /**
-         * @return the implicit attribute
-         */
-        public boolean isImplicit() {
-            return implicit;
-        }
-
-        /**
          * @param desc Description of the element.
          * @since ant 1.6.1
          */
@@ -580,6 +582,8 @@ public class MacroDef extends AntlibDefinition  {
         }
 
         /**
+         * Gets the description of this element.
+         *
          * @return the description of the element, or <code>null</code> if
          *         no description is available.
          * @since ant 1.6.1
@@ -589,27 +593,61 @@ public class MacroDef extends AntlibDefinition  {
         }
 
         /**
-         * equality method
+         * Sets whether this element is optional.
+         *
+         * @param optional if true this element may be left out, default
+         *                 is false.
+         */
+        public void setOptional(boolean optional) {
+            this.optional = optional;
+        }
+
+        /**
+         * Gets whether this element is optional.
+         *
+         * @return the optional attribute
+         */
+        public boolean isOptional() {
+            return optional;
+        }
+
+        /**
+         * Sets whether this element is implicit.
+         *
+         * @param implicit if true this element may be left out, default
+         *                 is false.
+         */
+        public void setImplicit(boolean implicit) {
+            this.implicit = implicit;
+        }
+
+        /**
+         * Gets whether this element is implicit.
+         *
+         * @return the implicit attribute
+         */
+        public boolean isImplicit() {
+            return implicit;
+        }
+
+        /**
+         * equality method.
          *
          * @param obj an <code>Object</code> value
          * @return a <code>boolean</code> value
          */
         public boolean equals(Object obj) {
-            if (obj == null) {
+            if (obj == this) {
+              return true;
+            }
+            if (obj == null || !obj.getClass().equals(getClass())) {
                 return false;
             }
-            if (obj.getClass() != getClass()) {
-                return false;
-            }
-            TemplateElement other = (TemplateElement) obj;
-            if (name == null) {
-                if (other.name != null) {
-                    return false;
-                }
-            } else if (!name.equals(other.name)) {
-                return false;
-            }
-            return optional == other.optional && implicit == other.implicit;
+            TemplateElement t = (TemplateElement) obj;
+            return
+                (name == null ? t.name == null : name.equals(t.name))
+                && optional == t.optional
+                && implicit == t.implicit;
         }
 
         /**
@@ -619,16 +657,18 @@ public class MacroDef extends AntlibDefinition  {
             return objectHashCode(name)
                 + (optional ? 1 : 0) + (implicit ? 1 : 0);
         }
-    }
+
+    } // END static class TemplateElement
 
     /**
-     * similar equality method for macrodef, ignores project and
+     * same or similar equality method for macrodef, ignores project and
      * runtime info.
      *
      * @param obj an <code>Object</code> value
+     * @param same if true test for sameness, otherwise just similiar
      * @return a <code>boolean</code> value
      */
-    public boolean similar(Object obj) {
+    private boolean sameOrSimilar(Object obj, boolean same) {
         if (obj == this) {
             return true;
         }
@@ -645,6 +685,13 @@ public class MacroDef extends AntlibDefinition  {
         }
         if (!name.equals(other.name)) {
             return false;
+        }
+        // Allow two macro definitions with the same location
+        // to be treated as similar - bugzilla 31215
+        if (other.getLocation() != null
+            && other.getLocation().equals(getLocation())
+            && !same) {
+            return true;
         }
         if (text == null) {
             if (other.text != null) {
@@ -680,12 +727,32 @@ public class MacroDef extends AntlibDefinition  {
     }
 
     /**
+     * Similar method for this definition
+     *
+     * @param obj another definition
+     * @return true if the definitions are similar
+     */
+    public boolean similar(Object obj) {
+        return sameOrSimilar(obj, false);
+    }
+
+    /**
+     * Equality method for this definition
+     *
+     * @param obj another definition
+     * @return true if the definitions are the same
+     */
+    public boolean sameDefinition(Object obj) {
+        return sameOrSimilar(obj, true);
+    }
+
+    /**
      * extends AntTypeDefinition, on create
      * of the object, the template macro definition
      * is given.
      */
     private static class MyAntTypeDefinition extends AntTypeDefinition {
-        private MacroDef    macroDef;
+        private MacroDef macroDef;
 
         /**
          * Creates a new <code>MyAntTypeDefinition</code> instance.
@@ -697,7 +764,7 @@ public class MacroDef extends AntlibDefinition  {
         }
 
         /**
-         * create an instance of the definition.
+         * Create an instance of the definition.
          * The instance may be wrapped in a proxy class.
          * @param project the current project
          * @return the created object
@@ -723,7 +790,7 @@ public class MacroDef extends AntlibDefinition  {
                 return false;
             }
             MyAntTypeDefinition otherDef = (MyAntTypeDefinition) other;
-            return macroDef.similar(otherDef.macroDef);
+            return macroDef.sameDefinition(otherDef.macroDef);
         }
 
         /**
@@ -750,4 +817,5 @@ public class MacroDef extends AntlibDefinition  {
             return o.hashCode();
         }
     }
+
 }

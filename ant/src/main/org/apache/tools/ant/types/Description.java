@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -37,7 +38,6 @@ import java.util.Vector;
  * project description per project.  A second description element will
  * overwrite the first.
  *
- * @version $Revision: 1.15.2.4 $ $Date: 2004/03/09 17:01:54 $
  *
  * @ant.datatype ignore="true"
  */
@@ -65,7 +65,7 @@ public class Description extends DataType {
     }
 
     /**
-     * return the descriptions from all the targets of
+     * Return the descriptions from all the targets of
      * a project.
      *
      * @param project the project to get the descriptions for.
@@ -73,8 +73,11 @@ public class Description extends DataType {
      *         the targets.
      */
     public static String getDescription(Project project) {
-        StringBuffer description = new StringBuffer();
         Vector targets = (Vector) project.getReference("ant.targets");
+        if (targets == null) {
+            return null;
+        }
+        StringBuffer description = new StringBuffer();
         for (int i = 0; i < targets.size(); i++) {
             Target t = (Target) targets.elementAt(i);
             concatDescriptions(project, t, description);
@@ -97,9 +100,9 @@ public class Description extends DataType {
                 continue;
             }
             UnknownElement ue = ((UnknownElement) task);
-            StringBuffer descComp = ue.getWrapper().getText();
+            String descComp = ue.getWrapper().getText().toString();
             if (descComp != null) {
-                description.append((Object) descComp);
+                description.append(project.replaceProperties(descComp));
             }
         }
     }
