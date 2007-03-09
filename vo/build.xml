@@ -1010,9 +1010,7 @@
 
       <group title="${Name} API" packages="${package.name}*"/>
 
-      <bottom>Copyright &#169; ${year} \\
-              CLRC: Central Laboratory of the Research Councils.
-              All Rights Reserved.</bottom>
+      <bottom><![CDATA[<i>Copyright &#169; ${year} Central Laboratory of the Research Councils. All Rights Reserved.<i>]]></bottom>
     </javadoc>
 
   </target>
@@ -1086,7 +1084,7 @@
            debug="${debug}"
            source="${source.version}"
            deprecation="${deprecation}" >
-
+      <compilerarg value="-proc:none" compiler="javac1.6.0"/>
       <classpath refid="tests-classpath"/>
 
     </javac>
