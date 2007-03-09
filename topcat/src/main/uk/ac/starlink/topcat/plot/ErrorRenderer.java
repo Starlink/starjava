@@ -165,7 +165,7 @@ public abstract class ErrorRenderer {
         int ydim = bounds.height;
 
         /* Return an empty array if it has zero size. */
-        if ( xdim <= 0 && ydim <= 0 ) {
+        if ( xdim <= 0 || ydim <= 0 ) {
             return NO_PIXELS;
         }
 
