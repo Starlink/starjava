@@ -456,6 +456,19 @@ public class PlotConfigurator
     }
 
     /**
+     * Reveal a page of controls.
+     */
+    public void reveal( int page )
+    {
+        try {
+            tabbedPane.setSelectedIndex( page );
+        }
+        catch (IndexOutOfBoundsException e) {
+            // Don't care, so do nothing.
+        }
+    }
+
+    /**
      *  Close the window.
      */
     protected void closeWindowEvent()
