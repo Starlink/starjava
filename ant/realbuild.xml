@@ -116,6 +116,8 @@
        ===================================================================
   -->
   <path id="classpath">
+    <!-- PWD: add expected JUnit jar file, Starlink should always have this -->
+      <pathelement location="../junit/src/lib/junit.jar"/>
   </path>
 
   <path id="tests-classpath">
