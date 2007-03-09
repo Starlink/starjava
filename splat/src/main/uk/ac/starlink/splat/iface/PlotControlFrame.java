@@ -906,8 +906,11 @@ public class PlotControlFrame
                     }
                 });
 
-            //  Finally autodate is switched on by default.
+            //  Autodate is switched on by default.
             configFrame.setAutoDrawOption( true );
+
+            //  Show first page (data limits, not title page).
+            configFrame.reveal( 0 );
         }
         else {
             Utilities.raiseFrame( configFrame );
