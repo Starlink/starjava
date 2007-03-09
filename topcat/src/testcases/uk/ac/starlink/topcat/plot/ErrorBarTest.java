@@ -54,6 +54,7 @@ public class ErrorBarTest extends TestCase {
         private final int[] yoffs_;
 
         private final static int STEP = 32;
+        private final static int MULTIPLICITY = 2;
         private final static ErrorRenderer[] RENDERERS =
             ErrorRenderer.getOptions2d();
 
@@ -62,7 +63,7 @@ public class ErrorBarTest extends TestCase {
             yoffs_ = yoffs;
             setBackground( Color.WHITE );
             setPreferredSize( new Dimension( ( RENDERERS.length + 1 ) * STEP,
-                                             STEP ) );
+                                             MULTIPLICITY * STEP ) );
         }
 
         protected void paintComponent( Graphics g ) {
@@ -80,12 +81,24 @@ public class ErrorBarTest extends TestCase {
                 g2.drawLine( i, 0, i, 1000 );
             }
 
-            g2.setColor( Color.RED );
             int nsym = xoffs_.length;
-            for ( int i = 0; i < RENDERERS.length; i++ ) {
-                ErrorRenderer renderer = RENDERERS[ i ];
-                renderer.drawErrors( g2, ( i + 1 ) * STEP, STEP / 2,
-                                     xoffs_, yoffs_ );
+            for ( int ir = 0; ir < RENDERERS.length; ir++ ) {
+                ErrorRenderer renderer = RENDERERS[ ir ];
+                int xpos = ( ir + 1 ) * STEP;
+                int ypos = STEP / 2;
+
+                g2.setColor( Color.RED );
+                renderer.drawErrors( g2, xpos, ypos, xoffs_, yoffs_ );
+
+                ypos += STEP;
+                g2.setColor( Color.BLUE );
+                int[] coords =
+                    renderer.getPixels( g2, xpos, ypos, xoffs_, yoffs_ );
+                for ( int ic = 0; ic < coords.length / 2; ic++ ) {
+                    int cx = coords[ ic * 2 + 0 ];
+                    int cy = coords[ ic * 2 + 1 ];
+                    g2.fillRect( cx, cy, 1, 1 );
+                }
             }
         }
     }
