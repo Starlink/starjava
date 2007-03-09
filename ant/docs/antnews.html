@@ -10,7 +10,7 @@
           <meta name="author" content="Conor MacNeill">
   <meta name="email" content="">
         <meta name="author" content="Stefan Bodewig">
-  <meta name="email" content="stefan.bodewig@freenet.de">
+  <meta name="email" content="">
         <meta name="author" content="Magesh Umasankar">
   <meta name="email" content="">
         <meta name="author" content="Antoine Levy-Lambert">
@@ -81,6 +81,7 @@
       <div class="bluebar"></div>
                     
   <div class="menucontainer">
+
     <div class="menu">
       <ul>
               <li class="menuheader">Apache Ant
@@ -137,13 +138,13 @@
                                     <a href="./mail.html">Mailing Lists</a>
                                 </li>
                             <li>
-                                    <a href="./cvs.html">CVS Repositories</a>
+                                    <a href="./svn.html">Subversion Repositories</a>
                                 </li>
                             <li>
-                                    <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=Ant">Bug Database</a>
+                                    <a href="./nightlies.html">Nightly Builds</a>
                                 </li>
                             <li>
-                                    <a href="http://issues.apache.org/bugzilla/enter_bug.cgi?product=Ant&amp;bug_severity=Enhancement">Enhancement Requests</a>
+                                    <a href="./bugs.html">Bug Database</a>
                                 </li>
                             <li>
                                     <a href="http://www.apache.org/foundation/contributing.html">Donations</a>
@@ -176,11 +177,112 @@
   <div class="content">
     <h1 class="title">News</h1>
             <h3 class="section">
+      <a name="Ant 1.7.0"></a>
+      Ant 1.7.0
+    </h3>
+                        <h3>December 19, 2006 - Ant 1.7.0 Available</h3>
+                                <p>Apache Ant 1.7.0 is now available for <a href="http://ant.apache.org/bindownload.cgi">download</a>.</p>
+                                <p> Ant 1.7 introduces a resource framework. Some of the core ant 
+    tasks such as &lt;copy/&gt; are now able to process not only file 
+    system resources but also zip entries, tar entries, paths, ... 
+    Resource collections group resources, and can be further 
+    combined with operators such as union and intersection. This 
+    can be extended by custom resources and custom tasks using resources.</p>
+                                <p>
+    Ant 1.7 starts outsourcing of optional tasks to Antlibs. 
+    The .NET antlib in preparation will replace the .NET optional tasks which ship in Ant.
+    Support for the version control system Subversion will be only provided as an antlib to
+    be released shortly. 
+    </p>
+                                <p>Ant 1.7 fixes also a large number of bugs.</p>
+                                <p>Ant 1.7 has some initial support for Java6 features.</p>
+                        <h3 class="section">
+      <a name=".NET Ant Library 1.0Beta1"></a>
+      .NET Ant Library 1.0Beta1
+    </h3>
+                        <h3>November 6, 2006 - Apache .NET Ant Library 1.0 Available</h3>
+                                <p>Apache .NET Ant Library 1.0 is now available for <a href="http://ant.apache.org/antlibs/bindownload.cgi">download</a>.</p>
+                                <p>This Ant Library contains support for tools like NUnit as well
+    as the "old .NET tasks of Ant's core.  It has been tested
+    Microsoft's frameworks as well as Mono.</p>
+                                <p>For more information see the <a href="antlibs/dotnet/">Antlib's
+    home page</a></p>
+                        <h3 class="section">
+      <a name="AntUnit 1.0Beta2"></a>
+      AntUnit 1.0Beta2
+    </h3>
+                        <h3>October 29, 2006 - Apache AntUnit 1.0Beta2 Available</h3>
+                                <p>Apache AntUnit 1.0Beta1 is now available for <a href="http://ant.apache.org/antlibs/bindownload.cgi">download</a>.</p>
+                                <p>This Ant Library contains tasks to test Ant tasks using Ant
+    instead of JUnit.  For more information see the <a href="antlibs/antunit/">AntUnit home page</a>.</p>
+                        <h3 class="section">
+      <a name="AntUnit 1.0Beta1"></a>
+      AntUnit 1.0Beta1
+    </h3>
+                        <h3>September 22, 2006 - Apache AntUnit 1.0Beta1 Available</h3>
+                                <p>Apache AntUnit 1.0Beta1 is now available for <a href="http://ant.apache.org/antlibs/bindownload.cgi">download</a>.</p>
+                                <p>This Ant Library contains tasks to test Ant tasks using Ant
+    instead of JUnit.  For more information see the <a href="antlibs/antunit/">AntUnit home page</a>.</p>
+                        <h3 class="section">
+      <a name=".NET Ant Library 1.0Beta1"></a>
+      .NET Ant Library 1.0Beta1
+    </h3>
+                        <h3>September 13, 2006 - Apache .NET Ant Library 1.0Beta1 Available</h3>
+                                <p>Apache .NET Ant Library 1.0Beta1 is now available for <a href="http://ant.apache.org/antlibs/bindownload.cgi">download</a>.</p>
+                                <p>This Ant Library contains support for tools like NUnit as well
+    as the "old .NET tasks of Ant's core.  It has been tested
+    Microsoft's frameworks as well as Mono.</p>
+                                <p>For more information see the <a href="antlibs/dotnet/">Antlib's
+    home page</a></p>
+                        <h3 class="section">
+      <a name="Ant 1.6.5"></a>
+      Ant 1.6.5
+    </h3>
+                        <h3>June 2, 2005 - Ant 1.6.5 Available</h3>
+                                <p>Apache Ant 1.6.5 is now available for <a href="http://ant.apache.org/bindownload.cgi">download</a>.</p>
+                                <p>This is a bug fix release.</p>
+                        <h3 class="section">
+      <a name="Ant 1.6.4"></a>
+      Ant 1.6.4
+    </h3>
+                        <h3>May 19, 2005 - Ant 1.6.4 Available</h3>
+                                <p>Apache Ant 1.6.4 is now available for <a href="http://archive.apache.org/dist/ant/">download</a>.</p>
+                                <p>This is a bug fix release.</p>
+                        <h3 class="section">
+      <a name="Ant 1.6.3"></a>
+      Ant 1.6.3
+    </h3>
+                        <h3>April 28, 2005 - Ant 1.6.3 Available</h3>
+                                <p>Apache Ant 1.6.3 is now available for <a href="http://archive.apache.org/dist/ant/">download</a>.</p>
+                                <p>There is a large list of fixed bugs and enhancements.</p>
+                                <p>Some of the bugs affecting the embedded use of Ant are fixed.</p>
+                        <h3 class="section">
+      <a name="Antidote Retired"></a>
+      Antidote Retired
+    </h3>
+                        <h3>April 4th, 2005 - The Apache Ant Project Retires Antidote, the
+    Ant GUI</h3>
+                                <p>The Antidote subproject was once started to provide a GUI for
+    Ant at a time where IDE support for Ant was far from usable.
+    Unfortunately it never attracted a developer community of its
+    own.</p>
+                                <p>At the same time IDE support for Ant has become ubiquitous by
+    now and there is little reason to have a GUI just for Ant.  This
+    makes it even less likely that volunteers will start to spend time
+    working on it.</p>
+                                <p>Antidote's development has been stalled for years now, despite
+    some efforts to rejuvenate it by single developers.  Therefore the
+    Ant developers have chosen to retire Antidote.</p>
+                                <p>Antidote will no longer be developed by the Ant project; its
+    CVS module will be shut down.</p>
+                                <p>If you are interested in Antidote's sources to learn from or
+    build on it, you can find snapshots at <a href="http://archive.apache.org/ant/antidote/">http://archive.apache.org/ant/antidote/</a>.</p>
+                        <h3 class="section">
       <a name="Ant 1.6.2"></a>
       Ant 1.6.2
     </h3>
                         <h3>July 16, 2004 - Ant 1.6.2 Available</h3>
-                                <p>Apache Ant 1.6.2 is now available for <a href="http://ant.apache.org/bindownload.cgi">download</a>.</p>
+                                <p>Apache Ant 1.6.2 available for <a href="http://archive.apache.org/dist/ant/">download</a>.</p>
                                 <p>Nested elements for namespaced tasks and types may belong to the
 Ant default namespace as well as the task's or type's namespace.</p>
                                 <p>All exceptions thrown by tasks are now wrapped in a
@@ -202,7 +304,7 @@ features which were asked for by users on Bugzilla.</p>
     </h3>
                         <h3>February 12, 2004 - Ant 1.6.1 Available</h3>
                                 <p>Apache Ant 1.6.1 is still available for
-      <a href="http://archive.apache.org/dist/ant">download</a>.
+      <a href="http://archive.apache.org/dist/ant/">download</a>.
      </p>
                                 <p>The ASF Board has approved the new Apache License 2.0.
     For a copy of that license, please see
@@ -220,7 +322,7 @@ features which were asked for by users on Bugzilla.</p>
     </h3>
                         <h3>December 18, 2003 - Ant 1.6.0 Available</h3>
                                 <p>Apache Ant 1.6.0 is still available for
-      <a href="http://archive.apache.org/dist/ant">download</a>.
+      <a href="http://archive.apache.org/dist/ant/">download</a>.
      </p>
                                 <p>As
     we've already said in the announcements of Ant 1.5.4, this release
@@ -239,7 +341,7 @@ did) or could be explained better, feel free to help us out in the
     </h3>
                         <h3>August 12, 2003 - Ant 1.5.4 Available</h3>
                                 <p>Apache Ant 1.5.4 is still available for
-     <a href="http://archive.apache.org/dist/ant">download</a>.
+     <a href="http://archive.apache.org/dist/ant/">download</a>.
     </p>
                                 <p>This is a minor bugfix release that fixes a problem with the
     <code>javah</code> task on JDK 1.4.2 and a couple of bugs in the
@@ -284,7 +386,7 @@ did) or could be explained better, feel free to help us out in the
       <a name="Ant keeps on winning!"></a>
       Ant keeps on winning!
     </h3>
-                        <a href="http://www.javaworld.com"><img src="images/jw_ec_logo_winner2003.gif" alt="" border="0" height="108" width="252" align="right" /></a>
+                        <a href="http://www.javaworld.com/"><img src="images/jw_ec_logo_winner2003.gif" alt="" border="0" height="108" width="252" align="right" /></a>
                                 <h3>June 9th, 2003: Ant wins the JavaWorld Editors' Choice Award</h3>
                                 <p>
     Ant has won the JavaWorld Editors' Choice Award for
@@ -302,7 +404,7 @@ did) or could be explained better, feel free to help us out in the
     </h3>
                         <h3>April 9, 2003 - Ant 1.5.3 Available</h3>
                                 <p>Apache Ant 1.5.3 is still available for
-     <a href="http://archive.apache.org/dist/ant">download</a>.
+     <a href="http://archive.apache.org/dist/ant/">download</a>.
     </p>
                         <h3 class="section">
       <a name="Ant 1.5.2"></a>
@@ -310,7 +412,7 @@ did) or could be explained better, feel free to help us out in the
     </h3>
                         <h3>March 3, 2003 - Ant 1.5.2 Available!</h3>
                                 <p>The final version of Ant 1.5.2 is available for
-     <a href="http://archive.apache.org/dist/ant">download</a>.
+     <a href="http://archive.apache.org/dist/ant/">download</a>.
      If you have any feedback on this release, feel free to join the 
      discussion on the dev and user mailing lists.
      </p>
@@ -325,7 +427,7 @@ did) or could be explained better, feel free to help us out in the
        organizational change and will not affect the technical aspects of
        the project. Ant retains a strong association with the Apache
        Jakarta project. One effect of this change is that the Ant webpage
-       is now located at <a href="http://ant.apache.org">http://ant.apache.org</a>
+       is now located at <a href="http://ant.apache.org/">http://ant.apache.org/</a>
      </p>
                         <h3 class="section">
       <a name="Ant 1.5.1"></a>
@@ -333,7 +435,7 @@ did) or could be explained better, feel free to help us out in the
     </h3>
                         <h3>October 3, 2002 - Ant 1.5.1 Available !</h3>
                                 <p>The final version of Ant 1.5.1 is still available for
-     <a href="http://archive.apache.org/dist/ant">
+     <a href="http://archive.apache.org/dist/ant/">
      download</a>. If you have any feedback on this release, feel free to join the 
      discussion on the ant-dev and ant-user mailing lists.
      </p>
@@ -346,7 +448,7 @@ did) or could be explained better, feel free to help us out in the
       version for Cygwin users.  See the <a href="faq.html#1.5-cygwin-sh">FAQ</a> for details.</p>
                                 <h3>July 10, 2002 - Ant 1.5 Released!</h3>
                                 <p>The final version of Ant 1.5 is now available for 
-     <a href="http://jakarta.apache.org/builds/jakarta-ant/release/v1.5/">
+     <a href="http://archive.apache.org/dist/ant/">
      download</a>. If you have any feedback on this release, feel free to join the 
      discussion on the ant-dev and ant-user mailing lists.
      </p>
@@ -354,7 +456,7 @@ did) or could be explained better, feel free to help us out in the
       <a name="Ant wins again!"></a>
       Ant wins again!
     </h3>
-                        <a href="http://www.sdmagazine.com"><img src="images/sdm_productivity_award.gif" alt="" border="0" height="108" width="181" align="right" /></a>
+                        <a href="http://www.sdmagazine.com/"><img src="images/sdm_productivity_award.gif" alt="" border="0" height="108" width="181" align="right" /></a>
                                 <h3>Apr 29, 2002: Ant wins <em>Software Development</em> magazine's
     2002 Productivity Award.</h3>
                                 <p>
@@ -368,7 +470,7 @@ did) or could be explained better, feel free to help us out in the
       <a name="Ant has won!"></a>
       Ant has won!
     </h3>
-                        <a href="http://www.javaworld.com"><img src="images/jw_ec_logo_winner2002.gif" alt="" border="0" height="108" width="252" align="right" /></a>
+                        <a href="http://www.javaworld.com/"><img src="images/jw_ec_logo_winner2002.gif" alt="" border="0" height="108" width="252" align="right" /></a>
                                 <h3>Mar 26, 2002: Ant wins the JavaWorld Editors' Choice
     Award</h3>
                                 <p>
@@ -400,7 +502,7 @@ did) or could be explained better, feel free to help us out in the
     </h3>
                         <h3>11 October 2001 Ant 1.4.1 released !</h3>
                                 <p>Please visit the 
-     <a href="http://jakarta.apache.org/builds/jakarta-ant/release/v1.4.1/">
+     <a href="http://archive.apache.org/dist/ant/">
      download area</a>. 
      </p>
                         <h3 class="section">
@@ -414,7 +516,6 @@ did) or could be explained better, feel free to help us out in the
   </div>
 
         <p class="copyright">
-        Copyright &copy; 2000-2004&nbsp;The Apache Software Foundation. All rights reserved.
         <script type="text/javascript" language="JavaScript"><!--
                 document.write(" - "+"Last Published: " + document.lastModified);
               //  -->
@@ -422,6 +523,7 @@ did) or could be explained better, feel free to help us out in the
       </p>
     </body>
   </html>
+
 
 
 
