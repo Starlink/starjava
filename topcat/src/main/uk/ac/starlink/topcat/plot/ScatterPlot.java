@@ -115,7 +115,6 @@ public abstract class ScatterPlot extends SurfacePlot {
                 styleList.add( style );
                 indexList.add( new Integer( is ) );
             }
-  pixels = pixels && ! hasErrors( points, style );
         }
         RowSubset[] activeSets =
             (RowSubset[]) setList.toArray( new RowSubset[ 0 ] );
@@ -383,8 +382,10 @@ public abstract class ScatterPlot extends SurfacePlot {
 
         /* Work out which sets do not have associated markers drawn. */
         boolean[] hidePoints = new boolean[ nset ];
+        boolean[] showErrors = new boolean[ nset ];
         for ( int is = 0; is < nset; is++ ) {
             hidePoints[ is ] = styles[ is ].getHidePoints();
+            showErrors[ is ] = hasErrors( points, styles[ is ] );
         }
 
         /* Work out padding round the edge of the raster we will be drawing on.
@@ -426,13 +427,28 @@ public abstract class ScatterPlot extends SurfacePlot {
             }
         }
 
+        /* Prepare a graphics context with clipping that corresponds to the
+         * BufferedImage we are drawing into..  This is just used to pass
+         * to the error renderer, since it needs the clip to proceed. */
+        Rectangle bufClip = new Rectangle( surface.getClip().getBounds() );
+        bufClip.x = pad;
+        bufClip.y = pad;
+        Graphics gclip = g.create();
+        gclip.setClip( bufClip );
+
         /* For each point, if it's included in any subset, then increment
          * every element of its buffer which falls under the drawing of
          * that subset's marker.  This will give us, for each subset, 
          * a raster buffer which contains values indicating how many 
          * times each of its pixels has been painted. */
+        boolean[] hasErrors = points.hasErrors();
         BitSet mask = new BitSet( npix );
         double[] coords = new double[ 2 ];
+        double[] loErrs = new double[ 2 ];
+        double[] hiErrs = new double[ 2 ];
+        int noff = ( hasErrors[ 0 ] ? 2 : 0 ) + ( hasErrors[ 1 ] ? 2 : 0 );
+        int[] xoffs = new int[ noff ];
+        int[] yoffs = new int[ noff ];
         boolean[] showMarks = new boolean[ nset ];
         int nIncluded = 0;
         int nVisible = 0;
@@ -465,6 +481,26 @@ public abstract class ScatterPlot extends SurfacePlot {
                                     int ipix = base + pixoffs[ is ][ ioff ];
                                     buffers[ is ][ ipix ]++;
                                     mask.set( ipix );
+                                }
+                            }
+                            if ( showErrors[ is ] ) {
+                                points.getErrors( ip, loErrs, hiErrs );
+                                if ( transformErrors( point, coords,
+                                                      loErrs, hiErrs,
+                                                      surface, hasErrors,
+                                                      xoffs, yoffs ) ) {
+                                    int[] epixes = 
+                                        styles[ is ].getErrorRenderer()
+                                       .getPixels( gclip, xbase, ybase,
+                                                   xoffs, yoffs );
+                                    int nepix = epixes.length / 2;
+                                    for ( int iep = 0; iep < nepix; iep++ ) {
+                                        int xe = epixes[ iep * 2 + 0 ];
+                                        int ye = epixes[ iep * 2 + 1 ];
+                                        int ipix = xe + ye * xdim;
+                                        buffers[ is ][ ipix ]++;
+                                        mask.set( ipix );
+                                    }
                                 }
                             }
                         }
