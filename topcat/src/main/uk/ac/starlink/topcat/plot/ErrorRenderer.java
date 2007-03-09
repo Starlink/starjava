@@ -8,9 +8,12 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.topcat.EmptyIcon;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Renders error bars.
@@ -46,6 +49,8 @@ public abstract class ErrorRenderer {
         new CappedLine( true, 3 ),
         new CappedLine( false, 3 ),
     };
+
+    private static final int[] NO_PIXELS = new int[ 0 ];
 
     private static final int LEGEND_WIDTH = 40;
     private static final int LEGEND_HEIGHT = 16;
@@ -131,6 +136,69 @@ public abstract class ErrorRenderer {
      */
     public abstract Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
                                          int[] yoffs );
+
+    /**
+     * Returns an array of pixel positions which can be used to draw this
+     * marker onto a raster.  This can be used as an alternative to 
+     * rendering the marker using the {@link #drawErrors} method,
+     * for instance in situations where it might be more efficient.
+     * The returned value is a 2N-element array giving the coordinates
+     * of each painted pixel.  The format is (x1,y1, x2,y2, ...).
+     * The assumption is that all the pixels are the same colour.
+     *
+     * <p>The ErrorRenderer implementation calculates this by painting
+     * onto a temporary BufferedImage and then examining the raster to see
+     * which pixels have been painted.  This is probably not very efficient.
+     * Subclasses are encouraged to override this method if they can 
+     * calculate the pixels which will be painted directly.
+     *
+     * @return  array of pixel coordinates representing the error bar
+     *          as a bitmap
+     */
+    public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                            int[] yoffs ) {
+
+        /* Work out the size of raster we will need to paint onto. */
+        Rectangle bounds = getBounds( g, x, y, xoffs, yoffs )
+                          .intersection( g.getClipBounds() );
+        int xdim = bounds.width;
+        int ydim = bounds.height;
+
+        /* Return an empty array if it has zero size. */
+        if ( xdim <= 0 && ydim <= 0 ) {
+            return NO_PIXELS;
+        }
+
+        /* Prepare an image of a suitable size and a graphics context which
+         * will render onto it. */
+        BufferedImage im = 
+            new BufferedImage( xdim, ydim, BufferedImage.TYPE_INT_ARGB );
+        Graphics2D g2 = im.createGraphics();
+        g2.translate( -bounds.x, -bounds.y );
+        g2.setClip( bounds );
+
+        /* Paint the error bars. */
+        drawErrors( g2, x, y, xoffs, yoffs );
+
+        /* Examine each pixel from the raster and write its coordinates 
+         * into the coordinate list if it has been painted on (alpha is
+         * non-zero). */
+        Raster raster = im.getData();
+        IntList coordList = new IntList( Math.max( 100, xdim * ydim ) );
+        for ( int ix = 0; ix < xdim; ix++ ) {
+            for ( int iy = 0; iy < ydim; iy++ ) {
+                int alpha = raster.getSample( ix, iy, 3 );
+                assert alpha == 0 || alpha == 255;
+                if ( alpha > 0 ) {
+                    coordList.add( ix + bounds.x );
+                    coordList.add( iy + bounds.y );
+                }
+            }
+        }
+
+        /* Convert the result into an array and return. */
+        return coordList.toIntArray();
+    }
 
     /**
      * Returns an array of ErrorRenderers which can render 2-dimensional errors.
@@ -565,7 +633,7 @@ public abstract class ErrorRenderer {
             int xmax = 0;
             int ymin = 0;
             int ymax = 0;
-            int r2max = 0;
+            int rmax = 0;
             boolean empty = true;
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
@@ -582,16 +650,16 @@ public abstract class ErrorRenderer {
                         xmax = Math.max( xmax, xoff );
                     }
                     else {
-                        r2max = Math.max( r2max, xoff * xoff + yoff * yoff );
+                        rmax = Math.max( rmax,
+                                         Math.abs( xoff ) + Math.abs( yoff ) );
                     }
                 }
             }
-            if ( r2max > 0 ) {
-                int r = (int) Math.ceil( Math.sqrt( r2max ) );
-                xmin = Math.min( xmin, - r );
-                xmax = Math.max( xmax, + r );
-                ymin = Math.min( ymin, - r );
-                ymax = Math.max( ymax, + r );
+            if ( rmax > 0 ) {
+                xmin = Math.min( xmin, - rmax );
+                xmax = Math.max( xmax, + rmax );
+                ymin = Math.min( ymin, - rmax );
+                ymax = Math.max( ymax, + rmax );
             }
             if ( empty ) {
                 return new Rectangle( x, y, 0, 0 );
