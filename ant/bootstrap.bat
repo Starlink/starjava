@@ -2,8 +2,20 @@
 
 REM You will need to specify JAVA_HOME if compiling with 1.2 or later.
 
-REM    Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
-REM    reserved.
+REM  Licensed to the Apache Software Foundation (ASF) under one or more
+REM  contributor license agreements.  See the NOTICE file distributed with
+REM  this work for additional information regarding copyright ownership.
+REM  The ASF licenses this file to You under the Apache License, Version 2.0
+REM  (the "License"); you may not use this file except in compliance with
+REM  the License.  You may obtain a copy of the License at
+REM
+REM      http://www.apache.org/licenses/LICENSE-2.0
+REM
+REM  Unless required by applicable law or agreed to in writing, software
+REM  distributed under the License is distributed on an "AS IS" BASIS,
+REM  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+REM  See the License for the specific language governing permissions and
+REM  limitations under the License.
 
 set OLDJAVA=%JAVA%
 set OLDJAVAC=%JAVAC%
@@ -50,7 +62,9 @@ if not exist build\classes\nul mkdir build\classes
 echo.
 echo ... Compiling Ant Classes
 
-"%JAVAC%" %BOOTJAVAC_OPTS% -d %CLASSDIR% %TOOLS%\bzip2\*.java %TOOLS%\tar\*.java %TOOLS%\zip\*.java %TOOLS%\ant\*.java %TOOLS%\ant\types\*.java %TOOLS%\ant\taskdefs\*.java %TOOLS%\ant\util\regexp\RegexpMatcher.java %TOOLS%\ant\util\regexp\RegexpMatcherFactory.java %TOOLS%\ant\taskdefs\condition\*.java %TOOLS%\ant\taskdefs\compilers\*.java 
+"%JAVAC%" %BOOTJAVAC_OPTS% -d %CLASSDIR% %TOOLS%\bzip2\*.java %TOOLS%\tar\*.java %TOOLS%\zip\*.java %TOOLS%\ant\*.java %TOOLS%\ant\types\*.java %TOOLS%\ant\taskdefs\*.java %TOOLS%\ant\util\regexp\RegexpMatcher.java %TOOLS%\ant\util\regexp\RegexpMatcherFactory.java %TOOLS%\ant\taskdefs\condition\*.java %TOOLS%\ant\taskdefs\compilers\*.java %TOOLS%\ant\types\resources\*.java
+
+if ERRORLEVEL 1 goto mainend
 
 echo.
 echo ... Copying Required Files
@@ -78,7 +92,7 @@ set ANT_CMD_LINE_ARGS=%$
 goto doneStart
 
 :win9xStart
-rem Slurp the command line arguments.  This loop allows for an unlimited number of 
+rem Slurp the command line arguments.  This loop allows for an unlimited number of
 rem agruments (up to the command line limit, anyway).
 
 set ANT_CMD_LINE_ARGS=
@@ -90,7 +104,7 @@ shift
 goto setupArgs
 
 :doneStart
-rem This label provides a place for the argument list loop to break out 
+rem This label provides a place for the argument list loop to break out
 rem and for NT handling to skip to.
 
 "%JAVA%" %ANT_OPTS% org.apache.tools.ant.Main -emacs %ANT_CMD_LINE_ARGS% bootstrap
@@ -121,4 +135,3 @@ set BOOTOLDCLASSPATH=
 set LOCALCLASSPATH=
 set OLDANTHOME=
 set TOOLS=
-
