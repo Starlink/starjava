@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -24,6 +25,7 @@ import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
 import org.apache.tools.ant.taskdefs.LogStreamHandler;
 import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.util.FileUtils;
 
 
 /**
@@ -65,7 +67,7 @@ public abstract class Continuus extends Task {
      * @param dir the directory containing the ccm executable
      */
     public final void setCcmDir(String dir) {
-        ccmDir = Project.translatePath(dir);
+        ccmDir = FileUtils.translatePath(dir);
     }
 
     /**
@@ -84,6 +86,12 @@ public abstract class Continuus extends Task {
     }
 
 
+    /**
+     * Run the command.
+     * @param cmd the command line
+     * @param handler an execute stream handler
+     * @return the exit status of the command
+     */
     protected int run(Commandline cmd, ExecuteStreamHandler handler) {
         try {
             Execute exe = new Execute(handler);
@@ -96,6 +104,11 @@ public abstract class Continuus extends Task {
         }
     }
 
+    /**
+     * Run the command.
+     * @param cmd the command line
+     * @return the exit status of the command
+     */
     protected int run(Commandline cmd) {
         return run(cmd, new LogStreamHandler(this, Project.MSG_VERBOSE, Project.MSG_WARN));
     }

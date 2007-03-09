@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,25 +22,31 @@ package org.apache.tools.ant.taskdefs;
 import java.io.File;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
+import org.apache.tools.ant.types.resources.FileResource;
 
 /**
  * Abstract Base class for unpack tasks.
- *
  *
  * @since Ant 1.5
  */
 
 public abstract class Unpack extends Task {
-
+    // CheckStyle:VisibilityModifier OFF - bc
     protected File source;
     protected File dest;
+    protected Resource srcResource;
+    // CheckStyle:VisibilityModifier ON
 
     /**
-     * @deprecated setSrc(String) is deprecated and is replaced with
+     * @deprecated since 1.5.x.
+     *             setSrc(String) is deprecated and is replaced with
      *             setSrc(File) to make Ant's Introspection
      *             mechanism do the work and also to encapsulate operations on
      *             the type in its own class.
      * @ant.attribute ignore="true"
+     * @param src a <code>String</code> value
      */
     public void setSrc(String src) {
         log("DEPRECATED - The setSrc(String) method has been deprecated."
@@ -48,11 +55,13 @@ public abstract class Unpack extends Task {
     }
 
     /**
-     * @deprecated setDest(String) is deprecated and is replaced with
+     * @deprecated since 1.5.x.
+     *             setDest(String) is deprecated and is replaced with
      *             setDest(File) to make Ant's Introspection
      *             mechanism do the work and also to encapsulate operations on
      *             the type in its own class.
      * @ant.attribute ignore="true"
+     * @param dest a <code>String</code> value
      */
     public void setDest(String dest) {
         log("DEPRECATED - The setDest(String) method has been deprecated."
@@ -65,7 +74,39 @@ public abstract class Unpack extends Task {
      * @param src file to expand
      */
     public void setSrc(File src) {
-        source = src;
+        setSrcResource(new FileResource(src));
+    }
+
+    /**
+     * The resource to expand; required.
+     * @param src resource to expand
+     */
+    public void setSrcResource(Resource src) {
+        if (!src.isExists()) {
+            throw new BuildException("the archive doesn't exist");
+        }
+        if (src.isDirectory()) {
+            throw new BuildException("the archive can't be a directory");
+        }
+        if (src instanceof FileResource) {
+            source = ((FileResource) src).getFile();
+        } else if (!supportsNonFileResources()) {
+            throw new BuildException("Only FileSystem resources are"
+                                     + " supported.");
+        }
+        srcResource = src;
+    }
+
+    /**
+     * Set the source Archive resource.
+     * @param a the archive as a single element Resource collection.
+     */
+    public void addConfigured(ResourceCollection a) {
+        if (a.size() != 1) {
+            throw new BuildException("only single argument resource collections"
+                                     + " are supported as archives");
+        }
+        setSrcResource((Resource) a.iterator().next());
     }
 
     /**
@@ -77,16 +118,8 @@ public abstract class Unpack extends Task {
     }
 
     private void validate() throws BuildException {
-        if (source == null) {
+        if (srcResource == null) {
             throw new BuildException("No Src specified", getLocation());
-        }
-
-        if (!source.exists()) {
-            throw new BuildException("Src doesn't exist", getLocation());
-        }
-
-        if (source.isDirectory()) {
-            throw new BuildException("Cannot expand a directory", getLocation());
         }
 
         if (dest == null) {
@@ -104,7 +137,8 @@ public abstract class Unpack extends Task {
         int len = sourceName.length();
         if (defaultExtension != null
             && len > defaultExtension.length()
-            && defaultExtension.equalsIgnoreCase(sourceName.substring(len - defaultExtension.length()))) {
+            && defaultExtension.equalsIgnoreCase(
+                sourceName.substring(len - defaultExtension.length()))) {
             dest = new File(dest, sourceName.substring(0,
                                                        len - defaultExtension.length()));
         } else {
@@ -112,6 +146,10 @@ public abstract class Unpack extends Task {
         }
     }
 
+    /**
+     * Execute the task.
+     * @throws BuildException on error
+     */
     public void execute() throws BuildException {
         File savedDest = dest; // may be altered in validate
         try {
@@ -122,6 +160,28 @@ public abstract class Unpack extends Task {
         }
     }
 
+    /**
+     * Get the extension.
+     * This is to be overridden by subclasses.
+     * @return the default extension.
+     */
     protected abstract String getDefaultExtension();
+
+    /**
+     * Do the uncompressing.
+     * This is to be overridden by subclasses.
+     */
     protected abstract void extract();
+
+    /**
+     * Whether this task can deal with non-file resources.
+     *
+     * <p>This implementation returns false.</p>
+     * @return false for this task.
+     * @since Ant 1.7
+     */
+    protected boolean supportsNonFileResources() {
+        return false;
+    }
+
 }

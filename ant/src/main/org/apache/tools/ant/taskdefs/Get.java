@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,19 +18,20 @@
 
 package org.apache.tools.ant.taskdefs;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Date;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.util.JavaEnvUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
 
 /**
  * Gets a particular file from a URL source.
@@ -37,12 +39,14 @@ import org.apache.tools.ant.util.JavaEnvUtils;
  * actions on failures. NB: access through a firewall only works if the whole
  * Java runtime is correctly configured.
  *
- *
  * @since Ant 1.1
  *
  * @ant.task category="network"
  */
 public class Get extends Task {
+
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
     private URL source; // required
     private File dest; // required
     private boolean verbose = false;
@@ -52,12 +56,47 @@ public class Get extends Task {
     private String pword = null;
 
 
+
     /**
      * Does the work.
      *
      * @exception BuildException Thrown in unrecoverable error.
      */
     public void execute() throws BuildException {
+
+        //set up logging
+        int logLevel = Project.MSG_INFO;
+        DownloadProgress progress = null;
+        if (verbose) {
+            progress = new VerboseProgress(System.out);
+        }
+
+        //execute the get
+        try {
+            doGet(logLevel, progress);
+        } catch (IOException ioe) {
+            log("Error getting " + source + " to " + dest);
+            if (!ignoreErrors) {
+                throw new BuildException(ioe, getLocation());
+            }
+        }
+    }
+
+    /**
+     * make a get request, with the supplied progress and logging info.
+     * All the other config parameters are set at the task level,
+     * source, dest, ignoreErrors, etc.
+     * @param logLevel level to log at, see {@link Project#log(String, int)}
+     * @param progress progress callback; null for no-callbacks
+     * @return true for a successful download, false otherwise.
+     * The return value is only relevant when {@link #ignoreErrors} is true, as
+     * when false all failures raise BuildExceptions.
+     * @throws IOException for network trouble
+     * @throws BuildException for argument errors, or other trouble when ignoreErrors
+     * is false.
+     */
+    public boolean doGet(int logLevel, DownloadProgress progress)
+            throws IOException {
         if (source == null) {
             throw new BuildException("src attribute is required", getLocation());
         }
@@ -68,171 +107,157 @@ public class Get extends Task {
 
         if (dest.exists() && dest.isDirectory()) {
             throw new BuildException("The specified destination is a directory",
-                                     getLocation());
+                    getLocation());
         }
 
         if (dest.exists() && !dest.canWrite()) {
             throw new BuildException("Can't write to " + dest.getAbsolutePath(),
-                                     getLocation());
+                    getLocation());
+        }
+        //dont do any progress, unless asked
+        if (progress == null) {
+            progress = new NullProgress();
+        }
+        log("Getting: " + source, logLevel);
+        log("To: " + dest.getAbsolutePath(), logLevel);
+
+        //set the timestamp to the file date.
+        long timestamp = 0;
+
+        boolean hasTimestamp = false;
+        if (useTimestamp && dest.exists()) {
+            timestamp = dest.lastModified();
+            if (verbose) {
+                Date t = new Date(timestamp);
+                log("local file date : " + t.toString(), logLevel);
+            }
+            hasTimestamp = true;
         }
 
-        try {
+        //set up the URL connection
+        URLConnection connection = source.openConnection();
+        //modify the headers
+        //NB: things like user authentication could go in here too.
+        if (hasTimestamp) {
+            connection.setIfModifiedSince(timestamp);
+        }
+        // prepare Java 1.1 style credentials
+        if (uname != null || pword != null) {
+            String up = uname + ":" + pword;
+            String encoding;
+            //we do not use the sun impl for portability,
+            //and always use our own implementation for consistent
+            //testing
+            Base64Converter encoder = new Base64Converter();
+            encoding = encoder.encode(up.getBytes());
+            connection.setRequestProperty ("Authorization",
+                    "Basic " + encoding);
+        }
 
-            log("Getting: " + source);
-
-            //set the timestamp to the file date.
-            long timestamp = 0;
-
-            boolean hasTimestamp = false;
-            if (useTimestamp && dest.exists()) {
-                timestamp = dest.lastModified();
-                if (verbose) {
-                    Date t = new Date(timestamp);
-                    log("local file date : " + t.toString());
-                }
-
-                hasTimestamp = true;
-            }
-
-            //set up the URL connection
-            URLConnection connection = source.openConnection();
-            //modify the headers
-            //NB: things like user authentication could go in here too.
-            if (useTimestamp && hasTimestamp) {
-                connection.setIfModifiedSince(timestamp);
-            }
-            // prepare Java 1.1 style credentials
-            if (uname != null || pword != null) {
-                String up = uname + ":" + pword;
-                String encoding;
-                // check to see if sun's Base64 encoder is available.
-                try {
-                    Object encoder =
-                            Class.forName("sun.misc.BASE64Encoder").newInstance();
-                    encoding = (String)
-                            encoder.getClass().getMethod("encode", new Class[] {byte[].class})
-                            .invoke(encoder, new Object[] {up.getBytes()});
-
-                } catch (Exception ex) { // sun's base64 encoder isn't available
-                    Base64Converter encoder = new Base64Converter();
-                    encoding = encoder.encode(up.getBytes());
-                }
-                connection.setRequestProperty ("Authorization",
-                                               "Basic " + encoding);
-            }
-
-            //connect to the remote site (may take some time)
-            connection.connect();
-            //next test for a 304 result (HTTP only)
-            if (connection instanceof HttpURLConnection) {
-                HttpURLConnection httpConnection
+        //connect to the remote site (may take some time)
+        connection.connect();
+        //next test for a 304 result (HTTP only)
+        if (connection instanceof HttpURLConnection) {
+            HttpURLConnection httpConnection
                     = (HttpURLConnection) connection;
-                if (httpConnection.getResponseCode()
-                    == HttpURLConnection.HTTP_NOT_MODIFIED)  {
-                    //not modified so no file download. just return
-                    //instead and trace out something so the user
-                    //doesn't think that the download happened when it
-                    //didn't
-                    log("Not modified - so not downloaded");
-                    return;
-                }
-                // test for 401 result (HTTP only)
-                if (httpConnection.getResponseCode()
+            long lastModified = httpConnection.getLastModified();
+            if (httpConnection.getResponseCode()
+                    == HttpURLConnection.HTTP_NOT_MODIFIED
+                || (lastModified != 0 && hasTimestamp
+                && timestamp >= lastModified)) {
+                //not modified so no file download. just return
+                //instead and trace out something so the user
+                //doesn't think that the download happened when it
+                //didn't
+                log("Not modified - so not downloaded", logLevel);
+                return false;
+            }
+            // test for 401 result (HTTP only)
+            if (httpConnection.getResponseCode()
                     == HttpURLConnection.HTTP_UNAUTHORIZED)  {
-                    String message = "HTTP Authorization failure";
-                    if (ignoreErrors) {
-                        log(message, Project.MSG_WARN);
-                        return;
-                    } else {
-                        throw new BuildException(message);
-                    }
-                }
-
-            }
-
-            //REVISIT: at this point even non HTTP connections may
-            //support the if-modified-since behaviour -we just check
-            //the date of the content and skip the write if it is not
-            //newer. Some protocols (FTP) don't include dates, of
-            //course.
-
-            InputStream is = null;
-            for (int i = 0; i < 3; i++) {
-                try {
-                    is = connection.getInputStream();
-                    break;
-                } catch (IOException ex) {
-                    log("Error opening connection " + ex);
-                }
-            }
-            if (is == null) {
-                log("Can't get " + source + " to " + dest);
+                String message = "HTTP Authorization failure";
                 if (ignoreErrors) {
-                    return;
-                }
-                throw new BuildException("Can't get " + source + " to " + dest,
-                                         getLocation());
-            }
-
-            FileOutputStream fos = new FileOutputStream(dest);
-            boolean finished = false;
-            try {
-                byte[] buffer = new byte[100 * 1024];
-                int length;
-                int dots = 0;
-
-                while ((length = is.read(buffer)) >= 0) {
-                    fos.write(buffer, 0, length);
-                    if (verbose) {
-                        System.out.print(".");
-                        if (dots++ > 50) {
-                            System.out.flush();
-                            dots = 0;
-                        }
-                    }
-                }
-                if (verbose) {
-                    System.out.println();
-                }
-                finished = true;
-            } finally {
-                if (fos != null) {
-                    fos.close();
-                }
-                is.close();
-                // we have started to (over)write dest, but failed.
-                // Try to delete the garbage we'd otherwise leave
-                // behind.
-                if (!finished) {
-                    dest.delete();
+                    log(message, logLevel);
+                    return false;
+                } else {
+                    throw new BuildException(message);
                 }
             }
 
-            //if (and only if) the use file time option is set, then
-            //the saved file now has its timestamp set to that of the
-            //downloaded file
-            if (useTimestamp)  {
-                long remoteTimestamp = connection.getLastModified();
-                if (verbose)  {
-                    Date t = new Date(remoteTimestamp);
-                    log("last modified = " + t.toString()
-                        + ((remoteTimestamp == 0)
-                          ? " - using current time instead"
-                          : ""));
-                }
-                if (remoteTimestamp != 0) {
-                    FileUtils.newFileUtils()
-                        .setFileLastModified(dest, remoteTimestamp);
-                }
-            }
-        } catch (IOException ioe) {
-            log("Error getting " + source + " to " + dest);
-            if (ignoreErrors) {
-                return;
-            }
-            throw new BuildException(ioe, getLocation());
         }
+
+        //REVISIT: at this point even non HTTP connections may
+        //support the if-modified-since behaviour -we just check
+        //the date of the content and skip the write if it is not
+        //newer. Some protocols (FTP) don't include dates, of
+        //course.
+
+        InputStream is = null;
+        for (int i = 0; i < 3; i++) {
+            //this three attempt trick is to get round quirks in different
+            //Java implementations. Some of them take a few goes to bind
+            //property; we ignore the first couple of such failures.
+            try {
+                is = connection.getInputStream();
+                break;
+            } catch (IOException ex) {
+                log("Error opening connection " + ex, logLevel);
+            }
+        }
+        if (is == null) {
+            log("Can't get " + source + " to " + dest, logLevel);
+            if (ignoreErrors) {
+                return false;
+            }
+            throw new BuildException("Can't get " + source + " to " + dest,
+                    getLocation());
+        }
+
+        FileOutputStream fos = new FileOutputStream(dest);
+        progress.beginDownload();
+        boolean finished = false;
+        try {
+            byte[] buffer = new byte[100 * 1024];
+            int length;
+            while ((length = is.read(buffer)) >= 0) {
+                fos.write(buffer, 0, length);
+                progress.onTick();
+            }
+            finished = true;
+        } finally {
+            FileUtils.close(fos);
+            FileUtils.close(is);
+
+            // we have started to (over)write dest, but failed.
+            // Try to delete the garbage we'd otherwise leave
+            // behind.
+            if (!finished) {
+                dest.delete();
+            }
+        }
+        progress.endDownload();
+
+        //if (and only if) the use file time option is set, then
+        //the saved file now has its timestamp set to that of the
+        //downloaded file
+        if (useTimestamp)  {
+            long remoteTimestamp = connection.getLastModified();
+            if (verbose)  {
+                Date t = new Date(remoteTimestamp);
+                log("last modified = " + t.toString()
+                        + ((remoteTimestamp == 0)
+                        ? " - using current time instead"
+                        : ""), logLevel);
+            }
+            if (remoteTimestamp != 0) {
+                FILE_UTILS.setFileLastModified(dest, remoteTimestamp);
+            }
+        }
+
+        //successful download
+        return true;
     }
+
 
     /**
      * Set the URL to get.
@@ -289,9 +314,7 @@ public class Get extends Task {
      * @param v "true" to enable file time fetching
      */
     public void setUseTimestamp(boolean v) {
-        if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-            useTimestamp = v;
-        }
+        useTimestamp = v;
     }
 
 
@@ -313,82 +336,105 @@ public class Get extends Task {
         this.pword = p;
     }
 
-    /*********************************************************************
-    * BASE 64 encoding of a String or an array of bytes.
-    *
-    * Based on RFC 1421.
-    *
-    *********************************************************************/
+    /**
+     * Provide this for Backward Compatibility.
+     */
+    protected static class Base64Converter
+        extends org.apache.tools.ant.util.Base64Converter {
+    }
 
-    private static class  Base64Converter {
+    /**
+     * Interface implemented for reporting
+     * progess of downloading.
+     */
+    public interface DownloadProgress {
+        /**
+         * begin a download
+         */
+        void beginDownload();
 
-        public final char [ ]  alphabet = {
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',   //  0 to  7
-            'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',   //  8 to 15
-            'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',   // 16 to 23
-            'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',   // 24 to 31
-            'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',   // 32 to 39
-            'o', 'p', 'q', 'r', 's', 't', 'u', 'v',   // 40 to 47
-            'w', 'x', 'y', 'z', '0', '1', '2', '3',   // 48 to 55
-            '4', '5', '6', '7', '8', '9', '+', '/' }; // 56 to 63
+        /**
+         * tick handler
+         *
+         */
+        void onTick();
 
+        /**
+         * end a download
+         */
+        void endDownload();
+    }
 
-        public String  encode(String  s) {
-            return encode (s.getBytes());
+    /**
+     * do nothing with progress info
+     */
+    public static class NullProgress implements DownloadProgress {
+
+        /**
+         * begin a download
+         */
+        public void beginDownload() {
+
         }
 
-        public String  encode(byte[ ] octetString) {
-            int  bits24;
-            int  bits6;
-
-            char [ ]  out
-              = new char[((octetString.length - 1) / 3 + 1) * 4];
-
-            int outIndex = 0;
-            int i = 0;
-
-            while ((i + 3) <= octetString.length) {
-                // store the octets
-                bits24 = (octetString[i++] & 0xFF) << 16;
-                bits24 |= (octetString[i++] & 0xFF) << 8;
-
-                bits6 = (bits24 & 0x00FC0000) >> 18;
-                out[outIndex++] = alphabet[bits6];
-                bits6 = (bits24 & 0x0003F000) >> 12;
-                out[outIndex++] = alphabet[bits6];
-                bits6  = (bits24 & 0x00000FC0) >> 6;
-                out[outIndex++] = alphabet[bits6];
-                bits6 = (bits24 & 0x0000003F);
-                out[outIndex++] = alphabet[bits6];
-            }
-
-            if (octetString.length - i == 2) {
-                // store the octets
-                bits24 = (octetString[i] & 0xFF) << 16;
-                bits24 |= (octetString[i + 1] & 0xFF) << 8;
-                bits6 = (bits24 & 0x00FC0000) >> 18;
-                out[outIndex++] = alphabet[bits6];
-                bits6 = (bits24 & 0x0003F000) >> 12;
-                out[outIndex++] = alphabet[bits6];
-                bits6 = (bits24 & 0x00000FC0) >> 6;
-                out[outIndex++] = alphabet[bits6];
-
-                // padding
-                out[outIndex++] = '=';
-            } else if (octetString.length - i == 1) {
-                // store the octets
-                bits24 = (octetString[i] & 0xFF) << 16;
-                bits6 = (bits24 & 0x00FC0000) >> 18;
-                out[outIndex++] = alphabet[bits6];
-                bits6 = (bits24 & 0x0003F000) >> 12;
-                out[outIndex++] = alphabet[ bits6 ];
-
-                // padding
-                out[outIndex++] = '=';
-                out[outIndex++] = '=';
-            }
-
-            return new String(out);
+        /**
+         * tick handler
+         *
+         */
+        public void onTick() {
         }
-     }
+
+        /**
+         * end a download
+         */
+        public void endDownload() {
+
+        }
+    }
+
+    /**
+     * verbose progress system prints to some output stream
+     */
+    public static class VerboseProgress implements DownloadProgress  {
+        private int dots = 0;
+        // CheckStyle:VisibilityModifier OFF - bc
+        PrintStream out;
+        // CheckStyle:VisibilityModifier ON
+
+        /**
+         * Construct a verbose progress reporter.
+         * @param out the output stream.
+         */
+        public VerboseProgress(PrintStream out) {
+            this.out = out;
+        }
+
+        /**
+         * begin a download
+         */
+        public void beginDownload() {
+            dots = 0;
+        }
+
+        /**
+         * tick handler
+         *
+         */
+        public void onTick() {
+            out.print(".");
+            if (dots++ > 50) {
+                out.flush();
+                dots = 0;
+            }
+        }
+
+        /**
+         * end a download
+         */
+        public void endDownload() {
+            out.println();
+            out.flush();
+        }
+    }
+
 }

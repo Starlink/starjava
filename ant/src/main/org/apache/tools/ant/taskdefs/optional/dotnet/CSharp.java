@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,16 +34,14 @@ package org.apache.tools.ant.taskdefs.optional.dotnet;
 
 import java.io.File;
 
-import org.apache.tools.ant.taskdefs.condition.Os;
-
 // ====================================================================
 
 /**
  *  Compiles C# source into executables or modules.
  *
- * csc.exe on Windows or mcs on other platforms must be on the execute path, unless another executable
- * or the full path to that executable is specified in the <tt>executable</tt>
- * parameter
+ * csc.exe on Windows or mcs on other platforms must be on the execute
+ * path, unless another executable or the full path to that executable
+ * is specified in the <tt>executable</tt> parameter
  * <p>
  * All parameters are optional: &lt;csc/&gt; should suffice to produce a debug
  * build of all *.cs files. However, naming an <tt>destFile</tt>stops the
@@ -60,8 +59,14 @@ import org.apache.tools.ant.taskdefs.condition.Os;
  * For more complex source trees, nested <tt>src</tt> elemements can be
  * supplied. When such an element is present, the implicit fileset is ignored.
  * This makes sense, when you think about it :)
- * <p>
  *
+ * <p>For historical reasons the pattern
+ * <code>**</code><code>/*.cs</code> is preset as includes list and
+ * you can not override it with an explicit includes attribute.  Use
+ * nested <code>&lt;src&gt;</code> elements instead of the basedir
+ * attribute if you need more control.</p>
+ *
+ * <p>
  * References to external files can be made through the references attribute,
  * or (since Ant1.6), via nested &lt;reference&gt; filesets. With the latter,
  * the timestamps of the references are also used in the dependency
@@ -71,17 +76,17 @@ import org.apache.tools.ant.taskdefs.condition.Os;
  * Example
  *
  * <pre>&lt;csc
- * 	optimize=&quot;true&quot;
- * 	debug=&quot;false&quot;
- * 	docFile=&quot;documentation.xml&quot;
- * 	warnLevel=&quot;4&quot;
- * 	unsafe=&quot;false&quot;
- * 	targetType=&quot;exe&quot;
- * 	incremental=&quot;false&quot;
- * 	mainClass = &quot;MainApp&quot;
- * 	destFile=&quot;NetApp.exe&quot;
- * 	&gt;
- * 	     &lt;src dir="src" includes="*.cs" /&gt;
+ *       optimize=&quot;true&quot;
+ *       debug=&quot;false&quot;
+ *       docFile=&quot;documentation.xml&quot;
+ *       warnLevel=&quot;4&quot;
+ *       unsafe=&quot;false&quot;
+ *       targetType=&quot;exe&quot;
+ *       incremental=&quot;false&quot;
+ *       mainClass = &quot;MainApp&quot;
+ *       destFile=&quot;NetApp.exe&quot;
+ *       &gt;
+ *           &lt;src dir="src" includes="*.cs" /&gt;
  *       &lt;reference file="${testCSC.dll}" /&gt;
  *       &lt;define name="RELEASE" /&gt;
  *       &lt;define name="DEBUG" if="debug.property"/&gt;
@@ -96,6 +101,7 @@ import org.apache.tools.ant.taskdefs.condition.Os;
 
 public class CSharp extends DotnetCompile {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      *  defines list: RELEASE;WIN32;NO_SANITY_CHECKS;;SOMETHING_ELSE'
      */
@@ -132,6 +138,7 @@ public class CSharp extends DotnetCompile {
      * settings files 'csc.rsp' in its bin directory and then the local directory
      */
     private boolean noconfig = false;
+    // CheckStyle:VisibilityModifier ON
 
 
     /**
@@ -154,7 +161,7 @@ public class CSharp extends DotnetCompile {
         unsafe = false;
         noconfig = false;
         definitions = null;
-        setExecutable(Os.isFamily("windows") ? "csc" : "mcs");
+        setExecutable(isWindows ? "csc" : "mcs");
     }
 
 
@@ -186,6 +193,7 @@ public class CSharp extends DotnetCompile {
      * Set the file alignment.
      * Valid values are 0,512, 1024, 2048, 4096, 8192,
      * and 16384, 0 means 'leave to the compiler'
+     * @param fileAlign the value to use.
      */
     public void setFileAlign(int fileAlign) {
         this.fileAlign = fileAlign;
@@ -197,7 +205,7 @@ public class CSharp extends DotnetCompile {
      *@return    The OutputFile Parameter to CSC
      */
     protected String getFileAlignParameter() {
-        if (fileAlign != 0) {
+        if (fileAlign != 0 && !"mcs".equals(getExecutable())) {
             return "/filealign:" + fileAlign;
         } else {
             return null;
@@ -362,6 +370,7 @@ public class CSharp extends DotnetCompile {
 
     /**
      * Returns the delimiter which C# uses to separate references, i.e., a semi colon.
+     * @return the delimiter.
      */
     public String getReferenceDelimiter() {
         return ";";
@@ -377,13 +386,13 @@ public class CSharp extends DotnetCompile {
     }
 
     /**
-     * from a resource, get the resource param string
-     * @param resource
-     * @return a string containing the resource param, or a null string
-     * to conditionally exclude a resource.
+     * Build a C# style parameter.
+     * @param command the command.
+     * @param resource the resource.
      */
-    protected String createResourceParameter(DotnetResource resource) {
-        return resource.getCSharpStyleParameter();
+    protected void createResourceParameter(
+        NetCommand command, DotnetResource resource) {
+        resource.getParameters(getProject(), command, true);
     }
 
 }

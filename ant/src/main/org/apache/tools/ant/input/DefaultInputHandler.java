@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,17 +18,16 @@
 
 package org.apache.tools.ant.input;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Enumeration;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.util.KeepAliveInputStream;
 
 /**
  * Prompts on System.err, reads input from System.in
  *
- * @version $Revision: 1.12.2.5 $
  * @since Ant 1.5
  */
 public class DefaultInputHandler implements InputHandler {
@@ -46,15 +46,14 @@ public class DefaultInputHandler implements InputHandler {
      */
     public void handleInput(InputRequest request) throws BuildException {
         String prompt = getPrompt(request);
-        DataInputStream in = null;
+        BufferedReader r = null;
         try {
-            in =
-                new DataInputStream(new KeepAliveInputStream(getInputStream()));
+            r = new BufferedReader(new InputStreamReader(getInputStream()));
             do {
                 System.err.println(prompt);
                 System.err.flush();
                 try {
-                    String input = in.readLine();
+                    String input = r.readLine();
                     request.setInput(input);
                 } catch (IOException e) {
                     throw new BuildException("Failed to read input from"
@@ -62,9 +61,9 @@ public class DefaultInputHandler implements InputHandler {
                 }
             } while (!request.isInputValid());
         } finally {
-            if (in != null) {
+            if (r != null) {
                 try {
-                    in.close();
+                    r.close();
                 } catch (IOException e) {
                     throw new BuildException("Failed to close input.", e);
                 }
@@ -84,23 +83,34 @@ public class DefaultInputHandler implements InputHandler {
      */
     protected String getPrompt(InputRequest request) {
         String prompt = request.getPrompt();
+        String def = request.getDefaultValue();
         if (request instanceof MultipleChoiceInputRequest) {
             StringBuffer sb = new StringBuffer(prompt);
-            sb.append("(");
+            sb.append(" (");
             Enumeration e =
                 ((MultipleChoiceInputRequest) request).getChoices().elements();
             boolean first = true;
             while (e.hasMoreElements()) {
                 if (!first) {
-                    sb.append(",");
+                    sb.append(", ");
                 }
-                sb.append(e.nextElement());
+                String next = (String) e.nextElement();
+                if (next.equals(def)) {
+                    sb.append('[');
+                }
+                sb.append(next);
+                if (next.equals(def)) {
+                    sb.append(']');
+                }
                 first = false;
             }
             sb.append(")");
-            prompt = sb.toString();
+            return sb.toString();
+        } else if (def != null) {
+            return prompt + " [" + def + "]";
+        } else {
+            return prompt;
         }
-        return prompt;
     }
 
     /**

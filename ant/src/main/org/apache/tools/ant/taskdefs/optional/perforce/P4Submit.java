@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -35,16 +36,17 @@ import java.util.Vector;
  * Example Usage:-<br>
  * &lt;p4submit change="${p4.change}" /&gt;
  *
- *
  * @ant.task category="scm"
  */
 public class P4Submit extends P4Base {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     //ToDo: If dealing with default cl need to parse out <enter description here>
     /**
      * change list number
      */
     public String change;
+    // CheckStyle:VisibilityModifier ON
     /**
      * change property
      */
@@ -96,6 +98,10 @@ public class P4Submit extends P4Base {
      * internal class used to process the output of p4 submit
      */
     public class P4SubmitAdapter extends SimpleP4OutputHandler {
+        /**
+         * Constructor.
+         * @param parent a P4Base instance.
+         */
         public P4SubmitAdapter(P4Base parent) {
             super(parent);
         }
@@ -114,7 +120,7 @@ public class P4Submit extends P4Base {
                     util.split(myarray, line);
                     boolean found = false;
                     for (int counter = 0; counter < myarray.size(); counter++) {
-                        if (found == true) {
+                        if (found) {
                             String chnum = (String) myarray.elementAt(counter + 1);
                             int changenumber = Integer.parseInt(chnum);
                             log("Perforce change renamed " + changenumber, Project.MSG_INFO);

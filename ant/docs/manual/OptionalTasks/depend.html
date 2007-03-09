@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Depend Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -144,9 +160,15 @@ classes. Defaults to false</td>
   </tr>
   <tr>
     <td valign="top">classpath</td>
-    <td valign="top">The classpath containg jars and classes for which <code>&lt;depend&gt;</code> should also
+    <td valign="top">The classpath containing jars and classes for which <code>&lt;depend&gt;</code> should also
                      check dependencies</td>
     <td valign="top" align="center">No</td>
+  </tr>
+  <tr>
+    <td valign="top">warnOnRmiStubs</td>
+    <td valign="top">Flag to disable warnings about files that look like rmic generated stub/skeleton
+    classes, and which have no .java source. Useful when doing rmi development. </td>
+    <td valign="top" align="center">No, default=true</td>
   </tr>
 </table>
 
@@ -164,32 +186,30 @@ as well as the nested <code>&lt;include&gt;</code>,
 <code>&lt;exclude&gt;</code>, and <code>&lt;patternset&gt;</code> elements.
 
 <h3>Examples</h3>
-<pre>&lt;depend srcdir=&quot;${java.dir}&quot;
-        destdir=&quot;${build.classes}&quot;
+<pre>&lt;depend srcdir=&quot;src/main&quot;
+        destdir=&quot;build/classes&quot;
         cache=&quot;depcache&quot;
         closure=&quot;yes&quot;/&gt;</pre>
 
-<p>removes any classes in the <code>${build.classes}</code> directory
+<p>removes any classes in the <code>build/classes</code> directory
 that depend on out-of-date classes. Classes are considered out-of-date with 
-respect to the source in the <code>${java.dir}</code> directory, using the same
+respect to the source in the <code>src/main</code> directory, using the same
 mechanism as the <code>&lt;javac&gt;</code> task. In this example, the
 <code>&lt;depend&gt;</code> task caches its dependency 
 information in the <code>depcache</code> directory. </p>
 
 <pre>
-&lt;depend srcdir=&quot;${java.dir}&quot; destdir=&quot;${build.classes}&quot;
+&lt;depend srcdir=&quot;src/main&quot; destdir=&quot;build/classes&quot;
         cache=&quot;depcache&quot; closure=&quot;yes&quot;&gt;
   &lt;include name=&quot;**/*.java&quot;/&gt;
-  &lt;excludesfile name=&quot;${java.dir}/build_excludes&quot;/&gt;
+  &lt;excludesfile name=&quot;src/main/build_excludes&quot;/&gt;
 &lt;/depend&gt;
 </pre>
 <p>does the same as the previous example, but explicitly includes all
 <code>.java</code> files, except those that match the list given
-in <code>${java.dir}/build_excludes</code>.</p>
+in <code>src/main/build_excludes</code>.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2001-2002,2004 The Apache Software Foundation.
-All rights Reserved.</p>
+
 
 </body>
 </html>

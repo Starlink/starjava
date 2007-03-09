@@ -1,22 +1,55 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
   <head>
     <meta http-equiv="Content-Language" content="en-us"></meta>
-    <title>AntLib</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
+    <link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
+<title>AntLib</title>
   </head>
 
   <body>
     <h2><a name="antlib">Antlib</a></h2>
+
+
     <h3>Description</h3>
     <p>
       An antlib file is an xml file with a root element of "antlib".
       Antlib's elements are ant definition tasks - like
-      <a href="../CoreTasks/typedef.html">Typedef</a>
+      
       and <a href="../CoreTasks/taskdef.html">Taskdef</a>,
       or any ant task that extends
       <code>org.apache.tools.ant.taskdefs.AntlibDefinition</code>.
     </p>
+    <p>
+        The current set of declarations bundled with Ant that do this are:
+    </p>
+        <ol>
+            <li><a href="../CoreTasks/typedef.html">Typedef</a>
+            </li>
+            <li><a href="../CoreTasks/taskdef.html">Taskdef</a>
+            </li>
+            <li><a href="../CoreTasks/macrodef.html">Macrodef</a>
+            </li>
+            <li><a href="../CoreTasks/presetdef.html">Presetdef</a>
+            </li>
+            <li><a href="../OptionalTasks/scriptdef.html">Scriptdef</a>
+            </li>
+        </ol>
     <p>
       A group of tasks and types may be defined together in an antlib
       file. For example the file <i>sample.xml</i> contains the following:
@@ -29,6 +62,14 @@
    &lt;typedef name="scriptpathmapper"
             classname="org.acme.ant.ScriptPathMapper"
             onerror="ignore"/&gt;
+   &lt;macrodef name="print"&gt;
+      &lt;attribute name="file"/&gt;
+      &lt;sequential&gt;
+         &lt;concat taskname="print"&gt;
+            &lt;fileset dir="." includes="@{file}"/&gt;
+         &lt;/concat&gt;
+      &lt;/sequential&gt;
+   &lt;/macrodef&gt;
 &lt;/antlib&gt;
       </pre>
     </blockquote>
@@ -42,7 +83,7 @@
       </pre>
     </blockquote>
     <p>
-      The other attributes of &lt;typedef&gt; may be used as well.
+      The other attributes of <code>&lt;typedef&gt;</code> may be used as well.
       For example, assuming that the <i>sample.xml</i> is in a jar
       file <i>sample.jar</i> also containing the classes, the
       following build fragment will define the <i>if</i> and <i>scriptpathmapper</i>
@@ -66,6 +107,8 @@
 &lt;/sample:if&gt;
       </pre>
     </blockquote>
+
+
     <h3><a name="antlibnamespace">Antlib namespace</a></h3>
     <p>
       The name space URIs with the pattern <b>antlib:<i>java package</i></b>
@@ -78,7 +121,7 @@
     </p>
     <p>
       For example, assuming that the file <i>antcontrib.jar</i> has been placed
-      in the directory <i>${ant.home}/lib</i> and it contains the resource
+      in the directory <i>/Users/antoine/dev/asf/ant-core/bootstrap/lib</i> and it contains the resource
       <i>net/sf/antcontrib/antlib.xml</i> which has all antcontrib's definitions
       defined, the following build file will automatically load the antcontrib
       definitions at location <i>HERE</i>:
@@ -112,16 +155,46 @@
       The requirement that the resource is in the default classpath
       may be removed in future versions of Ant.</p>
     </p>
+
+
+	<h3><a name="loadFromInside">Load antlib from inside of the buildfile</a></h3>
+	<p>
+	  If you want to seperate the antlib from your local Ant installation, e.g. because you 
+	  want to hold that jar in your projects SCM system, you have to specify a classpath, so 
+	  that Ant could find that jar. The best solution is loading the antlib with <tt>&lt;taskdef&gt;</tt>.
+	</p>
+    <blockquote>
+      <pre>
+&lt;project xmlns:<font color="green">antcontrib</font>="<font color="red">antlib:net.sf.antcontrib</font>"&gt;
+   &lt;taskdef uri="<font color="red">antlib:net.sf.antcontrib</font>"
+            resource="net/sf/antcontrib/antlib.xml"
+            classpath="path/to/ant-contrib.jar"/&gt;
+   
+   &lt;target name="iterate"&gt;
+      &lt;<font color="green">antcontrib</font>:for param="file"&gt;
+         &lt;fileset dir="."/&gt;
+         &lt;sequential&gt;
+            &lt;echo message="- @{file}"/&gt;
+         &lt;/sequential&gt;
+      &lt;/antcontrib:for&gt;
+   &lt;/target&gt;
+&lt;/project&gt;
+      </pre>
+    </blockquote>
+
+	
+	
+
     <h3><a name="currentnamespace">Current namespace</a></h3>
     <p>
       Definitions defined in antlibs may be used in antlibs. However
       the namespace that definitions are placed in are dependent on
-      the &lt;typedef&gt; that uses the antlib. To deal with this
+      the <code>&lt;typedef&gt;</code> that uses the antlib. To deal with this
       problem, the definitions are placed in the namepace URI <i>ant:current</i>
       for the duration of the antlib execution.
-      For example the following antlib defines the task &lt;if&gt;, the
-      type &lt;isallowed&gt; and a macro
-      &lt;ifallowed&gt; that makes use of the task and type:
+      For example the following antlib defines the task <code>&lt;if&gt;</code>, the
+      type <code>&lt;isallowed&gt;</code> and a macro
+      <code>&lt;ifallowed&gt;</code> that makes use of the task and type:
     </p>
     <blockquote>
       <pre>
@@ -143,13 +216,15 @@
 &lt;/antlib&gt;
       </pre>
     </blockquote>
+
+
     <h3>Other examples and comments</h3>
     <p>
       Antlibs may make use of other antlibs.
     </p>
     <p>
       As the names defined in the antlib are in the namespace uri as
-      specified by the calling &lt;typedef&gt; or by automatic element
+      specified by the calling <code>&lt;typedef&gt;</code> or by automatic element
       resolution, one may reuse names from core ant types and tasks,
       provided the caller uses a namespace uri. For example, the
       following antlib may be used to define defaults for various
@@ -159,8 +234,8 @@
       <pre>
 &lt;antlib xmlns:antcontrib="antlib:net.sf.antcontrib"&gt;
    &lt;presetdef name="javac"&gt;
-      &lt;javac deprecation="${deprecation}"
-             debug="${debug}"/&gt;
+      &lt;javac deprecation="false"
+             debug="true"/&gt;
    &lt;/presetdef&gt;
    &lt;presetdef name="delete"&gt;
       &lt;delete quiet="yes"/&gt;
@@ -185,9 +260,7 @@
       </pre>
     </blockquote>
     
-<hr>
-<p align="center">Copyright &copy; 2003-2004 The Apache Software
-Foundation. All rights Reserved.</p>
+
 
 </body>
 </html>

@@ -313,6 +313,51 @@
         <fail if="17fail">Files were created.</fail>
     </target>
 
+    <target name="redirector18" depends="init" if="test.can.run">
+        <exec executable="sh">
+            <arg value="parrot.sh"/>
+            <arg value="${ant.file}" />
+            <redirector alwayslog="true" logerror="true"
+                        outputproperty="redirector.out" />
+        </exec>
+        <fail message="property redirector.out has unexpected content">
+            <condition>
+                <not>
+                    <equals arg1="${ant.file} out" arg2="${redirector.out}" />
+                </not>
+            </condition>
+        </fail>
+    </target>
+
+    <!-- test will succeed as the OS wont match-->
+    <target name="testExecUnknownOS">
+      <exec executable="nonexistent-program-we-expect"
+        failonerror="true"
+        os="ZX81">
+      </exec>
+    </target>
+
+    <target name="testExecOSFamily">
+      <exec executable="uptime"
+        failonerror="true"
+        osFamily="unix">
+      </exec>
+      <exec executable="cmd.exe"
+        failonerror="true"
+        osFamily="winnt">
+        <arg value="/c" />
+        <arg value="time /t" />
+      </exec>
+    </target>    
+    
+    <target name="testExecInconsistentSettings">
+      <exec executable="nonexistent-program-we-expect"
+        failonerror="true"
+        osFamily="WIN9X"
+        os="linux unix">
+      </exec>
+    </target>
+    
     <target name="cleanup">
         <delete>
             <fileset file="${logFile}" />

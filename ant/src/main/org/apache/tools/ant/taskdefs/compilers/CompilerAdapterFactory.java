@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,6 +21,7 @@ package org.apache.tools.ant.taskdefs.compilers;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.ClasspathUtils;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
@@ -27,7 +29,7 @@ import org.apache.tools.ant.util.JavaEnvUtils;
  *
  * @since Ant 1.3
  */
-public class CompilerAdapterFactory {
+public final class CompilerAdapterFactory {
     private static final String MODERN_COMPILER = "com.sun.tools.javac.Main";
 
     /** This is a singleton -- can't create instances!! */
@@ -55,6 +57,7 @@ public class CompilerAdapterFactory {
      * @param compilerType either the name of the desired compiler, or the
      * full classname of the compiler's adapter.
      * @param task a task to log through.
+     * @return the compiler adapter
      * @throws BuildException if the compiler type could not be resolved into
      * a compiler adapter.
      */
@@ -62,8 +65,7 @@ public class CompilerAdapterFactory {
         throws BuildException {
             boolean isClassicCompilerSupported = true;
             //as new versions of java come out, add them to this test
-            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)
-                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)
+            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)
                 && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3)) {
                 isClassicCompilerSupported = false;
             }
@@ -92,7 +94,8 @@ public class CompilerAdapterFactory {
             if (compilerType.equalsIgnoreCase("modern")
                 || compilerType.equalsIgnoreCase("javac1.3")
                 || compilerType.equalsIgnoreCase("javac1.4")
-                || compilerType.equalsIgnoreCase("javac1.5")) {
+                || compilerType.equalsIgnoreCase("javac1.5")
+                || compilerType.equalsIgnoreCase("javac1.6")) {
                 // does the modern compiler exist?
                 if (doesModernCompilerExist()) {
                     return new Javac13();
@@ -108,7 +111,10 @@ public class CompilerAdapterFactory {
                                                  + " is not on the "
                                                  + "classpath.\n"
                                                  + "Perhaps JAVA_HOME does not"
-                                                 + " point to the JDK");
+                                                 + " point to the JDK.\n"
+                                + "It is currently set to \""
+                                + JavaEnvUtils.getJavaHome()
+                                + "\"");
                     }
                 }
             }
@@ -140,9 +146,13 @@ public class CompilerAdapterFactory {
             return true;
         } catch (ClassNotFoundException cnfe) {
             try {
-                CompilerAdapterFactory.class.getClassLoader().loadClass(MODERN_COMPILER);
-                return true;
+                ClassLoader cl = CompilerAdapterFactory.class.getClassLoader();
+                if (cl != null) {
+                    cl.loadClass(MODERN_COMPILER);
+                    return true;
+                }
             } catch (ClassNotFoundException cnfe2) {
+                // Ignore Exception
             }
         }
         return false;
@@ -158,21 +168,9 @@ public class CompilerAdapterFactory {
      */
     private static CompilerAdapter resolveClassName(String className)
         throws BuildException {
-        try {
-            Class c = Class.forName(className);
-            Object o = c.newInstance();
-            return (CompilerAdapter) o;
-        } catch (ClassNotFoundException cnfe) {
-            throw new BuildException("Compiler Adapter '" + className
-                    + "' can\'t be found.", cnfe);
-        } catch (ClassCastException cce) {
-            throw new BuildException(className + " isn\'t the classname of "
-                    + "a compiler adapter.", cce);
-        } catch (Throwable t) {
-            // for all other possibilities
-            throw new BuildException("Compiler Adapter " + className
-                    + " caused an interesting exception.", t);
-        }
+        return (CompilerAdapter) ClasspathUtils.newInstance(className,
+                CompilerAdapterFactory.class.getClassLoader(),
+                CompilerAdapter.class);
     }
 
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,6 +19,7 @@
 package org.apache.tools.ant.taskdefs.optional.dotnet;
 
 import org.apache.tools.ant.taskdefs.MatchingTask;
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.DirectoryScanner;
@@ -32,6 +34,7 @@ import java.util.Enumeration;
  * can use shared code.
  */
 public class DotnetBaseMatchingTask extends MatchingTask {
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      *  output file. If not supplied this is derived from the source file
      */
@@ -47,7 +50,19 @@ public class DotnetBaseMatchingTask extends MatchingTask {
     protected File srcDir;
 
     /**
+     * Are we running on Windows?
+     *
+     * @since Ant 1.6.3
+     */
+    // CheckStyle:ConstantNameCheck OFF - bc
+    protected static final boolean isWindows = Os.isFamily("windows");
+
+    // CheckStyle:ConstantNameCheck ON
+    // CheckStyle:VisibilityModifier ON
+
+    /**
     * Overridden because we need to be able to set the srcDir.
+    * @return the source directory.
     */
     public File getSrcDir() {
         return this.srcDir;
@@ -73,7 +88,7 @@ public class DotnetBaseMatchingTask extends MatchingTask {
 
     /**
      * add a new source directory to the compile
-     * @param src
+     * @param src a fileset.
      */
     public void addSrc(FileSet src) {
         filesets.add(src);
@@ -89,6 +104,7 @@ public class DotnetBaseMatchingTask extends MatchingTask {
 
     /**
      * create the list of files
+     * @param command the command to create the files for.
      * @param filesToBuild vector to add files to
      * @param outputTimestamp timestamp to compare against
      * @return number of files out of date
@@ -130,7 +146,8 @@ public class DotnetBaseMatchingTask extends MatchingTask {
      */
     protected void addFilesToCommand(Hashtable filesToBuild, NetCommand command) {
         int count = filesToBuild.size();
-        log("compiling " + count + " file" + ((count == 1) ? "" : "s"));
+        log("compiling " + count + " file" + ((count == 1) ? "" : "s"),
+                Project.MSG_VERBOSE);
         Enumeration files = filesToBuild.elements();
         while (files.hasMoreElements()) {
             File file = (File) files.nextElement();
@@ -154,19 +171,18 @@ public class DotnetBaseMatchingTask extends MatchingTask {
 
     /**
      * finish off the command by adding all dependent files, execute
-     * @param command
+     * @param command the command to update.
+     * @param ignoreTimestamps not used.
      */
     protected void addFilesAndExecute(NetCommand command, boolean ignoreTimestamps) {
         long outputTimestamp = getOutputFileTimestamp();
         Hashtable filesToBuild = new Hashtable();
         int filesOutOfDate = buildFileList(command, filesToBuild, outputTimestamp);
 
-        //add the files to the command
-        addFilesToCommand(filesToBuild, command);
-
-
         //now run the command of exe + settings + files
         if (filesOutOfDate > 0) {
+            //add the files to the command
+            addFilesToCommand(filesToBuild, command);
             command.runCommand();
         } else {
             log("output file is up to date", Project.MSG_VERBOSE);

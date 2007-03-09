@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,14 +21,17 @@ import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
+
+// CheckStyle:HideUtilityClassConstructorCheck OFF - bc
 
 /**
  * Offers some helper methods on the Path structure in ant.
  *
- * <p>Basic idea behind this utility class is to use it from inside the
- * different ant objects (and user defined objects) that need classLoading
+ * <p>The basic idea behind this utility class is to use it from inside the
+ * different Ant objects (and user defined objects) that need classLoading
  * for their operation.
  * Normally those would have a setClasspathRef() {for the @classpathref}
  * and/or a createClasspath() {for the nested &lt;classpath&gt;}
@@ -64,11 +68,11 @@ import org.apache.tools.ant.types.Reference;
  * @since Ant 1.6
  */
 public class ClasspathUtils {
-    private static final String LOADER_ID_PREFIX = "ant.loader.";
+
     /**
      * Name of the magic property that controls classloader reuse in Ant 1.4.
      */
-    public static final String REUSE_LOADER_REF = "ant.reuse.loader";
+    public static final String REUSE_LOADER_REF = MagicNames.REFID_CLASSPATH_REUSE_LOADER;
 
     /**
      * Convenience overloaded version of {@link
@@ -76,8 +80,8 @@ public class ClasspathUtils {
      *
      * <p>Assumes the logical 'false' for the reverseLoader.</p>
      *
-     * @param p
-     * @param ref
+     * @param p the project
+     * @param ref the reference
      * @return The class loader
      */
     public static ClassLoader getClassLoaderForPath(
@@ -91,12 +95,12 @@ public class ClasspathUtils {
      * String, boolean)}.
      *
      * <p>Delegates to the other one after extracting the referenced
-     * Path from the Project This checks also that the passed
+     * Path from the Project. This checks also that the passed
      * Reference is pointing to a Path all right.</p>
-     * @param p current ant project
+     * @param p current Ant project
      * @param ref Reference to Path structure
      * @param reverseLoader if set to true this new loader will take
-     * precedence over it's parent (which is contra the regular
+     * precedence over its parent (which is contra the regular
      * classloader behaviour)
      * @return The class loader
      */
@@ -111,7 +115,7 @@ public class ClasspathUtils {
                     + pathId
                     + " does not reference a Path.");
         }
-        String loaderId = LOADER_ID_PREFIX + pathId;
+        String loaderId = MagicNames.REFID_CLASSPATH_LOADER_PREFIX + pathId;
         return getClassLoaderForPath(p, (Path) path, loaderId, reverseLoader);
     }
 
@@ -121,8 +125,9 @@ public class ClasspathUtils {
      *
      * <p>Assumes the logical 'false' for the reverseLoader.</p>
      *
-     * @param path
-     * @param loaderId
+     * @param p current Ant project
+     * @param path the path
+     * @param loaderId the loader id string
      * @return The class loader
      */
     public static ClassLoader getClassLoaderForPath(
@@ -138,8 +143,12 @@ public class ClasspathUtils {
      * <p>Sets value for 'reuseLoader' to true if the magic property
      * has been set.</p>
      *
-     * @param path
-     * @param loaderId
+     * @param p the project
+     * @param path the path
+     * @param loaderId the loader id string
+     * @param reverseLoader if set to true this new loader will take
+     * precedence over its parent (which is contra the regular
+     * classloader behaviour)
      * @return The class loader
      */
     public static ClassLoader getClassLoaderForPath(
@@ -153,16 +162,17 @@ public class ClasspathUtils {
      * defined in the path argument.
      *
      * <p>Based on the setting of the magic property
-     * 'ant.reuse.loader' this will try to reuse the perviously
+     * 'ant.reuse.loader' this will try to reuse the previously
      * created loader with that id, and of course store it there upon
      * creation.</p>
-     * @param path Path object to be used as classpath for this classloader
-     * @param loaderId identification for this Loader,
+     * @param p             Ant Project where the handled components are living in.
+     * @param path          Path object to be used as classpath for this classloader
+     * @param loaderId      identification for this Loader,
      * @param reverseLoader if set to true this new loader will take
-     * precedence over it's parent (which is contra the regular
-     * @param p Ant Project where the handled components are living in.
-     * classloader behaviour)
-     * @return ClassLoader that uses the Path as its classpath.
+     *                      precedence over its parent (which is contra the regular
+     *                      classloader behaviour)
+     * @param reuseLoader   if true reuse the loader if it is found
+     * @return              ClassLoader that uses the Path as its classpath.
      */
     public static ClassLoader getClassLoaderForPath(
         Project p, Path path, String loaderId, boolean reverseLoader,
@@ -178,7 +188,6 @@ public class ClasspathUtils {
                 throw new BuildException("The specified loader id " + loaderId
                     + " does not reference a class loader");
             }
-
             cl = (ClassLoader) reusedLoader;
         }
         if (cl == null) {
@@ -187,32 +196,31 @@ public class ClasspathUtils {
                 p.addReference(loaderId, cl);
             }
         }
-
         return cl;
     }
 
     /**
-     * Gets a fresh, different, not used before classloader that uses the
-     * passed path as it's classpath.
+     * Gets a fresh, different, previously unused classloader that uses the
+     * passed path as its classpath.
      *
      * <p>This method completely ignores the ant.reuse.loader magic
      * property and should be used with caution.</p>
-     * @param path the classpath for this loader
-     * @param reverseLoader
-     * @return The fresh, different, not used before class loader.
+     * @param p             Ant Project where the handled components are living in.
+     * @param path          the classpath for this loader
+     * @param reverseLoader if set to true this new loader will take
+     *                      precedence over its parent (which is contra the regular
+     *                      classloader behaviour)
+     * @return The fresh, different, previously unused class loader.
      */
     public static ClassLoader getUniqueClassLoaderForPath(
         Project p,
         Path path,
         boolean reverseLoader) {
-
-        AntClassLoader acl = p.createClassLoader(path != null
-                                                 ? path : Path.systemClasspath);
+        AntClassLoader acl = p.createClassLoader(path);
         if (reverseLoader) {
             acl.setParentFirst(false);
             acl.addJavaLibraries();
         }
-
         return acl;
     }
 
@@ -220,7 +228,7 @@ public class ClasspathUtils {
      * Creates a fresh object instance of the specified classname.
      *
      * <p> This uses the userDefinedLoader to load the specified class,
-     * and then makes an instance using the default no-argument constructor
+     * and then makes an instance using the default no-argument constructor.
      * </p>
      *
      * @param className the full qualified class name to load.
@@ -229,17 +237,46 @@ public class ClasspathUtils {
      * @throws BuildException when loading or instantiation failed.
      */
     public static Object newInstance(
+            String className,
+            ClassLoader userDefinedLoader) {
+        return newInstance(className, userDefinedLoader, Object.class);
+    }
+
+    /**
+     * Creates a fresh object instance of the specified classname.
+     *
+     * <p> This uses the userDefinedLoader to load the specified class,
+     * and then makes an instance using the default no-argument constructor.
+     * </p>
+     *
+     * @param className the full qualified class name to load.
+     * @param userDefinedLoader the classloader to use.
+     * @param expectedType the Class that the result should be assignment
+     * compatible with. (No ClassCastException will be thrown in case
+     * the result of this method is casted to the expectedType)
+     * @return The fresh object instance
+     * @throws BuildException when loading or instantiation failed.
+     * @since Ant 1.7
+     */
+    public static Object newInstance(
         String className,
-        ClassLoader userDefinedLoader) {
+        ClassLoader userDefinedLoader,
+        Class expectedType) {
         try {
-            Class clazz = userDefinedLoader.loadClass(className);
+            Class clazz = Class.forName(className, true, userDefinedLoader);
             Object o = clazz.newInstance();
+            if (!expectedType.isInstance(o)) {
+                throw new BuildException(
+                    "Class of unexpected Type: "
+                        + className
+                        + " expected :"
+                        + expectedType);
+            }
             return o;
         } catch (ClassNotFoundException e) {
             throw new BuildException(
-                "Class "
-                    + className
-                    + " not found by the specific classLoader.",
+                "Class not found: "
+                    + className,
                 e);
         } catch (InstantiationException e) {
             throw new BuildException(
@@ -254,6 +291,12 @@ public class ClasspathUtils {
                     + className
                     + ". Specified class should have a "
                     + "public constructor.",
+                e);
+        } catch (LinkageError e) {
+            throw new BuildException(
+                "Class "
+                    + className
+                    + " could not be loaded because of an invalid dependency.",
                 e);
         }
     }
@@ -290,8 +333,8 @@ public class ClasspathUtils {
      * <li> attribute @classname </li></ul>
      *
      * <p> This class functions as a delegate handling the configuration
-     * issues for this recuring pattern.  Its usage pattern, as the name
-     * suggests is delegation, not inheritance. </p>
+     * issues for this recurring pattern.  Its usage pattern, as the name
+     * suggests, is delegation rather than inheritance. </p>
      *
      * @since Ant 1.6
      */
@@ -304,8 +347,8 @@ public class ClasspathUtils {
         private boolean reverseLoader = false;
 
         /**
-         * Constructs Delegate
-         * @param component
+         * Construct a Delegate
+         * @param component the ProjectComponent this delegate is for.
          */
         Delegate(ProjectComponent component) {
             this.component = component;
@@ -314,9 +357,9 @@ public class ClasspathUtils {
         /**
          * This method is a Delegate method handling the @classpath attribute.
          *
-         * <p>This attribute can set a path to add to the classpath</p>
+         * <p>This attribute can set a path to add to the classpath.</p>
          *
-         * @param classpath
+         * @param classpath the path to use for the classpath.
          */
         public void setClasspath(Path classpath) {
             if (this.classpath == null) {
@@ -330,9 +373,9 @@ public class ClasspathUtils {
          * Delegate method handling the &lt;classpath&gt; tag.
          *
          * <p>This nested path-like structure can set a path to add to the
-         * classpath</p>
+         * classpath.</p>
          *
-         * @return the created path
+         * @return the created path.
          */
         public Path createClasspath() {
             if (this.classpath == null) {
@@ -345,9 +388,9 @@ public class ClasspathUtils {
          * Delegate method handling the @classname attribute.
          *
          * <p>This attribute sets the full qualified class name of the class
-         * to lad and instantiate</p>
+         * to load and instantiate.</p>
          *
-         * @param fcqn
+         * @param fcqn the name of the class to load.
          */
         public void setClassname(String fcqn) {
             this.className = fcqn;
@@ -357,9 +400,9 @@ public class ClasspathUtils {
          * Delegate method handling the @classpathref attribute.
          *
          * <p>This attribute can add a referenced path-like structure to the
-         * classpath</p>
+         * classpath.</p>
          *
-         * @param r
+         * @param r the reference to the classpath.
          */
         public void setClasspathref(Reference r) {
             this.classpathId = r.getRefId();
@@ -373,21 +416,21 @@ public class ClasspathUtils {
          * classloader should NOT follow the classical parent-first scheme.
          * </p>
          *
-         * <p>By default this is supposed to be false</p>
+         * <p>By default this is supposed to be false.</p>
          *
          * <p>Caution: this behaviour is contradictory to the normal way
          * classloaders work.  Do not let your ProjectComponent use it if
-         * you are not really sure</p>
+         * you are not really sure.</p>
          *
-         * @param reverseLoader
+         * @param reverseLoader if true reverse the order of looking up a class.
          */
         public void setReverseLoader(boolean reverseLoader) {
             this.reverseLoader = reverseLoader;
         }
 
         /**
-         * Sets the loaderRef
-         * @param r
+         * Sets the loaderRef.
+         * @param r the reference to the loader.
          */
         public void setLoaderRef(Reference r) {
             this.loaderId = r.getRefId();
@@ -395,18 +438,16 @@ public class ClasspathUtils {
 
 
         /**
-         * Finds or creates the classloader for this
-         * @return The class loader
+         * Finds or creates the classloader for this object.
+         * @return The class loader.
          */
         public ClassLoader getClassLoader() {
-            ClassLoader cl;
-            cl = ClasspathUtils.getClassLoaderForPath(
+            return getClassLoaderForPath(
                     getContextProject(),
                     this.classpath,
                     getClassLoadId(),
                     this.reverseLoader,
                     loaderId != null || isMagicPropertySet(getContextProject()));
-            return cl;
         }
 
         /**
@@ -418,13 +459,12 @@ public class ClasspathUtils {
 
         /**
          * Computes the loaderId based on the configuration of the component.
+         * @return a loader identifier.
          */
         public String getClassLoadId() {
-            if (this.loaderId == null && this.classpathId != null) {
-                return ClasspathUtils.LOADER_ID_PREFIX + this.classpathId;
-            } else {
-                return this.loaderId;
-            }
+            return this.loaderId == null && this.classpathId != null
+                ? MagicNames.REFID_CLASSPATH_LOADER_PREFIX + this.classpathId
+                : this.loaderId;
         }
 
         /**
@@ -434,17 +474,21 @@ public class ClasspathUtils {
          * @return the fresh instantiated object.
          */
         public Object newInstance() {
-            ClassLoader cl = getClassLoader();
-            return ClasspathUtils.newInstance(this.className, cl);
+            return ClasspathUtils.newInstance(this.className, getClassLoader());
         }
 
         /**
          * The classpath.
+         * @return the classpath.
          */
         public Path getClasspath() {
             return classpath;
         }
 
+        /**
+         * Get the reverseLoader setting.
+         * @return true if looking up in reverse order.
+         */
         public boolean isReverseLoader() {
             return reverseLoader;
         }

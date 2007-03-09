@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,28 +26,39 @@ import org.apache.tools.ant.taskdefs.optional.extension.ExtensionResolver;
 /**
  * Resolver that just returns s specified location.
  *
- * @version $Revision: 1.6.2.4 $ $Date: 2004/03/09 17:01:46 $
  */
-public class LocationResolver
-    implements ExtensionResolver {
-    private String m_location;
+public class LocationResolver implements ExtensionResolver {
+    private String location;
 
+    /**
+     * Sets the location for this resolver
+     * @param location the location
+     */
     public void setLocation(final String location) {
-        m_location = location;
+        this.location = location;
     }
 
+    /**
+     * Returns the resolved file
+     * @param extension the extension
+     * @param project the project
+     * @return the file resolved
+     * @throws BuildException if no location is set
+     */
     public File resolve(final Extension extension,
-                        final Project project)
-        throws BuildException {
-        if (null == m_location) {
+                        final Project project) throws BuildException {
+        if (null == location) {
             final String message = "No location specified for resolver";
             throw new BuildException(message);
         }
 
-        return project.resolveFile(m_location);
+        return project.resolveFile(location);
     }
-
+    /**
+     * Returns a string representation of the Location
+     * @return the string representation
+     */
     public String toString() {
-        return "Location[" + m_location + "]";
+        return "Location[" + location + "]";
     }
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,8 +24,7 @@ import org.apache.tools.ant.util.FileUtils;
 
 /**
  *  This task sets a property to  the name of a temporary file.
- *  Unlike the Java1.2 method to create a temporary file, this task
- *  does work on Java1.1. Also, it does not actually create the
+ *  Unlike {@link File#createTempFile}, this task does not actually create the
  *  temporary file, but it does guarantee that the file did not
  *  exist when the task was executed.
  * <p>
@@ -40,6 +40,8 @@ import org.apache.tools.ant.util.FileUtils;
  */
 
 public class TempFile extends Task {
+
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * Name of property to set.
@@ -61,6 +63,8 @@ public class TempFile extends Task {
      */
     private String suffix = "";
 
+    /** deleteOnExit flag */
+    private boolean deleteOnExit;
 
     /**
      * Sets the property you wish to assign the temporary file to.
@@ -103,6 +107,22 @@ public class TempFile extends Task {
         this.suffix = suffix;
     }
 
+    /**
+     * Set whether the tempfile created by this task should be set
+     * for deletion on normal VM exit.
+     * @param deleteOnExit boolean flag.
+     */
+    public void setDeleteOnExit(boolean deleteOnExit) {
+        this.deleteOnExit = deleteOnExit;
+    }
+
+    /**
+     * Learn whether deleteOnExit is set for this tempfile task.
+     * @return boolean deleteOnExit flag.
+     */
+    public boolean isDeleteOnExit() {
+        return deleteOnExit;
+    }
 
     /**
      * Creates the temporary file.
@@ -116,8 +136,9 @@ public class TempFile extends Task {
         if (destDir == null) {
             destDir = getProject().resolveFile(".");
         }
-        FileUtils utils = FileUtils.newFileUtils();
-        File tfile = utils.createTempFile(prefix, suffix, destDir);
+        File tfile = FILE_UTILS.createTempFile(
+                prefix, suffix, destDir, deleteOnExit);
+
         getProject().setNewProperty(property, tfile.toString());
     }
 }

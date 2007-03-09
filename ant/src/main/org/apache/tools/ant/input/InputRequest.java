@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,14 +21,15 @@ package org.apache.tools.ant.input;
 /**
  * Encapsulates an input request.
  *
- * @version $Revision: 1.4.2.4 $
  * @since Ant 1.5
  */
 public class InputRequest {
     private String prompt;
     private String input;
+    private String defaultValue;
 
     /**
+     * Construct an InputRequest.
      * @param prompt The prompt to show to the user.  Must not be null.
      */
     public InputRequest(String prompt) {
@@ -40,6 +42,7 @@ public class InputRequest {
 
     /**
      * Retrieves the prompt text.
+     * @return the prompt.
      */
     public String getPrompt() {
         return prompt;
@@ -47,6 +50,7 @@ public class InputRequest {
 
     /**
      * Sets the user provided input.
+     * @param input the string to be used for input.
      */
     public void setInput(String input) {
         this.input = input;
@@ -54,6 +58,7 @@ public class InputRequest {
 
     /**
      * Is the user input valid?
+     * @return true if it is.
      */
     public boolean isInputValid() {
         return true;
@@ -61,9 +66,28 @@ public class InputRequest {
 
     /**
      * Retrieves the user input.
+     * @return the user input.
      */
     public String getInput() {
         return input;
+    }
+
+    /**
+     * Gets a configured default value.
+     * @return the default value.
+     * @since Ant 1.7.0
+     */
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    /**
+     * Configures a default value.
+     * @param d the value to set.
+     * @since Ant 1.7.0
+     */
+    public void setDefaultValue(String d) {
+        defaultValue = d;
     }
 
 }

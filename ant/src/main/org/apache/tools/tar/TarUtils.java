@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -91,6 +92,7 @@ public class TarUtils {
      * Determine the number of bytes in an entry name.
      *
      * @param name The header name from which to parse.
+     * @param buf The buffer from which to parse.
      * @param offset The offset into the buffer from which to parse.
      * @param length The number of header bytes to parse.
      * @return The number of bytes in a header's entry name.
@@ -113,6 +115,7 @@ public class TarUtils {
      * Parse an octal integer from a header buffer.
      *
      * @param value The header value
+     * @param buf The buffer from which to parse.
      * @param offset The offset into the buffer from which to parse.
      * @param length The number of header bytes to parse.
      * @return The integer value of the octal bytes.
@@ -146,6 +149,7 @@ public class TarUtils {
      * Parse an octal long integer from a header buffer.
      *
      * @param value The header value
+     * @param buf The buffer from which to parse.
      * @param offset The offset into the buffer from which to parse.
      * @param length The number of header bytes to parse.
      * @return The long value of the octal bytes.
@@ -163,6 +167,7 @@ public class TarUtils {
      * Parse the checksum octal integer from a header buffer.
      *
      * @param value The header value
+     * @param buf The buffer from which to parse.
      * @param offset The offset into the buffer from which to parse.
      * @param length The number of header bytes to parse.
      * @return The integer value of the entry's checksum.

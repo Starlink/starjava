@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,6 +34,33 @@ import org.apache.tools.ant.types.Commandline;
  */
 public class SunRmic extends DefaultRmicAdapter {
 
+    /**
+     * name of the class
+     */
+    public static final String RMIC_CLASSNAME = "sun.rmi.rmic.Main";
+
+    /**
+     * the name of this adapter for users to select
+     */
+    public static final String COMPILER_NAME = "sun";
+
+    /**
+     * name of the executable
+     */
+    public static final String RMIC_EXECUTABLE = "rmic";
+    /** Error message to use with the sun rmic is not the classpath. */
+    public static final String ERROR_NO_RMIC_ON_CLASSPATH = "Cannot use SUN rmic, as it is not "
+                                         + "available.  A common solution is to "
+                                         + "set the environment variable "
+                                         + "JAVA_HOME or CLASSPATH.";
+    /** Error message to use when there is an error starting the sun rmic compiler */
+    public static final String ERROR_RMIC_FAILED = "Error starting SUN rmic: ";
+
+    /**
+     * Run the rmic compiler.
+     * @return true if the compilation succeeded
+     * @throws BuildException on error
+     */
     public boolean execute() throws BuildException {
         getRmic().log("Using SUN rmic compiler", Project.MSG_VERBOSE);
         Commandline cmd = setupRmicCommand();
@@ -43,7 +71,7 @@ public class SunRmic extends DefaultRmicAdapter {
                                                      Project.MSG_WARN);
 
         try {
-            Class c = Class.forName("sun.rmi.rmic.Main");
+            Class c = Class.forName(RMIC_CLASSNAME);
             Constructor cons
                 = c.getConstructor(new Class[]  {OutputStream.class, String.class});
             Object rmic = cons.newInstance(new Object[] {logstr, "rmic"});
@@ -55,16 +83,13 @@ public class SunRmic extends DefaultRmicAdapter {
                                        (new Object[] {cmd.getArguments()}));
             return ok.booleanValue();
         } catch (ClassNotFoundException ex) {
-            throw new BuildException("Cannot use SUN rmic, as it is not "
-                                     + "available.  A common solution is to "
-                                     + "set the environment variable "
-                                     + "JAVA_HOME or CLASSPATH.",
+            throw new BuildException(ERROR_NO_RMIC_ON_CLASSPATH,
                                      getRmic().getLocation());
         } catch (Exception ex) {
             if (ex instanceof BuildException) {
                 throw (BuildException) ex;
             } else {
-                throw new BuildException("Error starting SUN rmic: ",
+                throw new BuildException(ERROR_RMIC_FAILED,
                                          ex, getRmic().getLocation());
             }
         } finally {

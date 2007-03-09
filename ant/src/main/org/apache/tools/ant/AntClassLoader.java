@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -14,6 +15,7 @@
  *  limitations under the License.
  *
  */
+
 package org.apache.tools.ant;
 
 import java.io.ByteArrayOutputStream;
@@ -21,20 +23,30 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.jar.Attributes;
+import java.util.jar.Attributes.Name;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.CollectionUtils;
 import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.JavaEnvUtils;
 import org.apache.tools.ant.util.LoaderUtils;
+import org.apache.tools.ant.launch.Locator;
 
 /**
  * Used to load classes within ant with a different classpath from
@@ -43,10 +55,19 @@ import org.apache.tools.ant.util.LoaderUtils;
  * using the forceLoadClass method. Any subsequent classes loaded by that
  * class will then use this loader rather than the system class loader.
  *
+ * <p>
+ * Note that this classloader has a feature to allow loading
+ * in reverse order and for "isolation".
+ * Due to the fact that a number of
+ * methods in java.lang.ClassLoader are final (at least
+ * in java 1.4 getResources) this means that the
+ * class has to fake the given parent.
+ * </p>
+ *
  */
 public class AntClassLoader extends ClassLoader implements SubBuildListener {
 
-    private static final FileUtils fileUtils = FileUtils.newFileUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * An enumeration of all resources of a given name found within the
@@ -118,7 +139,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
         private void findNextResource() {
             URL url = null;
             while ((pathElementsIndex < pathComponents.size())
-                    && (url == null)) {
+                   && (url == null)) {
                 try {
                     File pathComponent
                         = (File) pathComponents.elementAt(pathElementsIndex);
@@ -191,6 +212,9 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      */
     private Hashtable zipFiles = new Hashtable();
 
+    /** Static map of jar file/time to manifiest class-path entries */
+    private static Map/*<String,String>*/ pathMap = Collections.synchronizedMap(new HashMap());
+
     /**
      * The context loader saved when setting the thread's current
      * context loader.
@@ -202,34 +226,20 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
     private boolean isContextLoaderSaved = false;
 
     /**
-     * Reflection method reference for getProtectionDomain;
-     * used to avoid 1.1-compatibility problems.
+     * Create an Ant ClassLoader for a given project, with
+     * a parent classloader and an initial classpath.
+     * @since Ant 1.7.
+     * @param parent the parent for this classloader.
+     * @param project The project to which this classloader is to
+     *                belong.
+     * @param classpath The classpath to use to load classes.
      */
-    private static Method getProtectionDomain = null;
-
-    /**
-     * Reflection method reference for defineClassProtectionDomain;
-     * used to avoid 1.1-compatibility problems.
-     */
-    private static Method defineClassProtectionDomain = null;
-
-
-    // Set up the reflection-based Java2 methods if possible
-    static {
-        try {
-            getProtectionDomain
-                = Class.class.getMethod("getProtectionDomain", new Class[0]);
-            Class protectionDomain
-                = Class.forName("java.security.ProtectionDomain");
-            Class[] args = new Class[] {String.class, byte[].class,
-                Integer.TYPE, Integer.TYPE, protectionDomain};
-            defineClassProtectionDomain
-                = ClassLoader.class.getDeclaredMethod("defineClass", args);
-        } catch (Exception e) {
-            // ignore failure to get access to 1.2+ methods
-        }
+    public AntClassLoader(
+        ClassLoader parent, Project project, Path classpath) {
+        setParent(parent);
+        setClassPath(classpath);
+        setProject(project);
     }
-
 
     /**
      * Create an Ant Class Loader
@@ -392,9 +402,9 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
         if (project != null) {
             project.log(message, priority);
         }
-//         else {
-//             System.out.println(message);
-//         }
+        //         else {
+        //             System.out.println(message);
+        //         }
     }
 
     /**
@@ -442,7 +452,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
     public void addPathElement(String pathElement) throws BuildException {
         File pathComponent
             = project != null ? project.resolveFile(pathElement)
-                              : new File(pathElement);
+            : new File(pathElement);
         try {
             addPathFile(pathComponent);
         } catch (IOException e) {
@@ -451,7 +461,9 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
     }
 
     /**
-     * Add a file to the path
+     * Add a file to the path.
+     * Reads the manifest, if available, and adds any additional class path jars
+     * specified in the manifest.
      *
      * @param pathComponent the file which is to be added to the path for
      *                      this class loader
@@ -460,6 +472,67 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      */
     protected void addPathFile(File pathComponent) throws IOException {
         pathComponents.addElement(pathComponent);
+        if (pathComponent.isDirectory()) {
+            return;
+        }
+
+        String absPathPlusTimeAndLength =
+            pathComponent.getAbsolutePath() + pathComponent.lastModified() + "-"
+            + pathComponent.length();
+        String classpath = (String) pathMap.get(absPathPlusTimeAndLength);
+        if (classpath == null) {
+            ZipFile jarFile = null;
+            InputStream manifestStream = null;
+            try {
+                jarFile = new ZipFile(pathComponent);
+                manifestStream
+                    = jarFile.getInputStream(new ZipEntry("META-INF/MANIFEST.MF"));
+
+                if (manifestStream == null) {
+                    return;
+                }
+                Reader manifestReader
+                    = new InputStreamReader(manifestStream, "UTF-8");
+                org.apache.tools.ant.taskdefs.Manifest manifest
+                    = new org.apache.tools.ant.taskdefs.Manifest(manifestReader);
+                classpath
+                    = manifest.getMainSection().getAttributeValue("Class-Path");
+
+            } catch (org.apache.tools.ant.taskdefs.ManifestException e) {
+                // ignore
+            } finally {
+                if (manifestStream != null) {
+                    manifestStream.close();
+                }
+                if (jarFile != null) {
+                    jarFile.close();
+                }
+            }
+            if (classpath == null) {
+                classpath = "";
+            }
+            pathMap.put(absPathPlusTimeAndLength, classpath);
+        }
+
+        if (!"".equals(classpath)) {
+            URL baseURL = FILE_UTILS.getFileURL(pathComponent);
+            StringTokenizer st = new StringTokenizer(classpath);
+            while (st.hasMoreTokens()) {
+                String classpathElement = st.nextToken();
+                URL libraryURL = new URL(baseURL, classpathElement);
+                if (!libraryURL.getProtocol().equals("file")) {
+                    log("Skipping jar library " + classpathElement
+                        + " since only relative URLs are supported by this"
+                        + " loader", Project.MSG_VERBOSE);
+                    continue;
+                }
+                String decodedPath = Locator.decodeUri(libraryURL.getFile());
+                File libraryFile = new File(decodedPath);
+                if (libraryFile.exists() && !isInPath(libraryFile)) {
+                    addPathFile(libraryFile);
+                }
+            }
+        }
     }
 
     /**
@@ -503,7 +576,8 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param theClass The class to initialize.
      *                 Must not be <code>null</code>.
      *
-     * @deprecated use Class.forName with initialize=true instead.
+     * @deprecated since 1.6.x.
+     *             Use Class.forName with initialize=true instead.
      */
     public static void initializeClass(Class theClass) {
         // ***HACK*** We ask the VM to create an instance
@@ -517,10 +591,10 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
             if (cons.length > 0 && cons[0] != null) {
                 final String[] strs = new String[NUMBER_OF_STRINGS];
                 try {
-                    cons[0].newInstance(strs);
+                    cons[0].newInstance((Object[]) strs);
                     // Expecting an exception to be thrown by this call:
                     // IllegalArgumentException: wrong number of Arguments
-                } catch (Throwable t) {
+                } catch (Exception e) {
                     // Ignore - we are interested only in the side
                     // effect - that of getting the static initializers
                     // invoked.  As we do not want to call a valid
@@ -582,7 +656,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      *                                   on this loader's classpath.
      */
     public Class forceLoadClass(String classname)
-         throws ClassNotFoundException {
+        throws ClassNotFoundException {
         log("force loading " + classname, Project.MSG_DEBUG);
 
         Class theClass = findLoadedClass(classname);
@@ -611,7 +685,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * on this loader's classpath.
      */
     public Class forceLoadSystemClass(String classname)
-         throws ClassNotFoundException {
+        throws ClassNotFoundException {
         log("force system loading " + classname, Project.MSG_DEBUG);
 
         Class theClass = findLoadedClass(classname);
@@ -798,6 +872,18 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
     }
 
     /**
+     * Used for isolated resource seaching.
+     * @return the root classloader of AntClassLoader.
+     */
+    private ClassLoader getRootLoader() {
+        ClassLoader ret = getClass().getClassLoader();
+        while (ret != null && ret.getParent() != null) {
+            ret = ret.getParent();
+        }
+        return ret;
+    }
+
+    /**
      * Finds the resource with the given name. A resource is
      * some data (images, audio, text, etc) that can be accessed by class
      * code in a way that is independent of the location of the code.
@@ -815,7 +901,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
         URL url = null;
         if (isParentFirst(name)) {
             url = (parent == null) ? super.getResource(name)
-                                   : parent.getResource(name);
+                : parent.getResource(name);
         }
 
         if (url != null) {
@@ -839,9 +925,13 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
 
         if (url == null && !isParentFirst(name)) {
             // this loader was first but it didn't find it - try the parent
-
-            url = (parent == null) ? super.getResource(name)
-                : parent.getResource(name);
+            if (ignoreBase) {
+                url = (getRootLoader() == null) ? null
+                    : getRootLoader().getResource(name);
+            } else {
+                url = (parent == null) ? super.getResource(name)
+                    : parent.getResource(name);
+            }
             if (url != null) {
                 log("Resource " + name + " loaded from parent loader",
                     Project.MSG_DEBUG);
@@ -864,8 +954,30 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @return an enumeration of URLs for the resources
      * @exception IOException if I/O errors occurs (can't happen)
      */
-    protected Enumeration findResources(String name) throws IOException {
-        return new ResourceEnumeration(name);
+    protected Enumeration/*<URL>*/ findResources(String name) throws IOException {
+        Enumeration/*<URL>*/ mine = new ResourceEnumeration(name);
+        Enumeration/*<URL>*/ base;
+        if (parent != null && parent != getParent()) {
+            // Delegate to the parent:
+            base = parent.getResources(name);
+            // Note: could cause overlaps in case ClassLoader.this.parent has matches.
+        } else {
+            // ClassLoader.this.parent is already delegated to from
+            // ClassLoader.getResources, no need:
+            base = new CollectionUtils.EmptyEnumeration();
+        }
+        if (isParentFirst(name)) {
+            // Normal case.
+            return CollectionUtils.append(base, mine);
+        } else if (ignoreBase) {
+            return getRootLoader() == null
+                ? mine
+                : CollectionUtils.append(
+                    mine, getRootLoader().getResources(name));
+        } else {
+            // Inverted.
+            return CollectionUtils.append(mine, base);
+        }
     }
 
     /**
@@ -891,7 +1003,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
 
                 if (resource.exists()) {
                     try {
-                        return fileUtils.getFileURL(resource);
+                        return FILE_UTILS.getFileURL(resource);
                     } catch (MalformedURLException ex) {
                         return null;
                     }
@@ -906,8 +1018,8 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
                 ZipEntry entry = zipFile.getEntry(resourceName);
                 if (entry != null) {
                     try {
-                        return new URL("jar:" + fileUtils.getFileURL(file)
-                            + "!/" + entry);
+                        return new URL("jar:" + FILE_UTILS.getFileURL(file)
+                                       + "!/" + entry);
                     } catch (MalformedURLException ex) {
                         return null;
                     }
@@ -941,7 +1053,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * classpath.
      */
     protected synchronized Class loadClass(String classname, boolean resolve)
-         throws ClassNotFoundException {
+        throws ClassNotFoundException {
         // 'sync' is needed - otherwise 2 threads can load the same class
         // twice, resulting in LinkageError: duplicated class definition.
         // findLoadedClass avoids that, but without sync it won't work.
@@ -1011,36 +1123,158 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      */
     protected Class defineClassFromData(File container, byte[] classData,
                                         String classname) throws IOException {
-        // Simply put:
-        // defineClass(classname, classData, 0, classData.length,
-        //             Project.class.getProtectionDomain());
-        // Made more elaborate to be 1.1-safe.
-        if (defineClassProtectionDomain != null) {
-            try {
-                Object domain
-                    = getProtectionDomain.invoke(Project.class, new Object[0]);
-                Object[] args
-                    = new Object[] {classname, classData, new Integer(0),
-                                    new Integer(classData.length), domain};
-                return (Class) defineClassProtectionDomain.invoke(this, args);
-            } catch (InvocationTargetException ite) {
-                Throwable t = ite.getTargetException();
-                if (t instanceof ClassFormatError) {
-                    throw (ClassFormatError) t;
-                } else if (t instanceof NoClassDefFoundError) {
-                    throw (NoClassDefFoundError) t;
-                } else if (t instanceof SecurityException) {
-                    throw (SecurityException) t;
-                } else {
-                    throw new IOException(t.toString());
-                }
-            } catch (Exception e) {
-                throw new IOException(e.toString());
-            }
+        definePackage(container, classname);
+        // XXX should instead make a new ProtectionDomain with a CodeSource
+        // corresponding to container.toURI().toURL() and the same
+        // PermissionCollection as Project.class.protectionDomain had
+        return defineClass(classname, classData, 0, classData.length,
+                           Project.class.getProtectionDomain());
+    }
+
+    /**
+     * Define the package information associated with a class.
+     *
+     * @param container the file containing the class definition.
+     * @param className the class name of for which the package information
+     *        is to be determined.
+     *
+     * @exception IOException if the package information cannot be read from the
+     *            container.
+     */
+    protected void definePackage(File container, String className)
+        throws IOException {
+        int classIndex = className.lastIndexOf('.');
+        if (classIndex == -1) {
+            return;
+        }
+
+        String packageName = className.substring(0, classIndex);
+        if (getPackage(packageName) != null) {
+            // already defined
+            return;
+        }
+
+        // define the package now
+        Manifest manifest = getJarManifest(container);
+
+        if (manifest == null) {
+            definePackage(packageName, null, null, null, null, null,
+                          null, null);
         } else {
-            return defineClass(classname, classData, 0, classData.length);
+            definePackage(container, packageName, manifest);
         }
     }
+
+    /**
+     * Get the manifest from the given jar, if it is indeed a jar and it has a
+     * manifest
+     *
+     * @param container the File from which a manifest is required.
+     *
+     * @return the jar's manifest or null is the container is not a jar or it
+     *         has no manifest.
+     *
+     * @exception IOException if the manifest cannot be read.
+     */
+    private Manifest getJarManifest(File container) throws IOException {
+        if (container.isDirectory()) {
+            return null;
+        }
+        JarFile jarFile = null;
+        try {
+            jarFile = new JarFile(container);
+            return jarFile.getManifest();
+        } finally {
+            if (jarFile != null) {
+                jarFile.close();
+            }
+        }
+    }
+
+    /**
+     * Define the package information when the class comes from a
+     * jar with a manifest
+     *
+     * @param container the jar file containing the manifest
+     * @param packageName the name of the package being defined.
+     * @param manifest the jar's manifest
+     */
+    protected void definePackage(File container, String packageName,
+                                 Manifest manifest) {
+        String sectionName = packageName.replace('.', '/') + "/";
+
+        String specificationTitle = null;
+        String specificationVendor = null;
+        String specificationVersion = null;
+        String implementationTitle = null;
+        String implementationVendor = null;
+        String implementationVersion = null;
+        String sealedString = null;
+        URL sealBase = null;
+
+        Attributes sectionAttributes = manifest.getAttributes(sectionName);
+        if (sectionAttributes != null) {
+            specificationTitle
+                = sectionAttributes.getValue(Name.SPECIFICATION_TITLE);
+            specificationVendor
+                = sectionAttributes.getValue(Name.SPECIFICATION_VENDOR);
+            specificationVersion
+                = sectionAttributes.getValue(Name.SPECIFICATION_VERSION);
+            implementationTitle
+                = sectionAttributes.getValue(Name.IMPLEMENTATION_TITLE);
+            implementationVendor
+                = sectionAttributes.getValue(Name.IMPLEMENTATION_VENDOR);
+            implementationVersion
+                = sectionAttributes.getValue(Name.IMPLEMENTATION_VERSION);
+            sealedString
+                = sectionAttributes.getValue(Name.SEALED);
+        }
+
+        Attributes mainAttributes = manifest.getMainAttributes();
+        if (mainAttributes != null) {
+            if (specificationTitle == null) {
+                specificationTitle
+                    = mainAttributes.getValue(Name.SPECIFICATION_TITLE);
+            }
+            if (specificationVendor == null) {
+                specificationVendor
+                    = mainAttributes.getValue(Name.SPECIFICATION_VENDOR);
+            }
+            if (specificationVersion == null) {
+                specificationVersion
+                    = mainAttributes.getValue(Name.SPECIFICATION_VERSION);
+            }
+            if (implementationTitle == null) {
+                implementationTitle
+                    = mainAttributes.getValue(Name.IMPLEMENTATION_TITLE);
+            }
+            if (implementationVendor == null) {
+                implementationVendor
+                    = mainAttributes.getValue(Name.IMPLEMENTATION_VENDOR);
+            }
+            if (implementationVersion == null) {
+                implementationVersion
+                    = mainAttributes.getValue(Name.IMPLEMENTATION_VERSION);
+            }
+            if (sealedString == null) {
+                sealedString
+                    = mainAttributes.getValue(Name.SEALED);
+            }
+        }
+
+        if (sealedString != null && sealedString.equalsIgnoreCase("true")) {
+            try {
+                sealBase = new URL(FileUtils.getFileUtils().toURI(container.getAbsolutePath()));
+            } catch (MalformedURLException e) {
+                // ignore
+            }
+        }
+
+        definePackage(packageName, specificationTitle, specificationVersion,
+                      specificationVendor, implementationTitle,
+                      implementationVersion, implementationVendor, sealBase);
+    }
+
 
     /**
      * Reads a class definition from a stream.
@@ -1059,8 +1293,8 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * reading the class from the stream.
      */
     private Class getClassFromStream(InputStream stream, String classname,
-                                       File container)
-                throws IOException, SecurityException {
+                                     File container)
+        throws IOException, SecurityException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int bytesRead = -1;
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -1120,7 +1354,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * on this loader's classpath.
      */
     private Class findClassInComponents(String name)
-         throws ClassNotFoundException {
+        throws ClassNotFoundException {
         // we need to search the components of the path to see if
         // we can find the class we want.
         InputStream stream = null;
@@ -1207,6 +1441,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param event the buildStarted event
      */
     public void buildStarted(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1242,6 +1477,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @since Ant 1.6.2
      */
     public void subBuildStarted(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1250,6 +1486,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param event the targetStarted event
      */
     public void targetStarted(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1258,6 +1495,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param event the targetFinished event
      */
     public void targetFinished(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1266,6 +1504,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param event the taskStarted event
      */
     public void taskStarted(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1274,6 +1513,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param event the taskFinished event
      */
     public void taskFinished(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1282,6 +1522,7 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
      * @param event the messageLogged event
      */
     public void messageLogged(BuildEvent event) {
+        // Not significant for the class loader.
     }
 
     /**
@@ -1295,6 +1536,14 @@ public class AntClassLoader extends ClassLoader implements SubBuildListener {
             String packageName = (String) e.nextElement();
             addSystemPackageRoot(packageName);
         }
+    }
+
+    /**
+     * Returns a <code>String</code> representing this loader.
+     * @return the path that this classloader has.
+     */
+    public String toString() {
+        return "AntClassLoader[" + getClasspath() + "]";
     }
 
 }

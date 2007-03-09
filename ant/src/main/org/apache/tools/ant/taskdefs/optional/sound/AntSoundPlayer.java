@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -44,7 +45,6 @@ import org.apache.tools.ant.Project;
  *
  * I have only tested this with .WAV and .AIFF sound file formats. Both seem to work fine.
  *
- * @version $Revision: 1.13.2.5 $, $Date: 2004/03/09 17:01:53 $
  */
 
 public class AntSoundPlayer implements LineListener, BuildListener {
@@ -57,8 +57,8 @@ public class AntSoundPlayer implements LineListener, BuildListener {
     private int loopsFail = 0;
     private Long durationFail = null;
 
+    /** Constructor for AntSoundPlayer. */
     public AntSoundPlayer() {
-
     }
 
     /**
@@ -140,6 +140,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
 
         clip.loop(loops);
         while (clip.isRunning()) {
+            // Empty block
         }
     }
 
@@ -148,12 +149,14 @@ public class AntSoundPlayer implements LineListener, BuildListener {
         try {
             Thread.sleep(duration);
         } catch (InterruptedException e) {
+            // Ignore Exception
         }
     }
 
     /**
      * This is implemented to listen for any line events and closes the
      * clip if required.
+     * @param event the line event to follow
      */
     public void update(LineEvent event) {
         if (event.getType().equals(LineEvent.Type.STOP)) {
@@ -172,6 +175,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
 
     /**
      *  Fired before any targets are started.
+     * @param event ignored
      */
     public void buildStarted(BuildEvent event) {
     }
@@ -179,7 +183,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
     /**
      *  Fired after the last target has finished. This event
      *  will still be thrown if an error occurred during the build.
-     *
+     * @param event the build finished event.
      *  @see BuildEvent#getException()
      */
     public void buildFinished(BuildEvent event) {
@@ -193,7 +197,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
 
     /**
      *  Fired when a target is started.
-     *
+     * @param event ignored.
      *  @see BuildEvent#getTarget()
      */
     public void targetStarted(BuildEvent event) {
@@ -202,7 +206,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
     /**
      *  Fired when a target has finished. This event will
      *  still be thrown if an error occurred during the build.
-     *
+     * @param event ignored.
      *  @see BuildEvent#getException()
      */
     public void targetFinished(BuildEvent event) {
@@ -210,7 +214,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
 
     /**
      *  Fired when a task is started.
-     *
+     * @param event ignored.
      *  @see BuildEvent#getTask()
      */
     public void taskStarted(BuildEvent event) {
@@ -219,7 +223,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
     /**
      *  Fired when a task has finished. This event will still
      *  be throw if an error occurred during the build.
-     *
+     * @param event ignored.
      *  @see BuildEvent#getException()
      */
     public void taskFinished(BuildEvent event) {
@@ -227,7 +231,7 @@ public class AntSoundPlayer implements LineListener, BuildListener {
 
     /**
      *  Fired whenever a message is logged.
-     *
+     *  @param event the build event
      *  @see BuildEvent#getMessage()
      *  @see BuildEvent#getPriority()
      */

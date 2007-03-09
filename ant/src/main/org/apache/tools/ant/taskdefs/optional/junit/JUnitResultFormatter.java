@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,29 +27,37 @@ import org.apache.tools.ant.BuildException;
  * testrun.
  *
  */
-public interface JUnitResultFormatter extends TestListener {
+public interface JUnitResultFormatter
+    extends TestListener, JUnitTaskMirror.JUnitResultFormatterMirror {
     /**
      * The whole testsuite started.
+     * @param suite the suite.
+     * @throws BuildException on error.
      */
     void startTestSuite(JUnitTest suite) throws BuildException;
 
     /**
      * The whole testsuite ended.
+     * @param suite the suite.
+     * @throws BuildException on error.
      */
     void endTestSuite(JUnitTest suite) throws BuildException;
 
     /**
      * Sets the stream the formatter is supposed to write its results to.
+     * @param out the output stream to use.
      */
     void setOutput(OutputStream out);
 
     /**
      * This is what the test has written to System.out
+     * @param out the string to write.
      */
     void setSystemOutput(String out);
 
     /**
      * This is what the test has written to System.err
+     * @param err the string to write.
      */
     void setSystemError(String err);
 }

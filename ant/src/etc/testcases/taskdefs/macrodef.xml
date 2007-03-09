@@ -220,7 +220,54 @@
         <explicit/>
       </sequential>
     </macrodef>
-
   </target>
 
+  <property name="default.override" value="old"/>
+  <macrodef name="simple.override">
+    <attribute name="attr" default="${default.override}"/>
+    <sequential>
+      <echo>value is @{attr}</echo>
+    </sequential>
+  </macrodef>
+
+  <target name="override.default">
+    <antcall target="override.call">
+      <param name="default.override" value="new"/>
+    </antcall>
+  </target>
+
+  <target name="override.call">
+    <simple.override/>
+  </target>
+
+  <target name="backtraceoff">
+    <macrodef name="nobacktrace" backtrace="false">
+      <sequential>
+        <fail>This is a failure</fail>
+      </sequential>
+    </macrodef>
+    <nobacktrace/>
+  </target>
+  <target name="backtraceon">
+    <macrodef name="nobacktrace" backtrace="true">
+      <sequential>
+        <fail>This is a failure</fail>
+      </sequential>
+    </macrodef>
+    <nobacktrace/>
+  </target>
+
+  <target name="top-level-text">
+    <macrodef name="top">
+      <element name="em"/>
+      <sequential>
+        <echo><em/></echo>
+      </sequential>
+    </macrodef>
+    <top>
+      <em>
+        Hello World
+      </em>
+    </top>
+  </target>
 </project>

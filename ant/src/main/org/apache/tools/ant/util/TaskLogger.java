@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,37 +21,59 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 
 /**
- * A facade that makes logging nicers to use.
- *
- * @version $Revision: 1.5.2.4 $ $Date: 2004/03/09 17:01:57 $
+ * A facade that makes logging nicer to use.
  */
 public final class TaskLogger {
     /**
      * Task to use to do logging.
      */
-    private Task m_task;
+    private Task task;
 
+    /**
+     * Constructor for the TaskLogger
+     * @param task the task
+     */
     public TaskLogger(final Task task) {
-        this.m_task = task;
+        this.task = task;
     }
 
+    /**
+     * Log a message with <code>MSG_INFO</code> priority
+     * @param message the message to log
+     */
     public void info(final String message) {
-        m_task.log(message, Project.MSG_INFO);
+        task.log(message, Project.MSG_INFO);
     }
 
+    /**
+     * Log a message with <code>MSG_ERR</code> priority
+     * @param message the message to log
+     */
     public void error(final String message) {
-        m_task.log(message, Project.MSG_ERR);
+        task.log(message, Project.MSG_ERR);
     }
 
+    /**
+     * Log a message with <code>MSG_WARN</code> priority
+     * @param message the message to log
+     */
     public void warning(final String message) {
-        m_task.log(message, Project.MSG_WARN);
+        task.log(message, Project.MSG_WARN);
     }
 
+    /**
+     * Log a message with <code>MSG_VERBOSE</code> priority
+     * @param message the message to log
+     */
     public void verbose(final String message) {
-        m_task.log(message, Project.MSG_VERBOSE);
+        task.log(message, Project.MSG_VERBOSE);
     }
 
+    /**
+     * Log a message with <code>MSG_DEBUG</code> priority
+     * @param message the message to log
+     */
     public void debug(final String message) {
-        m_task.log(message, Project.MSG_DEBUG);
+        task.log(message, Project.MSG_DEBUG);
     }
 }

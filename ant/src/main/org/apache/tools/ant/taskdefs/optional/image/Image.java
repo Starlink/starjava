@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -37,41 +38,50 @@ import java.util.Iterator;
 import java.util.Vector;
 
 /**
- * A MatchingTask which relies on
- * <A HREF="http://java.sun.com/products/java-media/jai">JAI (Java Advanced Imaging)</A>
- * to perform image manipulation operations on existing images.  The
- * operations are represented as ImageOperation DataType objects.
- * The operations are arranged to conform to the Chaining Model
- * of JAI.
- * Check out the
- * <A HREF="http://java.sun.com/products/java-media/jai/forDevelopers/jai1_0_1guide-unc/">
- *   JAI Programming Guide</A>
+ * A MatchingTask which relies on <a
+ * href="http://java.sun.com/products/java-media/jai">JAI (Java
+ * Advanced Imaging)</a> to perform image manipulation operations on
+ * existing images.  The operations are represented as ImageOperation
+ * DataType objects.  The operations are arranged to conform to the
+ * Chaining Model of JAI.  Check out the <a
+ * href="http://java.sun.com/products/java-media/jai/forDevelopers/jai1_0_1guide-unc/">
+ * JAI Programming Guide</a>.
  *
  * @see org.apache.tools.ant.types.optional.image.ImageOperation
  * @see org.apache.tools.ant.types.DataType
  */
 public class Image extends MatchingTask {
+    // CheckStyle:VisibilityModifier OFF - bc
     protected Vector instructions = new Vector();
-    protected String str_encoding = "JPEG";
     protected boolean overwrite = false;
-    protected boolean garbage_collect = false;
-    private boolean failonerror = true;
     protected Vector filesets = new Vector();
-
-
     protected File srcDir = null;
     protected File destDir = null;
 
+    // CheckStyle:MemberNameCheck OFF - bc
+
+    //cannot remove underscores due to protected visibility >:(
+    protected String str_encoding = "JPEG";
+    protected boolean garbage_collect = false;
+
+    private boolean failonerror = true;
+
+    // CheckStyle:MemberNameCheck ON
+
+    // CheckStyle:VisibilityModifier ON
+
     /**
-     * Adds a set of files to be deleted.
+     * Add a set of files to be deleted.
+     * @param set the FileSet to add.
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
     }
 
     /**
+     * Set whether to fail on error.
      * If false, note errors to the output but keep going.
-     * @param failonerror true or false
+     * @param failonerror true or false.
      */
     public void setFailOnError(boolean failonerror) {
         this.failonerror = failonerror;
@@ -79,54 +89,58 @@ public class Image extends MatchingTask {
 
     /**
      * Set the source dir to find the image files.
+     * @param srcDir the directory in which the image files reside.
      */
     public void setSrcdir(File srcDir) {
         this.srcDir = srcDir;
     }
 
     /**
-     * Set the image encoding type.
-     * <A HREF="http://java.sun.com/products/java-media/jai/forDevelopers/jai1_0_1guide-unc/Encode.doc.html#56610">
-     *     See this table in the JAI Programming Guide</A>.
+     * Set the image encoding type.  <a
+     * href="http://java.sun.com/products/java-media/jai/forDevelopers/jai1_0_1guide-unc/Encode.doc.html#56610">
+     * See this table in the JAI Programming Guide</a>.
+     * @param encoding the String image encoding.
      */
     public void setEncoding(String encoding) {
         str_encoding = encoding;
     }
 
     /**
-     *  Sets whether or not to overwrite a file if there is a naming conflict.
+     * Set whether to overwrite a file if there is a naming conflict.
+     * @param overwrite whether to overwrite.
      */
     public void setOverwrite(boolean overwrite) {
         this.overwrite = overwrite;
     }
 
     /**
-     *  Enables Garbage Collection after each image processed.  Defaults to false.
+     * Set whether to invoke Garbage Collection after each image processed.
+     * Defaults to false.
+     * @param gc whether to invoke the garbage collector.
      */
     public void setGc(boolean gc) {
         garbage_collect = gc;
     }
 
-
     /**
-     * Sets the destination directory for manipulated images.
-     * @param destDir The destination directory
+     * Set the destination directory for manipulated images.
+     * @param destDir The destination directory.
      */
     public void setDestDir(File destDir) {
         this.destDir = destDir;
     }
 
     /**
-     * Adds an ImageOperation to chain.
-     * @param instr The ImageOperation to append to the chain
+     * Add an ImageOperation to chain.
+     * @param instr The ImageOperation to append to the chain.
      */
     public void addImageOperation(ImageOperation instr) {
         instructions.add(instr);
     }
 
     /**
-     * Adds a Rotate ImageOperation to the chain
-     * @param instr The Rotate operation to add to the chain
+     * Add a Rotate ImageOperation to the chain.
+     * @param instr The Rotate operation to add to the chain.
      * @see org.apache.tools.ant.types.optional.image.Rotate
      */
     public void addRotate(Rotate instr) {
@@ -134,8 +148,8 @@ public class Image extends MatchingTask {
     }
 
     /**
-     * Adds a Scale ImageOperation to the chain
-     * @param instr The Scale operation to add to the chain
+     * Add a Scale ImageOperation to the chain.
+     * @param instr The Scale operation to add to the chain.
      * @see org.apache.tools.ant.types.optional.image.Scale
      */
     public void addScale(Scale instr) {
@@ -143,9 +157,9 @@ public class Image extends MatchingTask {
     }
 
     /**
-     * Adds a Draw ImageOperation to the chain.  DrawOperation
-     * DataType objects can be nested inside the Draw object
-     * @param instr The Draw operation to add to the chain
+     * Add a Draw ImageOperation to the chain.  DrawOperation
+     * DataType objects can be nested inside the Draw object.
+     * @param instr The Draw operation to add to the chain.
      * @see org.apache.tools.ant.types.optional.image.Draw
      * @see org.apache.tools.ant.types.optional.image.DrawOperation
      */
@@ -154,9 +168,18 @@ public class Image extends MatchingTask {
     }
 
     /**
+    * Add an ImageOperation to chain.
+    * @param instr The ImageOperation to append to the chain.
+    * @since Ant 1.7
+    */
+    public void add(ImageOperation instr) {
+        addImageOperation(instr);
+    }
+
+    /**
      * Executes all the chained ImageOperations on the file
      * specified.
-     * @param file The file to be processed
+     * @param file The file to be processed.
      */
     public void processFile(File file) {
         try {
@@ -166,7 +189,8 @@ public class Image extends MatchingTask {
             for (int i = 0; i < instructions.size(); i++) {
                 Object instr = instructions.elementAt(i);
                 if (instr instanceof TransformOperation) {
-                    image = ((TransformOperation) instr).executeTransformOperation(image);
+                    image = ((TransformOperation) instr)
+                        .executeTransformOperation(image);
                 } else {
                     log("Not a TransformOperation: " + instr);
                 }
@@ -178,24 +202,20 @@ public class Image extends MatchingTask {
             } else if (str_encoding.toLowerCase().equals("tif")) {
                 str_encoding = "TIFF";
             }
-
             if (destDir == null) {
                 destDir = srcDir;
             }
+            File newFile = new File(destDir, file.getName());
 
-            File new_file = new File(destDir.getAbsolutePath() + File.separator + file.getName());
-
-            if ((overwrite && new_file.exists()) && (!new_file.equals(file))) {
-                new_file.delete();
+            if ((overwrite && newFile.exists()) && (!newFile.equals(file))) {
+                newFile.delete();
             }
+            FileOutputStream stream = new FileOutputStream(newFile);
 
-            FileOutputStream stream = new FileOutputStream(new_file);
-
-            JAI.create("encode", image, stream, str_encoding.toUpperCase(), null);
+            JAI.create("encode", image, stream, str_encoding.toUpperCase(),
+                       null);
             stream.flush();
             stream.close();
-
-
         } catch (IOException err) {
             if (!failonerror) {
                 log("Error processing file:  " + err);
@@ -209,11 +229,11 @@ public class Image extends MatchingTask {
                 throw new BuildException(rerr);
             }
         }
-
     }
 
     /**
-     * Executes the Task
+     * Executes the Task.
+     * @throws BuildException on error.
      */
     public void execute() throws BuildException {
 
@@ -224,14 +244,13 @@ public class Image extends MatchingTask {
             String[] files = null;
             ArrayList filesList = new ArrayList();
 
-
             // deal with specified srcDir
             if (srcDir != null) {
                 ds = super.getDirectoryScanner(srcDir);
 
                 files = ds.getIncludedFiles();
                 for (int i = 0; i < files.length; i++) {
-                    filesList.add(new File(srcDir.getAbsolutePath() + File.separator + files[i]));
+                    filesList.add(new File(srcDir, files[i]));
                 }
             }
             // deal with the filesets
@@ -241,25 +260,21 @@ public class Image extends MatchingTask {
                 files = ds.getIncludedFiles();
                 File fromDir = fs.getDir(getProject());
                 for (int j = 0; j < files.length; j++) {
-                    filesList.add(new File(fromDir.getAbsolutePath() + File.separator + files[j]));
+                    filesList.add(new File(fromDir, files[j]));
                 }
             }
-
             if (!overwrite) {
                 // remove any files that shouldn't be overwritten.
                 ArrayList filesToRemove = new ArrayList();
                 for (Iterator i = filesList.iterator(); i.hasNext();) {
                     File f = (File) i.next();
-                    File new_file = new File(destDir.getAbsolutePath()
-                        + File.separator + f.getName());
-                    if (new_file.exists()) {
+                    File newFile = new File(destDir, f.getName());
+                    if (newFile.exists()) {
                         filesToRemove.add(f);
                     }
                 }
                 filesList.removeAll(filesToRemove);
             }
-
-
             // iterator through all the files and process them.
             for (Iterator i = filesList.iterator(); i.hasNext();) {
                 File file = (File) i.next();
@@ -269,32 +284,26 @@ public class Image extends MatchingTask {
                     System.gc();
                 }
             }
-
-
         } catch (Exception err) {
             err.printStackTrace();
             throw new BuildException(err.getMessage());
         }
     }
 
-
     /**
      * Ensure we have a consistent and legal set of attributes, and set
      * any internal flags necessary based on different combinations
      * of attributes.
+     * @throws BuildException on error.
      */
     protected void validateAttributes() throws BuildException {
         if (srcDir == null && filesets.size() == 0) {
-            throw new BuildException("Specify at least one source "
-                    + "- a srcDir or a fileset.");
+            throw new BuildException("Specify at least one source"
+                                     + "--a srcDir or a fileset.");
         }
-
         if (srcDir == null && destDir == null) {
             throw new BuildException("Specify the destDir, or the srcDir.");
         }
-
-
     }
-
 }
 

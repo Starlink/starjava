@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,7 +27,6 @@ import org.apache.tools.ant.types.Commandline;
  * TODO:
  * comment field doesn't include all options yet
  */
-
 
 /**
  * Performs a ClearCase Unlock command.
@@ -70,7 +70,6 @@ import org.apache.tools.ant.types.Commandline;
 public class CCUnlock extends ClearCase {
     private String mComment = null;
     private String mPname = null;
-    private String mObjselect = null;
 
     /**
      * Executes the task.
@@ -115,20 +114,20 @@ public class CCUnlock extends ClearCase {
     /**
      * Check the command line options.
      */
-private void checkOptions(Commandline cmd) {
+    private void checkOptions(Commandline cmd) {
         // ClearCase items
         getCommentCommand(cmd);
 
-        if (getObjselect() == null && getPname() == null) {
+        if (getObjSelect() == null && getPname() == null) {
             throw new BuildException("Should select either an element "
             + "(pname) or an object (objselect)");
         }
         getPnameCommand(cmd);
         // object selector
-        if (getObjselect() != null) {
-            cmd.createArgument().setValue(getObjselect());
+        if (getObjSelect() != null) {
+            cmd.createArgument().setValue(getObjSelect());
         }
-}
+    }
 
     /**
      * Sets how comments should be written
@@ -173,7 +172,7 @@ private void checkOptions(Commandline cmd) {
      * @param objselect objects to be locked
      */
     public void setObjselect(String objselect) {
-        mObjselect = objselect;
+        setObjSelect(objselect);
     }
 
     /**
@@ -183,7 +182,7 @@ private void checkOptions(Commandline cmd) {
      * @since ant 1.6.1
      */
     public void setObjSel(String objsel) {
-        mObjselect = objsel;
+        setObjSelect(objsel);
     }
 
     /**
@@ -192,9 +191,8 @@ private void checkOptions(Commandline cmd) {
      * @return String containing the objects to be locked
      */
     public String getObjselect() {
-        return mObjselect;
+        return getObjSelect();
     }
-
 
     /**
      * Get the 'comment' command
@@ -246,7 +244,7 @@ private void checkOptions(Commandline cmd) {
         if (getPname() != null) {
             return getPname();
         } else {
-            return getObjselect();
+            return getObjSelect();
         }
     }
 

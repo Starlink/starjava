@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,6 +24,8 @@ import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.apache.tools.ant.util.StringUtils;
+
 /**
  * <p>Utility class that represents either an available "Optional Package"
  * (formerly known as "Standard Extension") as described in the manifest
@@ -33,12 +36,10 @@ import java.util.jar.Manifest;
  * Java2 Standard Edition package, in file
  * <code>guide/extensions/versioning.html</code>.</p>
  *
- * @version $Revision: 1.8.2.4 $ $Date: 2004/03/09 17:01:45 $
  */
 public final class Extension {
     /**
      * Manifest Attribute Name object for EXTENSION_LIST.
-     * @see Attributes.Name#EXTENSION_LIST
      */
     public static final Attributes.Name EXTENSION_LIST
         = new Attributes.Name("Extension-List");
@@ -58,48 +59,41 @@ public final class Extension {
 
     /**
      * Manifest Attribute Name object for EXTENSION_NAME.
-     * @see Attributes.Name#EXTENSION_NAME
      */
     public static final Attributes.Name EXTENSION_NAME =
         new Attributes.Name("Extension-Name");
     /**
      * Manifest Attribute Name object for SPECIFICATION_VERSION.
-     * @see Attributes.Name#SPECIFICATION_VERSION
      */
     public static final Attributes.Name SPECIFICATION_VERSION
         = Attributes.Name.SPECIFICATION_VERSION;
 
     /**
      * Manifest Attribute Name object for SPECIFICATION_VENDOR.
-     * @see Attributes.Name#SPECIFICATION_VENDOR
      */
     public static final Attributes.Name SPECIFICATION_VENDOR
         = Attributes.Name.SPECIFICATION_VENDOR;
 
     /**
      * Manifest Attribute Name object for IMPLEMENTATION_VERSION.
-     * @see Attributes.Name#IMPLEMENTATION_VERSION
      */
     public static final Attributes.Name IMPLEMENTATION_VERSION
         = Attributes.Name.IMPLEMENTATION_VERSION;
 
     /**
      * Manifest Attribute Name object for IMPLEMENTATION_VENDOR.
-     * @see Attributes.Name#IMPLEMENTATION_VENDOR
      */
     public static final Attributes.Name IMPLEMENTATION_VENDOR
         = Attributes.Name.IMPLEMENTATION_VENDOR;
 
     /**
      * Manifest Attribute Name object for IMPLEMENTATION_URL.
-     * @see Attributes.Name#IMPLEMENTATION_URL
      */
     public static final Attributes.Name IMPLEMENTATION_URL
         = new Attributes.Name("Implementation-URL");
 
     /**
      * Manifest Attribute Name object for IMPLEMENTATION_VENDOR_ID.
-     * @see Attributes.Name#IMPLEMENTATION_VENDOR_ID
      */
     public static final Attributes.Name IMPLEMENTATION_VENDOR_ID
         = new Attributes.Name("Implementation-Vendor-Id");
@@ -216,7 +210,7 @@ public final class Extension {
             }
         }
 
-        return (Extension[]) results.toArray(new Extension[0]);
+        return (Extension[]) results.toArray(new Extension[results.size()]);
     }
 
     /**
@@ -444,31 +438,31 @@ public final class Extension {
         }
 
         // Available specification version must be >= required
-        final DeweyDecimal specificationVersion
+        final DeweyDecimal requiredSpecificationVersion
             = required.getSpecificationVersion();
-        if (null != specificationVersion) {
+        if (null != requiredSpecificationVersion) {
             if (null == specificationVersion
-                || !isCompatible(specificationVersion, specificationVersion)) {
+                || !isCompatible(specificationVersion, requiredSpecificationVersion)) {
                 return REQUIRE_SPECIFICATION_UPGRADE;
             }
         }
 
         // Implementation Vendor ID must match
-        final String implementationVendorId
+        final String requiredImplementationVendorID
             = required.getImplementationVendorID();
-        if (null != implementationVendorId) {
+        if (null != requiredImplementationVendorID) {
             if (null == implementationVendorID
-                || !implementationVendorID.equals(implementationVendorId)) {
+                || !implementationVendorID.equals(requiredImplementationVendorID)) {
                 return REQUIRE_VENDOR_SWITCH;
             }
         }
 
         // Implementation version must be >= required
-        final DeweyDecimal implementationVersion
+        final DeweyDecimal requiredImplementationVersion
             = required.getImplementationVersion();
-        if (null != implementationVersion) {
+        if (null != requiredImplementationVersion) {
             if (null == implementationVersion
-                || !isCompatible(implementationVersion, implementationVersion)) {
+                || !isCompatible(implementationVersion, requiredImplementationVersion)) {
                 return REQUIRE_IMPLEMENTATION_UPGRADE;
             }
         }
@@ -497,54 +491,53 @@ public final class Extension {
      * @return string representation of object.
      */
     public String toString() {
-        final String lineSeparator = System.getProperty("line.separator");
         final String brace = ": ";
 
         final StringBuffer sb = new StringBuffer(EXTENSION_NAME.toString());
         sb.append(brace);
         sb.append(extensionName);
-        sb.append(lineSeparator);
+        sb.append(StringUtils.LINE_SEP);
 
         if (null != specificationVersion) {
             sb.append(SPECIFICATION_VERSION);
             sb.append(brace);
             sb.append(specificationVersion);
-            sb.append(lineSeparator);
+            sb.append(StringUtils.LINE_SEP);
         }
 
         if (null != specificationVendor) {
             sb.append(SPECIFICATION_VENDOR);
             sb.append(brace);
             sb.append(specificationVendor);
-            sb.append(lineSeparator);
+            sb.append(StringUtils.LINE_SEP);
         }
 
         if (null != implementationVersion) {
             sb.append(IMPLEMENTATION_VERSION);
             sb.append(brace);
             sb.append(implementationVersion);
-            sb.append(lineSeparator);
+            sb.append(StringUtils.LINE_SEP);
         }
 
         if (null != implementationVendorID) {
             sb.append(IMPLEMENTATION_VENDOR_ID);
             sb.append(brace);
             sb.append(implementationVendorID);
-            sb.append(lineSeparator);
+            sb.append(StringUtils.LINE_SEP);
         }
 
         if (null != implementationVendor) {
             sb.append(IMPLEMENTATION_VENDOR);
             sb.append(brace);
             sb.append(implementationVendor);
-            sb.append(lineSeparator);
+            sb.append(StringUtils.LINE_SEP);
         }
 
         if (null != implementationURL) {
             sb.append(IMPLEMENTATION_URL);
             sb.append(brace);
             sb.append(implementationURL);
-            sb.append(lineSeparator);
+            sb.append(StringUtils.LINE_SEP);
         }
 
         return sb.toString();
@@ -588,7 +581,7 @@ public final class Extension {
             getExtension(attributes, results, listKey);
         }
 
-        return (Extension[]) results.toArray(new Extension[ 0 ]);
+        return (Extension[]) results.toArray(new Extension[results.size()]);
     }
 
     /**
@@ -626,7 +619,7 @@ public final class Extension {
      * @param onToken the token
      * @return the resultant array
      */
-    private static final String[] split(final String string,
+    private static String[] split(final String string,
                                         final String onToken) {
         final StringTokenizer tokenizer = new StringTokenizer(string, onToken);
         final String[] result = new String[ tokenizer.countTokens() ];
@@ -691,10 +684,6 @@ public final class Extension {
      * @return the trimmed string or null
      */
     private static String getTrimmedString(final String value) {
-        if (null == value) {
-            return null;
-        } else {
-            return value.trim();
-        }
+        return null == value ? null : value.trim();
     }
 }

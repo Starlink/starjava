@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import org.apache.tools.ant.BuildException;
 
 
 /**
@@ -83,7 +85,7 @@ public final class ClassConstants
      * during reading, or if the constants for the specified class cannot
      * be read (for example due to the class not being found).
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
 
         int ch = -1;
 
@@ -102,7 +104,7 @@ public final class ClassConstants
             if (clazz == null) {
                 ch = -1;
             } else {
-                final byte[] bytes = clazz.getBytes();
+                final byte[] bytes = clazz.getBytes("ISO-8859-1");
                 try {
                     final Class javaClassHelper =
                         Class.forName(JAVA_CLASS_HELPER);
@@ -124,16 +126,21 @@ public final class ClassConstants
                             return read();
                         }
                     }
-                } catch (ClassNotFoundException cnfe) {
-                    throw new IOException(cnfe.getMessage());
-                } catch (NoSuchMethodException nsme) {
-                    throw new IOException(nsme.getMessage());
-                } catch (IllegalAccessException iae) {
-                    throw new IOException(iae.getMessage());
-                } catch (IllegalArgumentException iarge) {
-                    throw new IOException(iarge.getMessage());
-                } catch (InvocationTargetException ite) {
-                    throw new IOException(ite.getMessage());
+                } catch (NoClassDefFoundError ex) {
+                    throw ex;
+                } catch (RuntimeException ex) {
+                    throw ex;
+                } catch (InvocationTargetException ex) {
+                    Throwable t = ex.getTargetException();
+                    if (t instanceof NoClassDefFoundError) {
+                        throw (NoClassDefFoundError) t;
+                    }
+                    if (t instanceof RuntimeException) {
+                        throw (RuntimeException) t;
+                    }
+                    throw new BuildException(t);
+                } catch (Exception ex) {
+                    throw new BuildException(ex);
                 }
             }
         }
@@ -150,7 +157,7 @@ public final class ClassConstants
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         ClassConstants newFilter = new ClassConstants(rdr);
         return newFilter;
     }

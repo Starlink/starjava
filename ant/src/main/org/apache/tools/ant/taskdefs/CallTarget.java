@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,9 +18,11 @@
 
 package org.apache.tools.ant.taskdefs;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
 import java.io.IOException;
+
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.types.PropertySet;
 
 /**
  * Call another target in the same project.
@@ -41,7 +44,6 @@ import java.io.IOException;
  * defined in the project itself.
  *
  *
- *
  * @since Ant 1.2
  *
  * @ant.task name="antcall" category="control"
@@ -49,15 +51,17 @@ import java.io.IOException;
 public class CallTarget extends Task {
 
     private Ant callee;
-    private String subTarget;
     // must match the default value of Ant#inheritAll
     private boolean inheritAll = true;
     // must match the default value of Ant#inheritRefs
     private boolean inheritRefs = false;
 
+    private boolean targetSet = false;
+
     /**
      * If true, pass all properties to the new Ant project.
      * Defaults to true.
+     * @param inherit <code>boolean</code> flag.
      */
     public void setInheritAll(boolean inherit) {
        inheritAll = inherit;
@@ -65,49 +69,45 @@ public class CallTarget extends Task {
 
     /**
      * If true, pass all references to the new Ant project.
-     * Defaults to false
-     * @param inheritRefs new value
+     * Defaults to false.
+     * @param inheritRefs <code>boolean</code> flag.
      */
     public void setInheritRefs(boolean inheritRefs) {
         this.inheritRefs = inheritRefs;
     }
 
     /**
-     * init this task by creating new instance of the ant task and
-     * configuring it's by calling its own init method.
+     * Initialize this task by creating new instance of the ant task and
+     * configuring it by calling its own init method.
      */
     public void init() {
-        callee = (Ant) getProject().createTask("ant");
-        callee.setOwningTarget(getOwningTarget());
-        callee.setTaskName(getTaskName());
-        callee.setLocation(getLocation());
+        callee = new Ant(this);
         callee.init();
     }
 
     /**
-     * hand off the work to the ant task of ours, after setting it up
+     * Delegate the work to the ant task instance, after setting it up.
      * @throws BuildException on validation failure or if the target didn't
-     * execute
+     * execute.
      */
     public void execute() throws BuildException {
         if (callee == null) {
             init();
         }
-
-        if (subTarget == null) {
-            throw new BuildException("Attribute target is required.",
-                                     getLocation());
+        if (!targetSet) {
+            throw new BuildException(
+                "Attribute target or at least one nested target is required.",
+                 getLocation());
         }
-
         callee.setAntfile(getProject().getProperty("ant.file"));
-        callee.setTarget(subTarget);
         callee.setInheritAll(inheritAll);
         callee.setInheritRefs(inheritRefs);
         callee.execute();
     }
 
     /**
-     * Property to pass to the invoked target.
+     * Create a new Property to pass to the invoked target(s).
+     * @return a <code>Property</code> object.
      */
     public Property createParam() {
         if (callee == null) {
@@ -119,6 +119,7 @@ public class CallTarget extends Task {
     /**
      * Reference element identifying a data type to carry
      * over to the invoked target.
+     * @param r the specified <code>Ant.Reference</code>.
      * @since Ant 1.5
      */
     public void addReference(Ant.Reference r) {
@@ -130,10 +131,10 @@ public class CallTarget extends Task {
 
     /**
      * Set of properties to pass to the new project.
-     *
+     * @param ps the <code>PropertySet</code> to pass.
      * @since Ant 1.6
      */
-    public void addPropertyset(org.apache.tools.ant.types.PropertySet ps) {
+    public void addPropertyset(PropertySet ps) {
         if (callee == null) {
             init();
         }
@@ -141,15 +142,36 @@ public class CallTarget extends Task {
     }
 
     /**
-     * Target to execute, required.
+     * Set target to execute.
+     * @param target the name of the target to execute.
      */
     public void setTarget(String target) {
-        subTarget = target;
+        if (callee == null) {
+            init();
+        }
+        callee.setTarget(target);
+        targetSet = true;
     }
 
     /**
-     * Pass output sent to System.out to the new project.
-     *
+     * Add a target to the list of targets to invoke.
+     * @param t <code>Ant.TargetElement</code> representing the target.
+     * @since Ant 1.6.3
+     */
+    public void addConfiguredTarget(Ant.TargetElement t) {
+        if (callee == null) {
+            init();
+        }
+        callee.addConfiguredTarget(t);
+        targetSet = true;
+    }
+
+    /**
+     * Handles output.
+     * Send it the the new project if is present, otherwise
+     * call the super class.
+     * @param output The string output to output.
+     * @see Task#handleOutput(String)
      * @since Ant 1.5
      */
     public void handleOutput(String output) {
@@ -161,22 +183,33 @@ public class CallTarget extends Task {
     }
 
     /**
-     * @see Task#handleInput(byte[], int, int)
+     * Handles input.
+     * Deleate to the created project, if present, otherwise
+     * call the super class.
+     * @param buffer the buffer into which data is to be read.
+     * @param offset the offset into the buffer at which data is stored.
+     * @param length the amount of data to read.
      *
+     * @return the number of bytes read.
+     *
+     * @exception IOException if the data cannot be read.
+     * @see Task#handleInput(byte[], int, int)
      * @since Ant 1.6
      */
     public int handleInput(byte[] buffer, int offset, int length)
         throws IOException {
         if (callee != null) {
             return callee.handleInput(buffer, offset, length);
-        } else {
-            return super.handleInput(buffer, offset, length);
         }
+        return super.handleInput(buffer, offset, length);
     }
 
     /**
-     * Pass output sent to System.out to the new project.
-     *
+     * Handles output.
+     * Send it the the new project if is present, otherwise
+     * call the super class.
+     * @param output The string to output.
+     * @see Task#handleFlush(String)
      * @since Ant 1.5.2
      */
     public void handleFlush(String output) {
@@ -188,8 +221,12 @@ public class CallTarget extends Task {
     }
 
     /**
-     * Pass output sent to System.err to the new project.
+     * Handle error output.
+     * Send it the the new project if is present, otherwise
+     * call the super class.
+     * @param output The string to output.
      *
+     * @see Task#handleErrorOutput(String)
      * @since Ant 1.5
      */
     public void handleErrorOutput(String output) {
@@ -201,8 +238,11 @@ public class CallTarget extends Task {
     }
 
     /**
-     * Pass output sent to System.err to the new project and flush stream.
-     *
+     * Handle error output.
+     * Send it the the new project if is present, otherwise
+     * call the super class.
+     * @param output The string to output.
+     * @see Task#handleErrorFlush(String)
      * @since Ant 1.5.2
      */
     public void handleErrorFlush(String output) {

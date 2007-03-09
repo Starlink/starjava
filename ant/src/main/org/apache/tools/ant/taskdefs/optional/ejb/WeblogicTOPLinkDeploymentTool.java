@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,6 +23,9 @@ import java.util.Hashtable;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
+/**
+ * Deployment tool for Weblogic TOPLink.
+ */
 public class WeblogicTOPLinkDeploymentTool extends WeblogicDeploymentTool {
 
     private static final String TL_DTD_LOC
@@ -52,6 +56,11 @@ public class WeblogicTOPLinkDeploymentTool extends WeblogicDeploymentTool {
         this.toplinkDTD = inString;
     }
 
+    /**
+     * Get the descriptor handler.
+     * @param srcDir the source file.
+     * @return the descriptor handler.
+     */
     protected DescriptorHandler getDescriptorHandler(File srcDir) {
         DescriptorHandler handler = super.getDescriptorHandler(srcDir);
         if (toplinkDTD != null) {
@@ -67,6 +76,8 @@ public class WeblogicTOPLinkDeploymentTool extends WeblogicDeploymentTool {
     /**
      * Add any vendor specific files which should be included in the
      * EJB Jar.
+     * @param ejbFiles the hashtable to add files to.
+     * @param ddPrefix the prefix to use.
      */
     protected void addVendorFiles(Hashtable ejbFiles, String ddPrefix) {
         super.addVendorFiles(ejbFiles, ddPrefix);
@@ -89,7 +100,7 @@ public class WeblogicTOPLinkDeploymentTool extends WeblogicDeploymentTool {
 
     /**
      * Called to validate that the tool parameters have been configured.
-     *
+     * @throws BuildException if there is an error.
      */
     public void validateConfigured() throws BuildException {
         super.validateConfigured();

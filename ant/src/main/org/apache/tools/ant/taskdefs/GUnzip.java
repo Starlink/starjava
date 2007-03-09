@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,11 +18,12 @@
 
 package org.apache.tools.ant.taskdefs;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Expands a file that has been compressed with the GZIP
@@ -37,10 +39,17 @@ public class GUnzip extends Unpack {
 
     private static final String DEFAULT_EXTENSION = ".gz";
 
+    /**
+     * Get the default extension.
+     * @return the value ".gz"
+     */
     protected String getDefaultExtension() {
         return DEFAULT_EXTENSION;
     }
 
+    /**
+     * Implement the gunzipping.
+     */
     protected void extract() {
         if (source.lastModified() > dest.lastModified()) {
             log("Expanding " + source.getAbsolutePath() + " to "
@@ -48,10 +57,10 @@ public class GUnzip extends Unpack {
 
             FileOutputStream out = null;
             GZIPInputStream zIn = null;
-            FileInputStream fis = null;
+            InputStream fis = null;
             try {
                 out = new FileOutputStream(dest);
-                fis = new FileInputStream(source);
+                fis = srcResource.getInputStream();
                 zIn = new GZIPInputStream(fis);
                 byte[] buffer = new byte[8 * 1024];
                 int count = 0;
@@ -63,28 +72,25 @@ public class GUnzip extends Unpack {
                 String msg = "Problem expanding gzip " + ioe.getMessage();
                 throw new BuildException(msg, ioe, getLocation());
             } finally {
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    } catch (IOException ioex) {
-                        //ignore
-                    }
-                }
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException ioex) {
-                        //ignore
-                    }
-                }
-                if (zIn != null) {
-                    try {
-                        zIn.close();
-                    } catch (IOException ioex) {
-                        //ignore
-                    }
-                }
+                FileUtils.close(fis);
+                FileUtils.close(out);
+                FileUtils.close(zIn);
             }
         }
+    }
+
+    /**
+     * Whether this task can deal with non-file resources.
+     *
+     * <p>This implementation returns true only if this task is
+     * &lt;gunzip&gt;.  Any subclass of this class that also wants to
+     * support non-file resources needs to override this method.  We
+     * need to do so for backwards compatibility reasons since we
+     * can't expect subclasses to support resources.</p>
+     * @return true if this task supports non file resources.
+     * @since Ant 1.7
+     */
+    protected boolean supportsNonFileResources() {
+        return getClass().equals(GUnzip.class);
     }
 }

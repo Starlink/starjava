@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,7 +23,6 @@ import org.apache.tools.ant.BuildException;
 /**
  * Is one string part of another string?
  *
- * @version $Revision: 1.6.2.4 $
  *
  * @since Ant 1.5
  */
@@ -51,7 +51,7 @@ public class Contains implements Condition {
 
     /**
      * Whether to search ignoring case or not.
-     * @param b if true, ignore case
+     * @param b if false, ignore case
      * @since Ant 1.5
      */
     public void setCasesensitive(boolean b) {

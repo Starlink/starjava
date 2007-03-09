@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,12 +26,14 @@ package org.apache.tools.ant.taskdefs.optional.pvcs;
 public class PvcsProject {
     private String name;
 
+    /** no arg constructor */
     public PvcsProject() {
         super();
     }
 
     /**
      * Set the name of the project
+     * @param name the value to use.
      */
     public void setName(String name) {
         PvcsProject.this.name = name;
@@ -38,6 +41,7 @@ public class PvcsProject {
 
     /**
      * Get the name of the project
+     * @return the name of the project.
      */
     public String getName() {
         return name;

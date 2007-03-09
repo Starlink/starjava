@@ -1,7 +1,24 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>CVSVersion Task</title>
 <link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
@@ -11,7 +28,8 @@
 <h2><a name="cvs">CvsVersion</a></h2>
 <h3>Description</h3>
 <p>
-This task allows to retrieve a CVS client and server version
+This task allows to retrieve a CVS client and server version.
+  <i>Since Ant 1.6.1.</i>
 </p>
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -63,13 +81,13 @@ This task allows to retrieve a CVS client and server version
     <td colspan="3">Specific attributes</td>
   </tr>
   <tr>
-    <td valign="top">cvsclientproperty</td>
+    <td valign="top">clientversionproperty</td>
     <td valign="top">Name of a property where the cvsclient version
       should be stored</td>
     <td align="center" valign="top">No</td>
   </tr>
   <tr>
-    <td valign="top">cvsserverproperty</td>
+    <td valign="top">serverversionproperty</td>
     <td valign="top">Name of a property where the cvs server version
       should be stored</td>
     <td align="center" valign="top">No</td>
@@ -78,15 +96,13 @@ This task allows to retrieve a CVS client and server version
 <h3>Examples</h3>
 <pre>  &lt;cvsversion cvsRoot=&quot;:pserver:anoncvs@cvs.apache.org:/home/cvspublic&quot;
        passfile=&quot;/home/myself/.cvspass&quot;
-       cvsserverproperty=&quot;apachecvsversion&quot;
-       cvsclientproperty=&quot;localcvsversion&quot;
+       serverversionproperty=&quot;apachecvsversion&quot;
+       clientversionproperty=&quot;localcvsversion&quot;
   /&gt;</pre>
 <p>finds out the cvs client and server versions and stores the versions in the
 properties called apachecvsversion and localcvsversion</p>
 
-<hr>
-<p align="center">Copyright &copy; 2004 Apache Software
-Foundation.  All rights Reserved.</p>
+
 
 </body>
 </html>

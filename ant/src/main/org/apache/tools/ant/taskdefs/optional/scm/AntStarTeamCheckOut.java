@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -186,7 +187,10 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
         }
     }
 
-
+    /**
+     * Check if the attributes/elements are correct.
+     * @throws BuildException if there was a problem.
+     */
     protected void checkParameters() throws BuildException {
         // Check all of the properties that are required.
         assertTrue(getServerName() != null, "ServerName must be set.");
@@ -219,7 +223,7 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
     /**
      * Do the execution.
      *
-     * @exception BuildException
+     * @throws BuildException if there was a problem.
      */
     public void execute() throws BuildException {
         log("DEPRECATED - The starteam task is deprecated.  Use stcheckout instead.",
@@ -657,7 +661,7 @@ public class AntStarTeamCheckOut extends org.apache.tools.ant.Task {
      * Formats a property value for display to the user.
      *
      * @param p An item property to format.
-     * @param value
+     * @param value the object to format.
      * @return A string containing the property, which is truncated to 35
      *      characters for display.
      */

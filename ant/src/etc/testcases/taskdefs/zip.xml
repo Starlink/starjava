@@ -122,7 +122,118 @@
          includes="ziptest/**" filesonly="true"/>
   </target>
 
+  <!-- Bugzilla Report 22865 -->
+  <target name="testEmptySkip">
+    <mkdir dir="ziptest"/>
+    <zip destfile="test3.zip" basedir="ziptest" whenempty="skip"/>
+    <fail message="archive should get skipped">
+      <condition>
+        <available file="test3.zip" />
+      </condition>
+    </fail>
+  </target>
+
+  <!-- Bugzilla Report 30365 -->
+  <target name="zipEmptyDir">
+    <mkdir dir="empty/empty2"/>
+    <zip destfile="test3.zip" basedir="empty" update="true"/>
+    <fail message="single-directory archive should be created">
+      <condition>
+        <or>
+          <not>
+            <available file="test3.zip" />
+          </not>
+          <resourcecount when="gt" count="0">
+            <zipfileset src="test3.zip" />
+          </resourcecount>
+          <resourcecount when="ne" count="1">
+            <restrict>
+              <exists xmlns="antlib:org.apache.tools.ant.types.resources.selectors" />
+              <zipentry zipfile="test3.zip" name="empty2/" />
+            </restrict>
+          </resourcecount>
+        </or>
+      </condition>
+    </fail>
+  </target>
+
+  <!-- Bugzilla Report 40258 -->
+  <target name="zipEmptyDirFilesOnly">
+    <mkdir dir="empty/empty2" />
+    <zip destfile="test3.zip" basedir="empty" update="true" filesonly="true" />
+    <fail message="archive should get skipped">
+      <condition>
+        <available file="test3.zip" />
+      </condition>
+    </fail>
+  </target>
+
+  <target name="zipEmptyCreate">
+    <mkdir dir="empty"/>
+    <zip destfile="test3.zip" basedir="empty" whenempty="create" includes="*.xyz"/>
+    <fail message="empty archive should be created">
+      <condition>
+        <or>
+          <not>
+           <available file="test3.zip" />
+          </not>
+          <resourcecount when="gt" count="0">
+            <zipfileset src="test3.zip" />
+          </resourcecount>
+        </or>
+      </condition>
+    </fail>
+  </target>
+
+  <target name="testCompressionLevel" depends="test6">
+    <length property="test6.length" file="test6.zip" />
+    <zip destFile="testLevel.zip" basedir="." level="9">
+      <include name="*.xml" />
+      <exclude name="zip.*" />
+    </zip>
+    <fail>
+      <condition>
+        <not>
+          <isfileselected file="testLevel.zip">
+            <size when="less" value="${test6.length}" />
+          </isfileselected>
+        </not>
+      </condition>
+    </fail>
+  </target>
+
+  <!-- Bugzilla Report 33412 -->
+  <target name="testDefaultExcludesAndUpdate">
+    <mkdir dir="ziptest"/>
+    <touch file="ziptest/ziptest~"/>
+    <zip destfile="test3.zip" basedir="ziptest" defaultexcludes="false"/>
+    <touch file="ziptest/ziptest2"/>
+    <zip destfile="test3.zip" basedir="ziptest"
+      defaultexcludes="false"
+      update="true"/>
+  </target>
+
+  <target name="testFileResource">
+    <zip destfile="test3.zip">
+      <file file="zip.xml"/>
+    </zip>
+  </target>
+
+  <target name="testNonFileResource">
+    <zip destfile="test3.zip">
+      <javaresource name="META-INF/MANIFEST.MF"/>
+    </zip>
+  </target>
+
+  <target name="testTarFileSet">
+    <ant antfile="tar.xml" target="feather"/>
+    <zip destfile="test3.zip">
+      <tarfileset src="asf-logo.gif.tar" filemode="446"/>
+    </zip>
+  </target>
+
   <target name="cleanup">
+    <delete file="testLevel.zip"/>
     <delete file="test3.zip"/>
     <delete file="test4.zip"/>
     <delete file="test5.zip"/>
@@ -134,5 +245,7 @@
     <delete file="zipgroupfileset.zip"/>
     <delete file="../dummyfile" />
     <delete dir="ziptest"/>
+    <delete dir="empty"/>
+    <ant antfile="tar.xml" target="cleanup"/>
   </target>
 </project>

@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,7 +34,7 @@ public class Jvc extends DefaultCompilerAdapter {
 
     /**
      * Run the compilation.
-     *
+     * @return true if the compiler ran with a zero exit result (ok)
      * @exception BuildException if the compilation has problems.
      */
     public boolean execute() throws BuildException {
@@ -43,8 +44,9 @@ public class Jvc extends DefaultCompilerAdapter {
 
         // jvc doesn't support bootclasspath dir (-bootclasspath)
         // so we'll emulate it for compatibility and convenience.
-        if (bootclasspath != null) {
-            classpath.append(bootclasspath);
+        Path p = getBootClassPath();
+        if (p.size() > 0) {
+            classpath.append(p);
         }
 
         if (includeJavaRuntime) {

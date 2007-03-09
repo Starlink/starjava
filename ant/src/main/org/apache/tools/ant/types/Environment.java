@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,12 +26,15 @@ import org.apache.tools.ant.BuildException;
  *
  */
 public class Environment {
+    // CheckStyle:VisibilityModifier OFF - bc
 
     /**
      * a vector of type Enviromment.Variable
      * @see Variable
      */
     protected Vector variables;
+
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * representation of a single env value
@@ -109,13 +113,21 @@ public class Environment {
          * @throws BuildException if key or value are unassigned
          */
         public String getContent() throws BuildException {
+            validate();
+            StringBuffer sb = new StringBuffer(key.trim());
+            sb.append("=").append(value.trim());
+            return sb.toString();
+        }
+
+        /**
+         * checks whether all required attributes have been specified.
+         * @throws BuildException if key or value are unassigned
+         */
+        public void validate() {
             if (key == null || value == null) {
                 throw new BuildException("key and value must be specified "
                     + "for environment variables.");
             }
-            StringBuffer sb = new StringBuffer(key.trim());
-            sb.append("=").append(value.trim());
-            return sb.toString();
         }
     }
 
@@ -150,5 +162,15 @@ public class Environment {
             result[i] = ((Variable) variables.elementAt(i)).getContent();
         }
         return result;
+    }
+
+    /**
+     * Get the raw vector of variables. This is not a clone.
+     * @return a potentially empty (but never null) vector of elements of type
+     * Variable
+     * @since Ant 1.7
+     */
+    public Vector getVariablesVector() {
+        return variables;
     }
 }

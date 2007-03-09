@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,10 +19,11 @@
 package org.apache.tools.ant.taskdefs.optional.javacc;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.zip.ZipFile;
+
+import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -60,12 +62,13 @@ public class JavaCC extends Task {
     private static final String FORCE_LA_CHECK         = "FORCE_LA_CHECK";
     private static final String CACHE_TOKENS           = "CACHE_TOKENS";
     private static final String KEEP_LINE_COLUMN       = "KEEP_LINE_COLUMN";
+    private static final String JDK_VERSION            = "JDK_VERSION";
 
     private final Hashtable optionalAttrs = new Hashtable();
 
     // required attributes
     private File outputDirectory = null;
-    private File target          = null;
+    private File targetFile      = null;
     private File javaccHome      = null;
 
     private CommandlineJava cmdl = new CommandlineJava();
@@ -103,6 +106,7 @@ public class JavaCC extends Task {
 
     /**
      * Sets the LOOKAHEAD grammar option.
+     * @param lookahead an <code>int</code> value.
      */
     public void setLookahead(int lookahead) {
         optionalAttrs.put(LOOKAHEAD, new Integer(lookahead));
@@ -110,6 +114,7 @@ public class JavaCC extends Task {
 
     /**
      * Sets the CHOICE_AMBIGUITY_CHECK grammar option.
+     * @param choiceAmbiguityCheck an <code>int</code> value.
      */
     public void setChoiceambiguitycheck(int choiceAmbiguityCheck) {
         optionalAttrs.put(CHOICE_AMBIGUITY_CHECK, new Integer(choiceAmbiguityCheck));
@@ -117,6 +122,7 @@ public class JavaCC extends Task {
 
     /**
      * Sets the OTHER_AMBIGUITY_CHECK grammar option.
+     * @param otherAmbiguityCheck an <code>int</code> value.
      */
     public void setOtherambiguityCheck(int otherAmbiguityCheck) {
         optionalAttrs.put(OTHER_AMBIGUITY_CHECK, new Integer(otherAmbiguityCheck));
@@ -124,134 +130,163 @@ public class JavaCC extends Task {
 
     /**
      * Sets the STATIC grammar option.
+     * @param staticParser a <code>boolean</code> value.
      */
     public void setStatic(boolean staticParser) {
-        optionalAttrs.put(STATIC, new Boolean(staticParser));
+        optionalAttrs.put(STATIC, staticParser ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the DEBUG_PARSER grammar option.
+     * @param debugParser a <code>boolean</code> value.
      */
     public void setDebugparser(boolean debugParser) {
-        optionalAttrs.put(DEBUG_PARSER, new Boolean(debugParser));
+        optionalAttrs.put(DEBUG_PARSER, debugParser ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the DEBUG_LOOKAHEAD grammar option.
+     * @param debugLookahead a <code>boolean</code> value.
      */
     public void setDebuglookahead(boolean debugLookahead) {
-        optionalAttrs.put(DEBUG_LOOKAHEAD, new Boolean(debugLookahead));
+        optionalAttrs.put(DEBUG_LOOKAHEAD, debugLookahead ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the DEBUG_TOKEN_MANAGER grammar option.
+     * @param debugTokenManager a <code>boolean</code> value.
      */
     public void setDebugtokenmanager(boolean debugTokenManager) {
-        optionalAttrs.put(DEBUG_TOKEN_MANAGER, new Boolean(debugTokenManager));
+        optionalAttrs.put(DEBUG_TOKEN_MANAGER, debugTokenManager ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the OPTIMIZE_TOKEN_MANAGER grammar option.
+     * @param optimizeTokenManager a <code>boolean</code> value.
      */
     public void setOptimizetokenmanager(boolean optimizeTokenManager) {
-        optionalAttrs.put(OPTIMIZE_TOKEN_MANAGER, new Boolean(optimizeTokenManager));
+        optionalAttrs.put(OPTIMIZE_TOKEN_MANAGER,
+                          optimizeTokenManager ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the ERROR_REPORTING grammar option.
+     * @param errorReporting a <code>boolean</code> value.
      */
     public void setErrorreporting(boolean errorReporting) {
-        optionalAttrs.put(ERROR_REPORTING, new Boolean(errorReporting));
+        optionalAttrs.put(ERROR_REPORTING, errorReporting ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the JAVA_UNICODE_ESCAPE grammar option.
+     * @param javaUnicodeEscape a <code>boolean</code> value.
      */
     public void setJavaunicodeescape(boolean javaUnicodeEscape) {
-        optionalAttrs.put(JAVA_UNICODE_ESCAPE, new Boolean(javaUnicodeEscape));
+        optionalAttrs.put(JAVA_UNICODE_ESCAPE, javaUnicodeEscape ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the UNICODE_INPUT grammar option.
+     * @param unicodeInput a <code>boolean</code> value.
      */
     public void setUnicodeinput(boolean unicodeInput) {
-        optionalAttrs.put(UNICODE_INPUT, new Boolean(unicodeInput));
+        optionalAttrs.put(UNICODE_INPUT, unicodeInput ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the IGNORE_CASE grammar option.
+     * @param ignoreCase a <code>boolean</code> value.
      */
     public void setIgnorecase(boolean ignoreCase) {
-        optionalAttrs.put(IGNORE_CASE, new Boolean(ignoreCase));
+        optionalAttrs.put(IGNORE_CASE, ignoreCase ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the COMMON_TOKEN_ACTION grammar option.
+     * @param commonTokenAction a <code>boolean</code> value.
      */
     public void setCommontokenaction(boolean commonTokenAction) {
-        optionalAttrs.put(COMMON_TOKEN_ACTION, new Boolean(commonTokenAction));
+        optionalAttrs.put(COMMON_TOKEN_ACTION, commonTokenAction ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the USER_TOKEN_MANAGER grammar option.
+     * @param userTokenManager a <code>boolean</code> value.
      */
     public void setUsertokenmanager(boolean userTokenManager) {
-        optionalAttrs.put(USER_TOKEN_MANAGER, new Boolean(userTokenManager));
+        optionalAttrs.put(USER_TOKEN_MANAGER, userTokenManager ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the USER_CHAR_STREAM grammar option.
+     * @param userCharStream a <code>boolean</code> value.
      */
     public void setUsercharstream(boolean userCharStream) {
-        optionalAttrs.put(USER_CHAR_STREAM, new Boolean(userCharStream));
+        optionalAttrs.put(USER_CHAR_STREAM, userCharStream ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the BUILD_PARSER grammar option.
+     * @param buildParser a <code>boolean</code> value.
      */
     public void setBuildparser(boolean buildParser) {
-        optionalAttrs.put(BUILD_PARSER, new Boolean(buildParser));
+        optionalAttrs.put(BUILD_PARSER, buildParser ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the BUILD_TOKEN_MANAGER grammar option.
+     * @param buildTokenManager a <code>boolean</code> value.
      */
     public void setBuildtokenmanager(boolean buildTokenManager) {
-        optionalAttrs.put(BUILD_TOKEN_MANAGER, new Boolean(buildTokenManager));
+        optionalAttrs.put(BUILD_TOKEN_MANAGER, buildTokenManager ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the SANITY_CHECK grammar option.
+     * @param sanityCheck a <code>boolean</code> value.
      */
     public void setSanitycheck(boolean sanityCheck) {
-        optionalAttrs.put(SANITY_CHECK, new Boolean(sanityCheck));
+        optionalAttrs.put(SANITY_CHECK, sanityCheck ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the FORCE_LA_CHECK grammar option.
+     * @param forceLACheck a <code>boolean</code> value.
      */
     public void setForcelacheck(boolean forceLACheck) {
-        optionalAttrs.put(FORCE_LA_CHECK, new Boolean(forceLACheck));
+        optionalAttrs.put(FORCE_LA_CHECK, forceLACheck ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the CACHE_TOKENS grammar option.
+     * @param cacheTokens a <code>boolean</code> value.
      */
     public void setCachetokens(boolean cacheTokens) {
-        optionalAttrs.put(CACHE_TOKENS, new Boolean(cacheTokens));
+        optionalAttrs.put(CACHE_TOKENS, cacheTokens ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the KEEP_LINE_COLUMN grammar option.
+     * @param keepLineColumn a <code>boolean</code> value.
      */
     public void setKeeplinecolumn(boolean keepLineColumn) {
-        optionalAttrs.put(KEEP_LINE_COLUMN, new Boolean(keepLineColumn));
+        optionalAttrs.put(KEEP_LINE_COLUMN, keepLineColumn ? Boolean.TRUE : Boolean.FALSE);
+    }
+
+    /**
+     * Sets the JDK_VERSION option.
+     * @param jdkVersion the version to use.
+     * @since Ant1.7
+     */
+    public void setJDKversion(String jdkVersion) {
+        optionalAttrs.put(JDK_VERSION, jdkVersion);
     }
 
     /**
      * The directory to write the generated files to.
      * If not set, the files are written to the directory
      * containing the grammar file.
+     * @param outputDirectory the output directory.
      */
     public void setOutputdirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
@@ -259,22 +294,31 @@ public class JavaCC extends Task {
 
     /**
      * The grammar file to process.
+     * @param targetFile the grammar file.
      */
-    public void setTarget(File target) {
-        this.target = target;
+    public void setTarget(File targetFile) {
+        this.targetFile = targetFile;
     }
 
     /**
      * The directory containing the JavaCC distribution.
+     * @param javaccHome the directory.
      */
     public void setJavacchome(File javaccHome) {
         this.javaccHome = javaccHome;
     }
 
+    /**
+     * Constructor
+     */
     public JavaCC() {
         cmdl.setVm(JavaEnvUtils.getJreExecutable("java"));
     }
 
+    /**
+     * Run the task.
+     * @throws BuildException on error.
+     */
     public void execute() throws BuildException {
 
         // load command line with optional attributes
@@ -286,13 +330,13 @@ public class JavaCC extends Task {
         }
 
         // check the target is a file
-        if (target == null || !target.isFile()) {
-            throw new BuildException("Invalid target: " + target);
+        if (targetFile == null || !targetFile.isFile()) {
+            throw new BuildException("Invalid target: " + targetFile);
         }
 
         // use the directory containing the target as the output directory
         if (outputDirectory == null) {
-            outputDirectory = new File(target.getParent());
+            outputDirectory = new File(targetFile.getParent());
         } else if (!outputDirectory.isDirectory()) {
             throw new BuildException("Outputdir not a directory.");
         }
@@ -300,20 +344,20 @@ public class JavaCC extends Task {
                                        + outputDirectory.getAbsolutePath());
 
         // determine if the generated java file is up-to-date
-        final File javaFile = getOutputJavaFile(outputDirectory, target);
-        if (javaFile.exists() && target.lastModified() < javaFile.lastModified()) {
-            log("Target is already built - skipping (" + target + ")", Project.MSG_VERBOSE);
+        final File javaFile = getOutputJavaFile(outputDirectory, targetFile);
+        if (javaFile.exists() && targetFile.lastModified() < javaFile.lastModified()) {
+            log("Target is already built - skipping (" + targetFile + ")", Project.MSG_VERBOSE);
             return;
         }
-        cmdl.createArgument().setValue(target.getAbsolutePath());
-
-        cmdl.setClassname(JavaCC.getMainClass(javaccHome,
-                                              JavaCC.TASKDEF_TYPE_JAVACC));
+        cmdl.createArgument().setValue(targetFile.getAbsolutePath());
 
         final Path classpath = cmdl.createClasspath(getProject());
         final File javaccJar = JavaCC.getArchiveFile(javaccHome);
         classpath.createPathElement().setPath(javaccJar.getAbsolutePath());
         classpath.addJavaRuntime();
+
+        cmdl.setClassname(JavaCC.getMainClass(classpath,
+                                              JavaCC.TASKDEF_TYPE_JAVACC));
 
         final Commandline.Argument arg = cmdl.createVmArgument();
         arg.setValue("-mx140M");
@@ -347,15 +391,33 @@ public class JavaCC extends Task {
     protected static String getMainClass(File home, int type)
         throws BuildException {
 
-        int majorVersion = getMajorVersionNumber(home);
+        Path p = new Path(null);
+        p.createPathElement().setLocation(getArchiveFile(home));
+        p.addJavaRuntime();
+        return getMainClass(p, type);
+    }
+
+    /**
+     * Helper method to retrieve main class which is different from versions.
+     * @param path classpath to search in.
+     * @param type the taskdef.
+     * @throws BuildException thrown if the home directory is invalid
+     * or if the archive could not be found despite attempts to do so.
+     * @return the main class for the taskdef.
+     * @since Ant 1.7
+     */
+    protected static String getMainClass(Path path, int type)
+        throws BuildException {
         String packagePrefix = null;
         String mainClass = null;
 
-        switch (majorVersion) {
-        case 1:
-        case 2:
+        AntClassLoader l = new AntClassLoader();
+        l.setClassPath(path.concatSystemClasspath("ignore"));
+        String javaccClass = COM_PACKAGE + COM_JAVACC_CLASS;
+        InputStream is = l.getResourceAsStream(javaccClass.replace('.', '/')
+                                               + ".class");
+        if (is != null) {
             packagePrefix = COM_PACKAGE;
-
             switch (type) {
             case TASKDEF_TYPE_JAVACC:
                 mainClass = COM_JAVACC_CLASS;
@@ -371,59 +433,52 @@ public class JavaCC extends Task {
                 mainClass = COM_JJDOC_CLASS;
 
                 break;
+            default:
+                // Fall Through
             }
-
-            break;
-
-        case 3:
-            /*
-             * This is where the fun starts, JavaCC 3.0 uses
-             * org.netbeans.javacc, 3.1 uses org.javacc - I wonder
-             * which version is going to use net.java.javacc.
-             *
-             * Look into to the archive to pick up the best
-             * package.
-             */
-            ZipFile zf = null;
-            try {
-                zf = new ZipFile(getArchiveFile(home));
-                if (zf.getEntry(ORG_PACKAGE_3_0.replace('.', '/')) != null) {
+        } else {
+            javaccClass = ORG_PACKAGE_3_1 + ORG_JAVACC_CLASS;
+            is = l.getResourceAsStream(javaccClass.replace('.', '/')
+                                       + ".class");
+            if (is != null) {
+                packagePrefix = ORG_PACKAGE_3_1;
+            } else {
+                javaccClass = ORG_PACKAGE_3_0 + ORG_JAVACC_CLASS;
+                is = l.getResourceAsStream(javaccClass.replace('.', '/')
+                                           + ".class");
+                if (is != null) {
                     packagePrefix = ORG_PACKAGE_3_0;
-                } else {
-                    packagePrefix = ORG_PACKAGE_3_1;
-                }
-            } catch (IOException e) {
-                throw new BuildException("Error reading javacc.jar", e);
-            } finally {
-                if (zf != null) {
-                    try {
-                        zf.close();
-                    } catch (IOException e) {
-                        throw new BuildException(e);
-                    }
                 }
             }
 
-            switch (type) {
-            case TASKDEF_TYPE_JAVACC:
-                mainClass = ORG_JAVACC_CLASS;
+            if (is != null) {
+                switch (type) {
+                case TASKDEF_TYPE_JAVACC:
+                    mainClass = ORG_JAVACC_CLASS;
 
                 break;
 
-            case TASKDEF_TYPE_JJTREE:
-                mainClass = ORG_JJTREE_CLASS;
+                case TASKDEF_TYPE_JJTREE:
+                    mainClass = ORG_JJTREE_CLASS;
 
-                break;
+                    break;
 
-            case TASKDEF_TYPE_JJDOC:
-                mainClass = ORG_JJDOC_CLASS;
+                case TASKDEF_TYPE_JJDOC:
+                    mainClass = ORG_JJDOC_CLASS;
 
-                break;
+                    break;
+                default:
+                    // Fall Through
+                }
             }
-
-            break;
         }
 
+        if (packagePrefix == null) {
+            throw new BuildException("failed to load JavaCC");
+        }
+        if (mainClass == null) {
+            throw new BuildException("unknown task type " + type);
+        }
         return packagePrefix + mainClass;
     }
 

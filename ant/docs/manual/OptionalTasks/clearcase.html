@@ -1,7 +1,24 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Clearcase Tasks</title>
 <link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
@@ -32,18 +49,23 @@ Sean Egan    (sean at cm-logic dot com)</p>
   <li><A href="#ccmkbl">CCMkbl</a>
   <li><A href="#ccmkattr">CCMkattr</a>
   <li><A href="#ccmkdir">CCMkdir</a>
- <li><A href="#ccmkelem">CCMkelem</a></li>
+  <li><A href="#ccmkelem">CCMkelem</a></li>
 
 </ul>
 
 <hr>
 <h2><a name="introduction">Introduction</a></h2>
 <p>Ant provides several optional tasks for working with ClearCase. These tasks correspond to various
-ClearCase commands using the Cleartool program. The current tasks avaliable for Ant correspond to only
+ClearCase commands using the Cleartool program. The current tasks available for Ant correspond to only
 a few of the significant ClearCase commands.</p>
 
 <p>More tasks can be easily added by deriving from the ClearCase class and then adding
 functionality that is specific to that ClearCase command.</p>
+<p>
+    Important: these tasks all require <code>cleartool</code> on the command line.
+    If a task fails with an IOException, especially error code 2 on Windows,
+    this is your problem.
+</p>
 
 
 <hr>
@@ -932,9 +954,6 @@ Since ant 1.6.1
 </blockquote>
 <p>Does a ClearCase <i>mkelem</i> on the file <i>c:/views/viewdir/afile</i> with
 element type <i>text_file</i>. It also checks in the file after creation.</p>
-<hr>
 
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-reserved.</p>
 </body>
 </html>

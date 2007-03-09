@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,9 +27,10 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Stack;
 import java.util.Vector;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
@@ -64,9 +66,11 @@ import org.apache.tools.ant.types.Reference;
  *
  * @ant.attribute.group name="name" description="One of these, when using the name attribute"
  * @ant.attribute.group name="noname" description="One of these, when not using the name attribute"
+ * @ant.task category="property"
  */
 public class Property extends Task {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     protected String name;
     protected String value;
     protected File file;
@@ -79,12 +83,18 @@ public class Property extends Task {
     private Project fallback;
 
     protected boolean userProperty; // set read-only properties
+    // CheckStyle:VisibilityModifier ON
 
+    /**
+     * Constructor for Property.
+     */
     public Property() {
         this(false);
     }
 
     /**
+     * Constructor for Property.
+     * @param userProperty if true this is a user property
      * @since Ant 1.5
      */
     protected Property(boolean userProperty) {
@@ -92,6 +102,10 @@ public class Property extends Task {
     }
 
     /**
+     * Constructor for Property.
+     * @param userProperty if true this is a user property
+     * @param fallback a project to use to look for references if the reference is
+     *                 not in the current project
      * @since Ant 1.5
      */
     protected Property(boolean userProperty, Project fallback) {
@@ -107,6 +121,10 @@ public class Property extends Task {
         this.name = name;
     }
 
+    /**
+     * Get the property name.
+     * @return the property name
+     */
     public String getName() {
         return name;
     }
@@ -135,6 +153,10 @@ public class Property extends Task {
         this.value = value;
     }
 
+    /**
+     * Get the property value.
+     * @return the property value
+     */
     public String getValue() {
         return value;
     }
@@ -149,6 +171,10 @@ public class Property extends Task {
         this.file = file;
     }
 
+    /**
+     * Get the file attribute.
+     * @return the file attribute
+     */
     public File getFile() {
         return file;
     }
@@ -163,6 +189,10 @@ public class Property extends Task {
         this.url = url;
     }
 
+    /**
+     * Get the url attribute.
+     * @return the url attribute
+     */
     public URL getUrl() {
         return url;
     }
@@ -182,6 +212,8 @@ public class Property extends Task {
     }
 
     /**
+     * Get the prefix attribute.
+     * @return the prefix attribute
      * @since Ant 1.5
      */
     public String getPrefix() {
@@ -201,6 +233,10 @@ public class Property extends Task {
         this.ref = ref;
     }
 
+    /**
+     * Get the refid attribute.
+     * @return the refid attribute
+     */
     public Reference getRefid() {
         return ref;
     }
@@ -215,6 +251,10 @@ public class Property extends Task {
         this.resource = resource;
     }
 
+    /**
+     * Get the resource attribute.
+     * @return the resource attribute
+     */
     public String getResource() {
         return resource;
     }
@@ -244,6 +284,8 @@ public class Property extends Task {
     }
 
     /**
+     * Get the environment attribute.
+     * @return the environment attribute
      * @since Ant 1.5
      */
     public String getEnvironment() {
@@ -264,6 +306,7 @@ public class Property extends Task {
 
     /**
      * The classpath to use when looking up a resource.
+     * @return a path to be configured
      */
     public Path createClasspath() {
         if (this.classpath == null) {
@@ -275,12 +318,15 @@ public class Property extends Task {
     /**
      * the classpath to use when looking up a resource,
      * given as reference to a &lt;path&gt; defined elsewhere
+     * @param r a reference to a classpath
      */
     public void setClasspathRef(Reference r) {
         createClasspath().setRefid(r);
     }
 
     /**
+     * Get the classpath used when looking up a resource.
+     * @return the classpath
      * @since Ant 1.5
      */
     public Path getClasspath() {
@@ -288,8 +334,10 @@ public class Property extends Task {
     }
 
     /**
-     * @deprecated This was never a supported feature and has been
-     * deprecated without replacement
+     * @param userProperty ignored
+     * @deprecated since 1.5.x.
+     *             This was never a supported feature and has been
+     *             deprecated without replacement.
      * @ant.attribute ignore="true"
      */
     public void setUserProperty(boolean userProperty) {
@@ -309,6 +357,7 @@ public class Property extends Task {
      * set the property in the project to the value.
      * if the task was give a file, resource or env attribute
      * here is where it is loaded
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
         if (getProject() == null) {
@@ -372,6 +421,7 @@ public class Property extends Task {
     /**
      * load properties from a url
      * @param url url to load from
+     * @throws BuildException on error
      */
     protected void loadUrl(URL url) throws BuildException {
         Properties props = new Properties();
@@ -395,6 +445,7 @@ public class Property extends Task {
     /**
      * load properties from a file
      * @param file file to load
+     * @throws BuildException on error
      */
     protected void loadFile(File file) throws BuildException {
         Properties props = new Properties();
@@ -489,21 +540,22 @@ public class Property extends Task {
     /**
      * iterate through a set of properties,
      * resolve them then assign them
+     * @param props the properties to iterate over
      */
     protected void addProperties(Properties props) {
         resolveAllProperties(props);
         Enumeration e = props.keys();
         while (e.hasMoreElements()) {
-            String name = (String) e.nextElement();
-            String value = props.getProperty(name);
+            String propertyName = (String) e.nextElement();
+            String propertyValue = props.getProperty(propertyName);
 
-            String v = getProject().replaceProperties(value);
+            String v = getProject().replaceProperties(propertyValue);
 
             if (prefix != null) {
-                name = prefix + name;
+                propertyName = prefix + propertyName;
             }
 
-            addProperty(name, v);
+            addProperty(propertyName, v);
         }
     }
 
@@ -530,9 +582,9 @@ public class Property extends Task {
      */
     private void resolveAllProperties(Properties props) throws BuildException {
         for (Enumeration e = props.keys(); e.hasMoreElements();) {
-            String name = (String) e.nextElement();
+            String propertyName = (String) e.nextElement();
             Stack referencesSeen = new Stack();
-            resolve(props, name, referencesSeen);
+            resolve(props, propertyName, referencesSeen);
         }
     }
 
@@ -553,10 +605,12 @@ public class Property extends Task {
                                      + "defined.");
         }
 
-        String value = props.getProperty(name);
+        String propertyValue = props.getProperty(name);
         Vector fragments = new Vector();
         Vector propertyRefs = new Vector();
-        ProjectHelper.parsePropertyString(value, fragments, propertyRefs);
+        PropertyHelper.getPropertyHelper(
+            this.getProject()).parsePropertyString(
+                propertyValue, fragments, propertyRefs);
 
         if (propertyRefs.size() != 0) {
             referencesSeen.push(name);
@@ -579,8 +633,8 @@ public class Property extends Task {
                 }
                 sb.append(fragment);
             }
-            value = sb.toString();
-            props.put(name, value);
+            propertyValue = sb.toString();
+            props.put(name, propertyValue);
             referencesSeen.pop();
         }
     }

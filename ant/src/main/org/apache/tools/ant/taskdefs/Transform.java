@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,6 +20,9 @@ package org.apache.tools.ant.taskdefs;
 
 /**
  * Has been merged into ExecuteOn, empty class for backwards compatibility.
+ * We leave that in case that external programs access this class direclty,
+ * for example via
+ *   <tt> Transform tr = (Transform) getProject().createTask("apply") </tt>
  *
  * @ant.task ignore="true"
  */

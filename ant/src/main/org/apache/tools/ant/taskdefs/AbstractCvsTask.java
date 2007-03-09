@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -30,6 +31,7 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Environment;
 import org.apache.tools.ant.util.StringUtils;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * original Cvs.java 1.20
@@ -292,7 +294,7 @@ public abstract class AbstractCvsTask extends Task {
                 var.setValue(String.valueOf(passFile));
                 env.addVariable(var);
                 log("Using cvs passfile: " + String.valueOf(passFile),
-                    Project.MSG_INFO);
+                    Project.MSG_VERBOSE);
             } else if (!passFile.canRead()) {
                 log("cvs passfile: " + String.valueOf(passFile)
                     + " ignored as it is not readable",
@@ -341,51 +343,35 @@ public abstract class AbstractCvsTask extends Task {
                                          + retCode
                                          + StringUtils.LINE_SEP
                                          + "Command line was ["
-                                         + actualCommandLine + "]", getLocation());
+                                         + actualCommandLine + "]",
+                                         getLocation());
             }
         } catch (IOException e) {
             if (failOnError) {
                 throw new BuildException(e, getLocation());
-            } else {
-                log("Caught exception: " + e.getMessage(), Project.MSG_WARN);
             }
+            log("Caught exception: " + e.getMessage(), Project.MSG_WARN);
         } catch (BuildException e) {
             if (failOnError) {
                 throw(e);
-            } else {
-                Throwable t = e.getException();
-                if (t == null) {
-                    t = e;
-                }
-                log("Caught exception: " + t.getMessage(), Project.MSG_WARN);
             }
+            Throwable t = e.getException();
+            if (t == null) {
+                t = e;
+            }
+            log("Caught exception: " + t.getMessage(), Project.MSG_WARN);
         } catch (Exception e) {
             if (failOnError) {
                 throw new BuildException(e, getLocation());
-            } else {
-                log("Caught exception: " + e.getMessage(), Project.MSG_WARN);
             }
-        } finally {
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    //ignore
-                }
-            }
-            if (errorStream != null) {
-                try {
-                    errorStream.close();
-                } catch (IOException e) {
-                    //ignore
-                }
-            }
+            log("Caught exception: " + e.getMessage(), Project.MSG_WARN);
         }
     }
 
     /**
      * do the work
-     * @throws BuildException if failonerror is set to true and the cvs command fails.
+     * @throws BuildException if failonerror is set to true and the
+     * cvs command fails.
      */
     public void execute() throws BuildException {
 
@@ -413,6 +399,8 @@ public abstract class AbstractCvsTask extends Task {
                 removeCommandline(cloned);
             }
             setCommand(savedCommand);
+            FileUtils.close(outputStream);
+            FileUtils.close(errorStream);
         }
     }
 
@@ -615,8 +603,8 @@ public abstract class AbstractCvsTask extends Task {
 
     /**
      * Use the most recent revision no later than the given date.
-     * @param p a date as string in a format that the CVS executable can understand
-     * see man cvs
+     * @param p a date as string in a format that the CVS executable
+     * can understand see man cvs
      */
     public void setDate(String p) {
         if (p != null && p.trim().length() > 0) {
@@ -738,7 +726,8 @@ public abstract class AbstractCvsTask extends Task {
         if (cvsPackage != null) {
             c.createArgument().setLine(cvsPackage);
         }
-        if (this.compression > 0 && this.compression <= MAXIMUM_COMRESSION_LEVEL) {
+        if (this.compression > 0
+            && this.compression <= MAXIMUM_COMRESSION_LEVEL) {
             c.createArgument(true).setValue("-z" + this.compression);
         }
         if (quiet && !reallyquiet) {

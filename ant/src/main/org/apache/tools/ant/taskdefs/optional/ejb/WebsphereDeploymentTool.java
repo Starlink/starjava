@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -29,7 +30,6 @@ import java.util.jar.JarOutputStream;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
-import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.Environment;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.FileUtils;
@@ -59,30 +59,22 @@ import org.apache.tools.ant.util.FileUtils;
  *
  */
 public class WebsphereDeploymentTool extends GenericDeploymentTool {
-    /**
-     * Enumerated attribute with the values for the database vendor types
-     *
-     */
-    public static class DBVendor extends EnumeratedAttribute {
-        public String[] getValues() {
-            return new String[]{
-                "SQL92", "SQL99", "DB2UDBWIN_V71", "DB2UDBOS390_V6", "DB2UDBAS400_V4R5",
-                "ORACLE_V8", "INFORMIX_V92", "SYBASE_V1192", "MSSQLSERVER_V7", "MYSQL_V323"
-                };
-        }
-    }
 
-
+    /** ID for ejb 1.1 */
     public static final String PUBLICID_EJB11
          = "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 1.1//EN";
+    /** ID for ejb 2.0 */
     public static final String PUBLICID_EJB20
          = "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN";
+    /** Schema directory */
     protected static final String SCHEMA_DIR = "Schema/";
 
     protected static final String WAS_EXT = "ibm-ejb-jar-ext.xmi";
     protected static final String WAS_BND = "ibm-ejb-jar-bnd.xmi";
     protected static final String WAS_CMP_MAP = "Map.mapxmi";
     protected static final String WAS_CMP_SCHEMA = "Schema.dbxmi";
+
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /** Instance variable that stores the suffix for the websphere jarfile. */
     private String jarSuffix = ".jar";
@@ -143,7 +135,10 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /** the home directory for websphere */
     private File websphereHome;
 
-    /** Get the classpath to the websphere classpaths */
+    /**
+     * Get the classpath to the websphere classpaths.
+     * @return the websphere classpath.
+     */
     public Path createWASClasspath() {
         if (wasClasspath == null) {
             wasClasspath = new Path(getTask().getProject());
@@ -152,24 +147,32 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     }
 
 
+    /**
+     * Set the websphere classpath.
+     * @param wasClasspath the websphere classpath.
+     */
     public void setWASClasspath(Path wasClasspath) {
         this.wasClasspath = wasClasspath;
     }
 
 
     /** Sets the DB Vendor for the Entity Bean mapping ; optional.
-     * Valid options are for example:
-     * <ul>
-     * <li>SQL92</li> <li>SQL99</li> <li>DB2UDBWIN_V71</li>
-     * <li>DB2UDBOS390_V6</li> <li>DB2UDBAS400_V4R5</li> <li>ORACLE_V8</li>
-     * <li>INFORMIX_V92</li> <li>SYBASE_V1192</li> <li>MYSQL_V323</li>
-     * </ul>
+     * <p>
+     * Valid options can be obtained by running the following command:
+     * <code>
+     * &lt;WAS_HOME&gt;/bin/EJBDeploy.[sh/bat] -help
+     * </code>
+     * </p>
+     * <p>
      * This is also used to determine the name of the Map.mapxmi and
-     * Schema.dbxmi files, for example Account-DB2UDBWIN_V71-Map.mapxmi
-     * and Account-DB2UDBWIN_V71-Schema.dbxmi.
+     * Schema.dbxmi files, for example Account-DB2UDB_V81-Map.mapxmi
+     * and Account-DB2UDB_V81-Schema.dbxmi.
+     * </p>
+     *
+     * @param dbvendor database vendor type
      */
-    public void setDbvendor(DBVendor dbvendor) {
-        this.dbVendor = dbvendor.getValue();
+    public void setDbvendor(String dbvendor) {
+        this.dbVendor = dbvendor;
     }
 
 
@@ -247,7 +250,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Flag to enable internal tracing when set, optional, default false.
      *
-     * @param trace
+     * @param trace a <code>boolean</code> vaule.
      */
     public void setTrace(boolean trace) {
         this.trace = trace;
@@ -256,7 +259,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Set the rmic options.
      *
-     * @param options
+     * @param options the options to use.
      */
     public void setRmicoptions(String options) {
         this.rmicOptions = options;
@@ -265,7 +268,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Flag to use the WebSphere 3.5 compatible mapping rules ; optional, default false.
      *
-     * @param attr
+     * @param attr a <code>boolean</code> value.
      */
     public void setUse35(boolean attr) {
         use35MappingRules = attr;
@@ -275,6 +278,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Set the rebuild flag to false to only update changes in the jar rather
      * than rerunning ejbdeploy; optional, default true.
+     * @param rebuild a <code>boolean</code> value.
      */
     public void setRebuild(boolean rebuild) {
         this.alwaysRebuild = rebuild;
@@ -306,7 +310,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
      * Decide, wether ejbdeploy should be called or not;
      * optional, default true.
      *
-     * @param ejbdeploy
+     * @param ejbdeploy a <code>boolean</code> value.
      */
     public void setEjbdeploy(boolean ejbdeploy) {
         this.ejbdeploy = ejbdeploy;
@@ -327,6 +331,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * Set the value of the oldCMP scheme. This is an antonym for newCMP
      * @ant.attribute ignore="true"
+     * @param oldCMP a <code>boolean</code> value.
      */
     public void setOldCMP(boolean oldCMP) {
         this.newCMP = !oldCMP;
@@ -340,6 +345,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
      * prefix. Under this scheme the name of the CMP descriptor does not match
      * the name actually used in the main websphere EJB descriptor. Also,
      * descriptors which contain multiple CMP references could not be used.
+     * @param newCMP a <code>boolean</code> value.
      */
     public void setNewCMP(boolean newCMP) {
         this.newCMP = newCMP;
@@ -349,13 +355,14 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     /**
      * The directory, where ejbdeploy will write temporary files;
      * optional, defaults to '_ejbdeploy_temp'.
+     * @param tempdir the directory name to use.
      */
-
     public void setTempdir(String tempdir) {
         this.tempdir = tempdir;
     }
 
 
+    /** {@inheritDoc}. */
     protected DescriptorHandler getDescriptorHandler(File srcDir) {
         DescriptorHandler handler = new DescriptorHandler(getTask(), srcDir);
         // register all the DTDs, both the ones that are known and
@@ -372,6 +379,11 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     }
 
 
+    /**
+     * Get a description handler.
+     * @param srcDir the source directory.
+     * @return the handler.
+     */
     protected DescriptorHandler getWebsphereDescriptorHandler(final File srcDir) {
         DescriptorHandler handler =
             new DescriptorHandler(getTask(), srcDir) {
@@ -390,6 +402,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
 
     /**
      * Add any vendor specific files which should be included in the EJB Jar.
+     * @param ejbFiles a hashtable entryname -> file.
+     * @param baseName a prefix to use.
      */
     protected void addVendorFiles(Hashtable ejbFiles, String baseName) {
 
@@ -539,7 +553,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
     private void buildWebsphereJar(File sourceJar, File destJar) {
         try {
             if (ejbdeploy) {
-                Java javaTask = (Java) getTask().getProject().createTask("java");
+                Java javaTask = new Java(getTask());
                 // Set the JvmArgs
                 javaTask.createJvmarg().setValue("-Xms64m");
                 javaTask.createJvmarg().setValue("-Xmx128m");
@@ -595,12 +609,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
         }
     }
 
-
-    /**
-     * Method used to encapsulate the writing of the JAR file. Iterates over
-     * the filenames/java.io.Files in the Hashtable stored on the instance
-     * variable ejbFiles.
-     */
+    /** {@inheritDoc}. */
     protected void writeJar(String baseName, File jarFile, Hashtable files, String publicId)
          throws BuildException {
         if (ejbdeploy) {
@@ -627,6 +636,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
 
     /**
      * Called to validate that the tool parameters have been configured.
+     * @throws BuildException if there is an error.
      */
     public void validateConfigured() throws BuildException {
         super.validateConfigured();
@@ -664,6 +674,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
      * @param genericJarFile java.io.File The generic jar file.
      * @param websphereJarFile java.io.File The websphere jar file to check to
      *      see if it needs to be rebuilt.
+     * @return true if a rebuild is required.
      */
     protected boolean isRebuildRequired(File genericJarFile, File websphereJarFile) {
         boolean rebuild = false;
@@ -767,7 +778,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
 
                     //Copy files from old websphere jar
                     for (Enumeration e = wasEntries.elements(); e.hasMoreElements();) {
-                        byte[] buffer = new byte[1024];
+                        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
                         int bytesRead;
                         InputStream is;
                         JarEntry je = (JarEntry) e.nextElement();
@@ -776,7 +787,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                             || je.getCompressedSize() == je.getSize()) {
                             newJarStream.setLevel(0);
                         } else {
-                            newJarStream.setLevel(9);
+                            newJarStream.setLevel(JAR_COMPRESS_LEVEL);
                         }
 
                         // Update with changed Bean class
@@ -823,6 +834,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                 try {
                     genericJar.close();
                 } catch (IOException closeException) {
+                    // Ignore
                 }
             }
 
@@ -830,6 +842,7 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                 try {
                     wasJar.close();
                 } catch (IOException closeException) {
+                    // Ignore
                 }
             }
 
@@ -837,11 +850,11 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
                 try {
                     newJarStream.close();
                 } catch (IOException closeException) {
+                    // Ignore
                 }
 
                 try {
-                    FileUtils.newFileUtils().rename(newwasJarFile,
-                                                    websphereJarFile);
+                    FILE_UTILS.rename(newwasJarFile, websphereJarFile);
                 } catch (IOException renameException) {
                     log(renameException.getMessage(), Project.MSG_WARN);
                     rebuild = true;
@@ -858,6 +871,8 @@ public class WebsphereDeploymentTool extends GenericDeploymentTool {
      * Jar File passed to it.
      *
      * @param classjar java.io.File representing jar file to get classes from.
+     * @return a classloader for the jar file.
+     * @throws IOException if there is an error.
      */
     protected ClassLoader getClassLoaderFromJar(File classjar) throws IOException {
         Path lookupPath = new Path(getTask().getProject());

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,6 +23,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * <p>This is a utility class used by selectors and DirectoryScanner. The
@@ -36,6 +38,7 @@ import org.apache.tools.ant.types.Resource;
 public final class SelectorUtils {
 
     private static SelectorUtils instance = new SelectorUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * Private Constructor
@@ -164,15 +167,6 @@ public final class SelectorUtils {
      */
     public static boolean matchPath(String pattern, String str,
                                     boolean isCaseSensitive) {
-        // When str starts with a File.separator, pattern has to start with a
-        // File.separator.
-        // When pattern starts with a File.separator, str has to start with a
-        // File.separator.
-        if (str.startsWith(File.separator)
-                != pattern.startsWith(File.separator)) {
-            return false;
-        }
-
         String[] patDirs = tokenizePathAsArray(pattern);
         String[] strDirs = tokenizePathAsArray(str);
 
@@ -502,6 +496,11 @@ public final class SelectorUtils {
      */
     public static Vector tokenizePath (String path, String separator) {
         Vector ret = new Vector();
+        if (FileUtils.isAbsolutePath(path)) {
+            String[] s = FILE_UTILS.dissect(path);
+            ret.add(s[0]);
+            path = s[1];
+        }
         StringTokenizer st = new StringTokenizer(path, separator);
         while (st.hasMoreTokens()) {
             ret.addElement(st.nextToken());
@@ -513,6 +512,12 @@ public final class SelectorUtils {
      * Same as {@link #tokenizePath tokenizePath} but hopefully faster.
      */
     private static String[] tokenizePathAsArray(String path) {
+        String root = null;
+        if (FileUtils.isAbsolutePath(path)) {
+            String[] s = FILE_UTILS.dissect(path);
+            root = s[0];
+            path = s[1];
+        }
         char sep = File.separatorChar;
         int start = 0;
         int len = path.length();
@@ -528,8 +533,14 @@ public final class SelectorUtils {
         if (len != start) {
             count++;
         }
-        String[] l = new String[count];
-        count = 0;
+        String[] l = new String[count + ((root == null) ? 0 : 1)];
+
+        if (root != null) {
+            l[0] = root;
+            count = 1;
+        } else {
+            count = 0;
+        }
         start = 0;
         for (int pos = 0; pos < len; pos++) {
             if (path.charAt(pos) == sep) {
@@ -546,7 +557,6 @@ public final class SelectorUtils {
         }
         return l;
     }
-
 
     /**
      * Returns dependency information on these two files. If src has been
@@ -585,12 +595,31 @@ public final class SelectorUtils {
      *
      * @param src the original resource
      * @param target the resource being compared against
-     * @param granularity the amount in seconds of slack we will give in
+     * @param granularity the int amount in seconds of slack we will give in
      *        determining out of dateness
      * @return whether the target is out of date
      */
     public static boolean isOutOfDate(Resource src, Resource target,
                                       int granularity) {
+        return isOutOfDate(src, target, (long) granularity);
+    }
+
+    /**
+     * Returns dependency information on these two resources. If src has been
+     * modified later than target, it returns true. If target doesn't exist,
+     * it likewise returns true. Otherwise, target is newer than src and
+     * is not out of date, thus the method returns false. It also returns
+     * false if the src file doesn't even exist, since how could the
+     * target then be out of date.
+     *
+     * @param src the original resource
+     * @param target the resource being compared against
+     * @param granularity the long amount in seconds of slack we will give in
+     *        determining out of dateness
+     * @return whether the target is out of date
+     */
+    public static boolean isOutOfDate(Resource src, Resource target,
+                                      long granularity) {
         if (!src.isExists()) {
             return false;
         }
@@ -637,16 +666,16 @@ public final class SelectorUtils {
      * @return the leftmost part of the pattern without wildcards
      */
     public static String rtrimWildcardTokens(String input) {
-        Vector v = tokenizePath(input, File.separator);
+        String[] tokens = tokenizePathAsArray(input);
         StringBuffer sb = new StringBuffer();
-        for (int counter = 0; counter < v.size(); counter++) {
-            if (hasWildcards((String) v.elementAt(counter))) {
+        for (int i = 0; i < tokens.length; i++) {
+            if (hasWildcards(tokens[i])) {
                 break;
             }
-            if (counter > 0) {
+            if (i > 0 && sb.charAt(sb.length() - 1) != File.separatorChar) {
                 sb.append(File.separator);
             }
-            sb.append((String) v.elementAt(counter));
+            sb.append(tokens[i]);
         }
         return sb.toString();
     }

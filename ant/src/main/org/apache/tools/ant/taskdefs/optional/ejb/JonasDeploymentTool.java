@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -192,7 +193,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     /* -------------------- */
 
     /**
-     * Set the {@link #keepgenerated} flag.
+     * Sets the <code>keepgenerated</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -201,7 +202,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #additionalargs}.
+     * Sets the additional arguments.
      *
      * @param aString additional args.
      */
@@ -210,7 +211,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #nocompil} flag.
+     * Sets the <code>nocompil</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -219,7 +220,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #novalidation} flag.
+     * Sets the <code>novalidation</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -228,7 +229,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the java compiler {@link #javac} to use.
+     * Sets the java compiler to use.
      *
      * @param aString the java compiler.
      */
@@ -255,7 +256,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #secpropag} flag.
+     * Sets the <code>secpropag</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -264,7 +265,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #verbose} flag.
+     * Sets the <code>verbose</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -286,7 +287,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #keepgeneric} flag.
+     * Sets the <code>keepgeneric</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -295,7 +296,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #suffix jar suffix}.
+     * Sets the jar suffix.
      *
      * @param aString the string to use as the suffix.
      */
@@ -304,7 +305,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #orb} to construct classpath.
+     * Sets the <code>orb</code> to construct classpath.
      *
      * @param aString 'RMI', 'JEREMIE', or 'DAVID'.
      */
@@ -313,7 +314,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     }
 
     /**
-     * Set the {@link #nogenic} flag.
+     * Sets the <code>nogenic</code> flag.
      *
      * @param aBoolean <code>true</code> if the flag must be set.
      */
@@ -325,6 +326,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
     /* other methods */
     /* ------------- */
 
+    /** {@inheritDoc}. */
     public void processDescriptor(String aDescriptorName, SAXParser saxParser) {
 
         descriptorName = aDescriptorName;
@@ -341,6 +343,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         }
     }
 
+    /** {@inheritDoc}. */
     protected void writeJar(String baseName, File jarfile, Hashtable ejbFiles, String publicId)
     throws BuildException {
 
@@ -360,6 +363,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         }
     }
 
+    /** {@inheritDoc}. */
     protected void addVendorFiles(Hashtable ejbFiles, String ddPrefix) {
 
     // JOnAS-specific descriptor deployment
@@ -374,6 +378,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         }
     }
 
+    /** {@inheritDoc}. */
     protected File getVendorOutputJarFile(String baseName) {
         return new File(getDestDir(), baseName + suffix);
     }
@@ -392,7 +397,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         // examples = /org/objectweb/fooAppli/foo/Foo-ejb-jar.xml
         // examples = /org/objectweb/fooAppli/foo/Foo.xml (JOnAS convention)
 
-        String jonasDescriptorName; // JOnAS-specific DD
+        String jonasDN; // JOnAS-specific DD
         boolean jonasConvention = false; // true if the JOnAS convention is used for the DD
         String path;            // Directory path of the EJB descriptor
         String fileName;        // EJB descriptor file name
@@ -439,17 +444,18 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         remainder = descriptorName.substring(endOfBaseName + 1);
 
         if (jonasConvention) {
-            jonasDescriptorName = path + "jonas-" + baseName + ".xml";
+            jonasDN = path + "jonas-" + baseName + ".xml";
         } else {
-            jonasDescriptorName = path + baseName + "jonas-" + remainder;
+            jonasDN = path + baseName + "jonas-" + remainder;
         }
 
         log("Standard EJB descriptor name: " + descriptorName, Project.MSG_VERBOSE);
-        log("JOnAS-specific descriptor name: " + jonasDescriptorName, Project.MSG_VERBOSE);
+        log("JOnAS-specific descriptor name: " + jonasDN, Project.MSG_VERBOSE);
 
-        return jonasDescriptorName;
+        return jonasDN;
     }
 
+    /** {@inheritDoc}. */
     protected String getJarBaseName(String descriptorFileName) {
 
         String baseName = null;
@@ -490,6 +496,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         return baseName;
     }
 
+    /** {@inheritDoc}. */
     protected void registerKnownDTDs(DescriptorHandler handler) {
         handler.registerDTD(EJB_JAR_1_1_PUBLIC_ID,
                     jonasroot + File.separator + "xml" + File.separator + EJB_JAR_1_1_DTD);
@@ -508,19 +515,16 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
      * @param genericJarFile jar file.
      * @param ejbFiles the hashtable.
      */
-    private void addGenICGeneratedFiles(File genericJarFile, Hashtable ejbFiles) {
-        // GenIC task
-        Java genicTask = null;
-
-        // GenIC class (3 GenIC classes for various versions of JOnAS
-        // are supported)
-        String genicClass = null;
-
+    private void addGenICGeneratedFiles(
+        File genericJarFile, Hashtable ejbFiles) {
+        Java genicTask = null;    // GenIC task
+        String genicClass = null; // GenIC class (3 are supported for various
+                                  // versions
         if (nogenic) {
             return;
         }
 
-        genicTask = (Java) getTask().getProject().createTask("java");
+        genicTask = new Java(getTask());
         genicTask.setTaskName("genic");
         genicTask.setFork(true);
 
@@ -572,7 +576,6 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
                 + File.separator + orb + "_jonas.jar";
             classpath.append(new Path(classpath.getProject(), orbJar));
         }
-
         log("Using classpath: " + classpath.toString(), Project.MSG_VERBOSE);
         genicTask.setClasspath(classpath);
 
@@ -627,7 +630,7 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         // verbose
         if (verbose) {
             genicTask.createArg().setValue("-verbose");
-                }
+        }
 
         // additionalargs
         if (additionalargs != null) {
@@ -652,8 +655,9 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
             deleteAllFiles(outputdir);
 
             if (!keepgeneric) {
-            log("Deleting generic JAR " + genericJarFile.toString(), Project.MSG_VERBOSE);
-            genericJarFile.delete();
+                log("Deleting generic JAR " + genericJarFile.toString(),
+                    Project.MSG_VERBOSE);
+                genericJarFile.delete();
             }
 
             throw new BuildException("GenIC reported an error.");
@@ -715,6 +719,12 @@ public class JonasDeploymentTool extends GenericDeploymentTool {
         return null;
     }
 
+    /**
+     * Verify the configuration.
+     * @param descriptorFileName the name of the descriptor file.
+     * @param saxParser          not used.
+     * @throws BuildException if there is an error.
+     */
     protected void checkConfiguration(String descriptorFileName,
                       SAXParser saxParser) throws BuildException {
 

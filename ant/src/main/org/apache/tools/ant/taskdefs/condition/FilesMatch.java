@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,24 +23,26 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.util.FileUtils;
 
 /**
- * Compares two files for bitwise equality based on size and
+ * Compares two files for equality based on size and
  * content. Timestamps are not at all looked at.
  *
- * @version $Revision: 1.12.2.4 $
  * @since Ant 1.5
  */
 
 public class FilesMatch implements Condition {
 
     /**
+     * Helper that provides the file comparison method.
+     */
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
+    /**
      * files to compare
      */
     private File file1, file2;
 
-    /**
-     * Helper that provides the file comparison method.
-     */
-    private FileUtils fu = FileUtils.newFileUtils();
+    private boolean textfile = false;
+
 
     /**
      * Sets the File1 attribute
@@ -61,6 +64,14 @@ public class FilesMatch implements Condition {
     }
 
     /**
+     * Set whether to ignore line endings when comparing files.
+     * @param textfile whether to ignore line endings.
+     */
+    public void setTextfile(boolean textfile) {
+        this.textfile = textfile;
+    }
+
+    /**
      * comparison method of the interface
      *
      * @return true if the files are equal
@@ -78,7 +89,7 @@ public class FilesMatch implements Condition {
         //#now match the files
         boolean matches = false;
         try {
-            matches = fu.contentEquals(file1, file2);
+            matches = FILE_UTILS.contentEquals(file1, file2, textfile);
         } catch (IOException ioe) {
             throw new BuildException("when comparing files: "
                 + ioe.getMessage(), ioe);

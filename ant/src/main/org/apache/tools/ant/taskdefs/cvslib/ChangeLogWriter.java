@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,28 +17,36 @@
  */
 package org.apache.tools.ant.taskdefs.cvslib;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.TimeZone;
 
+import org.apache.tools.ant.util.DOMElementWriter;
+import org.apache.tools.ant.util.DOMUtils;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 /**
  * Class used to generate an XML changelog.
  *
- * @version $Revision: 1.10.2.4 $ $Date: 2004/03/09 17:01:40 $
  */
-class ChangeLogWriter {
+public class ChangeLogWriter {
     /** output format for dates written to xml file */
-    private static final SimpleDateFormat c_outputDate
+    private static final SimpleDateFormat OUTPUT_DATE
         = new SimpleDateFormat("yyyy-MM-dd");
     /** output format for times written to xml file */
-    private static final SimpleDateFormat c_outputTime
+    private static final SimpleDateFormat OUTPUT_TIME
         = new SimpleDateFormat("HH:mm");
+    /** stateless helper for writing the XML document */
+    private static final DOMElementWriter DOM_WRITER = new DOMElementWriter();
 
     static {
         TimeZone utc = TimeZone.getTimeZone("UTC");
-        c_outputDate.setTimeZone(utc);
-        c_outputTime.setTimeZone(utc);
+        OUTPUT_DATE.setTimeZone(utc);
+        OUTPUT_TIME.setTimeZone(utc);
     }
 
     /**
@@ -48,55 +57,59 @@ class ChangeLogWriter {
      */
     public void printChangeLog(final PrintWriter output,
                                final CVSEntry[] entries) {
-        output.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        output.println("<changelog>");
-        for (int i = 0; i < entries.length; i++) {
-            final CVSEntry entry = entries[i];
+        try {
+            output.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            Document doc = DOMUtils.newDocument();
+            Element root = doc.createElement("changelog");
+            DOM_WRITER.openElement(root, output, 0, "\t");
+            output.println();
+            for (int i = 0; i < entries.length; i++) {
+                final CVSEntry entry = entries[i];
 
-            printEntry(output, entry);
+                printEntry(doc, output, entry);
+            }
+            DOM_WRITER.closeElement(root, output, 0, "\t", true);
+            output.flush();
+            output.close();
+        } catch (IOException e) {
+            throw new org.apache.tools.ant.BuildException(e);
         }
-        output.println("</changelog>");
-        output.flush();
-        output.close();
     }
 
 
     /**
      * Print out an individual entry in changelog.
      *
+     * @param doc Document used to create elements.
      * @param entry the entry to print
      * @param output writer to which to send output.
      */
-    private void printEntry(final PrintWriter output, final CVSEntry entry) {
-        output.println("\t<entry>");
-        output.println("\t\t<date>" + c_outputDate.format(entry.getDate())
-            + "</date>");
-        output.println("\t\t<time>" + c_outputTime.format(entry.getDate())
-            + "</time>");
-        output.println("\t\t<author><![CDATA[" + entry.getAuthor()
-            + "]]></author>");
+    private void printEntry(Document doc, final PrintWriter output,
+                            final CVSEntry entry) throws IOException {
+        Element ent = doc.createElement("entry");
+        DOMUtils.appendTextElement(ent, "date",
+                                   OUTPUT_DATE.format(entry.getDate()));
+        DOMUtils.appendTextElement(ent, "time",
+                                   OUTPUT_TIME.format(entry.getDate()));
+        DOMUtils.appendCDATAElement(ent, "author", entry.getAuthor());
 
         final Enumeration enumeration = entry.getFiles().elements();
 
         while (enumeration.hasMoreElements()) {
             final RCSFile file = (RCSFile) enumeration.nextElement();
 
-            output.println("\t\t<file>");
-            output.println("\t\t\t<name>" + file.getName() + "</name>");
-            output.println("\t\t\t<revision>" + file.getRevision()
-                + "</revision>");
+            Element f = DOMUtils.createChildElement(ent, "file");
+            DOMUtils.appendCDATAElement(f, "name", file.getName());
+            DOMUtils.appendTextElement(f, "revision", file.getRevision());
 
             final String previousRevision = file.getPreviousRevision();
-
             if (previousRevision != null) {
-                output.println("\t\t\t<prevrevision>" + previousRevision
-                    + "</prevrevision>");
+                DOMUtils.appendTextElement(f, "prevrevision",
+                                           previousRevision);
             }
-
-            output.println("\t\t</file>");
         }
-        output.println("\t\t<msg><![CDATA[" + entry.getComment() + "]]></msg>");
-        output.println("\t</entry>");
+        DOMUtils.appendCDATAElement(ent, "msg", entry.getComment());
+        DOM_WRITER.write(ent, output, 1, "\t");
     }
 }
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -38,8 +39,13 @@ public class CCMCheck extends Continuus {
     private String comment = null;
     private String task = null;
 
+    // CheckStyle:VisibilityModifier OFF - bc
+
     protected Vector filesets = new Vector();
 
+    // CheckStyle:VisibilityModifier ON
+
+    /** Constructor for CCMCheck. */
     public CCMCheck() {
         super();
     }
@@ -98,6 +104,7 @@ public class CCMCheck extends Continuus {
 
     /**
      * Adds a set of files to copy.
+     * @param set the set of files
      */
     public void addFileset(FileSet set) {
         filesets.addElement(set);
@@ -110,6 +117,7 @@ public class CCMCheck extends Continuus {
      * Builds a command line to execute ccm and then calls Exec's run method
      * to execute the command line.
      * </p>
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
 

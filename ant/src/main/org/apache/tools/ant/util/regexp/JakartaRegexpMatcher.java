@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,6 +33,7 @@ public class JakartaRegexpMatcher implements RegexpMatcher {
 
     /**
      * Set the regexp pattern from the String description.
+     * @param pattern the pattern to match
      */
     public void setPattern(String pattern) {
         this.pattern = pattern;
@@ -39,11 +41,19 @@ public class JakartaRegexpMatcher implements RegexpMatcher {
 
     /**
      * Get a String representation of the regexp pattern
+     * @return the pattern
      */
     public String getPattern() {
         return pattern;
     }
 
+    /**
+     * Compile the pattern.
+     *
+     * @param options the ant regexp options
+     * @return a compiled pattern
+     * @exception BuildException if an error occurs
+     */
     protected RE getCompiledPattern(int options)
         throws BuildException {
         int cOptions = getCompilerOptions(options);
@@ -58,6 +68,9 @@ public class JakartaRegexpMatcher implements RegexpMatcher {
 
     /**
      * Does the given argument match the pattern?
+     * @param argument the string to match against
+     * @return true if the pattern matches
+     * @throws BuildException on error
      */
     public boolean matches(String argument) throws BuildException {
         return matches(argument, MATCH_DEFAULT);
@@ -65,6 +78,10 @@ public class JakartaRegexpMatcher implements RegexpMatcher {
 
     /**
      * Does the given argument match the pattern?
+     * @param input the string to match against
+     * @param options the regex options to use
+     * @return true if the pattern matches
+     * @throws BuildException on error
      */
     public boolean matches(String input, int options)
         throws BuildException {
@@ -76,15 +93,31 @@ public class JakartaRegexpMatcher implements RegexpMatcher {
     }
 
     /**
-     * Returns a Vector of matched groups found in the argument.
+     * Returns a Vector of matched groups found in the argument
+     * using default options.
      *
      * <p>Group 0 will be the full match, the rest are the
      * parenthesized subexpressions</p>.
+     *
+     * @param argument the string to match against
+     * @return the vector of groups
+     * @throws BuildException on error
      */
     public Vector getGroups(String argument) throws BuildException {
         return getGroups(argument, MATCH_DEFAULT);
     }
 
+    /**
+     * Returns a Vector of matched groups found in the argument.
+     *
+     * <p>Group 0 will be the full match, the rest are the
+     * parenthesized subexpressions</p>.
+     *
+     * @param input the string to match against
+     * @param options the regex options to use
+     * @return the vector of groups
+     * @throws BuildException on error
+     */
     public Vector getGroups(String input, int options)
         throws BuildException {
         RE reg = getCompiledPattern(options);
@@ -104,6 +137,11 @@ public class JakartaRegexpMatcher implements RegexpMatcher {
         return v;
     }
 
+    /**
+     * Convert the generic options to the regex compiler specific options.
+     * @param options the generic options
+     * @return the specific options
+     */
     protected int getCompilerOptions(int options) {
         int cOptions = RE.MATCH_NORMAL;
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,6 +34,8 @@ public class Gcj extends DefaultCompilerAdapter {
 
     /**
      * Performs a compile using the gcj compiler.
+     * @return true if the compilation succeeded
+     * @throws BuildException on error
      */
     public boolean execute() throws BuildException {
         Commandline cmd;
@@ -46,24 +49,25 @@ public class Gcj extends DefaultCompilerAdapter {
             executeExternalCompile(cmd.getCommandline(), firstFileName) == 0;
     }
 
+    /**
+     * Set up the gcj commandline.
+     * @return the command line
+     */
     protected Commandline setupGCJCommand() {
         Commandline cmd = new Commandline();
         Path classpath = new Path(project);
 
         // gcj doesn't support bootclasspath dir (-bootclasspath)
         // so we'll emulate it for compatibility and convenience.
-        if (bootclasspath != null) {
-            classpath.append(bootclasspath);
+        Path p = getBootClassPath();
+        if (p.size() > 0) {
+            classpath.append(p);
         }
 
         // gcj doesn't support an extension dir (-extdir)
         // so we'll emulate it for compatibility and convenience.
         classpath.addExtdirs(extdirs);
 
-        if (bootclasspath == null || bootclasspath.size() == 0) {
-            // no bootclasspath, therefore, get one from the java runtime
-            includeJavaRuntime = true;
-        }
         classpath.append(getCompileClasspath());
 
         // Gcj has no option for source-path so we
@@ -116,16 +120,16 @@ public class Gcj extends DefaultCompilerAdapter {
     /**
      * Whether any of the arguments given via &lt;compilerarg&gt;
      * implies that compilation to native code is requested.
-     *
+     * @return true if compilation to native code is requested
      * @since Ant 1.6.2
      */
     public boolean isNativeBuild() {
         boolean nativeBuild = false;
         String[] additionalArguments = getJavac().getCurrentCompilerArgs();
-        int argsLength=0;
+        int argsLength = 0;
         while (!nativeBuild && argsLength < additionalArguments.length) {
             int conflictLength = 0;
-            while (!nativeBuild 
+            while (!nativeBuild
                    && conflictLength < CONFLICT_WITH_DASH_C.length) {
                 nativeBuild = (additionalArguments[argsLength].startsWith
                                (CONFLICT_WITH_DASH_C[conflictLength]));
@@ -136,8 +140,8 @@ public class Gcj extends DefaultCompilerAdapter {
         return nativeBuild;
     }
 
-    private static final String [] CONFLICT_WITH_DASH_C = { 
-        "-o" , "--main=", "-D", "-fjni", "-L" 
+    private static final String [] CONFLICT_WITH_DASH_C = {
+        "-o" , "--main=", "-D", "-fjni", "-L"
     };
 
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,34 +26,54 @@ import java.awt.image.BufferedImage;
  * @see org.apache.tools.ant.taskdefs.optional.image.Image
  */
 public class Draw extends TransformOperation {
+    // CheckStyle:VisibilityModifier OFF - bc
     protected int xloc = 0;
     protected int yloc = 0;
+    // CheckStyle:VisibilityModifier ON
 
+    /**
+     * Set the X location.
+     * @param x the value to use.
+     */
     public void setXloc(int x) {
         xloc = x;
     }
 
+    /**
+     * Set the Y location.
+     * @param y the value to use.
+     */
     public void setYloc(int y) {
         yloc = y;
     }
 
+    /** {@inheritDoc}. */
     public void addRectangle(Rectangle rect) {
         instructions.add(rect);
     }
 
+    /** {@inheritDoc}. */
     public void addText(Text text) {
         instructions.add(text);
     }
 
+    /**
+     * Add an ellipse.
+     * @param elip the ellipse to add.
+     */
     public void addEllipse(Ellipse elip) {
         instructions.add(elip);
     }
 
+    /**
+     * Add an arc.
+     * @param arc the arc to add.
+     */
     public void addArc(Arc arc) {
         instructions.add(arc);
     }
 
-
+    /** {@inheritDoc}. */
     public PlanarImage executeTransformOperation(PlanarImage image) {
         BufferedImage bi = image.getAsBufferedImage();
         Graphics2D graphics = (Graphics2D) bi.getGraphics();

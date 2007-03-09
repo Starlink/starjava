@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -110,7 +111,7 @@ public class WhichResource extends Task {
 
     /**
      * execute it
-     * @throws BuildException
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
         validate();
@@ -127,7 +128,7 @@ public class WhichResource extends Task {
         loader = new AntClassLoader(getProject().getCoreLoader(),
                     getProject(),
                     classpath, false);
-        String location = null;
+        String loc = null;
         if (classname != null) {
             //convert a class name into a resource
             resource = classname.replace('.', '/') + ".class";
@@ -146,8 +147,8 @@ public class WhichResource extends Task {
         url = loader.getResource(resource);
         if (url != null) {
             //set the property
-            location = url.toExternalForm();
-            getProject().setNewProperty(property, location);
+            loc = url.toExternalForm();
+            getProject().setNewProperty(property, loc);
         }
     }
 

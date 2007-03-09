@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 
@@ -104,9 +106,8 @@ public final class JarLibManifestTask extends Task {
             final String message =
                 "Can not have multiple extensions defined in one library.";
             throw new BuildException(message);
-        } else {
-            extension = extensionAdapter.toExtension();
         }
+        extension = extensionAdapter.toExtension();
     }
 
     /**
@@ -148,7 +149,7 @@ public final class JarLibManifestTask extends Task {
         final Attributes attributes = manifest.getMainAttributes();
 
         attributes.put(Attributes.Name.MANIFEST_VERSION, MANIFEST_VERSION);
-        final String createdBy = "Apache Ant " + getProject().getProperty("ant.version");
+        final String createdBy = "Apache Ant " + getProject().getProperty(MagicNames.ANT_VERSION);
         attributes.putValue(CREATED_BY, createdBy);
 
         appendExtraAttributes(attributes);
@@ -256,9 +257,9 @@ public final class JarLibManifestTask extends Task {
         throws BuildException {
         final int size = extensions.size();
         for (int i = 0; i < size; i++) {
-            final Extension extension = (Extension) extensions.get(i);
+            final Extension ext = (Extension) extensions.get(i);
             final String prefix = listPrefix + i + "-";
-            Extension.addExtension(extension, prefix, attributes);
+            Extension.addExtension(ext, prefix, attributes);
         }
     }
 
@@ -279,7 +280,8 @@ public final class JarLibManifestTask extends Task {
                                       final int size) {
         final StringBuffer sb = new StringBuffer();
         for (int i = 0; i < size; i++) {
-            sb.append(listPrefix + i);
+            sb.append(listPrefix);
+            sb.append(i);
             sb.append(' ');
         }
 

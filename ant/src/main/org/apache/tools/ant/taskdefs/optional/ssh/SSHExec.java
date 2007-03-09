@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,6 +21,7 @@ package org.apache.tools.ant.taskdefs.optional.ssh;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.util.TeeOutputStream;
+import org.apache.tools.ant.util.KeepAliveOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,14 +35,9 @@ import com.jcraft.jsch.Session;
 
 /**
  * Executes a command on a remote machine via ssh.
- *
- * @version   $Revision: 1.9.2.7 $
- * @created   February 2, 2003
- * @since     Ant 1.6
+ * @since     Ant 1.6 (created February 2, 2003)
  */
 public class SSHExec extends SSHBase {
-
-    private final int BUFFER_SIZE = 1024;
 
     /** the command to execute via ssh */
     private String command = null;
@@ -136,11 +133,12 @@ public class SSHExec extends SSHBase {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        TeeOutputStream tee = new TeeOutputStream(out, System.out);
+        TeeOutputStream tee = new TeeOutputStream(out, new KeepAliveOutputStream(System.out));
 
+        Session session = null;
         try {
             // execute the command
-            Session session = openSession();
+            session = openSession();
             session.setTimeout((int) maxwait);
             final ChannelExec channel = (ChannelExec) session.openChannel("exec");
             channel.setCommand(command);
@@ -220,6 +218,10 @@ public class SSHExec extends SSHBase {
             } else {
                 log("Caught exception: " + e.getMessage(), Project.MSG_ERR);
             }
+        } finally {
+            if (session != null && session.isConnected()) {
+                session.disconnect();
+            }
         }
     }
 
@@ -257,4 +259,3 @@ public class SSHExec extends SSHBase {
     }
 
 }
-

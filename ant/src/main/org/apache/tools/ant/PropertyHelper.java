@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -74,6 +75,9 @@ public class PropertyHelper {
     protected PropertyHelper() {
     }
 
+    //override facility for subclasses to put custom hashtables in
+
+
     // --------------------  Hook management  --------------------
 
     /**
@@ -121,14 +125,14 @@ public class PropertyHelper {
     public static synchronized
         PropertyHelper getPropertyHelper(Project project) {
         PropertyHelper helper
-            = (PropertyHelper) project.getReference("ant.PropertyHelper");
+            = (PropertyHelper) project.getReference(MagicNames.REFID_PROPERTY_HELPER);
         if (helper != null) {
             return helper;
         }
         helper = new PropertyHelper();
         helper.setProject(project);
 
-        project.addReference("ant.PropertyHelper", helper);
+        project.addReference(MagicNames.REFID_PROPERTY_HELPER, helper);
         return helper;
     }
 
@@ -142,10 +146,15 @@ public class PropertyHelper {
      * If all helpers return false, the property will be saved in
      * the default properties table by setProperty.
      *
+     * @param ns   The namespace that the property is in (currently
+     *             not used.
      * @param name The name of property to set.
      *             Must not be <code>null</code>.
      * @param value The new value of the property.
      *              Must not be <code>null</code>.
+     * @param inherited True if this property is inherited (an [sub]ant[call] property).
+     * @param user      True if this property is a user property.
+     * @param isNew     True is this is a new property.
      * @return true if this helper has stored the property, false if it
      *    couldn't. Each helper should delegate to the next one (unless it
      *    has a good reason not to).
@@ -162,15 +171,15 @@ public class PropertyHelper {
                 return true;
             }
         }
-
         return false;
     }
 
     /** Get a property. If all hooks return null, the default
      * tables will be used.
      *
-     * @param ns namespace of the sought property
-     * @param name name of the sought property
+     * @param ns namespace of the sought property.
+     * @param name name of the sought property.
+     * @param user True if this is a user property.
      * @return The property, if returned by a hook, or null if none.
      */
     public Object getPropertyHook(String ns, String name, boolean user) {
@@ -184,13 +193,8 @@ public class PropertyHelper {
         if (name.startsWith("toString:")) {
             name = name.substring("toString:".length());
             Object v = project.getReference(name);
-            if (v == null) {
-                return null;
-            }
-            return v.toString();
+            return (v == null) ? null : v.toString();
         }
-
-
         return null;
     }
 
@@ -229,6 +233,7 @@ public class PropertyHelper {
      * Replaces <code>${xxx}</code> style constructions in the given value
      * with the string value of the corresponding data types.
      *
+     * @param ns    The namespace for the property.
      * @param value The string to be scanned for property references.
      *              May be <code>null</code>, in which case this
      *              method returns immediately with no effect.
@@ -242,13 +247,11 @@ public class PropertyHelper {
      * @return the original string with the properties replaced, or
      *         <code>null</code> if the original string is <code>null</code>.
      */
-    public String replaceProperties(String ns, String value,
-                                    Hashtable keys)
+    public String replaceProperties(String ns, String value, Hashtable keys)
             throws BuildException {
-        if (value == null) {
-            return null;
+        if (value == null || value.indexOf('$') == -1) {
+            return value;
         }
-
         Vector fragments = new Vector();
         Vector propertyRefs = new Vector();
         parsePropertyString(value, fragments, propertyRefs);
@@ -273,8 +276,8 @@ public class PropertyHelper {
                 }
 
                 if (replacement == null) {
-                    project.log("Property ${" + propertyName
-                            + "} has not been set", Project.MSG_VERBOSE);
+                    project.log("Property \"" + propertyName
+                            + "\" has not been set", Project.MSG_VERBOSE);
                 }
                 fragment = (replacement != null)
                         ? replacement.toString()
@@ -282,7 +285,6 @@ public class PropertyHelper {
             }
             sb.append(fragment);
         }
-
         return sb.toString();
     }
 
@@ -294,14 +296,19 @@ public class PropertyHelper {
     /** Default implementation of setProperty. Will be called from Project.
      *  This is the original 1.5 implementation, with calls to the hook
      *  added.
+     *  @param ns      The namespace for the property (currently not used).
+     *  @param name    The name of the property.
+     *  @param value   The value to set the property to.
+     *  @param verbose If this is true output extra log messages.
+     *  @return true if the property is set.
      */
     public synchronized boolean setProperty(String ns, String name,
                                             Object value, boolean verbose) {
         // user (CLI) properties take precedence
         if (null != userProperties.get(name)) {
             if (verbose) {
-                project.log("Override ignored for user property " + name,
-                        Project.MSG_VERBOSE);
+                project.log("Override ignored for user property \"" + name
+                    + "\"", Project.MSG_VERBOSE);
             }
             return false;
         }
@@ -312,8 +319,8 @@ public class PropertyHelper {
         }
 
         if (null != properties.get(name) && verbose) {
-            project.log("Overriding previous definition of property " + name,
-                    Project.MSG_VERBOSE);
+            project.log("Overriding previous definition of property \"" + name
+                + "\"", Project.MSG_VERBOSE);
         }
 
         if (verbose) {
@@ -329,6 +336,7 @@ public class PropertyHelper {
      * exists already, a message is logged and the method returns with
      * no other effect.
      *
+     * @param ns   The namespace for the property (currently not used).
      * @param name The name of property to set.
      *             Must not be <code>null</code>.
      * @param value The new value of the property.
@@ -338,8 +346,8 @@ public class PropertyHelper {
     public synchronized void setNewProperty(String ns, String name,
                                             Object value) {
         if (null != properties.get(name)) {
-            project.log("Override ignored for property " + name,
-                    Project.MSG_VERBOSE);
+            project.log("Override ignored for property \"" + name
+                + "\"", Project.MSG_VERBOSE);
             return;
         }
 
@@ -358,6 +366,7 @@ public class PropertyHelper {
     /**
      * Sets a user property, which cannot be overwritten by
      * set/unset property calls. Any previous value is overwritten.
+     * @param ns   The namespace for the property (currently not used).
      * @param name The name of property to set.
      *             Must not be <code>null</code>.
      * @param value The new value of the property.
@@ -377,11 +386,12 @@ public class PropertyHelper {
     }
 
     /**
-     * Sets a user property, which cannot be overwritten by set/unset
+     * Sets an inherited user property, which cannot be overwritten by set/unset
      * property calls. Any previous value is overwritten. Also marks
      * these properties as properties that have not come from the
      * command line.
      *
+     * @param ns   The namespace for the property (currently not used).
      * @param name The name of property to set.
      *             Must not be <code>null</code>.
      * @param value The new value of the property.
@@ -408,6 +418,7 @@ public class PropertyHelper {
      * Returns the value of a property, if it is set.  You can override
      * this method in order to plug your own storage.
      *
+     * @param ns   The namespace for the property (currently not used).
      * @param name The name of the property.
      *             May be <code>null</code>, in which case
      *             the return value is also <code>null</code>.
@@ -429,6 +440,7 @@ public class PropertyHelper {
     /**
      * Returns the value of a user property, if it is set.
      *
+     * @param ns   The namespace for the property (currently not used).
      * @param name The name of the property.
      *             May be <code>null</code>, in which case
      *             the return value is also <code>null</code>.
@@ -452,27 +464,15 @@ public class PropertyHelper {
     // deprecated, it is possible to use a better (more efficient)
     // mechanism to preserve the context.
 
-    // TODO: do we need to delegate ?
-
     /**
      * Returns a copy of the properties table.
      * @return a hashtable containing all properties
      *         (including user properties).
      */
     public Hashtable getProperties() {
-        Hashtable propertiesCopy = new Hashtable();
-
-        Enumeration e = properties.keys();
-        while (e.hasMoreElements()) {
-            Object name = e.nextElement();
-            Object value = properties.get(name);
-            propertiesCopy.put(name, value);
-        }
-
+        return new Hashtable(properties);
         // There is a better way to save the context. This shouldn't
         // delegate to next, it's for backward compatibility only.
-
-        return propertiesCopy;
     }
 
     /**
@@ -480,17 +480,38 @@ public class PropertyHelper {
      * @return a hashtable containing just the user properties
      */
     public Hashtable getUserProperties() {
-        Hashtable propertiesCopy = new Hashtable();
-
-        Enumeration e = userProperties.keys();
-        while (e.hasMoreElements()) {
-            Object name = e.nextElement();
-            Object value = properties.get(name);
-            propertiesCopy.put(name, value);
-        }
-
-        return propertiesCopy;
+        return new Hashtable(userProperties);
     }
+
+    /**
+     * special back door for subclasses, internal access to
+     * the hashtables
+     * @return the live hashtable of all properties
+     */
+    protected Hashtable getInternalProperties() {
+        return properties;
+    }
+
+    /**
+     * special back door for subclasses, internal access to
+     * the hashtables
+     *
+     * @return the live hashtable of user properties
+     */
+    protected Hashtable getInternalUserProperties() {
+        return userProperties;
+    }
+
+    /**
+     * special back door for subclasses, internal access to
+     * the hashtables
+     *
+     * @return the live hashtable inherited properties
+     */
+    protected Hashtable getInternalInheritedProperties() {
+        return inheritedProperties;
+    }
+
 
     /**
      * Copies all user properties that have not been set on the

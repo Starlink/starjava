@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Get Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -17,10 +33,6 @@ https: is only valid if the appropriate support is added to the pre-1.4 Java
 runtimes. 
  
 </p>
-<p>This task should be preferred above the <a href="cvs.html">CVS task</a> when
-fetching remote content. CVS is significantly slower than loading a compressed
-archive compared to http/ftp.</p>
-
 The <i>usetimestamp</i> option enables you to control downloads so that the remote file is
 only fetched if newer than the local copy. If there is no local copy, the download always takes 
 place. When a file is downloaded, the timestamp of the downloaded file is set to the remote timestamp,
@@ -28,12 +40,16 @@ if  the JVM is Java1.2 or later.
 NB: This timestamp facility only works on downloads using the HTTP protocol. 
 <p>
 A username and password can be specified, in which case basic 'slightly encoded
-plain text' authentication is used. This is only a secure authentication
-mechanism over an HTTPS link.
+plain text' authentication is used. This is only secure over an HTTPS link.
+</p>
 <p>
-If you need to go through a firewall, use
-<a href="../OptionalTasks/setproxy.html">&lt;setproxy&gt;</a>
-to set up the proxy first. 
+<b>Proxies</b>. Since Ant1.7, Ant running on Java1.5 or later defaults to 
+    <a href="../proxy.html">using
+    the proxy settings of the operating system</a>. There is also the  
+ <a href="../OptionalTasks/setproxy.html">&lt;setproxy&gt;</a> task for
+    earlier Java versions. With proxies turned on, <code>&lt;get&gt;</code> requests against
+    localhost may not work as expected, if the request is relayed to the proxy.
+    The <code>-noproxy</code> option can be used to turn this feature off.
 </p>
  
 <h3>Parameters</h3>
@@ -102,9 +118,7 @@ for progress information.
 <p>
 Fetches some file from a server with access control. Because https is being used the
 fact that basic auth sends passwords in plaintext is moot.
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

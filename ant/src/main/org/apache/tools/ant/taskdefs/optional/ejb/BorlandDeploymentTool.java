@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -75,6 +76,7 @@ import org.apache.tools.ant.types.Path;
  */
 public class BorlandDeploymentTool extends GenericDeploymentTool
                                    implements ExecuteStreamHandler {
+    /** Borland 1.1 ejb id */
     public static final String PUBLICID_BORLAND_EJB
     = "-//Inprise Corporation//DTD Enterprise JavaBeans 1.1//EN";
 
@@ -125,10 +127,11 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
     private boolean verify     = true;
     private String  verifyArgs = "";
 
-    private Hashtable _genfiles = new Hashtable();
+    private Hashtable genfiles = new Hashtable();
 
     /**
      * set the debug mode for java2iiop (default false)
+     * @param debug the setting to use.
      **/
     public void setDebug(boolean debug) {
         this.java2iiopdebug = debug;
@@ -136,6 +139,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
 
     /**
      * set the verify  mode for the produced jar (default true)
+     * @param verify the setting to use.
      **/
     public void setVerify(boolean verify) {
         this.verify = verify;
@@ -172,6 +176,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
     /**
      * setter used to store whether the task will include the generate client task.
      * (see : BorlandGenerateClient task)
+     * @param b if true generate the client task.
      */
     public void setGenerateclient(boolean b) {
         this.generateclient = b;
@@ -195,6 +200,11 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
     }
 
 
+    /**
+     * Get the borland descriptor handler.
+     * @param srcDir the source directory.
+     * @return the descriptor.
+     */
     protected DescriptorHandler getBorlandDescriptorHandler(final File srcDir) {
         DescriptorHandler handler =
             new DescriptorHandler(getTask(), srcDir) {
@@ -225,6 +235,8 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
     /**
      * Add any vendor specific files which should be included in the
      * EJB Jar.
+     * @param ejbFiles the map to add the files to.
+     * @param ddPrefix the prefix to use.
      */
     protected void addVendorFiles(Hashtable ejbFiles, String ddPrefix) {
 
@@ -281,8 +293,8 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
     private void verifyBorlandJarV5(File sourceJar) {
         log("verify BES " + sourceJar, Project.MSG_INFO);
         try {
-            org.apache.tools.ant.taskdefs.ExecTask execTask = null;
-            execTask = (ExecTask) getTask().getProject().createTask("exec");
+            ExecTask execTask = null;
+            execTask = new ExecTask(getTask());
             execTask.setDir(new File("."));
             execTask.setExecutable("iastool");
             //classpath
@@ -319,7 +331,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
             String args = verifyArgs;
             args += " " + sourceJar.getPath();
 
-            javaTask = (Java) getTask().getProject().createTask("java");
+            javaTask = new Java(getTask());
             javaTask.setTaskName("verify");
             javaTask.setClassname(VERIFY);
             Commandline.Argument arguments = javaTask.createArg();
@@ -437,6 +449,11 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
      * Method used to encapsulate the writing of the JAR file. Iterates over the
      * filenames/java.io.Files in the Hashtable stored on the instance variable
      * ejbFiles.
+     * @param baseName the base name.
+     * @param jarFile  the jar file to write to.
+     * @param files    the files to write to the jar.
+     * @param publicId the id to use.
+     * @throws BuildException if there is an error.
      */
     protected void writeJar(String baseName, File jarFile, Hashtable files, String publicId)
         throws BuildException {
@@ -456,7 +473,7 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
         buildBorlandStubs(homes.iterator());
 
         //add the gen files to the collection
-        files.putAll(_genfiles);
+        files.putAll(genfiles);
 
         super.writeJar(baseName, jarFile, files, publicId);
 
@@ -493,14 +510,17 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
 
     // implementation of org.apache.tools.ant.taskdefs.ExecuteStreamHandler interface
 
+    /** {@inheritDoc}. */
     public void start() throws IOException  { }
+    /** {@inheritDoc}. */
     public void stop()  {  }
+    /** {@inheritDoc}. */
     public void setProcessInputStream(OutputStream param1) throws IOException   { }
 
     /**
-     *
-     * @param is
-     * @exception java.io.IOException
+     * Set the output stream of the process.
+     * @param is the input stream.
+     * @throws IOException if there is an error.
      */
     public void setProcessOutputStream(InputStream is) throws IOException {
         try {
@@ -509,8 +529,9 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
             while ((javafile = reader.readLine()) != null) {
                 if (javafile.endsWith(".java")) {
                     String classfile = toClassFile(javafile);
-                    String key = classfile.substring(getConfig().srcDir.getAbsolutePath().length() + 1);
-                    _genfiles.put(key, new File(classfile));
+                    String key = classfile.substring(
+                        getConfig().srcDir.getAbsolutePath().length() + 1);
+                    genfiles.put(key, new File(classfile));
                 }
             }
             reader.close();
@@ -520,6 +541,11 @@ public class BorlandDeploymentTool extends GenericDeploymentTool
         }
     }
 
+    /**
+     * Set the error stream of the process.
+     * @param is the input stream.
+     * @throws IOException if there is an error.
+     */
     public void setProcessErrorStream(InputStream is) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String s = reader.readLine();

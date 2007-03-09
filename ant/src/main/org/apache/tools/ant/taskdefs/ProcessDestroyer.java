@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -142,7 +143,11 @@ class ProcessDestroyer implements Runnable {
             // eligible for garbage collection
             // Cf.: http://developer.java.sun.com/developer/bugParade/bugs/4533087.html
             destroyProcessThread.setShouldDestroy(false);
-            destroyProcessThread.start();
+            if (!destroyProcessThread.getThreadGroup().isDestroyed()) {
+                // start() would throw IllegalThreadStateException from
+                // ThreadGroup.add if it were destroyed
+                destroyProcessThread.start();
+            }
             // this should return quickly, since it basically is a NO-OP.
             try {
                 destroyProcessThread.join(20000);

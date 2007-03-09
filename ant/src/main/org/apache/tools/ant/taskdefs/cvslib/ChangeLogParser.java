@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,12 +22,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
  * A class used to parse the output of the CVS log command.
  *
- * @version $Revision: 1.22.2.4 $ $Date: 2004/03/09 17:01:40 $
  */
 class ChangeLogParser {
     //private static final int GET_ENTRY = 0;
@@ -36,38 +37,45 @@ class ChangeLogParser {
     private static final int GET_REVISION = 4;
     private static final int GET_PREVIOUS_REV = 5;
 
+// FIXME formatters are not thread-safe
+
     /** input format for dates read in from cvs log */
-    private static final SimpleDateFormat c_inputDate
-        = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    private static final SimpleDateFormat INPUT_DATE
+        = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US);
+    /**
+     * New formatter used to parse CVS date/timestamp.
+     */
+    private static final SimpleDateFormat CVS1129_INPUT_DATE =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US);
 
     static {
         TimeZone utc = TimeZone.getTimeZone("UTC");
-        c_inputDate.setTimeZone(utc);
+        INPUT_DATE.setTimeZone(utc);
+        CVS1129_INPUT_DATE.setTimeZone(utc);
     }
 
     //The following is data used while processing stdout of CVS command
-    private String m_file;
-    private String m_date;
-    private String m_author;
-    private String m_comment;
-    private String m_revision;
-    private String m_previousRevision;
+    private String file;
+    private String date;
+    private String author;
+    private String comment;
+    private String revision;
+    private String previousRevision;
 
-    private int m_status = GET_FILE;
+    private int status = GET_FILE;
 
     /** rcs entries */
-    private final Hashtable m_entries = new Hashtable();
+    private final Hashtable entries = new Hashtable();
 
     /**
      * Get a list of rcs entries as an array.
      *
      * @return a list of rcs entries as an array
      */
-    CVSEntry[] getEntrySetAsArray() {
-        final CVSEntry[] array = new CVSEntry[ m_entries.size() ];
-        Enumeration e = m_entries.elements();
+    public CVSEntry[] getEntrySetAsArray() {
+        final CVSEntry[] array = new CVSEntry[ entries.size() ];
         int i = 0;
-        while (e.hasMoreElements()) {
+        for (Enumeration e = entries.elements(); e.hasMoreElements();) {
             array[i++] = (CVSEntry) e.nextElement();
         }
         return array;
@@ -76,9 +84,10 @@ class ChangeLogParser {
     /**
      * Receive notification about the process writing
      * to standard output.
+     * @param line the line to process
      */
     public void stdout(final String line) {
-        switch(m_status) {
+        switch(status) {
             case GET_FILE:
                 // make sure attributes are reset when
                 // working on a 'new' file.
@@ -100,6 +109,10 @@ class ChangeLogParser {
             case GET_PREVIOUS_REV:
                 processGetPreviousRevision(line);
                 break;
+
+            default:
+                // Do nothing
+                break;
         }
     }
 
@@ -110,131 +123,140 @@ class ChangeLogParser {
      */
     private void processComment(final String line) {
         final String lineSeparator = System.getProperty("line.separator");
-        if (line.startsWith("======")) {
+        if (line.equals(
+                "=============================================================================")) {
             //We have ended changelog for that particular file
             //so we can save it
             final int end
-                = m_comment.length() - lineSeparator.length(); //was -1
-            m_comment = m_comment.substring(0, end);
+                = comment.length() - lineSeparator.length(); //was -1
+            comment = comment.substring(0, end);
             saveEntry();
-            m_status = GET_FILE;
-        } else if (line.startsWith("----------------------------")) {
+            status = GET_FILE;
+        } else if (line.equals("----------------------------")) {
             final int end
-                = m_comment.length() - lineSeparator.length(); //was -1
-            m_comment = m_comment.substring(0, end);
-            m_status = GET_PREVIOUS_REV;
+                = comment.length() - lineSeparator.length(); //was -1
+            comment = comment.substring(0, end);
+            status = GET_PREVIOUS_REV;
         } else {
-            m_comment += line + lineSeparator;
+            comment += line + lineSeparator;
         }
     }
 
     /**
      * Process a line while in "GET_FILE" state.
      *
-     * @param line the line
+     * @param line the line to process
      */
     private void processFile(final String line) {
         if (line.startsWith("Working file:")) {
-            m_file = line.substring(14, line.length());
-            m_status = GET_REVISION;
+            file = line.substring(14, line.length());
+            status = GET_REVISION;
         }
     }
 
     /**
      * Process a line while in "REVISION" state.
      *
-     * @param line the line
+     * @param line the line to process
      */
     private void processRevision(final String line) {
         if (line.startsWith("revision")) {
-            m_revision = line.substring(9);
-            m_status = GET_DATE;
+            revision = line.substring(9);
+            status = GET_DATE;
         } else if (line.startsWith("======")) {
-            //There was no revisions in this changelog
-            //entry so lets move unto next file
-            m_status = GET_FILE;
+            //There were no revisions in this changelog
+            //entry so lets move onto next file
+            status = GET_FILE;
         }
     }
 
     /**
      * Process a line while in "DATE" state.
      *
-     * @param line the line
+     * @param line the line to process
      */
     private void processDate(final String line) {
         if (line.startsWith("date:")) {
-            m_date = line.substring(6, 25);
-            String lineData = line.substring(line.indexOf(";") + 1);
-            m_author = lineData.substring(10, lineData.indexOf(";"));
+            // The date format is using a - format since 1.12.9 so we have:
+            // 1.12.9-: 'date: YYYY/mm/dd HH:mm:ss;  author: name;'
+            // 1.12.9+: 'date: YYYY-mm-dd HH:mm:ss Z;  author: name'
+            int endOfDateIndex = line.indexOf(';');
+            date = line.substring("date: ".length(), endOfDateIndex);
 
-            m_status = GET_COMMENT;
+            int startOfAuthorIndex = line.indexOf("author: ", endOfDateIndex + 1);
+            int endOfAuthorIndex = line.indexOf(';', startOfAuthorIndex + 1);
+            author = line.substring("author: ".length() + startOfAuthorIndex, endOfAuthorIndex);
+
+            status = GET_COMMENT;
 
             //Reset comment to empty here as we can accumulate multiple lines
             //in the processComment method
-            m_comment = "";
+            comment = "";
         }
     }
 
     /**
      * Process a line while in "GET_PREVIOUS_REVISION" state.
      *
-     * @param line the line
+     * @param line the line to process
      */
     private void processGetPreviousRevision(final String line) {
-        if (!line.startsWith("revision")) {
+        if (!line.startsWith("revision ")) {
             throw new IllegalStateException("Unexpected line from CVS: "
                 + line);
         }
-        m_previousRevision = line.substring(9);
+        previousRevision = line.substring("revision ".length());
 
         saveEntry();
 
-        m_revision = m_previousRevision;
-        m_status = GET_DATE;
+        revision = previousRevision;
+        status = GET_DATE;
     }
 
     /**
      * Utility method that saves the current entry.
      */
     private void saveEntry() {
-        final String entryKey = m_date + m_author + m_comment;
+        final String entryKey = date + author + comment;
         CVSEntry entry;
-        if (!m_entries.containsKey(entryKey)) {
-            entry = new CVSEntry(parseDate(m_date), m_author, m_comment);
-            m_entries.put(entryKey, entry);
+        if (!entries.containsKey(entryKey)) {
+            Date dateObject = parseDate(date);
+            entry = new CVSEntry(dateObject, author, comment);
+            entries.put(entryKey, entry);
         } else {
-            entry = (CVSEntry) m_entries.get(entryKey);
+            entry = (CVSEntry) entries.get(entryKey);
         }
 
-        entry.addFile(m_file, m_revision, m_previousRevision);
+        entry.addFile(file, revision, previousRevision);
     }
 
     /**
      * Parse date out from expected format.
      *
-     * @param date the string holding dat
+     * @param date the string holding date
      * @return the date object or null if unknown date format
      */
     private Date parseDate(final String date) {
         try {
-            return c_inputDate.parse(date);
+            return INPUT_DATE.parse(date);
         } catch (ParseException e) {
-            //final String message = REZ.getString( "changelog.bat-date.error", date );
-            //getContext().error( message );
-            return null;
+            try {
+                return CVS1129_INPUT_DATE.parse(date);
+            } catch (ParseException e2) {
+                throw new IllegalStateException("Invalid date format: " + date);
+            }
         }
     }
 
     /**
-     * reset all internal attributes except status.
+     * Reset all internal attributes except status.
      */
-    private void reset() {
-        m_file = null;
-        m_date = null;
-        m_author = null;
-        m_comment = null;
-        m_revision = null;
-        m_previousRevision = null;
+    public void reset() {
+        this.file = null;
+        this.date = null;
+        this.author = null;
+        this.comment = null;
+        this.revision = null;
+        this.previousRevision = null;
     }
-
 }

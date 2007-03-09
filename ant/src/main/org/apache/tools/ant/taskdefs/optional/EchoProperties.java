@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -29,6 +30,14 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Collections;
+import java.util.Iterator;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.tools.ant.BuildException;
@@ -38,6 +47,8 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.apache.tools.ant.types.PropertySet;
 import org.apache.tools.ant.util.CollectionUtils;
 import org.apache.tools.ant.util.DOMElementWriter;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.JavaEnvUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -118,6 +129,13 @@ public class EchoProperties extends Task {
 
     private String format = "text";
 
+    private String prefix;
+
+    /**
+     * @since Ant 1.7
+     */
+    private String regex;
+
     /**
      * Sets the input file.
      *
@@ -152,40 +170,80 @@ public class EchoProperties extends Task {
 
     /**
      *  If the prefix is set, then only properties which start with this
-     *  prefix string will be recorded.  If this is never set, or it is set
-     *  to an empty string or <tt>null</tt>, then all properties will be
-     *  recorded. <P>
+     *  prefix string will be recorded. If regex is not set and  if this
+     *  is never set, or it is set to an empty string or <tt>null</tt>,
+     *  then all properties will be recorded. <P>
      *
-     *  For example, if the property is set as:
+     *  For example, if the attribute is set as:
      *    <PRE>&lt;echoproperties  prefix="ant." /&gt;</PRE>
      *  then the property "ant.home" will be recorded, but "ant-example"
      *  will not.
      *
-     *@param  prefix  The new prefix value
+     * @param  prefix  The new prefix value
      */
     public void setPrefix(String prefix) {
-        PropertySet ps = new PropertySet();
-        ps.setProject(getProject());
-        ps.appendPrefix(prefix);
-        addPropertyset(ps);
+        if (prefix != null && prefix.length() != 0) {
+            this.prefix = prefix;
+            PropertySet ps = new PropertySet();
+            ps.setProject(getProject());
+            ps.appendPrefix(prefix);
+            addPropertyset(ps);
+        }
+    }
+
+    /**
+     *  If the regex is set, then only properties whose names match it
+     *  will be recorded.  If prefix is not set and if this is never set,
+     *  or it is set to an empty string or <tt>null</tt>, then all
+     *  properties will be recorded.<P>
+     *
+     *  For example, if the attribute is set as:
+     *    <PRE>&lt;echoproperties  prefix=".*ant.*" /&gt;</PRE>
+     *  then the properties "ant.home" and "user.variant" will be recorded,
+     *  but "ant-example" will not.
+     *
+     * @param  regex  The new regex value
+     *
+     * @since Ant 1.7
+     */
+    public void setRegex(String regex) {
+        if (regex != null && regex.length() != 0) {
+            this.regex = regex;
+            PropertySet ps = new PropertySet();
+            ps.setProject(getProject());
+            ps.appendRegex(regex);
+            addPropertyset(ps);
+        }
     }
 
     /**
      * A set of properties to write.
-     *
+     * @param ps the property set to write
      * @since Ant 1.6
      */
     public void addPropertyset(PropertySet ps) {
         propertySets.addElement(ps);
     }
 
+    /**
+     * Set the output format - xml or text.
+     * @param ea an enumerated <code>FormatAttribute</code> value
+     */
     public void setFormat(FormatAttribute ea) {
         format = ea.getValue();
     }
 
+    /**
+     * A enumerated type for the format attribute.
+     * The values are "xml" and "text".
+     */
     public static class FormatAttribute extends EnumeratedAttribute {
         private String [] formats = new String[]{"xml", "text"};
 
+        /**
+         * @see EnumeratedAttribute#getValues()
+         * @return accepted values
+         */
         public String[] getValues() {
             return formats;
         }
@@ -197,6 +255,10 @@ public class EchoProperties extends Task {
      *@exception  BuildException  trouble, probably file IO
      */
     public void execute() throws BuildException {
+        if (prefix != null && regex != null) {
+            throw new BuildException("Please specify either prefix"
+                    + " or regex, but not both", getLocation());
+        }
         //copy the properties file
         Hashtable allProps = new Hashtable();
 
@@ -204,7 +266,7 @@ public class EchoProperties extends Task {
         use Ant's properties */
         if (inFile == null && propertySets.size() == 0) {
             // add ant properties
-            CollectionUtils.putAll(allProps, getProject().getProperties());
+            allProps.putAll(getProject().getProperties());
         } else if (inFile != null) {
             if (inFile.exists() && inFile.isDirectory()) {
                 String message = "srcfile is a directory!";
@@ -231,7 +293,7 @@ public class EchoProperties extends Task {
                 in = new FileInputStream(inFile);
                 Properties props = new Properties();
                 props.load(in);
-                CollectionUtils.putAll(allProps, props);
+                allProps.putAll(props);
             } catch (FileNotFoundException fnfe) {
                 String message =
                     "Could not find file " + inFile.getAbsolutePath();
@@ -251,20 +313,14 @@ public class EchoProperties extends Task {
                 }
                 return;
             } finally {
-                try {
-                    if (null != in) {
-                        in.close();
-                    }
-                } catch (IOException ioe) {
-                    //ignore
-                }
+                FileUtils.close(in);
             }
         }
 
         Enumeration e = propertySets.elements();
         while (e.hasMoreElements()) {
             PropertySet ps = (PropertySet) e.nextElement();
-            CollectionUtils.putAll(allProps, ps.getProperties());
+            allProps.putAll(ps.getProperties());
         }
 
         OutputStream os = null;
@@ -321,20 +377,40 @@ public class EchoProperties extends Task {
      *  sent to the output stream.
      *  The output stream will be closed when this method returns.
      *
-     *@param  allProps         propfile to save
-     *@param  os               output stream
-     *@exception  IOException  trouble
+     * @param  allProps         propfile to save
+     * @param  os               output stream
+     * @throws IOException      on output errors
+     * @throws BuildException   on other errors
      */
     protected void saveProperties(Hashtable allProps, OutputStream os)
-             throws IOException, BuildException {
-        Properties props = new Properties();
-        Enumeration e = allProps.keys();
-        while (e.hasMoreElements()) {
-            String name = e.nextElement().toString();
+        throws IOException, BuildException {
+        final List keyList = new ArrayList(allProps.keySet());
+        Collections.sort(keyList);
+        Properties props = new Properties() {
+            public Enumeration keys() {
+                return CollectionUtils.asEnumeration(keyList.iterator());
+            }
+            public Set entrySet() {
+                Set result = super.entrySet();
+                if (JavaEnvUtils.isKaffe()) {
+                    TreeSet t = new TreeSet(new Comparator() {
+                        public int compare(Object o1, Object o2) {
+                            String key1 = (String) ((Map.Entry) o1).getKey();
+                            String key2 = (String) ((Map.Entry) o2).getKey();
+                            return key1.compareTo(key2);
+                        }
+                    });
+                    t.addAll(result);
+                    result = t;
+                }
+                return result;
+            }
+        };
+        for (int i = 0; i < keyList.size(); i++) {
+            String name = keyList.get(i).toString();
             String value = allProps.get(name).toString();
-            props.put(name, value);
+            props.setProperty(name, value);
         }
-
         if ("text".equals(format)) {
             jdkSaveProperties(props, os, "Ant properties");
         } else if ("xml".equals(format)) {
@@ -342,20 +418,66 @@ public class EchoProperties extends Task {
         }
     }
 
+    /**
+     * a tuple for the sort list.
+     */
+    private static class Tuple implements Comparable {
+        private String key;
+        private String value;
+
+        private Tuple(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Compares this object with the specified object for order.
+         * @param o the Object to be compared.
+         * @return a negative integer, zero, or a positive integer as this object is
+         *         less than, equal to, or greater than the specified object.
+         * @throws ClassCastException if the specified object's type prevents it
+         *                            from being compared to this Object.
+         */
+        public int compareTo(Object o) {
+            Tuple that = (Tuple) o;
+            return key.compareTo(that.key);
+        }
+    }
+
+    private List sortProperties(Properties props) {
+        //sort the list. Makes SCM and manual diffs easier.
+        List sorted = new ArrayList(props.size());
+        Enumeration e = props.propertyNames();
+        while (e.hasMoreElements()) {
+            String name = (String) e.nextElement();
+            sorted.add(new Tuple(name, props.getProperty(name)));
+        }
+        Collections.sort(sorted);
+        return sorted;
+    }
+
+    /**
+     * Output the properties as xml output.
+     * @param props the properties to save
+     * @param os    the output stream to write to (Note this gets closed)
+     * @throws IOException on error in writing to the stream
+     */
     protected void xmlSaveProperties(Properties props,
                                      OutputStream os) throws IOException {
         // create XML document
         Document doc = getDocumentBuilder().newDocument();
         Element rootElement = doc.createElement(PROPERTIES);
 
+        List sorted = sortProperties(props);
+
+
         // output properties
-        String name;
-        Enumeration e = props.propertyNames();
-        while (e.hasMoreElements()) {
-            name = (String) e.nextElement();
+        Iterator iten = sorted.iterator();
+        while (iten.hasNext()) {
+            Tuple tuple = (Tuple) iten.next();
             Element propElement = doc.createElement(PROPERTY);
-            propElement.setAttribute(ATTR_NAME, name);
-            propElement.setAttribute(ATTR_VALUE, props.getProperty(name));
+            propElement.setAttribute(ATTR_NAME, tuple.key);
+            propElement.setAttribute(ATTR_VALUE, tuple.value);
             rootElement.appendChild(propElement);
         }
 
@@ -368,9 +490,7 @@ public class EchoProperties extends Task {
         } catch (IOException ioe) {
             throw new BuildException("Unable to write XML file", ioe);
         } finally {
-            if (wri != null) {
-                wri.close();
-            }
+            FileUtils.close(wri);
         }
     }
 

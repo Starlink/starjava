@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,6 +26,7 @@ package org.apache.tools.tar;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * The TarBuffer class implements the tar archive concept
@@ -41,7 +43,10 @@ import java.io.IOException;
 
 public class TarBuffer {
 
+    /** Default record size */
     public static final int DEFAULT_RCDSIZE = (512);
+
+    /** Default block size */
     public static final int DEFAULT_BLKSIZE = (DEFAULT_RCDSIZE * 20);
 
     private InputStream     inStream;
@@ -54,14 +59,29 @@ public class TarBuffer {
     private int             recsPerBlock;
     private boolean         debug;
 
+    /**
+     * Constructor for a TarBuffer on an input stream.
+     * @param inStream the input stream to use
+     */
     public TarBuffer(InputStream inStream) {
         this(inStream, TarBuffer.DEFAULT_BLKSIZE);
     }
 
+    /**
+     * Constructor for a TarBuffer on an input stream.
+     * @param inStream the input stream to use
+     * @param blockSize the block size to use
+     */
     public TarBuffer(InputStream inStream, int blockSize) {
         this(inStream, blockSize, TarBuffer.DEFAULT_RCDSIZE);
     }
 
+    /**
+     * Constructor for a TarBuffer on an input stream.
+     * @param inStream the input stream to use
+     * @param blockSize the block size to use
+     * @param recordSize the record size to use
+     */
     public TarBuffer(InputStream inStream, int blockSize, int recordSize) {
         this.inStream = inStream;
         this.outStream = null;
@@ -69,14 +89,29 @@ public class TarBuffer {
         this.initialize(blockSize, recordSize);
     }
 
+    /**
+     * Constructor for a TarBuffer on an output stream.
+     * @param outStream the output stream to use
+     */
     public TarBuffer(OutputStream outStream) {
         this(outStream, TarBuffer.DEFAULT_BLKSIZE);
     }
 
+    /**
+     * Constructor for a TarBuffer on an output stream.
+     * @param outStream the output stream to use
+     * @param blockSize the block size to use
+     */
     public TarBuffer(OutputStream outStream, int blockSize) {
         this(outStream, blockSize, TarBuffer.DEFAULT_RCDSIZE);
     }
 
+    /**
+     * Constructor for a TarBuffer on an output stream.
+     * @param outStream the output stream to use
+     * @param blockSize the block size to use
+     * @param recordSize the record size to use
+     */
     public TarBuffer(OutputStream outStream, int blockSize, int recordSize) {
         this.inStream = null;
         this.outStream = outStream;
@@ -105,6 +140,7 @@ public class TarBuffer {
 
     /**
      * Get the TAR Buffer's block size. Blocks consist of multiple records.
+     * @return the block size
      */
     public int getBlockSize() {
         return this.blockSize;
@@ -112,6 +148,7 @@ public class TarBuffer {
 
     /**
      * Get the TAR Buffer's record size.
+     * @return the record size
      */
     public int getRecordSize() {
         return this.recordSize;
@@ -131,6 +168,7 @@ public class TarBuffer {
      * archive is indicated by a record that consists entirely of null bytes.
      *
      * @param record The record data to check.
+     * @return true if the record data is an End of Archive
      */
     public boolean isEOFRecord(byte[] record) {
         for (int i = 0, sz = this.getRecordSize(); i < sz; ++i) {
@@ -144,6 +182,7 @@ public class TarBuffer {
 
     /**
      * Skip over a record on the input stream.
+     * @throws IOException on error
      */
     public void skipRecord() throws IOException {
         if (this.debug) {
@@ -168,6 +207,7 @@ public class TarBuffer {
      * Read a record from the input stream and return the data.
      *
      * @return The record data.
+     * @throws IOException on error
      */
     public byte[] readRecord() throws IOException {
         if (this.debug) {
@@ -231,6 +271,20 @@ public class TarBuffer {
             // Thanks to 'Yohann.Roussel@alcatel.fr' for this fix.
             //
             if (numBytes == -1) {
+                if (offset == 0) {
+                    // Ensure that we do not read gigabytes of zeros
+                    // for a corrupt tar file.
+                    // See http://issues.apache.org/bugzilla/show_bug.cgi?id=39924
+                    return false;
+                }
+                // However, just leaving the unread portion of the buffer dirty does
+                // cause problems in some cases.  This problem is described in
+                // http://issues.apache.org/bugzilla/show_bug.cgi?id=29877
+                //
+                // The solution is to fill the unused portion of the buffer with zeros.
+
+                Arrays.fill(blockBuffer, offset, offset + bytesNeeded, (byte) 0);
+
                 break;
             }
 
@@ -274,6 +328,7 @@ public class TarBuffer {
      * Write an archive record to the archive.
      *
      * @param record The record data to write to the archive.
+     * @throws IOException on error
      */
     public void writeRecord(byte[] record) throws IOException {
         if (this.debug) {
@@ -310,6 +365,7 @@ public class TarBuffer {
      *
      * @param buf The buffer containing the record data to write.
      * @param offset The offset of the record data within buf.
+     * @throws IOException on error
      */
     public void writeRecord(byte[] buf, int offset) throws IOException {
         if (this.debug) {
@@ -378,6 +434,7 @@ public class TarBuffer {
     /**
      * Close the TarBuffer. If this is an output buffer, also flush the
      * current block before closing.
+     * @throws IOException on error
      */
     public void close() throws IOException {
         if (this.debug) {

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,6 +20,7 @@ package org.apache.tools.ant.filters;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Vector;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.Parameter;
 import org.apache.tools.ant.types.RegularExpression;
 import org.apache.tools.ant.util.regexp.Regexp;
@@ -47,6 +49,9 @@ public final class LineContainsRegExp
     /** Parameter name for the regular expression to filter on. */
     private static final String REGEXP_KEY = "regexp";
 
+    /** Parameter name for the words to filter on. */
+    private static final String NEGATE_KEY = "negate";
+
     /** Vector that holds the expressions that input lines must contain. */
     private Vector regexps = new Vector();
 
@@ -56,6 +61,8 @@ public final class LineContainsRegExp
      * to find the next matching line.
      */
     private String line = null;
+
+    private boolean negate = false;
 
     /**
      * Constructor for "dummy" instances.
@@ -87,7 +94,7 @@ public final class LineContainsRegExp
      * @exception IOException if the underlying stream throws an IOException
      * during reading
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
         if (!getInitialized()) {
             initialize();
             setInitialized(true);
@@ -103,34 +110,24 @@ public final class LineContainsRegExp
                 line = line.substring(1);
             }
         } else {
-            line = readLine();
             final int regexpsSize = regexps.size();
 
-            while (line != null) {
-                for (int i = 0; i < regexpsSize; i++) {
-                    RegularExpression regexp = (RegularExpression)
-                                                        regexps.elementAt(i);
+            for (line = readLine(); line != null; line = readLine()) {
+                boolean matches = true;
+                for (int i = 0; matches && i < regexpsSize; i++) {
+                    RegularExpression regexp
+                        = (RegularExpression) regexps.elementAt(i);
                     Regexp re = regexp.getRegexp(getProject());
-                    boolean matches = re.matches(line);
-                    if (!matches) {
-                        line = null;
-                        break;
-                    }
+                    matches = re.matches(line);
                 }
-
-                if (line == null) {
-                    // line didn't match
-                    line = readLine();
-                } else {
+                if (matches ^ isNegated()) {
                     break;
                 }
             }
-
             if (line != null) {
                 return read();
             }
         }
-
         return ch;
     }
 
@@ -140,7 +137,7 @@ public final class LineContainsRegExp
      * @param regExp The <code>regexp</code> element to add.
      *               Must not be <code>null</code>.
      */
-    public final void addConfiguredRegexp(final RegularExpression regExp) {
+    public void addConfiguredRegexp(final RegularExpression regExp) {
         this.regexps.addElement(regExp);
     }
 
@@ -167,7 +164,7 @@ public final class LineContainsRegExp
      * filter. The returned object is "live" - in other words, changes made to
      * the returned object are mirrored in the filter.
      */
-    private final Vector getRegexps() {
+    private Vector getRegexps() {
         return regexps;
     }
 
@@ -181,17 +178,33 @@ public final class LineContainsRegExp
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         LineContainsRegExp newFilter = new LineContainsRegExp(rdr);
         newFilter.setRegexps(getRegexps());
-        newFilter.setInitialized(true);
+        newFilter.setNegate(isNegated());
         return newFilter;
+    }
+
+    /**
+     * Set the negation mode.  Default false (no negation).
+     * @param b the boolean negation mode to set.
+     */
+    public void setNegate(boolean b) {
+        negate = b;
+    }
+
+    /**
+     * Find out whether we have been negated.
+     * @return boolean negation flag.
+     */
+    public boolean isNegated() {
+        return negate;
     }
 
     /**
      * Parses parameters to add user defined regular expressions.
      */
-    private final void initialize() {
+    private void initialize() {
         Parameter[] params = getParameters();
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
@@ -200,6 +213,8 @@ public final class LineContainsRegExp
                     RegularExpression regexp = new RegularExpression();
                     regexp.setPattern(pattern);
                     regexps.addElement(regexp);
+                } else if (NEGATE_KEY.equals(params[i].getType())) {
+                    setNegate(Project.toBoolean(params[i].getValue()));
                 }
             }
         }

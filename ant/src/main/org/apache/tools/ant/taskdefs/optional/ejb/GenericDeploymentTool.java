@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,15 +22,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
+
 import javax.xml.parsers.SAXParser;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Location;
@@ -52,6 +55,11 @@ import org.xml.sax.SAXException;
  *
  */
 public class GenericDeploymentTool implements EJBDeploymentTool {
+    /** The default buffer byte size to use for IO */
+    public static final int DEFAULT_BUFFER_SIZE = 1024;
+    /** The level to use for compression */
+    public static final int JAR_COMPRESS_LEVEL  = 9;
+
     /** The standard META-INF directory in jar files */
     protected static final String META_DIR  = "META-INF/";
 
@@ -108,9 +116,9 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
     private ClassLoader classpathLoader = null;
 
      /**
-     * List of files have been loaded into the EJB jar
+     * Set of files have been loaded into the EJB jar
      */
-    private List addedfiles;
+    private Set addedfiles;
 
     /**
      * Handler used to parse the EJB XML descriptor
@@ -122,6 +130,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      */
     private DependencyAnalyzer dependencyAnalyzer;
 
+    /** No arg constructor */
     public GenericDeploymentTool() {
     }
 
@@ -311,6 +320,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      * @param logicalFilename A String representing the name, including
      *        all relevant path information, that should be stored for the entry
      *        being added.
+     * @throws BuildException if there is a problem.
      */
     protected void addFileToJar(JarOutputStream jStream,
                                 File inputFile,
@@ -326,7 +336,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
 
                 // Create the file input stream, and buffer everything over
                 // to the jar output stream
-                byte[] byteBuffer = new byte[2 * 1024];
+                byte[] byteBuffer = new byte[2 * DEFAULT_BUFFER_SIZE];
                 int count = 0;
                 do {
                     jStream.write(byteBuffer, 0, count);
@@ -353,17 +363,22 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
         }
     }
 
+    /**
+     * Get a descriptionHandler.
+     * @param srcDir the source directory.
+     * @return a handler.
+     */
     protected DescriptorHandler getDescriptorHandler(File srcDir) {
-        DescriptorHandler handler = new DescriptorHandler(getTask(), srcDir);
+        DescriptorHandler h = new DescriptorHandler(getTask(), srcDir);
 
-        registerKnownDTDs(handler);
+        registerKnownDTDs(h);
 
         // register any DTDs supplied by the user
         for (Iterator i = getConfig().dtdLocations.iterator(); i.hasNext();) {
             EjbJar.DTDLocation dtdLocation = (EjbJar.DTDLocation) i.next();
-            handler.registerDTD(dtdLocation.getPublicId(), dtdLocation.getLocation());
+            h.registerDTD(dtdLocation.getPublicId(), dtdLocation.getLocation());
         }
-        return handler;
+        return h;
     }
 
     /**
@@ -371,11 +386,13 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      *
      * vendor-specific subclasses should override this method to define
      * the vendor-specific locations of the EJB DTDs
+     * @param handler no used in this class.
      */
     protected void registerKnownDTDs(DescriptorHandler handler) {
         // none to register for generic
     }
 
+    /** {@inheritDoc}. */
     public void processDescriptor(String descriptorFileName, SAXParser saxParser) {
 
         checkConfiguration(descriptorFileName, saxParser);
@@ -448,7 +465,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
 
         } catch (SAXException se) {
             String msg = "SAXException while parsing '"
-                + descriptorFileName.toString()
+                + descriptorFileName
                 + "'. This probably indicates badly-formed XML."
                 + "  Details: "
                 + se.getMessage();
@@ -473,7 +490,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      *                           descriptor to be processed
      * @param saxParser          SAXParser which may be used to parse the XML
      *                           descriptor
-     * @exception BuildException     Thrown if the configuration is invalid
+     * @throws BuildException if there is a problem.
      */
     protected void checkConfiguration(String descriptorFileName,
                                     SAXParser saxParser) throws BuildException {
@@ -617,6 +634,9 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      *
      * This will contain the path and the start of the descriptor name,
      * depending on the naming scheme
+     * @param baseName the base name to use.
+     * @param descriptorFileName the file name to use.
+     * @return the prefix.
      */
     public String getVendorDDPrefix(String baseName, String descriptorFileName) {
         String ddPrefix = null;
@@ -640,6 +660,8 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
     /**
      * Add any vendor specific files which should be included in the
      * EJB Jar.
+     * @param ejbFiles a hashtable entryname -> file.
+     * @param ddPrefix a prefix to use.
      */
     protected void addVendorFiles(Hashtable ejbFiles, String ddPrefix) {
         // nothing to add for generic tool.
@@ -649,6 +671,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
     /**
      * Get the vendor specific name of the Jar that will be output. The modification date
      * of this jar will be checked against the dependent bean classes.
+     * @param baseName the basename to use.
      */
     File getVendorOutputJarFile(String baseName) {
         return new File(destDir, baseName + genericJarSuffix);
@@ -730,14 +753,23 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      * Method used to encapsulate the writing of the JAR file. Iterates over the
      * filenames/java.io.Files in the Hashtable stored on the instance variable
      * ejbFiles.
+     * @param baseName the base name to use.
+     * @param jarfile  the jar file to write to.
+     * @param files    the files to write to the jar.
+     * @param publicId the id to use.
+     * @throws BuildException if there is a problem.
      */
     protected void writeJar(String baseName, File jarfile, Hashtable files,
                             String publicId) throws BuildException {
 
         JarOutputStream jarStream = null;
         try {
-            // clean the addedfiles Vector
-            addedfiles = new ArrayList();
+            // clean the addedfiles set
+            if (addedfiles == null) {
+                addedfiles = new HashSet();
+            } else {
+                addedfiles.clear();
+            }
 
             /* If the jarfile already exists then whack it and recreate it.
              * Should probably think of a more elegant way to handle this
@@ -840,6 +872,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
     /**
      * Add all available classes, that depend on Remote, Home, Bean, PK
      * @param checkEntries files, that are extracted from the deployment descriptor
+     * @throws BuildException if there is a problem.
      */
     protected void checkAndAddDependants(Hashtable checkEntries)
         throws BuildException {
@@ -883,7 +916,7 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
      * Returns a Classloader object which parses the passed in generic EjbJar classpath.
      * The loader is used to dynamically load classes from javax.ejb.* and the classes
      * being added to the jar.
-     *
+     * @return a classloader.
      */
     protected ClassLoader getClassLoaderForBuild() {
         if (classpathLoader != null) {

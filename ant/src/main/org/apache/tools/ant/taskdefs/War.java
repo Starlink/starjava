@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -19,6 +20,7 @@ package org.apache.tools.ant.taskdefs;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.ZipFileSet;
@@ -38,7 +40,6 @@ import org.apache.tools.zip.ZipOutputStream;
  * (with attributes <i>prefix</i>, <i>fullpath</i>, and <i>src</i>)
  * is available in the War task.</p>
  *
- *
  * @since Ant 1.2
  *
  * @ant.task category="packaging"
@@ -54,10 +55,17 @@ public class War extends Jar {
     /**
      * flag set if the descriptor is added
      */
-    private boolean descriptorAdded;
+    private boolean needxmlfile = true;
+    private File addedWebXmlFile;
 
-    private static final FileUtils fu = FileUtils.newFileUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+    /** path to web.xml file */
+    private static final String XML_DESCRIPTOR_PATH = "WEB-INF/web.xml";
+    /** lower case version for comparisons */
+    private static final String XML_DESCRIPTOR_PATH_LC =
+            XML_DESCRIPTOR_PATH.toLowerCase(Locale.ENGLISH);
 
+    /** Constructor for the War Task. */
     public War() {
         super();
         archiveType = "war";
@@ -67,7 +75,9 @@ public class War extends Jar {
     /**
      * <i>Deprecated<i> name of the file to create
      * -use <tt>destfile</tt> instead.
-     * @deprecated Use setDestFile(File) instead
+     * @param warFile the destination file
+     * @deprecated since 1.5.x.
+     *             Use setDestFile(File) instead
      * @ant.attribute ignore="true"
      */
     public void setWarfile(File warFile) {
@@ -77,6 +87,7 @@ public class War extends Jar {
     /**
      * set the deployment descriptor to use (WEB-INF/web.xml);
      * required unless <tt>update=true</tt>
+     * @param descr the deployment descriptor file
      */
     public void setWebxml(File descr) {
         deploymentDescriptor = descr;
@@ -89,12 +100,22 @@ public class War extends Jar {
         // Create a ZipFileSet for this file, and pass it up.
         ZipFileSet fs = new ZipFileSet();
         fs.setFile(deploymentDescriptor);
-        fs.setFullpath("WEB-INF/web.xml");
+        fs.setFullpath(XML_DESCRIPTOR_PATH);
         super.addFileset(fs);
+    }
+
+
+    /**
+     * Set the policy on the web.xml file, that is, whether or not it is needed
+     * @param needxmlfile whether a web.xml file is needed. Default: true
+     */
+    public void setNeedxmlfile(boolean needxmlfile) {
+        this.needxmlfile = needxmlfile;
     }
 
     /**
      * add files under WEB-INF/lib/
+     * @param fs the zip file set to add
      */
 
     public void addLib(ZipFileSet fs) {
@@ -105,6 +126,7 @@ public class War extends Jar {
 
     /**
      * add files under WEB-INF/classes
+     * @param fs the zip file set to add
      */
     public void addClasses(ZipFileSet fs) {
         // We just set the prefix for this fileset, and pass it up.
@@ -114,6 +136,7 @@ public class War extends Jar {
 
     /**
      * files to add under WEB-INF;
+     * @param fs the zip file set to add
      */
     public void addWebinf(ZipFileSet fs) {
         // We just set the prefix for this fileset, and pass it up.
@@ -124,19 +147,29 @@ public class War extends Jar {
     /**
      * override of  parent; validates configuration
      * before initializing the output stream.
+     * @param zOut the zip output stream
+     * @throws IOException on output error
+     * @throws BuildException if invalid configuration
      */
     protected void initZipOutputStream(ZipOutputStream zOut)
         throws IOException, BuildException {
-        // If no webxml file is specified, it's an error.
-        if (deploymentDescriptor == null && !isInUpdateMode()) {
-            throw new BuildException("webxml attribute is required", getLocation());
-        }
-
         super.initZipOutputStream(zOut);
     }
 
     /**
      * Overridden from Zip class to deal with web.xml
+     *
+     * Here are cases that can arise
+     * -not a web.xml file : add
+     * -first web.xml : add, remember we added it
+     * -same web.xml again: skip
+     * -alternate web.xml : warn and skip
+     *
+     * @param file the file to add to the archive
+     * @param zOut the stream to write to
+     * @param vPath the name this entry shall have in the archive
+     * @param mode the Unix permissions to set.
+     * @throws IOException on output error
      */
     protected void zipFile(File file, ZipOutputStream zOut, String vPath,
                            int mode)
@@ -145,29 +178,52 @@ public class War extends Jar {
         // not the one specified in the "webxml" attribute - or if
         // it's being added twice, meaning the same file is specified
         // by the "webxml" attribute and in a <fileset> element.
-        if (vPath.equalsIgnoreCase("WEB-INF/web.xml"))  {
-            if (deploymentDescriptor == null
-                || !fu.fileNameEquals(deploymentDescriptor, file)
-                || descriptorAdded) {
-                log("Warning: selected " + archiveType
-                    + " files include a WEB-INF/web.xml which will be ignored "
-                    + "(please use webxml attribute to "
-                    + archiveType + " task)", Project.MSG_WARN);
+        String vPathLowerCase = vPath.toLowerCase(Locale.ENGLISH);
+        //by default, we add the file.
+        boolean addFile = true;
+        if (XML_DESCRIPTOR_PATH_LC.equals(vPathLowerCase)) {
+            //a web.xml file was found. See if it is a duplicate or not
+            if (addedWebXmlFile != null) {
+                //a second web.xml file, so skip it
+                addFile = false;
+                //check to see if we warn or not
+                if (!FILE_UTILS.fileNameEquals(addedWebXmlFile, file)) {
+                    log("Warning: selected " + archiveType
+                            + " files include a second " + XML_DESCRIPTOR_PATH
+                            + " which will be ignored.\n"
+                            + "The duplicate entry is at " + file + '\n'
+                            + "The file that will be used is "
+                            + addedWebXmlFile,
+                            Project.MSG_WARN);
+                }
             } else {
-                super.zipFile(file, zOut, vPath, mode);
-                descriptorAdded = true;
+                //no added file, yet
+                addedWebXmlFile = file;
+                //there is no web.xml file, so add it
+                addFile = true;
+                //and remember that we did
+                deploymentDescriptor = file;
             }
-        } else {
+        }
+        if (addFile) {
             super.zipFile(file, zOut, vPath, mode);
         }
     }
+
 
     /**
      * Make sure we don't think we already have a web.xml next time this task
      * gets executed.
      */
     protected void cleanUp() {
-        descriptorAdded = false;
+        if (addedWebXmlFile == null
+            && deploymentDescriptor == null
+            && needxmlfile
+            && !isInUpdateMode()) {
+            throw new BuildException("No WEB-INF/web.xml file was added.\n"
+                    + "If this is your intent, set needxml='false' ");
+        }
+        addedWebXmlFile = null;
         super.cleanUp();
     }
 }

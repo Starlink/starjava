@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -30,7 +31,12 @@ import java.util.StringTokenizer;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.AbstractCvsTask;
+import org.apache.tools.ant.util.DOMElementWriter;
+import org.apache.tools.ant.util.DOMUtils;
 import org.apache.tools.ant.util.FileUtils;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Examines the output of cvs rdiff between two tags.
@@ -60,11 +66,19 @@ import org.apache.tools.ant.util.FileUtils;
  * &lt;!ELEMENT prevrevision ( #PCDATA ) &gt;
  * </PRE>
  *
- * @version $Revision: 1.16.2.7 $ $Date: 2004/03/09 17:01:40 $
  * @since Ant 1.5
  * @ant.task name="cvstagdiff"
  */
 public class CvsTagDiff extends AbstractCvsTask {
+
+    /**
+     * Used to create the temp file for cvs log
+     */
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
+    /** stateless helper for writing the XML document */
+    private static final DOMElementWriter DOM_WRITER = new DOMElementWriter();
+
     /**
      * Token to identify the word file in the rdiff log
      */
@@ -121,11 +135,6 @@ public class CvsTagDiff extends AbstractCvsTask {
      * The file in which to write the diff report.
      */
     private File mydestfile;
-
-    /**
-     * Used to create the temp file for cvs log
-     */
-    private FileUtils myfileUtils = FileUtils.newFileUtils();
 
     /**
      * The package/module to analyze.
@@ -215,7 +224,7 @@ public class CvsTagDiff extends AbstractCvsTask {
         setCommand("");
         File tmpFile = null;
         try {
-            tmpFile = myfileUtils.createTempFile("cvstagdiff", ".log", null);
+            tmpFile = FILE_UTILS.createTempFile("cvstagdiff", ".log", null);
             tmpFile.deleteOnExit();
             setOutput(tmpFile);
 
@@ -281,10 +290,6 @@ public class CvsTagDiff extends AbstractCvsTask {
                     }
 
                     if ((index = line.indexOf(FILE_IS_NEW)) != -1) {
-//CVS 1.11
-//File apps/websphere/lib/something.jar is new; current revision 1.2
-//CVS 1.11.9
-//File apps/websphere/lib/something.jar is new; cvstag_2003_11_03_2 revision 1.2
                         // it is a new file
                         // set the revision but not the prevrevision
                         String filename = line.substring(0, index);
@@ -356,26 +361,27 @@ public class CvsTagDiff extends AbstractCvsTask {
             PrintWriter writer = new PrintWriter(
                                      new OutputStreamWriter(output, "UTF-8"));
             writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            writer.print("<tagdiff ");
+            Document doc = DOMUtils.newDocument();
+            Element root = doc.createElement("tagdiff");
             if (mystartTag != null) {
-                writer.print("startTag=\"" + mystartTag + "\" ");
+                root.setAttribute("startTag", mystartTag);
             } else {
-                writer.print("startDate=\"" + mystartDate + "\" ");
+                root.setAttribute("startDate", mystartDate);
             }
             if (myendTag != null) {
-                writer.print("endTag=\"" + myendTag + "\" ");
+                root.setAttribute("endTag", myendTag);
             } else {
-                writer.print("endDate=\"" + myendDate + "\" ");
+                root.setAttribute("endDate", myendDate);
             }
 
-            writer.print("cvsroot=\"" + getCvsRoot() + "\" ");
-            writer.print("package=\"" + mypackage + "\" ");
-
-            writer.println(">");
+            root.setAttribute("cvsroot", getCvsRoot());
+            root.setAttribute("package", mypackage);
+            DOM_WRITER.openElement(root, writer, 0, "\t");
+            writer.println();
             for (int i = 0, c = entries.length; i < c; i++) {
-                writeTagEntry(writer, entries[i]);
+                writeTagEntry(doc, writer, entries[i]);
             }
-            writer.println("</tagdiff>");
+            DOM_WRITER.closeElement(root, writer, 0, "\t", true);
             writer.flush();
             writer.close();
         } catch (UnsupportedEncodingException uee) {
@@ -396,23 +402,24 @@ public class CvsTagDiff extends AbstractCvsTask {
     /**
      * Write a single entry to the given writer.
      *
+     * @param doc Document used to create elements.
      * @param writer a <code>PrintWriter</code> value
      * @param entry a <code>CvsTagEntry</code> value
      */
-    private void writeTagEntry(PrintWriter writer, CvsTagEntry entry) {
-        writer.println("\t<entry>");
-        writer.println("\t\t<file>");
-        writer.println("\t\t\t<name>" + entry.getFile() + "</name>");
+    private void writeTagEntry(Document doc, PrintWriter writer,
+                               CvsTagEntry entry)
+        throws IOException {
+        Element ent = doc.createElement("entry");
+        Element f = DOMUtils.createChildElement(ent, "file");
+        DOMUtils.appendCDATAElement(f, "name", entry.getFile());
         if (entry.getRevision() != null) {
-            writer.println("\t\t\t<revision>" + entry.getRevision()
-                           + "</revision>");
+            DOMUtils.appendTextElement(f, "revision", entry.getRevision());
         }
         if (entry.getPreviousRevision() != null) {
-            writer.println("\t\t\t<prevrevision>"
-                           + entry.getPreviousRevision() + "</prevrevision>");
+            DOMUtils.appendTextElement(f, "prevrevision",
+                                       entry.getPreviousRevision());
         }
-        writer.println("\t\t</file>");
-        writer.println("\t</entry>");
+        DOM_WRITER.write(ent, writer, 1, "\t");
     }
 
     /**

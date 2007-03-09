@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>EAR Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -16,6 +32,12 @@ treatment for files that should end up in an Enterprise Application archive.</p>
 The same thing can be accomplished by using the <i>prefix</i> and <i>fullpath</i>
 attributes of zipfilesets in a Zip or Jar task.)</p>
 <p>The extended zipfileset element from the zip task (with attributes <i>prefix</i>, <i>fullpath</i>, and <i>src</i>) is available in the Ear task.</p>
+
+<p><b>Please note that the zip format allows multiple files of the same
+fully-qualified name to exist within a single archive.  This has been
+documented as causing various problems for unsuspecting users.  If you wish
+to avoid this behavior you must set the <code>duplicate</code> attribute
+to a value other than its default, <code>&quot;add&quot;</code>.</b></p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -129,6 +151,13 @@ attributes of zipfilesets in a Zip or Jar task.)</p>
     Defaults to true.  <em>Since Ant 1.6.2</em></td>
     <td align="center" valign="top">No</td>
   </tr>
+  <tr>
+    <td valign="top">level</td>
+    <td valign="top">Non-default level at which file compression should be
+    performed. Valid values range from 0 (no compression/fastest) to 9
+    (maximum compression/slowest). <em>Since Ant 1.7</em></td>
+    <td valign="top" align="center">No</td>
+  </tr>
 </table>
 <h3>Nested elements</h3>
 <h4>metainf</h4>
@@ -139,13 +168,11 @@ fileset includes a file named <code>MANIFEST.MF</code>, the file is
 ignored and you will get a warning.</p>
 <h2>Example</h2>
 <pre>
-    &lt;ear destfile=&quot;${build.dir}/myapp.ear&quot; appxml=&quot;${src.dir}/metadata/application.xml&quot;&gt;
-      &lt;fileset dir=&quot;${build.dir}&quot; includes=&quot;*.jar,*.war&quot;/&gt;
+    &lt;ear destfile=&quot;build/myapp.ear&quot; appxml=&quot;src/metadata/application.xml&quot;&gt;
+      &lt;fileset dir=&quot;build&quot; includes=&quot;*.jar,*.war&quot;/&gt;
     &lt;/ear&gt;
 </pre>
-<hr>
-<p align="center">Copyright &copy; 2001-2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

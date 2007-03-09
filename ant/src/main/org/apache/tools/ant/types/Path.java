@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,27 +19,32 @@
 package org.apache.tools.ant.types;
 
 import java.io.File;
-import java.util.Enumeration;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Stack;
 import java.util.Vector;
+
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.PathTokenizer;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.types.resources.Union;
+import org.apache.tools.ant.types.resources.FileResourceIterator;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.JavaEnvUtils;
-
-
 
 /**
  * This object represents a path as used by CLASSPATH or PATH
- * environment variable.
+ * environment variable. A path might also be described as a collection
+ * of unique filesystem resources.
  * <p>
  * <code>
  * &lt;sometask&gt;<br>
  * &nbsp;&nbsp;&lt;somepath&gt;<br>
  * &nbsp;&nbsp;&nbsp;&nbsp;&lt;pathelement location="/path/to/file.jar" /&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;pathelement path="/path/to/file2.jar:/path/to/class2;/path/to/class3" /&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;pathelement
+ *  path="/path/to/file2.jar:/path/to/class2;/path/to/class3" /&gt;
+ * <br>
  * &nbsp;&nbsp;&nbsp;&nbsp;&lt;pathelement location="/path/to/file3.jar" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&nbsp;&lt;pathelement location="/path/to/file4.jar" /&gt;<br>
  * &nbsp;&nbsp;&lt;/somepath&gt;<br>
@@ -53,81 +59,127 @@ import org.apache.tools.ant.util.JavaEnvUtils;
  * The path element takes a parameter <code>path</code> which will be parsed
  * and split into single elements. It will usually be used
  * to define a path from an environment variable.
- *
  */
 
-public class Path extends DataType implements Cloneable {
+public class Path extends DataType implements Cloneable, ResourceCollection {
+    // CheckStyle:VisibilityModifier OFF - bc
 
-    private Vector elements;
-
-    /** The system classspath as a Path object */
+    /** The system classpath as a Path object */
     public static Path systemClasspath =
         new Path(null, System.getProperty("java.class.path"));
 
 
     /**
-     * The system bootclassspath as a Path object.
+     * The system bootclasspath as a Path object.
      *
      * @since Ant 1.6.2
      */
     public static Path systemBootClasspath =
         new Path(null, System.getProperty("sun.boot.class.path"));
 
+    private static final Iterator EMPTY_ITERATOR
+        = Collections.EMPTY_SET.iterator();
+
+    // CheckStyle:VisibilityModifier OFF - bc
 
     /**
      * Helper class, holds the nested <code>&lt;pathelement&gt;</code> values.
      */
-    public class PathElement {
+    public class PathElement implements ResourceCollection {
         private String[] parts;
 
+        /**
+         * Set the location.
+         *
+         * @param loc a <code>File</code> value
+         */
         public void setLocation(File loc) {
             parts = new String[] {translateFile(loc.getAbsolutePath())};
         }
 
+        /**
+         * Set the path.
+         *
+         * @param path a <code>String</code> value
+         */
         public void setPath(String path) {
             parts = Path.translatePath(getProject(), path);
         }
 
+        /**
+         * Return the converted pathelements.
+         *
+         * @return a <code>String[]</code> value
+         */
         public String[] getParts() {
             return parts;
         }
+
+        /**
+         * Create an iterator.
+         * @return an iterator.
+         */
+        public Iterator iterator() {
+            return new FileResourceIterator(null, parts);
+        }
+
+        /**
+         * Check if this resource is only for filesystems.
+         * @return true.
+         */
+        public boolean isFilesystemOnly() {
+            return true;
+        }
+
+        /**
+         * Get the number of resources.
+         * @return the number of parts.
+         */
+        public int size() {
+            return parts == null ? 0 : parts.length;
+        }
+
     }
+
+    private Union union = null;
 
     /**
      * Invoked by IntrospectionHelper for <code>setXXX(Path p)</code>
      * attribute setters.
+     * @param p the <code>Project</code> for this path.
+     * @param path the <code>String</code> path definition.
      */
     public Path(Project p, String path) {
         this(p);
         createPathElement().setPath(path);
     }
 
+    /**
+     * Construct an empty <code>Path</code>.
+     * @param project the <code>Project</code> for this path.
+     */
     public Path(Project project) {
         setProject(project);
-        elements = new Vector();
     }
 
     /**
      * Adds a element definition to the path.
      * @param location the location of the element to add (must not be
      * <code>null</code> nor empty.
+     * @throws BuildException on error
      */
     public void setLocation(File location) throws BuildException {
-        if (isReference()) {
-            throw tooManyAttributes();
-        }
+        checkAttributesAllowed();
         createPathElement().setLocation(location);
     }
 
-
     /**
      * Parses a path definition and creates single PathElements.
-     * @param path the path definition.
+     * @param path the <code>String</code> path definition.
+     * @throws BuildException on error
      */
     public void setPath(String path) throws BuildException {
-        if (isReference()) {
-            throw tooManyAttributes();
-        }
+        checkAttributesAllowed();
         createPathElement().setPath(path);
     }
 
@@ -136,104 +188,126 @@ public class Path extends DataType implements Cloneable {
      *
      * <p>You must not set another attribute or nest elements inside
      * this element if you make it a reference.</p>
+     * @param r the reference to another Path
+     * @throws BuildException on error
      */
     public void setRefid(Reference r) throws BuildException {
-        if (!elements.isEmpty()) {
+        if (union != null) {
             throw tooManyAttributes();
         }
-        elements.addElement(r);
         super.setRefid(r);
     }
 
     /**
      * Creates the nested <code>&lt;pathelement&gt;</code> element.
+     * @return the <code>PathElement</code> to be configured
+     * @throws BuildException on error
      */
     public PathElement createPathElement() throws BuildException {
         if (isReference()) {
             throw noChildrenAllowed();
         }
         PathElement pe = new PathElement();
-        elements.addElement(pe);
+        add(pe);
         return pe;
     }
 
     /**
      * Adds a nested <code>&lt;fileset&gt;</code> element.
+     * @param fs a <code>FileSet</code> to be added to the path
+     * @throws BuildException on error
      */
     public void addFileset(FileSet fs) throws BuildException {
-        if (isReference()) {
-            throw noChildrenAllowed();
+        if (fs.getProject() == null) {
+            fs.setProject(getProject());
         }
-        elements.addElement(fs);
-        setChecked(false);
+        add(fs);
     }
 
     /**
      * Adds a nested <code>&lt;filelist&gt;</code> element.
+     * @param fl a <code>FileList</code> to be added to the path
+     * @throws BuildException on error
      */
     public void addFilelist(FileList fl) throws BuildException {
-        if (isReference()) {
-            throw noChildrenAllowed();
+        if (fl.getProject() == null) {
+            fl.setProject(getProject());
         }
-        elements.addElement(fl);
-        setChecked(false);
+        add(fl);
     }
 
     /**
      * Adds a nested <code>&lt;dirset&gt;</code> element.
+     * @param dset a <code>DirSet</code> to be added to the path
+     * @throws BuildException on error
      */
     public void addDirset(DirSet dset) throws BuildException {
-        if (isReference()) {
-            throw noChildrenAllowed();
+        if (dset.getProject() == null) {
+            dset.setProject(getProject());
         }
-        elements.addElement(dset);
-        setChecked(false);
+        add(dset);
     }
 
     /**
      * Adds a nested path
+     * @param path a <code>Path</code> to be added to the path
+     * @throws BuildException on error
      * @since Ant 1.6
      */
     public void add(Path path) throws BuildException {
-        if (isReference()) {
-            throw noChildrenAllowed();
+        if (path == this) {
+            throw circularReference();
         }
-        elements.addElement(path);
-        setChecked(false);
+        if (path.getProject() == null) {
+            path.setProject(getProject());
+        }
+        add((ResourceCollection) path);
+    }
 
+    /**
+     * Add a nested <code>ResourceCollection</code>.
+     * @param c the ResourceCollection to add.
+     * @since Ant 1.7
+     */
+    public void add(ResourceCollection c) {
+        checkChildrenAllowed();
+        if (c == null) {
+            return;
+        }
+        if (union == null) {
+            union = new Union();
+            union.setProject(getProject());
+            union.setCache(false);
+        }
+        union.add(c);
+        setChecked(false);
     }
 
     /**
      * Creates a nested <code>&lt;path&gt;</code> element.
+     * @return a <code>Path</code> to be configured
+     * @throws BuildException on error
      */
     public Path createPath() throws BuildException {
-        if (isReference()) {
-            throw noChildrenAllowed();
-        }
         Path p = new Path(getProject());
-        elements.addElement(p);
-        setChecked(false);
+        add(p);
         return p;
     }
 
     /**
      * Append the contents of the other Path instance to this.
+     * @param other a <code>Path</code> to be added to the path
      */
     public void append(Path other) {
         if (other == null) {
             return;
         }
-        String[] l = other.list();
-        for (int i = 0; i < l.length; i++) {
-            if (elements.indexOf(l[i]) == -1) {
-                elements.addElement(l[i]);
-            }
-        }
+        add(other);
     }
 
-     /**
+    /**
      * Adds the components on the given path which exist to this
-     * Path. Components that don't exist, aren't added.
+     * Path. Components that don't exist aren't added.
      *
      * @param source - source path whose components are examined for existence
      */
@@ -241,12 +315,13 @@ public class Path extends DataType implements Cloneable {
          addExisting(source, false);
      }
 
-    /** Same as addExisting, but support classpath behavior if tryUserDir
+    /**
+     * Same as addExisting, but support classpath behavior if tryUserDir
      * is true. Classpaths are relative to user dir, not the project base.
      * That used to break jspc test
      *
-     * @param source
-     * @param tryUserDir
+     * @param source the source path
+     * @param tryUserDir  if true try the user directory if the file is not present
      */
     public void addExisting(Path source, boolean tryUserDir) {
         String[] list = source.list();
@@ -254,12 +329,8 @@ public class Path extends DataType implements Cloneable {
                 : null;
 
         for (int i = 0; i < list.length; i++) {
-            File f = null;
-            if (getProject() != null) {
-                f = getProject().resolveFile(list[i]);
-            } else {
-                f = new File(list[i]);
-            }
+            File f = resolveFile(getProject(), list[i]);
+
             // probably not the best choice, but it solves the problem of
             // relative paths in CLASSPATH
             if (tryUserDir && !f.exists()) {
@@ -279,71 +350,12 @@ public class Path extends DataType implements Cloneable {
      * @return list of path elements.
      */
     public String[] list() {
-        if (!isChecked()) {
-            // make sure we don't have a circular reference here
-            Stack stk = new Stack();
-            stk.push(this);
-            dieOnCircularReference(stk, getProject());
+        if (isReference()) {
+            return ((Path) getCheckedRef()).list();
         }
-
-        Vector result = new Vector(2 * elements.size());
-        for (int i = 0; i < elements.size(); i++) {
-            Object o = elements.elementAt(i);
-            if (o instanceof Reference) {
-                Reference r = (Reference) o;
-                o = r.getReferencedObject(getProject());
-                // we only support references to paths right now
-                if (!(o instanceof Path)) {
-                    String msg = r.getRefId() + " doesn\'t denote a path " + o;
-                    throw new BuildException(msg);
-                }
-            }
-
-            if (o instanceof String) {
-                // obtained via append
-                addUnlessPresent(result, (String) o);
-            } else if (o instanceof PathElement) {
-                String[] parts = ((PathElement) o).getParts();
-                if (parts == null) {
-                    throw new BuildException("You must either set location or"
-                        + " path on <pathelement>");
-                }
-                for (int j = 0; j < parts.length; j++) {
-                    addUnlessPresent(result, parts[j]);
-                }
-            } else if (o instanceof Path) {
-                Path p = (Path) o;
-                if (p.getProject() == null) {
-                    p.setProject(getProject());
-                }
-                String[] parts = p.list();
-                for (int j = 0; j < parts.length; j++) {
-                    addUnlessPresent(result, parts[j]);
-                }
-            } else if (o instanceof DirSet) {
-                DirSet dset = (DirSet) o;
-                DirectoryScanner ds = dset.getDirectoryScanner(getProject());
-                String[] s = ds.getIncludedDirectories();
-                File dir = dset.getDir(getProject());
-                addUnlessPresent(result, dir, s);
-            } else if (o instanceof FileSet) {
-                FileSet fs = (FileSet) o;
-                DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-                String[] s = ds.getIncludedFiles();
-                File dir = fs.getDir(getProject());
-                addUnlessPresent(result, dir, s);
-            } else if (o instanceof FileList) {
-                FileList fl = (FileList) o;
-                String[] s = fl.getFiles(getProject());
-                File dir = fl.getDir(getProject());
-                addUnlessPresent(result, dir, s);
-            }
-        }
-        String[] res = new String[result.size()];
-        result.copyInto(res);
-        return res;
+        return assertFilesystemOnly(union) == null
+            ? new String[0] : union.list();
     }
-
 
     /**
      * Returns a textual representation of the path, which can be used as
@@ -351,38 +363,27 @@ public class Path extends DataType implements Cloneable {
      * @return a textual representation of the path.
      */
     public String toString() {
-        final String[] list = list();
-
-        // empty path return empty string
-        if (list.length == 0) {
-            return "";
-        }
-
-        // path containing one or more elements
-        final StringBuffer result = new StringBuffer(list[0].toString());
-        for (int i = 1; i < list.length; i++) {
-            result.append(File.pathSeparatorChar);
-            result.append(list[i]);
-        }
-
-        return result.toString();
+        return isReference() ? getCheckedRef().toString()
+            : union == null ? "" : union.toString();
     }
 
     /**
      * Splits a PATH (with : or ; as separators) into its parts.
+     * @param project the project to use
+     * @param source a <code>String</code> value
+     * @return an array of strings, one for each path element
      */
     public static String[] translatePath(Project project, String source) {
         final Vector result = new Vector();
         if (source == null) {
             return new String[0];
         }
-
         PathTokenizer tok = new PathTokenizer(source);
         StringBuffer element = new StringBuffer();
         while (tok.hasMoreTokens()) {
             String pathElement = tok.nextToken();
             try {
-                element.append(resolveFile(project, pathElement));
+                element.append(resolveFile(project, pathElement).getPath());
             } catch (BuildException e) {
                 project.log("Dropping path element " + pathElement
                     + " as it is not valid relative to the project",
@@ -402,24 +403,27 @@ public class Path extends DataType implements Cloneable {
     /**
      * Returns its argument with all file separator characters
      * replaced so that they match the local OS conventions.
+     * @param source the path to convert
+     * @return the converted path
      */
     public static String translateFile(String source) {
         if (source == null) {
           return "";
         }
-
         final StringBuffer result = new StringBuffer(source);
         for (int i = 0; i < result.length(); i++) {
             translateFileSep(result, i);
         }
-
         return result.toString();
     }
 
     /**
-     * Translates all occurrences of / or \ to correct separator of the
-     * current platform and returns whether it had to do any
-     * replacements.
+     * Translates occurrences at a position of / or \ to correct separator of the
+     * current platform and returns whether it had to do a
+     * replacement.
+     * @param buffer a buffer containing a string
+     * @param pos the position in the string buffer to convert
+     * @return true if the character was a / or \
      */
     protected static boolean translateFileSep(StringBuffer buffer, int pos) {
         if (buffer.charAt(pos) == '/' || buffer.charAt(pos) == '\\') {
@@ -430,20 +434,26 @@ public class Path extends DataType implements Cloneable {
     }
 
     /**
-     * How many parts does this Path instance consist of.
+     * Fulfill the ResourceCollection contract.
+     * @return number of elements as int.
      */
-    public int size() {
-        return list().length;
+    public synchronized int size() {
+        if (isReference()) {
+            return ((Path) getCheckedRef()).size();
+        }
+        dieOnCircularReference();
+        return union == null ? 0 : assertFilesystemOnly(union).size();
     }
 
     /**
-     * Return a Path that holds the same elements as this instance.
+     * Clone this Path.
+     * @return Path with shallowly cloned Resource children.
      */
     public Object clone() {
         try {
-            Path p = (Path) super.clone();
-            p.elements = (Vector) elements.clone();
-            return p;
+            Path result = (Path) super.clone();
+            result.union = union == null ? union : (Union) union.clone();
+            return result;
         } catch (CloneNotSupportedException e) {
             throw new BuildException(e);
         }
@@ -452,72 +462,40 @@ public class Path extends DataType implements Cloneable {
     /**
      * Overrides the version of DataType to recurse on all DataType
      * child elements that may have been added.
+     * @param stk the stack of data types to use (recursively).
+     * @param p   the project to use to dereference the references.
+     * @throws BuildException on error.
      */
-    protected void dieOnCircularReference(Stack stk, Project p)
+    protected synchronized void dieOnCircularReference(Stack stk, Project p)
         throws BuildException {
-
         if (isChecked()) {
             return;
         }
-
-        Enumeration e = elements.elements();
-        while (e.hasMoreElements()) {
-            Object o = e.nextElement();
-            if (o instanceof Reference) {
-                o = ((Reference) o).getReferencedObject(p);
+        if (isReference()) {
+            super.dieOnCircularReference(stk, p);
+        } else {
+            if (union != null) {
+                stk.push(union);
+                invokeCircularReferenceCheck(union, stk, p);
+                stk.pop();
             }
-
-            if (o instanceof DataType) {
-                if (stk.contains(o)) {
-                    throw circularReference();
-                } else {
-                    stk.push(o);
-                    ((DataType) o).dieOnCircularReference(stk, p);
-                    stk.pop();
-                }
-            }
+            setChecked(true);
         }
-        setChecked(true);
     }
 
     /**
      * Resolve a filename with Project's help - if we know one that is.
-     *
-     * <p>Assume the filename is absolute if project is null.</p>
      */
-    private static String resolveFile(Project project, String relativeName) {
-        if (project != null) {
-            File f = project.resolveFile(relativeName);
-            return f.getAbsolutePath();
-        }
-        return relativeName;
-    }
-
-    /**
-     * Adds a String to the Vector if it isn't already included.
-     */
-    private static void addUnlessPresent(Vector v, String s) {
-        if (v.indexOf(s) == -1) {
-            v.addElement(s);
-        }
-    }
-
-    /**
-     * Adds absolute path names of listed files in the given directory
-     * to the Vector if they are not already included.
-     */
-    private static void addUnlessPresent(Vector v, File dir, String[] s) {
-        for (int j = 0; j < s.length; j++) {
-            File d = new File(dir, s[j]);
-            String absolutePath = d.getAbsolutePath();
-            addUnlessPresent(v, translateFile(absolutePath));
-        }
+    private static File resolveFile(Project project, String relativeName) {
+        return FileUtils.getFileUtils().resolveFile(
+            (project == null) ? null : project.getBaseDir(), relativeName);
     }
 
     /**
      * Concatenates the system class path in the order specified by
      * the ${build.sysclasspath} property - using &quot;last&quot; as
      * default value.
+     * @return the concatenated path
      */
     public Path concatSystemClasspath() {
         return concatSystemClasspath("last");
@@ -527,9 +505,30 @@ public class Path extends DataType implements Cloneable {
      * Concatenates the system class path in the order specified by
      * the ${build.sysclasspath} property - using the supplied value
      * if ${build.sysclasspath} has not been set.
+     * @param defValue the order ("first", "last", "only")
+     * @return the concatenated path
      */
     public Path concatSystemClasspath(String defValue) {
+        return concatSpecialPath(defValue, Path.systemClasspath);
+    }
 
+    /**
+     * Concatenates the system boot class path in the order specified
+     * by the ${build.sysclasspath} property - using the supplied
+     * value if ${build.sysclasspath} has not been set.
+     * @param defValue the order ("first", "last", "only")
+     * @return the concatenated path
+     */
+    public Path concatSystemBootClasspath(String defValue) {
+        return concatSpecialPath(defValue, Path.systemBootClasspath);
+    }
+
+    /**
+     * Concatenates a class path in the order specified by the
+     * ${build.sysclasspath} property - using the supplied value if
+     * ${build.sysclasspath} has not been set.
+     */
+    private Path concatSpecialPath(String defValue, Path p) {
         Path result = new Path(getProject());
 
         String order = defValue;
@@ -539,14 +538,13 @@ public class Path extends DataType implements Cloneable {
                 order = o;
             }
         }
-
         if (order.equals("only")) {
             // only: the developer knows what (s)he is doing
-            result.addExisting(Path.systemClasspath, true);
+            result.addExisting(p, true);
 
         } else if (order.equals("first")) {
             // first: developer could use a little help
-            result.addExisting(Path.systemClasspath, true);
+            result.addExisting(p, true);
             result.addExisting(this);
 
         } else if (order.equals("ignore")) {
@@ -559,21 +557,17 @@ public class Path extends DataType implements Cloneable {
                 log("invalid value for build.sysclasspath: " + order,
                     Project.MSG_WARN);
             }
-
             result.addExisting(this);
-            result.addExisting(Path.systemClasspath, true);
+            result.addExisting(p, true);
         }
-
-
         return result;
-
     }
 
     /**
      * Add the Java Runtime classes to this Path instance.
      */
     public void addJavaRuntime() {
-        if ("Kaffe".equals(System.getProperty("java.vm.name"))) {
+        if (JavaEnvUtils.isKaffe()) {
             // newer versions of Kaffe (1.1.1+) won't have this,
             // but this will be sorted by FileSet anyway.
             File kaffeShare = new File(System.getProperty("java.home")
@@ -590,20 +584,15 @@ public class Path extends DataType implements Cloneable {
         }
 
         if (System.getProperty("java.vendor").toLowerCase(Locale.US).indexOf("microsoft") >= 0) {
+            // XXX is this code still necessary? is there any 1.2+ port?
             // Pull in *.zip from packages directory
             FileSet msZipFiles = new FileSet();
             msZipFiles.setDir(new File(System.getProperty("java.home")
                 + File.separator + "Packages"));
             msZipFiles.setIncludes("*.ZIP");
             addFileset(msZipFiles);
-        } else if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-            addExisting(new Path(null,
-                                 System.getProperty("java.home")
-                                 + File.separator + "lib"
-                                 + File.separator
-                                 + "classes.zip"));
         } else {
-            // JDK > 1.1 seems to set java.home to the JRE directory.
+            // JDK 1.2+ seems to set java.home to the JRE directory.
             addExisting(new Path(null,
                                  System.getProperty("java.home")
                                  + File.separator + "lib"
@@ -674,7 +663,7 @@ public class Path extends DataType implements Cloneable {
 
         String[] dirs = extdirs.list();
         for (int i = 0; i < dirs.length; i++) {
-            File dir = getProject().resolveFile(dirs[i]);
+            File dir = resolveFile(getProject(), dirs[i]);
             if (dir.exists() && dir.isDirectory()) {
                 FileSet fs = new FileSet();
                 fs.setDir(dir);
@@ -682,5 +671,47 @@ public class Path extends DataType implements Cloneable {
                 addFileset(fs);
             }
         }
+    }
+
+    /**
+     * Fulfill the ResourceCollection contract. The Iterator returned
+     * will throw ConcurrentModificationExceptions if ResourceCollections
+     * are added to this container while the Iterator is in use.
+     * @return a "fail-fast" Iterator.
+     */
+    public final synchronized Iterator iterator() {
+        if (isReference()) {
+            return ((Path) getCheckedRef()).iterator();
+        }
+        dieOnCircularReference();
+        return union == null ? EMPTY_ITERATOR
+            : assertFilesystemOnly(union).iterator();
+    }
+
+    /**
+     * Fulfill the ResourceCollection contract.
+     * @return whether this is a filesystem-only resource collection.
+     */
+    public synchronized boolean isFilesystemOnly() {
+        if (isReference()) {
+            return ((Path) getCheckedRef()).isFilesystemOnly();
+        }
+        dieOnCircularReference();
+        assertFilesystemOnly(union);
+        return true;
+    }
+
+    /**
+     * Verify the specified ResourceCollection is filesystem-only.
+     * @param rc the ResourceCollection to check.
+     * @throws BuildException if <code>rc</code> is not filesystem-only.
+     * @return the passed in ResourceCollection.
+     */
+    protected ResourceCollection assertFilesystemOnly(ResourceCollection rc) {
+        if (rc != null && !(rc.isFilesystemOnly())) {
+            throw new BuildException(getDataTypeName()
+                + " allows only filesystem resources.");
+        }
+        return rc;
     }
 }

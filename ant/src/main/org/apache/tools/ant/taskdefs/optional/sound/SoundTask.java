@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -40,7 +41,6 @@ import org.apache.tools.ant.Task;
  * - use the midi api to define sounds (or drum beat etc) in xml and have
  *   Ant play them back
  *
- * @version $Revision: 1.12.2.4 $, $Date: 2004/03/09 17:01:53 $
  */
 
 public class SoundTask extends Task {
@@ -50,6 +50,7 @@ public class SoundTask extends Task {
 
     /**
      * add a sound when the build succeeds
+     * @return a BuildAlert to be configured
      */
     public BuildAlert createSuccess() {
         success = new BuildAlert();
@@ -58,18 +59,26 @@ public class SoundTask extends Task {
 
     /**
      * add a sound when the build fails
+     * @return a BuildAlert to be configured
      */
     public BuildAlert createFail() {
         fail = new BuildAlert();
         return fail;
      }
 
+    /** Constructor for SoundTask. */
     public SoundTask() {
     }
 
+    /**
+     * Initialize the task.
+     */
     public void init() {
     }
 
+    /**
+     * Execute the task.
+     */
     public void execute() {
 
         AntSoundPlayer soundPlayer = new AntSoundPlayer();
@@ -103,6 +112,7 @@ public class SoundTask extends Task {
 
         /**
          * Sets the duration in milliseconds the file should be played; optional.
+         * @param duration the duration in millisconds
          */
         public void setDuration(Long duration) {
             this.duration = duration;
@@ -128,6 +138,7 @@ public class SoundTask extends Task {
 
         /**
          * Gets the location of the file to get the audio.
+         * @return the file location
          */
         public File getSource() {
             File nofile = null;
@@ -171,6 +182,7 @@ public class SoundTask extends Task {
 
         /**
          * Gets the duration in milliseconds the file should be played.
+         * @return the duration in milliseconds
          */
         public Long getDuration() {
             return this.duration;

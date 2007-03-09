@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringReader;
+
 import org.apache.tools.ant.util.DateUtils;
 import org.apache.tools.ant.util.StringUtils;
 
@@ -37,6 +39,7 @@ public class DefaultLogger implements BuildLogger {
      */
     public static final int LEFT_COLUMN_SIZE = 12;
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /** PrintStream to write non-error messages to */
     protected PrintStream out;
 
@@ -49,11 +52,15 @@ public class DefaultLogger implements BuildLogger {
     /** Time of the start of the build */
     private long startTime = System.currentTimeMillis();
 
+    // CheckStyle:ConstantNameCheck OFF - bc
     /** Line separator */
     protected static final String lSep = StringUtils.LINE_SEP;
+    // CheckStyle:ConstantNameCheck ON
 
     /** Whether or not to use emacs-style output */
     protected boolean emacsMode = false;
+    // CheckStyle:VisibilityModifier ON
+
 
     /**
      * Sole constructor.
@@ -66,13 +73,13 @@ public class DefaultLogger implements BuildLogger {
      *
      * Only messages with a message level lower than or equal to the
      * given level should be written to the log.
-     * <P>
+     * <p>
      * Constants for the message levels are in the
      * {@link Project Project} class. The order of the levels, from least
      * to most verbose, is <code>MSG_ERR</code>, <code>MSG_WARN</code>,
      * <code>MSG_INFO</code>, <code>MSG_VERBOSE</code>,
      * <code>MSG_DEBUG</code>.
-     * <P>
+     * <p>
      * The default message level for DefaultLogger is Project.MSG_ERR.
      *
      * @param level the logging level for the logger.
@@ -131,24 +138,19 @@ public class DefaultLogger implements BuildLogger {
     public void buildFinished(BuildEvent event) {
         Throwable error = event.getException();
         StringBuffer message = new StringBuffer();
-
         if (error == null) {
             message.append(StringUtils.LINE_SEP);
-            message.append("BUILD SUCCESSFUL");
+            message.append(getBuildSuccessfulMessage());
         } else {
             message.append(StringUtils.LINE_SEP);
-            message.append("BUILD FAILED");
+            message.append(getBuildFailedMessage());
             message.append(StringUtils.LINE_SEP);
 
             if (Project.MSG_VERBOSE <= msgOutputLevel
                 || !(error instanceof BuildException)) {
                 message.append(StringUtils.getStackTrace(error));
             } else {
-                if (error instanceof BuildException) {
-                    message.append(error.toString()).append(lSep);
-                } else {
-                    message.append(error.getMessage()).append(lSep);
-                }
+                message.append(error.toString()).append(lSep);
             }
         }
         message.append(StringUtils.LINE_SEP);
@@ -162,6 +164,24 @@ public class DefaultLogger implements BuildLogger {
             printMessage(msg, err, Project.MSG_ERR);
         }
         log(msg);
+    }
+
+    /**
+     * This is an override point: the message that indicates whether a build failed.
+     * Subclasses can change/enhance the message.
+     * @return The classic "BUILD FAILED"
+     */
+    protected String getBuildFailedMessage() {
+        return "BUILD FAILED";
+    }
+
+    /**
+     * This is an override point: the message that indicates that a build succeeded.
+     * Subclasses can change/enhance the message.
+     * @return The classic "BUILD SUCCESSFUL"
+     */
+    protected String getBuildSuccessfulMessage() {
+        return "BUILD SUCCESSFUL";
     }
 
     /**
@@ -237,20 +257,29 @@ public class DefaultLogger implements BuildLogger {
                             new StringReader(event.getMessage()));
                     String line = r.readLine();
                     boolean first = true;
-                    while (line != null) {
-                        if (!first) {
+                    do {
+                        if (first) {
+                            if (line == null) {
+                                message.append(label);
+                                break;
+                            }
+                        } else {
                             message.append(StringUtils.LINE_SEP);
                         }
                         first = false;
                         message.append(label).append(line);
                         line = r.readLine();
-                    }
+                    } while (line != null);
                 } catch (IOException e) {
                     // shouldn't be possible
                     message.append(label).append(event.getMessage());
                 }
             } else {
                 message.append(event.getMessage());
+            }
+            Throwable ex = event.getException();
+            if (Project.MSG_DEBUG <= msgOutputLevel && ex != null) {
+                    message.append(StringUtils.getStackTrace(ex));
             }
 
             String msg = message.toString();

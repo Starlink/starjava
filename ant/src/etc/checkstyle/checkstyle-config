@@ -6,7 +6,6 @@
     <!-- Javadoc requirements -->
     <module name="JavadocType">
       <property name="scope" value="protected"/>
-      <property name="authorFormat" value="\S"/>
     </module>
     <module name="JavadocMethod">
       <property name="scope" value="protected"/>
@@ -105,6 +104,13 @@
     </module>
     <module name="TodoComment"/>
     <module name="UpperEll"/>
+    <!-- allow comment suppression of checks -->
+    <module name="FileContentsHolder"/>
   </module>
   <!-- <module name="au.com.redhillconsulting.simian.SimianCheck"/> -->
+  <module name="SuppressionCommentFilter">
+    <property name="offCommentFormat" value="CheckStyle\:([\w\|]+) *OFF"/>
+    <property name="onCommentFormat" value="CheckStyle\:([\w\|]+) *ON"/>
+    <property name="checkFormat" value="$1"/>
+  </module>
 </module>

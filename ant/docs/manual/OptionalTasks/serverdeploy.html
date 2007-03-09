@@ -1,10 +1,26 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>ServerDeploy Task</title>
 
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -71,7 +87,7 @@ attributes are required, depending on the tool.
     <td valign="top">A fully qualified path/filename of the component to be deployed.
     This may be an .ear, .jar, .war, or any other type that is supported by the server.
     </td>
-    <td>Tool dependant</td>
+    <td>Tool dependent</td>
   </tr>
 </table>
 
@@ -92,22 +108,22 @@ attributes are required, depending on the tool.
     <td valign="top">classpath</td>
     <td valign="top">The classpath to be passed to the JVM running the tool.
     The classpath may also be supplied as a nested element.</td>
-    <td>Tool dependant</td>
+    <td>Tool dependent</td>
   </tr>
   <tr>
     <td valign="top">server</td>
     <td valign="top">The address or URL for the server where the component will be deployed.</td>
-    <td>Tool dependant</td>
+    <td>Tool dependent</td>
   </tr>
   <tr>
     <td valign="top">username</td>
     <td valign="top">The user with privileges to deploy applications to the server.</td>
-    <td>Tool dependant</td>
+    <td>Tool dependent</td>
   </tr>
   <tr>
     <td valign="top">password</td>
     <td valign="top">The password of the user with privileges to deploy applications to the server.</td>
-    <td>Tool dependant</td>
+    <td>Tool dependent</td>
   </tr>
 </table>
 
@@ -139,7 +155,7 @@ possible.
 </p>
 
 <h3>Nested Elements</h3>
-<p>The generic element supports nested &lt;arg&gt; and &lt;jvmarg&gt; elements.</p>
+<p>The generic element supports nested <code>&lt;arg&gt;</code> and <code>&lt;jvmarg&gt;</code> elements.</p>
 
 <h3>Example</h3>
 
@@ -147,10 +163,10 @@ possible.
 using a Java based deploy tool:</p>
 
 <pre>
-    &lt;serverdeploy action=&quot;deploy&quot; source=&quot;${lib.dir}/ejb_myApp.ear&quot;&gt;
+    &lt;serverdeploy action=&quot;deploy&quot; source=&quot;lib/ejb_myApp.ear&quot;&gt;
         &lt;generic classname="com.yamato.j2ee.tools.deploy.DeployTool"
             classpath=&quot;${classpath}&quot;
-            username=&quot;${user.name}&quot;
+            username=&quot;antoine&quot;
             password=&quot;${user.password}&quot;&gt;
             &lt;arg value="-component=WildStar"/&gt;
             &lt;arg value="-force"/&gt;
@@ -207,11 +223,11 @@ required for all actions.
 <p>This example shows the use of serverdeploy to deploy a component to a WebLogic server:</p>
 
 <pre>
-    &lt;serverdeploy action=&quot;deploy&quot; source=&quot;${lib.dir}/ejb_myApp.ear&quot;&gt;
+    &lt;serverdeploy action=&quot;deploy&quot; source=&quot;lib/ejb_myApp.ear&quot;&gt;
         &lt;weblogic application=&quot;myapp&quot;
             server=&quot;t3://myserver:7001&quot;
             classpath=&quot;${weblogic.home}/lib/weblogic.jar&quot;
-            username=&quot;${user.name}&quot;
+            username=&quot;antoine&quot;
             password=&quot;${user.password}&quot;
             component=&quot;ejb_foobar:myserver,productionserver&quot;
             debug=&quot;true&quot;/&gt;
@@ -222,17 +238,17 @@ required for all actions.
 WebLogic server:</p>
 
 <pre>
-    &lt;serverdeploy action=&quot;delete&quot; source=&quot;${lib.dir}/ejb_myApp.jar&quot;/&gt
+    &lt;serverdeploy action=&quot;delete&quot; source=&quot;lib/ejb_myApp.jar&quot;/&gt
         &lt;weblogic application=&quot;myapp&quot;
             server=&quot;t3://myserver:7001&quot;
             classpath=&quot;${weblogic.home}/lib/weblogic.jar&quot;
-            username=&quot;${user.name}&quot;
+            username=&quot;antoine&quot;
             password=&quot;${user.password}&quot;/&gt;
     &lt;/serverdeploy&gt;
 </pre>
 
 <a name="serverdeploy_jonas">
-<h3>JOnAS (Java Open Applicaton Server) element</h3>
+<h3>JOnAS (Java Open Application Server) element</h3>
 <p>
 The JOnAS element contains additional attributes to run the
 <code>JonasAdmin</code> deployment tool.
@@ -280,7 +296,7 @@ task.
 </table>
 
 <h3>Nested Elements</h3>
-<p>The jonas element supports nested &lt;arg&gt; and &lt;jvmarg&gt; elements.</p>
+<p>The jonas element supports nested <code>&lt;arg&gt;</code> and <code>&lt;jvmarg&gt;</code> elements.</p>
 
 
 <h3>Examples</h3>
@@ -288,7 +304,7 @@ task.
 <p>This example shows the use of serverdeploy to deploy a component to a JOnAS server:</p>
 
 <pre>
-    &lt;serverdeploy action=&quot;deploy&quot; source=&quot;${lib.dir}/ejb_myApp.jar&quot;&gt;
+    &lt;serverdeploy action=&quot;deploy&quot; source=&quot;lib/ejb_myApp.jar&quot;&gt;
         &lt;jonas server=&quot;MyJOnAS&quot; jonasroot="${jonas.root}"&gt;
 
            &lt;classpath&gt;
@@ -308,13 +324,12 @@ JOnAS server and a WebLogic server:</p>
         &lt;weblogic application=&quot;myapp&quot
             server=&quot;t3://myserver:7001&quot;
             classpath=&quot;${weblogic.home}/lib/weblogic.jar&quot;
-            username=&quot;${user.name}&quot;
+            username=&quot;antoine&quot;
             password=&quot;${user.password}&quot;/&gt;
     &lt;/serverdeploy&gt;
 </pre>
 
 
-<hr>
-<p align="center">Copyright &copy; 2002,2004 The Apache Software Foundation. All rights Reserved.</p>
+
 </body>
 </html>

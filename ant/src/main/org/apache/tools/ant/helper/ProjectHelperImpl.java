@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -52,6 +53,11 @@ import org.xml.sax.helpers.XMLReaderAdapter;
 public class ProjectHelperImpl extends ProjectHelper {
 
     /**
+     * helper for path -> URI and URI -> path conversions.
+     */
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
+    /**
      * SAX 1 style parser used to parse the given file. This may
      * in fact be a SAX 2 XMLReader wrapped in an XMLReaderAdapter.
      */
@@ -78,10 +84,6 @@ public class ProjectHelperImpl extends ProjectHelper {
      * been placed outside of targets.</p>
      */
     private Target implicitTarget = new Target();
-    /**
-     * helper for path -> URI and URI -> path conversions.
-     */
-    private static FileUtils fu = FileUtils.newFileUtils();
 
     /**
      * default constructor
@@ -103,12 +105,12 @@ public class ProjectHelperImpl extends ProjectHelper {
             throw new BuildException("Only File source supported by "
                 + "default plugin");
         }
-        File buildFile = (File) source;
+        File bFile = (File) source;
         FileInputStream inputStream = null;
         InputSource inputSource = null;
 
         this.project = project;
-        this.buildFile = new File(buildFile.getAbsolutePath());
+        this.buildFile = new File(bFile.getAbsolutePath());
         buildFileParent = new File(this.buildFile.getParent());
 
         try {
@@ -119,11 +121,11 @@ public class ProjectHelperImpl extends ProjectHelper {
             }
 
 
-            String uri = fu.toURI(buildFile.getAbsolutePath());
-            inputStream = new FileInputStream(buildFile);
+            String uri = FILE_UTILS.toURI(bFile.getAbsolutePath());
+            inputStream = new FileInputStream(bFile);
             inputSource = new InputSource(inputStream);
             inputSource.setSystemId(uri);
-            project.log("parsing buildfile " + buildFile + " with URI = "
+            project.log("parsing buildfile " + bFile + " with URI = "
                 + uri, Project.MSG_VERBOSE);
             HandlerBase hb = new RootHandler(this);
             parser.setDocumentHandler(hb);
@@ -161,13 +163,7 @@ public class ProjectHelperImpl extends ProjectHelper {
             throw new BuildException("Error reading project file: "
                                      + exc.getMessage(), exc);
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException ioe) {
-                    // ignore this
-                }
-            }
+            FileUtils.close(inputStream);
         }
     }
 
@@ -184,6 +180,7 @@ public class ProjectHelperImpl extends ProjectHelper {
      * control back to the parent in the endElement method.
      */
     static class AbstractHandler extends HandlerBase {
+        // CheckStyle:VisibilityModifier OFF - bc
 
         /**
          * Previous handler for the document.
@@ -198,6 +195,7 @@ public class ProjectHelperImpl extends ProjectHelper {
             explicitly it'll work with more compilers.
         */
         ProjectHelperImpl helperImpl;
+        // CheckStyle:VisibilityModifier ON
 
         /**
          * Creates a handler and sets the parser to use it
@@ -275,7 +273,9 @@ public class ProjectHelperImpl extends ProjectHelper {
      * Handler for the root element. Its only child must be the "project" element.
      */
     static class RootHandler extends HandlerBase {
+        // CheckStyle:VisibilityModifier OFF - bc
         ProjectHelperImpl helperImpl;
+        // CheckStyle:VisibilityModifier ON
 
         public RootHandler(ProjectHelperImpl helperImpl) {
             this.helperImpl = helperImpl;
@@ -296,15 +296,20 @@ public class ProjectHelperImpl extends ProjectHelper {
             helperImpl.project.log("resolving systemId: " + systemId, Project.MSG_VERBOSE);
 
             if (systemId.startsWith("file:")) {
-                String path = fu.fromURI(systemId);
+                String path = FILE_UTILS.fromURI(systemId);
 
                 File file = new File(path);
                 if (!file.isAbsolute()) {
-                    file = fu.resolveFile(helperImpl.buildFileParent, path);
+                    file = FILE_UTILS.resolveFile(helperImpl.buildFileParent, path);
+                    helperImpl.project.log(
+                            "Warning: '" + systemId + "' in " + helperImpl.buildFile
+                            + " should be expressed simply as '" + path.replace('\\', '/')
+                            + "' for compliance with other XML tools",
+                            Project.MSG_WARN);
                 }
                 try {
                     InputSource inputSource = new InputSource(new FileInputStream(file));
-                    inputSource.setSystemId(fu.toURI(file.getAbsolutePath()));
+                    inputSource.setSystemId(FILE_UTILS.toURI(file.getAbsolutePath()));
                     return inputSource;
                 } catch (FileNotFoundException fne) {
                     helperImpl.project.log(file.getAbsolutePath() + " could not be found",
@@ -428,8 +433,8 @@ public class ProjectHelperImpl extends ProjectHelper {
                     if ((new File(baseDir)).isAbsolute()) {
                         helperImpl.project.setBasedir(baseDir);
                     } else {
-                        File resolvedBaseDir = helperImpl.project.resolveFile(baseDir,
-                                helperImpl.buildFileParent);
+                        File resolvedBaseDir = FILE_UTILS.resolveFile(
+                                helperImpl.buildFileParent, baseDir);
                         helperImpl.project.setBaseDir(resolvedBaseDir);
                     }
                 }
@@ -862,7 +867,7 @@ public class ProjectHelperImpl extends ProjectHelper {
         public void init(String propType, AttributeList attrs) throws SAXParseException {
             Class parentClass = parent.getClass();
             IntrospectionHelper ih =
-                IntrospectionHelper.getHelper(parentClass);
+                IntrospectionHelper.getHelper(helperImpl.project, parentClass);
 
             try {
                 String elementName = propType.toLowerCase(Locale.US);

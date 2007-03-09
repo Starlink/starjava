@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -58,6 +59,11 @@ public interface TarConstants {
      * The length of the size field in a header buffer.
      */
     int    SIZELEN = 12;
+
+    /**
+     * The maximum size of a file in a tar archive (That's 11 sevens, octal).
+     */
+    long   MAXSIZE = 077777777777L;
 
     /**
      * The length of the magic field in a header buffer.

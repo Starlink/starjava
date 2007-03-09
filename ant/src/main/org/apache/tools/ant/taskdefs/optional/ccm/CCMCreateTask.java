@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,7 +34,6 @@ import org.apache.tools.ant.types.Commandline;
 /**
  * Creates new Continuus ccm task and sets it as the default.
  *
- *
  * @ant.task name="ccmcreatetask" category="scm"
  */
 public class CCMCreateTask extends Continuus implements ExecuteStreamHandler {
@@ -45,6 +45,9 @@ public class CCMCreateTask extends Continuus implements ExecuteStreamHandler {
     private String subSystem = null;
     private String task = null;
 
+    /**
+     * Constructor for CCMCreateTask.
+     */
     public CCMCreateTask() {
         super();
         setCcmAction(COMMAND_CREATE_TASK);
@@ -57,6 +60,7 @@ public class CCMCreateTask extends Continuus implements ExecuteStreamHandler {
      * Builds a command line to execute ccm and then calls Exec's run method
      * to execute the command line.
      * </p>
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
         Commandline commandLine = new Commandline();
@@ -265,7 +269,7 @@ public class CCMCreateTask extends Continuus implements ExecuteStreamHandler {
 
     /**
      *
-     * @exception java.io.IOException
+     * @throws IOException on error
      */
     public void start() throws IOException {
     }
@@ -278,16 +282,16 @@ public class CCMCreateTask extends Continuus implements ExecuteStreamHandler {
 
     /**
      *
-     * @param param1
-     * @exception java.io.IOException
+     * @param param1 the output stream
+     * @exception java.io.IOException on error
      */
     public void setProcessInputStream(OutputStream param1) throws IOException {
     }
 
     /**
      *
-     * @param is
-     * @exception java.io.IOException
+     * @param is the input stream
+     * @exception java.io.IOException on error
      */
     public void setProcessErrorStream(InputStream is) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -300,7 +304,7 @@ public class CCMCreateTask extends Continuus implements ExecuteStreamHandler {
     /**
      * read the output stream to retrieve the new task number.
      * @param is InputStream
-     * @exception java.io.IOException
+     * @throws IOException on error
      */
     public void setProcessOutputStream(InputStream is) throws IOException {
 

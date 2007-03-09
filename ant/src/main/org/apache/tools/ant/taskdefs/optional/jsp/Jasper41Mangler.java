@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,7 +23,7 @@ import java.io.File;
 /**
  * this class implements the name mangling rules of the jasper in tomcat4.1.x
  * which is likely to remain for some time
- * @see org.apache.jasper.JspCompilationContext
+ * @see "org.apache.jasper.JspCompilationContext"
  */
 public class Jasper41Mangler implements JspMangler {
 
@@ -61,7 +62,7 @@ public class Jasper41Mangler implements JspMangler {
     /**
      * Mangle the specified character to create a legal Java class name.
      */
-    private static final String mangleChar(char ch) {
+    private static String mangleChar(char ch) {
 
         String s = Integer.toHexString(ch);
         int nzeros = 5 - s.length();
@@ -80,6 +81,8 @@ public class Jasper41Mangler implements JspMangler {
     /**
      * taking in the substring representing the path relative to the source dir
      * return a new string representing the destination path
+     * @param path not used.
+     * @return null as this is not implemented.
      * @todo
      */
     public String mapPath(String path) {

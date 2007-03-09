@@ -1,9 +1,10 @@
 /*
- * Copyright 2004 The Apache Software Foundation.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -22,7 +23,7 @@ import java.io.Reader;
 
 /**
  * Adapts a <code>Reader</code> as an <code>InputStream</code>.
- * Adapted from <CODE>StringInputStream</CODE>.
+ * Adapted from <code>StringInputStream</code>.
  *
  */
 public class ReaderInputStream extends InputStream {
@@ -37,22 +38,22 @@ public class ReaderInputStream extends InputStream {
     private int begin;
 
     /**
-     * Construct a <CODE>ReaderInputStream</CODE>
-     * for the specified <CODE>Reader</CODE>.
+     * Construct a <code>ReaderInputStream</code>
+     * for the specified <code>Reader</code>.
      *
-     * @param reader   <CODE>Reader</CODE>.  Must not be <code>null</code>.
+     * @param reader   <code>Reader</code>.  Must not be <code>null</code>.
      */
     public ReaderInputStream(Reader reader) {
         in = reader;
     }
 
     /**
-     * Construct a <CODE>ReaderInputStream</CODE>
-     * for the specified <CODE>Reader</CODE>,
+     * Construct a <code>ReaderInputStream</code>
+     * for the specified <code>Reader</code>,
      * with the specified encoding.
      *
-     * @param reader     non-null <CODE>Reader</CODE>.
-     * @param encoding   non-null <CODE>String</CODE> encoding.
+     * @param reader     non-null <code>Reader</code>.
+     * @param encoding   non-null <code>String</code> encoding.
      */
     public ReaderInputStream(Reader reader, String encoding) {
         this(reader);
@@ -64,9 +65,9 @@ public class ReaderInputStream extends InputStream {
     }
 
     /**
-     * Reads from the <CODE>Reader</CODE>, returning the same value.
+     * Reads from the <code>Reader</code>, returning the same value.
      *
-     * @return the value of the next character in the <CODE>Reader</CODE>.
+     * @return the value of the next character in the <code>Reader</code>.
      *
      * @exception IOException if the original <code>Reader</code> fails to be read
      */
@@ -84,16 +85,13 @@ public class ReaderInputStream extends InputStream {
         } else {
             byte[] buf = new byte[1];
             if (read(buf, 0, 1) <= 0) {
-                result = -1;
+                return -1;
+            } else {
+                result = buf[0];
             }
-            result = buf[0];
         }
 
-        if (result < -1) {
-            result+= 256;
-        }
-
-        return result;
+        return result & 0xFF;
     }
 
     /**
@@ -111,7 +109,9 @@ public class ReaderInputStream extends InputStream {
         if (in == null) {
             throw new IOException("Stream Closed");
         }
-
+        if (len == 0) {
+            return 0;
+        }
         while (slack == null) {
             char[] buf = new char[len]; // might read too much
             int n = in.read(buf);
@@ -196,8 +196,10 @@ public class ReaderInputStream extends InputStream {
      * @exception IOException if the original StringReader fails to be closed
      */
     public synchronized void close() throws IOException {
-        in.close();
-        slack = null;
-        in = null;
+        if (in != null) {
+            in.close();
+            slack = null;
+            in = null;
+        }
     }
 }

@@ -1,8 +1,26 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>CVS Task</title>
+<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -10,10 +28,18 @@
 <h2><a name="cvs">Cvs</a></h2>
 <h3>Description</h3>
 <p>Handles packages/modules retrieved from a
-<a href="http://www.cvshome.org/" target="_top">CVS</a> repository.</p>
+<a href="http://www.nongnu.org/cvs/" target="_top">CVS</a> repository.</p>
 <p><b>Important:</b> This task needs &quot;<code>cvs</code>&quot; on the path. If it isn't, you will get
 an error (such as error <code>2</code> on windows). If <code>&lt;cvs&gt;</code> doesn't work, try to execute <code>cvs.exe</code>
 from the command line in the target directory in which you are working.
+
+<p><b>CVSNT Note</b>: CVSNT prefers users to store the passwords
+inside the registry.  If the <a href="cvspass.html">cvspass task</a>
+and the passfile attribute don't seem to work for you, the most likely
+reason is that CVSNT ignores your .cvspass file completely.  See <a
+href="http://issues.apache.org/bugzilla/show_bug.cgi?id=21657#c5">bug
+zilla report 21657</a> for recommended workarounds.</p>
+
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -166,11 +192,9 @@ from the <code>&lt;cvs&gt;</code> element.
 <p>Updates from the head of repository ignoring sticky bits (<code>-A</code>) and creating any new directories as necessary (<code>-d</code>).</p>
 <p>Note: the text of the command is passed to cvs &quot;as-is&quot; so any cvs options should appear
 before the command, and any command options should appear after the command as in the diff example
-above. See <a href="http://www.cvshome.org/docs/manual/cvs-1.11.13/cvs.html" target="_top">the cvs manual</a> for details,
-specifically the <a href="http://www.cvshome.org/docs/manual/cvs-1.11.13/cvs_16.html" target="_top">Guide to CVS commands</a></p>
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software
-Foundation.  All rights Reserved.</p>
+above. See <a href="http://ximbiot.com/cvs/wiki/index.php?title=Category:User_Documentation" target="_top">the cvs manual</a> for details,
+specifically the <a href="http://ximbiot.com/cvs/wiki/index.php?title=CVS--Concurrent_Versions_System_v1.12.12.1:_Guide_to_CVS_commands#SEC116" target="_top">Guide to CVS commands</a></p>
+
 
 </body>
 </html>

@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -28,15 +29,41 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Iterator;
 
+/**
+ * Utility class to carry out an upload scp transfer.
+ */
 public class ScpToMessage extends AbstractSshMessage {
 
-    private final int BUFFER_SIZE = 1024;
+    private static final int BUFFER_SIZE = 1024;
 
     private File localFile;
     private String remotePath;
     private List directoryList;
 
     /**
+     * Constructor for ScpToMessage
+     * @param session the ssh session to use
+     */
+    public ScpToMessage(Session session) {
+        super(session);
+    }
+
+    /**
+     * Constructor for ScpToMessage
+     * @param verbose if true do verbose logging
+     * @param session the ssh session to use
+     * @since Ant 1.7
+     */
+    public ScpToMessage(boolean verbose, Session session) {
+        super(verbose, session);
+    }
+
+    /**
+     * Constructor for a local file to remote.
+     * @param verbose if true do verbose logging
+     * @param session the scp session to use
+     * @param aLocalFile the local file
+     * @param aRemotePath the remote path
      * @since Ant 1.6.2
      */
     public ScpToMessage(boolean verbose,
@@ -49,6 +76,11 @@ public class ScpToMessage extends AbstractSshMessage {
     }
 
     /**
+     * Constructor for a local directories to remote.
+     * @param verbose if true do verbose logging
+     * @param session the scp session to use
+     * @param aDirectoryList a list of directories
+     * @param aRemotePath the remote path
      * @since Ant 1.6.2
      */
     public ScpToMessage(boolean verbose,
@@ -61,6 +93,10 @@ public class ScpToMessage extends AbstractSshMessage {
     }
 
     /**
+     * Constructor for ScpToMessage.
+     * @param verbose if true do verbose logging
+     * @param session the scp session to use
+     * @param aRemotePath the remote path
      * @since Ant 1.6.2
      */
     private ScpToMessage(boolean verbose,
@@ -70,18 +106,35 @@ public class ScpToMessage extends AbstractSshMessage {
         this.remotePath = aRemotePath;
     }
 
+    /**
+     * Constructor for ScpToMessage.
+     * @param session the scp session to use
+     * @param aLocalFile the local file
+     * @param aRemotePath the remote path
+     */
     public ScpToMessage(Session session,
                         File aLocalFile,
                         String aRemotePath) {
         this(false, session, aLocalFile, aRemotePath);
     }
 
+    /**
+     * Constructor for ScpToMessage.
+     * @param session the scp session to use
+     * @param aDirectoryList a list of directories
+     * @param aRemotePath the remote path
+     */
     public ScpToMessage(Session session,
                          List aDirectoryList,
                          String aRemotePath) {
         this(false, session, aDirectoryList, aRemotePath);
     }
 
+    /**
+     * Carry out the transfer.
+     * @throws IOException on i/o errors
+     * @throws JSchException on errors detected by scp
+     */
     public void execute() throws IOException, JSchException {
         if (directoryList != null) {
             doMultipleTransfer();
@@ -112,7 +165,7 @@ public class ScpToMessage extends AbstractSshMessage {
     }
 
     private void doMultipleTransfer() throws IOException, JSchException {
-        Channel channel = openExecChannel("scp -d -t " + remotePath);
+        Channel channel = openExecChannel("scp -r -d -t " + remotePath);
         try {
             OutputStream out = channel.getOutputStream();
             InputStream in = channel.getInputStream();
@@ -163,7 +216,7 @@ public class ScpToMessage extends AbstractSshMessage {
                                    InputStream in,
                                    OutputStream out) throws IOException {
         // send "C0644 filesize filename", where filename should not include '/'
-        int filesize = (int) localFile.length();
+        long filesize = localFile.length();
         String command = "C0644 " + filesize + " ";
         command += localFile.getName();
         command += "\n";
@@ -177,17 +230,19 @@ public class ScpToMessage extends AbstractSshMessage {
         FileInputStream fis = new FileInputStream(localFile);
         byte[] buf = new byte[BUFFER_SIZE];
         long startTime = System.currentTimeMillis();
-        int totalLength = 0;
+        long totalLength = 0;
 
         // only track progress for files larger than 100kb in verbose mode
         boolean trackProgress = getVerbose() && filesize > 102400;
         // since filesize keeps on decreasing we have to store the
         // initial filesize
-        int initFilesize = filesize;
+        long initFilesize = filesize;
         int percentTransmitted = 0;
 
         try {
-            log("Sending: " + localFile.getName() + " : " + localFile.length());
+            if (this.getVerbose()) {
+                log("Sending: " + localFile.getName() + " : " + localFile.length());
+            }
             while (true) {
                 int len = fis.read(buf, 0, buf.length);
                 if (len <= 0) {
@@ -197,8 +252,8 @@ public class ScpToMessage extends AbstractSshMessage {
                 totalLength += len;
 
                 if (trackProgress) {
-                    percentTransmitted = trackProgress(initFilesize, 
-                                                       totalLength, 
+                    percentTransmitted = trackProgress(initFilesize,
+                                                       totalLength,
                                                        percentTransmitted);
                 }
             }
@@ -206,16 +261,26 @@ public class ScpToMessage extends AbstractSshMessage {
             sendAck(out);
             waitForAck(in);
         } finally {
-            long endTime = System.currentTimeMillis();
-            logStats(startTime, endTime, totalLength);
+            if (this.getVerbose()) {
+                long endTime = System.currentTimeMillis();
+                logStats(startTime, endTime, totalLength);
+            }
             fis.close();
         }
     }
 
+    /**
+     * Get the local file
+     * @return the local file
+     */
     public File getLocalFile() {
         return localFile;
     }
 
+    /**
+     * Get the remote path
+     * @return the remote path
+     */
     public String getRemotePath() {
         return remotePath;
     }

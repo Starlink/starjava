@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,7 +27,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.Stack;
 import java.util.Vector;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -120,7 +120,7 @@ public class XMLCatalog extends DataType
     implements Cloneable, EntityResolver, URIResolver {
 
     /** helper for some File.toURL connversions */
-    private static FileUtils fileUtils = FileUtils.newFileUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     //-- Fields ----------------------------------------------------------------
 
@@ -176,22 +176,6 @@ public class XMLCatalog extends DataType
      */
     private Path getClasspath() {
         return getRef().classpath;
-    }
-
-    /**
-     * Set the list of ResourceLocation objects in the catalog.
-     * Not allowed if this catalog is itself a reference to another catalog --
-     * that is, a catalog cannot both refer to another <em>and</em> contain
-     * elements or other attributes.
-     *
-     * @param aVector the new list of ResourceLocations
-     * to use in the catalog.
-     */
-    private void setElements(Vector aVector) {
-        if (isReference()) {
-            throw noChildrenAllowed();
-        }
-        elements = aVector;
     }
 
     /**
@@ -384,7 +368,11 @@ public class XMLCatalog extends DataType
 
     /**
      * Implements the EntityResolver.resolveEntity() interface method.
-     *
+     * @param publicId the public id to resolve.
+     * @param systemId the system id to resolve.
+     * @throws SAXException if there is a parsing problem.
+     * @throws IOException if there is an IO problem.
+     * @return the resolved entity.
      * @see org.xml.sax.EntityResolver#resolveEntity
      */
     public InputSource resolveEntity(String publicId, String systemId)
@@ -394,12 +382,7 @@ public class XMLCatalog extends DataType
             return getRef().resolveEntity(publicId, systemId);
         }
 
-        if (!isChecked()) {
-            // make sure we don't have a circular reference here
-            Stack stk = new Stack();
-            stk.push(this);
-            dieOnCircularReference(stk, getProject());
-        }
+        dieOnCircularReference();
 
         log("resolveEntity: '" + publicId + "': '" + systemId + "'",
             Project.MSG_DEBUG);
@@ -417,7 +400,10 @@ public class XMLCatalog extends DataType
 
     /**
      * Implements the URIResolver.resolve() interface method.
-     *
+     * @param href an href attribute.
+     * @param base the base URI.
+     * @return a Source object, or null if href cannot be resolved.
+     * @throws TransformerException if an error occurs.
      * @see javax.xml.transform.URIResolver#resolve
      */
     public Source resolve(String href, String base)
@@ -427,12 +413,7 @@ public class XMLCatalog extends DataType
             return getRef().resolve(href, base);
         }
 
-        if (!isChecked()) {
-            // make sure we don't have a circular reference here
-            Stack stk = new Stack();
-            stk.push(this);
-            dieOnCircularReference(stk, getProject());
-        }
+        dieOnCircularReference();
 
         SAXSource source = null;
 
@@ -453,7 +434,7 @@ public class XMLCatalog extends DataType
             URL baseURL = null;
             try {
                 if (base == null) {
-                    baseURL = fileUtils.getFileURL(getProject().getBaseDir());
+                    baseURL = FILE_UTILS.getFileURL(getProject().getBaseDir());
                 } else {
                     baseURL = new URL(base);
                 }
@@ -539,7 +520,7 @@ public class XMLCatalog extends DataType
                 catalogResolver = new InternalResolver();
                 if (getCatalogPath() != null
                     && getCatalogPath().list().length != 0) {
-                        log("Warning: catalogpath listing external catalogs"
+                        log("Warning: XML resolver not found; external catalogs"
                             + " will be ignored", Project.MSG_WARN);
                     }
                 log("Failed to load Apache resolver: " + ex, Project.MSG_DEBUG);
@@ -649,7 +630,7 @@ public class XMLCatalog extends DataType
             baseURL = matchingEntry.getBase();
         } else {
             try {
-                baseURL = fileUtils.getFileURL(getProject().getBaseDir());
+                baseURL = FILE_UTILS.getFileURL(getProject().getBaseDir());
             } catch (MalformedURLException ex) {
                 throw new BuildException("Project basedir cannot be converted to a URL");
             }
@@ -660,16 +641,18 @@ public class XMLCatalog extends DataType
         try {
             url = new URL(baseURL, uri);
         } catch (MalformedURLException ex) {
-            // this processing is useful under Windows when the location of the DTD has been given as an absolute path
+            // this processing is useful under Windows when the location of the DTD
+            // has been given as an absolute path
             // see Bugzilla Report 23913
             File testFile = new File(uri);
             if (testFile.exists() && testFile.canRead()) {
                 log("uri : '"
                     + uri + "' matches a readable file", Project.MSG_DEBUG);
                 try {
-                    url = fileUtils.getFileURL(testFile);
+                    url = FILE_UTILS.getFileURL(testFile);
                 } catch (MalformedURLException ex1) {
-                    throw new BuildException("could not find an URL for :" + testFile.getAbsolutePath());
+                    throw new BuildException(
+                        "could not find an URL for :" + testFile.getAbsolutePath());
                 }
             } else {
                 log("uri : '"
@@ -678,8 +661,8 @@ public class XMLCatalog extends DataType
             }
         }
 
-        if (url != null) {
-            String fileName = url.getFile();
+        if (url != null && url.getProtocol().equals("file")) {
+            String fileName = FILE_UTILS.fromURI(url.toString());
             if (fileName != null) {
                 log("fileName " + fileName, Project.MSG_DEBUG);
                 File resFile = new File(fileName);
@@ -756,7 +739,7 @@ public class XMLCatalog extends DataType
             baseURL = matchingEntry.getBase();
         } else {
             try {
-                baseURL = fileUtils.getFileURL(getProject().getBaseDir());
+                baseURL = FILE_UTILS.getFileURL(getProject().getBaseDir());
             } catch (MalformedURLException ex) {
                 throw new BuildException("Project basedir cannot be converted to a URL");
             }

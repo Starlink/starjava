@@ -129,6 +129,9 @@
       <manifest>
         <attribute name="Class-path" 
                    value="${test.longline}"/>
+        <attribute name="${test.long68name}" value="${test.value}" />
+        <attribute name="${test.long70name}" value="${test.value}" />
+        <attribute name="${test.notlongname}" value="${test.value}" />
       </manifest>
     </jar>
     <unjar src="mftestLongLine.jar" dest="manifests">
@@ -198,6 +201,17 @@
     <manifest file="mftest2.mf" mode="update">
       <section name="Test">
         <attribute name="Foo" value="Baz" />
+      </section>
+    </manifest>
+  </target>
+
+
+  <target name="testFrom">
+    <manifest file="mftestfrom.mf" >
+      <section name="Test">
+        <attribute name="before" value="before" />
+        <attribute name="From" value="illegal"/>
+        <attribute name="after" value="after" />
       </section>
     </manifest>
   </target>

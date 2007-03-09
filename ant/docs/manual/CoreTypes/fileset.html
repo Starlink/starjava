@@ -1,21 +1,35 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>FileSet Type</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="fileset">FileSet</a></h2>
-<p>FileSets are groups of files. These files can be found in a
+<p>A FileSet is a group of files. These files can be found in a
 directory tree starting in a base directory and are matched by
 patterns taken from a number of <a
 href="patternset.html">PatternSets</a> and
-<a href="selectors.html">Selectors</a>. FileSets can appear inside tasks
-that support this feature or at the same level as <code>target</code>
-- i.e., as children of <code>project</code>.</p>
+<a href="selectors.html">Selectors</a>.
 <p>PatternSets can be specified as nested
 <code>&lt;patternset&gt;</code> elements. In addition, FileSet holds
 an implicit PatternSet and supports the nested
@@ -23,9 +37,9 @@ an implicit PatternSet and supports the nested
 <code>&lt;exclude&gt;</code> and <code>&lt;excludesfile&gt;</code>
 elements of PatternSet directly, as well as PatternSet's
 attributes.</p>
-<p>Selectors are available as nested elements.within the FileSet.
+<p>Selectors are available as nested elements within the FileSet.
 If any of the selectors within the FileSet do not select the file, the
-file is not considered part of the FileSet. This makes FileSets
+file is not considered part of the FileSet. This makes a FileSet
 equivalent to an <code>&lt;and&gt;</code> selector container.</p>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
@@ -40,7 +54,7 @@ equivalent to an <code>&lt;and&gt;</code> selector container.</p>
   </tr>
   <tr>
     <td valign="top">file</td>
-    <td valign="top">shortcut for specifying a single file fileset</td>
+    <td valign="top">shortcut for specifying a single-file fileset</td>
   </tr>
   <tr>
     <td valign="top">defaultexcludes</td>
@@ -89,7 +103,7 @@ equivalent to an <code>&lt;and&gt;</code> selector container.</p>
 <p><a name="symlink"><b>Note</b></a>: All files/directories for which
 the canonical path is different from its path are considered symbolic
 links.  On Unix systems this usually means the file really is a
-symbolic links but it may lead to false results on other
+symbolic link but it may lead to false results on other
 platforms.</p>
 
 <h4>Examples</h4>
@@ -102,6 +116,7 @@ platforms.</p>
 <p>Groups all files in directory <code>${server.src}</code> that are Java
 source files and don't have the text <code>Test</code> in their
 name.</p>
+
 <blockquote><pre>
 &lt;fileset dir=&quot;${server.src}&quot; casesensitive=&quot;yes&quot;&gt;
   &lt;patternset id=&quot;non.test.sources&quot;&gt;
@@ -113,6 +128,7 @@ name.</p>
 <p>Groups the same files as the above example, but also establishes
 a PatternSet that can be referenced in other
 <code>&lt;fileset&gt;</code> elements, rooted at a different directory.</p>
+
 <blockquote><pre>
 &lt;fileset dir=&quot;${client.src}&quot; &gt;
   &lt;patternset refid=&quot;non.test.sources&quot;/&gt;
@@ -120,6 +136,7 @@ a PatternSet that can be referenced in other
 </pre></blockquote>
 <p>Groups all files in directory <code>${client.src}</code>, using the
 same patterns as the above example.</p>
+
 <blockquote><pre>
 &lt;fileset dir=&quot;${server.src}&quot; casesensitive=&quot;yes&quot;&gt;
   &lt;filename name=&quot;**/*.java&quot;/&gt;
@@ -128,6 +145,7 @@ same patterns as the above example.</p>
 </pre></blockquote>
 <p>Groups the same files as the top example, but using the
 <code>&lt;filename&gt;</code> selector.</p>
+
 <blockquote><pre>
 &lt;fileset dir=&quot;${server.src}&quot; casesensitive=&quot;yes&quot;&gt;
   &lt;filename name=&quot;**/*.java&quot;/&gt;
@@ -140,9 +158,13 @@ same patterns as the above example.</p>
 <code>&lt;filename&gt;</code> selector and the <code>&lt;not&gt;</code>
 selector container.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation.
-All rights Reserved.</p>
+<blockquote><pre>
+&lt;fileset dir="src" includes="main/" /&gt;
+</pre></blockquote>
+<p>Selects all files in <i>src/main</i> (e.g. <i>src/main/Foo.java</i> or 
+<i>src/main/application/Bar.java</i>).</p>
+
+
 
 </body>
 </html>

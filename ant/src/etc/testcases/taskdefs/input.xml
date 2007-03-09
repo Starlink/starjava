@@ -28,30 +28,76 @@
            />
   </target>
 
-  <target name="test1.1">
-    <input>Press_Return_key_to_continue...</input>
+  <target name="testPropertyFileInlineHandler">
+    <input message="Press Return key to continue..." addproperty="test">
+      <handler type="propertyfile" />
+    </input>
+    <fail>
+      <condition>
+        <not>
+          <equals arg1="${test}" arg2="test" />
+        </not>
+      </condition>
+    </fail>
   </target>
 
-  <target name="test2.1">
-    <input message="Press_Return_key_to_continue..." />
+  <target name="testDefaultInlineHandler">
+    <input message="Press Return key to continue..." addproperty="test">
+      <handler type="default" />
+    </input>
+    <fail message="$${test} = ${test}">
+      <condition>
+        <not>
+          <equals arg1="${test}" arg2="foo" />
+        </not>
+      </condition>
+    </fail>
   </target>
 
-  <target name="test3.1">
-    <input message="All_data_is_going_to_be_deleted_from_DB_continue?"
-           validargs="y,n"
-           />
+  <target name="testGreedyInlineHandler">
+    <input message="Press Return key to continue..." addproperty="test">
+      <handler type="greedy" />
+    </input>
+    <loadfile srcFile="input.stdin" property="input" />
+    <fail message="$${test} = ${test}">
+      <condition>
+        <not>
+          <equals arg1="${test}" arg2="${input}" />
+        </not>
+      </condition>
+    </fail>
   </target>
 
-  <target name="test5.1">
-    <input message="All_data_is_going_to_be_deleted_from_db_continue_(y/n)?"
-           validargs="y,n"
-           />
+  <target name="testGreedyInlineHandlerClassname">
+    <input message="Press Return key to continue..." addproperty="test">
+      <handler classname="org.apache.tools.ant.input.GreedyInputHandler" />
+    </input>
+    <loadfile srcFile="input.stdin" property="input" />
+    <fail message="$${test} = ${test}">
+      <condition>
+        <not>
+          <equals arg1="${test}" arg2="${input}" />
+        </not>
+      </condition>
+    </fail>
   </target>
 
-  <target name="test6.1">
-    <input message="Please_enter_db_username"
-           addproperty="db.user"
-           />
+  <target name="testGreedyInlineHandlerRefid">
+    <typedef name="greedy"
+             classname="org.apache.tools.ant.input.GreedyInputHandler" />
+    <greedy id="greedy" />
+
+    <input message="Press Return key to continue..." addproperty="test">
+      <handler refid="greedy" />
+    </input>
+    <loadfile srcFile="input.stdin" property="input" />
+    <fail message="$${test} = ${test}">
+      <condition>
+        <not>
+          <equals arg1="${test}" arg2="${input}" />
+        </not>
+      </condition>
+    </fail>
   </target>
 
 </project>

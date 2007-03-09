@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -40,10 +41,17 @@ import org.apache.tools.ant.types.FileSet;
  */
 public class Scp extends SSHBase {
 
+    private static final String[] FROM_ATTRS = {
+        "file", "localfile", "remotefile" };
+
+    private static final String[] TO_ATTRS = {
+        "todir", "localtodir", "remotetodir", "localtofile", "remotetofile" };
+
     private String fromUri;
     private String toUri;
     private List fileSets = null;
     private boolean isFromRemote, isToRemote;
+    private boolean isSftp = false;
 
     /**
      * Sets the file to be transferred.  This can either be a remote
@@ -55,7 +63,7 @@ public class Scp extends SSHBase {
      * @param aFromUri a string representing the file to transfer.
      */
     public void setFile(String aFromUri) {
-        this.fromUri = aFromUri;
+        setFromUri(aFromUri);
         this.isFromRemote = isRemoteUri(this.fromUri);
     }
 
@@ -69,7 +77,7 @@ public class Scp extends SSHBase {
      * @param aToUri a string representing the target of the copy.
      */
     public void setTodir(String aToUri) {
-        this.toUri = aToUri;
+        setToUri(aToUri);
         this.isToRemote = isRemoteUri(this.toUri);
     }
 
@@ -77,20 +85,22 @@ public class Scp extends SSHBase {
      * Similiar to {@link #setFile setFile} but explicitly states that
      * the file is a local file.  This is the only way to specify a
      * local file with a @ character.
+     * @param aFromUri a string representing the source of the copy.
      * @since Ant 1.6.2
      */
     public void setLocalFile(String aFromUri) {
-        this.fromUri = aFromUri;
+        setFromUri(aFromUri);
         this.isFromRemote = false;
     }
 
     /**
      * Similiar to {@link #setFile setFile} but explicitly states that
      * the file is a remote file.
+     * @param aFromUri a string representing the source of the copy.
      * @since Ant 1.6.2
      */
     public void setRemoteFile(String aFromUri) {
-        this.fromUri = aFromUri;
+        setFromUri(aFromUri);
         this.isFromRemote = true;
      }
 
@@ -98,41 +108,54 @@ public class Scp extends SSHBase {
      * Similiar to {@link #setTodir setTodir} but explicitly states
      * that the directory is a local.  This is the only way to specify
      * a local directory with a @ character.
+     * @param aToUri a string representing the target of the copy.
      * @since Ant 1.6.2
      */
     public void setLocalTodir(String aToUri) {
-        this.toUri = aToUri;
+        setToUri(aToUri);
         this.isToRemote = false;
     }
 
     /**
      * Similiar to {@link #setTodir setTodir} but explicitly states
      * that the directory is a remote.
+     * @param aToUri a string representing the target of the copy.
      * @since Ant 1.6.2
      */
     public void setRemoteTodir(String aToUri) {
-        this.toUri = aToUri;
+        setToUri(aToUri);
         this.isToRemote = true;
     }
 
     /**
      * Changes the file name to the given name while receiving it,
      * only useful if receiving a single file.
+     * @param aToUri a string representing the target of the copy.
      * @since Ant 1.6.2
      */
     public void setLocalTofile(String aToUri) {
-        this.toUri = aToUri;
+        setToUri(aToUri);
         this.isToRemote = false;
     }
 
     /**
      * Changes the file name to the given name while sending it,
      * only useful if sending a single file.
+     * @param aToUri a string representing the target of the copy.
      * @since Ant 1.6.2
      */
     public void setRemoteTofile(String aToUri) {
-        this.toUri = aToUri;
+        setToUri(aToUri);
         this.isToRemote = true;
+    }
+
+    /**
+     * Setting this to true to use sftp protocol.
+     *
+     * @param yesOrNo if true sftp protocol will be used.
+     */
+    public void setSftp(boolean yesOrNo) {
+        isSftp = yesOrNo;
     }
 
     /**
@@ -148,6 +171,10 @@ public class Scp extends SSHBase {
         fileSets.add(set);
     }
 
+    /**
+     * Initialize this task.
+     * @throws BuildException on error
+     */
     public void init() throws BuildException {
         super.init();
         this.toUri = null;
@@ -155,17 +182,17 @@ public class Scp extends SSHBase {
         this.fileSets = null;
     }
 
+    /**
+     * Execute this task.
+     * @throws BuildException on error
+     */
     public void execute() throws BuildException {
         if (toUri == null) {
-            throw new BuildException("Either 'todir' or 'tofile' attribute "
-                                     + "is required.");
+            throw exactlyOne(TO_ATTRS);
         }
-
         if (fromUri == null && fileSets == null) {
-            throw new BuildException("Either the 'file' attribute or one "
-                + "FileSet is required.");
+            throw exactlyOne(FROM_ATTRS, "one or more nested filesets");
         }
-
         try {
             if (isFromRemote && !isToRemote) {
                 download(fromUri, toUri);
@@ -176,7 +203,8 @@ public class Scp extends SSHBase {
                     upload(fromUri, toUri);
                 }
             } else if (isFromRemote && isToRemote) {
-                // not implemented yet.
+                throw new BuildException(
+                    "Copying from a remote server to a remote server is not supported.");
             } else {
                 throw new BuildException("'todir' and 'file' attributes "
                     + "must have syntax like the following: "
@@ -198,10 +226,18 @@ public class Scp extends SSHBase {
         Session session = null;
         try {
             session = openSession();
-            ScpFromMessage message =
-                new ScpFromMessage(getVerbose(), session, file,
-                                   getProject().resolveFile(toPath),
-                                   fromSshUri.endsWith("*"));
+            ScpFromMessage message = null;
+            if (!isSftp) {
+                message =
+                    new ScpFromMessage(getVerbose(), session, file,
+                                       getProject().resolveFile(toPath),
+                                       fromSshUri.endsWith("*"));
+            } else {
+                message =
+                    new ScpFromMessageBySftp(getVerbose(), session, file,
+                                             getProject().resolveFile(toPath),
+                                             fromSshUri.endsWith("*"));
+            }
             log("Receiving file: " + file);
             message.setLogListener(this);
             message.execute();
@@ -228,8 +264,14 @@ public class Scp extends SSHBase {
             }
             if (!list.isEmpty()) {
                 session = openSession();
-                ScpToMessage message = new ScpToMessage(getVerbose(), session,
-                                                        list, file);
+                ScpToMessage message = null;
+                if (!isSftp) {
+                    message = new ScpToMessage(getVerbose(), session,
+                                               list, file);
+                } else {
+                    message = new ScpToMessageBySftp(getVerbose(), session,
+                                                     list, file);
+                }
                 message.setLogListener(this);
                 message.execute();
             }
@@ -247,9 +289,17 @@ public class Scp extends SSHBase {
         Session session = null;
         try {
             session = openSession();
-            ScpToMessage message =
-                new ScpToMessage(getVerbose(), session, 
-                                 getProject().resolveFile(fromPath), file);
+            ScpToMessage message = null;
+            if (!isSftp) {
+                message =
+                    new ScpToMessage(getVerbose(), session,
+                                     getProject().resolveFile(fromPath), file);
+            } else {
+                message =
+                    new ScpToMessageBySftp(getVerbose(), session,
+                                           getProject().resolveFile(fromPath),
+                                           file);
+            }
             message.setLogListener(this);
             message.execute();
         } finally {
@@ -260,7 +310,7 @@ public class Scp extends SSHBase {
     }
 
     private String parseUri(String uri) {
-        int indexOfAt = uri.indexOf('@');
+        int indexOfAt = uri.lastIndexOf('@');
         int indexOfColon = uri.indexOf(':');
         if (indexOfColon > -1 && indexOfColon < indexOfAt) {
             // user:password@host:/path notation
@@ -325,5 +375,36 @@ public class Scp extends SSHBase {
             root = null;
         }
         return root;
+    }
+
+    private void setFromUri(String fromUri) {
+        if (this.fromUri != null) {
+            throw exactlyOne(FROM_ATTRS);
+        }
+        this.fromUri = fromUri;
+    }
+
+    private void setToUri(String toUri) {
+        if (this.toUri != null) {
+            throw exactlyOne(TO_ATTRS);
+        }
+        this.toUri = toUri;
+    }
+
+    private BuildException exactlyOne(String[] attrs) {
+        return exactlyOne(attrs, null);
+    }
+
+    private BuildException exactlyOne(String[] attrs, String alt) {
+        StringBuffer buf = new StringBuffer("Exactly one of ").append(
+                '[').append(attrs[0]);
+        for (int i = 1; i < attrs.length; i++) {
+            buf.append('|').append(attrs[i]);
+        }
+        buf.append(']');
+        if (alt != null) {
+            buf.append(" or ").append(alt);
+        }
+        return new BuildException(buf.append(" is required.").toString());
     }
 }

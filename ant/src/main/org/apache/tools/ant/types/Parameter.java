@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,27 +26,57 @@ public final class Parameter {
     private String type = null;
     private String value = null;
 
-    public final void setName(final String name) {
+    /**
+     * Set the name attribute.
+     *
+     * @param name a <code>String</code> value
+     */
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public final void setType(final String type) {
+    /**
+     * Set the type attribute.
+     *
+     * @param type a <code>String</code> value
+     */
+    public void setType(final String type) {
         this.type = type;
     }
 
-    public final void setValue(final String value) {
+    /**
+     * Set the value attribute.
+     *
+     * @param value a <code>String</code> value
+     */
+    public void setValue(final String value) {
         this.value = value;
     }
 
-    public final String getName() {
+    /**
+     * Get the name attribute.
+     *
+     * @return a <code>String</code> value
+     */
+    public String getName() {
         return name;
     }
 
-    public final String getType() {
+    /**
+     * Get the type attribute.
+     *
+     * @return a <code>String</code> value
+     */
+    public String getType() {
         return type;
     }
 
-    public final String getValue() {
+    /**
+     * Get the value attribute.
+     *
+     * @return a <code>String</code> value
+     */
+    public String getValue() {
         return value;
     }
 }

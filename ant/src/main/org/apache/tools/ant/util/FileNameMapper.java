@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,11 +33,13 @@ public interface FileNameMapper {
 
     /**
      * Sets the from part of the transformation rule.
+     * @param from a string.
      */
     void setFrom(String from);
 
     /**
      * Sets the to part of the transformation rule.
+     * @param to a string.
      */
     void setTo(String to);
 
@@ -50,6 +53,8 @@ public interface FileNameMapper {
      *
      * @param sourceFileName the name of the source file relative to
      *                       some given basedirectory.
+     * @return an array of strings if the ruld applies to the source file, or
+     *         null if it does not.
      */
     String[] mapFileName(String sourceFileName);
 }

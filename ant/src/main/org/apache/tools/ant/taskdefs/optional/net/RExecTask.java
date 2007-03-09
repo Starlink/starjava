@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -82,7 +83,15 @@ public class RExecTask extends Task {
      *  It handles the common attributes for both.
      */
     public class RExecSubTask {
+        // CheckStyle:VisibilityModifier OFF - bc
         protected String taskString = "";
+        // CheckStyle:VisibilityModifier ON
+
+        /**
+         * Execute the subtask.
+         * @param rexec the client
+         * @throws BuildException always as it is not allowed to instantiate this object
+         */
         public void execute(AntRExecClient rexec)
                 throws BuildException {
             throw new BuildException("Shouldn't be able instantiate a SubTask directly");
@@ -90,6 +99,7 @@ public class RExecTask extends Task {
 
         /**
          *  the message as nested text
+         * @param s the nested text
          */
         public void addText(String s) {
             setString(getProject().replaceProperties(s));
@@ -97,6 +107,7 @@ public class RExecTask extends Task {
 
         /**
          * the message as an attribute
+         * @param s a <code>String</code> value
          */
         public void setString(String s) {
            taskString += s;
@@ -108,6 +119,11 @@ public class RExecTask extends Task {
      */
     public class RExecWrite extends RExecSubTask {
         private boolean echoString = true;
+        /**
+         * Execute the write exec task.
+         * @param rexec the task to use
+         * @throws BuildException on error
+         */
         public void execute(AntRExecClient rexec)
                throws BuildException {
            rexec.sendString(taskString, echoString);
@@ -116,6 +132,7 @@ public class RExecTask extends Task {
         /**
          * Whether or not the message should be echoed to the log.
          * Defaults to <code>true</code>.
+         * @param b a <code>boolean</code> value
          */
         public void setEcho(boolean b) {
            echoString = b;
@@ -128,12 +145,18 @@ public class RExecTask extends Task {
      */
     public class RExecRead extends RExecSubTask {
         private Integer timeout = null;
+        /**
+         * Execute the read exec task.
+         * @param rexec the task to use
+         * @throws BuildException on error
+         */
         public void execute(AntRExecClient rexec)
                throws BuildException {
             rexec.waitForString(taskString, timeout);
         }
         /**
          *  a timeout value that overrides any task wide timeout.
+         * @param i an <code>Integer</code> value
          */
         public void setTimeout(Integer i) {
            this.timeout = i;
@@ -141,6 +164,7 @@ public class RExecTask extends Task {
 
         /**
          * Sets the default timeout if none has been set already
+         * @param defaultTimeout an <code>Integer</code> value
          * @ant.attribute ignore="true"
          */
         public void setDefaultTimeout(Integer defaultTimeout) {
@@ -206,7 +230,8 @@ public class RExecTask extends Task {
 
         /**
          * Write this string to the rexec session.
-         * @param echoString  Logs string sent
+         * @param s          the string to write
+         * @param echoString if true log the string sent
          */
         public void sendString(String s, boolean echoString) {
             OutputStream os = this.getOutputStream();
@@ -279,6 +304,7 @@ public class RExecTask extends Task {
      *  A string to wait for from the server.
      *  A subTask &lt;read&gt; tag was found.  Create the object,
      *  Save it in our list, and return it.
+     * @return a read sub task
      */
 
     public RExecSubTask createRead() {
@@ -290,6 +316,7 @@ public class RExecTask extends Task {
      *  Add text to send to the server
      *  A subTask &lt;write&gt; tag was found.  Create the object,
      *  Save it in our list, and return it.
+     * @return a write sub task
      */
     public RExecSubTask createWrite() {
         RExecSubTask task = (RExecSubTask) new RExecWrite();
@@ -298,8 +325,9 @@ public class RExecTask extends Task {
     }
     /**
      *  Verify that all parameters are included.
-     *  Connect and possibly login
-     *  Iterate through the list of Reads and writes
+     *  Connect and possibly login.
+     *  Iterate through the list of Reads and writes.
+     * @throws BuildException on error
      */
     public void execute() throws BuildException {
         /**  A server name is required to continue */
@@ -325,32 +353,29 @@ public class RExecTask extends Task {
             } catch (IOException e) {
                 throw new BuildException("Can't connect to " + server);
             }
-            /**  Login if userid and password were specified */
-            if (userid != null && password != null) {
-                login(rexec);
-            }
-            /**  Process each sub command */
-            Enumeration tasksToRun = rexecTasks.elements();
-            while (tasksToRun != null && tasksToRun.hasMoreElements()) {
-                RExecSubTask task = (RExecSubTask) tasksToRun.nextElement();
-                if (task instanceof RExecRead && defaultTimeout != null) {
-                    ((RExecRead) task).setDefaultTimeout(defaultTimeout);
-                }
-                task.execute(rexec);
+            if (userid != null && password != null && command != null
+                && rexecTasks.size() == 0) {
+                // simple one-shot execution
+                rexec.rexec(userid, password, command);
+            } else {
+                // need nested read/write elements
+                handleMultipleTasks(rexec);
             }
 
             /** Keep reading input stream until end of it or time-out */
             rexec.waitForEOF(defaultTimeout);
-       } finally {
-           if (rexec != null) {
-               try {
-                   rexec.disconnect();
-               } catch (IOException e) {
-                   throw new BuildException("Error disconnecting from " 
-                                            + server);
-               }
-           }
-       }
+        } catch (IOException e) {
+            throw new BuildException("Error r-executing command", e);
+        } finally {
+            if (rexec != null && rexec.isConnected()) {
+                try {
+                    rexec.disconnect();
+                } catch (IOException e) {
+                    throw new BuildException("Error disconnecting from "
+                                             + server);
+                }
+            }
+        }
     }
     /**
      *  Process a 'typical' login.  If it differs, use the read
@@ -367,10 +392,15 @@ public class RExecTask extends Task {
     }
     /**
      * Set the the comand to execute on the server;
+     * @param c a <code>String</code> value
      */
-    public void setCommand(String c) { this.command = c; }
+    public void setCommand(String c) {
+        this.command = c;
+    }
+
     /**
      *  send a carriage return after connecting; optional, defaults to false.
+     * @param b a <code>boolean</code> value
      */
     public void setInitialCR(boolean b) {
         this.addCarriageReturn = b;
@@ -378,19 +408,32 @@ public class RExecTask extends Task {
     /**
      *  Set the the login password to use
      * required if <tt>userid</tt> is set.
+     * @param p a <code>String</code> value
      */
-    public void setPassword(String p) { this.password = p; }
+    public void setPassword(String p) {
+        this.password = p;
+    }
+
     /**
      *  Set the tcp port to connect to; default is 23.
+     * @param p an <code>int</code> value
      */
-    public void setPort(int p) { this.port = p; }
+    public void setPort(int p) {
+        this.port = p;
+    }
+
     /**
      *  Set the hostname or address of the remote server.
+     * @param m a <code>String</code> value
      */
-    public void setServer(String m) { this.server = m; }
+    public void setServer(String m) {
+        this.server = m;
+    }
+
     /**
      * set a default timeout in seconds to wait for a response,
      * zero means forever (the default)
+     * @param i an <code>Integer</code> value
      */
     public void setTimeout(Integer i) {
         this.defaultTimeout = i;
@@ -398,6 +441,31 @@ public class RExecTask extends Task {
     /**
      * Set the the login id to use on the server;
      * required if <tt>password</tt> is set.
+     * @param u a <code>String</code> value
      */
-    public void setUserid(String u) { this.userid = u; }
+    public void setUserid(String u) {
+        this.userid = u;
+    }
+
+    /**
+     * Deals with multiple read/write calls.
+     *
+     * @since Ant 1.6.3
+     */
+    private void handleMultipleTasks(AntRExecClient rexec) {
+
+        /**  Login if userid and password were specified */
+        if (userid != null && password != null) {
+            login(rexec);
+        }
+        /**  Process each sub command */
+        Enumeration tasksToRun = rexecTasks.elements();
+        while (tasksToRun != null && tasksToRun.hasMoreElements()) {
+            RExecSubTask task = (RExecSubTask) tasksToRun.nextElement();
+            if (task instanceof RExecRead && defaultTimeout != null) {
+                ((RExecRead) task).setDefaultTimeout(defaultTimeout);
+            }
+            task.execute(rexec);
+        }
+    }
 }

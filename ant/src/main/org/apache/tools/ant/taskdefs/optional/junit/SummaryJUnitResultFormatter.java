@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -29,7 +30,8 @@ import org.apache.tools.ant.BuildException;
  *
  */
 
-public class SummaryJUnitResultFormatter implements JUnitResultFormatter {
+public class SummaryJUnitResultFormatter
+    implements JUnitResultFormatter, JUnitTaskMirror.SummaryJUnitResultFormatterMirror {
 
     /**
      * Formatter for timings.
@@ -50,22 +52,38 @@ public class SummaryJUnitResultFormatter implements JUnitResultFormatter {
     public SummaryJUnitResultFormatter() {
     }
     /**
-     * Empty
+     * The testsuite started.
+     * @param suite the testsuite.
      */
     public void startTestSuite(JUnitTest suite) {
+        String newLine = System.getProperty("line.separator");
+        StringBuffer sb = new StringBuffer("Running ");
+        sb.append(suite.getName());
+        sb.append(newLine);
+
+        try {
+            out.write(sb.toString().getBytes());
+            out.flush();
+        } catch (IOException ioex) {
+            throw new BuildException("Unable to write summary output", ioex);
+        }
     }
     /**
      * Empty
+     * @param t not used.
      */
     public void startTest(Test t) {
     }
     /**
      * Empty
+     * @param test not used.
      */
     public void endTest(Test test) {
     }
     /**
      * Empty
+     * @param test not used.
+     * @param t not used.
      */
     public void addFailure(Test test, Throwable t) {
     }
@@ -73,24 +91,31 @@ public class SummaryJUnitResultFormatter implements JUnitResultFormatter {
      * Interface TestListener for JUnit &gt; 3.4.
      *
      * <p>A Test failed.
+     * @param test not used.
+     * @param t not used.
      */
     public void addFailure(Test test, AssertionFailedError t) {
         addFailure(test, (Throwable) t);
     }
     /**
      * Empty
+     * @param test not used.
+     * @param t not used.
      */
     public void addError(Test test, Throwable t) {
     }
 
+    /** {@inheritDoc}. */
     public void setOutput(OutputStream out) {
         this.out = out;
     }
 
+    /** {@inheritDoc}. */
     public void setSystemOutput(String out) {
         systemOutput = out;
     }
 
+    /** {@inheritDoc}. */
     public void setSystemError(String err) {
         systemError = err;
     }
@@ -98,6 +123,7 @@ public class SummaryJUnitResultFormatter implements JUnitResultFormatter {
     /**
      * Should the output to System.out and System.err be written to
      * the summary.
+     * @param value if true write System.out and System.err to the summary.
      */
     public void setWithOutAndErr(boolean value) {
         withOutAndErr = value;
@@ -105,6 +131,8 @@ public class SummaryJUnitResultFormatter implements JUnitResultFormatter {
 
     /**
      * The whole testsuite ended.
+     * @param suite the testsuite.
+     * @throws BuildException if there is an error.
      */
     public void endTestSuite(JUnitTest suite) throws BuildException {
         String newLine = System.getProperty("line.separator");

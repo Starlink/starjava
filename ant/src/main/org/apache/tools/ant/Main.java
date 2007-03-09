@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,10 +27,14 @@ import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.HashMap;
+
 import org.apache.tools.ant.input.DefaultInputHandler;
 import org.apache.tools.ant.input.InputHandler;
-import org.apache.tools.ant.util.JavaEnvUtils;
 import org.apache.tools.ant.launch.AntMain;
+import org.apache.tools.ant.util.ClasspathUtils;
+import org.apache.tools.ant.util.FileUtils;
+import org.apache.tools.ant.util.ProxySetup;
 
 
 /**
@@ -45,7 +50,7 @@ import org.apache.tools.ant.launch.AntMain;
  */
 public class Main implements AntMain {
 
-    /** The default build file name. */
+    /** The default build file name. {@value} */
     public static final String DEFAULT_BUILD_FILENAME = "build.xml";
 
     /** Our current message output status. Follows Project.MSG_XXX. */
@@ -117,7 +122,12 @@ public class Main implements AntMain {
     /**
      * optional thread priority
      */
-    private Integer threadPriority=null;
+    private Integer threadPriority = null;
+
+    /**
+     * proxy flag: default is false
+     */
+    private boolean proxy = false;
 
     /**
      * Prints the message of the Throwable if it (the message) is not
@@ -169,7 +179,8 @@ public class Main implements AntMain {
         } catch (Throwable exc) {
             handleLogfile();
             printMessage(exc);
-            System.exit(1);
+            exit(1);
+            return;
         }
 
         if (additionalUserProperties != null) {
@@ -203,6 +214,16 @@ public class Main implements AntMain {
         } finally {
             handleLogfile();
         }
+        exit(exitCode);
+    }
+
+    /**
+     * This operation is expected to call {@link System#exit(int)}, which
+     * is what the base version does.
+     * However, it is possible to do something else.
+     * @param exitCode code to exit with
+     */
+    protected void exit(int exitCode) {
         System.exit(exitCode);
     }
 
@@ -213,20 +234,8 @@ public class Main implements AntMain {
      */
     private static void handleLogfile() {
         if (isLogFileUsed) {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (final Exception e) {
-                    //ignore
-                }
-            }
-            if (err != null) {
-                try {
-                    err.close();
-                } catch (final Exception e) {
-                    //ignore
-                }
-            }
+            FileUtils.close(out);
+            FileUtils.close(err);
         }
     }
 
@@ -257,7 +266,7 @@ public class Main implements AntMain {
      * @exception BuildException if the specified build file doesn't exist
      *                           or is a directory.
      *
-     * @deprecated
+     * @deprecated since 1.6.x
      */
     protected Main(String[] args) throws BuildException {
         processArgs(args);
@@ -265,7 +274,7 @@ public class Main implements AntMain {
 
     /**
      * Process command line arguments.
-     * When ant is started from Launcher, the -lib argument does not get
+     * When ant is started from Launcher, launcher-only arguments doe not get
      * passed through to this routine.
      *
      * @param args the command line arguments.
@@ -276,6 +285,15 @@ public class Main implements AntMain {
         String searchForThis = null;
         PrintStream logTo = null;
 
+        //this is the list of lu
+        HashMap launchCommands = new HashMap();
+        launchCommands.put("-lib", "");
+        launchCommands.put("-cp", "");
+        launchCommands.put("-noclasspath", "");
+        launchCommands.put("--noclasspath", "");
+        launchCommands.put("-nouserlib", "");
+        launchCommands.put("--nouserlib", "");
+        launchCommands.put("-main", "");
         // cycle through given args
 
         for (int i = 0; i < args.length; i++) {
@@ -410,25 +428,36 @@ public class Main implements AntMain {
                 keepGoingMode = true;
             } else if (arg.equals("-nice")) {
                 try {
-                    threadPriority=Integer.decode(args[i + 1]);
+                    threadPriority = Integer.decode(args[i + 1]);
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
                     throw new BuildException(
-                            "You must supply a niceness value (1-10)"+
-                            " after the -nice option");
+                            "You must supply a niceness value (1-10)"
+                            + " after the -nice option");
                 } catch (NumberFormatException e) {
-                    throw new BuildException("Unrecognized niceness value: " +
-                            args[i + 1]);
+                    throw new BuildException("Unrecognized niceness value: "
+                                             + args[i + 1]);
                 }
                 i++;
-                if(threadPriority.intValue()<Thread.MIN_PRIORITY ||
-                        threadPriority.intValue()>Thread.MAX_PRIORITY) {
+                if (threadPriority.intValue() < Thread.MIN_PRIORITY
+                    || threadPriority.intValue() > Thread.MAX_PRIORITY) {
                     throw new BuildException(
                             "Niceness value is out of the range 1-10");
                 }
+            } else if (launchCommands.get(arg) != null) {
+                //catch script/ant mismatch with a meaningful message
+                //we could ignore it, but there are likely to be other
+                //version problems, so we stamp down on the configuration now
+                String msg = "Ant's Main method is being handed "
+                        + "an option " + arg + " that is only for the launcher class."
+                        + "\nThis can be caused by a version mismatch between "
+                        + "the ant script/.bat file and Ant itself.";
+                throw new BuildException(msg);
+            } else if (arg.equals("-autoproxy")) {
+                proxy = false;
             } else if (arg.startsWith("-")) {
                 // we don't have any more args to recognize!
                 String msg = "Unknown argument: " + arg;
-                System.out.println(msg);
+                System.err.println(msg);
                 printUsage();
                 throw new BuildException("");
             } else {
@@ -477,13 +506,7 @@ public class Main implements AntMain {
                 System.out.println("Could not load property file "
                    + filename + ": " + e.getMessage());
             } finally {
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    } catch (IOException e) {
-                        // ignore
-                    }
-                }
+                FileUtils.close(fis);
             }
 
             // ensure that -D properties take precedence
@@ -513,7 +536,7 @@ public class Main implements AntMain {
      * Helper to get the parent file for a given file.
      * <p>
      * Added to simulate File.getParentFile() from JDK 1.2.
-     * @deprecated
+     * @deprecated since 1.6.x
      *
      * @param file   File to find parent of. Must not be <code>null</code>.
      * @return       Parent file or null if none
@@ -598,22 +621,18 @@ public class Main implements AntMain {
             addBuildListeners(project);
             addInputHandler(project);
 
-            PrintStream err = System.err;
-            PrintStream out = System.out;
-            InputStream in = System.in;
+            PrintStream savedErr = System.err;
+            PrintStream savedOut = System.out;
+            InputStream savedIn = System.in;
 
             // use a system manager that prevents from System.exit()
-            // only in JDK > 1.1
             SecurityManager oldsm = null;
-            if (!JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_0)
-                && !JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-                oldsm = System.getSecurityManager();
+            oldsm = System.getSecurityManager();
 
                 //SecurityManager can not be installed here for backwards
                 //compatibility reasons (PD). Needs to be loaded prior to
                 //ant class if we are going to implement it.
                 //System.setSecurityManager(new NoExitSecurityManager());
-            }
             try {
                 if (allowInput) {
                     project.setDefaultInputStream(System.in);
@@ -631,7 +650,7 @@ public class Main implements AntMain {
                 if (threadPriority != null) {
                     try {
                         project.log("Setting Ant's thread priority to "
-                                + threadPriority,Project.MSG_VERBOSE);
+                                + threadPriority, Project.MSG_VERBOSE);
                         Thread.currentThread().setPriority(threadPriority.intValue());
                     } catch (SecurityException swallowed) {
                         //we cannot set the priority here.
@@ -639,8 +658,9 @@ public class Main implements AntMain {
                     }
                 }
 
+
+
                 project.init();
-                project.setUserProperty("ant.version", getAntVersion());
 
                 // set user-define properties
                 Enumeration e = definedProps.keys();
@@ -650,10 +670,15 @@ public class Main implements AntMain {
                     project.setUserProperty(arg, value);
                 }
 
-                project.setUserProperty("ant.file",
+                project.setUserProperty(MagicNames.ANT_FILE,
                                         buildFile.getAbsolutePath());
 
                 project.setKeepGoingMode(keepGoingMode);
+                if (proxy) {
+                    //proxy setup if enabled
+                    ProxySetup proxySetup = new ProxySetup(project);
+                    proxySetup.enableProxies();
+                }
 
                 ProjectHelper.configureProject(project, buildFile);
 
@@ -678,16 +703,16 @@ public class Main implements AntMain {
                     System.setSecurityManager(oldsm);
                 }
 
-                System.setOut(out);
-                System.setErr(err);
-                System.setIn(in);
+                System.setOut(savedOut);
+                System.setErr(savedErr);
+                System.setIn(savedIn);
             }
         } catch (RuntimeException exc) {
             error = exc;
             throw exc;
-        } catch (Error err) {
-            error = err;
-            throw err;
+        } catch (Error e) {
+            error = e;
+            throw e;
         } finally {
             if (!projectHelp) {
                 project.fireBuildFinished(error);
@@ -711,17 +736,13 @@ public class Main implements AntMain {
 
         for (int i = 0; i < listeners.size(); i++) {
             String className = (String) listeners.elementAt(i);
-            try {
-                BuildListener listener =
-                    (BuildListener) Class.forName(className).newInstance();
-                if (project != null) {
-                    project.setProjectReference(listener);
-                }
-                project.addBuildListener(listener);
-            } catch (Throwable exc) {
-                throw new BuildException("Unable to instantiate listener "
-                    + className, exc);
+            BuildListener listener =
+                    (BuildListener) ClasspathUtils.newInstance(className,
+                            Main.class.getClassLoader(), BuildListener.class);
+            if (project != null) {
+                project.setProjectReference(listener);
             }
+            project.addBuildListener(listener);
         }
     }
 
@@ -738,22 +759,11 @@ public class Main implements AntMain {
         if (inputHandlerClassname == null) {
             handler = new DefaultInputHandler();
         } else {
-            try {
-                handler = (InputHandler)
-                    (Class.forName(inputHandlerClassname).newInstance());
-                if (project != null) {
-                    project.setProjectReference(handler);
-                }
-            } catch (ClassCastException e) {
-                String msg = "The specified input handler class "
-                    + inputHandlerClassname
-                    + " does not implement the InputHandler interface";
-                throw new BuildException(msg);
-            } catch (Exception e) {
-                String msg = "Unable to instantiate specified input handler "
-                    + "class " + inputHandlerClassname + " : "
-                    + e.getClass().getName();
-                throw new BuildException(msg);
+            handler = (InputHandler) ClasspathUtils.newInstance(
+                    inputHandlerClassname, Main.class.getClassLoader(),
+                    InputHandler.class);
+            if (project != null) {
+                project.setProjectReference(handler);
             }
         }
         project.setInputHandler(handler);
@@ -773,17 +783,13 @@ public class Main implements AntMain {
         BuildLogger logger = null;
         if (loggerClassname != null) {
             try {
-                Class loggerClass = Class.forName(loggerClassname);
-                logger = (BuildLogger) (loggerClass.newInstance());
-            } catch (ClassCastException e) {
+                logger = (BuildLogger) ClasspathUtils.newInstance(
+                        loggerClassname, Main.class.getClassLoader(),
+                        BuildLogger.class);
+            } catch (BuildException e) {
                 System.err.println("The specified logger class "
                     + loggerClassname
-                    + " does not implement the BuildLogger interface");
-                throw new RuntimeException();
-            } catch (Exception e) {
-                System.err.println("Unable to instantiate specified logger "
-                    + "class " + loggerClassname + " : "
-                    + e.getClass().getName());
+                    + " could not be used because " + e.getMessage());
                 throw new RuntimeException();
             }
         } else {
@@ -814,12 +820,15 @@ public class Main implements AntMain {
         msg.append("  -quiet, -q             be extra quiet" + lSep);
         msg.append("  -verbose, -v           be extra verbose" + lSep);
         msg.append("  -debug, -d             print debugging information" + lSep);
-        msg.append("  -emacs, -e             produce logging information without adornments" + lSep);
-        msg.append("  -lib <path>            specifies a path to search for jars and classes" + lSep);
+        msg.append("  -emacs, -e             produce logging information without adornments"
+                   + lSep);
+        msg.append("  -lib <path>            specifies a path to search for jars and classes"
+                   + lSep);
         msg.append("  -logfile <file>        use given file for log" + lSep);
         msg.append("    -l     <file>                ''" + lSep);
         msg.append("  -logger <classname>    the class which is to perform logging" + lSep);
-        msg.append("  -listener <classname>  add an instance of class as a project listener" + lSep);
+        msg.append("  -listener <classname>  add an instance of class as a project listener"
+                   + lSep);
         msg.append("  -noinput               do not allow interactive input" + lSep);
         msg.append("  -buildfile <file>      use given buildfile" + lSep);
         msg.append("    -file    <file>              ''" + lSep);
@@ -832,8 +841,15 @@ public class Main implements AntMain {
         msg.append("  -inputhandler <class>  the class which will handle input requests" + lSep);
         msg.append("  -find <file>           (s)earch for buildfile towards the root of" + lSep);
         msg.append("    -s  <file>           the filesystem and use it" + lSep);
-        msg.append("  -nice  number          A niceness value for the main thread:" + lSep +
-                   "                         1 (lowest) to 10 (highest); 5 is the default" + lSep);
+        msg.append("  -nice  number          A niceness value for the main thread:" + lSep
+                   + "                         1 (lowest) to 10 (highest); 5 is the default"
+                   + lSep);
+        msg.append("  -nouserlib             Run ant without using the jar files from" + lSep
+                   + "                         ${user.home}/.ant/lib" + lSep);
+        msg.append("  -noclasspath           Run ant without using CLASSPATH" + lSep);
+        msg.append("  -autoproxy             Java1.5+: use the OS proxy settings"
+                + lSep);
+        msg.append("  -main <class>          override Ant's normal entry point");
         System.out.println(msg.toString());
     }
 
@@ -1016,11 +1032,12 @@ public class Main implements AntMain {
             msg.append(" ");
             msg.append(names.elementAt(i));
             if (descriptions != null) {
-                msg.append(spaces.substring(0, maxlen - ((String) names.elementAt(i)).length() + 2));
+                msg.append(
+                    spaces.substring(0, maxlen - ((String) names.elementAt(i)).length() + 2));
                 msg.append(descriptions.elementAt(i));
             }
             msg.append(lSep);
         }
-        project.log(msg.toString());
+        project.log(msg.toString(), Project.MSG_WARN);
     }
 }

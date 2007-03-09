@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -37,15 +38,16 @@ import org.apache.tools.ant.util.StringUtils;
  *   view="//depot/...#head;//depot2/file1#25" /&gt;
  * </pre>
  *
- *
  * @ant.task category="scm"
  */
 public class P4Labelsync extends P4Base {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     protected String name;
     private boolean add; /* -a */
     private boolean delete; /* -n */
     private boolean simulationmode;  /* -n */
+    // CheckStyle:VisibilityModifier ON
     /**
      * -a flag of p4 labelsync - preserve files which exist in the label,
      * but not in the current view

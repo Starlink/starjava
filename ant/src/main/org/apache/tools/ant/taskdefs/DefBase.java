@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,8 +26,7 @@ import org.apache.tools.ant.types.Reference;
 import org.apache.tools.ant.util.ClasspathUtils;
 
 /**
- * Base class for Definitions
- * handling uri and class loading.
+ * Base class for Definitions handling uri and class loading.
  * (This was part of Definer)
  *
  * @since Ant 1.6
@@ -36,13 +36,23 @@ public abstract class DefBase extends AntlibDefinition {
     private ClasspathUtils.Delegate cpDelegate;
 
     /**
+     * Check if classpath attributes have been set.
+     * (to be called before getCpDelegate() is used.
+     * @return true if cpDelegate has been created.
+     */
+    protected boolean hasCpDelegate() {
+        return cpDelegate != null;
+    }
+
+    /**
      * @param reverseLoader if true a delegated loader will take precedence over
      *                      the parent
-     * @deprecated stop using this attribute
+     * @deprecated since 1.6.x.
+     *             stop using this attribute
      * @ant.attribute ignore="true"
      */
     public void setReverseLoader(boolean reverseLoader) {
-        this.cpDelegate.setReverseLoader(reverseLoader);
+        getDelegate().setReverseLoader(reverseLoader);
         log("The reverseloader attribute is DEPRECATED. It will be removed",
             Project.MSG_WARN);
     }
@@ -51,14 +61,14 @@ public abstract class DefBase extends AntlibDefinition {
      * @return the classpath for this definition
      */
     public Path getClasspath() {
-        return cpDelegate.getClasspath();
+        return getDelegate().getClasspath();
     }
 
     /**
      * @return the reverse loader attribute of the classpath delegate.
      */
     public boolean isReverseLoader() {
-        return cpDelegate.isReverseLoader();
+        return getDelegate().isReverseLoader();
     }
 
     /**
@@ -66,7 +76,7 @@ public abstract class DefBase extends AntlibDefinition {
      * @return the loader id
      */
     public String getLoaderId() {
-        return cpDelegate.getClassLoadId();
+        return getDelegate().getClassLoadId();
     }
 
     /**
@@ -74,50 +84,50 @@ public abstract class DefBase extends AntlibDefinition {
      * @return the class path id
      */
     public String getClasspathId() {
-        return cpDelegate.getClassLoadId();
+        return getDelegate().getClassLoadId();
     }
 
     /**
-     * Set the classpath to be used when searching for component being defined
+     * Set the classpath to be used when searching for component being defined.
      *
      * @param classpath an Ant Path object containing the classpath.
      */
     public void setClasspath(Path classpath) {
-        this.cpDelegate.setClasspath(classpath);
+        getDelegate().setClasspath(classpath);
     }
 
     /**
      * Create the classpath to be used when searching for component being
-     * defined
+     * defined.
      * @return the classpath of the this definition
      */
     public Path createClasspath() {
-        return this.cpDelegate.createClasspath();
+        return getDelegate().createClasspath();
     }
 
     /**
-     * reference to a classpath to use when loading the files.
+     * Set a reference to a classpath to use when loading the files.
      * To actually share the same loader, set loaderref as well
      * @param r the reference to the classpath
      */
     public void setClasspathRef(Reference r) {
-        this.cpDelegate.setClasspathref(r);
+        getDelegate().setClasspathref(r);
     }
 
     /**
      * Use the reference to locate the loader. If the loader is not
-     * found, taskdef will use the specified classpath and register it
+     * found, the specified classpath will be used and registered
      * with the specified name.
      *
-     * This allow multiple taskdef/typedef to use the same class loader,
-     * so they can be used together. It eliminate the need to
+     * This allows multiple taskdef/typedef to use the same class loader,
+     * so they can be used together, eliminating the need to
      * put them in the CLASSPATH.
      *
      * @param r the reference to locate the loader.
      * @since Ant 1.5
      */
     public void setLoaderRef(Reference r) {
-        this.cpDelegate.setLoaderRef(r);
+        getDelegate().setLoaderRef(r);
     }
 
     /**
@@ -125,11 +135,11 @@ public abstract class DefBase extends AntlibDefinition {
      * @return the classloader from the cpDelegate
      */
     protected ClassLoader createLoader() {
-        if (getAntlibClassLoader() != null) {
+        if (getAntlibClassLoader() != null && cpDelegate == null) {
             return getAntlibClassLoader();
         }
         if (createdLoader == null) {
-            createdLoader = this.cpDelegate.getClassLoader();
+            createdLoader = getDelegate().getClassLoader();
             // need to load Task via system classloader or the new
             // task we want to define will never be a Task but always
             // be wrapped into a TaskAdapter.
@@ -141,12 +151,17 @@ public abstract class DefBase extends AntlibDefinition {
 
     /**
      * @see org.apache.tools.ant.Task#init()
+     * @throws BuildException on error.
      * @since Ant 1.6
      */
     public void init() throws BuildException {
-        this.cpDelegate = ClasspathUtils.getDelegate(this);
         super.init();
     }
 
-
+    private ClasspathUtils.Delegate getDelegate() {
+        if (cpDelegate == null) {
+            cpDelegate = ClasspathUtils.getDelegate(this);
+        }
+        return cpDelegate;
+    }
 }

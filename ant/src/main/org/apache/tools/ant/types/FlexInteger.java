@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -29,6 +30,7 @@ public class FlexInteger {
 
     /**
      * Constructor used by Ant's introspection mechanism for attribute population
+     * @param value the value to decode
      */
     public FlexInteger(String value) {
         this.value = Integer.decode(value);
@@ -36,6 +38,7 @@ public class FlexInteger {
 
     /**
      * Returns the decimal integer value
+     * @return the integer value
      */
     public int intValue() {
         return value.intValue();
@@ -43,6 +46,7 @@ public class FlexInteger {
 
     /**
      * Overridden method to return the decimal value for display
+     * @return a string version of the integer
      */
     public String toString() {
         return value.toString();

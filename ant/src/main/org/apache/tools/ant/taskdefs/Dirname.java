@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -37,8 +38,6 @@ import org.apache.tools.ant.Task;
  * directory.
  *
  *
- * @version $Revision: 1.7.2.4 $
- *
  * @since Ant 1.5
  *
  * @ant.task category="property"
@@ -50,7 +49,7 @@ public class Dirname extends Task {
 
     /**
      * Path to take the dirname of.
-     * @param file
+     * @param file a <code>File</code> value
      */
     public void setFile(File file) {
         this.file = file;
@@ -58,14 +57,17 @@ public class Dirname extends Task {
 
     /**
      * The name of the property to set.
-     * @param property
+     * @param property the name of the property
      */
     public void setProperty(String property) {
         this.property = property;
     }
 
 
-    // The method executing the task
+    /**
+     * Execute this task.
+     * @throws BuildException on error
+     */
     public void execute() throws BuildException {
         if (property == null) {
             throw new BuildException("property attribute required", getLocation());

@@ -1,9 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>Chmod Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -25,6 +41,21 @@ specified using nested <code>&lt;fileset&gt;</code> or
 
 <p>Starting with Ant 1.6, this task also supports nested <a
 href="../CoreTypes/filelist.html">filelist</a>s.</p>
+
+<p>Starting with Ant 1.7, this task supports arbitrary <a
+href="../CoreTypes/resources.html#collection">Resource Collection</a>s
+as nested elements.</p>
+
+<p>By default this task will use a single invocation of the underlying
+chmod command.  If you are working on a large number of files this may
+result in a command line that is too long for your operating system.
+If you encounter such problems, you should set the maxparallel
+attribute of this task to a non-zero value.  The number to use highly
+depends on the length of your file names (the depth of your directory
+tree) and your operating system, so you'll have to experiment a
+little.  POSIX recommends command line length limits of at least 4096
+characters, this may give you an approximation for the number you
+could use as initial value for these experiments.</p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -99,14 +130,14 @@ href="../CoreTypes/filelist.html">filelist</a>s.</p>
   </tr>
 </table>
 <h3>Examples</h3>
-<blockquote>
-  <p><code>&lt;chmod file=&quot;${dist}/start.sh&quot; perm=&quot;ugo+rx&quot;/&gt;</code></p>
-</blockquote>
+  <blockquote><pre>
+&lt;chmod file=&quot;${dist}/start.sh&quot; perm=&quot;ugo+rx&quot;/&gt;
+</pre></blockquote>
 <p>makes the &quot;start.sh&quot; file readable and executable for anyone on a
 UNIX system.</p>
-<blockquote>
-  <p><code>&lt;chmod file=&quot;${dist}/start.sh&quot; perm=&quot;700&quot;/&gt;</code></p>
-</blockquote>
+<blockquote><pre>
+&lt;chmod file=&quot;${dist}/start.sh&quot; perm=&quot;700&quot;/&gt;
+</pre></blockquote>
 <p>makes the &quot;start.sh&quot; file readable, writable and executable only for the owner on a
 UNIX system.</p>
 <blockquote>
@@ -148,13 +179,11 @@ permissions.</p>
 </blockquote>
 
 <p>keeps non-owners from touching cgi scripts, files with a <code>.old</code>
-extension or directories begining with <code>private_</code>. A directory 
-ending in <code>.old</code> or a file begining with private_ would remain
+extension or directories beginning with <code>private_</code>. A directory 
+ending in <code>.old</code> or a file beginning with private_ would remain
 unaffected.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2000-2004 The Apache Software Foundation. 
-All rights Reserved.</p>
+
 
 </body>
 </html>

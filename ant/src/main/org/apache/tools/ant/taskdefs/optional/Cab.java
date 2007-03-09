@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -51,12 +52,15 @@ public class Cab extends MatchingTask {
     private boolean doVerbose = false;
     private String cmdOptions;
 
+    // CheckStyle:VisibilityModifier OFF - bc
     protected String archiveType = "cab";
+    // CheckStyle:VisibilityModifier ON
 
-    private FileUtils fileUtils = FileUtils.newFileUtils();
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     /**
      * The name/location of where to create the .cab file.
+     * @param cabFile the location of the cab file.
      */
     public void setCabfile(File cabFile) {
         this.cabFile = cabFile;
@@ -64,6 +68,7 @@ public class Cab extends MatchingTask {
 
     /**
      * Base directory to look in for files to CAB.
+     * @param baseDir base directory for files to cab.
      */
     public void setBasedir(File baseDir) {
         this.baseDir = baseDir;
@@ -71,6 +76,7 @@ public class Cab extends MatchingTask {
 
     /**
      * If true, compress the files otherwise only store them.
+     * @param compress a <code>boolean</code> value.
      */
     public void setCompress(boolean compress) {
         doCompress = compress;
@@ -78,6 +84,7 @@ public class Cab extends MatchingTask {
 
     /**
      * If true, display cabarc output.
+     * @param verbose a <code>boolean</code> value.
      */
     public void setVerbose(boolean verbose) {
         doVerbose = verbose;
@@ -85,6 +92,7 @@ public class Cab extends MatchingTask {
 
     /**
      * Sets additional cabarc options that are not supported directly.
+     * @param options cabarc command line options.
      */
     public void setOptions(String options) {
         cmdOptions = options;
@@ -92,8 +100,12 @@ public class Cab extends MatchingTask {
 
     /**
      * Adds a set of files to archive.
+     * @param set a set of files to archive.
      */
     public void addFileset(FileSet set) {
+        if (filesets.size() > 0) {
+            throw new BuildException("Only one nested fileset allowed");
+        }
         filesets.addElement(set);
     }
 
@@ -102,14 +114,22 @@ public class Cab extends MatchingTask {
      * task-cancelling exceptions".  It feels too much like programming
      * for side-effects to me...
      */
+    /**
+     * Check if the attributes and nested elements are correct.
+     * @throws BuildException on error.
+     */
     protected void checkConfiguration() throws BuildException {
         if (baseDir == null && filesets.size() == 0) {
-            throw new BuildException("basedir attribute or at least one "
-                                     + "nested filest is required!",
+            throw new BuildException("basedir attribute or one "
+                                     + "nested fileset is required!",
                                      getLocation());
         }
         if (baseDir != null && !baseDir.exists()) {
             throw new BuildException("basedir does not exist!", getLocation());
+        }
+        if (baseDir != null && filesets.size() > 0) {
+            throw new BuildException(
+                "Both basedir attribute and a nested fileset is not allowed");
         }
         if (cabFile == null) {
             throw new BuildException("cabfile attribute must be set!",
@@ -120,25 +140,24 @@ public class Cab extends MatchingTask {
     /**
      * Create a new exec delegate.  The delegate task is populated so that
      * it appears in the logs to be the same task as this one.
+     * @return the delegate.
+     * @throws BuildException on error.
      */
     protected ExecTask createExec() throws BuildException {
-        ExecTask exec = (ExecTask) getProject().createTask("exec");
-        exec.setOwningTarget(this.getOwningTarget());
-        exec.setTaskName(this.getTaskName());
-        exec.setDescription(this.getDescription());
-
+        ExecTask exec = new ExecTask(this);
         return exec;
     }
 
     /**
      * Check to see if the target is up to date with respect to input files.
+     * @param files the list of files to check.
      * @return true if the cab file is newer than its dependents.
      */
     protected boolean isUpToDate(Vector files) {
         boolean upToDate = true;
         for (int i = 0; i < files.size() && upToDate; i++) {
             String file = files.elementAt(i).toString();
-            if (fileUtils.resolveFile(baseDir, file).lastModified()
+            if (FILE_UTILS.resolveFile(baseDir, file).lastModified()
                     > cabFile.lastModified()) {
                 upToDate = false;
             }
@@ -149,16 +168,23 @@ public class Cab extends MatchingTask {
     /**
      * Creates a list file.  This temporary file contains a list of all files
      * to be included in the cab, one file per line.
+     *
+     * <p>This method expects to only be called on Windows and thus
+     * quotes the file names.</p>
+     * @param files the list of files to use.
+     * @return the list file created.
+     * @throws IOException if there is an error.
      */
     protected File createListFile(Vector files)
         throws IOException {
-        File listFile = fileUtils.createTempFile("ant", "", null);
+        File listFile = FILE_UTILS.createTempFile("ant", "", null);
         listFile.deleteOnExit();
 
         PrintWriter writer = new PrintWriter(new FileOutputStream(listFile));
 
-        for (int i = 0; i < files.size(); i++) {
-            writer.println(files.elementAt(i).toString());
+        int size = files.size();
+        for (int i = 0; i < size; i++) {
+            writer.println('\"' + files.elementAt(i).toString() + '\"');
         }
         writer.close();
 
@@ -167,6 +193,8 @@ public class Cab extends MatchingTask {
 
     /**
      * Append all files found by a directory scanner to a vector.
+     * @param files the vector to append the files to.
+     * @param ds the scanner to get the files from.
      */
     protected void appendFiles(Vector files, DirectoryScanner ds) {
         String[] dsfiles = ds.getIncludedFiles();
@@ -178,8 +206,10 @@ public class Cab extends MatchingTask {
 
     /**
      * Get the complete list of files to be included in the cab.  Filenames
-     * are gathered from filesets if any have been added, otherwise from the
+     * are gathered from the fileset if it has been added, otherwise from the
      * traditional include parameters.
+     * @return the list of files.
+     * @throws BuildException if there is an error.
      */
     protected Vector getFileList() throws BuildException {
         Vector files = new Vector();
@@ -187,19 +217,19 @@ public class Cab extends MatchingTask {
         if (baseDir != null) {
             // get files from old methods - includes and nested include
             appendFiles(files, super.getDirectoryScanner(baseDir));
-        }
-
-        // get files from filesets
-        for (int i = 0; i < filesets.size(); i++) {
-            FileSet fs = (FileSet) filesets.elementAt(i);
-            if (fs != null) {
-                appendFiles(files, fs.getDirectoryScanner(getProject()));
-            }
+        } else {
+            FileSet fs = (FileSet) filesets.elementAt(0);
+            baseDir = fs.getDir();
+            appendFiles(files, fs.getDirectoryScanner(getProject()));
         }
 
         return files;
     }
 
+    /**
+     * execute this task.
+     * @throws BuildException on error.
+     */
     public void execute() throws BuildException {
 
         checkConfiguration();
@@ -283,7 +313,7 @@ public class Cab extends MatchingTask {
                 exec.setDir(baseDir);
 
                 if (!doVerbose) {
-                    outFile = fileUtils.createTempFile("ant", "", null);
+                    outFile = FILE_UTILS.createTempFile("ant", "", null);
                     outFile.deleteOnExit();
                     exec.setOutput(outFile);
                 }

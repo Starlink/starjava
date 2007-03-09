@@ -1,9 +1,10 @@
 /* 
- * Copyright  2003-2004 Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -15,15 +16,30 @@
  * 
  */
  
+ import junit.framework.TestCase;
 
 /**
- * this is an assertion tester
+ * this is an assertion tester for junit 
  */
-public class AssertionTest {
+public class AssertionTest extends TestCase {
     
-    public static void main(String args[]) {
-		assert true == false : "there exist no facts that are both true and false";
-		System.out.println("Assertions are disabled");
-    }
+	public AssertionTest(String name) {
+		super(name);
+	}
+	
+	public void testAssertRaised() {
+		try {
+			assert true == false;
+			fail("expected an assertion");
+		} catch(AssertionError asserto) {
+			//if we got here, all was well
+		}
+	}
+	
+	
+	public void testAssertNotRaised() {
+		assert(2+2==4);
+	}
+	
     
 }

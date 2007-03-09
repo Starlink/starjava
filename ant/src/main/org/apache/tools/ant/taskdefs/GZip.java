@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Compresses a file with the GZIP algorithm. Normally used to compress
@@ -39,19 +41,27 @@ public class GZip extends Pack {
         GZIPOutputStream zOut = null;
         try {
             zOut = new GZIPOutputStream(new FileOutputStream(zipFile));
-            zipFile(source, zOut);
+            zipResource(getSrcResource(), zOut);
         } catch (IOException ioe) {
             String msg = "Problem creating gzip " + ioe.getMessage();
             throw new BuildException(msg, ioe, getLocation());
         } finally {
-            if (zOut != null) {
-                try {
-                    // close up
-                    zOut.close();
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
+            FileUtils.close(zOut);
         }
+    }
+
+    /**
+     * Whether this task can deal with non-file resources.
+     *
+     * <p>This implementation returns true only if this task is
+     * &lt;gzip&gt;.  Any subclass of this class that also wants to
+     * support non-file resources needs to override this method.  We
+     * need to do so for backwards compatibility reasons since we
+     * can't expect subclasses to support resources.</p>
+     * @return true if this case supports non file resources.
+     * @since Ant 1.7
+     */
+    protected boolean supportsNonFileResources() {
+        return getClass().equals(GZip.class);
     }
 }

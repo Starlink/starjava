@@ -1,16 +1,32 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>GenKey Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="genkey">GenKey</a></h2>
 <h3>Description</h3>
-<p>Generates a key in keystore. This task needs Java1.2 or later</p>
+<p>Generates a key in a keystore. </p>
 
 <h3>Parameters</h3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -86,24 +102,23 @@ with &quot;<code>\,</code>&quot;.</p>
 <p>The following two examples are identical: </p>
 
 <h3>Examples</h3>
-<blockquote>
-  <p><code>&lt;genkey alias=&quot;apache-group&quot; storepass=&quot;secret&quot; 
-  dname=&quot;CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US&quot;/&gt;</code></p>
-</blockquote>
+<blockquote><pre>
+&lt;genkey alias=&quot;apache-group&quot; storepass=&quot;secret&quot; 
+  dname=&quot;CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US&quot;/&gt;
+</pre></blockquote>
 
 <blockquote>
-  <pre><code>&lt;genkey alias=&quot;apache-group&quot; storepass=&quot;secret&quot; &gt;
+  <pre>
+&lt;genkey alias=&quot;apache-group&quot; storepass=&quot;secret&quot; &gt;
   &lt;dname&gt;
     &lt;param name=&quot;CN&quot; value=&quot;Ant Group&quot;/&gt;
     &lt;param name=&quot;OU&quot; value=&quot;Jakarta Division&quot;/&gt;
     &lt;param name=&quot;O&quot;  value=&quot;Apache.Org&quot;/&gt;
     &lt;param name=&quot;C&quot;  value=&quot;US&quot;/&gt;
   &lt;/dname&gt;
-&lt;/genkey&gt;</code></pre>
+&lt;/genkey&gt;</pre>
 </blockquote>
-<hr>
-<p align="center">Copyright &copy; 2000-2001,2003 Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

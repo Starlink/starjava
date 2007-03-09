@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -80,7 +81,7 @@ public class Assertions extends DataType implements Cloneable {
 
     /**
      * enable assertions
-     * @param assertion
+     * @param assertion an enable assertion nested element
      */
     public void addEnable(EnabledAssertion assertion) {
         checkChildrenAllowed();
@@ -89,7 +90,7 @@ public class Assertions extends DataType implements Cloneable {
 
     /**
      * disable assertions
-     * @param assertion
+     * @param assertion a disable assertion nested element
      */
     public void addDisable(DisabledAssertion assertion) {
         checkChildrenAllowed();
@@ -97,8 +98,10 @@ public class Assertions extends DataType implements Cloneable {
     }
 
     /**
-     * enable or disable system assertions
-     * @param enableSystemAssertions
+     * enable or disable system assertions.
+     * Default is not set (neither -enablesystemassersions or -disablesytemassertions
+     * are used on the command line).
+     * @param enableSystemAssertions if true enable system assertions
      */
     public void setEnableSystemAssertions(Boolean enableSystemAssertions) {
         checkAttributesAllowed();
@@ -112,6 +115,7 @@ public class Assertions extends DataType implements Cloneable {
      * have been set as well or child elements have been created and
      * thus override this method. if they do the must call
      * <code>super.setRefid</code>.</p>
+     * @param ref the reference to use
      */
     public void setRefid(Reference ref) {
         if (assertionList.size() > 0 || enableSystemAssertions != null) {
@@ -157,10 +161,10 @@ public class Assertions extends DataType implements Cloneable {
     /**
      * add the assertions to a list in a format suitable
      * for adding to a command line
-     * @param commandList
+     * @param commandList the command line to format
      */
     public void applyAssertions(List commandList) {
-        getProject().log("Applying assertions",Project.MSG_DEBUG);
+        getProject().log("Applying assertions", Project.MSG_DEBUG);
         Assertions clause = getFinalReference();
         //do the system assertions
         if (Boolean.TRUE.equals(clause.enableSystemAssertions)) {
@@ -176,14 +180,14 @@ public class Assertions extends DataType implements Cloneable {
         while (it.hasNext()) {
             BaseAssertion assertion = (BaseAssertion) it.next();
             String arg = assertion.toCommand();
-            getProject().log("adding assertion "+arg, Project.MSG_DEBUG);
+            getProject().log("adding assertion " + arg, Project.MSG_DEBUG);
             commandList.add(arg);
         }
     }
 
     /**
      * apply all the assertions to the command.
-     * @param command
+     * @param command the command line to format
      */
     public void applyAssertions(CommandlineJava command) {
         Assertions clause = getFinalReference();
@@ -206,7 +210,7 @@ public class Assertions extends DataType implements Cloneable {
     /**
      * add the assertions to a list in a format suitable
      * for adding to a command line
-     * @param commandList
+     * @param commandIterator list of commands
      */
     public void applyAssertions(final ListIterator commandIterator) {
         getProject().log("Applying assertions", Project.MSG_DEBUG);
@@ -225,7 +229,7 @@ public class Assertions extends DataType implements Cloneable {
         while (it.hasNext()) {
             BaseAssertion assertion = (BaseAssertion) it.next();
             String arg = assertion.toCommand();
-            getProject().log("adding assertion "+arg, Project.MSG_DEBUG);
+            getProject().log("adding assertion " + arg, Project.MSG_DEBUG);
             commandIterator.add(arg);
         }
     }
@@ -246,7 +250,7 @@ public class Assertions extends DataType implements Cloneable {
      * This is not a full depth clone; the list of assertions is cloned,
      * but it does not clone the underlying assertions.
      * @return a cli
-     * @throws CloneNotSupportedException
+     * @throws CloneNotSupportedException if the super class does not support cloning
      */
     public Object clone() throws CloneNotSupportedException {
         Assertions that = (Assertions) super.clone();
@@ -264,7 +268,7 @@ public class Assertions extends DataType implements Cloneable {
 
         /**
          * name a class
-         * @param className
+         * @param className a class name
          */
         public void setClass(String className) {
             this.className = className;
@@ -272,7 +276,7 @@ public class Assertions extends DataType implements Cloneable {
 
         /**
          * name a package
-         * @param packageName
+         * @param packageName a package name
          */
         public void setPackage(String packageName) {
             this.packageName = packageName;

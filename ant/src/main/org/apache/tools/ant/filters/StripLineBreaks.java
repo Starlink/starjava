@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -77,7 +78,7 @@ public final class StripLineBreaks
      * @exception IOException if the underlying stream throws an IOException
      * during reading
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
         if (!getInitialized()) {
             initialize();
             setInitialized(true);
@@ -100,7 +101,7 @@ public final class StripLineBreaks
      * @param lineBreaks A String containing all the characters to be
      *                   considered as line-breaking.
      */
-    public final void setLineBreaks(final String lineBreaks) {
+    public void setLineBreaks(final String lineBreaks) {
         this.lineBreaks = lineBreaks;
     }
 
@@ -110,7 +111,7 @@ public final class StripLineBreaks
      * @return a String containing all the characters considered as
      *         line-breaking
      */
-    private final String getLineBreaks() {
+    private String getLineBreaks() {
         return lineBreaks;
     }
 
@@ -124,7 +125,7 @@ public final class StripLineBreaks
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         StripLineBreaks newFilter = new StripLineBreaks(rdr);
         newFilter.setLineBreaks(getLineBreaks());
         newFilter.setInitialized(true);
@@ -134,7 +135,7 @@ public final class StripLineBreaks
     /**
      * Parses the parameters to set the line-breaking characters.
      */
-    private final void initialize() {
+    private void initialize() {
         String userDefinedLineBreaks = null;
         Parameter[] params = getParameters();
         if (params != null) {

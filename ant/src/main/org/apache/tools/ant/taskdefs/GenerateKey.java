@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,37 +27,63 @@ import org.apache.tools.ant.util.JavaEnvUtils;
 /**
  * Generates a key in a keystore.
  *
- *
  * @since Ant 1.2
  *
  * @ant.task name="genkey" category="java"
  */
 public class GenerateKey extends Task {
 
+    /**
+     * A DistinguishedName parameter.
+     * This is a nested element in a dname nested element.
+     */
     public static class DnameParam {
         private String name;
         private String value;
 
+        /**
+         * Set the name attribute.
+         * @param name a <code>String</code> value
+         */
         public void setName(String name) {
             this.name = name;
         }
 
+        /**
+         * Get the name attribute.
+         * @return the name.
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Set the value attribute.
+         * @param value a <code>String</code> value
+         */
         public void setValue(String value) {
             this.value = value;
         }
 
+        /**
+         * Get the value attribute.
+         * @return the value.
+         */
         public String getValue() {
             return value;
         }
     }
 
+    /**
+     * A class corresponding to the dname nested element.
+     */
     public static class DistinguishedName {
         private Vector params = new Vector();
 
+        /**
+         * Create a param nested element.
+         * @return a DnameParam object to be configured.
+         */
         public Object createParam() {
             DnameParam param = new DnameParam();
             params.addElement(param);
@@ -64,10 +91,21 @@ public class GenerateKey extends Task {
             return param;
         }
 
+        /**
+         * Get the nested parameters.
+         * @return an enumeration of the nested parameters.
+         */
         public Enumeration getParams() {
             return params.elements();
         }
 
+        /**
+         * Generate a string rep of this distinguished name.
+         * The format is each of the parameters (name = value)
+         * separated by ','.
+         * This is used on the command line.
+         * @return a string rep of this name
+         */
         public String toString() {
             final int size = params.size();
             final StringBuffer sb = new StringBuffer();
@@ -88,6 +126,13 @@ public class GenerateKey extends Task {
             return sb.toString();
         }
 
+        /**
+         * Encode a name or value.
+         * The encoded result is the same as the input string
+         * except that each ',' is replaced by a '\,'.
+         * @param string the value to be encoded
+         * @return the encoded value.
+         */
         public String encode(final String string) {
             int end = string.indexOf(',');
 
@@ -112,6 +157,8 @@ public class GenerateKey extends Task {
         }
     }
 
+    // CheckStyle:VisibilityModifier OFF - bc
+
     /**
      * The alias of signer.
      */
@@ -132,6 +179,7 @@ public class GenerateKey extends Task {
     protected int keysize;
     protected int validity;
     protected boolean verbose;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Distinguished name list.
@@ -265,11 +313,11 @@ public class GenerateKey extends Task {
         this.verbose = verbose;
     }
 
+    /**
+     * Execute the task.
+     * @throws BuildException on error
+     */
     public void execute() throws BuildException {
-        if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-            throw new BuildException("The genkey task is only available on JDK"
-                                     + " versions 1.2 or greater");
-        }
 
         if (null == alias) {
             throw new BuildException("alias attribute must be set");
@@ -359,7 +407,7 @@ public class GenerateKey extends Task {
         }
 
         log("Generating Key for " + alias);
-        final ExecTask cmd = (ExecTask) getProject().createTask("exec");
+        final ExecTask cmd = new ExecTask(this);
         cmd.setExecutable(JavaEnvUtils.getJdkExecutable("keytool"));
         Commandline.Argument arg = cmd.createArg();
         arg.setLine(sb.toString());

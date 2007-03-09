@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,7 +26,6 @@ import org.apache.tools.ant.taskdefs.Rmic;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.FileNameMapper;
-import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
  * This is the default implementation for the RmicAdapter interface.
@@ -38,30 +38,65 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
 
     private Rmic attributes;
     private FileNameMapper mapper;
-    private static final Random rand = new Random();
+    private static final Random RAND = new Random();
+    /** suffix denoting a stub file */
+    public static final String RMI_STUB_SUFFIX = "_Stub";
+    /** suffix denoting a skel file */
+    public static final String RMI_SKEL_SUFFIX = "_Skel";
+    /** suffix denoting a tie file */
+    public static final String RMI_TIE_SUFFIX = "_Tie";
+    /** arg for compat */
+    public static final String STUB_COMPAT = "-vcompat";
+    /** arg for 1.1 */
+    public static final String STUB_1_1 = "-v1.1";
+    /** arg for 1.2 */
+    public static final String STUB_1_2 = "-v1.2";
 
+    /**
+     * Default constructor
+     */
     public DefaultRmicAdapter() {
     }
 
-    public void setRmic(Rmic attributes) {
+    /**
+     * Sets Rmic attributes
+     * @param attributes the rmic attributes
+     */
+    public void setRmic(final Rmic attributes) {
         this.attributes = attributes;
         mapper = new RmicFileNameMapper();
     }
 
+    /**
+     * Get the Rmic attributes
+     * @return the attributes as a Rmic taskdef
+     */
     public Rmic getRmic() {
         return attributes;
     }
 
+    /**
+     * Gets the stub class suffix
+     * @return the stub suffix &quot;_Stub&quot;
+     */
     protected String getStubClassSuffix() {
-        return "_Stub";
+        return RMI_STUB_SUFFIX;
     }
 
+    /**
+     * Gets the skeleton class suffix
+     * @return the skeleton suffix &quot;_Skel&quot;
+     */
     protected String getSkelClassSuffix() {
-        return "_Skel";
+        return RMI_SKEL_SUFFIX;
     }
 
+    /**
+     * Gets the tie class suffix
+     * @return the tie suffix &quot;_Tie&quot;
+     */
     protected String getTieClassSuffix() {
-        return "_Tie";
+        return RMI_TIE_SUFFIX;
     }
 
     /**
@@ -79,13 +114,15 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
      *   interfaces and _*_getStubClassSuffix for non-interfaces (and
      *   determine the interface and create _*_Stub from that).</li>
      * </ul>
+     * @return a <code>FileNameMapper</code>
      */
     public FileNameMapper getMapper() {
         return mapper;
     }
 
     /**
-     * The CLASSPATH this rmic process will use.
+     * Gets the CLASSPATH this rmic process will use.
+     * @return the classpath
      */
     public Path getClasspath() {
         return getCompileClasspath();
@@ -93,6 +130,7 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
 
     /**
      * Builds the compilation classpath.
+     * @return the classpath
      */
     protected Path getCompileClasspath() {
         Path classpath = new Path(attributes.getProject());
@@ -120,17 +158,18 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
     }
 
     /**
-     * setup rmic argument for rmic.
+     * Setup rmic argument for rmic.
+     * @return the command line
      */
     protected Commandline setupRmicCommand() {
         return setupRmicCommand(null);
     }
 
     /**
-     * setup rmic argument for rmic.
-     *
+     * Setup rmic argument for rmic.
      * @param options additional parameters needed by a specific
      *                implementation.
+     * @return the command line
      */
     protected Commandline setupRmicCommand(String[] options) {
         Commandline cmd = new Commandline();
@@ -147,31 +186,41 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
         cmd.createArgument().setFile(attributes.getBase());
 
         if (attributes.getExtdirs() != null) {
-            if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-                /*
-                 * XXX - This doesn't mix very well with build.systemclasspath,
-                 */
-                classpath.addExtdirs(attributes.getExtdirs());
-            } else {
-                cmd.createArgument().setValue("-extdirs");
-                cmd.createArgument().setPath(attributes.getExtdirs());
-            }
+            cmd.createArgument().setValue("-extdirs");
+            cmd.createArgument().setPath(attributes.getExtdirs());
         }
 
         cmd.createArgument().setValue("-classpath");
         cmd.createArgument().setPath(classpath);
 
+        //handle the many different stub options.
         String stubVersion = attributes.getStubVersion();
+        //default is compatibility
+        String stubOption = null;
         if (null != stubVersion) {
             if ("1.1".equals(stubVersion)) {
-                cmd.createArgument().setValue("-v1.1");
+                stubOption = STUB_1_1;
             } else if ("1.2".equals(stubVersion)) {
-                cmd.createArgument().setValue("-v1.2");
+                stubOption = STUB_1_2;
+            } else if ("compat".equals(stubVersion)) {
+                stubOption = STUB_COMPAT;
             } else {
-                cmd.createArgument().setValue("-vcompat");
+                //anything else
+                attributes.log("Unknown stub option " + stubVersion);
+                //do nothing with the value? or go -v+stubVersion??
             }
         }
-
+        //for java1.5+, we generate compatible stubs, that is, unless
+        //the caller asked for IDL or IIOP support.
+        if (stubOption == null
+            && !attributes.getIiop()
+            && !attributes.getIdl()) {
+            stubOption = STUB_COMPAT;
+        }
+        if (stubOption != null) {
+            //set the non-null stubOption
+            cmd.createArgument().setValue(stubOption);
+        }
         if (null != attributes.getSourceBase()) {
             cmd.createArgument().setValue("-keepgenerated");
         }
@@ -208,7 +257,8 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
 
     /**
      * Logs the compilation parameters, adds the files to compile and logs the
-     * &qout;niceSourceList&quot;
+     * &quot;niceSourceList&quot;
+     * @param cmd the commandline args
      */
     protected void logAndAddFilesToCompile(Commandline cmd) {
         Vector compileList = attributes.getCompileList();
@@ -217,15 +267,17 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
                        Project.MSG_VERBOSE);
 
         StringBuffer niceSourceList = new StringBuffer("File");
-        if (compileList.size() != 1) {
+        int cListSize = compileList.size();
+        if (cListSize != 1) {
             niceSourceList.append("s");
         }
         niceSourceList.append(" to be compiled:");
 
-        for (int i = 0; i < compileList.size(); i++) {
+        for (int i = 0; i < cListSize; i++) {
             String arg = (String) compileList.elementAt(i);
             cmd.createArgument().setValue(arg);
-            niceSourceList.append("    " + arg);
+            niceSourceList.append("    ");
+            niceSourceList.append(arg);
         }
 
         attributes.log(niceSourceList.toString(), Project.MSG_VERBOSE);
@@ -289,7 +341,7 @@ public abstract class DefaultRmicAdapter implements RmicAdapter {
              * This is supposed to make Ant always recompile the
              * class, as a file of that name should not exist.
              */
-            String[] target = new String[] {name + ".tmp." + rand.nextLong()};
+            String[] target = new String[] {name + ".tmp." + RAND.nextLong()};
 
             if (!attributes.getIiop() && !attributes.getIdl()) {
                 // JRMP with simple naming convention

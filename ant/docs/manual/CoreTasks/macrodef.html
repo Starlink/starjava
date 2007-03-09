@@ -1,8 +1,25 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
   <head>
     <meta http-equiv="Content-Language" content="en-us"></meta>
-    <title>MacroDef Task</title>
+    <link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
+<title>MacroDef Task</title>
     <link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
     <style type="text/css">
       <!--
@@ -16,10 +33,10 @@
     <h2><a name="macrodef">MacroDef</a></h2>
     <h3>Description</h3>
     <p>
-      This defines a new task using a &lt;sequential&gt;
-      nested task as a template. Nested elements &lt;attribute&gt; and
-      &lt;element&gt; are used to specify attributes and elements of
-      the new task. These get substituted into the  &lt;sequential&gt;
+      This defines a new task using a <code>&lt;sequential&gt;</code>
+      nested task as a template. Nested elements <code>&lt;attribute&gt;</code> and
+      <code>&lt;element&gt;</code> are used to specify attributes and elements of
+      the new task. These get substituted into the <code>&lt;sequential&gt;</code>
       task when the new task is run.
     </p>
     <h3>Note</h3>
@@ -39,7 +56,7 @@
       </tr>
       <tr>
         <td valign="top">name</td>
-        <td valign="top">The name of the new definition</td>
+        <td valign="top">The name of the new definition.</td>
         <td valign="top" align="center">Yes</td>
       </tr>
       <tr>
@@ -48,6 +65,23 @@
           The uri that this definition should live in.
         </td>
         <td valign="top" align="center">No</td>
+      </tr>
+      <tr>
+        <td valign="top">description</td>
+        <td valign="top">A description of the macrodef
+          (for documentation purposes only).
+        </td>
+        <td valign="top" align="center">No</td>
+      </tr>
+      <tr>
+        <td valign="top">backtrace</td>
+        <td valign="top">
+          This controls the error traceback if they is an
+          error detected when running the macro. If this is
+          set to true, there will be an error trackback, if false
+          there will not be one. <em>Since Ant 1.7</em>.
+        </td>
+        <td valign="top" align="center">No; default <em>true</em></td>
       </tr>
     </table>
       <h3>Parameters specified as nested elements</h3>
@@ -67,7 +101,7 @@
     <p>
       The escape sequence @@ is used to escape @. This allows @{x} to be
       placed in the text without substitution of x by using @@{x}.
-      This corresponds to the $$ escape sequence for properties.
+      This corresponds to the $ escape sequence for properties.
     </p>
     <p>
       The case of the attribute is ignored, so @{myAttribute} is treated the
@@ -225,10 +259,10 @@
 </pre>
     </blockquote>
     <p>
-      The following fragment defines a task called &lt;call-cc&gt; which
+      The following fragment defines a task called <code>&lt;call-cc&gt;</code> which
       take the attributes "target", "link" and "target.dir" and the
       nested element "cc-elements". The body of the task
-      uses the &lt;cc&gt; task from the
+      uses the <code>&lt;cc&gt;</code> task from the
       <a href="http://ant-contrib.sourceforge.net/">ant-contrib</a> project.
     </p>
     <blockquote>
@@ -332,19 +366,17 @@
     </p>
     <blockquote>
 <pre class="code">
-&lt;macrodef name="test"/&gt;
+&lt;macrodef name="test"&gt;
    &lt;attribute name="one"/&gt;                     <b>*1</b>
    &lt;attribute name="two" default="@{one}"/&gt;    <b>*2</b>
    &lt;sequential&gt;
       &lt;echo&gt;one=@{one}   two=@{two}&lt;/echo&gt;
    &lt;/sequential&gt;
-&lt;/macrodef/&gt;
+&lt;/macrodef&gt;
 &lt;test one="test"/&gt;
 </pre>
     </blockquote>
-<hr>
-<p align="center">Copyright &copy; 2003-2004 The Apache Software
-Foundation. All rights Reserved.</p>
+
 
 </body>
 </html>

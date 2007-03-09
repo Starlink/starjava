@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -38,10 +39,12 @@ import org.apache.tools.ant.util.StringUtils;
  * @ant.task category="control"
  */
 public class Available extends Task implements Condition {
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
 
     private String property;
     private String classname;
-    private String file;
+    private String filename;
+    private File file;
     private Path filepath;
     private String resource;
     private FileDir type;
@@ -50,6 +53,19 @@ public class Available extends Task implements Condition {
     private String value = "true";
     private boolean isTask = false;
     private boolean ignoreSystemclasses = false;
+    private boolean searchParents   = false;
+
+    /**
+     * Set the searchParents attribute.
+     * This controls the behaviour of the the "file" type.
+     * If true, the path, parent path and grandparent path are
+     * searched for the file. If false, only the path is seached.
+     * The default value is false.
+     * @param searchParents the value to set.
+     */
+    public void setSearchParents(boolean  searchParents) {
+        this.searchParents = searchParents;
+    }
 
     /**
      * Set the classpath to be used when searching for classes and resources.
@@ -143,8 +159,8 @@ public class Available extends Task implements Condition {
      * @param file the name of the file which is required.
      */
     public void setFile(File file) {
-        this.file = FileUtils.newFileUtils()
-            .removeLeadingPath(getProject().getBaseDir(), file);
+        this.file = file;
+        this.filename = FILE_UTILS.removeLeadingPath(getProject().getBaseDir(), file);
     }
 
     /**
@@ -157,7 +173,8 @@ public class Available extends Task implements Condition {
     }
 
     /**
-     * @deprecated setType(String) is deprecated and is replaced with
+     * @deprecated since 1.5.x.
+     *             setType(String) is deprecated and is replaced with
      *             setType(Available.FileDir) to make Ant's Introspection
      *             mechanism do the work and also to encapsulate operations on
      *             the type in its own class.
@@ -165,7 +182,8 @@ public class Available extends Task implements Condition {
      */
     public void setType(String type) {
         log("DEPRECATED - The setType(String) method has been deprecated."
-            + " Use setType(Available.FileDir) instead.");
+            + " Use setType(Available.FileDir) instead.",
+            Project.MSG_WARN);
         this.type = new FileDir();
         this.type.setValue(type);
     }
@@ -211,8 +229,11 @@ public class Available extends Task implements Condition {
                         + " property."
                         + StringUtils.LINE_SEP
                         + "  Build file should not reuse the same property"
-                        + " name for different values.");
+                        + " name for different values.",
+                        Project.MSG_WARN);
                 }
+                // NB: this makes use of Project#setProperty rather than Project#setNewProperty
+                //     due to backwards compatiblity reasons
                 getProject().setProperty(property, value);
             }
         } finally {
@@ -227,62 +248,56 @@ public class Available extends Task implements Condition {
      * @exception BuildException if the condition is not configured correctly
      */
     public boolean eval() throws BuildException {
-        if (classname == null && file == null && resource == null) {
-            throw new BuildException("At least one of (classname|file|"
-                                     + "resource) is required", getLocation());
-        }
-
-        if (type != null) {
-            if (file == null) {
-                throw new BuildException("The type attribute is only valid "
-                                         + "when specifying the file "
-                                         + "attribute.", getLocation());
+        try {
+            if (classname == null && file == null && resource == null) {
+                throw new BuildException("At least one of (classname|file|"
+                                         + "resource) is required", getLocation());
             }
-        }
-
-        if (classpath != null) {
-            classpath.setProject(getProject());
-            this.loader = getProject().createClassLoader(classpath);
-        }
-
-        String appendix = "";
-        if (isTask) {
-            appendix = " to set property " + property;
-        } else {
-            setTaskName("available");
-        }
-
-        if ((classname != null) && !checkClass(classname)) {
-            log("Unable to load class " + classname + appendix,
-                Project.MSG_VERBOSE);
-            return false;
-        }
-
-        if ((file != null) && !checkFile()) {
             if (type != null) {
-                log("Unable to find " + type + " " + file + appendix,
-                    Project.MSG_VERBOSE);
-            } else {
-                log("Unable to find " + file + appendix, Project.MSG_VERBOSE);
+                if (file == null) {
+                    throw new BuildException("The type attribute is only valid "
+                                             + "when specifying the file "
+                                             + "attribute.", getLocation());
+                }
             }
-            return false;
+            if (classpath != null) {
+                classpath.setProject(getProject());
+                this.loader = getProject().createClassLoader(classpath);
+            }
+            String appendix = "";
+            if (isTask) {
+                appendix = " to set property " + property;
+            } else {
+                setTaskName("available");
+            }
+            if ((classname != null) && !checkClass(classname)) {
+                log("Unable to load class " + classname + appendix,
+                    Project.MSG_VERBOSE);
+                return false;
+            }
+            if ((file != null) && !checkFile()) {
+                StringBuffer buf = new StringBuffer("Unable to find ");
+                if (type != null) {
+                    buf.append(type).append(' ');
+                }
+                buf.append(filename).append(appendix);
+                log(buf.toString(), Project.MSG_VERBOSE);
+                return false;
+            }
+            if ((resource != null) && !checkResource(resource)) {
+                log("Unable to load resource " + resource + appendix,
+                    Project.MSG_VERBOSE);
+                return false;
+            }
+        } finally {
+            if (loader != null) {
+                loader.cleanup();
+                loader = null;
+            }
+            if (!isTask) {
+                setTaskName(null);
+            }
         }
-
-        if ((resource != null) && !checkResource(resource)) {
-            log("Unable to load resource " + resource + appendix,
-                Project.MSG_VERBOSE);
-            return false;
-        }
-
-        if (loader != null) {
-            loader.cleanup();
-            loader = null;
-        }
-
-        if (!isTask) {
-            setTaskName(null);
-        }
-
         return true;
     }
 
@@ -304,7 +319,7 @@ public class Available extends Task implements Condition {
      */
     private boolean checkFile() {
         if (filepath == null) {
-            return checkFile(getProject().resolveFile(file), file);
+            return checkFile(file, filename);
         } else {
             String[] paths = filepath.list();
             for (int i = 0; i < paths.length; ++i) {
@@ -313,7 +328,7 @@ public class Available extends Task implements Condition {
 
                 // **   full-pathname specified == path in list
                 // **   simple name specified   == path in list
-                if (path.exists() && file.equals(paths[i])) {
+                if (path.exists() && filename.equals(paths[i])) {
                     if (type == null) {
                         log("Found: " + path, Project.MSG_VERBOSE);
                         return true;
@@ -329,12 +344,10 @@ public class Available extends Task implements Condition {
                     // not the requested type
                     return false;
                 }
-
-                FileUtils fileUtils = FileUtils.newFileUtils();
-                File parent = fileUtils.getParentFile(path);
+                File parent = path.getParentFile();
                 // **   full-pathname specified == parent dir of path in list
                 if (parent != null && parent.exists()
-                    && file.equals(parent.getAbsolutePath())) {
+                    && filename.equals(parent.getAbsolutePath())) {
                     if (type == null) {
                         log("Found: " + parent, Project.MSG_VERBOSE);
                         return true;
@@ -345,32 +358,20 @@ public class Available extends Task implements Condition {
                     // not the requested type
                     return false;
                 }
-
                 // **   simple name specified   == path in list + name
                 if (path.exists() && path.isDirectory()) {
-                    if (checkFile(new File(path, file),
-                                  file + " in " + path)) {
+                    if (checkFile(new File(path, filename),
+                                  filename + " in " + path)) {
                         return true;
                     }
                 }
-
                 // **   simple name specified   == parent dir + name
-                if (parent != null && parent.exists()) {
-                    if (checkFile(new File(parent, file),
-                                  file + " in " + parent)) {
+                while (searchParents && parent != null && parent.exists()) {
+                    if (checkFile(new File(parent, filename),
+                                  filename + " in " + parent)) {
                         return true;
                     }
-                }
-
-                // **   simple name specified   == parent of parent dir + name
-                if (parent != null) {
-                    File grandParent = fileUtils.getParentFile(parent);
-                    if (grandParent != null && grandParent.exists()) {
-                        if (checkFile(new File(grandParent, file),
-                                      file + " in " + grandParent)) {
-                            return true;
-                        }
-                    }
+                    parent = parent.getParentFile();
                 }
             }
         }
@@ -422,14 +423,13 @@ public class Available extends Task implements Condition {
      */
     private boolean checkClass(String classname) {
         try {
-            Class requiredClass = null;
             if (ignoreSystemclasses) {
                 loader = getProject().createClassLoader(classpath);
                 loader.setParentFirst(false);
                 loader.addJavaLibraries();
                 if (loader != null) {
                     try {
-                        requiredClass = loader.findClass(classname);
+                        loader.findClass(classname);
                     } catch (SecurityException se) {
                         // class found but restricted name; this is
                         // actually the case we're looking for in JDK 1.3+,
@@ -440,15 +440,15 @@ public class Available extends Task implements Condition {
                     return false;
                 }
             } else if (loader != null) {
-                requiredClass = loader.loadClass(classname);
+                loader.loadClass(classname);
             } else {
                 ClassLoader l = this.getClass().getClassLoader();
                 // Can return null to represent the bootstrap class loader.
                 // see API docs of Class.getClassLoader.
                 if (l != null) {
-                    requiredClass = Class.forName(classname, true, l);
+                    Class.forName(classname, true, l);
                 } else {
-                    requiredClass = Class.forName(classname);
+                    Class.forName(classname);
                 }
             }
             return true;
@@ -475,6 +475,7 @@ public class Available extends Task implements Condition {
         /**
          * @see EnumeratedAttribute#getValues
          */
+        /** {@inheritDoc}. */
         public String[] getValues() {
             return VALUES;
         }

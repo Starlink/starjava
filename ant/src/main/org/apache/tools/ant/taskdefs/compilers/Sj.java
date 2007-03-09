@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -31,6 +32,8 @@ public class Sj extends DefaultCompilerAdapter {
 
     /**
      * Performs a compile using the sj compiler from Symantec.
+     * @return true if the compilation succeeded
+     * @throws BuildException on error
      */
     public boolean execute() throws BuildException {
         attributes.log("Using symantec java compiler", Project.MSG_VERBOSE);
@@ -45,6 +48,14 @@ public class Sj extends DefaultCompilerAdapter {
             executeExternalCompile(cmd.getCommandline(), firstFileName) == 0;
     }
 
-
+    /**
+     * Returns null since sj either has -g for debug=true or no
+     * argument at all.
+     * @return null.
+     * @since Ant 1.6.3
+     */
+    protected String getNoDebugArgument() {
+        return null;
+    }
 }
 

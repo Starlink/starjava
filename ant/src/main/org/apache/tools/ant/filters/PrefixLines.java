@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -76,7 +77,7 @@ public final class PrefixLines
      * @exception IOException if the underlying stream throws an IOException
      * during reading
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
         if (!getInitialized()) {
             initialize();
             setInitialized(true);
@@ -115,7 +116,7 @@ public final class PrefixLines
      *               May be <code>null</code>, in which case no prefix
      *               is added.
      */
-    public final void setPrefix(final String prefix) {
+    public void setPrefix(final String prefix) {
         this.prefix = prefix;
     }
 
@@ -124,7 +125,7 @@ public final class PrefixLines
      *
      * @return the prefix which will be added at the start of each input line
      */
-    private final String getPrefix() {
+    private String getPrefix() {
         return prefix;
     }
 
@@ -138,7 +139,7 @@ public final class PrefixLines
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         PrefixLines newFilter = new PrefixLines(rdr);
         newFilter.setPrefix(getPrefix());
         newFilter.setInitialized(true);
@@ -148,7 +149,7 @@ public final class PrefixLines
     /**
      * Initializes the prefix if it is available from the parameters.
      */
-    private final void initialize() {
+    private void initialize() {
         Parameter[] params = getParameters();
         if (params != null) {
             for (int i = 0; i < params.length; i++) {

@@ -1,9 +1,10 @@
 /*
- * Copyright  2003-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,7 +18,6 @@
 
 package org.apache.tools.ant.taskdefs.optional.ssh;
 
-import java.util.StringTokenizer;
 import java.io.File;
 import java.io.IOException;
 import java.io.EOFException;
@@ -29,16 +29,43 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.Channel;
 
+/**
+ * A helper object representing an scp download.
+ */
 public class ScpFromMessage extends AbstractSshMessage {
 
-    private final byte LINE_FEED = 0x0a;
-    private final int BUFFER_SIZE = 1024;
+    private static final byte LINE_FEED = 0x0a;
+    private static final int BUFFER_SIZE = 1024;
 
     private String remoteFile;
     private File localFile;
     private boolean isRecursive = false;
 
     /**
+     * Constructor for ScpFromMessage
+     * @param session the ssh session to use
+     */
+    public ScpFromMessage(Session session) {
+        super(session);
+    }
+
+    /**
+     * Constructor for ScpFromMessage
+     * @param verbose if true do verbose logging
+     * @param session the ssh session to use
+     * @since Ant 1.7
+     */
+    public ScpFromMessage(boolean verbose, Session session) {
+        super(verbose, session);
+    }
+
+    /**
+     * Constructor for ScpFromMessage.
+     * @param verbose if true log extra information
+     * @param session the Scp session to use
+     * @param aRemoteFile the remote file name
+     * @param aLocalFile  the local file
+     * @param recursive   if true use recursion (-r option to scp)
      * @since Ant 1.6.2
      */
     public ScpFromMessage(boolean verbose,
@@ -52,6 +79,13 @@ public class ScpFromMessage extends AbstractSshMessage {
         this.isRecursive = recursive;
     }
 
+    /**
+     * Constructor for ScpFromMessage.
+     * @param session the Scp session to use
+     * @param aRemoteFile the remote file name
+     * @param aLocalFile  the local file
+     * @param recursive   if true use recursion (-r option to scp)
+     */
     public ScpFromMessage(Session session,
                            String aRemoteFile,
                            File aLocalFile,
@@ -59,6 +93,11 @@ public class ScpFromMessage extends AbstractSshMessage {
         this(false, session, aRemoteFile, aLocalFile, recursive);
     }
 
+    /**
+     * Carry out the transfer.
+     * @throws IOException on i/o errors
+     * @throws JSchException on errors detected by scp
+     */
     public void execute() throws IOException, JSchException {
         String command = "scp -f ";
         if (isRecursive) {
@@ -141,10 +180,9 @@ public class ScpFromMessage extends AbstractSshMessage {
                                    InputStream in) throws IOException {
         int start = 0;
         int end = serverResponse.indexOf(" ", start + 1);
-        String command = serverResponse.substring(start, end);
         start = end + 1;
         end = serverResponse.indexOf(" ", start + 1);
-        int filesize = Integer.parseInt(serverResponse.substring(start, end));
+        long filesize = Long.parseLong(serverResponse.substring(start, end));
         String filename = serverResponse.substring(end + 1);
         log("Receiving: " + filename + " : " + filesize);
         File transferFile = (localFile.isDirectory())
@@ -156,7 +194,7 @@ public class ScpFromMessage extends AbstractSshMessage {
     }
 
     private void fetchFile(File localFile,
-                            int filesize,
+                            long filesize,
                             OutputStream out,
                             InputStream in) throws IOException {
         byte[] buf = new byte[BUFFER_SIZE];
@@ -165,20 +203,21 @@ public class ScpFromMessage extends AbstractSshMessage {
         // read a content of lfile
         FileOutputStream fos = new FileOutputStream(localFile);
         int length;
-        int totalLength = 0;
+        long totalLength = 0;
         long startTime = System.currentTimeMillis();
 
         // only track progress for files larger than 100kb in verbose mode
         boolean trackProgress = getVerbose() && filesize > 102400;
         // since filesize keeps on decreasing we have to store the
         // initial filesize
-        int initFilesize = filesize;
+        long initFilesize = filesize;
         int percentTransmitted = 0;
 
         try {
             while (true) {
                 length = in.read(buf, 0,
-                        (buf.length < filesize) ? buf.length : filesize);
+                                 (BUFFER_SIZE < filesize) ? BUFFER_SIZE
+                                                          : (int) filesize);
                 if (length < 0) {
                     throw new EOFException("Unexpected end of stream.");
                 }
@@ -190,8 +229,8 @@ public class ScpFromMessage extends AbstractSshMessage {
                 }
 
                 if (trackProgress) {
-                    percentTransmitted = trackProgress(initFilesize, 
-                                                       totalLength, 
+                    percentTransmitted = trackProgress(initFilesize,
+                                                       totalLength,
                                                        percentTransmitted);
                 }
             }

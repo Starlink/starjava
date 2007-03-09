@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,8 +19,10 @@
 package org.apache.tools.ant.taskdefs;
 
 import java.io.File;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.compilers.CompilerAdapter;
 import org.apache.tools.ant.taskdefs.compilers.CompilerAdapterFactory;
@@ -58,7 +61,6 @@ import org.apache.tools.ant.util.facade.FacadeTaskHelper;
  * destdir looking for Java source files to compile. This task makes its
  * compile decision based on timestamp.
  *
- * @version $Revision: 1.115.2.6 $
  *
  * @since Ant 1.1
  *
@@ -70,6 +72,16 @@ public class Javac extends MatchingTask {
     private static final String FAIL_MSG
         = "Compile failed; see the compiler error output for details.";
 
+    private static final String JAVAC16 = "javac1.6";
+    private static final String JAVAC15 = "javac1.5";
+    private static final String JAVAC14 = "javac1.4";
+    private static final String JAVAC13 = "javac1.3";
+    private static final String JAVAC12 = "javac1.2";
+    private static final String JAVAC11 = "javac1.1";
+    private static final String MODERN = "modern";
+    private static final String CLASSIC = "classic";
+    private static final String EXTJAVAC = "extJavac";
+
     private Path src;
     private File destDir;
     private Path compileClasspath;
@@ -80,7 +92,7 @@ public class Javac extends MatchingTask {
     private boolean deprecation = false;
     private boolean depend = false;
     private boolean verbose = false;
-    private String target;
+    private String targetAttribute;
     private Path bootclasspath;
     private Path extdirs;
     private boolean includeAntRuntime = true;
@@ -92,9 +104,11 @@ public class Javac extends MatchingTask {
     private String memoryMaximumSize;
     private FacadeTaskHelper facade = null;
 
+    // CheckStyle:VisibilityModifier OFF - bc
     protected boolean failOnError = true;
     protected boolean listFiles = false;
     protected File[] compileList = new File[0];
+    // CheckStyle:VisibilityModifier ON
 
     private String source;
     private String debugLevel;
@@ -104,18 +118,22 @@ public class Javac extends MatchingTask {
      * Javac task for compilation of Java files.
      */
     public Javac() {
-        if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_1)) {
-            facade = new FacadeTaskHelper("javac1.1");
-        } else if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)) {
-            facade = new FacadeTaskHelper("javac1.2");
+        facade = new FacadeTaskHelper(assumedJavaVersion());
+    }
+
+    private String assumedJavaVersion() {
+        if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_2)) {
+            return JAVAC12;
         } else if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_3)) {
-            facade = new FacadeTaskHelper("javac1.3");
+            return JAVAC13;
         } else if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_4)) {
-            facade = new FacadeTaskHelper("javac1.4");
+            return JAVAC14;
         } else if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_5)) {
-            facade = new FacadeTaskHelper("javac1.5");
+            return JAVAC15;
+        } else if (JavaEnvUtils.isJavaVersion(JavaEnvUtils.JAVA_1_6)) {
+            return JAVAC16;
         } else {
-            facade = new FacadeTaskHelper("classic");
+            return CLASSIC;
         }
     }
 
@@ -148,17 +166,18 @@ public class Javac extends MatchingTask {
      * @return value of source.
      */
     public String getSource() {
-        return source;
+        return source != null
+            ? source : getProject().getProperty(MagicNames.BUILD_JAVAC_SOURCE);
     }
 
     /**
      * Value of the -source command-line switch; will be ignored
      * by all implementations except modern and jikes.
      *
-     * If you use this attribute together with jikes, you must
-     * make sure that your version of jikes supports the -source switch.
-     * Legal values are 1.3, 1.4 and 1.5 - by default, no -source argument
-     * will be used at all.
+     * If you use this attribute together with jikes, you must make
+     * sure that your version of jikes supports the -source switch.
+     * Legal values are 1.3, 1.4, 1.5, and 5 - by default, no
+     * -source argument will be used at all.
      *
      * @param v  Value to assign to source.
      */
@@ -561,11 +580,11 @@ public class Javac extends MatchingTask {
     /**
      * Sets the target VM that the classes will be compiled for. Valid
      * values depend on the compiler, for jdk 1.4 the valid values are
-     * "1.1", "1.2", "1.3", "1.4" and "1.5".
+     * "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "5" and "6".
      * @param target the target VM
      */
     public void setTarget(String target) {
-        this.target = target;
+        this.targetAttribute = target;
     }
 
     /**
@@ -573,7 +592,9 @@ public class Javac extends MatchingTask {
      * @return the target VM
      */
     public String getTarget() {
-        return target;
+        return targetAttribute != null
+            ? targetAttribute
+            : getProject().getProperty(MagicNames.BUILD_JAVAC_TARGET);
     }
 
     /**
@@ -701,13 +722,54 @@ public class Javac extends MatchingTask {
      */
     public String[] getCurrentCompilerArgs() {
         String chosen = facade.getExplicitChoice();
-        // make sure facade knows about magic properties and fork setting
-        facade.setImplementation(getCompiler());
         try {
-            return facade.getArgs();
+            // make sure facade knows about magic properties and fork setting
+            String appliedCompiler = getCompiler();
+            facade.setImplementation(appliedCompiler);
+
+            String[] result = facade.getArgs();
+
+            String altCompilerName = getAltCompilerName(facade.getImplementation());
+
+            if (result.length == 0 && altCompilerName != null) {
+                facade.setImplementation(altCompilerName);
+                result = facade.getArgs();
+            }
+
+            return result;
+
         } finally {
             facade.setImplementation(chosen);
         }
+    }
+
+    private String getAltCompilerName(String anImplementation) {
+        if (JAVAC16.equalsIgnoreCase(anImplementation)
+                || JAVAC15.equalsIgnoreCase(anImplementation)
+                || JAVAC14.equalsIgnoreCase(anImplementation)
+                || JAVAC13.equalsIgnoreCase(anImplementation)) {
+            return MODERN;
+        }
+        if (JAVAC12.equalsIgnoreCase(anImplementation)
+                || JAVAC11.equalsIgnoreCase(anImplementation)) {
+            return CLASSIC;
+        }
+        if (MODERN.equalsIgnoreCase(anImplementation)) {
+            String nextSelected = assumedJavaVersion();
+            if (JAVAC16.equalsIgnoreCase(nextSelected)
+                    || JAVAC15.equalsIgnoreCase(nextSelected)
+                    || JAVAC14.equalsIgnoreCase(nextSelected)
+                    || JAVAC13.equalsIgnoreCase(nextSelected)) {
+                return nextSelected;
+            }
+        }
+        if (CLASSIC.equals(anImplementation)) {
+            return assumedJavaVersion();
+        }
+        if (EXTJAVAC.equalsIgnoreCase(anImplementation)) {
+            return assumedJavaVersion();
+        }
+        return null;
     }
 
     /**
@@ -803,17 +865,19 @@ public class Javac extends MatchingTask {
      * Is the compiler implementation a jdk compiler
      *
      * @param compilerImpl the name of the compiler implementation
-     * @return true if compilerImpl is "modern", "classic", "javac1.1",
-     *                 "javac1.2", "javac1.3", "javac1.4" or "javac1.5".
+     * @return true if compilerImpl is "modern", "classic",
+     * "javac1.1", "javac1.2", "javac1.3", "javac1.4", "javac1.5" or
+     * "javac1.6".
      */
     protected boolean isJdkCompiler(String compilerImpl) {
-        return "modern".equals(compilerImpl)
-            || "classic".equals(compilerImpl)
-            || "javac1.1".equals(compilerImpl)
-            || "javac1.2".equals(compilerImpl)
-            || "javac1.3".equals(compilerImpl)
-            || "javac1.4".equals(compilerImpl)
-            || "javac1.5".equals(compilerImpl);
+        return MODERN.equals(compilerImpl)
+            || CLASSIC.equals(compilerImpl)
+            || JAVAC16.equals(compilerImpl)
+            || JAVAC15.equals(compilerImpl)
+            || JAVAC14.equals(compilerImpl)
+            || JAVAC13.equals(compilerImpl)
+            || JAVAC12.equals(compilerImpl)
+            || JAVAC11.equals(compilerImpl);
     }
 
     /**
@@ -843,17 +907,13 @@ public class Javac extends MatchingTask {
      * attribute looks like.</p>
      *
      * @see #getCompilerVersion
-     *
+     * @return the compiler.
      * @since Ant 1.5
      */
     public String getCompiler() {
         String compilerImpl = getCompilerVersion();
         if (fork) {
             if (isJdkCompiler(compilerImpl)) {
-                if (facade.hasBeenSet()) {
-                    log("Since fork is true, ignoring compiler setting.",
-                        Project.MSG_WARN);
-                }
                 compilerImpl = "extJavac";
             } else {
                 log("Since compiler setting isn't classic or modern,"
@@ -873,6 +933,7 @@ public class Javac extends MatchingTask {
      * account.</p>
      *
      * @see #getCompiler
+     * @return the compiler.
      *
      * @since Ant 1.5
      */

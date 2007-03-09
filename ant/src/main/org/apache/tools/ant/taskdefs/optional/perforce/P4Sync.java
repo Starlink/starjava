@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -45,13 +46,14 @@ import org.apache.tools.ant.Project;
  *
  * @todo Add decent label error handling for non-exsitant labels
  *
- *
  * @ant.task category="scm"
  */
 public class P4Sync extends P4Base {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     String label;
     private String syncCmd = "";
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Label to sync client to; optional.
@@ -59,7 +61,7 @@ public class P4Sync extends P4Base {
      * @throws BuildException if label is null or empty string
      */
     public void setLabel(String label) throws BuildException {
-        if (label == null && !label.equals("")) {
+        if (label == null || label.equals("")) {
             throw new BuildException("P4Sync: Labels cannot be Null or Empty");
         }
 

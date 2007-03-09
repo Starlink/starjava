@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -44,13 +45,13 @@ public class ExecuteWatchdog implements TimeoutObserver {
     private Process process;
 
     /** say whether or not the watchdog is currently monitoring a process */
-    private boolean watch = false;
+    private volatile boolean watch = false;
 
     /** exception that might be thrown during the process execution */
     private Exception caught = null;
 
     /** say whether or not the process was killed due to running overtime */
-    private boolean     killedProcess = false;
+    private volatile boolean killedProcess = false;
 
     /** will tell us whether timeout has occurred */
     private Watchdog watchdog;
@@ -67,8 +68,10 @@ public class ExecuteWatchdog implements TimeoutObserver {
     }
 
     /**
+     * @param timeout the timeout value to use in milliseconds.
      * @see #ExecuteWatchdog(long)
-     * @deprecated Use constructor with a long type instead.
+     * @deprecated since 1.5.x.
+     *             Use constructor with a long type instead.
      * (1.4.x compatibility)
      */
     public ExecuteWatchdog(int timeout) {
@@ -101,14 +104,15 @@ public class ExecuteWatchdog implements TimeoutObserver {
      */
     public synchronized void stop() {
         watchdog.stop();
-        watch = false;
-        process = null;
+        cleanUp();
     }
 
     /**
      * Called after watchdog has finished.
+     * This can be called in the watchdog thread
+     * @param w the watchdog
      */
-    public void timeoutOccured(Watchdog w) {
+    public synchronized void timeoutOccured(Watchdog w) {
         try {
             try {
                 // We must check if the process was not stopped
@@ -132,7 +136,7 @@ public class ExecuteWatchdog implements TimeoutObserver {
     /**
      * reset the monitor flag and the process.
      */
-    protected void cleanUp() {
+    protected synchronized void cleanUp() {
         watch = false;
         process = null;
     }
@@ -145,7 +149,7 @@ public class ExecuteWatchdog implements TimeoutObserver {
      * @throws  BuildException  a wrapped exception over the one that was
      * silently swallowed and stored during the process run.
      */
-    public void checkException() throws BuildException {
+    public synchronized void checkException() throws BuildException {
         if (caught != null) {
             throw new BuildException("Exception in ExecuteWatchdog.run: "
                                      + caught.getMessage(), caught);

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,12 +24,12 @@ import org.apache.bcel.classfile.ConstantValue;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 
+// CheckStyle:HideUtilityClassConstructorCheck OFF - bc
 /**
  * Helper class that filters constants from a Java Class
  *
  */
 public final class JavaClassHelper {
-
     /** System specific line separator. */
     private static final String LS = System.getProperty("line.separator");
 
@@ -39,7 +40,7 @@ public final class JavaClassHelper {
      * @return a StringBuffer contains the name=value pairs
      * @exception IOException if an error occurs
      */
-    public static final StringBuffer getConstants(byte[] bytes)
+    public static StringBuffer getConstants(byte[] bytes)
         throws IOException {
         final StringBuffer sb = new StringBuffer();
         final ByteArrayInputStream bis = new ByteArrayInputStream(bytes);

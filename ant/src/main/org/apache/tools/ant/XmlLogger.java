@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -291,6 +292,9 @@ public class XmlLogger implements BuildLogger {
 
         Task task = event.getTask();
         String name = event.getTask().getTaskName();
+        if (name == null) {
+            name = "";
+        }
         taskElement.element.setAttribute(NAME_ATTR, name);
         taskElement.element.setAttribute(LOCATION_ATTR,
                 event.getTask().getLocation().toString());
@@ -394,6 +398,13 @@ public class XmlLogger implements BuildLogger {
         }
         messageElement.setAttribute(PRIORITY_ATTR, name);
 
+        Throwable ex = event.getException();
+        if (Project.MSG_DEBUG <= msgOutputLevel && ex != null) {
+            Text errText = doc.createCDATASection(StringUtils.getStackTrace(ex));
+            Element stacktrace = doc.createElement(STACKTRACE_TAG);
+            stacktrace.appendChild(errText);
+            buildElement.element.appendChild(stacktrace);
+        }
         Text messageText = doc.createCDATASection(event.getMessage());
         messageElement.appendChild(messageText);
 

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,7 +17,6 @@
  */
 package org.apache.tools.ant.taskdefs.optional.extension;
 
-import java.util.StringTokenizer;
 
 /**
  * Utility class to contain version numbers in "Dewey Decimal"
@@ -26,11 +26,9 @@ import java.util.StringTokenizer;
  * represent major, minor, micro, etc versions.  The version number
  * must begin with a number.
  *
- * @version $Revision: 1.4.2.4 $ $Date: 2004/03/09 17:01:45 $
+ * Original Implementation moved to org.apache.tools.ant.util.DeweyDecimal
  */
-public final class DeweyDecimal {
-    /** Array of components that make up DeweyDecimal */
-    private int[] components;
+public final class DeweyDecimal extends org.apache.tools.ant.util.DeweyDecimal {
 
     /**
      * Construct a DeweyDecimal from an array of integer components.
@@ -38,11 +36,7 @@ public final class DeweyDecimal {
      * @param components an array of integer components.
      */
     public DeweyDecimal(final int[] components) {
-        this.components = new int[components.length];
-
-        for (int i = 0; i < components.length; i++) {
-            this.components[i] = components[i];
-        }
+        super(components);
     }
 
     /**
@@ -53,159 +47,6 @@ public final class DeweyDecimal {
      */
     public DeweyDecimal(final String string)
         throws NumberFormatException {
-        final StringTokenizer tokenizer = new StringTokenizer(string, ".", true);
-        final int size = tokenizer.countTokens();
-
-        components = new int[ (size + 1) / 2 ];
-
-        for (int i = 0; i < components.length; i++) {
-            final String component = tokenizer.nextToken();
-            if (component.equals("")) {
-                throw new NumberFormatException("Empty component in string");
-            }
-
-            components[ i ] = Integer.parseInt(component);
-
-            //Strip '.' token
-            if (tokenizer.hasMoreTokens()) {
-                tokenizer.nextToken();
-
-                //If it ended in a dot, throw an exception
-                if (!tokenizer.hasMoreTokens()) {
-                    throw new NumberFormatException("DeweyDecimal ended in a '.'");
-                }
-            }
-        }
-    }
-
-    /**
-     * Return number of components in <code>DeweyDecimal</code>.
-     *
-     * @return the number of components in dewey decimal
-     */
-    public int getSize() {
-        return components.length;
-    }
-
-    /**
-     * Return the component at specified index.
-     *
-     * @param index the index of components
-     * @return the value of component at index
-     */
-    public int get(final int index) {
-        return components[ index ];
-    }
-
-    /**
-     * Return <code>true</code> if this <code>DeweyDecimal</code> is
-     * equal to the other <code>DeweyDecimal</code>.
-     *
-     * @param other the other DeweyDecimal
-     * @return true if equal to other DeweyDecimal, false otherwise
-     */
-    public boolean isEqual(final DeweyDecimal other) {
-        final int max = Math.max(other.components.length, components.length);
-
-        for (int i = 0; i < max; i++) {
-            final int component1 = (i < components.length) ? components[ i ] : 0;
-            final int component2 = (i < other.components.length) ? other.components[ i ] : 0;
-
-            if (component2 != component1) {
-                return false;
-            }
-        }
-
-        return true; // Exact match
-    }
-
-    /**
-     * Return <code>true</code> if this <code>DeweyDecimal</code> is
-     * less than the other <code>DeweyDecimal</code>.
-     *
-     * @param other the other DeweyDecimal
-     * @return true if less than other DeweyDecimal, false otherwise
-     */
-    public boolean isLessThan(final DeweyDecimal other) {
-        return !isGreaterThanOrEqual(other);
-    }
-
-    /**
-     * Return <code>true</code> if this <code>DeweyDecimal</code> is
-     * less than or equal to the other <code>DeweyDecimal</code>.
-     *
-     * @param other the other DeweyDecimal
-     * @return true if less than or equal to other DeweyDecimal, false otherwise
-     */
-    public boolean isLessThanOrEqual(final DeweyDecimal other) {
-        return !isGreaterThan(other);
-    }
-
-    /**
-     * Return <code>true</code> if this <code>DeweyDecimal</code> is
-     * greater than the other <code>DeweyDecimal</code>.
-     *
-     * @param other the other DeweyDecimal
-     * @return true if greater than other DeweyDecimal, false otherwise
-     */
-    public boolean isGreaterThan(final DeweyDecimal other) {
-        final int max = Math.max(other.components.length, components.length);
-
-        for (int i = 0; i < max; i++) {
-            final int component1 = (i < components.length) ? components[ i ] : 0;
-            final int component2 = (i < other.components.length) ? other.components[ i ] : 0;
-
-            if (component2 > component1) {
-                return false;
-            }
-            if (component2 < component1) {
-                return true;
-            }
-        }
-
-        return false; // Exact match
-    }
-
-    /**
-     * Return <code>true</code> if this <code>DeweyDecimal</code> is
-     * greater than or equal to the other <code>DeweyDecimal</code>.
-     *
-     * @param other the other DeweyDecimal
-     * @return true if greater than or equal to other DeweyDecimal, false otherwise
-     */
-    public boolean isGreaterThanOrEqual(final DeweyDecimal other) {
-        final int max = Math.max(other.components.length, components.length);
-
-        for (int i = 0; i < max; i++) {
-            final int component1 = (i < components.length) ? components[ i ] : 0;
-            final int component2 = (i < other.components.length) ? other.components[ i ] : 0;
-
-            if (component2 > component1) {
-                return false;
-            }
-            if (component2 < component1) {
-                return true;
-            }
-        }
-
-        return true; // Exact match
-    }
-
-    /**
-     * Return string representation of <code>DeweyDecimal</code>.
-     *
-     * @return the string representation of DeweyDecimal.
-     */
-    public String toString() {
-        final StringBuffer sb = new StringBuffer();
-
-        for (int i = 0; i < components.length; i++) {
-            if (i != 0) {
-                sb.append('.');
-            }
-            sb.append(components[ i ]);
-        }
-
-        return sb.toString();
+        super(string);
     }
 }

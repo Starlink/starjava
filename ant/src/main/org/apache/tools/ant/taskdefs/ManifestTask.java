@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -24,16 +25,18 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Enumeration;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 
 /**
  * Creates a manifest file for inclusion in a JAR, Ant task wrapper
  * around {@link Manifest Manifest}.  This task can be used to write a
  * Manifest file, optionally replacing or updating an existing file.
- *
  *
  * @since Ant 1.5
  *
@@ -164,16 +167,16 @@ public class ManifestTask extends Task {
                 error = new BuildException("Failed to read " + manifestFile,
                                            e, getLocation());
             } finally {
-                if (isr != null) {
-                    try {
-                        isr.close();
-                    } catch (IOException e) {
-                        // ignore
-                    }
-                }
+                FileUtils.close(isr);
             }
         }
 
+        //look for and print warnings
+        for (Enumeration e = nestedManifest.getWarnings();
+                e.hasMoreElements();) {
+            log("Manifest warning: " + (String) e.nextElement(),
+                    Project.MSG_WARN);
+        }
         try {
             if (mode.getValue().equals("update") && manifestFile.exists()) {
                 if (current != null) {
@@ -197,7 +200,7 @@ public class ManifestTask extends Task {
         PrintWriter w = null;
         try {
             FileOutputStream fos = new FileOutputStream(manifestFile);
-            OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
+            OutputStreamWriter osw = new OutputStreamWriter(fos, Manifest.JAR_ENCODING);
             w = new PrintWriter(osw);
             toWrite.write(w);
         } catch (IOException e) {

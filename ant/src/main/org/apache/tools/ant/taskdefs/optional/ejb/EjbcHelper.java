@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -34,7 +35,7 @@ import javax.ejb.deployment.EntityDescriptor;
  * interface class files referenced in the deployment descriptors being processed.
  *
  */
-public class EjbcHelper {
+public final class EjbcHelper {
     /**
      * The root directory of the tree containing the serialised deployment desciptors.
      */
@@ -56,15 +57,19 @@ public class EjbcHelper {
      */
     private File sourceDirectory;
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /**
      * The names of the serialised deployment descriptors
      */
     String[] descriptors;
+    // CheckStyle:VisibilityModifier ON
 
     private boolean keepGenerated;
 
     /**
      * Command line interface for the ejbc helper task.
+     * @param args command line arguments.
+     * @throws Exception if there is a problem.
      */
     public static void main(String[] args) throws Exception {
         EjbcHelper helper = new EjbcHelper(args);
@@ -142,7 +147,7 @@ public class EjbcHelper {
                 primaryKeyClassPath
                     = ((EntityDescriptor) dd).getPrimaryKeyClassName();
                 primaryKeyClassPath
-                    = primaryKeyClassPath.replace('.', '/') + ".java";;
+                    = primaryKeyClassPath.replace('.', '/') + ".java";
             }
 
             File homeInterfaceSource = new File(sourceDirectory, homeInterfacePath);

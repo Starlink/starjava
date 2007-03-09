@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -42,6 +43,12 @@ import org.apache.tools.ant.BuildException;
  </p>
  <p>
  * Also, dependency checking only works if destfile is set.
+ *
+ * <p>For historical reasons the pattern
+ * <code>**</code><code>/*.vb</code> is preset as includes list and
+ * you can not override it with an explicit includes attribute.  Use
+ * nested <code>&lt;src&gt;</code> elements instead of the basedir
+ * attribute if you need more control.</p>
  *
  * As with &lt;csc&gt; nested <tt>src</tt> filesets of source,
  * reference filesets, definitions and resources can be provided.
@@ -310,7 +317,7 @@ public class VisualBasicCompile extends DotnetCompile {
 
     /**
      * implement VBC commands
-     * @param command
+     * @param command the command to set arguements on.
      */
     protected void addCompilerSpecificOptions(NetCommand command) {
         command.addArgument(getRemoveIntChecksParameter());
@@ -340,14 +347,9 @@ public class VisualBasicCompile extends DotnetCompile {
         return "vb";
     }
 
-    /**
-     * from a resource, get the resource param
-     * @param resource
-     * @return a string containing the resource param, or a null string
-     * to conditionally exclude a resource.
-     */
-    protected String createResourceParameter(DotnetResource resource) {
-        return resource.getVbStyleParameter();
+    /** {@inheritDoc} */
+    protected void createResourceParameter(NetCommand command, DotnetResource resource) {
+        resource.getParameters(getProject(), command, false);
     }
 
     /**

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,7 +24,6 @@ import org.apache.tools.ant.types.FileSet;
  * Asociated with the libraries is data pertaining to
  * how they are to be handled when building manifests.
  *
- * @version $Revision: 1.3.2.4 $ $Date: 2004/03/09 17:01:45 $
  */
 public class LibFileSet
     extends FileSet {
@@ -63,7 +63,6 @@ public class LibFileSet
      * Defaults to false.
      *
      * @param includeURL the flag
-     * @see #includeURL
      */
     public void setIncludeUrl(boolean includeURL) {
         this.includeURL = includeURL;
@@ -75,7 +74,6 @@ public class LibFileSet
      * Defaults to false.
      *
      * @param includeImpl the flag
-     * @see #includeImpl
      */
     public void setIncludeImpl(boolean includeImpl) {
         this.includeImpl = includeImpl;
@@ -85,7 +83,6 @@ public class LibFileSet
      * Set the url base for fileset.
      *
      * @param urlBase the base url
-     * @see #urlBase
      */
     public void setUrlBase(String urlBase) {
         this.urlBase = urlBase;

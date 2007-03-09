@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -52,6 +53,8 @@ import org.apache.tools.ant.util.StringUtils;
  */
 public class Replace extends MatchingTask {
 
+    private static final FileUtils FILE_UTILS = FileUtils.getFileUtils();
+
     private File src = null;
     private NestedString token = null;
     private NestedString value = new NestedString();
@@ -70,17 +73,15 @@ public class Replace extends MatchingTask {
     /** The encoding used to read and write files - if null, uses default */
     private String encoding = null;
 
-    private FileUtils fileUtils = FileUtils.newFileUtils();
-
     /**
-     * an inline string to use as the replacement text
+     * An inline string to use as the replacement text.
      */
     public class NestedString {
 
         private StringBuffer buf = new StringBuffer();
 
         /**
-         * the text of the element
+         * The text of the element.
          *
          * @param val the string to add
          */
@@ -92,7 +93,7 @@ public class Replace extends MatchingTask {
          * @return the text
          */
         public String getText() {
-            return buf.substring(0);
+            return buf.toString();
         }
     }
 
@@ -102,11 +103,15 @@ public class Replace extends MatchingTask {
     public class Replacefilter {
         private String token;
         private String value;
+        private String replaceValue;
         private String property;
 
+        private StringBuffer inputBuffer;
+        private StringBuffer outputBuffer = new StringBuffer();
+
         /**
-         * validate the filter's configuration
-         * @throws BuildException if any part is invalid
+         * Validate the filter's configuration.
+         * @throws BuildException if any part is invalid.
          */
         public void validate() throws BuildException {
             //Validate mandatory attributes
@@ -147,6 +152,8 @@ public class Replace extends MatchingTask {
                     throw new BuildException(message);
                 }
             }
+
+            replaceValue = getReplaceValue();
         }
 
         /**
@@ -162,21 +169,21 @@ public class Replace extends MatchingTask {
                 return Replace.this.value.getText();
             } else {
                 //Default is empty string
-                return new String("");
+                return "";
             }
         }
 
         /**
-         * Set the token to replace
-         * @param token token
+         * Set the token to replace.
+         * @param token <code>String</code> token.
          */
         public void setToken(String token) {
             this.token = token;
         }
 
         /**
-         * Get the string to search for
-         * @return current token
+         * Get the string to search for.
+         * @return current <code>String</code> token.
          */
         public String getToken() {
             return token;
@@ -184,16 +191,16 @@ public class Replace extends MatchingTask {
 
         /**
          * The replacement string; required if <code>property<code>
-         * is not set
-         * @param value value to replace
+         * is not set.
+         * @param value <code>String</code> value to replace.
          */
         public void setValue(String value) {
             this.value = value;
         }
 
         /**
-         * Get replacements string
-         * @return replacement or null
+         * Get replacement <code>String</code>.
+         * @return replacement or null.
          */
         public String getValue() {
             return value;
@@ -202,7 +209,7 @@ public class Replace extends MatchingTask {
         /**
          * Set the name of the property whose value is to serve as
          * the replacement value; required if <code>value</code> is not set.
-         * @param property propname
+         * @param property property name.
          */
         public void setProperty(String property) {
             this.property = property;
@@ -210,11 +217,222 @@ public class Replace extends MatchingTask {
 
         /**
          * Get the name of the property whose value is to serve as
-         * the replacement value;
-         * @return property or null
+         * the replacement value.
+         * @return property or null.
          */
         public String getProperty() {
             return property;
+        }
+
+        /**
+         * Retrieves the output buffer of this filter. The filter guarantees
+         * that data is only appended to the end of this StringBuffer.
+         * @return The StringBuffer containing the output of this filter.
+         */
+        StringBuffer getOutputBuffer() {
+            return outputBuffer;
+        }
+
+        /**
+         * Sets the input buffer for this filter.
+         * The filter expects from the component providing the input that data
+         * is only added by that component to the end of this StringBuffer.
+         * This StringBuffer will be modified by this filter, and expects that
+         * another component will only apped to this StringBuffer.
+         * @param input The input for this filter.
+         */
+        void setInputBuffer(StringBuffer input) {
+            inputBuffer = input;
+        }
+
+        /**
+         * Processes the buffer as far as possible. Takes into account that
+         * appended data may make it possible to replace the end of the already
+         * received data, when the token is split over the "old" and the "new"
+         * part.
+         * @return true if some data has been made available in the
+         *         output buffer.
+         */
+        boolean process() {
+            if (inputBuffer.length() > token.length()) {
+                int pos = replace();
+                pos = Math.max((inputBuffer.length() - token.length()), pos);
+                outputBuffer.append(inputBuffer.substring(0, pos));
+                inputBuffer.delete(0, pos);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Processes the buffer to the end. Does not take into account that
+         * appended data may make it possible to replace the end of the already
+         * received data.
+         */
+        void flush() {
+            replace();
+            // Avoid runtime problem on pre 1.4 when compiling post 1.4
+            outputBuffer.append(inputBuffer.toString());
+            inputBuffer.delete(0, inputBuffer.length());
+        }
+
+        /**
+         * Performs the replace operation.
+         * @return The position of the last character that was inserted as
+         *         replacement.
+         */
+        private int replace() {
+            int found = inputBuffer.toString().indexOf(token);
+            int pos = -1;
+            while (found >= 0) {
+                inputBuffer.replace(found, found + token.length(),
+                        replaceValue);
+                pos = found + replaceValue.length();
+                found = inputBuffer.toString().indexOf(token, pos);
+                ++replaceCount;
+            }
+            return pos;
+        }
+    }
+
+    /**
+     * Class reading a file in small chunks, and presenting these chunks in
+     * a StringBuffer. Compatible with the Replacefilter.
+     * @since 1.7
+     */
+    private class FileInput {
+        private StringBuffer outputBuffer;
+        private Reader reader;
+        private char[] buffer;
+        private static final int BUFF_SIZE = 4096;
+
+        /**
+         * Constructs the input component. Opens the file for reading.
+         * @param source The file to read from.
+         * @throws IOException When the file cannot be read from.
+         */
+        FileInput(File source) throws IOException {
+            outputBuffer = new StringBuffer();
+            buffer = new char[BUFF_SIZE];
+            if (encoding == null) {
+                reader = new BufferedReader(new FileReader(source));
+            } else {
+                reader = new BufferedReader(new InputStreamReader(
+                        new FileInputStream(source), encoding));
+            }
+        }
+
+        /**
+         * Retrieves the output buffer of this filter. The component guarantees
+         * that data is only appended to the end of this StringBuffer.
+         * @return The StringBuffer containing the output of this filter.
+         */
+        StringBuffer getOutputBuffer() {
+            return outputBuffer;
+        }
+
+        /**
+         * Reads some data from the file.
+         * @return true when the end of the file has not been reached.
+         * @throws IOException When the file cannot be read from.
+         */
+        boolean readChunk() throws IOException {
+            int bufferLength = 0;
+            bufferLength = reader.read(buffer);
+            if (bufferLength < 0) {
+                return false;
+            }
+            outputBuffer.append(new String(buffer, 0, bufferLength));
+            return true;
+        }
+
+        /**
+         * Closes the file.
+         * @throws IOException When the file cannot be closed.
+         */
+        void close() throws IOException {
+            reader.close();
+        }
+
+        /**
+         * Closes file but doesn't throw exception
+         */
+        void closeQuietly() {
+            FileUtils.close(reader);
+        }
+
+    }
+
+    /**
+     * Component writing a file in chunks, taking the chunks from the
+     * Replacefilter.
+     * @since 1.7
+     */
+    private class FileOutput {
+        private StringBuffer inputBuffer;
+        private Writer writer;
+
+        /**
+         * Constructs the output component. Opens the file for writing.
+         * @param out The file to read to.
+         * @throws IOException When the file cannot be read from.
+         */
+        FileOutput(File out) throws IOException {
+                if (encoding == null) {
+                    writer = new BufferedWriter(new FileWriter(out));
+                } else {
+                    writer = new BufferedWriter(new OutputStreamWriter
+                            (new FileOutputStream(out), encoding));
+                }
+        }
+
+        /**
+         * Sets the input buffer for this component.
+         * The filter expects from the component providing the input that data
+         * is only added by that component to the end of this StringBuffer.
+         * This StringBuffer will be modified by this filter, and expects that
+         * another component will only append to this StringBuffer.
+         * @param input The input for this filter.
+         */
+        void setInputBuffer(StringBuffer input) {
+            inputBuffer = input;
+        }
+
+        /**
+         * Writes the buffer as far as possible.
+         * @return false to be inline with the Replacefilter.
+         * (Yes defining an interface crossed my mind, but would publish the
+         * internal behavior.)
+         * @throws IOException when the output cannot be written.
+         */
+        boolean process() throws IOException {
+            writer.write(inputBuffer.toString());
+            inputBuffer.delete(0, inputBuffer.length());
+            return false;
+        }
+
+        /**
+         * Processes the buffer to the end.
+         * @throws IOException when the output cannot be flushed.
+         */
+        void flush() throws IOException {
+            process();
+            writer.flush();
+        }
+
+        /**
+         * Closes the file.
+         * @throws IOException When the file cannot be closed.
+         */
+        void close() throws IOException {
+            writer.close();
+        }
+
+        /**
+         * Closes file but doesn't throw exception
+         */
+        void closeQuietly() {
+            FileUtils.close(writer);
         }
     }
 
@@ -228,15 +446,30 @@ public class Replace extends MatchingTask {
         Properties savedProperties =
             properties == null ? null : (Properties) properties.clone();
 
+        if (token != null) {
+            // line separators in values and tokens are "\n"
+            // in order to compare with the file contents, replace them
+            // as needed
+            StringBuffer val = new StringBuffer(value.getText());
+            stringReplace(val, "\r\n", "\n");
+            stringReplace(val, "\n", StringUtils.LINE_SEP);
+            StringBuffer tok = new StringBuffer(token.getText());
+            stringReplace(tok, "\r\n", "\n");
+            stringReplace(tok, "\n", StringUtils.LINE_SEP);
+            Replacefilter firstFilter = createPrimaryfilter();
+            firstFilter.setToken(tok.toString());
+            firstFilter.setValue(val.toString());
+        }
+
         try {
             if (replaceFilterFile != null) {
                 Properties props = getProperties(replaceFilterFile);
                 Enumeration e = props.keys();
                 while (e.hasMoreElements()) {
-                    String token =  e.nextElement().toString();
+                    String tok =  e.nextElement().toString();
                     Replacefilter replaceFilter = createReplacefilter();
-                    replaceFilter.setToken(token);
-                    replaceFilter.setValue(props.getProperty(token));
+                    replaceFilter.setToken(tok);
+                    replaceFilter.setValue(props.getProperty(tok));
                 }
             }
 
@@ -279,7 +512,7 @@ public class Replace extends MatchingTask {
      * Validate attributes provided for this task in .xml build file.
      *
      * @exception BuildException if any supplied attribute is invalid or any
-     * mandatory attribute is missing
+     * mandatory attribute is missing.
      */
     public void validateAttributes() throws BuildException {
         if (src == null && dir == null) {
@@ -307,7 +540,7 @@ public class Replace extends MatchingTask {
      * Validate nested elements.
      *
      * @exception BuildException if any supplied attribute is invalid or any
-     * mandatory attribute is missing
+     * mandatory attribute is missing.
      */
     public void validateReplacefilters()
             throws BuildException {
@@ -319,17 +552,18 @@ public class Replace extends MatchingTask {
     }
 
     /**
-     * helper method to load a properties file and throw a build exception
-     * if it cannot be loaded
-     * @param propertyFile the file to load the properties from
-     * @return loaded properties collection
-     * @throws BuildException if the file could not be found or read
+     * Load a properties file.
+     * @param propertyFile the file to load the properties from.
+     * @return loaded <code>Properties</code> object.
+     * @throws BuildException if the file could not be found or read.
      */
     public Properties getProperties(File propertyFile) throws BuildException {
-        Properties properties = new Properties();
+        Properties props = new Properties();
 
+        FileInputStream in = null;
         try {
-            properties.load(new FileInputStream(propertyFile));
+            in = new FileInputStream(propertyFile);
+            props.load(in);
         } catch (FileNotFoundException e) {
             String message = "Property file (" + propertyFile.getPath()
                 + ") not found.";
@@ -338,9 +572,11 @@ public class Replace extends MatchingTask {
             String message = "Property file (" + propertyFile.getPath()
                 + ") cannot be loaded.";
             throw new BuildException(message);
+        } finally {
+            FileUtils.close(in);
         }
 
-        return properties;
+        return props;
     }
 
     /**
@@ -349,7 +585,7 @@ public class Replace extends MatchingTask {
      * The replacement is performed on a temporary file which then
      * replaces the original file.
      *
-     * @param src the source file
+     * @param src the source <code>File</code>.
      */
     private void processFile(File src) throws BuildException {
         if (!src.exists()) {
@@ -357,123 +593,114 @@ public class Replace extends MatchingTask {
                                      + " doesn't exist", getLocation());
         }
 
-        File temp = fileUtils.createTempFile("rep", ".tmp",
-                                             fileUtils.getParentFile(src));
-        temp.deleteOnExit();
-
-        Reader reader = null;
-        Writer writer = null;
+        File temp = null;
+        FileInput in = null;
+        FileOutput out = null;
         try {
-            reader = encoding == null ? new FileReader(src)
-                : new InputStreamReader(new FileInputStream(src), encoding);
-            writer = encoding == null ? new FileWriter(temp)
-                : new OutputStreamWriter(new FileOutputStream(temp), encoding);
+            in = new FileInput(src);
 
-            BufferedReader br = new BufferedReader(reader);
-            BufferedWriter bw = new BufferedWriter(writer);
+            temp = FILE_UTILS.createTempFile("rep", ".tmp",
+                    src.getParentFile());
+            out = new FileOutput(temp);
 
-            String buf = fileUtils.readFully(br);
-            if (buf == null) {
-                buf = "";
+            int repCountStart = replaceCount;
+
+            logFilterChain(src.getPath());
+
+            out.setInputBuffer(buildFilterChain(in.getOutputBuffer()));
+
+            while (in.readChunk()) {
+                if (processFilterChain()) {
+                    out.process();
+                }
             }
 
-            //Preserve original string (buf) so we can compare the result
-            String newString = new String(buf);
+            flushFilterChain();
 
-            if (token != null) {
-                // line separators in values and tokens are "\n"
-                // in order to compare with the file contents, replace them
-                // as needed
-                String val = stringReplace(value.getText(), "\r\n",
-                                           "\n", false);
-                val = stringReplace(val, "\n",
-                                           StringUtils.LINE_SEP, false);
-                String tok = stringReplace(token.getText(), "\r\n",
-                                            "\n", false);
-                tok = stringReplace(tok, "\n",
-                                           StringUtils.LINE_SEP, false);
+            out.flush();
+            in.close();
+            in = null;
+            out.close();
+            out = null;
 
-                // for each found token, replace with value
-                log("Replacing in " + src.getPath() + ": " + token.getText()
-                    + " --> " + value.getText(), Project.MSG_VERBOSE);
-                newString = stringReplace(newString, tok, val, true);
-            }
-
-            if (replacefilters.size() > 0) {
-                newString = processReplacefilters(newString, src.getPath());
-            }
-
-            boolean changes = !newString.equals(buf);
+            boolean changes = (replaceCount != repCountStart);
             if (changes) {
-                bw.write(newString, 0, newString.length());
-                bw.flush();
-            }
-
-            // cleanup
-            bw.close();
-            writer = null;
-            br.close();
-            reader = null;
-
-            // If there were changes, move the new one to the old one;
-            // otherwise, delete the new one
-            if (changes) {
-                ++fileCount;
-                fileUtils.rename(temp, src);
+                FILE_UTILS.rename(temp, src);
                 temp = null;
             }
         } catch (IOException ioe) {
             throw new BuildException("IOException in " + src + " - "
-                                    + ioe.getClass().getName() + ":"
-                                    + ioe.getMessage(), ioe, getLocation());
+                    + ioe.getClass().getName() + ":"
+                    + ioe.getMessage(), ioe, getLocation());
         } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+            if (null != in) {
+                in.closeQuietly();
             }
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+            if (null != out) {
+                out.closeQuietly();
             }
             if (temp != null) {
-                temp.delete();
+                if (!temp.delete()) {
+                    temp.deleteOnExit();
+                }
             }
         }
-
     }
 
     /**
-     * apply all replace filters to a buffer
-     * @param buffer string to filter
-     * @param filename filename for logging purposes
-     * @return filtered string
+     * Flushes all filters.
      */
-    private String processReplacefilters(String buffer, String filename) {
-        String newString = new String(buffer);
-
+    private void flushFilterChain() {
         for (int i = 0; i < replacefilters.size(); i++) {
             Replacefilter filter = (Replacefilter) replacefilters.elementAt(i);
-
-            //for each found token, replace with value
-            log("Replacing in " + filename + ": " + filter.getToken()
-                + " --> " + filter.getReplaceValue(), Project.MSG_VERBOSE);
-            newString = stringReplace(newString, filter.getToken(),
-                                      filter.getReplaceValue(), true);
+            filter.flush();
         }
-
-        return newString;
     }
 
+    /**
+     * Performs the normal processing of the filters.
+     * @return true if the filter chain produced new output.
+     */
+    private boolean processFilterChain() {
+        for (int i = 0; i < replacefilters.size(); i++) {
+            Replacefilter filter = (Replacefilter) replacefilters.elementAt(i);
+            if (!filter.process()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
+     * Creates the chain of filters to operate.
+     * @param inputBuffer <code>StringBuffer</code> containing the input for the
+     *                    first filter.
+     * @return <code>StringBuffer</code> containing the output of the last filter.
+     */
+    private StringBuffer buildFilterChain(StringBuffer inputBuffer) {
+        StringBuffer buf = inputBuffer;
+        for (int i = 0; i < replacefilters.size(); i++) {
+            Replacefilter filter = (Replacefilter) replacefilters.elementAt(i);
+            filter.setInputBuffer(buf);
+            buf = filter.getOutputBuffer();
+        }
+        return buf;
+    }
+
+    /**
+     * Logs the chain of filters to operate on the file.
+     * @param filename <code>String</code>.
+     */
+    private void logFilterChain(String filename) {
+        for (int i = 0; i < replacefilters.size(); i++) {
+            Replacefilter filter = (Replacefilter) replacefilters.elementAt(i);
+            log("Replacing in " + filename + ": " + filter.getToken()
+                    + " --> " + filter.getReplaceValue(), Project.MSG_VERBOSE);
+        }
+    }
+    /**
      * Set the source file; required unless <code>dir</code> is set.
-     * @param file source file
+     * @param file source <code>File</code>.
      */
     public void setFile(File file) {
         this.src = file;
@@ -482,10 +709,10 @@ public class Replace extends MatchingTask {
     /**
      * Indicates whether a summary of the replace operation should be
      * produced, detailing how many token occurrences and files were
-     * processed; optional, default=false
+     * processed; optional, default=<code>false</code>.
      *
-     * @param summary true if you would like a summary logged of the
-     * replace operation
+     * @param summary <code>boolean</code> whether a summary of the
+     *                replace operation should be logged.
      */
     public void setSummary(boolean summary) {
         this.summary = summary;
@@ -494,30 +721,28 @@ public class Replace extends MatchingTask {
 
     /**
      * Sets the name of a property file containing filters; optional.
-     * Each property will be treated as a
-     * replacefilter where token is the name of the property and value
-     * is the value of the property.
-     * @param filename file to load
+     * Each property will be treated as a replacefilter where token is the name
+     * of the property and value is the value of the property.
+     * @param replaceFilterFile <code>File</code> to load.
      */
-    public void setReplaceFilterFile(File filename) {
-        replaceFilterFile = filename;
+    public void setReplaceFilterFile(File replaceFilterFile) {
+        this.replaceFilterFile = replaceFilterFile;
     }
 
     /**
      * The base directory to use when replacing a token in multiple files;
      * required if <code>file</code> is not defined.
-     * @param dir base dir
+     * @param dir <code>File</code> representing the base directory.
      */
     public void setDir(File dir) {
         this.dir = dir;
     }
 
     /**
-     * Set the string token to replace;
-     * required unless a nested
+     * Set the string token to replace; required unless a nested
      * <code>replacetoken</code> element or the <code>replacefilterfile</code>
      * attribute is used.
-     * @param token token string
+     * @param token token <code>String</code>.
      */
     public void setToken(String token) {
         createReplaceToken().addText(token);
@@ -525,8 +750,8 @@ public class Replace extends MatchingTask {
 
     /**
      * Set the string value to use as token replacement;
-     * optional, default is the empty string ""
-     * @param value replacement value
+     * optional, default is the empty string "".
+     * @param value replacement value.
      */
     public void setValue(String value) {
         createReplaceValue().addText(value);
@@ -534,17 +759,17 @@ public class Replace extends MatchingTask {
 
     /**
      * Set the file encoding to use on the files read and written by the task;
-     * optional, defaults to default JVM encoding
+     * optional, defaults to default JVM encoding.
      *
-     * @param encoding the encoding to use on the files
+     * @param encoding the encoding to use on the files.
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
 
     /**
-     * the token to filter as the text of a nested element
-     * @return nested token to configure
+     * Create a token to filter as the text of a nested element.
+     * @return nested token <code>NestedString</code> to configure.
      */
     public NestedString createReplaceToken() {
         if (token == null) {
@@ -554,27 +779,26 @@ public class Replace extends MatchingTask {
     }
 
     /**
-     * the string to replace the token as the text of a nested element
-     * @return replacement value to configure
+     * Create a string to replace the token as the text of a nested element.
+     * @return replacement value <code>NestedString</code> to configure.
      */
     public NestedString createReplaceValue() {
         return value;
     }
 
     /**
-     * The name of a property file from which properties specified using
-     * nested <code>&lt;replacefilter&gt;</code> elements are drawn;
-     * Required only if <i>property</i> attribute of
-     * <code>&lt;replacefilter&gt;</code> is used.
-     * @param filename file to load
+     * The name of a property file from which properties specified using nested
+     * <code>&lt;replacefilter&gt;</code> elements are drawn; required only if
+     * the <i>property</i> attribute of <code>&lt;replacefilter&gt;</code> is used.
+     * @param propertyFile <code>File</code> to load.
      */
-    public void setPropertyFile(File filename) {
-        propertyFile = filename;
+    public void setPropertyFile(File propertyFile) {
+        this.propertyFile = propertyFile;
     }
 
     /**
      * Add a nested &lt;replacefilter&gt; element.
-     * @return a nested ReplaceFilter object to be configured
+     * @return a nested <code>Replacefilter</code> object to be configured.
      */
     public Replacefilter createReplacefilter() {
         Replacefilter filter = new Replacefilter();
@@ -583,38 +807,25 @@ public class Replace extends MatchingTask {
     }
 
     /**
-     * Replace occurrences of str1 in string str with str2
+     * Adds the token and value as first &lt;replacefilter&gt; element.
+     * The token and value are always processed first.
+     * @return a nested <code>Replacefilter</code> object to be configured.
      */
-    private String stringReplace(String str, String str1, String str2,
-                                 boolean countReplaces) {
-        StringBuffer ret = new StringBuffer();
-        int start = 0;
-        int found = str.indexOf(str1);
+    private Replacefilter createPrimaryfilter() {
+        Replacefilter filter = new Replacefilter();
+        replacefilters.insertElementAt(filter, 0);
+        return filter;
+    }
+
+    /**
+     * Replace occurrences of str1 in StringBuffer str with str2.
+     */
+    private void stringReplace(StringBuffer str, String str1, String str2) {
+        int found = str.toString().indexOf(str1);
         while (found >= 0) {
-            // write everything up to the found str1
-            if (found > start) {
-                ret.append(str.substring(start, found));
-            }
-
-            // write the replacement str2
-            if (str2 != null) {
-                ret.append(str2);
-            }
-
-            // search again
-            start = found + str1.length();
-            found = str.indexOf(str1, start);
-            if (countReplaces) {
-                ++replaceCount;
-            }
+            str.replace(found, found + str1.length(), str2);
+            found = str.toString().indexOf(str1, found + str2.length());
         }
-
-        // write the remaining characters
-        if (str.length() > start) {
-            ret.append(str.substring(start, str.length()));
-        }
-
-        return ret.toString();
     }
 
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -20,6 +21,7 @@ package org.apache.tools.ant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -51,8 +53,25 @@ public class Target implements TaskContainer {
     /** Description of this target, if any. */
     private String description = null;
 
-    /** Sole constructor. */
+    /** Default constructor. */
     public Target() {
+        //empty
+    }
+
+    /**
+     * Cloning constructor.
+     * @param other the Target to clone.
+     */
+    public Target(Target other) {
+        this.name = other.name;
+        this.ifCondition = other.ifCondition;
+        this.unlessCondition = other.unlessCondition;
+        this.dependencies = other.dependencies;
+        this.location = other.location;
+        this.project = other.project;
+        this.description = other.description;
+        // The children are added to after this cloning
+        this.children = other.children;
     }
 
     /**
@@ -78,7 +97,8 @@ public class Target implements TaskContainer {
     /**
      * Sets the location of this target's definition.
      *
-     * @param location   <CODE>Location</CODE>
+     * @param location   <code>Location</code>
+     * @since 1.6.2
      */
     public void setLocation(Location location) {
         this.location = location;
@@ -87,7 +107,8 @@ public class Target implements TaskContainer {
     /**
      * Get the location of this target's definition.
      *
-     * @return <CODE>Location</CODE>
+     * @return <code>Location</code>
+     * @since 1.6.2
      */
     public Location getLocation() {
         return location;
@@ -108,10 +129,10 @@ public class Target implements TaskContainer {
                 String token = tok.nextToken().trim();
 
                 // Make sure the dependency is not empty string
-                if (token.equals("") || token.equals(",")) {
-                    throw new BuildException("Syntax Error: Depend "
-                        + "attribute for target \"" + getName()
-                        + "\" has an empty string for dependency.");
+                if ("".equals(token) || ",".equals(token)) {
+                    throw new BuildException("Syntax Error: depends "
+                        + "attribute of target \"" + getName()
+                        + "\" has an empty string as dependency.");
                 }
 
                 addDependency(token);
@@ -120,7 +141,7 @@ public class Target implements TaskContainer {
                 // end in a ,
                 if (tok.hasMoreTokens()) {
                     token = tok.nextToken();
-                    if (!tok.hasMoreTokens() || !token.equals(",")) {
+                    if (!tok.hasMoreTokens() || !",".equals(token)) {
                         throw new BuildException("Syntax Error: Depend "
                             + "attribute for target \"" + getName()
                             + "\" ends with a , character");
@@ -205,11 +226,8 @@ public class Target implements TaskContainer {
      * @return an enumeration of the dependencies of this target
      */
     public Enumeration getDependencies() {
-        if (dependencies != null) {
-            return Collections.enumeration(dependencies);
-        } else {
-            return new CollectionUtils.EmptyEnumeration();
-        }
+        return (dependencies != null ? Collections.enumeration(dependencies)
+                                     : new CollectionUtils.EmptyEnumeration());
     }
 
     /**
@@ -219,14 +237,10 @@ public class Target implements TaskContainer {
      * @since Ant 1.6
      */
     public boolean dependsOn(String other) {
-        if (getProject() != null) {
-            List l = getProject().topoSort(getName(),
-                                           getProject().getTargets());
-            int myIdx = l.indexOf(this);
-            int otherIdx = l.indexOf(getProject().getTargets().get(other));
-            return myIdx >= otherIdx;
-        }
-        return false;
+        Project p = getProject();
+        Hashtable t = (p == null) ? null : p.getTargets();
+        return (p != null
+                && p.topoSort(getName(), t, false).contains(t.get(other)));
     }
 
     /**
@@ -243,7 +257,7 @@ public class Target implements TaskContainer {
      *                 no "if" test is performed.
      */
     public void setIf(String property) {
-        this.ifCondition = (property == null) ? "" : property;
+        ifCondition = (property == null) ? "" : property;
     }
 
     /**
@@ -251,6 +265,7 @@ public class Target implements TaskContainer {
      *
      * @return the "if" property condition or <code>null</code> if no
      *         "if" condition had been defined.
+     * @since 1.6.2
      */
     public String getIf() {
         return ("".equals(ifCondition) ? null : ifCondition);
@@ -270,7 +285,7 @@ public class Target implements TaskContainer {
      *                 no "unless" test is performed.
      */
     public void setUnless(String property) {
-        this.unlessCondition = (property == null) ? "" : property;
+        unlessCondition = (property == null) ? "" : property;
     }
 
     /**
@@ -278,6 +293,7 @@ public class Target implements TaskContainer {
      *
      * @return the "unless" property condition or <code>null</code>
      *         if no "unless" condition had been defined.
+     * @since 1.6.2
      */
     public String getUnless() {
         return ("".equals(unlessCondition) ? null : unlessCondition);
@@ -346,11 +362,11 @@ public class Target implements TaskContainer {
             }
         } else if (!testIfCondition()) {
             project.log(this, "Skipped because property '"
-                        + project.replaceProperties(this.ifCondition)
+                        + project.replaceProperties(ifCondition)
                         + "' not set.", Project.MSG_VERBOSE);
         } else {
             project.log(this, "Skipped because property '"
-                        + project.replaceProperties(this.unlessCondition)
+                        + project.replaceProperties(unlessCondition)
                         + "' set.", Project.MSG_VERBOSE);
         }
     }

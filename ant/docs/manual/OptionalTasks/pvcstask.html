@@ -1,10 +1,26 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta http-equiv="Content-Language" content="en-us">
-   <title>PVCS task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
+   <link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
+<title>PVCS task</title>
 </head>
 <body>
 
@@ -44,7 +60,7 @@ The pvcs task allows the user of ant to extract the latest edition
 of the source code from a PVCS repository. PVCS is a version control system
 developed by <a href="http://www.merant.com/products/pvcs">Merant</a>.
 <br>
-This version has been tested agains PVCS version 6.5 and 6.6 under Windows and Solaris.
+This version has been tested against PVCS version 6.5 and 6.6 under Windows and Solaris.
 
 <hr>
 <h2><a NAME="pvcs">Pvcs Task</a></h2>
@@ -171,6 +187,16 @@ tag expects the executables to be found using the PATH environment variable.</td
           mapping.</td>
       <td valign="TOP">No</td>
     </tr>
+    <tr>
+      <td valign="TOP">revision</td>
+      <td valign="TOP">Retrieve the specified revision.</td>
+      <td valign="TOP">No</td>
+    </tr>
+    <tr>
+      <td valign="TOP">userid</td>
+      <td valign="TOP">Use the specified userid.</td>
+      <td valign="TOP">No</td>
+    </tr>
 </table>
 <h3><a name="nested">Nested Elements</a></h3>
 
@@ -231,7 +257,7 @@ The following set-up extracts the latest version of the files in the pvcs reposi
   Total time: 19 seconds</pre>
 
 This next example extracts the latest version of the files in the pvcs
-repository from two projects using nested &lt;pvcsproject&gt; elements.
+repository from two projects using nested <code>&lt;pvcsproject&gt;</code> elements.
 <pre>
   &lt;!-- ===================================================================--&gt;
   &lt;!-- Get latest from myprj and myprj2                                   --&gt;
@@ -264,8 +290,6 @@ repository from two projects using nested &lt;pvcsproject&gt; elements.
   Total time: 22 seconds</pre>
 
 <hr WIDTH="100%">
-<p align="center">Copyright &copy; 2001-2004 The Apache Software
-Foundation. All rights Reserved.</p>
 <p>PVCS is a registered trademark of MERANT.</p>
 </body>
 </html>

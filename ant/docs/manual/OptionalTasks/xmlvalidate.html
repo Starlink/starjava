@@ -1,8 +1,24 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>XMLValidate Task</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
@@ -212,10 +228,13 @@ Scan all XML files in the project, using the catalog defined inline.
   &lt;attribute name="http://xml.org/sax/features/namespaces" value="true"/&gt;
 &lt;/xmlvalidate&gt;
 </pre>
-Validate all .xml files in xml directory with the parser configured to perform schema validation. Note: The parser must support the
-<pre>http://apache.org/xml/features/validation/schema</pre> feature.
+Validate all .xml files in xml directory with the parser configured to perform XSD validation.
+Note: The parser must support the feature
+<code>http://apache.org/xml/features/validation/schema</code>.
+The <a href="schemavalidate.html">schemavalidate</a> task is better for validating
+W3C XML Schemas, as it extends this task with the right options automatically enabled,
+and makes it easy to add a list of schema files/URLs to act as sources.
 
-<br>
 <pre>
 <!-- Converts path to URL format -->
 &lt;pathconvert dirsep="/" property="xsd.file"&gt;
@@ -237,9 +256,7 @@ Validate all .xml files in xml directory with the parser configured to perform s
 <br>
 Validate the file xml/endpiece-noSchema.xml against the schema xml/doc.xsd.
 <br>
-<hr>
-<p align="center">Copyright &copy; 2001-2002,2004 The Apache Software Foundation. All rights
-Reserved.</p>
+
 
 </body>
 </html>

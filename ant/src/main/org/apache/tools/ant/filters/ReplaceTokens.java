@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,11 +17,15 @@
  */
 package org.apache.tools.ant.filters;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Enumeration;
 import java.util.Hashtable;
-import org.apache.tools.ant.types.Parameter;
+import java.util.Properties;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.types.Parameter;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Replaces tokens in the original input with user-supplied values.
@@ -111,7 +116,7 @@ public final class ReplaceTokens
      * @exception IOException if the underlying stream throws an IOException
      * during reading
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
         if (!getInitialized()) {
             initialize();
             setInitialized(true);
@@ -177,7 +182,7 @@ public final class ReplaceTokens
      *
      * @param beginToken the character used to denote the beginning of a token
      */
-    public final void setBeginToken(final char beginToken) {
+    public void setBeginToken(final char beginToken) {
         this.beginToken = beginToken;
     }
 
@@ -186,7 +191,7 @@ public final class ReplaceTokens
      *
      * @return the character used to denote the beginning of a token
      */
-    private final char getBeginToken() {
+    private char getBeginToken() {
         return beginToken;
     }
 
@@ -195,7 +200,7 @@ public final class ReplaceTokens
      *
      * @param endToken the character used to denote the end of a token
      */
-    public final void setEndToken(final char endToken) {
+    public void setEndToken(final char endToken) {
         this.endToken = endToken;
     }
 
@@ -204,7 +209,7 @@ public final class ReplaceTokens
      *
      * @return the character used to denote the end of a token
      */
-    private final char getEndToken() {
+    private char getEndToken() {
         return endToken;
     }
 
@@ -214,8 +219,28 @@ public final class ReplaceTokens
      * @param token The token to add to the map of replacements.
      *              Must not be <code>null</code>.
      */
-    public final void addConfiguredToken(final Token token) {
+    public void addConfiguredToken(final Token token) {
         hash.put(token.getKey(), token.getValue());
+    }
+
+    /**
+     * Returns properties from a specified properties file.
+     *
+     * @param fileName The file to load properties from.
+     */
+    private Properties getPropertiesFromFile (String fileName) {
+        FileInputStream in = null;
+        Properties props = new Properties();
+        try {
+            in = new FileInputStream(fileName);
+            props.load(in);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            FileUtils.close(in);
+        }
+
+        return props;
     }
 
     /**
@@ -234,7 +259,7 @@ public final class ReplaceTokens
      * @return a map (String->String) of token keys to replacement
      * values
      */
-    private final Hashtable getTokens() {
+    private Hashtable getTokens() {
         return hash;
     }
 
@@ -248,7 +273,7 @@ public final class ReplaceTokens
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         ReplaceTokens newFilter = new ReplaceTokens(rdr);
         newFilter.setBeginToken(getBeginToken());
         newFilter.setEndToken(getEndToken());
@@ -260,7 +285,7 @@ public final class ReplaceTokens
     /**
      * Initializes tokens and loads the replacee-replacer hashtable.
      */
-    private final void initialize() {
+    private void initialize() {
         Parameter[] params = getParameters();
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
@@ -286,6 +311,13 @@ public final class ReplaceTokens
                         final String name = params[i].getName();
                         final String value = params[i].getValue();
                         hash.put(name, value);
+                    } else if ("propertiesfile".equals(type)) {
+                        Properties props = getPropertiesFromFile(params[i].getValue());
+                        for (Enumeration e = props.keys(); e.hasMoreElements();) {
+                            String key = (String) e.nextElement();
+                            String value = props.getProperty(key);
+                            hash.put(key, value);
+                        }
                     }
                 }
             }

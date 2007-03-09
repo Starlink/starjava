@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -60,7 +62,7 @@ public class JJTree extends Task {
 
     // required attributes
     private File outputDirectory = null;
-    private File target          = null;
+    private File targetFile      = null;
     private File javaccHome      = null;
 
     private CommandlineJava cmdl = new CommandlineJava();
@@ -68,85 +70,97 @@ public class JJTree extends Task {
 
     /**
      * Sets the BUILD_NODE_FILES grammar option.
+     * @param buildNodeFiles a <code>boolean</code> value.
      */
     public void setBuildnodefiles(boolean buildNodeFiles) {
-        optionalAttrs.put(BUILD_NODE_FILES, new Boolean(buildNodeFiles));
+        optionalAttrs.put(BUILD_NODE_FILES, buildNodeFiles ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the MULTI grammar option.
+     * @param multi a <code>boolean</code> value.
      */
     public void setMulti(boolean multi) {
-        optionalAttrs.put(MULTI, new Boolean(multi));
+        optionalAttrs.put(MULTI, multi ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the NODE_DEFAULT_VOID grammar option.
+     * @param nodeDefaultVoid a <code>boolean</code> value.
      */
     public void setNodedefaultvoid(boolean nodeDefaultVoid) {
-        optionalAttrs.put(NODE_DEFAULT_VOID, new Boolean(nodeDefaultVoid));
+        optionalAttrs.put(NODE_DEFAULT_VOID, nodeDefaultVoid ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the NODE_FACTORY grammar option.
+     * @param nodeFactory a <code>boolean</code> value.
      */
     public void setNodefactory(boolean nodeFactory) {
-        optionalAttrs.put(NODE_FACTORY, new Boolean(nodeFactory));
+        optionalAttrs.put(NODE_FACTORY, nodeFactory ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the NODE_SCOPE_HOOK grammar option.
+     * @param nodeScopeHook a <code>boolean</code> value.
      */
     public void setNodescopehook(boolean nodeScopeHook) {
-        optionalAttrs.put(NODE_SCOPE_HOOK, new Boolean(nodeScopeHook));
+        optionalAttrs.put(NODE_SCOPE_HOOK, nodeScopeHook ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the NODE_USES_PARSER grammar option.
+     * @param nodeUsesParser a <code>boolean</code> value.
      */
     public void setNodeusesparser(boolean nodeUsesParser) {
-        optionalAttrs.put(NODE_USES_PARSER, new Boolean(nodeUsesParser));
+        optionalAttrs.put(NODE_USES_PARSER, nodeUsesParser ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the STATIC grammar option.
+     * @param staticParser a <code>boolean</code> value.
      */
     public void setStatic(boolean staticParser) {
-        optionalAttrs.put(STATIC, new Boolean(staticParser));
+        optionalAttrs.put(STATIC, staticParser ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the VISITOR grammar option.
+     * @param visitor a <code>boolean</code> value.
      */
     public void setVisitor(boolean visitor) {
-        optionalAttrs.put(VISITOR, new Boolean(visitor));
+        optionalAttrs.put(VISITOR, visitor ? Boolean.TRUE : Boolean.FALSE);
     }
 
     /**
      * Sets the NODE_PACKAGE grammar option.
+     * @param nodePackage the option to use.
      */
     public void setNodepackage(String nodePackage) {
-        optionalAttrs.put(NODE_PACKAGE, new String(nodePackage));
+        optionalAttrs.put(NODE_PACKAGE, nodePackage);
     }
 
     /**
      * Sets the VISITOR_EXCEPTION grammar option.
+     * @param visitorException the option to use.
      */
     public void setVisitorException(String visitorException) {
-        optionalAttrs.put(VISITOR_EXCEPTION, new String(visitorException));
+        optionalAttrs.put(VISITOR_EXCEPTION, visitorException);
     }
 
     /**
      * Sets the NODE_PREFIX grammar option.
+     * @param nodePrefix the option to use.
      */
     public void setNodeprefix(String nodePrefix) {
-        optionalAttrs.put(NODE_PREFIX, new String(nodePrefix));
+        optionalAttrs.put(NODE_PREFIX, nodePrefix);
     }
 
     /**
      * The directory to write the generated JavaCC grammar and node files to.
      * If not set, the files are written to the directory
      * containing the grammar file.
+     * @param outputDirectory the output directory.
      */
     public void setOutputdirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
@@ -156,6 +170,7 @@ public class JJTree extends Task {
      * The outputfile to write the generated JavaCC grammar file to.
      * If not set, the file is written with the same name as
      * the JJTree grammar file with a suffix .jj.
+     * @param outputFile the output file name.
      */
     public void setOutputfile(String outputFile) {
         this.outputFile = outputFile;
@@ -163,22 +178,31 @@ public class JJTree extends Task {
 
     /**
      * The jjtree grammar file to process.
+     * @param targetFile the grammar file.
      */
-    public void setTarget(File target) {
-        this.target = target;
+    public void setTarget(File targetFile) {
+        this.targetFile = targetFile;
     }
 
     /**
      * The directory containing the JavaCC distribution.
+     * @param javaccHome the directory containing JavaCC.
      */
     public void setJavacchome(File javaccHome) {
         this.javaccHome = javaccHome;
     }
 
+    /**
+     * Constructor
+     */
     public JJTree() {
         cmdl.setVm(JavaEnvUtils.getJreExecutable("java"));
     }
 
+    /**
+     * Run the task.
+     * @throws BuildException on error.
+     */
     public void execute() throws BuildException {
 
         // load command line with optional attributes
@@ -189,8 +213,8 @@ public class JJTree extends Task {
             cmdl.createArgument().setValue("-" + name + ":" + value.toString());
         }
 
-        if (target == null || !target.isFile()) {
-            throw new BuildException("Invalid target: " + target);
+        if (targetFile == null || !targetFile.isFile()) {
+            throw new BuildException("Invalid target: " + targetFile);
         }
 
         File javaFile = null;
@@ -202,7 +226,7 @@ public class JJTree extends Task {
             cmdl.createArgument().setValue("-OUTPUT_DIRECTORY:"
                                            + getDefaultOutputDirectory());
 
-            javaFile = new File(createOutputFileName(target, outputFile,
+            javaFile = new File(createOutputFileName(targetFile, outputFile,
                                                      null));
         } else {
             if (!outputDirectory.isDirectory()) {
@@ -216,14 +240,14 @@ public class JJTree extends Task {
                                            + outputDirectory.getAbsolutePath()
                                              .replace('\\', '/'));
 
-            javaFile = new File(createOutputFileName(target, outputFile,
+            javaFile = new File(createOutputFileName(targetFile, outputFile,
                                                      outputDirectory
                                                      .getPath()));
         }
 
         if (javaFile.exists()
-            && target.lastModified() < javaFile.lastModified()) {
-            log("Target is already built - skipping (" + target + ")",
+            && targetFile.lastModified() < javaFile.lastModified()) {
+            log("Target is already built - skipping (" + targetFile + ")",
                 Project.MSG_VERBOSE);
             return;
         }
@@ -233,15 +257,15 @@ public class JJTree extends Task {
                                            + outputFile.replace('\\', '/'));
         }
 
-        cmdl.createArgument().setValue(target.getAbsolutePath());
-
-        cmdl.setClassname(JavaCC.getMainClass(javaccHome,
-                                              JavaCC.TASKDEF_TYPE_JJTREE));
+        cmdl.createArgument().setValue(targetFile.getAbsolutePath());
 
         final Path classpath = cmdl.createClasspath(getProject());
         final File javaccJar = JavaCC.getArchiveFile(javaccHome);
         classpath.createPathElement().setPath(javaccJar.getAbsolutePath());
         classpath.addJavaRuntime();
+
+        cmdl.setClassname(JavaCC.getMainClass(classpath,
+                                              JavaCC.TASKDEF_TYPE_JJTREE));
 
         final Commandline.Argument arg = cmdl.createVmArgument();
         arg.setValue("-mx140M");
@@ -264,11 +288,11 @@ public class JJTree extends Task {
         }
     }
 
-    private String createOutputFileName(File target, String optionalOutputFile,
-                                        String outputDirectory) {
+    private String createOutputFileName(File destFile, String optionalOutputFile,
+                                        String outputDir) {
         optionalOutputFile = validateOutputFile(optionalOutputFile,
-                                                outputDirectory);
-        String jjtreeFile = target.getAbsolutePath().replace('\\', '/');
+                                                outputDir);
+        String jjtreeFile = destFile.getAbsolutePath().replace('\\', '/');
 
         if ((optionalOutputFile == null) || optionalOutputFile.equals("")) {
             int filePos = jjtreeFile.lastIndexOf("/");
@@ -293,57 +317,51 @@ public class JJTree extends Task {
             }
         }
 
-        if ((outputDirectory == null) || outputDirectory.equals("")) {
-            outputDirectory = getDefaultOutputDirectory();
+        if ((outputDir == null) || outputDir.equals("")) {
+            outputDir = getDefaultOutputDirectory();
         }
 
-        return (outputDirectory + "/" + optionalOutputFile).replace('\\', '/');
+        return (outputDir + "/" + optionalOutputFile).replace('\\', '/');
     }
 
- /*
-  * Not used anymore
-    private boolean isAbsolute(String fileName) {
-        return (fileName.startsWith("/") || (new File(fileName).isAbsolute()));
-    }
-*/
     /**
      * When running JJTree from an Ant taskdesk the -OUTPUT_DIRECTORY must
      * always be set. But when -OUTPUT_DIRECTORY is set, -OUTPUT_FILE is
      * handled as if relative of this -OUTPUT_DIRECTORY. Thus when the
      * -OUTPUT_FILE is absolute or contains a drive letter we have a problem.
      *
-     * @param outputFile
-     * @param outputDirectory
+     * @param destFile
+     * @param outputDir
      * @return
      * @throws BuildException
      */
-    private String validateOutputFile(String outputFile,
-                                      String outputDirectory)
+    private String validateOutputFile(String destFile,
+                                      String outputDir)
         throws BuildException {
-        if (outputFile == null) {
+        if (destFile == null) {
             return null;
         }
 
-        if ((outputDirectory == null)
-            && (outputFile.startsWith("/") || outputFile.startsWith("\\"))) {
-            String relativeOutputFile = makeOutputFileRelative(outputFile);
+        if ((outputDir == null)
+            && (destFile.startsWith("/") || destFile.startsWith("\\"))) {
+            String relativeOutputFile = makeOutputFileRelative(destFile);
             setOutputfile(relativeOutputFile);
 
             return relativeOutputFile;
         }
 
-        String root = getRoot(new File(outputFile)).getAbsolutePath();
+        String root = getRoot(new File(destFile)).getAbsolutePath();
 
         if ((root.length() > 1)
-            && outputFile.startsWith(root.substring(0, root.length() - 1))) {
+            && destFile.startsWith(root.substring(0, root.length() - 1))) {
             throw new BuildException("Drive letter in 'outputfile' not "
-                                     + "supported: " + outputFile);
+                                     + "supported: " + destFile);
         }
 
-        return outputFile;
+        return destFile;
     }
 
-    private String makeOutputFileRelative(String outputFile) {
+    private String makeOutputFileRelative(String destFile) {
         StringBuffer relativePath = new StringBuffer();
         String defaultOutputDirectory = getDefaultOutputDirectory();
         int nextPos = defaultOutputDirectory.indexOf('/');
@@ -360,7 +378,7 @@ public class JJTree extends Task {
             }
         }
 
-        relativePath.append(outputFile);
+        relativePath.append(destFile);
 
         return relativePath.toString();
     }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2000,2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,9 +34,11 @@ import org.apache.tools.ant.Task;
  * by the Ant developers and is unmaintained.  Don't use
  * it.</strong></p>
  *
- * @deprecated use Jikes' exit value to detect compilation failure.
+ * @deprecated since 1.2.
+ *             Use Jikes' exit value to detect compilation failure.
  */
 public class JikesOutputParser implements ExecuteStreamHandler {
+    // CheckStyle:VisibilityModifier OFF - bc
     protected Task task;
     protected boolean errorFlag = false; // no errors so far
     protected int errors;
@@ -44,21 +47,26 @@ public class JikesOutputParser implements ExecuteStreamHandler {
     protected boolean emacsMode;
 
     protected BufferedReader br;
+    // CheckStyle:VisibilityModifier ON
 
     /**
      * Ignore.
+     * @param os ignored
      */
     public void setProcessInputStream(OutputStream os) {
     }
 
     /**
      * Ignore.
+     * @param is ignored
      */
     public void setProcessErrorStream(InputStream is) {
     }
 
     /**
      * Set the inputstream
+     * @param is the input stream
+     * @throws IOException on error
      */
     public void setProcessOutputStream(InputStream is) throws IOException {
         br = new BufferedReader(new InputStreamReader(is));
@@ -66,6 +74,7 @@ public class JikesOutputParser implements ExecuteStreamHandler {
 
     /**
      * Invokes parseOutput.
+     * @throws IOException on error
      */
     public void start() throws IOException {
         parseOutput(br);
@@ -79,7 +88,8 @@ public class JikesOutputParser implements ExecuteStreamHandler {
 
     /**
      * Construct a new Parser object
-     * @param task - task in which context we are called
+     * @param task      task in which context we are called
+     * @param emacsMode if true output in emacs mode
      */
     protected JikesOutputParser(Task task, boolean emacsMode) {
         super();
@@ -97,6 +107,7 @@ public class JikesOutputParser implements ExecuteStreamHandler {
     /**
      * Parse the output of a jikes compiler
      * @param reader - Reader used to read jikes's output
+     * @throws IOException on error
      */
     protected void parseOutput(BufferedReader reader) throws IOException {
        if (emacsMode) {

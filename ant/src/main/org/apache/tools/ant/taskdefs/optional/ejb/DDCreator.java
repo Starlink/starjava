@@ -1,9 +1,10 @@
 /*
- * Copyright  2000-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,6 +24,7 @@ import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.types.Commandline;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Builds a serialized deployment descriptor given a text file description of the
@@ -86,9 +88,8 @@ public class DDCreator extends MatchingTask {
         }
 
         String systemClassPath = System.getProperty("java.class.path");
-        String execClassPath = getProject().translatePath(systemClassPath + ":" + classpath);
-        Java ddCreatorTask = (Java) getProject().createTask("java");
-        ddCreatorTask.setTaskName(getTaskName());
+        String execClassPath = FileUtils.translatePath(systemClassPath + ":" + classpath);
+        Java ddCreatorTask = new Java(this);
         ddCreatorTask.setFork(true);
         ddCreatorTask.setClassname("org.apache.tools.ant.taskdefs.optional.ejb.DDCreatorHelper");
         Commandline.Argument arguments = ddCreatorTask.createArg();
@@ -126,6 +127,6 @@ public class DDCreator extends MatchingTask {
      * @param s the classpath to use for the ddcreator tool.
      */
     public void setClasspath(String s) {
-        this.classpath = getProject().translatePath(s);
+        this.classpath = FileUtils.translatePath(s);
     }
 }

@@ -1,20 +1,35 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
+<link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
 <title>DirSet Type</title>
-<link rel="stylesheet" type="text/css" href="../stylesheets/antmanual.css">
 </head>
 
 <body>
 
 <h2><a name="dirset">DirSet</a></h2>
-<p>DirSets are groups of directories. These directories can be found in a
+<p>A DirSet is a group of directories. These directories can be found in a
 directory tree starting in a base directory and are matched by
-patterns taken from a number of <a
-href="patternset.html">PatternSets</a>. DirSets can appear inside tasks
-that support this feature or at the same level as <code>target</code>
-(i.e., as children of <code>&lt;project&gt;</code>).</p>
+patterns taken from a number of <a href="patternset.html">PatternSets</a>
+and <a href="selectors.html">Selectors</a>.
+</p>
 <p>PatternSets can be specified as nested
 <code>&lt;patternset&gt;</code> elements. In addition, DirSet holds
 an implicit PatternSet and supports the nested
@@ -22,6 +37,10 @@ an implicit PatternSet and supports the nested
 <code>&lt;exclude&gt;</code> and <code>&lt;excludesfile&gt;</code>
 elements of <code>&lt;patternset&gt;</code> directly, as well as
 <code>&lt;patternset&gt;</code>'s attributes.</p>
+<p>Selectors are available as nested elements within the DirSet.
+If any of the selectors within the DirSet do not select the directory, it
+is not considered part of the DirSet. This makes a DirSet
+equivalent to an <code>&lt;and&gt;</code> selector container.</p>
 <table border="1" cellpadding="2" cellspacing="0">
   <tr>
     <td valign="top"><b>Attribute</b></td>
@@ -59,7 +78,7 @@ elements of <code>&lt;patternset&gt;</code> directly, as well as
   </tr>
   <tr>
     <td valign="top">casesensitive</td>
-    <td valign="top">Specifies whether case-sensitivty should be applied
+    <td valign="top">Specifies whether case-sensitivity should be applied
      (<code>true</code>|<code>yes</code>|<code>on</code> or
      <code>false</code>|<code>no</code>|<code>off</code>).</td>
     <td valign="top" align="center">No; defaults to true.</td>
@@ -74,16 +93,16 @@ elements of <code>&lt;patternset&gt;</code> directly, as well as
 
 <h4>Examples</h4>
 <blockquote><pre>
-&lt;dirset dir=&quot;${build.dir}&quot;&gt;
+&lt;dirset dir=&quot;build&quot;&gt;
   &lt;include name=&quot;apps/**/classes&quot;/&gt;
   &lt;exclude name=&quot;apps/**/*Test*&quot;/&gt;
 &lt;/dirset&gt;
 </pre></blockquote>
 <p>Groups all directories named <code>classes</code> found under the
-<code>apps</code> subdirectory of <code>${build.dir}</code>, except those
+<code>apps</code> subdirectory of <code>build</code>, except those
 that have the text <code>Test</code> in their name.</p>
 <blockquote><pre>
-&lt;dirset dir=&quot;${build.dir}&quot;&gt;
+&lt;dirset dir=&quot;build&quot;&gt;
   &lt;patternset id=&quot;non.test.classes&quot;&gt;
     &lt;include name=&quot;apps/**/classes&quot;/&gt;
     &lt;exclude name=&quot;apps/**/*Test*&quot;/&gt;
@@ -101,9 +120,7 @@ a PatternSet that can be referenced in other
 <p>Groups all directories in directory <code>${debug_build.dir}</code>,
 using the same patterns as the above example.</p>
 
-<hr>
-<p align="center">Copyright &copy; 2002,2004 The Apache Software Foundation.
-All rights Reserved.</p>
+
 
 </body>
 </html>

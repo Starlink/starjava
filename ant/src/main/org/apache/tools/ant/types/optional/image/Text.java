@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -29,31 +30,50 @@ import java.awt.image.BufferedImage;
  * @see org.apache.tools.ant.taskdefs.optional.image.Image
  */
 public class Text extends ImageOperation implements DrawOperation {
-    private String str_text = "";
+    private static final int DEFAULT_POINT = 10;
+
+    private String strText = "";
     private String font = "Arial";
-    private int point = 10;
+    private int point = DEFAULT_POINT;
     private boolean bold = false;
     private boolean italic = false;
     private String color = "black";
 
+    /**
+     * Set the string to be used as text.
+     * @param str the string to be used.
+     */
     public void setString(String str) {
-        str_text = str;
+        strText = str;
     }
 
+    /**
+     * Set the font to be used to draw the text.
+     * @param f the font to be used.
+     */
     public void setFont(String f) {
         font = f;
     }
 
+    /**
+     * Set the number of points to be used.
+     * @param p an integer value as a string.
+     */
     public void setPoint(String p) {
         point = Integer.parseInt(p);
     }
 
+    /**
+     * Set the color of the text.
+     * @param c the color name.
+     */
     public void setColor(String c) {
         color = c;
     }
 
     /**
      * @todo is this used?
+     * @param state not used at the moment.
      */
     public void setBold(boolean state) {
         bold = state;
@@ -61,13 +81,18 @@ public class Text extends ImageOperation implements DrawOperation {
 
     /**
      * @todo is this used?
+     * @param state not used at the moment.
      */
     public void setItalic(boolean state) {
         italic = state;
     }
 
+    /**
+     * Draw the text.
+     * @return the resultant image.
+     */
     public PlanarImage executeDrawOperation() {
-        log("\tCreating Text \"" + str_text + "\"");
+        log("\tCreating Text \"" + strText + "\"");
 
         Color couloir = ColorMapper.getColorByName(color);
         int width = 1;
@@ -75,23 +100,27 @@ public class Text extends ImageOperation implements DrawOperation {
 
         BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
         Graphics2D graphics = (Graphics2D) bi.getGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        graphics.setRenderingHint(
+            RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(
+            RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         Font f = new Font(font, Font.PLAIN, point);
         FontMetrics fmetrics = graphics.getFontMetrics(f);
         height = fmetrics.getMaxAscent() + fmetrics.getMaxDescent();
-        width = fmetrics.stringWidth(str_text);
+        width = fmetrics.stringWidth(strText);
 
 
         bi = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
         graphics = (Graphics2D) bi.getGraphics();
 
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        graphics.setRenderingHint(
+            RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(
+            RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
         graphics.setFont(f);
         graphics.setColor(couloir);
-        graphics.drawString(str_text, 0, height - fmetrics.getMaxDescent());
+        graphics.drawString(strText, 0, height - fmetrics.getMaxDescent());
         PlanarImage image = PlanarImage.wrapRenderedImage(bi);
         return image;
     }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,8 +17,6 @@
  */
 package org.apache.tools.ant.filters;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 
 import org.apache.tools.ant.util.ReaderInputStream;
@@ -41,7 +40,7 @@ public class StringInputStream extends ReaderInputStream {
      * Composes a stream from a String with the specified encoding
      *
      * @param source The string to read from. Must not be <code>null</code>.
-     * @param encoding The encoding scheme.  Also must not be <CODE>null</CODE>.
+     * @param encoding The encoding scheme.  Also must not be <code>null</code>.
      */
     public StringInputStream(String source, String encoding) {
         super(new StringReader(source), encoding);

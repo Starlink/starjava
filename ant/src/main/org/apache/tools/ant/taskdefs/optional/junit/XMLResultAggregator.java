@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -33,6 +34,7 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.DOMElementWriter;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -51,11 +53,11 @@ import org.xml.sax.SAXException;
  * TestListener that will receive events from the TestRunner via sockets. This
  * is IMHO the simplest way to do it to avoid this file hacking thing.
  *
- *
  * @ant.task name="junitreport" category="testing"
  */
 public class XMLResultAggregator extends Task implements XMLConstants {
 
+    // CheckStyle:VisibilityModifier OFF - bc
     /** the list of all filesets, that should contains the xml to aggregate */
     protected Vector filesets = new Vector();
 
@@ -73,8 +75,29 @@ public class XMLResultAggregator extends Task implements XMLConstants {
     /** the default file name: <tt>TESTS-TestSuites.xml</tt> */
     public static final String DEFAULT_FILENAME = "TESTS-TestSuites.xml";
 
+    /** the current generated id */
+    protected int generatedId = 0;
+
+    /**
+     * text checked for in tests, {@value}
+     */
+    static final String WARNING_IS_POSSIBLY_CORRUPTED
+        = " is not a valid XML document. It is possibly corrupted.";
+    /**
+     * text checked for in tests, {@value}
+     */
+    static final String WARNING_INVALID_ROOT_ELEMENT
+        = " is not a valid testsuite XML document";
+    /**
+     * text checked for in tests, {@value}
+     */
+    static final String WARNING_EMPTY_FILE
+        = " is empty.\nThis can be caused by the test JVM exiting unexpectedly";
+    // CheckStyle:VisibilityModifier ON
+
     /**
      * Generate a report based on the document created by the merge.
+     * @return the report
      */
     public AggregateTransformer createReport() {
         AggregateTransformer transformer = new AggregateTransformer(this);
@@ -141,7 +164,7 @@ public class XMLResultAggregator extends Task implements XMLConstants {
      * the <tt>todir</tt> and <tt>tofile</tt> attributes.
      * @return the destination file where should be written the result file.
      */
-    protected File getDestinationFile() {
+    public File getDestinationFile() {
         if (toFile == null) {
             toFile = DEFAULT_FILENAME;
         }
@@ -201,13 +224,8 @@ public class XMLResultAggregator extends Task implements XMLConstants {
                 throw new IOException("Error while writing DOM content");
             }
         } finally {
-            if (wri != null) {
-                wri.close();
-                out = null;
-            }
-            if (out != null) {
-                out.close();
-            }
+            FileUtils.close(wri);
+            FileUtils.close(out);
         }
     }
 
@@ -224,34 +242,42 @@ public class XMLResultAggregator extends Task implements XMLConstants {
         Element rootElement = doc.createElement(TESTSUITES);
         doc.appendChild(rootElement);
 
+        generatedId = 0;
+
         // get all files and add them to the document
         File[] files = getFiles();
         for (int i = 0; i < files.length; i++) {
+            File file = files[i];
             try {
-                log("Parsing file: '" + files[i] + "'", Project.MSG_VERBOSE);
-                //XXX there seems to be a bug in xerces 1.3.0 that doesn't like file object
-                // will investigate later. It does not use the given directory but
-                // the vm dir instead ? Works fine with crimson.
-                Document testsuiteDoc
-                    = builder.parse("file:///" + files[i].getAbsolutePath());
-                Element elem = testsuiteDoc.getDocumentElement();
-                // make sure that this is REALLY a testsuite.
-                if (TESTSUITE.equals(elem.getNodeName())) {
-                    addTestSuite(rootElement, elem);
+                log("Parsing file: '" + file + "'", Project.MSG_VERBOSE);
+                if (file.length() > 0) {
+                    Document testsuiteDoc
+                            = builder.parse(
+                                FileUtils.getFileUtils().toURI(files[i].getAbsolutePath()));
+                    Element elem = testsuiteDoc.getDocumentElement();
+                    // make sure that this is REALLY a testsuite.
+                    if (TESTSUITE.equals(elem.getNodeName())) {
+                        addTestSuite(rootElement, elem);
+                        generatedId++;
+                    } else {
+                        //wrong root element name
+                        // issue a warning.
+                        log("the file " + file
+                                + WARNING_INVALID_ROOT_ELEMENT,
+                                Project.MSG_WARN);
+                    }
                 } else {
-                    // issue a warning.
-                    log("the file " + files[i]
-                        + " is not a valid testsuite XML document",
-                        Project.MSG_WARN);
+                    log("the file " + file
+                            + WARNING_EMPTY_FILE,
+                            Project.MSG_WARN);
                 }
             } catch (SAXException e) {
                 // a testcase might have failed and write a zero-length document,
                 // It has already failed, but hey.... mm. just put a warning
-                log("The file " + files[i] + " is not a valid XML document. "
-                    + "It is possibly corrupted.", Project.MSG_WARN);
+                log("The file " + file + WARNING_IS_POSSIBLY_CORRUPTED, Project.MSG_WARN);
                 log(StringUtils.getStackTrace(e), Project.MSG_DEBUG);
             } catch (IOException e) {
-                log("Error while accessing file " + files[i] + ": "
+                log("Error while accessing file " + file + ": "
                     + e.getMessage(), Project.MSG_ERR);
             }
         }
@@ -282,6 +308,7 @@ public class XMLResultAggregator extends Task implements XMLConstants {
         // modify the name attribute and set the package
         copy.setAttribute(ATTR_NAME, classname);
         copy.setAttribute(ATTR_PACKAGE, pkgName);
+        copy.setAttribute(ATTR_ID, Integer.toString(generatedId));
     }
 
     /**

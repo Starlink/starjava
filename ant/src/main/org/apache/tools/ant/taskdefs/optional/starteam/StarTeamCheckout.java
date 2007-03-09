@@ -1,9 +1,10 @@
 /*
- * Copyright  2001-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -42,7 +43,8 @@ import org.apache.tools.ant.Project;
  * </pre>
  *
  * @version 1.1
- * @see <A HREF="http://www.starbase.com/">StarBase Web Site</A>
+ * @see <a href="http://www.borland.com/us/products/starteam/index.html"
+ * >borland StarTeam Web Site</a>
  *
  * @ant.task name="stcheckout" category="scm"
  */
@@ -211,7 +213,7 @@ public class StarTeamCheckout extends TreeBasedTask {
      * @param raw    the unconfigured <code>View</code>
      *
      * @return the snapshot <code>View</code> appropriately configured.
-     * @exception BuildException
+     * @exception BuildException on error
      */
     protected View createSnapshotView(View raw) throws BuildException {
 
@@ -221,19 +223,17 @@ public class StarTeamCheckout extends TreeBasedTask {
         // to configure the view
         if (this.isUsingViewLabel()) {
             return new View(raw, ViewConfiguration.createFromLabel(labelID));
-        }
         // if a label has been supplied and it is a revision label, use the raw
         // the view as the snapshot
-        else if (this.isUsingRevisionLabel()) {
+        } else if (this.isUsingRevisionLabel()) {
             return raw;
         }
         // if a date has been supplied use a view configured to the date.
         View view = getViewConfiguredByDate(raw);
         if (view != null) {
             return view;
-        }
         // otherwise, use this view configured as the tip.
-        else {
+        } else {
             return new View(raw, ViewConfiguration.createTip());
         }
     }
@@ -531,7 +531,7 @@ public class StarTeamCheckout extends TreeBasedTask {
                 log("Checking out: " + describeCheckout(eachFile));
                 break;
             default:
-                if (isForced()) {
+                if (isForced() && fileStatus != Status.CURRENT) {
                     log("Forced checkout of "
                         + describeCheckout(eachFile)
                         + " over status " + Status.name(fileStatus));
@@ -552,7 +552,7 @@ public class StarTeamCheckout extends TreeBasedTask {
                     }
                 }
                 eachFile.checkout(this.lockStatus,
-                                 !this.useRepositoryTimeStamp, this.convertEOL, true);
+                                 !this.useRepositoryTimeStamp, this.convertEOL, false);
             }
         }
     }
@@ -580,7 +580,10 @@ public class StarTeamCheckout extends TreeBasedTask {
             }
 
             String[] localFiles = localFolder.list();
-
+            // PR 31965 says that it can return null
+            if (localFiles == null) {
+                return this;
+            }
             for (int i = 0; i < localFiles.length; i++) {
                 java.io.File localFile =
                     new java.io.File(localFolder, localFiles[i]).getAbsoluteFile();

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002,2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,41 +22,40 @@ import org.apache.tools.ant.BuildException;
 /**
  *  An interface for vendor-specific "hot" deployment tools.
  *
- *
  *  @see org.apache.tools.ant.taskdefs.optional.j2ee.AbstractHotDeploymentTool
  *  @see org.apache.tools.ant.taskdefs.optional.j2ee.ServerDeploy
  */
 public interface HotDeploymentTool {
     /** The delete action String **/
-    public static final String ACTION_DELETE = "delete";
+    String ACTION_DELETE = "delete";
 
     /** The deploy action String **/
-    public static final String ACTION_DEPLOY = "deploy";
+    String ACTION_DEPLOY = "deploy";
 
     /** The list action String **/
-    public static final String ACTION_LIST = "list";
+    String ACTION_LIST = "list";
 
     /** The undeploy action String **/
-    public static final String ACTION_UNDEPLOY = "undeploy";
+    String ACTION_UNDEPLOY = "undeploy";
 
     /** The update action String **/
-    public static final String ACTION_UPDATE = "update";
+    String ACTION_UPDATE = "update";
 
     /**
      *  Validates the passed in attributes.
      *  @exception org.apache.tools.ant.BuildException if the attributes are invalid or incomplete.
      */
-    public void validateAttributes() throws BuildException;
+    void validateAttributes() throws BuildException;
 
     /**
      *  Perform the actual deployment.
      *  @exception org.apache.tools.ant.BuildException if the attributes are invalid or incomplete.
      */
-    public void deploy() throws BuildException;
+    void deploy() throws BuildException;
 
     /**
      *  Sets the parent task.
      *  @param task A ServerDeploy object representing the parent task.
      */
-    public void setTask(ServerDeploy task);
+    void setTask(ServerDeploy task);
 }

@@ -1,9 +1,10 @@
 /*
- * Copyright  2002-2004 The Apache Software Foundation
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -88,7 +89,7 @@ public final class StripLineComments
      * @exception IOException if the underlying stream throws an IOException
      * during reading
      */
-    public final int read() throws IOException {
+    public int read() throws IOException {
         if (!getInitialized()) {
             initialize();
             setInitialized(true);
@@ -138,7 +139,7 @@ public final class StripLineComments
      * @param comment The <code>comment</code> element to add to the
      * list of comment prefixes to strip. Must not be <code>null</code>.
      */
-    public final void addConfiguredComment(final Comment comment) {
+    public void addConfiguredComment(final Comment comment) {
         comments.addElement(comment.getValue());
     }
 
@@ -157,7 +158,7 @@ public final class StripLineComments
      *
      * @return the list of comment prefixes to strip.
      */
-    private final Vector getComments() {
+    private Vector getComments() {
         return comments;
     }
 
@@ -171,7 +172,7 @@ public final class StripLineComments
      * @return a new filter based on this configuration, but filtering
      *         the specified reader
      */
-    public final Reader chain(final Reader rdr) {
+    public Reader chain(final Reader rdr) {
         StripLineComments newFilter = new StripLineComments(rdr);
         newFilter.setComments(getComments());
         newFilter.setInitialized(true);
@@ -181,7 +182,7 @@ public final class StripLineComments
     /**
      * Parses the parameters to set the comment prefixes.
      */
-    private final void initialize() {
+    private void initialize() {
         Parameter[] params = getParameters();
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
