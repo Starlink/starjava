@@ -1354,7 +1354,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
            destdir="${build.tests}"
            debug="${debug}"
            deprecation="${deprecation}" >
-      <compilerarg value="-proc:none" compiler="javac1.6.0"/>
+      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
     </javac>
   </target>
