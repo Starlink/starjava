@@ -895,7 +895,8 @@
      !   JDK1.5 or something which isn't going to crop up in the source 
      !   under 1.4. -->
     <condition property="uncomment.pattern" value="DOM3">
-        <available classname="org.w3c.dom.DOMError"/>
+        <available classname="org.w3c.dom.DOMError" 
+                   ignoresystemclasses="true"/>
     </condition>
     <condition property="uncomment.pattern" value="NOT_APPEARING">
       <not>
