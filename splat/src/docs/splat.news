@@ -1,6 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.6-8
+   =====
+
    FITS headers are now preserved when creating derived spectra.
+
+   Simple range, mean and standard deviation estimates can now be 
+   shown for any variance or error values.
 
    3.6-7
    =====
