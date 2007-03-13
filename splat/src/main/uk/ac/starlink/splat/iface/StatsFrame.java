@@ -86,6 +86,9 @@ public class StatsFrame
     /** Include an estimate of the TSYS value (specialist) */
     protected JCheckBoxMenuItem tSYSBox = null;
 
+    /** Include variance stats if variance component exists */
+    protected JCheckBoxMenuItem varBox = null;
+
     /**
      * Create an instance.
      */
@@ -133,6 +136,8 @@ public class StatsFrame
         //  The ranges.
         boolean showFlux = prefs.getBoolean( "StatsFrame_flux", true );
         boolean showTSYS = prefs.getBoolean( "StatsFrame_tsys", false );
+        boolean showVarStats = prefs.getBoolean( "StatsFrame_varstats",
+                                                 false );
         rangesModel = new StatsRangesModel( control, showFlux , showTSYS );
         JMenu rangesMenu = new JMenu( "Ranges" );
         rangesView = new StatsRangesView( control, rangesMenu, rangesModel );
@@ -265,6 +270,7 @@ public class StatsFrame
                     prefs.putBoolean( "StatsFrame_extra", state );
                 }
             });
+        fullStatsBox.setToolTipText( "Show extra full statistics" );
 
         //  User setting for this value.
         boolean state = prefs.getBoolean( "StatsFrame_extra", false );
@@ -281,6 +287,7 @@ public class StatsFrame
                     prefs.putBoolean( "StatsFrame_flux", state );
                 }
             });
+        fluxBox.setToolTipText("Show integrated flux value in fast readouts" );
 
         //  User setting for this value.
         fluxBox.setSelected( showFlux );
@@ -296,9 +303,26 @@ public class StatsFrame
                     prefs.putBoolean( "StatsFrame_tsys", state );
                 }
             });
+        tSYSBox.setToolTipText( "Show TSYS value in fast readouts" );
 
         //  User setting for this value.
         tSYSBox.setSelected( showTSYS );
+
+        //  Option to control whether variance stats are shown in 
+        //  full values, if variance component exists.
+        varBox = new JCheckBoxMenuItem( "Error stats" );
+        optionsMenu.add( varBox );
+        varBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = varBox.isSelected();
+                    prefs.putBoolean( "StatsFrame_varstats", state );
+                }
+            });
+        varBox.setToolTipText("Show statistics for variance/error component" );
+
+        //  User setting for this value.
+        varBox.setSelected( showVarStats );
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "stats-window", "Help on window",
@@ -323,8 +347,15 @@ public class StatsFrame
     {
         SpecData currentSpectrum = control.getCurrentSpectrum();
         double[] yData = currentSpectrum.getYData();
+        double[] yDataErrors = currentSpectrum.getYDataErrors();
         double[] xData = currentSpectrum.getXData();
         Statistics stats = null;
+
+        //  Do we need to display any variance stats.
+        boolean showVarStats = false;
+        if ( yDataErrors != null && varBox.isSelected() ) {
+            showVarStats = true;
+        }
 
         if ( type == LocalAction.SELECTEDSTATS ||
              type == LocalAction.ALLSTATS ) {
@@ -350,6 +381,7 @@ public class StatsFrame
             //  Now allocate the necessary memory and copy in the data.
             double[] cleanData = new double[count];
             double[] cleanCoords = new double[count];
+
             count = 0;
             for ( int i = 0; i < ranges.length; i += 2 ) {
                 int low = ranges[i];
@@ -382,6 +414,27 @@ public class StatsFrame
             integ.setData( cleanCoords, cleanData );
             statsResults.append( "  Integrated flux: " +
                                  integ.getIntegral() + "\n" );
+            //  Variance stats.
+            if ( showVarStats ) {
+                double[] cleanErrors = new double[count];
+                count = 0;
+                for ( int i = 0; i < ranges.length; i += 2 ) {
+                    int low = ranges[i];
+                    int high = Math.min( ranges[i+1], yData.length - 1 );
+                    for ( int j = low; j <= high; j++ ) {
+                        if ( yData[j] != SpecData.BAD ) {
+                            cleanErrors[count] = yDataErrors[j];
+                            count++;
+                        }
+                    }
+                }
+                Statistics varstats = new Statistics( cleanErrors );
+                buffer = new StringBuffer();
+                buffer.append( "  Error component statistics: \n" );
+                buffer.append( getErrorStats( "    ", varstats ) );
+                statsResults.append( buffer.toString() );
+            }
+
         }
         else if ( type == LocalAction.WHOLESTATS ) {
 
@@ -418,6 +471,25 @@ public class StatsFrame
             integ.setData( xData, yData );
             statsResults.append( "  Integrated flux: " + integ.getIntegral() );
             statsResults.append( "\n" );
+
+            //  Variance stats.
+            if ( showVarStats ) {
+                double[] cleanErrors = yDataErrors;
+                if ( count != yData.length ) {
+                    count = 0;
+                    for ( int i = 0; i < yData.length; i++ ) {
+                        if ( yData[i] != SpecData.BAD ) {
+                            cleanErrors[count] = yDataErrors[i];
+                            count++;
+                        }
+                    }
+                }
+                Statistics varstats = new Statistics( cleanErrors );
+                StringBuffer buffer = new StringBuffer();
+                buffer.append( "  Error component statistics: \n" );
+                buffer.append( getErrorStats( "    ", varstats ) );
+                statsResults.append( buffer.toString() );
+            }
         }
 
         //  TSYS requires the standard deviation.
@@ -428,7 +500,7 @@ public class StatsFrame
                                                       factors[2], std );
             if ( tsys != -1.0 ) {
                 statsResults.append( "  TSYS: " +
-                                     JACUtilities.formatTSYS( tsys ) 
+                                     JACUtilities.formatTSYS( tsys )
                                      + "\n" );
             }
         }
@@ -442,6 +514,22 @@ public class StatsFrame
     {
         statsResults.append( description );
         statsResults.append( stats.getStats( fullStatsBox.isSelected() ) );
+    }
+
+    /**
+     * Create a very basic report of stats for the variance component.
+     */
+    protected StringBuffer getErrorStats( String prefix, Statistics stats )
+    {
+        StringBuffer buf = new StringBuffer();
+        buf.append( prefix + "Mean of errors = " + stats.getMean() + "\n" );
+        buf.append( prefix + "Standard deviation of errors = " + 
+                    stats.getStandardDeviation() + "\n");
+        buf.append( prefix + "Minimum of errors = " + 
+                    stats.getMinimum() + "\n" );
+        buf.append( prefix + "Maximum of errors = " + 
+                    stats.getMaximum() + "\n" );
+        return buf;
     }
 
     /**
