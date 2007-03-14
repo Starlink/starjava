@@ -1708,9 +1708,49 @@ public class DivaPlot
     }
 
     //
+    // PlotClicked event interface
+    //
+    protected EventListenerList plotClickedListeners = new EventListenerList();
+
+    /**
+     * Registers a listener for to be informed when the Plot recieves a click..
+     *
+     * @param l the PlotClickedListener
+     */
+    public void addPlotClickedListener( PlotClickedListener l )
+    {
+        plotClickedListeners.add( PlotClickedListener.class, l );
+    }
+
+    /**
+     * Remove a listener for Plot clicks.
+     *
+     * @param l the PlotClickedListener
+     */
+    public void removePlotClickedListener( PlotClickedListener l )
+    {
+        plotClickedListeners.remove( PlotClickedListener.class, l );
+    }
+
+    /**
+     * Send an event to all PlotClickedListeners when the plot recieves
+     * a mouse click.
+     */
+    protected void fireClicked( MouseEvent e )
+    {
+        Object[] list = plotClickedListeners.getListenerList();
+        for ( int i = list.length - 2; i >= 0; i -= 2 ) {
+            if ( list[i] == PlotClickedListener.class ) {
+                ( (PlotClickedListener) list[i + 1] ).plotClicked( e );
+            }
+        }
+    }
+
+    //
     //  Implement the MouseListener interface. The purpose of this is to
-    //  simply make sure that we receive the keyboard focus when anyone
-    //  clicks on this component. TODO: understand why this is necessary.
+    //  make sure that we receive the keyboard focus when anyone
+    //  clicks on this component (TODO: understand why this is necessary)
+    //  and to send a PlotClickedEvent to all PlotClickedListeners.
     //
     public void mouseClicked( MouseEvent e )
     {
@@ -1727,6 +1767,7 @@ public class DivaPlot
     public void mousePressed( MouseEvent e )
     {
         requestFocus();
+        fireClicked( e );
     }
     public void mouseReleased( MouseEvent e )
     {
