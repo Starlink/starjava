@@ -542,7 +542,7 @@ public class SpecData
 
 
     /**
-     * Get a symbolic name for spectrum. This will be "simplified" if 
+     * Get a symbolic name for spectrum. This will be "simplified" if
      * {@link simplyShortNames} is currently true and the symbolic name is the
      * same as the full name (usually the disk file name).
      * <p>
@@ -581,7 +581,7 @@ public class SpecData
     /**
      * Set whether to simplify all short names when they are requested.
      * Applies to all instances of SpecData.
-     * 
+     *
      * @param simplify whether to simplify short names.
      */
     public static void setSimplifiedShortNames( boolean simplify )
@@ -971,8 +971,8 @@ public class SpecData
             newSpec = SpecDataFactory.getInstance().createEditable( name,
                                                                     this );
             FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(), 1 );
-            newSpec.setSimpleUnitDataQuick( frameSet, coords, 
-                                            getCurrentDataUnits(), data, 
+            newSpec.setSimpleUnitDataQuick( frameSet, coords,
+                                            getCurrentDataUnits(), data,
                                             errors );
         }
         catch ( Exception e ) {
@@ -1075,7 +1075,7 @@ public class SpecData
      * Return the "channel spacing". Determined by getting increment of moving
      * one pixel along the first axis. Can be in units other than default by
      * supplying an attribute string (System=FREQ,Unit=MHz).
-     * 
+     *
      * @param atts an AST attribute string, use to set the coordinates that
      *             the channel spacing is required in.
      *
@@ -1859,7 +1859,7 @@ public class SpecData
      * @param clipLimits limits of the region to draw used to clip graphics.
      *                   These can be in physical or graphics coordinates.
      * @param physical whether limits are physical or graphical.
-     * @param fullLimits full limits of drawing area in graphics coordinates. 
+     * @param fullLimits full limits of drawing area in graphics coordinates.
      *                   May be used for positioning when clipping limits are
      *                   not used.
      */
@@ -1947,7 +1947,7 @@ public class SpecData
                                    (int) ( clippos[1][0] - clippos[1][1] ) );
             }
             else {
-                cliprect = new Rectangle((int) clipLimits[0], 
+                cliprect = new Rectangle((int) clipLimits[0],
                                          (int) clipLimits[3],
                                          (int) (clipLimits[2]-clipLimits[0]),
                                          (int) (clipLimits[1]-clipLimits[3]));
@@ -2148,8 +2148,33 @@ public class SpecData
 
 
     /**
-     * Lookup the physical values (i.e.<!-- --> wavelength and data value) that
-     * correspond to a graphics X coordinate.
+     * Lookup the nearest physical values (wavelength and data value)
+     * to a given physical coordinate.
+     *
+     * @param x X coordinate
+     * @return array of two doubles. The wavelength and data values.
+     */
+    public double[] nearest( double x )
+    {
+        //  Bound our value.
+        int[] bounds = bound( x );
+
+        //  Find which position is nearest in reality.
+        double[] result = new double[2];
+        if ( Math.abs(x - xPos[bounds[0]]) < Math.abs(xPos[bounds[1]] - x) ) {
+            result[0] = xPos[bounds[0]];
+            result[1] = yPos[bounds[0]];
+        }
+        else {
+            result[0] = xPos[bounds[1]];
+            result[1] = yPos[bounds[1]];
+        }
+        return result;
+    }
+
+    /**
+     * Lookup the physical values (wavelength and data value) that correspond
+     * to a graphics X coordinate.
      *
      * @param xg X graphics coordinate
      * @param plot AST plot needed to transform graphics position into
@@ -2164,20 +2189,8 @@ public class SpecData
         xypos[0] = (double) xg;
         xypos[1] = 0.0;
         double[][] xyphys = ASTJ.astTran2( plot, xypos, true );
-        int[] bounds = bound( xyphys[0][0] );
 
-        //  Find which position is nearest in reality.
-        double[] result = new double[2];
-        if ( Math.abs( xyphys[0][0] - xPos[bounds[0]] ) <
-             Math.abs( xPos[bounds[1]] - xyphys[0][0] ) ) {
-            result[0] = xPos[bounds[0]];
-            result[1] = yPos[bounds[0]];
-        }
-        else {
-            result[0] = xPos[bounds[1]];
-            result[1] = yPos[bounds[1]];
-        }
-        return result;
+        return nearest( xyphys[0][0] );
     }
 
     /**
