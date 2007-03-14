@@ -10,9 +10,11 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,14 +35,21 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.splat.ast.ASTJ;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.splat.plot.PlotClickedListener;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
@@ -61,7 +70,7 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  */
 public class PlotUnitsFrame
     extends JFrame
-    implements ItemListener
+    implements ItemListener, PlotClickedListener
 {
     /**
      * Reference to global list of spectra and plots.
@@ -119,6 +128,17 @@ public class PlotUnitsFrame
      * Control for selecting standard of rest.
      */
     private JComboBox stdOfRestBox = null;
+
+    /**
+     * Text field for displaying the restfrequency.
+     */
+    private JTextField restFrequencyField = null;
+
+    /**
+     * How a new rest frequency pick should be handled. If true then
+     * a search for the nearest line identifier position is made.
+     */
+    private boolean pickLineIdentifier = true;
 
     /**
      * Unknown units, could also be unrecognised.
@@ -329,12 +349,14 @@ public class PlotUnitsFrame
         GridBagLayouter gbl = new GridBagLayouter( panel,
                                                    GridBagLayouter.SCHEME2 );
 
+        //  Spectral coordinates
         coordinatesBox = new JComboBox( coordinateSystems );
         JLabel label = new JLabel( "Coordinates: " );
         gbl.add( label, false );
         gbl.add( coordinatesBox, false );
         coordinatesBox.setToolTipText( "Units of the spectral coordinates" );
 
+        //  DSB side band
         sideBandBox = new JComboBox( sideBandMap.keySet().toArray() );
         label = new JLabel( "SideBand: " );
         gbl.add( label, false );
@@ -343,12 +365,14 @@ public class PlotUnitsFrame
         sideBandBox.setToolTipText
             ( "Current sideband when display dual sideband data" );
 
+        //  Data units
         dataUnitsBox = new JComboBox( dataUnitsMap.keySet().toArray() );
         label = new JLabel( "Data units: " );
         gbl.add( label, false );
         gbl.add( dataUnitsBox, false );
         dataUnitsBox.setToolTipText( "Units of the data values" );
 
+        //  Spectral origin
         originBox = new JComboBox( originMap.keySet().toArray() );
         label = new JLabel( "Origin: " );
         gbl.add( label, false );
@@ -356,13 +380,49 @@ public class PlotUnitsFrame
         gbl.eatLine();
         originBox.setToolTipText( "Origin of spectral coordinates" );
 
+        //  Standard of rest
         stdOfRestBox = new JComboBox( stdOfRestMap.keySet().toArray() );
         label = new JLabel( "Standard of rest: " );
         gbl.add( label, false );
         gbl.add( stdOfRestBox, false );
-        gbl.eatLine();
         stdOfRestBox.setToolTipText( "Standard of rest for coordinates" );
 
+
+        //  Text field for displaying the rest frequency (cannot be 
+        //  changed by editting.
+        label = new JLabel( "Rest Frequency: " );
+        gbl.add( label, false );
+        restFrequencyField = new JTextField();
+        restFrequencyField.setEditable( false );
+        gbl.add( restFrequencyField, false );
+        gbl.eatLine();
+
+        //  Add buttons to pick the a line identifier position as the
+        //  rest frequency, or just a position.
+        gbl.add( Box.createGlue(), false );
+        gbl.add( Box.createGlue(), false );
+        JButton restFrequencyIdButton = new JButton( "Pick ID" );
+        restFrequencyIdButton.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    pickRestFrequency( true );
+                }
+            });
+        gbl.add( restFrequencyIdButton, false );
+        restFrequencyIdButton.setToolTipText
+            ( "Pick line identifier as the rest frequency" );
+
+        JButton restFrequencyPosButton = new JButton( "Pick pos" );
+        restFrequencyPosButton.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    pickRestFrequency( false );
+                }
+            });
+        gbl.add( restFrequencyPosButton, false );
+        restFrequencyPosButton.setToolTipText
+            ( "Pick plot position for the rest frequency" );
+        gbl.eatLine();
         gbl.eatSpare();
 
         return panel;
@@ -453,6 +513,8 @@ public class PlotUnitsFrame
                 break;
             }
         }
+        String restfreq = frameSet.getC( "RestFreq" );
+        restFrequencyField.setText( restfreq + "GHz" );
     }
 
     /**
@@ -591,11 +653,122 @@ public class PlotUnitsFrame
     }
 
     /**
+     * Pick a new rest frequency. If id is true then an attempt to select
+     * a line identifier position is made, otherwise the point clicked
+     * on the plot is used.
+     */
+    protected void pickRestFrequency( boolean id )
+    {
+        //  Pass id value to plotClicked method.
+        pickLineIdentifier = id;
+
+        //  Register as a listener for clicks on the plot.
+        DivaPlot divaPlot = control.getPlot();
+        divaPlot.addPlotClickedListener( this );
+
+        //  Raise the plot to indicate that an interaction should begin.
+        SwingUtilities.getWindowAncestor( divaPlot ).toFront();
+    }
+
+    /**
+     * Use a picked position to set the rest frequency. If pickLineIdentifier
+     * is set true then the strategy is to search the plot for a line
+     * identifier position that is nearest to the clicked position, otherwise
+     * the coordinates of the clicked point are used.
+     */
+    public void plotClicked( MouseEvent e )
+    {
+        DivaPlot divaPlot = control.getPlot();
+
+        //  Must be a click of mouse button 1.
+        if ( e.getButton()  != MouseEvent.BUTTON1 ) {
+            return;
+        }
+
+        //  Clicked position.
+        int xg = e.getX();
+
+        SpecData currentSpectrum = control.getCurrentSpectrum();
+
+        //  Transform this into world coordinates of the current spectrum.
+        SpecDataComp specDataComp = divaPlot.getSpecDataComp();
+        double[] mainCoords =
+            specDataComp.lookup( xg, (Plot) divaPlot.getMapping() );
+        
+        //  Picked coordinate and index of associated spectrum (zero is
+        //  current).
+        double bestcoord = 0.0;
+        int bestindex = -1;
+        if ( pickLineIdentifier ) {
+            //  Iterate over all plot spectra looking for line identifiers
+            //  when located get the nearest position and the offset.
+            double[] testCoords = null;
+            double diff = Double.MAX_VALUE;
+            SpecData[] specData = 
+                control.getPlot().getSpecDataComp().get();
+            for ( int i = 0; i < specData.length; i++ ) {
+                if ( specData[i] instanceof LineIDSpecData ) {
+                    testCoords = specDataComp.transformCoords( specData[i],
+                                                               mainCoords,
+                                                               false );
+                    //  Look for nearest position in this spectrum.
+                    testCoords = specData[i].nearest( testCoords[0] );
+                    
+                    //  Back to coordinates of the main spectrum.
+                    testCoords = specDataComp.transformCoords( specData[i],
+                                                               testCoords,
+                                                               true );
+                    
+                    //  If this is nearer then save index and coordinate.
+                    if ( Math.abs( testCoords[0] - mainCoords[0] ) < diff ) {
+                        bestindex = i;
+                        bestcoord = testCoords[0];
+                        
+                        //  Nearest diff.
+                        diff = Math.abs( testCoords[0] - mainCoords[0] );
+                    }
+                }
+            }
+        }
+        else {
+            bestcoord = mainCoords[0];
+            bestindex = 0;
+        }
+        
+        if ( bestindex != -1 ) {
+            //  The rest frequency can be supplied with various units
+            //  but not any velocity ones (which are the most useful for this
+            //  feature), so need to transform to GHz.
+            FrameSet frameSet = currentSpectrum.getAst().getRef();
+            bestcoord = UnitUtilities.convert( frameSet, 1,
+                                               "System=FREQ,Unit=GHz",
+                                               true, true, bestcoord );
+        
+            //  Set the rest frequency.
+            String restfreq = "RestFreq=" + bestcoord + "GHz";
+            try {
+                SpecCoordinatesFrame.convertToAttributes( currentSpectrum, 
+                                                          restfreq, 1, false );
+                restFrequencyField.setText( bestcoord + "GHz" );
+            }
+            catch (SplatException se) {
+                new ExceptionDialog( this, se );
+            }
+        }            
+
+        //  Remove the listener, once only interaction.
+        divaPlot.removePlotClickedListener( this );
+    }
+
+    /**
      * Close the window.
      */
     protected void closeWindowEvent()
     {
         Utilities.saveFrameLocation( this, prefs, "PlotUnitsFrame" );
+
+        //  Make sure we are removed as a PlotClickedListener.
+        control.getPlot().removePlotClickedListener( this );
         dispose();
     }
 
