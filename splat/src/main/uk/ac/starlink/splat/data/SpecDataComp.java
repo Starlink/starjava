@@ -817,22 +817,33 @@ public class SpecDataComp
     }
 
     /**
-     * Transform a range of position from the coordinates of a given spectrum
-     * to those of the current spectrum. The spectrum must be a member of this
-     * object.
+     * Transform position pairs either from the coordinates of a given
+     * spectrum to those of the current spectrum or vice versa. The spectrum
+     * must be a member of this object.
+     *
+     * @param referenceSpec a SpecData instance in use by this SpecDataComp.
+     * @param range the x,y pairs of positions, either in the coordinates of
+     *        the given spectrum or the current spectrum.
+     * @param toCurrent whether the transformation should go from the
+     *        given spectrum to the current one, or the other way around.
+     *
+     * @return an array of transformed position pairs.
      */
-    public double[] transformRange( SpecData referenceSpec, double[] range )
+
+    public double[] transformCoords( SpecData referenceSpec, double[] range,
+                                     boolean toCurrent )
     {
-        return transformRange( (FrameSet) mappings.get( referenceSpec ),
-                               range );
+        return transformCoords( (FrameSet) mappings.get( referenceSpec ),
+                                range, ( ! toCurrent ) );
     }
 
     /**
-     * Transform range-like position-pairs using a given mapping.
+     * Transform position-pairs using a given mapping.
      *
      * The input and output coordinates are [x1,x2,y1,y2,...].
      */
-    protected double[] transformRange( FrameSet mapping, double[] range )
+    protected double[] transformCoords( FrameSet mapping, double[] range,
+                                       boolean forward )
     {
         if ( range == null || mapping == null ) return null;
 
@@ -845,7 +856,7 @@ public class SpecDataComp
             xin[i] = range[i];
             yin[i] = range[i+xin.length];
         }
-        double[][] tmp = mapping.tran2( xin.length, xin, yin, false );
+        double[][] tmp = mapping.tran2( xin.length, xin, yin, forward );
 
         // Put back to vectorized array.
         result = new double[range.length];
