@@ -395,6 +395,7 @@ public class PlotUnitsFrame
         restFrequencyField = new JTextField();
         restFrequencyField.setEditable( false );
         gbl.add( restFrequencyField, false );
+        restFrequencyField.setToolTipText( "Current rest frequency in GHz" );
         gbl.eatLine();
 
         //  Add buttons to pick the a line identifier position as the
@@ -456,6 +457,9 @@ public class PlotUnitsFrame
             originDefault = frameSet.getD( "SpecOrigin" );
             originDefaultFrame = (Frame)
                 frameSet.getFrame( FrameSet.AST__CURRENT ).copy();
+
+            //  Needs a SpecFrame too.
+            restFrequencyField.setText( frameSet.getC( "RestFreq" ) );
         }
         catch (AstException e) {
             //  Not a SpecFrame, no SpecOrigin.
@@ -513,8 +517,6 @@ public class PlotUnitsFrame
                 break;
             }
         }
-        String restfreq = frameSet.getC( "RestFreq" );
-        restFrequencyField.setText( restfreq + "GHz" );
     }
 
     /**
@@ -740,19 +742,23 @@ public class PlotUnitsFrame
             //  but not any velocity ones (which are the most useful for this
             //  feature), so need to transform to GHz.
             FrameSet frameSet = currentSpectrum.getAst().getRef();
-            bestcoord = UnitUtilities.convert( frameSet, 1,
-                                               "System=FREQ,Unit=GHz",
-                                               true, true, bestcoord );
-        
-            //  Set the rest frequency.
-            String restfreq = "RestFreq=" + bestcoord + "GHz";
             try {
-                SpecCoordinatesFrame.convertToAttributes( currentSpectrum, 
-                                                          restfreq, 1, false );
-                restFrequencyField.setText( bestcoord + "GHz" );
+                bestcoord = UnitUtilities.convert( frameSet, 1,
+                                                   "System=FREQ,Unit=GHz",
+                                                   true, true, bestcoord );
+                //  Set the rest frequency.
+                String restfreq = "RestFreq=" + bestcoord + "GHz";
+                try {
+                    SpecCoordinatesFrame.convertToAttributes( currentSpectrum, 
+                                                              restfreq, 1, false );
+                    restFrequencyField.setText( Double.toString( bestcoord ) );
+                }
+                catch (SplatException se) {
+                    new ExceptionDialog( this, se );
+                }
             }
-            catch (SplatException se) {
-                new ExceptionDialog( this, se );
+            catch (AstException ae) {
+                //  Doing nothing, probably not a SpecFrame.
             }
         }            
 
