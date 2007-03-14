@@ -1572,7 +1572,7 @@ public class PlotControl
                 range[1] = dataLimits.getXUpper();
                 range[2] = dataLimits.getYLower();
                 range[3] = dataLimits.getYUpper();
-                range = spectra.transformRange( referenceSpec, range );
+                range = spectra.transformCoords( referenceSpec, range, true );
                 if ( range != null ) {
                     dataLimits.setXLower( range[0] );
                     dataLimits.setXUpper( range[1] );
