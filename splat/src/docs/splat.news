@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.6-9
+   =====
+
+   A new rest frequency can now be selecting using the plot units 
+   toolbox. The new frequency can be selected by clicking on a position
+   in the plot, or a line identifier.
+
    3.6-8
    =====
 
