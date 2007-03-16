@@ -2146,6 +2146,25 @@ public class SpecData
         }
     }
 
+    /**
+     * Lookup the index nearest to a given physical coordinate.
+     *
+     * @param x X coordinate
+     * @return the index.
+     */
+    public int nearestIndex( double x )
+    {
+        //  Bound our value.
+        int[] bounds = bound( x );
+
+        //  Find which position is nearest.
+        double[] result = new double[2];
+        if ( Math.abs(x - xPos[bounds[0]]) < Math.abs(xPos[bounds[1]] - x) ) {
+            return bounds[0];
+        }
+        return bounds[1];
+    }
+
 
     /**
      * Lookup the nearest physical values (wavelength and data value)
@@ -2156,19 +2175,10 @@ public class SpecData
      */
     public double[] nearest( double x )
     {
-        //  Bound our value.
-        int[] bounds = bound( x );
-
-        //  Find which position is nearest in reality.
+        int index = nearestIndex( x );
         double[] result = new double[2];
-        if ( Math.abs(x - xPos[bounds[0]]) < Math.abs(xPos[bounds[1]] - x) ) {
-            result[0] = xPos[bounds[0]];
-            result[1] = yPos[bounds[0]];
-        }
-        else {
-            result[0] = xPos[bounds[1]];
-            result[1] = yPos[bounds[1]];
-        }
+        result[0] = xPos[index];
+        result[1] = yPos[index];
         return result;
     }
 
