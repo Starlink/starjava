@@ -86,6 +86,13 @@ public class LineIDSpecData
      */
     private String prefixName = null;
 
+    /**
+     * Mapping to transform between the current coordinates and frequency 
+     * in GHz. 
+     */
+    private FrameSet frequencyMapping = null;
+
+
     /* TODO: Undoable support */
 
     /**
@@ -123,8 +130,8 @@ public class LineIDSpecData
         return specData;
     }
 
-    // 
-    //  Set the short name. Overridden so we can apply the transformation to 
+    //
+    //  Set the short name. Overridden so we can apply the transformation to
     //  remove "_lines" and and "_" for the version used to prefix the labels.
     //
     public void setShortName( String shortName )
@@ -322,7 +329,7 @@ public class LineIDSpecData
         //  Get all labels.
         String[] labels = getLabels();
         double yshift = 0.1 * ( clipLimits[3] - clipLimits[1] );
-        
+
         //  Guess a length for the lines.
         double lineLength = yshift;
 
@@ -354,12 +361,12 @@ public class LineIDSpecData
                 // coordinates and data units, or it goes wrong (tough).
                 int[] bound;
                 for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
-                    
+
                     //  Find nearest coordinate in other spectrum.
                     bound = specData.bound( xPos[j] );
                     xypos[i] = xPos[j];
 
-                    //  Record data position. 
+                    //  Record data position.
                     if ( ypos[bound[0]] == BAD ) {
                         xypos[i + 1] = clipLimits[1] + yshift;
                     }
@@ -375,7 +382,7 @@ public class LineIDSpecData
                 double[][] tmp = null;
                 int[] bound;
                 for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
-                    
+
                     //  Need index of a coordinate of specData near to our
                     //  coordinate. So transform our coordinate to world
                     //  coordinates of the target spectrum, if we're using one.
@@ -391,7 +398,7 @@ public class LineIDSpecData
                     inpos[0] = tmp[0][0];
                     inpos[1] = ypos[bound[0]];
                     tmp = astJ.astTran2( specDataMapping, inpos, true );
-                    
+
                     //  Record position of label.
                     xypos[i] = xPos[j];
                     if ( tmp[1][0] == BAD ) {
@@ -460,6 +467,33 @@ public class LineIDSpecData
         }
         resetGrfAttributes( defaultGrf, oldState, false );
         defaultGrf.setClipRegion( null );
+    }
+
+    /**
+     * Return the frequency of a line identifier. Note this is in this
+     * frame, the source frame, not the aligned frame which is usually seen in
+     * a plot. The returned value is in GHz.
+     *
+     * @param index the index of the label whose frequency is required.
+     * @return the frequency in GHz, -1 if out of range.
+     */
+    public double getFrequency( int index )
+    {
+        if ( index < xPos.length ) {
+            if ( frequencyMapping == null ) {
+                //  Need a Mapping that transforms the current coordinates 
+                //  into Ghz.
+                FrameSet from = impl.getAst();
+                FrameSet to = (FrameSet) from.copy();
+                to.set( "System=FREQ,Unit=GHz" );
+                frequencyMapping = from.convert( to, "" );
+            }
+            double xin[] = new double[1];
+            xin[0] = xPos[index];
+            double xout[] = frequencyMapping.tran1( 1, xin, true );
+            return xout[0];
+        }
+        return -1.0;
     }
 
 //
