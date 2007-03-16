@@ -249,6 +249,15 @@ public class TableSpecDataImpl
     }
 
     /**
+     * Get the format of this table.
+     */
+    public String getTableFormat()
+        throws SplatException
+    {
+        throw new SplatException( "Implement this now!" );
+    }
+
+    /**
      * Get the list of formats that are supported.
      */
     public static List getKnownFormats()
