@@ -388,7 +388,7 @@ public class PlotUnitsFrame
         stdOfRestBox.setToolTipText( "Standard of rest for coordinates" );
 
 
-        //  Text field for displaying the rest frequency (cannot be 
+        //  Text field for displaying the rest frequency (cannot be
         //  changed by editting.
         label = new JLabel( "Rest Frequency: " );
         gbl.add( label, false );
@@ -696,48 +696,49 @@ public class PlotUnitsFrame
         SpecDataComp specDataComp = divaPlot.getSpecDataComp();
         double[] mainCoords =
             specDataComp.lookup( xg, (Plot) divaPlot.getMapping() );
-        
+
         //  Picked coordinate and index of associated spectrum (zero is
         //  current).
-        double bestcoord = 0.0;
-        int bestindex = -1;
+        double bestcoord = -1.0;
         if ( pickLineIdentifier ) {
             //  Iterate over all plot spectra looking for line identifiers
             //  when located get the nearest position and the offset.
-            double[] testCoords = null;
+            double[] lineCoords = null;
+            double[] localCoords = null;
             double diff = Double.MAX_VALUE;
-            SpecData[] specData = 
+            SpecData[] specData =
                 control.getPlot().getSpecDataComp().get();
+            int bestindex = -1;
             for ( int i = 0; i < specData.length; i++ ) {
                 if ( specData[i] instanceof LineIDSpecData ) {
-                    testCoords = specDataComp.transformCoords( specData[i],
+                    lineCoords = specDataComp.transformCoords( specData[i],
                                                                mainCoords,
                                                                false );
                     //  Look for nearest position in this spectrum.
-                    testCoords = specData[i].nearest( testCoords[0] );
-                    
+                    lineCoords = specData[i].nearest( lineCoords[0] );
+
                     //  Back to coordinates of the main spectrum.
-                    testCoords = specDataComp.transformCoords( specData[i],
-                                                               testCoords,
-                                                               true );
-                    
+                    localCoords = specDataComp.transformCoords( specData[i],
+                                                                lineCoords,
+                                                                true );
+
                     //  If this is nearer then save index and coordinate.
-                    if ( Math.abs( testCoords[0] - mainCoords[0] ) < diff ) {
+                    if ( Math.abs( localCoords[0] - mainCoords[0] ) < diff ) {
                         bestindex = i;
-                        bestcoord = testCoords[0];
-                        
+                        bestcoord = lineCoords[0];
+
                         //  Nearest diff.
-                        diff = Math.abs( testCoords[0] - mainCoords[0] );
+                        diff = Math.abs( localCoords[0] - mainCoords[0] );
                     }
                 }
             }
+            if ( bestindex != -1 ) {
+                int index = specData[bestindex].nearestIndex( bestcoord );
+                bestcoord = 
+                    ((LineIDSpecData)specData[bestindex]).getFrequency(index);
+            }
         }
         else {
-            bestcoord = mainCoords[0];
-            bestindex = 0;
-        }
-        
-        if ( bestindex != -1 ) {
             //  The rest frequency can be supplied with various units
             //  but not any velocity ones (which are the most useful for this
             //  feature), so need to transform to GHz.
@@ -745,22 +746,24 @@ public class PlotUnitsFrame
             try {
                 bestcoord = UnitUtilities.convert( frameSet, 1,
                                                    "System=FREQ,Unit=GHz",
-                                                   true, true, bestcoord );
-                //  Set the rest frequency.
-                String restfreq = "RestFreq=" + bestcoord + "GHz";
-                try {
-                    SpecCoordinatesFrame.convertToAttributes( currentSpectrum, 
-                                                              restfreq, 1, false );
-                    restFrequencyField.setText( Double.toString( bestcoord ) );
-                }
-                catch (SplatException se) {
-                    new ExceptionDialog( this, se );
-                }
+                                                   true, true, mainCoords[0] );
             }
             catch (AstException ae) {
                 //  Doing nothing, probably not a SpecFrame.
+                bestcoord = -1.0;
             }
-        }            
+        }
+        if ( bestcoord > -1.0 ) {
+            String restfreq = "RestFreq=" + bestcoord + "GHz";
+            try {
+                SpecCoordinatesFrame.convertToAttributes( currentSpectrum,
+                                                          restfreq, 1, false );
+                restFrequencyField.setText( Double.toString( bestcoord ) );
+            }
+            catch (SplatException se) {
+                new ExceptionDialog( this, se );
+            }
+        }
 
         //  Remove the listener, once only interaction.
         divaPlot.removePlotClickedListener( this );
