@@ -134,8 +134,12 @@ public class JACUtilities
             //  in the axis units, but we need this in Hz.
             double dnu = specData.channelSpacing( "System=FREQ,Unit=Hz" );
 
-            //  Effective exposure time (x4). This value is from GAIA.
+            //  Effective exposure time (x4). This value is from GAIA or
+            //  we look for the median value (written by SMURF MAKECUBE).
             prop = specData.getProperty( "EXEFFT" );
+            if ( "".equals( prop ) ) {
+                prop = specData.getProperty( "EFF_TIME" );
+            }
             if ( ! "".equals( prop ) ) {
                 double teff = 0.25 * Double.parseDouble( prop );
 
