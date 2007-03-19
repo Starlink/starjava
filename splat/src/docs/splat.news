@@ -7,6 +7,9 @@
    toolbox. The new frequency can be selected by clicking on a position
    in the plot, or a line identifier.
 
+   The TSYS value is now derived from the median effective exposure time
+   when a better estimate is not available.
+
    3.6-8
    =====
 
