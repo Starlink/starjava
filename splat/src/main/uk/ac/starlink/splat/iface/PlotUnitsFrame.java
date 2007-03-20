@@ -756,8 +756,9 @@ public class PlotUnitsFrame
         if ( bestcoord > -1.0 ) {
             String restfreq = "RestFreq=" + bestcoord + "GHz";
             try {
-                SpecCoordinatesFrame.convertToAttributes( currentSpectrum,
-                                                          restfreq, 1, false );
+                SpecCoordinatesFrame.convertToAttributes
+                    ( currentSpectrum, restfreq, 
+                      currentSpectrum.getMostSignificantAxis(), false );
                 restFrequencyField.setText( Double.toString( bestcoord ) );
             }
             catch (SplatException se) {
