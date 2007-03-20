@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
@@ -37,8 +38,10 @@ public abstract class ErrorRenderer {
         DEFAULT,
         new CappedLine( true, 3 ),
         new CappedLine( false, 3 ),
-        new OpenEllipse(),
-        new OpenRectangle(),
+        new OpenEllipse( false ),
+        new OpenEllipse( true ),
+        new OpenRectangle( false ),
+        new OpenRectangle( true ),
         new FilledEllipse(),
         new FilledRectangle(),
     };
@@ -184,7 +187,7 @@ public abstract class ErrorRenderer {
          * into the coordinate list if it has been painted on (alpha is
          * non-zero). */
         Raster raster = im.getData();
-        IntList coordList = new IntList( Math.max( 100, xdim * ydim ) );
+        IntList coordList = new IntList( Math.min( 100, xdim * ydim ) );
         for ( int ix = 0; ix < xdim; ix++ ) {
             for ( int iy = 0; iy < ydim; iy++ ) {
                 int alpha = raster.getSample( ix, iy, 3 );
@@ -365,7 +368,25 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
-            Rectangle clip = g.getClipBounds();
+            drawErrors( g, x, y, xoffs, yoffs, g.getClipBounds(), 
+                        lines_, capsize_ );
+        }
+
+        /**
+         * Does the work for rendering the errors of a CappedLine style.
+         *
+         * @param  g  graphics context
+         * @param  x  data point X coordinate
+         * @param  y  data point Y coordinate
+         * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
+         * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
+         * @param  clip   bounds of output
+         * @param  lines  whether to draw lines
+         * @param  capsize  size of capping lines (0 for none)
+         */
+        public static void drawErrors( Graphics g, int x, int y,
+                                       int[] xoffs, int[] yoffs, Rectangle clip,
+                                       boolean lines, int capsize ) {
             int xmax = clip.width + 1;
             int ymax = clip.height + 1;
             int np = xoffs.length;
@@ -410,21 +431,21 @@ public abstract class ErrorRenderer {
                     } 
 
                     /* Draw line if required. */
-                    if ( lines_ ) {
+                    if ( lines ) {
                         g.drawLine( x, y, x + xoff, y + yoff );
                     }
 
                     /* Draw cap if required. */
-                    if ( capsize_ > 0 && ! clipped ) {
+                    if ( capsize > 0 && ! clipped ) {
 
                         /* For rectilinear offsets, draw the cap manually. */
                         if ( xoff == 0 ) {
-                            g.drawLine( x - capsize_, y + yoff,
-                                        x + capsize_, y + yoff );
+                            g.drawLine( x - capsize, y + yoff,
+                                        x + capsize, y + yoff );
                         }
                         else if ( yoff == 0 ) {
-                            g.drawLine( x + xoff, y - capsize_,
-                                        x + xoff, y + capsize_ );
+                            g.drawLine( x + xoff, y - capsize,
+                                        x + xoff, y + capsize );
                         }
 
                         /* For more general offsets, transform the graphics
@@ -439,12 +460,48 @@ public abstract class ErrorRenderer {
                             g2.rotate( Math.atan2( yoff, xoff ) );
                             double l2 = xoff * xoff + yoff * yoff;
                             int leng = (int) Math.round( Math.sqrt( l2 ) );
-                            g2.drawLine( leng, - capsize_, leng, capsize_ );
+                            g2.drawLine( leng, - capsize, leng, capsize );
                             g2.dispose();
                         }
                     }
                 }
             }
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            Drawing drawing = new Drawing( g.getClipBounds() );
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs[ ip ];
+                int yoff = yoffs[ ip ];
+                if ( xoff != 0 || yoff != 0 ) {
+                    if ( lines_ ) {
+                        drawing.drawLine( x, y, x + xoff, y + yoff );
+                    }
+                    if ( capsize_ > 0 ) {
+                        if ( xoff == 0 ) {
+                            drawing.drawLine( x - capsize_, y + yoff,
+                                              x + capsize_, y + yoff );
+                        }
+                        else if ( yoff == 0 ) {
+                            drawing.drawLine( x + xoff, y - capsize_,
+                                              x + xoff, y + capsize_ );
+                        }
+                        else {
+                            int x0 = x + xoff;
+                            int y0 = y + yoff;
+                            double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
+                            double capfact = capsize_ / r1;
+                            int x1 = (int) Math.round( - capfact * yoff );
+                            int y1 = (int) Math.round( + capfact * xoff );
+                            drawing.drawLine( x0 - x1, y0 - y1,
+                                              x0 + x1, y0 + y1 );
+                        }
+                    }
+                }
+            }
+            return drawing.getPixels();
         }
 
         public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
@@ -508,11 +565,16 @@ public abstract class ErrorRenderer {
     private static abstract class Oblong extends ErrorRenderer {
 
         private final Icon legend_;
+        private final boolean withLines_;
 
         /**
          * Constructor.
+         *
+         * @param  withLines  true iff you want a crosshair drawn as well as
+         *         the basic representation of this renderer
          */
-        Oblong() {
+        Oblong( boolean withLines ) {
+            withLines_ = withLines;
             legend_ = new ErrorRendererIcon( this, 2 );
         }
 
@@ -567,7 +629,9 @@ public abstract class ErrorRenderer {
                 yoffs = yo;
             }
 
-            /* If there are only 1-dimensional bounds, just draw a line. */
+            /* If there are only 1-dimensional bounds, just draw a line. 
+             * Actually, we don't claim to support dimensionality other than 2
+             * here, so this is probably never used. */
             if ( noff == 2 ) {
                 g.drawLine( x + xoffs[ 0 ], y + yoffs[ 0 ],
                             x + xoffs[ 1 ], y + yoffs[ 1 ] );
@@ -624,6 +688,11 @@ public abstract class ErrorRenderer {
                 drawOblong( g2, 0, 0, (int) Math.round( width ),
                             (int) Math.round( height ) );
                 g2.dispose();
+            }
+
+            /* Draw crosshair if required. */
+            if ( withLines_ ) {
+                CappedLine.drawErrors( g, x, y, xoffs, yoffs, clip, true, 0 );
             }
         }
 
@@ -697,9 +766,64 @@ public abstract class ErrorRenderer {
      * Oblong using an open ellipse.
      */
     private static class OpenEllipse extends Oblong {
+
+        private final boolean withLines_;
+
+        /**
+         * Constructor.
+         *
+         * @param  withLines  true iff you want a crosshair drawn as well as
+         *         the ellipse
+         */
+        public OpenEllipse( boolean withLines ) {
+            super( withLines );
+            withLines_ = withLines;
+        }
+
         protected void drawOblong( Graphics g, int x, int y,
                                    int width, int height ) {
             g.drawOval( x, y, width, height );
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                 xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                int width = xhi - xlo;
+                int height = yhi - ylo;
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.drawOval( xlo, ylo, width, height );
+                if ( withLines_ ) {
+                    for ( int i = 0; i < 4; i++ ) {
+                        drawing.drawLine( x, y,
+                                          x + xoffs[ i ], y + yoffs[ i ] );
+                    }
+                }
+                return drawing.getPixels();
+            }
+            else {
+                int ax = ( xoffs[ 1 ] - xoffs[ 0 ] ) / 2;
+                int ay = ( yoffs[ 1 ] - yoffs[ 0 ] ) / 2;
+                int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
+                int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
+                int x0 = x + Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
+                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 4f );
+                int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
+                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 4f );
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.drawEllipse( x0, y0, ax, ay, bx, by );
+                if ( withLines_ ) {
+                    for ( int i = 0; i < 4; i++ ) {
+                        drawing.drawLine( x, y,
+                                          x + xoffs[ i ], y + yoffs[ i ] );
+                    }
+                }
+                return drawing.getPixels();
+            }
         }
     }
 
@@ -707,9 +831,43 @@ public abstract class ErrorRenderer {
      * Oblong using a filled ellipse.
      */
     private static class FilledEllipse extends Oblong {
+
+        public FilledEllipse() {
+            super( false );
+        }
+
         protected void drawOblong( Graphics g, int x, int y,
                                    int width, int height ) {
             g.fillOval( x, y, width, height );
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                 xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                int width = xhi - xlo;
+                int height = yhi - ylo;
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.fillOval( xlo, ylo, width, height );
+                return drawing.getPixels();
+            }
+            else {
+                int ax = ( xoffs[ 1 ] - xoffs[ 0 ] ) / 2;
+                int ay = ( yoffs[ 1 ] - yoffs[ 0 ] ) / 2;
+                int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
+                int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
+                int x0 = x + Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
+                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 4f );
+                int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
+                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 4f );
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.fillEllipse( x0, y0, ax, ay, bx, by );
+                return drawing.getPixels();
+            }
         }
     }
 
@@ -717,9 +875,56 @@ public abstract class ErrorRenderer {
      * Oblong using an open rectangle.
      */
     private static class OpenRectangle extends Oblong {
+
+        private final boolean withLines_;
+
+        /**
+         * Constructor.
+         *
+         * @param  withLines  true iff you want a crosshair drawn as well as
+         *         the rectangle
+         */
+        public OpenRectangle( boolean withLines ) {
+            super( withLines );
+            withLines_ = withLines;
+        }
+
         protected void drawOblong( Graphics g, int x, int y,
                                    int width, int height ) {
             g.drawRect( x, y, width, height );
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim == 2;
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            if ( xoffs.length == 4 && yoffs.length == 4 ) {
+                int xa = x + xoffs[ 0 ] + xoffs[ 2 ];
+                int xb = x + xoffs[ 0 ] + xoffs[ 3 ];
+                int xc = x + xoffs[ 1 ] + xoffs[ 3 ];
+                int xd = x + xoffs[ 1 ] + xoffs[ 2 ];
+                int ya = y + yoffs[ 0 ] + yoffs[ 2 ];
+                int yb = y + yoffs[ 0 ] + yoffs[ 3 ];
+                int yc = y + yoffs[ 1 ] + yoffs[ 3 ];
+                int yd = y + yoffs[ 1 ] + yoffs[ 2 ];
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.drawLine( xa, ya, xb, yb );
+                drawing.drawLine( xb, yb, xc, yc );
+                drawing.drawLine( xc, yc, xd, yd );
+                drawing.drawLine( xd, yd, xa, ya );
+                if ( withLines_ ) {
+                    for ( int i = 0; i < 4; i++ ) {
+                        drawing.drawLine( x, y,
+                                          x + xoffs[ i ], y + yoffs[ i ] );
+                    }
+                }
+                return drawing.getPixels();
+            }
+            else {
+                return null;
+            }
         }
     }
 
@@ -727,9 +932,45 @@ public abstract class ErrorRenderer {
      * Oblong using a filled rectangle.
      */
     private static class FilledRectangle extends Oblong {
+
+        public FilledRectangle() {
+            super( false );
+        }
+
         protected void drawOblong( Graphics g, int x, int y,
                                    int width, int height ) {
             g.fillRect( x, y, width, height );
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                 xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                int width = xhi - xlo;
+                int height = yhi - ylo;
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.fillRect( xlo, ylo, width, height );
+                return drawing.getPixels();
+            }
+            else {
+                int[] xof = { xoffs[ 0 ] + xoffs[ 2 ],
+                              xoffs[ 1 ] + xoffs[ 2 ],
+                              xoffs[ 1 ] + xoffs[ 3 ],
+                              xoffs[ 0 ] + xoffs[ 3 ], };
+                int[] yof = { yoffs[ 0 ] + yoffs[ 2 ],
+                              yoffs[ 1 ] + yoffs[ 2 ],
+                              yoffs[ 1 ] + yoffs[ 3 ],
+                              yoffs[ 0 ] + yoffs[ 3 ], };
+                Polygon poly = new Polygon( xof, yof, 4 );
+                poly.translate( x, y );
+                Drawing drawing = new Drawing( g.getClipBounds() );
+                drawing.fill( poly );
+                return drawing.getPixels();
+            }
         }
     }
 
@@ -763,6 +1004,11 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            return NO_PIXELS;
         }
 
         public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
