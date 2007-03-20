@@ -24,33 +24,35 @@ import uk.ac.starlink.util.IntList;
  */
 public abstract class ErrorRenderer {
 
+    private final String name_;
+
     /** Error renderer which draws nothing. */
-    public static ErrorRenderer NONE = new Blank();
+    public static ErrorRenderer NONE = new Blank( "None" );
 
     /** General purpose error renderer. */
-    public static ErrorRenderer DEFAULT = new CappedLine( true, 0 );
+    public static ErrorRenderer DEFAULT = new CappedLine( "Lines", true, 0 );
 
     /** Error renderer suitable for use in user controls. */
-    public static ErrorRenderer EXAMPLE = new CappedLine( true, 3 );
+    public static ErrorRenderer EXAMPLE = new CappedLine( "Lines", true, 3 );
 
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( true, 3 ),
-        new CappedLine( false, 3 ),
-        new OpenEllipse( false ),
-        new OpenEllipse( true ),
-        new OpenRectangle( false ),
-        new OpenRectangle( true ),
-        new FilledEllipse(),
-        new FilledRectangle(),
+        new CappedLine( "Capped Lines", true, 3 ),
+        new CappedLine( "Caps", false, 3 ),
+        new OpenEllipse( "Ellipse", false ),
+        new OpenEllipse( "Crosshair Ellipse", true ),
+        new OpenRectangle( "Rectangle", false ),
+        new OpenRectangle( "Crosshair Rectangle", true ),
+        new FilledEllipse( "Filled Ellipse" ),
+        new FilledRectangle( "Filled Rectangle" ),
     };
 
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( true, 3 ),
-        new CappedLine( false, 3 ),
+        new CappedLine( "Capped Lines", true, 3 ),
+        new CappedLine( "Caps", false, 3 ),
     };
 
     private static final int[] NO_PIXELS = new int[ 0 ];
@@ -59,6 +61,15 @@ public abstract class ErrorRenderer {
     private static final int LEGEND_HEIGHT = 16;
     private static final int LEGEND_XPAD = 5;
     private static final int LEGEND_YPAD = 1;
+
+    /**
+     * Constructor.
+     *
+     * @param  name  renderer name
+     */
+    protected ErrorRenderer( String name ) {
+        name_ = name;
+    }
 
     /**
      * Returns an icon giving a general example of what this form looks like.
@@ -79,6 +90,15 @@ public abstract class ErrorRenderer {
      */
     public abstract Icon getLegendIcon( ErrorMode[] modes, int width,
                                         int height, int xpad, int ypad );
+
+    /**
+     * Returns a user-readable name for this style of error rendering.
+     *
+     * @return   renderer name
+     */
+    public String getName() {
+        return name_;
+    }
 
     /**
      * Indicates whether this renderer is known to produce no output 
@@ -338,18 +358,20 @@ public abstract class ErrorRenderer {
         /**
          * Constructor.
          *
+         * @param  name   renderer name
          * @param  lines   true iff you want error lines drawn
          * @param  capsize  the number of pixels in each direction the
          *                  cap should extend; zero means no cap
          */
-        CappedLine( boolean lines, int capsize ) {
+        CappedLine( String name, boolean lines, int capsize ) {
+            super( name );
             lines_ = lines;
             capsize_ = capsize;
             legend_ = new ErrorRendererIcon( this, 2 );
         }
 
         public boolean supportsDimensionality( int ndim ) {
-            return true;
+            return ndim > 0;
         }
 
         public Icon getLegendIcon() {
@@ -570,10 +592,12 @@ public abstract class ErrorRenderer {
         /**
          * Constructor.
          *
+         * @param  name   renderer name
          * @param  withLines  true iff you want a crosshair drawn as well as
          *         the basic representation of this renderer
          */
-        Oblong( boolean withLines ) {
+        Oblong( String name, boolean withLines ) {
+            super( name );
             withLines_ = withLines;
             legend_ = new ErrorRendererIcon( this, 2 );
         }
@@ -772,11 +796,12 @@ public abstract class ErrorRenderer {
         /**
          * Constructor.
          *
+         * @param  name   renderer name
          * @param  withLines  true iff you want a crosshair drawn as well as
          *         the ellipse
          */
-        public OpenEllipse( boolean withLines ) {
-            super( withLines );
+        public OpenEllipse( String name, boolean withLines ) {
+            super( name, withLines );
             withLines_ = withLines;
         }
 
@@ -787,8 +812,11 @@ public abstract class ErrorRenderer {
 
         public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
-            if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                 xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+            if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                return NO_PIXELS;
+            }
+            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
                 int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
                 int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
                 int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
@@ -832,8 +860,13 @@ public abstract class ErrorRenderer {
      */
     private static class FilledEllipse extends Oblong {
 
-        public FilledEllipse() {
-            super( false );
+        /**
+         * Constructor.
+         *
+         * @param  name   renderer name
+         */
+        public FilledEllipse( String name ) {
+            super( name, false );
         }
 
         protected void drawOblong( Graphics g, int x, int y,
@@ -843,8 +876,11 @@ public abstract class ErrorRenderer {
 
         public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
-            if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                 xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+            if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                return NO_PIXELS;
+            }
+            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
                 int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
                 int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
                 int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
@@ -881,11 +917,12 @@ public abstract class ErrorRenderer {
         /**
          * Constructor.
          *
+         * @param  name   renderer name
          * @param  withLines  true iff you want a crosshair drawn as well as
          *         the rectangle
          */
-        public OpenRectangle( boolean withLines ) {
-            super( withLines );
+        public OpenRectangle( String name, boolean withLines ) {
+            super( name, withLines );
             withLines_ = withLines;
         }
 
@@ -923,7 +960,7 @@ public abstract class ErrorRenderer {
                 return drawing.getPixels();
             }
             else {
-                return null;
+                return NO_PIXELS;
             }
         }
     }
@@ -933,8 +970,13 @@ public abstract class ErrorRenderer {
      */
     private static class FilledRectangle extends Oblong {
 
-        public FilledRectangle() {
-            super( false );
+        /**
+         * Constructor.
+         *
+         * @param  name   renderer name
+         */
+        public FilledRectangle( String name ) {
+            super( name, false );
         }
 
         protected void drawOblong( Graphics g, int x, int y,
@@ -944,8 +986,11 @@ public abstract class ErrorRenderer {
 
         public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
-            if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                 xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+            if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                return NO_PIXELS;
+            }
+            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
                 int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
                 int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
                 int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
@@ -981,7 +1026,13 @@ public abstract class ErrorRenderer {
 
         private final Icon legend_;
 
-        Blank() {
+        /**
+         * Constructor.
+         *
+         * @param  name   renderer name
+         */
+        Blank( String name ) {
+            super( name );
             legend_ = new EmptyIcon( 0, 0 );
         }
 
