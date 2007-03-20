@@ -154,6 +154,8 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
     protected JCheckBoxMenuItem sidebandMatching = null;
+    protected JCheckBoxMenuItem offsetMatching = null;
+    protected JCheckBoxMenuItem baseSystemMatching = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem horizontalLineIDs = null;
     protected JCheckBoxMenuItem prefixLineIDs = null;
@@ -586,15 +588,31 @@ public class PlotControlFrame
         optionsMenu.add( sidebandMatching );
         sidebandMatching.addItemListener( this );
 
+        offsetMatching =
+            new JCheckBoxMenuItem( "Match origins" );
+        optionsMenu.add( offsetMatching );
+        offsetMatching.addItemListener( this );
+
+        baseSystemMatching =
+            new JCheckBoxMenuItem( "Match using base system" );
+        optionsMenu.add( baseSystemMatching );
+        baseSystemMatching.addItemListener( this );
+
         boolean state1 =
             prefs.getBoolean( "PlotControlFrame_coordinatematch", true );
         boolean state2 = 
             prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
         boolean state3 = 
             prefs.getBoolean( "PlotControlFrame_sidebandmatch", true );
+        boolean state4 = 
+            prefs.getBoolean( "PlotControlFrame_offsetmatch", false );
+        boolean state5 = 
+            prefs.getBoolean( "PlotControlFrame_basesystemmatch", true );
         coordinateMatching.setSelected( state1 );
         dataUnitsMatching.setSelected( state2 );
         sidebandMatching.setSelected( state3 );
+        offsetMatching.setSelected( state4 );
+        baseSystemMatching.setSelected( state5 );
 
         //  Whether to just draw the grid in the visible region. Can be
         //  expensive so off by default.
@@ -1765,11 +1783,15 @@ public class PlotControlFrame
 
         if ( source.equals( coordinateMatching ) ||
              source.equals( dataUnitsMatching ) || 
-             source.equals( sidebandMatching ) ) {
+             source.equals( sidebandMatching ) ||
+             source.equals( offsetMatching ) ||
+             source.equals( baseSystemMatching ) ) {
 
             boolean state1 = coordinateMatching.isSelected();
             boolean state2 = dataUnitsMatching.isSelected();
             boolean state3 = sidebandMatching.isSelected();
+            boolean state4 = offsetMatching.isSelected();
+            boolean state5 = baseSystemMatching.isSelected();
 
             if ( source.equals( dataUnitsMatching ) ) {
                 // Need coordinateMatching when matching dataUnits. Coordinate
@@ -1789,11 +1811,15 @@ public class PlotControlFrame
             plot.getSpecDataComp().setCoordinateMatching( state1 );
             plot.getSpecDataComp().setDataUnitsMatching( state2 );
             plot.getSpecDataComp().setSideBandMatching( state3 );
+            plot.getSpecDataComp().setOffsetMatching( state4 );
+            plot.getSpecDataComp().setBaseSystemMatching( state5 );
 
             prefs.putBoolean( "PlotControlFrame_coordinatematch", state1 );
             prefs.putBoolean( "PlotControlFrame_dataunitsmatch", state2 );
             prefs.putBoolean( "PlotControlFrame_sidebandmatch", state3 );
-            try {
+            prefs.putBoolean( "PlotControlFrame_offsetmatch", state4 );
+            prefs.putBoolean( "PlotControlFrame_basesystemmatch", state5 );
+           try {
                 plot.updateThePlot( null );
             }
             catch (SplatException se) {
@@ -1811,6 +1837,8 @@ public class PlotControlFrame
                     coordinateMatching.setSelected( false );
                     dataUnitsMatching.setSelected( false );
                     sidebandMatching.setSelected( true );
+                    offsetMatching.setSelected( false );
+                    baseSystemMatching.setSelected( true );
                 }
             }
             return;

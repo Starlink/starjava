@@ -99,6 +99,17 @@ public class SpecDataComp
     private boolean sidebandMatching = true;
 
     /**
+     * Whether we're matching to offsets or not. The AST default is false.
+     */
+    private boolean offsetMatching = false;
+
+    /**
+     * Whether we're setting the alignment system to that of the current
+     * spectrum (useful when aligning in velocity).
+     */
+    private boolean baseSystemMatching = true;
+
+    /**
      * Whether we are to include spacing for error bars in the automatic
      * ranging.
      */
@@ -246,6 +257,49 @@ public class SpecDataComp
     public boolean isSideBandMatching()
     {
         return sidebandMatching;
+    }
+
+    /**
+     * Set whether we're matching spectra using their offset coordinates.
+     */
+    public void setOffsetMatching( boolean offsetMatching )
+    {
+        //  If offset matching state is changed we may need to generate
+        //  the mappings between the current spectrum and all the others.
+        if ( offsetMatching != this.offsetMatching ) {
+            regenerateMappings = true;
+        }
+        this.offsetMatching = offsetMatching;
+    }
+
+    /**
+     * Get whether we're matching spectral coordinates using the offset values.
+     */
+    public boolean isOffsetMatching()
+    {
+        return offsetMatching;
+    }
+
+    /**
+     * Set whether we're matching spectra using the system of the current
+     * spectrum as the AlignSystem value, or not.
+     */
+    public void setBaseSystemMatching( boolean baseSystemMatching )
+    {
+        //  If is changed we may need to generate the mappings between the
+        //  current spectrum and all the others.
+        if ( baseSystemMatching != this.baseSystemMatching ) {
+            regenerateMappings = true;
+        }
+        this.baseSystemMatching = baseSystemMatching;
+    }
+
+    /**
+     * Get whether we're matching using the system of the current spectrum.
+     */
+    public boolean isBaseSystemMatching()
+    {
+        return baseSystemMatching;
     }
 
     /**
@@ -843,7 +897,7 @@ public class SpecDataComp
      * The input and output coordinates are [x1,x2,y1,y2,...].
      */
     protected double[] transformCoords( FrameSet mapping, double[] range,
-                                       boolean forward )
+                                        boolean forward )
     {
         if ( range == null || mapping == null ) return null;
 
@@ -1092,6 +1146,23 @@ public class SpecDataComp
                 to.setB( "AlignSideBand", sidebandMatching );
             }
 
+            //  If we're matching offsets then arrange for that. Needs
+            //  both spectra to have SpecFrames and have spectral
+            //  origins set.
+            if ( haveSpecFrame ) {
+                if ( offsetMatching && to.test( "SpecOrigin" ) &&
+                     from.test( "SpecOrigin" ) ) {
+                    to.setB( "AlignSpecOffset", offsetMatching );
+                    from.setB( "AlignSpecOffset", offsetMatching );
+                }
+
+                //  If we want the AlignSystem attribute set to that of the
+                //  current spectrum, do that.
+                if ( baseSystemMatching ) {
+                    from.setC( "AlignSystem(1)", to.getC( "System(1)" ) );
+                }
+            }
+
             //  Get mapping.
             mapping = to.convert( from, "DATAPLOT" );
 
@@ -1099,9 +1170,18 @@ public class SpecDataComp
                 from.setActiveUnit( false );
             }
 
-            //  Reset so that it only effects the mapping (not the Plot).
+            //  Resets so only effects the mapping, not the Plot.
             if ( haveDSBSpecFrame && ! sidebandMatching ) {
                 to.setB( "AlignSideBand", true );
+            }
+            if ( haveSpecFrame ) {
+                if ( offsetMatching ) {
+                    to.setB( "AlignSpecOffset", false );
+                    from.setB( "AlignSpecOffset", false );
+                }
+                if ( baseSystemMatching ) {
+                    from.clear( "AlignSystem(1)" );
+                }
             }
 
             if ( mapping == null ) {
