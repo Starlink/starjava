@@ -381,10 +381,10 @@ public abstract class ScatterPlot extends SurfacePlot {
         int nset = sets.length;
 
         /* Work out which sets do not have associated markers drawn. */
-        boolean[] hidePoints = new boolean[ nset ];
+        boolean[] showPoints = new boolean[ nset ];
         boolean[] showErrors = new boolean[ nset ];
         for ( int is = 0; is < nset; is++ ) {
-            hidePoints[ is ] = styles[ is ].getHidePoints();
+            showPoints[ is ] = ! styles[ is ].getHidePoints();
             showErrors[ is ] = hasErrors( points, styles[ is ] );
         }
 
@@ -394,7 +394,7 @@ public abstract class ScatterPlot extends SurfacePlot {
          * way we can avoid doing some of the edge checking. */
         int maxr = 0;
         for ( int is = 0; is < nset; is++ ) {
-            if ( ! hidePoints[ is ] ) {
+            if ( showPoints[ is ] ) {
                 maxr = Math.max( styles[ is ].getMaximumRadius(), maxr );
             }
         }
@@ -449,7 +449,8 @@ public abstract class ScatterPlot extends SurfacePlot {
         int noff = ( hasErrors[ 0 ] ? 2 : 0 ) + ( hasErrors[ 1 ] ? 2 : 0 );
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ];
-        boolean[] showMarks = new boolean[ nset ];
+        boolean[] showPointMarks = new boolean[ nset ];
+        boolean[] showPointErrors = new boolean[ nset ];
         int nIncluded = 0;
         int nVisible = 0;
         for ( int ip = 0; ip < np; ip++ ) {
@@ -457,7 +458,8 @@ public abstract class ScatterPlot extends SurfacePlot {
             for ( int is = 0; is < nset; is++ ) {
                 boolean included = sets[ is ].isIncluded( (long) ip );
                 use = use || included;
-                showMarks[ is ] = included && ! hidePoints[ is ];
+                showPointMarks[ is ] = included && showPoints[ is ];
+                showPointErrors[ is ] = included && showErrors[ is ];
             }
             if ( use ) {
                 nIncluded++;
@@ -475,7 +477,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                         nVisible++;
                         int base = xbase + xdim * ybase;
                         for ( int is = 0; is < nset; is++ ) {
-                            if ( showMarks[ is ] ) {
+                            if ( showPointMarks[ is ] ) {
                                 for ( int ioff = 0; ioff < npixoffs[ is ];
                                       ioff++ ) {
                                     int ipix = base + pixoffs[ is ][ ioff ];
@@ -483,7 +485,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                                     mask.set( ipix );
                                 }
                             }
-                            if ( showErrors[ is ] ) {
+                            if ( showPointErrors[ is ] ) {
                                 points.getErrors( ip, loErrs, hiErrs );
                                 if ( transformErrors( point, coords,
                                                       loErrs, hiErrs,
