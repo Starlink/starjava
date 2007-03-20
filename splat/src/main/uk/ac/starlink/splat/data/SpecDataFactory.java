@@ -1277,6 +1277,11 @@ public class SpecDataFactory
             //  thought this was a mime-type?
             stype = SpecDataFactory.FITS;
         }
+        else if ( simpleType.equals( "fits" ) ) {
+            //  FITS format, is that image or table? Note broken type
+            //  no application or spectrum this time!
+            stype = SpecDataFactory.FITS;
+        }
         else if ( simpleType.equals( "text/plain" ) ) {
             //  ASCII table of some kind.
             stype = SpecDataFactory.TABLE;
