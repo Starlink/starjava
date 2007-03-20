@@ -10,6 +10,11 @@
    The TSYS value is now derived from the median effective exposure time
    when a better estimate is not available.
 
+   The alignment of spectra in a plot can now be made to happen via the
+   offset coordinate system (when spectral origins are defined), and
+   also via the coordinate system of the current spectrum (rather than
+   via the WAVE system, this means velocity systems can be aligned directly).
+
    3.6-8
    =====
 
