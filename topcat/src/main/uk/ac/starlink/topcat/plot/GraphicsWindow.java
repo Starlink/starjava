@@ -216,7 +216,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         progBar_ = placeProgressBar();
         noProgress_ = new DefaultBoundedRangeModel();
 
-         /* Actions for exporting the plot. */
+        /* Actions for exporting the plot. */
         Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
                                              "Save plot as a GIF file",
                                              gifFilter_ ) {
@@ -378,13 +378,20 @@ public abstract class GraphicsWindow extends AuxWindow {
 
     /**
      * Constructs and returns a menu suitable which can be used to select
-     * error modes.
+     * error modes and possibly styles.
      *
+     * @param  renderers  list of renderers which should be offered as 
+     *         additional style options at the end of the menu (or null)
      * @return  new error mode selection menu
      */
-    public JMenu createErrorMenu() {
-        JMenu errorMenu = new JMenu( "Error Bars" );
+    public JMenu createErrorMenu( final ErrorRenderer[] renderers ) {
+
+        /* Create a new menu. */
+        final JMenu errorMenu = new JMenu( "Error Bars" );
         errorMenu.setMnemonic( KeyEvent.VK_B );
+
+        /* For each dimension add menu items corresponding to what mode of
+         * error bar it requires. */
         for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
             if ( ierr > 0 ) {
                 errorMenu.addSeparator();
@@ -394,7 +401,80 @@ public abstract class GraphicsWindow extends AuxWindow {
                 errorMenu.add( errItems[ imode ] );
             }
         }
+
+        /* Prepare to add items at the end of the menu for selecting error
+         * rendering style.  This is not a fixed list, because it depends
+         * on what the current error mode selection is.  So we need and
+         * error mode selection listener which deletes and re-adds suitable
+         * error renderer items each time the mode selection changes. */
+        if ( renderers != null ) {
+            final int nfixed = errorMenu.getItemCount();
+            ActionListener errStyleListener = new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateErrorMenu( errorMenu, nfixed, renderers );
+                }
+            };
+            for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+                errorModeModels_[ ierr ].addActionListener( errStyleListener );
+            }
+
+            /* Invoke the update now to cope with the current state. */
+            updateErrorMenu( errorMenu, nfixed, renderers );
+        }
+
+        /* Return the configured menu. */
         return errorMenu;
+    }
+
+    /**
+     * Updates an error menu to reflect the current state of the 
+     * error mode selectors.  First, all items after <code>nfixed</code>
+     * are removed (presumed added on by previous invocations of this method).
+     * Then a number of items corresponding to the supplied 
+     * <code>renderers</code> array are added.
+     * Wouldn't it be nice if JMenu had a model?
+     *
+     * @param  errorMenu  menu to modify
+     * @param  nfixed     number of initial menu items to leave alone
+     * @param  renderers  array of renderers for which menu actions may be
+     *                    added
+     */
+    private void updateErrorMenu( JMenu errorMenu, int nfixed,
+                                  ErrorRenderer[] renderers ) {
+
+        /* Delete any of the menu items which we added last time. */
+        while ( errorMenu.getItemCount() > nfixed ) {
+            errorMenu.remove( errorMenu.getItemCount() - 1 );
+        }
+        errorMenu.addSeparator();
+
+        /* Count the number of non-blank dimensions for error bars. */
+        int ndim = 0;
+        ErrorMode[] modes = new ErrorMode[ errorModeModels_.length ];
+        for ( int idim = 0; idim < errorModeModels_.length; idim++ ) {
+            modes[ idim ] = errorModeModels_[ idim ].getMode();
+            if ( ! ErrorMode.NONE.equals( modes[ idim ] ) ) {
+                ndim++;
+            }
+        }
+
+        /* For each known renderer, add an action to the menu if it makes
+         * sense for the current error bar dimensionality. */
+        for ( int ir = 0; ir < renderers.length; ir++ ) {
+            final ErrorRenderer erend = renderers[ ir ];
+            if ( erend.supportsDimensionality( ndim ) ) {
+                Icon icon = erend.getLegendIcon( modes, 30, 20, 1, 1 );
+                String name = erend.getName();
+                Action rendAct = new BasicAction( name, icon,
+                                                  "Reset all error styles" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        setStyles( new ErrorMarkStyleSet( styleSet_, erend ) );
+                        replot();
+                    }
+                };
+                errorMenu.add( rendAct );
+            }
+        }
     }
 
     /**

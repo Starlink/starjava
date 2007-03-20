@@ -89,6 +89,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.faded( "Medium Transparent Dots", MARKERS2, 5 ),
     };
     private static final String[] AXIS_NAMES = new String[] { "X", "Y", };
+    private static final ErrorRenderer[] ERROR_RENDERERS = 
+        ErrorRenderer.getOptions2d();
 
     /**
      * Constructs a new PlotWindow.
@@ -229,7 +231,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         getJMenuBar().add( styleMenu );
 
         /* Construct a new menu for error modes. */
-        getJMenuBar().add( createErrorMenu() );
+        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
 
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );
@@ -273,7 +275,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new MarkStyleEditor( true, true, ErrorRenderer.getOptions2d(),
+        return new MarkStyleEditor( true, true, ERROR_RENDERERS,
                                     getErrorModeModels() );
     }
 
