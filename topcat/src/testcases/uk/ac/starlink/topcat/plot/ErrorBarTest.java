@@ -29,8 +29,10 @@ public class ErrorBarTest extends TestCase {
                                         new int[] { 0, 0, -5, 9, } ) );
             p.add( new ErrorBarSamples( new int[] { 4, -4, 4, -4, },
                                         new int[] { -4, 4, 4, -4, } ) );
-            p.add( new ErrorBarSamples( new int[] { -2, 2, 6, -9, },
+            p.add( new ErrorBarSamples( new int[] { -1, 1, 9, -11, },
                                         new int[] { 8, -8, 4, -6, } ) );
+            p.add( new ErrorBarSamples( new int[] { -4, 4, 1, -1, },
+                                        new int[] { -1, 1, -10, 10, } ) );
             toplev.pack();
             toplev.setVisible( true );
             Thread.currentThread().sleep( 2000 );
