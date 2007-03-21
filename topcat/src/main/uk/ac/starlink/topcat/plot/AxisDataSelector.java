@@ -56,22 +56,22 @@ public class AxisDataSelector extends JPanel {
                          ".*",
                          Pattern.CASE_INSENSITIVE );
 
-    /** Selector type denoting the lower bound axis selector. */
-    private static final SelectorType LO = new SelectorType( "Lower" ) {
+    /** Error type denoting the lower bound error. */
+    private static final ErrorType LO = new ErrorType( "Lower" ) {
         public JComboBox getSelector( AxisDataSelector axSel ) {
             return axSel.loSelector_;
         }
     };
 
-    /** Selector type denoting the upper bound axis selector. */
-    private static final SelectorType HI = new SelectorType( "Upper" ) {
+    /** Error type denoting the upper bound error. */
+    private static final ErrorType HI = new ErrorType( "Upper" ) {
         public JComboBox getSelector( AxisDataSelector axSel ) {
             return axSel.hiSelector_;
         }
     };
 
-    /** Selector type denoting the symmetric lower/upper bound axis selector. */
-    private static final SelectorType LH = new SelectorType( "LowerUpper" ) {
+    /** Error type denoting the symmetric lower/upper bound error. */
+    private static final ErrorType LH = new ErrorType( "LowerUpper" ) {
         public JComboBox getSelector( AxisDataSelector axSel ) {
             return axSel.lhSelector_;
         }
@@ -272,8 +272,7 @@ public class AxisDataSelector extends JPanel {
      *          selections for the error column)
      * @return  guess for error column, or null if nothing looks suitable
      */
-    private static ColumnData guessColumn( ColumnData mainCol,
-                                           SelectorType type,
+    private static ColumnData guessColumn( ColumnData mainCol, ErrorType type,
                                            JComboBox selector ) {
         ColumnInfo mainInfo = mainCol.getColumnInfo();
         int ncol = selector.getItemCount();
@@ -368,17 +367,17 @@ public class AxisDataSelector extends JPanel {
      */
     private class ColumnSelectionListener implements ActionListener {
 
-        private final SelectorType selectorType_;
+        private final ErrorType errorType_;
         private ColumnData lastCol_;
 
         /**
          * Constructor.
          *
-         * @param   selectorType  indicates the type of selector this 
+         * @param   errorType  indicates the type of error selector this 
          *          object is listening to; null indicates the main selector
          */
-        public ColumnSelectionListener( SelectorType selectorType ) {
-            selectorType_ = selectorType;
+        public ColumnSelectionListener( ErrorType errorType ) {
+            errorType_ = errorType;
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -389,33 +388,34 @@ public class AxisDataSelector extends JPanel {
             }
             lastCol_ = col;
             AxisDataSelector axSel = AxisDataSelector.this;
-            if ( selectorType_ == null ) {
+            if ( errorType_ == null ) {
                 colSelectionTracker_.mainSelected( axSel, col );
             }
             else {
-                colSelectionTracker_.auxSelected( axSel, selectorType_, col );
+                colSelectionTracker_.auxSelected( axSel, errorType_, col );
             }
         }
     }
 
     /**
-     * Enumeration class which describes the type of individual column 
-     * selectors within this axis data selector.
+     * Enumeration class which describes a type of error quantity that
+     * can be selected.
      */
-    private static abstract class SelectorType {
+    private static abstract class ErrorType {
+
         private final String name_;
 
         /**
          * Constructor.
          *
-         * @param  selector name
+         * @param  error type description
          */
-        private SelectorType( String name ) {
+        private ErrorType( String name ) {
             name_ = name;
         }
 
         /**
-         * Returns the combo box corresponding to this selector type 
+         * Returns the combo box corresponding to this error type 
          * for a given AxisDataSelector object.
          *
          * @param  axSel   axis data selector
@@ -443,7 +443,7 @@ public class AxisDataSelector extends JPanel {
         }
 
         /**
-         * Returns selector type name.
+         * Returns error type description.
          */
         public String toString() {
             return name_;
@@ -459,7 +459,7 @@ public class AxisDataSelector extends JPanel {
 
         /**
          * Structure containing the state of this object.
-         * It is a map from (main ColumnData, SelectorType) -> aux ColumnData
+         * It is a map from (main ColumnData, ErrorType) -> aux ColumnData
          * (see {@link #getKey}).  Entries exist where the value of an
          * auxiliary (error) selector is known for a given main selector value.
          * A null entry means the value should be blank; this differs from
@@ -486,7 +486,7 @@ public class AxisDataSelector extends JPanel {
                 for ( Iterator it =
                       Arrays.asList( new Object[] { LO, HI, LH } ).iterator();
                       it.hasNext(); ) {
-                    SelectorType type = (SelectorType) it.next();
+                    ErrorType type = (ErrorType) it.next();
                     Object key = getKey( mainCol, type );
                     JComboBox selector = type.getSelector( axSel );
                     ColumnData col = errColMap_.containsKey( key )
@@ -507,7 +507,7 @@ public class AxisDataSelector extends JPanel {
          * @param  type   the type of selector whose selection has changed
          * @param  col    the new value for the selector
          */
-        public void auxSelected( AxisDataSelector axSel, SelectorType type,
+        public void auxSelected( AxisDataSelector axSel, ErrorType type,
                                  ColumnData col ) {
             ColumnData mainCol =
                 (ColumnData) axSel.atSelector_.getSelectedItem();
@@ -523,10 +523,10 @@ public class AxisDataSelector extends JPanel {
          * Returns a key for use in this object's <code>errColMap_</code>.
          *
          * @param   mainCol   main column
-         * @param   type      selector type
+         * @param   type      error type
          * @return  opaque key object
          */
-        private static Object getKey( ColumnData mainCol, SelectorType type ) {
+        private static Object getKey( ColumnData mainCol, ErrorType type ) {
             return Arrays.asList( new Object[] { mainCol, type, } );
         }
     }
