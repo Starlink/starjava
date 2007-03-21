@@ -42,6 +42,7 @@ import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JToggleButton;
@@ -118,6 +119,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
     private final ToggleButtonModel[] logModels_;
+    private final ErrorModeSelectionModel[] errorModeModels_;
     private final JMenu exportMenu_;
     private final JProgressBar progBar_;
     private final BoundedRangeModel noProgress_;
@@ -137,6 +139,8 @@ public abstract class GraphicsWindow extends AuxWindow {
     private boolean forceReread_;
     private double padRatio_ = 0.02;
     private PointsReader pointsReader_;
+    private int nPlot_;
+    private int nRead_;
 
     private static JFileChooser exportSaver_;
     private static FileFilter psFilter_ =
@@ -152,9 +156,11 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param   viewName  name of the view window
      * @param   axisNames  array of labels by which each axis is known;
      *          the length of this array defines the dimensionality of the plot
+     * @param   nerror   the number of dimensions in which errors may
+     *          appear
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( String viewName, String[] axisNames,
+    public GraphicsWindow( String viewName, String[] axisNames, int nerror,
                            Component parent ) {
         super( viewName, parent );
         axisNames_ = axisNames;
@@ -182,6 +188,14 @@ public abstract class GraphicsWindow extends AuxWindow {
             }
         }
 
+        /* Error mode selectors. */
+        errorModeModels_ = new ErrorModeSelectionModel[ nerror ];
+        for ( int ierr = 0; ierr < nerror; ierr++ ) {
+            errorModeModels_[ ierr ] =
+                new ErrorModeSelectionModel( ierr, axisNames[ ierr ] );
+            errorModeModels_[ ierr ].addActionListener( replotListener_ );
+        }
+
         /* Set up point selector component. */
         pointSelectors_ = new PointSelectorSet() {
             protected PointSelector createSelector() {
@@ -202,7 +216,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         progBar_ = placeProgressBar();
         noProgress_ = new DefaultBoundedRangeModel();
 
-         /* Actions for exporting the plot. */
+        /* Actions for exporting the plot. */
         Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
                                              "Save plot as a GIF file",
                                              gifFilter_ ) {
@@ -363,6 +377,107 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Constructs and returns a menu suitable which can be used to select
+     * error modes and possibly styles.
+     *
+     * @param  renderers  list of renderers which should be offered as 
+     *         additional style options at the end of the menu (or null)
+     * @return  new error mode selection menu
+     */
+    public JMenu createErrorMenu( final ErrorRenderer[] renderers ) {
+
+        /* Create a new menu. */
+        final JMenu errorMenu = new JMenu( "Error Bars" );
+        errorMenu.setMnemonic( KeyEvent.VK_B );
+
+        /* For each dimension add menu items corresponding to what mode of
+         * error bar it requires. */
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+            if ( ierr > 0 ) {
+                errorMenu.addSeparator();
+            }
+            JMenuItem[] errItems = errorModeModels_[ ierr ].createMenuItems();
+            for ( int imode = 0; imode < errItems.length; imode++ ) {
+                errorMenu.add( errItems[ imode ] );
+            }
+        }
+
+        /* Prepare to add items at the end of the menu for selecting error
+         * rendering style.  This is not a fixed list, because it depends
+         * on what the current error mode selection is.  So we need and
+         * error mode selection listener which deletes and re-adds suitable
+         * error renderer items each time the mode selection changes. */
+        if ( renderers != null ) {
+            final int nfixed = errorMenu.getItemCount();
+            ActionListener errStyleListener = new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateErrorMenu( errorMenu, nfixed, renderers );
+                }
+            };
+            for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+                errorModeModels_[ ierr ].addActionListener( errStyleListener );
+            }
+
+            /* Invoke the update now to cope with the current state. */
+            updateErrorMenu( errorMenu, nfixed, renderers );
+        }
+
+        /* Return the configured menu. */
+        return errorMenu;
+    }
+
+    /**
+     * Updates an error menu to reflect the current state of the 
+     * error mode selectors.  First, all items after <code>nfixed</code>
+     * are removed (presumed added on by previous invocations of this method).
+     * Then a number of items corresponding to the supplied 
+     * <code>renderers</code> array are added.
+     * Wouldn't it be nice if JMenu had a model?
+     *
+     * @param  errorMenu  menu to modify
+     * @param  nfixed     number of initial menu items to leave alone
+     * @param  renderers  array of renderers for which menu actions may be
+     *                    added
+     */
+    private void updateErrorMenu( JMenu errorMenu, int nfixed,
+                                  ErrorRenderer[] renderers ) {
+
+        /* Delete any of the menu items which we added last time. */
+        while ( errorMenu.getItemCount() > nfixed ) {
+            errorMenu.remove( errorMenu.getItemCount() - 1 );
+        }
+        errorMenu.addSeparator();
+
+        /* Count the number of non-blank dimensions for error bars. */
+        int ndim = 0;
+        ErrorMode[] modes = new ErrorMode[ errorModeModels_.length ];
+        for ( int idim = 0; idim < errorModeModels_.length; idim++ ) {
+            modes[ idim ] = errorModeModels_[ idim ].getMode();
+            if ( ! ErrorMode.NONE.equals( modes[ idim ] ) ) {
+                ndim++;
+            }
+        }
+
+        /* For each known renderer, add an action to the menu if it makes
+         * sense for the current error bar dimensionality. */
+        for ( int ir = 0; ir < renderers.length; ir++ ) {
+            final ErrorRenderer erend = renderers[ ir ];
+            if ( erend.supportsDimensionality( ndim ) ) {
+                Icon icon = erend.getLegendIcon( modes, 30, 20, 1, 1 );
+                String name = erend.getName();
+                Action rendAct = new BasicAction( name, icon,
+                                                  "Reset all error styles" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        setStyles( new ErrorMarkStyleSet( styleSet_, erend ) );
+                        replot();
+                    }
+                };
+                errorMenu.add( rendAct );
+            }
+        }
+    }
+
+    /**
      * Returns the PointSelectorSet component used by this window.
      *
      * @return  point selector set
@@ -424,6 +539,15 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Returns the models for selecting error modes.
+     *
+     * @return  error mode models
+     */
+    public ErrorModeSelectionModel[] getErrorModeModels() {
+        return errorModeModels_;
+    }
+
+    /**
      * Returns the most recently read Points object.
      *
      * @return  points object
@@ -480,7 +604,8 @@ public abstract class GraphicsWindow extends AuxWindow {
                 new DefaultPointSelector.ToggleSet( "Log", logModels_ ),
                 new DefaultPointSelector.ToggleSet( "Flip", flipModels_ ),
             };
-        return new DefaultPointSelector( getStyles(), axisNames_, toggleSets );
+        return new DefaultPointSelector( getStyles(), axisNames_, toggleSets,
+                                         errorModeModels_ );
     };
 
     /**
@@ -599,7 +724,7 @@ public abstract class GraphicsWindow extends AuxWindow {
             /* If we're looking at what is effectively a new graph,
              * reset the viewing limits to null, so the visible range
              * will be defined only by the data. */
-            if ( ! sameData ) {
+            if ( ! pointSelection.sameAxes( lastPointSelection_ ) ) {
                 for ( int i = 0; i < viewRanges_.length; i++ ) {
                     viewRanges_[ i ].clear();
                 }
@@ -747,6 +872,7 @@ public abstract class GraphicsWindow extends AuxWindow {
          * time). */
         if ( ! state.equals( lastState_ ) || points_ != lastPoints_ ) {
             doReplot( state, points_ );
+            logger_.info( "Replot " + ++nPlot_ );
             lastState_ = state;
             lastPoints_ = points_;
         }
@@ -1237,6 +1363,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private class PointsReader extends Thread {
         final PointSelection pointSelection_;
+        final long start_;
 
         /**
          * Constructs a new reader ready to read data as defined by 
@@ -1247,6 +1374,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         PointsReader( PointSelection pointSelection ) {
             super( "Point Reader" );
             pointSelection_ = pointSelection;
+            start_ = System.currentTimeMillis();
         }
 
         /**
@@ -1288,6 +1416,10 @@ public abstract class GraphicsWindow extends AuxWindow {
                 points = pointSelection_.readPoints( progModel );
                 error = null;
                 success = true;
+                nPlot_ = 0;
+                logger_.info( "Data read " + ++nRead_ + " ("
+                            + points.getCount() + " in "
+                            + ( System.currentTimeMillis() - start_ ) + "ms)" );
             }
 
             /* In the case of a thread interruption, just bail out. */

@@ -59,7 +59,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
      */
     public Plot3DWindow( String viewName, String[] axisNames,
                          Component parent, boolean zoom ) {
-        super( viewName, axisNames, parent );
+        super( viewName, axisNames, 0, parent );
 
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */

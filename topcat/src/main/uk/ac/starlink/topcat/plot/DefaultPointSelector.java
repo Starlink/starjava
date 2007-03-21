@@ -2,21 +2,19 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.List;
 import javax.swing.Box;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * PointSelector concrete subclass which deals with the straightforward
@@ -30,64 +28,95 @@ public class DefaultPointSelector extends PointSelector {
 
     private final int ndim_;
     private final String[] axisNames_;
-    private final JComboBox[] colSelectors_;
+    private final ErrorModeSelectionModel[] errorModeModels_;
+    private final AxisDataSelector[] dataSelectors_;
     private final JComponent entryBox_;
 
+    /** A column data object which contains zeroes. */
+    private static final ColumnData ZERO_COLUMN_DATA = new ZeroColumnData();
+
     /**
-     * Constructor.
+     * Constructs a point selector with no error bar capability.
      *
      * @param   styles   initial style set
-     * @param   axisNames  labels for the columns to choose
+     * @param   axisNames  labels for the columns to choose, one per axis
      * @param   toggleSets toggle sets to associate with each axis;
      *                     <code>toggleSets</code> itself or any of
      *                     its elements may be null
      */
     public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
                                  ToggleSet[] toggleSets ) {
-        super( styles );
+        this( styles, axisNames, toggleSets, new ErrorModeSelectionModel[ 0 ] );
+    }
+    
+    /**
+     * Constructs a point selector optionally with error bar capability.
+     *
+     * @param   styles   initial style set
+     * @param   axisNames  labels for the columns to choose, one per axis
+     * @param   toggleSets toggle sets to associate with each axis;
+     *                     <code>toggleSets</code> itself or any of
+     *                     its elements may be null
+     * @param   errorModeModels  selection models for error modes, one per axis
+     */
+    public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
+                                 ToggleSet[] toggleSets,
+                                 ErrorModeSelectionModel[] errorModeModels ) {
+        super( styles, errorModeModels );
+        axisNames_ = axisNames;
+        errorModeModels_ = errorModeModels;
         ndim_ = axisNames.length;
-        axisNames_ = (String[]) axisNames.clone();
-        
+
+        /* Assemble names for toggle buttons. */
+        int ntog = toggleSets == null ? 0 : toggleSets.length;
+        String[] togNames = new String[ ntog ];
+        for ( int itog = 0; itog < ntog; itog++ ) {
+            togNames[ itog ] = toggleSets[ itog ].name_;
+        }
+
+        /* Prepare the visual components. */
         entryBox_ = Box.createVerticalBox();
-        colSelectors_ = new JComboBox[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            String aName = axisNames[ i ];
-            JComponent cPanel = Box.createHorizontalBox();
-            cPanel.add( new JLabel( " " + aName + " Axis: " ) );
-            entryBox_.add( Box.createVerticalStrut( 5 ) );
-            entryBox_.add( cPanel );
+        dataSelectors_ = new AxisDataSelector[ ndim_ ];
+        for ( int idim = 0; idim < ndim_; idim++ ) {
 
-            /* Add and configure the column selector. */
-            colSelectors_[ i ] = ColumnDataComboBoxModel.createComboBox();
-            colSelectors_[ i ].addActionListener( actionForwarder_ );
-            cPanel.add( new ShrinkWrapper( colSelectors_[ i ] ) );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-            cPanel.add( new ComboBoxBumper( colSelectors_[ i ] ) );
-            colSelectors_[ i ].setEnabled( false );
-            cPanel.add( Box.createHorizontalStrut( 5 ) );
-
-            /* Add any per-axis toggles requested. */
-            if ( toggleSets != null ) {
-                for ( int j = 0; j < toggleSets.length; j++ ) {
-                    ToggleSet toggleSet = toggleSets[ j ];
-                    if ( toggleSet != null &&
-                         toggleSet.models_[ i ] != null ) {
-                        JCheckBox checkBox = toggleSet.models_[ i ]
-                                                      .createCheckBox();
-                        checkBox.setText( toggleSet.name_ );
-                        cPanel.add( Box.createHorizontalStrut( 5 ) );
-                        cPanel.add( checkBox );
-                    }
-                }
+            /* Prepare toggle buttons. */
+            ToggleButtonModel[] togModels = new ToggleButtonModel[ ntog ];
+            for ( int itog = 0; itog < ntog; itog++ ) {
+                ToggleSet togSet = toggleSets[ itog ];
+                togModels[ itog ] = togSet == null ? null
+                                                   : togSet.models_[ idim ];
             }
 
-            /* Pad. */
-            cPanel.add( Box.createHorizontalGlue() );
+            /* Create and add column selectors. */
+            dataSelectors_[ idim ] =
+                new AxisDataSelector( axisNames[ idim ], togNames, togModels );
+            dataSelectors_[ idim ].addActionListener( actionForwarder_ ); 
+            dataSelectors_[ idim ].setEnabled( false );
+            entryBox_.add( Box.createVerticalStrut( 5 ) );
+            entryBox_.add( dataSelectors_[ idim ] );
         }
-        int pad = ndim_ == 1 ? colSelectors_[ 0 ].getPreferredSize().height
+
+        /* Place the visual components. */
+        int pad = ndim_ == 1 ? dataSelectors_[ 0 ].getPreferredSize().height
                              : 5;
         entryBox_.add( Box.createVerticalStrut( pad ) );
         entryBox_.add( Box.createVerticalGlue() );
+
+        /* Fix for changes to the error mode selections to modify the
+         * state of the axis data selectors. */
+        if ( errorModeModels_.length > 0 ) {
+            for ( int id = 0; id < ndim_; id++ ) {
+                final int idim = id;
+                errorModeModels_[ idim ]
+                               .addActionListener( new ActionListener() {
+                    public void actionPerformed( ActionEvent evt ) {
+                        updateAnnotator();
+                        dataSelectors_[ idim ]
+                            .setErrorMode( errorModeModels_[ idim ].getMode() );
+                    }
+                } );
+            }
+        }
     }
 
     /**
@@ -121,20 +150,50 @@ public class DefaultPointSelector extends PointSelector {
     }
 
     /**
+     * Returns a StarTable containing error information as selected in
+     * this component.
+     * The columns from the active selectors (if any) of each AxisDataSelector 
+     * are packed one after another.  It is necessary to know the
+     * <code>ErrorMode</code>s currently in force to make sense of this
+     * information.
+     *
+     * @return   error data table
+     */
+    public StarTable getErrorData() {
+        List colList = new ArrayList();
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            JComboBox[] errorSelectors =
+                dataSelectors_[ idim ].getErrorSelectors();
+            for ( int isel = 0; isel < errorSelectors.length; isel++ ) {
+                colList.add( (ColumnData)
+                             errorSelectors[ isel ].getSelectedItem() );
+            }
+        }
+        ColumnData[] cols =
+            (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
+        for ( int icol = 0; icol < cols.length; icol++ ) {
+            if ( cols[ icol ] == null ) {
+                cols[ icol ] = ZERO_COLUMN_DATA;
+            }
+        }
+        return new ColumnDataTable( getTable(), cols );
+    }
+
+    /**
      * Returns one of the the column selector boxes used by this selector.
      *
      * @param  icol  column index
      * @return column selector box
      */
     public JComboBox getColumnSelector( int icol ) {
-        return colSelectors_[ icol ];
+        return dataSelectors_[ icol ].getMainSelector();
     }
 
     public AxisEditor[] createAxisEditors() {
         AxisEditor[] eds = new AxisEditor[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             final AxisEditor axed = new AxisEditor( axisNames_[ i ] );
-            final JComboBox csel = colSelectors_[ i ];
+            final JComboBox csel = dataSelectors_[ i ].getMainSelector();
             csel.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     ColumnData cdata = (ColumnData) csel.getSelectedItem();
@@ -148,26 +207,16 @@ public class DefaultPointSelector extends PointSelector {
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
-        if ( tcModel == null ) {
-            for ( int i = 0; i < ndim_; i++ ) {
-                colSelectors_[ i ].setSelectedItem( null );
-            }
-        }
-        else {
-            for ( int i = 0; i < ndim_; i++ ) {
-                colSelectors_[ i ]
-                    .setModel( new ColumnDataComboBoxModel( tcModel,
-                                                            Number.class,
-                                                            true ) );
-                colSelectors_[ i ].setEnabled( true );
-            }
+        for ( int i = 0; i < ndim_; i++ ) {
+            dataSelectors_[ i ].setTable( tcModel );
         }
     }
 
     protected void initialiseSelectors() {
         for ( int i = 0; i < ndim_; i++ ) {
-            if ( i + 1 < colSelectors_[ i ].getItemCount() ) {
-                colSelectors_[ i ].setSelectedIndex( i + 1 );
+            JComboBox colSelector = dataSelectors_[ i ].getMainSelector();
+            if ( i + 1 < colSelector.getItemCount() ) {
+                colSelector.setSelectedIndex( i + 1 );
             }
         }
     }
@@ -180,7 +229,8 @@ public class DefaultPointSelector extends PointSelector {
     private ColumnData[] getColumns() {
         ColumnData[] cols = new ColumnData[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (ColumnData) colSelectors_[ i ].getSelectedItem();
+            cols[ i ] = (ColumnData) dataSelectors_[ i ].getMainSelector()
+                                                        .getSelectedItem();
         }
         return cols;
     }
@@ -195,6 +245,26 @@ public class DefaultPointSelector extends PointSelector {
             name_ = name;
             models_ = (ToggleButtonModel[]) models.clone(); 
         }       
+    }
+
+    /**
+     * ColumnData implementation which contains only zeroes.
+     * Any instance is <code>equal</code> to any other instance.
+     */
+    private static class ZeroColumnData extends ColumnData {
+        private final Number value_ = new Double( 0.0 );
+        ZeroColumnData() {
+            super( new DefaultValueInfo( "Zero", Double.class, "Empty" ) );
+        }
+        public Object readValue( long irow ) {
+            return value_;
+        }
+        public boolean equals( Object o ) {
+            return o != null && o.getClass().equals( this.getClass() );
+        }
+        public int hashCode() {
+            return getClass().hashCode();
+        }
     }
 
     /**

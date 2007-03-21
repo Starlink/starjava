@@ -92,7 +92,7 @@ public class DensityWindow extends GraphicsWindow {
      * @param   parent   parent component (may be used for positioning)
      */
     public DensityWindow( Component parent ) {
-        super( "Density Plot", new String[] { "X", "Y" }, parent );
+        super( "Density Plot", new String[] { "X", "Y" }, 0, parent );
 
         /* There's only one style set it makes sense to use for this window.
          * Construct it here. */

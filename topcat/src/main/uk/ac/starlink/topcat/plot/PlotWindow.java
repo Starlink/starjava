@@ -24,6 +24,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.OverlayLayout;
@@ -87,6 +88,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.faded( "Medium Transparent Pixels", MARKERS1, 5 ),
         MarkStyles.faded( "Medium Transparent Dots", MARKERS2, 5 ),
     };
+    private static final String[] AXIS_NAMES = new String[] { "X", "Y", };
+    private static final ErrorRenderer[] ERROR_RENDERERS = 
+        ErrorRenderer.getOptions2d();
 
     /**
      * Constructs a new PlotWindow.
@@ -94,7 +98,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( Component parent ) {
-        super( "Scatter Plot", new String[] { "X", "Y" }, parent );
+        super( "Scatter Plot", AXIS_NAMES, 2, parent );
 
         /* Construct the plot component.  Provide an implementation of the
          * hook reportStats() method to accept useful information generated
@@ -226,10 +230,17 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         }
         getJMenuBar().add( styleMenu );
 
+        /* Construct a new menu for error modes. */
+        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( getErrorModeModels()[ 0 ]
+                                             .createOnOffToolbarButton() );
+        getToolBar().add( getErrorModeModels()[ 1 ]
+                                             .createOnOffToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
@@ -264,7 +275,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new MarkStyleEditor( true, true );
+        return new MarkStyleEditor( true, true, ERROR_RENDERERS,
+                                    getErrorModeModels() );
     }
 
     /*

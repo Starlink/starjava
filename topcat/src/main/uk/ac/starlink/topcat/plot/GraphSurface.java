@@ -96,15 +96,15 @@ public class GraphSurface implements PlotSurface {
             if ( ! yFlip_ ) {
                 ry = 1.0 - ry;
             }
-            double dx = rx * bounds_.width;
-            double dy = ry * bounds_.height;
-            if ( ! insideOnly ) {
-                dx = Math.max( Integer.MIN_VALUE,
-                               Math.min( Integer.MAX_VALUE, dx ) );
-                dy = Math.max( Integer.MIN_VALUE,
-                               Math.min( Integer.MAX_VALUE, dy ) );
-            }
-            return new Point( bounds_.x + (int) dx, bounds_.y + (int) dy );
+            double px = bounds_.x + rx * bounds_.width;
+            double py = bounds_.y + ry * bounds_.height;
+            int ipx = px > MAX_COORD ? MAX_COORD
+                                     : ( px < - MAX_COORD ? - MAX_COORD
+                                                          : (int) px );
+            int ipy = py > MAX_COORD ? MAX_COORD
+                                     : ( py < - MAX_COORD ? - MAX_COORD
+                                                          : (int) py );
+            return new Point( ipx, ipy );
         }
     }
 
