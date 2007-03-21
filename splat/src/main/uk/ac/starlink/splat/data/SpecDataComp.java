@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     21-SEP-2000 (Peter W. Draper):
@@ -1091,18 +1092,16 @@ public class SpecDataComp
 
             //  Get the current frames of the current spectrum and the target
             //  one.
-            Frame to =
-                currentSpec.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
-            Frame from =
-                spectrum.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
+            ASTJ toASTJ = currentSpec.getAst();
+            Frame to = toASTJ.getRef().getFrame( FrameSet.AST__CURRENT );
+            ASTJ fromASTJ = spectrum.getAst();
+            Frame from = fromASTJ.getRef().getFrame( FrameSet.AST__CURRENT );
 
-            //  Determine if the current spectrum has a SpecFrame. This will
-            //  be the first axis for any DATAPLOT.
-            int iaxes[] = new int[1];
-            iaxes[0] = 1;
-            Frame picked = to.pickAxes( 1, iaxes, null );
-            boolean haveSpecFrame = ( picked instanceof SpecFrame );
-            boolean haveDSBSpecFrame = ( picked instanceof DSBSpecFrame );
+            //  Determine if the spectra have SpecFrames and DSBSpecFrames.
+            boolean haveSpecFrame = ( toASTJ.isFirstAxisSpecFrame() &&
+                                      fromASTJ.isFirstAxisSpecFrame() );
+            boolean haveDSBSpecFrame = ( toASTJ.isFirstAxisDSBSpecFrame() &&
+                                         fromASTJ.isFirstAxisDSBSpecFrame() );
 
             //  If this is a line identifier, then we need to make this
             //  look as if measured travelling with the source. Do this by
@@ -1144,6 +1143,7 @@ public class SpecDataComp
             //  both spectra to have DSBSpecFrames.
             if ( haveDSBSpecFrame ) {
                 to.setB( "AlignSideBand", sidebandMatching );
+                from.setB( "AlignSideBand", sidebandMatching );
             }
 
             //  If we're matching offsets then arrange for that. Needs
@@ -1173,6 +1173,7 @@ public class SpecDataComp
             //  Resets so only effects the mapping, not the Plot.
             if ( haveDSBSpecFrame && ! sidebandMatching ) {
                 to.setB( "AlignSideBand", true );
+                from.setB( "AlignSideBand", true );
             }
             if ( haveSpecFrame ) {
                 if ( offsetMatching ) {
