@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -14,6 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -40,15 +42,19 @@ public class AxisDataSelector extends JPanel {
     private final Map extentMap_;
     private final ActionForwarder actionForwarder_;
     private ErrorMode errorMode_ = ErrorMode.NONE;
-    private static ColumnSelectionTracker colSelectionTracker_ =
-        new ColumnSelectionTracker();
 
-    /** Selector type denoting the main axis selector. */
-    private static final SelectorType AT = new SelectorType( "At" ) {
-        public JComboBox getSelector( AxisDataSelector axSel ) {
-            return axSel.atSelector_;
-        }
-    };
+    private static final ColumnSelectionTracker colSelectionTracker_ =
+        new ColumnSelectionTracker();
+    private static final Pattern ERR_NAME_REGEX = 
+        Pattern.compile( "[\\-\\._ ]*" +
+                         "(err|error|sig|sigma|sd|stdev|st.dev)" +
+                         "[\\-\\._ ]*",
+                         Pattern.CASE_INSENSITIVE );
+    private static final Pattern ERR_UCD_REGEX =
+        Pattern.compile( ".*" +
+                         "(stat\\.error|stat\\.stdev|meta\\.code\\.error)" +
+                         ".*",
+                         Pattern.CASE_INSENSITIVE );
 
     /** Selector type denoting the lower bound axis selector. */
     private static final SelectorType LO = new SelectorType( "Lower" ) {
@@ -96,7 +102,7 @@ public class AxisDataSelector extends JPanel {
         for ( int i = 0; i < selectors.length; i++ ) {
             selectors[ i ].addActionListener( actionForwarder_ );
         }
-        atSelector_.addActionListener( new ColumnSelectionListener( AT ) );
+        atSelector_.addActionListener( new ColumnSelectionListener( null ) );
         loSelector_.addActionListener( new ColumnSelectionListener( LO ) );
         hiSelector_.addActionListener( new ColumnSelectionListener( HI ) );
         lhSelector_.addActionListener( new ColumnSelectionListener( LH ) );
@@ -269,7 +275,91 @@ public class AxisDataSelector extends JPanel {
     private static ColumnData guessColumn( ColumnData mainCol,
                                            SelectorType type,
                                            JComboBox selector ) {
-        return null; // not implemented yet.
+        ColumnInfo mainInfo = mainCol.getColumnInfo();
+        int ncol = selector.getItemCount();
+        int iMain = -1;
+        int bestScore = 0;
+        ColumnData bestCol = null;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnData auxCol = (ColumnData) selector.getItemAt( icol );
+            if ( auxCol == null ) {
+            }
+            else if ( auxCol.equals( mainCol ) ) {
+                iMain = icol;
+            }
+            else {
+                int score =
+                    type.getLikeness( mainInfo, auxCol.getColumnInfo() );
+                if ( score > 0 && iMain >= 0 && icol - iMain <= 2 ) {
+                    score += 4;
+                }
+                if ( score > bestScore ) {
+                    bestScore = score;
+                    bestCol = auxCol;
+                }
+            }
+        }
+        return bestCol;
+    }
+
+    /**
+     * Returns an integer indicating how likely it is that <code>auxInfo</code>
+     * describes a column which contains the errors of <code>mainInfo</code>.
+     * Zero means it is not likely, and larger numbers mean it is more likely.
+     *
+     * @param  mainInfo  metadata for main column
+     * @param  auxInfo   metadata for other column
+     * @return  indication of whether <code>auxInfo</code> gives errors for
+     *          <code>mainInfo</code>
+     */
+    private static int getErrorLikeness( ColumnInfo mainInfo,
+                                         ColumnInfo auxInfo ) {
+        int score = 0;
+        String nameDiff = getInsertion( mainInfo.getName(), auxInfo.getName() );
+        if ( nameDiff != null &&
+             ERR_NAME_REGEX.matcher( nameDiff ).matches() ) {
+            score += 5;
+        }
+        String ucdDiff = getInsertion( mainInfo.getUCD(), auxInfo.getUCD() );
+        if ( ucdDiff != null &&
+             ERR_UCD_REGEX.matcher( ucdDiff ).matches() ) {
+            score += 8;
+        }
+        return score;
+    }
+
+    /**
+     * Returns the string fragment which has been added to a string 
+     * <code>s0</code> to turn it into a longer string <code>s1</code>.
+     * The string may have been added at either end or in the middle.
+     * If no such string exists, or if it is of zero length, null
+     * is returned.
+     * For instance <code>getInsertion("AB","AXXB")</code>
+     * would return <code>"XX"</code>.
+     *
+     * @param  s0  basic (shorter) string
+     * @param  s1  string which may be s0 plus an insertion
+     * @return  insertion, or null
+     */
+    private static String getInsertion( String s0, String s1 ) {
+        if ( s0 == null || s1 == null || s0.length() == 0 || s1.length() == 0 ||
+             s0.length() >= s1.length() ) {
+            return null;
+        }
+        int l0 = s0.length();
+        int l1 = s1.length();
+        int nPre = 0;
+        for ( int i = 0; i < l0 && s0.charAt( i ) == s1.charAt( i ); i++ ) {
+            nPre++;
+        }
+        int nPost = 0;
+        for ( int i = 0;
+              i < l0 && s0.charAt( l0 - 1 - i ) == s1.charAt( l1 - 1 - i );
+              i++ ) {
+            nPost++;
+        }
+        return nPost + nPre == l0 ? s1.substring( nPre, l1 - nPost )
+                                  : null;
     }
 
     /**
@@ -285,7 +375,7 @@ public class AxisDataSelector extends JPanel {
          * Constructor.
          *
          * @param   selectorType  indicates the type of selector this 
-         *          object is listening to
+         *          object is listening to; null indicates the main selector
          */
         public ColumnSelectionListener( SelectorType selectorType ) {
             selectorType_ = selectorType;
@@ -299,7 +389,7 @@ public class AxisDataSelector extends JPanel {
             }
             lastCol_ = col;
             AxisDataSelector axSel = AxisDataSelector.this;
-            if ( selectorType_ == AT ) {
+            if ( selectorType_ == null ) {
                 colSelectionTracker_.mainSelected( axSel, col );
             }
             else {
@@ -332,6 +422,25 @@ public class AxisDataSelector extends JPanel {
          * @return  combo box in <code>axSel</code> for this type
          */
         public abstract JComboBox getSelector( AxisDataSelector axSel );
+
+        /**
+         * Returns a score indicating how much <code>auxInfo</code> looks
+         * like a column which plays the role of this type with respect
+         * to <code>mainInfo</code>.
+         * A return of zero means it doesn't look like one; higher values
+         * are progressively more likely.
+         *
+         * <p>The default implementation just decides how much it looks like
+         * an error column; subclasses may override this if they can 
+         * do something more specific.
+         *
+         * @param  mainInfo  description of main column
+         * @param  auxInfo   description of auxiliary column
+         * @return  non-negative value giving likelihood of error relation
+         */
+        public int getLikeness( ColumnInfo mainInfo, ColumnInfo auxInfo ) {
+            return getErrorLikeness( mainInfo, auxInfo );
+        }
 
         /**
          * Returns selector type name.
