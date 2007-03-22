@@ -22,8 +22,10 @@ jar cf splat_help.jar sun243.htx HelpSet.hs TOC.xml Map.jhm JavaHelpSearch
 
 echo "Created JavaHelp archives"
 
-#  Normal docs.
+#  Normal docs. Note remove files that change trivially to stop
+#  unneccesary updates.
 star2html -c "$COPYRIGHT" sun243.tex
+\rm sun243.htx/images.*
 tar cf sun243.htx_tar sun243.htx
 gzip -f -9 sun243.htx_tar
 
