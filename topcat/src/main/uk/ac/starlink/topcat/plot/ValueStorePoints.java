@@ -159,7 +159,7 @@ public class ValueStorePoints implements Points {
             public void readErrors( ValueStore store, long storeOffset,
                                     double[] loErrs, double[] hiErrs,
                                     int errOffset ) {
-                    loErrs[ errOffset ] = 0;
+                loErrs[ errOffset ] = 0;
                 hiErrs[ errOffset ] = 0;
             }
             protected void transfer( double[] buf, double[] lo, double[] hi,
