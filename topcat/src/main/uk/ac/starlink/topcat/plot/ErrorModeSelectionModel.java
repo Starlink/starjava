@@ -102,7 +102,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
             String modeName = mode.toString();
             JRadioButtonMenuItem item =
                 new JRadioButtonMenuItem( " " + axisName_ + " " + mode,
-                                          getIcon( mode ) );
+                                          getIcon( mode, 22, 20, 0, 0 ) );
             final int im = imode;
             item.setModel( new DefaultButtonModel() {
                 public boolean isSelected() {
@@ -146,8 +146,9 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
             }
         };
         model.addActionListener( this );
-        JButton button = new JButton( axisName_ + " Errors",
-                                      getIcon( ErrorMode.SYMMETRIC ) );
+        JButton button =
+            new JButton( axisName_ + " Errors",
+                         getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
         button.setModel( model );
         button.setToolTipText( "Toggle " + axisName_ + " error bars on/off" );
         return button;
@@ -209,14 +210,20 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
      * Returns an icon which can be used to represent a given error mode.
      *
      * @param   mode  error mode
+     * @param   width  total width of icon
+     * @param   height  total height of icon
+     * @param   xpad  internal horizontal padding of icon
+     * @param   ypad  internal vertical padding of icon
      * @return   icon
      */
-    private Icon getIcon( ErrorMode mode ) {
+    private Icon getIcon( ErrorMode mode, int width, int height,
+                          int xpad, int ypad ) {
         ErrorMode[] modes = new ErrorMode[ iaxis_ + 1 ];
         for ( int i = 0; i < modes.length; i++ ) {
             modes[ i ] = i == iaxis_ ? mode : ErrorMode.NONE;
         }
-        final Icon icon = errorRenderer_.getLegendIcon( modes, 22, 22, 1, 1 );
+        final Icon icon =
+            errorRenderer_.getLegendIcon( modes, width, height, xpad, ypad );
         return new Icon() {
             public int getIconHeight() {
                 return icon.getIconHeight();
