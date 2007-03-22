@@ -325,6 +325,7 @@ public abstract class ErrorRenderer {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  RenderingHints.VALUE_ANTIALIAS_ON );
+            g2.setClip( x, y, width_, height_ );
             renderer_.drawErrors( g2, x + width_ / 2, y + height_ / 2,
                                   xoffs_, yoffs_ );
             g2.dispose();
