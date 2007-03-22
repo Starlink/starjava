@@ -412,11 +412,9 @@ public abstract class Plot3D extends JPanel {
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
                         // coords[ 2 ] = ( ( coords[ 2 ] - .5 ) / SQRT3 ) + .5;
-                        boolean done = false;
-                        for ( int is = nset - 1; is >= 0 && ! done; is-- ) {
+                        for ( int is = nset - 1; is >= 0; is-- ) {
                             if ( sets[ is ].isIncluded( lp ) ) {
                                 vol.plot( coords, is );
-                                done = true;
                             }
                         }
                     }
