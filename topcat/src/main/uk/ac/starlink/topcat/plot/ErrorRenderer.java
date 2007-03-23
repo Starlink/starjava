@@ -478,13 +478,14 @@ public abstract class ErrorRenderer {
                          * integer rounding (at least in antialiased contexts
                          * the difference may be visible). */
                         else {
-                            Graphics2D g2 = (Graphics2D) g.create();
+                            Graphics2D g2 = (Graphics2D) g;
+                            AffineTransform oldTransform = g2.getTransform();
                             g2.translate( x, y );
                             g2.rotate( Math.atan2( yoff, xoff ) );
                             double l2 = xoff * xoff + yoff * yoff;
                             int leng = (int) Math.round( Math.sqrt( l2 ) );
                             g2.drawLine( leng, - capsize, leng, capsize );
-                            g2.dispose();
+                            g2.setTransform( oldTransform );
                         }
                     }
                 }
