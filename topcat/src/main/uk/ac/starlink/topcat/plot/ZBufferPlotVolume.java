@@ -27,6 +27,8 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final BitSet mask_;
     private final int[][] pixoffs_;
     private final BufferedImage image_;
+    private final MarkStyle[] styles_;
+    private final Graphics graphics_;
 
     /**
      * Constructs a new plot volume.
@@ -44,6 +46,8 @@ public class ZBufferPlotVolume extends PlotVolume {
                               double padFactor, int[] padBorders,
                               Workspace ws ) {
         super( c, g, styles, padFactor, padBorders );
+        graphics_ = g;
+        styles_ = (MarkStyle[]) styles.clone();
 
         /* Work out the dimensions of the pixel grid that we're going
          * to need. */
@@ -87,33 +91,39 @@ public class ZBufferPlotVolume extends PlotVolume {
         }
     }
 
-    public void plot( int xp, int yp, double zd, int isi ) {
+    public void plot2d( int xp, int yp, double zd, int isi ) {
+        plot2d( xp, yp, zd, isi, true, 0, null, null, null );
+    }
+
+    public void plot2d( int xp, int yp, double zd, int isi,
+                        boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
+                        double[] zerrs ) {
         float z = (float) zd;
         byte is = (byte) isi;
-
-        /* Iterate over each pixel which is painted by a marker in the
-         * current style at the current position. */
-        int[] pixoffs = pixoffs_[ is ];
-        int npix = pixoffs.length;
         int xbase = xp - xoff_;
         int ybase = yp - yoff_;
         int base = xbase + xdim_ * ybase;
-        int npixoff = pixoffs.length;
-        for ( int ioff = 0; ioff < npixoff; ioff++ ) {
-            int ipix = base + pixoffs[ ioff ];
 
-            /* If the pixel isn't already filled with something nearer the
-             * viewer than this... */
-            if ( z <= zbuf_[ ipix ] ) {
+        /* Draw marker if required. */
+        if ( showPoint ) {
+            int[] pixoffs = pixoffs_[ is ];
+            int npixoff = pixoffs.length;
+            for ( int ioff = 0; ioff < npixoff; ioff++ ) {
+                hitPixel( base + pixoffs[ ioff ], z, is );
+            }
+        }
 
-                /* Record that we've touched this pixel. */
-                mask_.set( ipix );
-
-                /* Set the Z buffer element to the current z position. */
-                zbuf_[ ipix ] = z;
-
-                /* Set the style buffer element to the current style index. */
-                sbuf_[ ipix ] = is;
+        /* Draw error bars if required. */
+        if ( nerr > 0 ) {
+            ErrorRenderer rend = styles_[ is ].getErrorRenderer();
+            int[] pixels =
+                rend.getPixels( graphics_, xbase, ybase, xoffs, yoffs );
+            int nep = pixels.length / 2;
+            for ( int iep = 0; iep < nep; iep++ ) {
+                int xe = pixels[ iep * 2 + 0 ];
+                int ye = pixels[ iep * 2 + 1 ];
+                int pixoff = xe + xdim_ * ye;
+                hitPixel( pixoff, z, is );
             }
         }
     }
@@ -160,6 +170,31 @@ public class ZBufferPlotVolume extends PlotVolume {
                            xmin + ymin * xdim_, xdim_ );
             g.drawImage( image_.getSubimage( xmin, ymin, width, height ),
                          xoff_ + xmin, yoff_ + ymin, null );
+        }
+    }
+       
+    /**
+     * Deposit a point at a given index into the pixel buffer.
+     * If it's behind an existing pixel there will be no effect.
+     *
+     * @param  ipix  pixel index
+     * @param  z     Z buffer depth
+     * @param  is    style index
+     */
+    private void hitPixel( int ipix, float z, byte is ) {
+
+        /* If the pixel isn't already filled with something nearer the
+         * viewer than this... */
+        if ( z <= zbuf_[ ipix ] ) {
+
+            /* Record that we've touched this pixel. */
+            mask_.set( ipix );
+
+            /* Set the Z buffer element to the current z position. */
+            zbuf_[ ipix ] = z;
+
+            /* Set the style buffer element to the current style index. */
+            sbuf_[ ipix ] = is;
         }
     }
 

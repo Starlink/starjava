@@ -13,7 +13,7 @@ import java.awt.Graphics;
  * <p>To enable strategies which may require some kind of sorting on a
  * full set of points prior to doing any plotting, clients of this class
  * must first submit all the points to be plotted using the
- * {@link #plot(double[],int)} method,
+ * <code>plot3D</code> methods,
  * and finally call {@link #flush()} to ensure that the plotting has
  * taken place.
  *
@@ -102,13 +102,84 @@ public abstract class PlotVolume {
      * @param   istyle   index into the array of styles set up for this volume
      *                   which will define how the marker is plotted
      */
-    public void plot( double[] coords, int istyle ) {
-        int xp = projectX( coords[ 0 ] );
-        int yp = projectY( coords[ 1 ] );
+    public void plot3d( double[] coords, int istyle ) {
+        plot3d( coords, istyle, true, 0, null, null, null );
+    }
+
+    /**
+     * Submits a point with associated errors for plotting.
+     * The graphical effect is not guaranteed to occur until a 
+     * subsequent call to {@link #flush}.
+     * The 3D point coordinates (one central point in <code>centre</code> and
+     * <code>nerr</code> additional points in 
+     * <code>xerrs</code>, <code>yerrs</code>, <code>zerrs</code>) are in
+     * normalised coordinates, in which points inside the unit cube
+     * centred at (.5,.5,.5) are intended to be visible under normal
+     * circumstances.
+     * The ordering of the error points is that required by the
+     * {@link ErrorRenderer} class.
+     *
+     * <p>Note that the <code>centre</code> array is not guaranteed to retain
+     * its contents after this call returns; this method must make copies
+     * of the values if it needs to retain them.
+     *
+     * @param  centre  normalised (x,y,z) coordinates of main point
+     * @param  istyle  index into the array of styles set up for this volume
+     *                 which will define how the marker is plotted
+     * @param  showPoint  whether the central point is to be plotted
+     * @param  nerr    the number of error points
+     * @param  xerrs   <code>nerr</code>-element array of X coordinates of
+     *                 error points 
+     * @param  yerrs   <code>nerr</code>-element array of Y coordinates of
+     *                 error points
+     * @param  zerrs   <code>nerr</code>-element array of Z coordinates of
+     *                 error points
+     */
+    public void plot3d( double[] centre, int istyle,
+                        boolean showPoint, int nerr,
+                        double[] xerrs, double[] yerrs, double[] zerrs ) {
+
+        /* Calculate the position of the point in 2D graphics coordinates. */
+        int xp = projectX( centre[ 0 ] );
+        int yp = projectY( centre[ 1 ] );
+        double z = centre[ 2 ];
+
+        /* Check whether this point will be visible.  I arguably ought to 
+         * check the bounds of the error bars as well for this, but 
+         * (a) that can be a bit expensive and (b) if only the error bar 
+         * and not the point is visible it is debatable whether you want 
+         * to see it.  Since the graphics context belonging to this 
+         * volume belongs to a component, I *think* it's likely to retain 
+         * a clip of the same shape (rectangular), rather than having one 
+         * which changes shape as parts of the window are obscured. */
         int maxr = styles_[ istyle ].getMaximumRadius();
         int maxr2 = maxr * 2;
-        if ( graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
-            plot( xp, yp, coords[ 2 ], istyle );
+        if ( ! graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
+            return;
+        }
+
+        /* Calculate the positions of the error bar offsets in 2D graphics
+         * coordinates. */
+        if ( nerr > 0 ) {
+            int[] xoffs = new int[ nerr ];
+            int[] yoffs = new int[ nerr ];
+            for ( int ierr = 0; ierr < nerr; ierr++ ) {
+                if ( Double.isNaN( xerrs[ ierr ] ) ||
+                     Double.isNaN( yerrs[ ierr ] ) ) {
+                    xoffs[ ierr ] = 0;
+                    yoffs[ ierr ] = 0;
+                }
+                else {
+                    xoffs[ ierr ] = projectX( xerrs[ ierr ] ) - xp;
+                    yoffs[ ierr ] = projectY( yerrs[ ierr ] ) - yp;
+                }
+            }
+
+            /* Hand off the actual plotting to the concrete subclass. */
+            plot2d( xp, yp, z, istyle, showPoint, nerr, xoffs, yoffs, zerrs );
+        }
+        else {
+            plot2d( xp, yp, z, istyle );
         }
     }
 
@@ -150,7 +221,37 @@ public abstract class PlotVolume {
      *             should obscure a point with a lesser one
      * @param  istyle  index of the style used to plot the point
      */
-    protected abstract void plot( int px, int py, double z, int istyle );
+    protected abstract void plot2d( int px, int py, double z, int istyle );
+
+    /**
+     * Plots a marker and associated error values at a given point in 
+     * graphics coordinates with given additional Z coordinates.
+     * Points with greater Z values should obscure points
+     * with lesser ones.  
+     * The ordering of the error points is that required by the 
+     * {@link ErrorRenderer} class.
+     *
+     * <p>Most implementations currently ignore the
+     * Z values associated with the error points, and put everything at
+     * the depth of the central point, because it's too hard to do otherwise.
+     * Does this produce seriously confusing visualisation?
+     *
+     * @param  px  graphics space X coordinate of the central point
+     * @param  py  graphics space Y coordinate of the central point
+     * @param  z   depth of point
+     * @param  istyle  index of the style used to plot the point
+     * @param  showPoint  whether the central point is to be plotted
+     * @param  nerr  number of error points
+     * @param  xoffs   <code>nerr</code>-element array of graphics space 
+     *                 X coordinates for error points
+     * @param  yoffs   <code>nerr</code>-element array of graphics space
+     *                 Y coordinates for error points
+     * @param  zerrs   <code>nerr</code>-element array of depths for
+     *                 error points
+     */
+    protected abstract void plot2d( int px, int py, double z, int istyle,
+                                    boolean showPoint, int nerr, 
+                                    int[] xoffs, int[] yoffs, double[] zerrs );
 
     /**
      * Ensures that all points submitted through the <code>plot</code>
