@@ -31,16 +31,12 @@ public abstract class MatchSpec extends JPanel {
 
     /**
      * Performs the match calculation.  
-     * If it's the kind of match operation which constructs a new table,
-     * that table should be returned.  If not, a <tt>null</tt> return
-     * is considered a success.
      * This method is called from a
      * thread other than the event dispatch thread, so it can take its
      * time, and must not call Swing things.
      *
      * @param   indicator  a progress indicator which the calculation
      *          should try to update
-     * @return  a StarTable created by the match if appropriate
      * @throws  IOException  if there's some trouble
      * @throws  InterruptedException  if the user interrupts the calculation
      */
