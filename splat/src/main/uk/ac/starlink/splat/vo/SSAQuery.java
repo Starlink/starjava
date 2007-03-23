@@ -38,6 +38,9 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class SSAQuery
 {
+    /** Assume we support SSAP version 1.0 */
+    private static String SSAPVERSION = "VERSION=1.0";
+
     /** The SSA Service base URL */
     private String baseURL = null;
 
@@ -53,9 +56,15 @@ public class SSAQuery
     /** Radius of the query */
     private double queryRadius = 0.0;
 
-    /** The format of any returned spectra */
+    /** The format of any returned spectra, we ask for this. */
     private String queryFormat = null;
 
+    /** Upper spectral wavelength in metres */
+    private String queryBandUpper = null;
+
+    /** Lower spectral wavelength in metres */
+    private String queryBandLower = null;
+    
     /** The StarTable formed from the results of the query */
     private StarTable starTable = null;
 
@@ -144,6 +153,15 @@ public class SSAQuery
     }
 
     /**
+     * Set the query band. The strings must be in meters.
+     */
+    public void setBand( String lower, String upper )
+    {
+        queryBandLower = lower;
+        queryBandUpper = upper;
+    }
+
+    /**
      * Set the StarTable created as a result of downloading the VOTable.
      */
     public void setStarTable( StarTable starTable )
@@ -174,29 +192,40 @@ public class SSAQuery
     public URL getQueryURL()
         throws MalformedURLException
     {
-        //  Note that some baseURLs may have an embedded ?, in which case we
-        //  need to use & to append the pos argument.
+        //  Note that some baseURLs may have an embedded ?.
         StringBuffer buffer = new StringBuffer( baseURL );
         if ( baseURL.indexOf( '?' ) == -1 ) {
             //  No ? in URL.
-            buffer.append( "?REQUEST=queryData" );
+            buffer.append( "?" );
         }
         else if ( ! baseURL.endsWith( "?" ) ) {
             //  Have ? but not at end.
-            buffer.append( "&REQUEST=queryData" );
+            buffer.append( "&" );
         }
-        else {
-            //  Must end with a ?
-            buffer.append( "REQUEST=queryData" );
-        }
+        //  Else ends with a ?, so that's OK already.
 
-        // Servers may have a case sensitivity issue!
-        // INES requires uppercase.
+        //  Start with "VERSION=1.0&REQUEST=queryData".
+        buffer.append( SSAPVERSION + "&REQUEST=queryData" );
+
+        //  Add basic search parameters, POS, FORMAT and SIZE.
         buffer.append( "&POS=" + queryRA + "," + queryDec );
         if ( queryFormat != null ) {
             buffer.append( "&FORMAT=" + queryFormat );
         }
         buffer.append( "&SIZE=" + queryRadius );
+
+        //  The spectral bandpass. Assume "lower/upper" range, bounded
+        //  from above "/upper" or includes value "lower".
+        if ( queryBandUpper != null && queryBandLower != null ) {
+            buffer.append( "&BAND=" + queryBandLower + "/" + queryBandUpper );
+        }
+        else if ( queryBandUpper != null ) {
+            buffer.append( "&BAND=" + "/" + queryBandUpper );
+        }
+        else if ( queryBandLower != null ) {
+            buffer.append( "&BAND=" + queryBandLower );
+        }
+        System.out.println( "SSAP query to: " + buffer.toString() );
         return new URL( buffer.toString() );
     }
 }
