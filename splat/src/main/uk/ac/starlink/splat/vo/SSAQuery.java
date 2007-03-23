@@ -178,15 +178,21 @@ public class SSAQuery
         //  need to use & to append the pos argument.
         StringBuffer buffer = new StringBuffer( baseURL );
         if ( baseURL.indexOf( '?' ) == -1 ) {
-            buffer.append( "?" );
+            //  No ? in URL.
+            buffer.append( "?REQUEST=queryData" );
         }
         else if ( ! baseURL.endsWith( "?" ) ) {
-            buffer.append( "&" );
+            //  Have ? but not at end.
+            buffer.append( "&REQUEST=queryData" );
+        }
+        else {
+            //  Must end with a ?
+            buffer.append( "REQUEST=queryData" );
         }
 
         // Servers may have a case sensitivity issue!
         // INES requires uppercase.
-        buffer.append( "POS=" + queryRA + "," + queryDec );
+        buffer.append( "&POS=" + queryRA + "," + queryDec );
         if ( queryFormat != null ) {
             buffer.append( "&FORMAT=" + queryFormat );
         }
