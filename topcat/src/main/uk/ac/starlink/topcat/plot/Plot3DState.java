@@ -63,7 +63,6 @@ public class Plot3DState extends PlotState {
      *
      * @param  isRotating  true iff this plot is currently in the middle
      *         of a sequence of rotation operations
-     * @return true if this is one of a sequence of plots forming a rotation
      */
     public void setRotating( boolean isRotating ) {
         isRotating_ = isRotating;
