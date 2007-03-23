@@ -26,11 +26,11 @@ Research Councils \\
 Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.24}
+\newcommand{\stardocnumber}    {243.25}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {20 March 2007}
+\newcommand{\stardocdate}      {23 March 2007}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.6-9}
+\newcommand{\stardocversion}   {3.7-0}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1359,17 +1359,24 @@ To lookup the coordinates of an object just type in an identifier in the
 \labelitem{Object} field and either press \hitext{<Return>} or the
 \labelitem{Lookup} button. Alternatively if you know the coordinates
 (FK5/J2000) of the region of sky you can just enter the coordinates in the
-\labelitem{RA} and \labelitem{Dec} fields. The \labelitem{Radius} value is a
-number of arcminutes to search about the position. Once you have identified
-the region to search press the \labelitem{Go} button to contact the current
-list of SSAP servers. To make these queries it may be necessary for you to
-tell \SPLAT\ about your local web-proxy server (this is the same as that you
-use in your Internet browser), select the
+\labelitem{RA} and \labelitem{Dec} fields. 
+
+The \labelitem{Radius} value is a number of arcminutes to search about the
+position. The \labelitem{Band} entries define a lower and upper limit, in
+meters, for the spectral bandpass (not all SSAP servers support this option,
+those that do may offer just an upper limit and allow you to set a wavelength
+to include by setting just a lower limit).
+
+Once you have identified the region to search press the \labelitem{Go} button
+to contact the current list of SSAP servers. To make these queries it may be
+necessary for you to tell \SPLAT\ about your local web-proxy server (this is
+the same as that you use in your Internet browser), select the
 \submenuitem{Options}{Configure proxy...} item to do this.
 
-The list of servers available is shown in the \labelitem{Servers} menu. To not
-query a server de-select it from this list (note that in the future the list
-of servers itself will be determined by a query to a VO registry).
+The list of SSAP servers available can be queried by selecting the 
+\submenuitem{Options}{Configure SSAP servers...} item. This allows you to
+choose a subset of the known servers, find out more about them, and to query a
+VO registry for any new servers.
 
 Once the SSAP query is complete lists of spectra that the servers hold will be
 shown in the \labelitem{Query results:} region. There is a tab of results for
@@ -1425,14 +1432,6 @@ analysis" information to be present, just correctly formed units strings.
 
 The SSAP query is limited to just a cone region on the sky and optional query
 parameters are not supported.
-
-SSAP server details are currently hard-coded into \SPLAT, but this situation
-will be resolved in the next release which will feature a system for querying
-VO registries for SSAP services. Meanwhile if you have any new SSAP servers
-that you'd like to test you can add these by hand. Look at the file
-\hitext{\$HOME/.splat/SSAServerList.xml}, after running \SPLAT\ and performing
-a VO search and edit it to include a new \hitext{<server>} element. The
-required format should be obvious from the file content.
 
 \subheading{Accelerator keys}
 
@@ -3636,6 +3635,26 @@ components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
 
 \section{Changes}
+
+\subsection{3.7-0}
+
+Added experimental support for the SSAP version 1 protocol. Added new band
+qualifiers (upper and lower spectral range in meters) and control of the file
+format. Older SSAP queries should still work.
+
+\subsection{3.6-9}
+
+A new rest frequency can now be selecting using the plot units toolbox. The
+new frequency can be selected by clicking on a position in the plot, or a line
+identifier.
+
+The TSYS value is now derived from the median effective exposure time when a
+better estimate is not available.
+
+The alignment of spectra in a plot can now be made to happen via the offset
+coordinate system (when spectral origins are defined), and also via the
+coordinate system of the current spectrum (rather than via the WAVE system,
+this means velocity systems can be aligned directly).
 
 \subsection{3.6-7}
 
