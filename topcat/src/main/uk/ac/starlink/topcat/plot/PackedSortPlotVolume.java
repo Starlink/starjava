@@ -88,12 +88,25 @@ public class PackedSortPlotVolume extends PlotVolume {
     /**
      * Accept a point for plotting.
      */
-    public void plot( int xp, int yp, double z, int is ) {
+    public void plot2d( int xp, int yp, double z, int is ) {
         if ( z >= zmin_ && z <= zmax_ &&
              xp >= 0 && xp <= TWO12 &&
              yp >= 0 && yp <= TWO12 ) {
             points_[ ipoint_++ ] = pack( xp, yp, z, is );
         }
+    }
+
+    /**
+     * Skeleton implementation - errors are ignored.
+     */
+    public void plot2d( int xp, int yp, double z, int is,
+                        boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
+                        double[] zerrs ) {
+        if ( nerr > 0 ) {
+            java.util.logging.Logger.getLogger( "uk.ac.starlink.topcat.plot" )
+                                    .warning( "Ignoring errors" );
+        }
+        plot2d( xp, yp, z, is );
     }
 
     /**

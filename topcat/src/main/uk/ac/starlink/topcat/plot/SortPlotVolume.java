@@ -36,8 +36,18 @@ public class SortPlotVolume extends PlotVolume {
         points_ = new TreeSet();
     }
 
-    public void plot( int px, int py, double z, int istyle ) {
+    public void plot2d( int px, int py, double z, int istyle ) {
         points_.add( new Point3D( px, py, z, getStyles()[ istyle ], ++iseq_ ) );
+    }
+
+    public void plot2d( int px, int py, double z, int istyle,
+                        boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
+                        double[] zerrs ) {
+        if ( nerr > 0 ) {
+            java.util.logging.Logger.getLogger( "uk.ac.starlink.topcat.plot" )
+                                    .warning( "Ignoring errors" );
+        }
+        plot2d( px, py, z, istyle );
     }
 
     public void flush() {
