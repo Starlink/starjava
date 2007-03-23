@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -355,6 +356,9 @@ public abstract class ErrorRenderer {
         private final boolean lines_;
         private final int capsize_;
         private final Icon legend_;
+        private final static Stroke CAP_STROKE = 
+            new BasicStroke( 1f, BasicStroke.CAP_ROUND,
+                             BasicStroke.JOIN_MITER );
 
         /**
          * Constructor.
@@ -410,6 +414,9 @@ public abstract class ErrorRenderer {
         public static void drawErrors( Graphics g, int x, int y,
                                        int[] xoffs, int[] yoffs, Rectangle clip,
                                        boolean lines, int capsize ) {
+            Graphics2D g2 = (Graphics2D) g;
+            Stroke oldStroke = g2.getStroke();
+            g2.setStroke( CAP_STROKE );
             int xmax = clip.width + 1;
             int ymax = clip.height + 1;
             int np = xoffs.length;
@@ -478,7 +485,6 @@ public abstract class ErrorRenderer {
                          * integer rounding (at least in antialiased contexts
                          * the difference may be visible). */
                         else {
-                            Graphics2D g2 = (Graphics2D) g;
                             AffineTransform oldTransform = g2.getTransform();
                             g2.translate( x, y );
                             g2.rotate( Math.atan2( yoff, xoff ) );
@@ -490,6 +496,7 @@ public abstract class ErrorRenderer {
                     }
                 }
             }
+            g2.setStroke( oldStroke );
         }
 
         public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
