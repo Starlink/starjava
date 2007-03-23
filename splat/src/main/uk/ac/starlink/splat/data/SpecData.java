@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import nom.tam.fits.Header;
+
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -726,6 +728,17 @@ public class SpecData
     public String getProperty( String property )
     {
         return impl.getProperty( property );
+    }
+
+    /**
+     * Return the FITS headers as a whole, if any are available.
+     */
+    public Header getHeaders()
+    {
+        if ( impl instanceof FITSHeaderSource ) {
+            return ((FITSHeaderSource)impl).getFitsHeaders();
+        }
+        return null;
     }
 
     /**
