@@ -37,6 +37,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -144,6 +145,15 @@ public class SSAQueryBrowser
 
     /** Region radius */
     protected JTextField radiusField = null;
+
+    /** Lower limit for BAND */
+    protected JTextField lowerBandField = null;
+
+    /** Upper limits for BAND */
+    protected JTextField upperBandField = null;
+
+    /** ButtonGroup for the format selection */
+    protected ButtonGroup formatGroup = null;
 
     /** Tabbed pane showing the query results tables */
     protected JTabbedPane resultsPane = null;
@@ -277,6 +287,9 @@ public class SSAQueryBrowser
         optionsMenu.add( serverAction );
         toolBar.add( serverAction );
 
+        //  SSAP version 1 format control.
+        initFormatOptions( optionsMenu );
+
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
@@ -370,6 +383,19 @@ public class SSAQueryBrowser
                                     " from given centre, arcminutes" );
         radiusField.addActionListener( this );
 
+        //  Band fields.
+        JLabel bandLabel = new JLabel( "Band:" );
+        lowerBandField = new JTextField( 15 );
+        upperBandField = new JTextField( 15 );
+        layouter.add( bandLabel, false );
+        layouter.add( lowerBandField, false );
+        layouter.add( upperBandField, false );
+        layouter.eatLine();
+        lowerBandField.setToolTipText( "Lower limit, or single include " +
+                                       "value, for spectral band, in meters" );
+        upperBandField.setToolTipText
+            ( "Upper limit for spectral band, in meters" );
+
         //  Do the search.
         goButton = new JButton( "Go" );
         goButton.addActionListener( this );
@@ -412,6 +438,28 @@ public class SSAQueryBrowser
         centrePanel.add( resultsPanel, BorderLayout.CENTER );
     }
 
+    /**
+     * Initialise the SSAP version 1 data formats. Don't want 
+     * one of these by default.
+     */
+    protected void initFormatOptions( JMenu optionsMenu )
+    {
+        JMenu formatMenu = new JMenu( "Query format" );
+        String[] names = 
+            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml" };
+        JRadioButtonMenuItem item;
+        formatGroup = new ButtonGroup();
+        for ( int i = 0; i < names.length; i++ ) {
+            item = new JRadioButtonMenuItem( names[i] );
+            if ( i == 0 ) {
+                item.setSelected( true );
+            }
+            item.setActionCommand( names[i] );
+            formatGroup.add( item );
+            formatMenu.add( item );
+        }
+        optionsMenu.add( formatMenu );
+    }
 
     /**
      * Arrange to resolve the object name into coordinates.
@@ -520,6 +568,23 @@ public class SSAQueryBrowser
             }
         }
 
+        //  Spectral bandpass. These should be in meters. XXX allow other
+        //  units and do the conversion.
+        String lower = lowerBandField.getText();
+        if ( "".equals( lower ) ) {
+            lower = null;
+        }
+        String upper = upperBandField.getText();
+        if ( "".equals( upper ) ) {
+            upper = null;
+        }
+
+        //  See if there's a data format choice.
+        String format = formatGroup.getSelection().getActionCommand();
+        if ( format.equals( "None" ) ) {
+            format = null;
+        }
+
         //  Create a stack of all queries to perform.
         ArrayList queryList = new ArrayList();
         Iterator i = serverList.getIterator();
@@ -529,6 +594,8 @@ public class SSAQueryBrowser
             SSAQuery ssaQuery = new SSAQuery( server );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
+            ssaQuery.setBand( lower, upper );
+            ssaQuery.setFormat( format );
             queryList.add( ssaQuery );
         }
 
@@ -560,7 +627,7 @@ public class SSAQueryBrowser
         Iterator i = queryList.iterator();
         while ( i.hasNext() ) {
             final SSAQuery ssaQuery = (SSAQuery) i.next();
-            final ProgressPanel progressPanel = 
+            final ProgressPanel progressPanel =
                 new ProgressPanel( "Querying: " + ssaQuery.getDescription() );
             progressFrame.addProgressPanel( progressPanel );
 
@@ -639,14 +706,13 @@ public class SSAQueryBrowser
             }
             catch (NullPointerException ne) {
                 // Whoops, that's not good, but see what we can do.
-                queryOK = "OK";
             }
             if ( "OK".equalsIgnoreCase( queryOK ) ) {
                 ssaQuery.setStarTable( starTable );
                 progressPanel.logMessage( "Done" );
             }
             else {
-                //  Some problem with the service.
+                //  Some problem with the service, report that.
                 progressPanel.logMessage( "Query failed: " + queryOK );
             }
 
@@ -820,34 +886,73 @@ public class SSAQueryBrowser
 
             //  Check for a column that contains links to the actual data
             //  (XXX these could be XML links to data within this
-            //  document). The signature for this is an UCD of DATA_LINK.
+            //  document). The signature for this is an UCD of DATA_LINK,
+            //  or a UTYPE of Access.Reference.
             int ncol = starTable.getColumnCount();
             int linkcol = -1;
             int typecol = -1;
             int namecol = -1;
             int axescol = -1;
-            int unitscol = 1;
+            int specaxiscol = -1;
+            int fluxaxiscol = -1;
+            int unitscol = -1;
+            int specunitscol = -1;
+            int fluxunitscol = -1;
+            int fluxerrorcol = -1;
             ColumnInfo colInfo;
             String ucd;
+            String utype;
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
                 ucd = colInfo.getUCD();
+
+                //  Old-style UCDs for backwards compatibility.
                 if ( ucd != null ) {
                     ucd = ucd.toLowerCase();
                     if ( ucd.equals( "data_link" ) ) {
                         linkcol = k;
                     }
-                    if ( ucd.equals( "vox:spectrum_format" ) ) {
+                    else if ( ucd.equals( "vox:spectrum_format" ) ) {
                         typecol = k;
                     }
-                    if ( ucd.equals( "vox:image_title" ) ) {
+                    else if ( ucd.equals( "vox:image_title" ) ) {
                         namecol = k;
                     }
-                    if ( ucd.equals( "vox:spectrum_axes" ) ) {
+                    else if ( ucd.equals( "vox:spectrum_axes" ) ) {
                         axescol = k;
                     }
-                    if ( ucd.equals( "vox:spectrum_units" ) ) {
+                    else if ( ucd.equals( "vox:spectrum_units" ) ) {
                         unitscol = k;
+                    }
+                }
+
+                //  Version 1.0 utypes.
+                utype = (String) colInfo.getAuxDatumValueByName( "utype", String.class );
+                if ( utype != null ) {
+                    utype = utype.toLowerCase();
+                    if ( utype.endsWith( "access.reference" ) ) {
+                        linkcol = k;
+                    }
+                    else if ( utype.endsWith( "access.format" ) ) {
+                        typecol = k;
+                    }
+                    else if ( utype.endsWith( "target.name" ) ) {
+                        namecol = k;
+                    }
+                    else if ( utype.endsWith( "char.spectralaxis.name" ) ) {
+                        specaxiscol = k;
+                    }
+                    else if ( utype.endsWith( "char.spectralaxis.unit" ) ) {
+                        specunitscol = k;
+                    }
+                    else if ( utype.endsWith( "char.fluxaxis.name" ) ) {
+                        fluxaxiscol = k;
+                    }
+                    else if ( utype.endsWith( "char.fluxaxis.accuracy.staterror" ) ) {
+                        fluxerrorcol = k;
+                    }
+                    else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
+                        fluxunitscol = k;
                     }
                 }
             }
@@ -876,7 +981,10 @@ public class SSAQueryBrowser
                                 value = ((String)rseq.getCell(namecol)).trim();
                                 props.setShortName( value );
                             }
+
                             if ( axescol != -1 ) {
+
+                                //  Old style column names.
                                 value = ((String)rseq.getCell(axescol)).trim();
                                 axes = value.split("\\s");
                                 props.setCoordColumn( axes[0] );
@@ -885,13 +993,44 @@ public class SSAQueryBrowser
                                     props.setErrorColumn( axes[2] );
                                 }
                             }
+                            else {
+
+                                //  Version 1.0 style.
+                                if ( specaxiscol != -1 ) {
+                                    value = (String)rseq.getCell(specaxiscol);
+                                    props.setCoordColumn( value );
+                                }
+                                if ( fluxaxiscol != -1 ) {
+                                    value = (String)rseq.getCell(fluxaxiscol);
+                                    props.setDataColumn( value );
+                                }
+                                if ( fluxerrorcol != -1 ) {
+                                    value = (String)rseq.getCell(fluxerrorcol);
+                                    props.setErrorColumn( value );
+                                }
+                            }
+
                             if ( unitscol != -1 ) {
+
+                                //  Old style column names.
                                 value =
                                     ((String)rseq.getCell( unitscol )).trim();
                                 units = value.split("\\s");
                                 props.setCoordUnits( units[0] );
                                 props.setDataUnits( units[1] );
                                 //  Error must have same units as data.
+                            }
+                            else {
+                                
+                                //  Version 1.0 style.
+                                if ( specunitscol != -1 ) {
+                                    value = (String)rseq.getCell(specunitscol);
+                                    props.setCoordUnits( value );
+                                }
+                                if ( fluxunitscol != -1 ) {
+                                    value = (String)rseq.getCell(fluxaxiscol);
+                                    props.setDataUnits( value );
+                                }
                             }
                             specList.add( props );
                         }
@@ -1207,7 +1346,6 @@ public class SSAQueryBrowser
             displaySpectra( false, null, -1 );
             return;
         }
-
     }
 
     //
