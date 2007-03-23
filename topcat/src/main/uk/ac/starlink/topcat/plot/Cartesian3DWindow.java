@@ -20,7 +20,7 @@ public class Cartesian3DWindow extends Plot3DWindow {
      */
     public Cartesian3DWindow( Component parent ) {
         super( "3D", new String[] { "X", "Y", "Z" }, parent, 3,
-               new Plot3D( false ) );
+               new CartesianPlot3D() );
 
         for ( int ierr = 0; ierr < 3; ierr++ ) {
             getToolBar().add( getErrorModeModels()[ ierr ]

@@ -25,7 +25,7 @@ public class SphereWindow extends Plot3DWindow {
     public SphereWindow( Component parent ) {
         super( "Spherical Plot",
                new String[] { "Longitude", "Latitude", "Radius" }, parent, 0,
-               new Plot3D( true ) );
+               new SphericalPlot3D() );
         logToggler_ =
             new ToggleButtonModel( "Log", ResourceIcon.XLOG,
                                    "Scale radius value logarithmically" );
