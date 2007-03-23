@@ -1,5 +1,13 @@
 1 Starlink SPLAT news.
 
+   3.7-0
+   =====
+
+   Added experimental support for the SSAP version 1 protocol. Added
+   new band qualifiers (upper and lower spectral range in meters)
+   and control of the file format. Older SSAP queries should still
+   work.
+
    3.6-9
    =====
 
