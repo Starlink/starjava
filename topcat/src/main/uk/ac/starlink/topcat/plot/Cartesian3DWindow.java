@@ -10,14 +10,29 @@ import java.awt.Component;
  */
 public class Cartesian3DWindow extends Plot3DWindow {
 
+    private static final ErrorRenderer[] ERROR_RENDERERS =
+        ErrorRenderer.getOptionsGeneral();
+
     /**
      * Constructs a new window.
      *
      * @param   parent  parent component (may be used for postioning)
      */
     public Cartesian3DWindow( Component parent ) {
-        super( "3D", new String[] { "X", "Y", "Z" }, parent, false );
+        super( "3D", new String[] { "X", "Y", "Z" }, parent, 3, false );
+
+        for ( int ierr = 0; ierr < 3; ierr++ ) {
+            getToolBar().add( getErrorModeModels()[ ierr ]
+                                                 .createOnOffToolbarButton() );
+        }
+        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+        getToolBar().addSeparator();
 
         addHelp( "Cartesian3DWindow" );
+    }
+
+    protected StyleEditor createStyleEditor() {
+        return new MarkStyleEditor( false, true, ERROR_RENDERERS,
+                                    getErrorModeModels() );
     }
 }

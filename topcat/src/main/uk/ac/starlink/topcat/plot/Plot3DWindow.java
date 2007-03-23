@@ -56,10 +56,12 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * @param   axisNames  array of labels by which each axis is known;
      *          the length of this array defines the dimensionality of the plot
      * @param   parent   parent window - may be used for positioning
+     * @param   nerror  number of error axes
+     * @param   zoom  whether zooming is permitted
      */
     public Plot3DWindow( String viewName, String[] axisNames,
-                         Component parent, boolean zoom ) {
-        super( viewName, axisNames, 0, parent );
+                         Component parent, int nerror, boolean zoom ) {
+        super( viewName, axisNames, nerror, parent );
 
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */
@@ -200,7 +202,6 @@ public abstract class Plot3DWindow extends GraphicsWindow
         if ( zoom ) {
             getToolBar().add( fromVisibleAction_ );
         }
-        getToolBar().addSeparator();
 
         /* Set initial rotation. */
         setRotation( INITIAL_ROTATION );
