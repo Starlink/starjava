@@ -1262,13 +1262,15 @@ public class SpecDataFactory
 
     /**
      * Convert a of mime types into the equivalent SPLAT type (these are
-     * int constants defined in SpecDataFactory).
+     * int constants defined in SpecDataFactory). Note we use the full MIME
+     * types and the SSAP shorthand versions (fits, votable, xml).
      */
     public int mimeToSPLATType( String type )
     {
         int stype = SpecDataFactory.DEFAULT;
         String simpleType = type.toLowerCase();
-        if ( simpleType.equals( "application/fits" ) ) {
+        if ( simpleType.equals( "application/fits" ) ||
+             simpleType.equals( "fits" ) ) {
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
         }
@@ -1277,21 +1279,19 @@ public class SpecDataFactory
             //  thought this was a mime-type?
             stype = SpecDataFactory.FITS;
         }
-        else if ( simpleType.equals( "fits" ) ) {
-            //  FITS format, is that image or table? Note broken type
-            //  no application or spectrum this time!
-            stype = SpecDataFactory.FITS;
-        }
         else if ( simpleType.equals( "text/plain" ) ) {
             //  ASCII table of some kind.
             stype = SpecDataFactory.TABLE;
         }
-        else if ( simpleType.equals( "application/x-votable+xml" ) ) {
-            // VOTable spectrum.
+        else if ( simpleType.equals( "application/x-votable+xml" ) ||
+                  simpleType.equals( "xml" ) ) {
+            // VOTable spectrum, open as a table. Is really the SSAP native
+            // XML representation so could an SED? In which case this might be
+            // better as SpecDataFactory.SED, we'll see.
             stype = SpecDataFactory.TABLE;
         }
-        else if ( simpleType.equals( "spectrum/votable" ) ) {
-            // VOTable spectrum, open as a table.
+        else if ( simpleType.equals( "spectrum/votable" ) ||
+                  simpleType.equals( "votable" ) ) {
             stype = SpecDataFactory.TABLE;
 
             //  XXX this used to be SpecDataFactory.SED with some note about
