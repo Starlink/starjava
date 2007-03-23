@@ -179,6 +179,46 @@ public abstract class Plot3D extends JPanel {
                                       boolean front );
 
     /**
+     * Transforms errors from the form they assume in input data (offsets
+     * to a central data point in data space) to a set of absolute 
+     * coordinates of points in the transformed graphics space.
+     * The arrangement of the input data offsets
+     * (<code>loErrs</code>, <code>hiErrs</code>) is as determined by the 
+     * {@link Points} object.
+     * The number and ordering of the output data points
+     * (<code>xerrs</code>, <code>yerrs</code>, <code>zerrs</code>)
+     * are as required by {@link ErrorRenderer} objects.
+     *
+     * <p>Points which don't represent errors, either because they have
+     * zero offsets or because they fall outside of the range of this 3D plot,
+     * are represented in the output coordinates as <code>Double.NaN</code>.
+     * The return value indicates whether any of the transformed values 
+     * have non-blank values - if false, then error drawing is pointless.
+     *
+     * @param   trans   data space -> graphics space transformer
+     * @param   ranger  range checker - anything out of range will be discarded
+     * @param   logFlags  flags for which axes will be plotted logarithmically
+     * @param   hasErrors flags for which axes may have error information
+     * @param   centre   coordinates in data space of the central point
+     *                   (may be overwritten)
+     * @param   loErrs   data space lower bound error offsets
+     * @param   hiErrs   data space upper bound error offsets
+     * @param   xerrs   graphics space X coordinates for error points
+     * @param   yerrs   graphics space Y coordinates for error points
+     * @param   zerrs   graphics space Z coordinates for error points
+     * @return  true if some of the calculated errors are non-blank
+     */
+    protected abstract boolean transformErrors( Transformer3D trans,
+                                                RangeChecker ranger,
+                                                boolean[] logFlags,
+                                                boolean[] hasErrors,
+                                                double[] centre,
+                                                double[] loErrs,
+                                                double[] hiErrs,
+                                                double[] xerrs, double[] yerrs,
+                                                double[] zerrs );
+
+    /**
      * Sets the data set for this plot.  These are the points which will
      * be plotted the next time this component is painted.
      *
@@ -365,6 +405,16 @@ public abstract class Plot3D extends JPanel {
             plotAxes( g, trans, vol, false );
         }
 
+        /* Work out which sets have markers and which sets have error bars
+         * drawn. */
+        boolean[] showPoints = new boolean[ nset ];
+        boolean[] showErrors = new boolean[ nset ];
+        for ( int is = 0; is < nset; is++ ) {
+            MarkStyle style = (MarkStyle) styles[ is ];
+            showPoints[ is ] = ! style.getHidePoints();
+            showErrors[ is ] = MarkStyle.hasErrors( style, points );
+        }
+
         /* Start the stopwatch to time how long it takes to plot all points. */
         long tStart = System.currentTimeMillis();
 
@@ -395,27 +445,60 @@ public abstract class Plot3D extends JPanel {
         int nInclude = 0;
         int nVisible = 0;
         boolean[] logFlags = getState().getLogFlags();
+        boolean[] showMarkPoints = new boolean[ nset ];
+        boolean[] showMarkErrors = new boolean[ nset ];
         double[] coords = new double[ 3 ];
-        boolean[] useMask = new boolean[ nset ];
+        double[] centre = new double[ 3 ];
+        double[] loErrs = new double[ 3 ];
+        double[] hiErrs = new double[ 3 ];
+        boolean[] hasErrors = points.hasErrors();
+        int nerr = 0;
+        for ( int ierr = 0; ierr < hasErrors.length; ierr++ ) {
+            if ( hasErrors[ ierr ] ) {
+                nerr += 2;
+            }
+        }
+        double[] xerrs = new double[ nerr ];
+        double[] yerrs = new double[ nerr ];
+        double[] zerrs = new double[ nerr ];
         RangeChecker ranger = rangeChecker_;
         for ( int ip = 0; ip < np; ip += step ) {
             long lp = (long) ip;
             boolean use = false;
             for ( int is = 0; is < nset; is++ ) {
-                useMask[ is ] = sets[ is ].isIncluded( lp );
-                use = use || useMask[ is ];
+                boolean included = sets[ is ].isIncluded( lp );
+                use = use || included;
+                showMarkPoints[ is ] = included && showPoints[ is ];
+                showMarkErrors[ is ] = included && showErrors[ is ];
             }
             if ( use ) {
                 nInclude++;
                 points.getCoords( ip, coords );
+                centre[ 0 ] = coords[ 0 ];
+                centre[ 1 ] = coords[ 1 ];
+                centre[ 2 ] = coords[ 2 ];
                 if ( ranger.inRange( coords ) && logize( coords, logFlags ) ) {
                     nVisible++;
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
                         boolean done = false;
                         for ( int is = nset - 1; is >= 0 && ! done; is-- ) {
-                            if ( sets[ is ].isIncluded( lp ) ) {
-                                vol.plot( coords, is );
+                            boolean plotted = false;
+                            if ( showMarkErrors[ is ] ) {
+                                points.getErrors( ip, loErrs, hiErrs );
+                                if ( transformErrors( trans, ranger, logFlags,
+                                                      hasErrors, centre,
+                                                      loErrs, hiErrs,
+                                                      xerrs, yerrs, zerrs ) ) {
+                                    vol.plot3d( coords, is,
+                                                showMarkPoints[ is ], nerr,
+                                                xerrs, yerrs, zerrs );
+                                    plotted = true;
+                                    done = true;
+                                }
+                            }
+                            if ( ! plotted && showMarkPoints[ is ] ) {
+                                vol.plot3d( coords, is );
                                 done = true;
                             }
                         }
@@ -425,7 +508,7 @@ public abstract class Plot3D extends JPanel {
         }
 
         /* Plot a teeny static dot in the middle of the data. */
-        vol.plot( new double[] { .5, .5, .5 }, iDotStyle );
+        vol.plot3d( new double[] { .5, .5, .5 }, iDotStyle );
 
         /* Tell the volume that all the points are in for plotting.
          * This will do the painting on the graphics context if it hasn't
@@ -613,7 +696,7 @@ public abstract class Plot3D extends JPanel {
      *
      * @param  coords  3-element coordinate array
      */
-    private static boolean logize( double[] coords, boolean[] logFlags ) {
+    protected static boolean logize( double[] coords, boolean[] logFlags ) {
         for ( int iax = 0; iax < 3; iax++ ) {
             if ( logFlags[ iax ] ) {
                 if ( coords[ iax ] > 0 ) {
