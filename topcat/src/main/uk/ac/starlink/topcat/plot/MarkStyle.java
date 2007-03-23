@@ -488,6 +488,24 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Utility method indicating whether errors will be drawn for a given 
+     * style when a given set of points is plotted.
+     *
+     * @param  style  plotting style
+     * @param  points  point set
+     * @return  false if rendering the error bars will have no effect
+     */
+    public static boolean hasErrors( MarkStyle style, Points points ) {
+        boolean[] hasErrs = points.hasErrors();
+        for ( int i = 0; i < hasErrs.length; i++ ) {
+            if ( hasErrs[ i ] ) {
+                return ! style.getErrorRenderer().isBlank( null );
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns a style which looks like a target.  Suitable for use
      * as a cursor.
      */
