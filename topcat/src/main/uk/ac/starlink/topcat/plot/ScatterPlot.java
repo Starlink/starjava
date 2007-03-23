@@ -110,7 +110,8 @@ public abstract class ScatterPlot extends SurfacePlot {
         List indexList = new ArrayList();
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
-            if ( ( ! style.getHidePoints() ) || hasErrors( points, style ) ) {
+            if ( ( ! style.getHidePoints() )
+                 || MarkStyle.hasErrors( style, points ) ) {
                 setList.add( sets[ is ] );
                 styleList.add( style );
                 indexList.add( new Integer( is ) );
@@ -319,7 +320,7 @@ public abstract class ScatterPlot extends SurfacePlot {
             MarkStyle style = styles[ is ];
             ErrorRenderer errorRenderer = style.getErrorRenderer();
             boolean showMarks = ! style.getHidePoints();
-            boolean showErrors = hasErrors( points, style );
+            boolean showErrors = MarkStyle.hasErrors( style, points );
             assert showMarks || showErrors : "Why bother?";
             int maxr = style.getMaximumRadius();
             int maxr2 = maxr * 2;
@@ -385,7 +386,7 @@ public abstract class ScatterPlot extends SurfacePlot {
         boolean[] showErrors = new boolean[ nset ];
         for ( int is = 0; is < nset; is++ ) {
             showPoints[ is ] = ! styles[ is ].getHidePoints();
-            showErrors[ is ] = hasErrors( points, styles[ is ] );
+            showErrors[ is ] = MarkStyle.hasErrors( styles[ is ], points );
         }
 
         /* Work out padding round the edge of the raster we will be drawing on.
@@ -615,8 +616,8 @@ public abstract class ScatterPlot extends SurfacePlot {
         int noff = xoffs.length;
         assert noff == yoffs.length;
         for ( int ioff = 0; ioff < noff; ioff++ ) {
-            xoffs[ 0 ] = 0;
-            yoffs[ 0 ] = 0;
+            xoffs[ ioff ] = 0;
+            yoffs[ ioff ] = 0;
         }
 
         /* Initialise other variables. */
@@ -677,24 +678,6 @@ public abstract class ScatterPlot extends SurfacePlot {
 
         /* Return status. */
         return hasError;
-    }
-
-    /**
-     * Determines whether error bars will be drawn using a given style on 
-     * a given set of points.
-     *
-     * @param   points  point set
-     * @param   style   plotting style
-     * @return  true if it is necessary to render error bars
-     */
-    private static boolean hasErrors( Points points, MarkStyle style ) {
-        boolean[] hasErrs = points.hasErrors();
-        for ( int i = 0; i < hasErrs.length; i++ ) {
-            if ( hasErrs[ i ] ) {
-                return true;
-            }
-        }
-        return ! style.getErrorRenderer().isBlank( null );
     }
 
     /**
