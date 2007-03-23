@@ -37,17 +37,15 @@ public class SortPlotVolume extends PlotVolume {
     }
 
     public void plot2d( int px, int py, double z, int istyle ) {
-        points_.add( new Point3D( px, py, z, getStyles()[ istyle ], ++iseq_ ) );
+        points_.add( new Point3D( ++iseq_, z, getStyles()[ istyle ], px, py ) );
     }
 
     public void plot2d( int px, int py, double z, int istyle,
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {
-        if ( nerr > 0 ) {
-            java.util.logging.Logger.getLogger( "uk.ac.starlink.topcat.plot" )
-                                    .warning( "Ignoring errors" );
-        }
-        plot2d( px, py, z, istyle );
+        points_.add( new ErrorsPoint3D( ++iseq_, z, getStyles()[ istyle ],
+                                        px, py, showPoint,
+                                        nerr, xoffs, yoffs ) );
     }
 
     public void flush() {
@@ -56,7 +54,7 @@ public class SortPlotVolume extends PlotVolume {
         for ( Iterator it = points_.iterator(); it.hasNext(); ) {
             Point3D point = (Point3D) it.next();
             foggy.depth_ = point.z_;
-            point.style_.drawMarker( g, point.px_, point.py_, foggy );
+            point.render( g, foggy );
         }
         points_.clear();
     }
@@ -87,18 +85,28 @@ public class SortPlotVolume extends PlotVolume {
         /**
          * Constructs a new Point3D.
          *
-         * @param   px  graphics space X coordinate
-         * @param   py  graphics space Y coordinate
+         * @param   iseq   sequence value, used as a tie-breaker for comparisons
          * @param   z   Z coordinate, used for sorting
          * @param   style  marker style to use for plotting the point
-         * @param   iseq   sequence value, used as a tie-breaker for comparisons
+         * @param   px  graphics space X coordinate
+         * @param   py  graphics space Y coordinate
          */
-        Point3D( int px, int py, double z, MarkStyle style, int iseq ) {
+        Point3D( int iseq, double z, MarkStyle style, int px, int py ) {
             px_ = (short) px;
             py_ = (short) py;
             z_ = (float) z;
             style_ = style;
             iseq_ = iseq;
+        }
+
+        /**
+         * Draws this point onto the graphics context.
+         *
+         * @param  g  graphics context
+         * @param  fixer    hook for modifying the colour
+         */
+        public void render( Graphics g, ColorTweaker fixer ) {
+            style_.drawMarker( g, px_, py_, fixer );
         }
 
         public int compareTo( Object other ) {
@@ -120,6 +128,47 @@ public class SortPlotVolume extends PlotVolume {
                     assert false : "Two points shouldn't have same sequence ID";
                     return 0;
                 }
+            }
+        }
+    }
+
+    /**
+     * Point3D subclass which contains information about error bars to draw
+     * as well as (or instead of) the central point.
+     */
+    private static class ErrorsPoint3D extends Point3D {
+
+        final boolean showPoint_;
+        final int nerr_;
+        final int[] xoffs_;
+        final int[] yoffs_;
+
+        /**
+         * Constructor.
+         *
+         * @param   iseq   sequence value, used as a tie-breaker for comparisons
+         * @param   z   Z coordinate, used for sorting
+         * @param   style  marker style to use for plotting the point
+         * @param   px  graphics space X coordinate
+         * @param   py  graphics space Y coordinate
+         * @param   showPoint  whether to draw the marker as well as error bars
+         * @param   nerr  number of error points
+         * @param   xoffs  nerr-element array of error point X coords
+         * @param   yoffs  nerr-element array of error point Y coords
+         */
+        ErrorsPoint3D( int iseq, double z, MarkStyle style, int px, int py,
+                       boolean showPoint, int nerr, int[] xoffs, int[] yoffs ) {
+            super( iseq, z, style, px, py );
+            showPoint_ = showPoint;
+            nerr_ = nerr;
+            xoffs_ = (int[]) xoffs.clone();
+            yoffs_ = (int[]) yoffs.clone();
+        }
+
+        public void render( Graphics g, ColorTweaker fixer ) {
+            style_.drawErrors( g, px_, py_, xoffs_, yoffs_, fixer );
+            if ( showPoint_ ) {
+                super.render( g, fixer );
             }
         }
     }
