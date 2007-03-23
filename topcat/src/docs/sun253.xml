@@ -9741,6 +9741,8 @@ introduced since the last version:
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
         cards - write them as numeric not string values.</li>
     <li>Improve error message for broken CSV files.</li>
+    <li>Worked around a Mac OSX Java bug which caused table display to
+        go funny when columns were deleted.</li>
     </ul>
     </p></dd>
 
