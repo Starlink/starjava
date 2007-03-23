@@ -57,23 +57,27 @@ public abstract class Plot3DWindow extends GraphicsWindow
      *          the length of this array defines the dimensionality of the plot
      * @param   parent   parent window - may be used for positioning
      * @param   nerror  number of error axes
-     * @param   zoom  whether zooming is permitted
+     * @param   plot   the Plot3D object on which plotting is done
      */
     public Plot3DWindow( String viewName, String[] axisNames,
-                         Component parent, int nerror, boolean zoom ) {
+                         Component parent, int nerror, Plot3D plot ) {
         super( viewName, axisNames, nerror, parent );
 
-        /* Construct and populate the plot panel with the 3D plot itself
-         * and a transparent layer for doodling blobs on. */
-        plot_ = new Plot3D( zoom ) {
-            protected void reportCounts( int nPoint, int nInc, int nVis ) {
+        /* Configure the plot to provide some callbacks when interesting
+         * things happen. */
+        plot_ = plot;
+        plot_.setCallbacks( new Plot3D.Callbacks() {
+            public void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
             }
-            protected void requestZoom( double zoom ) {
+            public void requestZoom( double zoom ) {
                 zoom_ = Math.max( 1.0, zoom );
                 replot();
             }
-        };
+        } );
+
+        /* Construct and populate the plot panel with the 3D plot itself
+         * and a transparent layer for doodling blobs on. */
         JPanel plotPanel = new JPanel();
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
@@ -166,7 +170,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         subsetMenu.add( blobAction_ );
-        if ( zoom ) {
+        if ( plot_.canZoom() ) {
             subsetMenu.add( fromVisibleAction_ );
         }
         getJMenuBar().add( subsetMenu );
@@ -199,7 +203,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
-        if ( zoom ) {
+        if ( plot_.canZoom() ) {
             getToolBar().add( fromVisibleAction_ );
         }
 

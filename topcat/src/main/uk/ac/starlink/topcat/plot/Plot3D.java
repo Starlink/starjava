@@ -31,7 +31,7 @@ import uk.ac.starlink.topcat.TopcatUtils;
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
-public abstract class Plot3D extends JPanel {
+public class Plot3D extends JPanel {
 
     private Annotations annotations_;
     private Points points_;
@@ -48,6 +48,7 @@ public abstract class Plot3D extends JPanel {
     private Object plotvolWorkspace_;
     private int[] padBorders_;
     private double zmax_;
+    private Callbacks callbacker_ ;
     private final Plot3DDataPanel plotArea_;
     private final Legend legend_;
     private final CentreZoomRegion centreZoom_;
@@ -82,6 +83,12 @@ public abstract class Plot3D extends JPanel {
         setOpaque( false );
         annotations_ = new Annotations();
 
+        /* Initialize Callback recipient with a no-op implementation. */
+        callbacker_ = new Callbacks() {
+            public void reportCounts( int nPoint, int nInc, int nVis ) {}
+            public void requestZoom( double zoom ) {}
+        };
+
         if ( zoom ) {
             centreZoom_ = new CentreZoomRegion( false ) {
                 public Rectangle getDisplay() {
@@ -102,7 +109,8 @@ public abstract class Plot3D extends JPanel {
                     return new Rectangle( x, y, width, height );
                 }
                 public void zoomed( double[][] bounds ) {
-                    requestZoom( state_.getZoomScale() / bounds[ 0 ][ 0 ] );
+                    callbacker_.requestZoom( state_.getZoomScale()
+                                             / bounds[ 0 ][ 0 ] );
                 }
             };
             Zoomer zoomer = new Zoomer() {
@@ -119,14 +127,6 @@ public abstract class Plot3D extends JPanel {
             centreZoom_ = null;
         }
     }
-
-    /**
-     * Callback invoked when a zoom request has been completed.
-     *
-     * @param  scale  change in zoom level (relative) - 1 means no change,
-     *         greater than one is zoom in, less is zoom out
-     */
-    protected abstract void requestZoom( double scale );
 
     /**
      * Sets the data set for this plot.  These are the points which will
@@ -264,6 +264,28 @@ public abstract class Plot3D extends JPanel {
      */
     public Rectangle getPlotBounds() {
         return plotArea_.getBounds();
+    }
+
+    /**
+     * Configures this object with an object that can receive callbacks
+     * when certain events take place.  This method should be called with
+     * a non-null value argument early in the life of this object
+     * (before plotting begins).
+     *
+     * @param  callbacker   event callback recipient
+     */
+    public void setCallbacks( Callbacks callbacker ) {
+        callbacker_ = callbacker;
+    }
+
+    /**
+     * Indicates whether this component offers user-initiated zooming 
+     * around the centre.
+     *
+     * @retrun  true iff zooming is permitted
+     */
+    public boolean canZoom() {
+        return centreZoom_ != null;
     }
 
     /**
@@ -456,7 +478,7 @@ public abstract class Plot3D extends JPanel {
         final int nv1 = nVisible;
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                reportCounts( np1, ni1, nv1 );
+                callbacker_.reportCounts( np1, ni1, nv1 );
             }
         } );
 
@@ -1045,21 +1067,6 @@ public abstract class Plot3D extends JPanel {
     }
 
     /**
-     * This component calls this method following a repaint with the
-     * values of the number of points that were plotted.
-     * It is intended as a hook for clients which want to know that 
-     * information in a way which is kept up to date.
-     * The default implementation does nothing.
-     *
-     * @param   nPoint  total number of points available
-     * @param   nIncluded  number of points included in marked subsets
-     * @param   nVisible  number of points actually plotted (may be less
-     *          nIncluded if some are out of bounds)
-     */
-    protected void reportCounts( int nPoint, int nIncluded, int nVisible ) {
-    }
-
-    /**
      * Returns an iterator over the points plotted last time this component
      * painted itself.
      *
@@ -1221,6 +1228,34 @@ public abstract class Plot3D extends JPanel {
         return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
             && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
             && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
+    }
+
+    /**
+     * Defines an object which can provide some services which this Plot3D
+     * uses in relation to interacting with its environment.
+     */
+    public static interface Callbacks {
+
+        /**
+         * This method is called following a repaint with the
+         * values of the number of points that were plotted.
+         * It is intended as a hook for clients which want to know that 
+         * information in a way which is kept up to date.
+         *
+         * @param   nPoint  total number of points available
+         * @param   nIncluded  number of points included in marked subsets
+         * @param   nVisible  number of points actually plotted (may be less
+         *          nIncluded if some are out of bounds)
+         */
+        void reportCounts( int nPoint, int nInc, int nVis );
+
+        /**
+         * This method is called when a zoom request has been completed.
+         *
+         * @param  scale  change in zoom level (relative) - 1 means no change,
+         *         greater than one is zoom in, less is zoom out
+         */
+        void requestZoom( double zoom );
     }
 
     /**
