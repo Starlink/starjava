@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
@@ -22,6 +23,10 @@ public class ViewerTableModel extends AbstractTableModel {
     private RowSubset rset = RowSubset.ALL;
     private int[] order;
     private int[] rowMap;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
+    private static boolean columnBugWarned_;
 
     /**
      * Constructs a <tt>ViewerTableModel</tt> from a <tt>StarTable</tt>.
@@ -202,11 +207,27 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt( int irow, int icol ) {
-        try {
-            return startable.getCell( getBaseRow( irow ), icol );
+        if ( icol >= 0 ) {
+            try {
+                return startable.getCell( getBaseRow( irow ), icol );
+            }
+            catch ( IOException e ) {
+                e.printStackTrace();
+                return null;
+            }
         }
-        catch ( IOException e ) {
-            e.printStackTrace();
+
+        /* This shouldn't happen - calling this method with a negative
+         * column index is an error.  However, a workaround for a Mac OSX
+         * JTable bug in TopcatModel results in such calls.  The first 
+         * time it happens log a warning; otherwise, just make sure that
+         * we avoid throwing an exception. */
+        else {
+            if ( ! columnBugWarned_ ) {
+                columnBugWarned_ = true;
+                logger_.info( "Bad column " + icol 
+                            + " - Mac OS X JTable bug?" );
+            }
             return null;
         }
     }

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.Action;
@@ -87,7 +88,10 @@ public class TopcatModel {
     private TopcatWindowAction activationAct_;
     private TopcatWindowAction saveAct_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
     private static int instanceCount = 0;
+    private static StarTableColumn DUMMY_COLUMN;
 
     /**
      * Constructs a new model from a given StarTable.
@@ -123,7 +127,35 @@ public class TopcatModel {
         viewModel_ = new ViewerTableModel( dataModel_ );
 
         /* Set up the column model and column list. */
-        columnModel_ = new DefaultTableColumnModel();
+        columnModel_ = new DefaultTableColumnModel() {
+
+            /* The column model is a normal DefaultTableColumnModel, however
+             * we override one method here to work around a bug which appears
+             * in (at least) Mac OSX J2SE1.5.0_07 - when columns are deleted 
+             * getColumn() is called with a column index of -1 which causes 
+             * stack traces to standard error and disrupts the display in
+             * various ugly ways.  Here we just intercept such calls and 
+             * return a dummy column.  The column doesn't appear to be used
+             * for display, which is good, but this in turn causes trouble 
+             * in the corresponding TableModel - there is further workaround
+             * code in ViewerTableModel. */
+            public TableColumn getColumn( int icol ) {
+                if ( icol >= 0 ) {
+                    return super.getColumn( icol );
+                }
+                else {
+
+                    /* Don't issue this warning more than once per run. */
+                    if ( DUMMY_COLUMN == null ) {
+                        logger_.warning( "Attempt to work around "
+                                       + "Mac OSX JTable bug" );
+                        DUMMY_COLUMN =
+                            new StarTableColumn( new ColumnInfo( "DUMMY" ) );
+                    }
+                    return DUMMY_COLUMN;
+                }
+            }
+        };
         for ( int icol = 0; icol < dataModel_.getColumnCount(); icol++ ) {
             ColumnInfo cinfo = dataModel_.getColumnInfo( icol );
             TableColumn tcol = new StarTableColumn( cinfo, icol );
