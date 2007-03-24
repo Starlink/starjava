@@ -1284,6 +1284,7 @@ public class SpecDataFactory
             stype = SpecDataFactory.TABLE;
         }
         else if ( simpleType.equals( "application/x-votable+xml" ) ||
+                  simpleType.equals( "text/xml;x-votable" ) ||
                   simpleType.equals( "xml" ) ) {
             // VOTable spectrum, open as a table. Is really the SSAP native
             // XML representation so could an SED? In which case this might be
