@@ -1426,8 +1426,6 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <jvmarg value="-Dsplat.development=${splat.development}"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
       <jvmarg value="-Dsplat.etc=${src.etc}"/>
-      <jvmarg value="-Dhttps.proxyHost=wwwcache.dur.ac.uk"/>
-      <jvmarg value="-Dhttps.proxyPort=8080"/>
       <arg value="src/etc/testdata/NGC1275.txt"/>
     </java>
   </target>
