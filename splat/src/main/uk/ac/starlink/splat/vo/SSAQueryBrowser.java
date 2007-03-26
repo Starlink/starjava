@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.vo;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -24,6 +25,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -103,6 +105,14 @@ public class SSAQueryBrowser
     extends JFrame
     implements ActionListener, MouseListener
 {
+    /** UI preferences. */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( SSAQueryBrowser.class );
+
+    /** Initial window size and location */
+    private static final Rectangle defaultWindowLocation =
+        new Rectangle( 0, 0, 500, 550 );
+
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
     private SSAServerList serverList = null;
@@ -325,9 +335,10 @@ public class SSAQueryBrowser
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         setSize( new Dimension( 550, 500 ) );
+        Utilities.setFrameLocation( this, defaultWindowLocation, prefs, 
+                                    "SSAQueryBrowser" );
         setVisible( true );
     }
-
 
     /**
      * Populate the north part of center window with the basic query
@@ -1299,6 +1310,7 @@ public class SSAQueryBrowser
      */
     protected void closeWindowEvent()
     {
+        Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
         this.dispose();
     }
 
