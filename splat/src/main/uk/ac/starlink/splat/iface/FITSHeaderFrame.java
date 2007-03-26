@@ -21,14 +21,15 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -38,22 +39,17 @@ import nom.tam.fits.HeaderCard;
 
 import uk.ac.starlink.splat.data.FITSHeaderSource;
 import uk.ac.starlink.splat.data.SpecData;
-import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
 
 /**
- * Window for viewing and modifying the FITS cards of a spectrum. 
- * <p>
- * The spectrum is chosen from the a list of spectra, which are rendered 
- * in a JComboBox.
+ * Window for viewing the FITS cards of a spectrum. 
  *
  * @author Peter Draper
  * @version $Id$
  */
 public class FITSHeaderFrame 
     extends JFrame
-    implements ActionListener
 {
     /**
      * UI preferences.
@@ -68,30 +64,24 @@ public class FITSHeaderFrame
     private JTable table = null;
 
     /**
-     * {@link JComboBox} used to select a spectrum.
+     * {@link SpecData} instance to view.
      */
-    private JComboBox nameList = null;
+    private SpecData specData = null;
 
     /**
-     * {@link SpecDataComp} containing the list of spectra.
+     * Menubar and various menus and items that it contains.
      */
-    private SpecDataComp spectra = null;
-
-   /**
-    * Menubar and various menus and items that it contains.
-    */
     private JMenuBar menuBar = null;
     private JMenu fileMenu = null;
 
     /**
      * Create an instance. 
      *
-     * @param spectra {@link SpecDataComp}instance containing all the
-     *                spectra to view/modify.
+     * @param specData A {@link SpecData} instance.
      */
-    public FITSHeaderFrame( SpecDataComp spectra )
+    public FITSHeaderFrame( SpecData specData )
     {
-        this.spectra = spectra;
+        this.specData = specData;
         initUI();
         initFrame();
         updateDisplay();
@@ -107,29 +97,21 @@ public class FITSHeaderFrame
 
         //  Add the menuBar.
         menuBar = new JMenuBar();
-        fileMenu = new JMenu();
         setJMenuBar( menuBar );
 
-        //  The Spectral selector JComboBox.
-        nameList = new JComboBox();
+        //  Create the File menu.
+        fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
+        menuBar.add( fileMenu );
 
-        //  The list of names uses a special renderer to also display
-        //  some of the line properties.
-        nameList.setRenderer( new LineRenderer( nameList ) );
-
-        //  The nameList uses the SpecDataComp as its model.
-        nameList.setModel( spectra );
-
-        //  JComboBox sets default size this way!
-        nameList.
-            setPrototypeDisplayValue( "                                    " );
-
-        //  When the current spectrum is modified we need to update the
-        //  display.
-        nameList.addActionListener( this );
+        //  Name of the spectrum.
+        SplatName splatName = new SplatName( specData );
+        TitledBorder splatTitle =
+            BorderFactory.createTitledBorder( "Spectrum:" );
+        splatName.setBorder( splatTitle );
 
         //  Goes at the top of window.
-        add( nameList, BorderLayout.NORTH );
+        add( splatName, BorderLayout.NORTH );
 
         //  Create the table.
         table = new JTable();
@@ -142,6 +124,9 @@ public class FITSHeaderFrame
         header.setUpdateTableInRealTime( false );
 
         JScrollPane scrollPane = new JScrollPane( table );
+        TitledBorder scrollTitle =
+            BorderFactory.createTitledBorder( "FITS headers:" );
+        scrollPane.setBorder( scrollTitle );
         
         //  Goes in the center and takes any extra space.
         add( scrollPane, BorderLayout.CENTER );
@@ -176,11 +161,10 @@ public class FITSHeaderFrame
     }
 
     /**
-     * Update the display to show the FITS headers of the current spectrum
+     * Update the display to show the FITS headers of the spectrum
      */
     public void updateDisplay() 
     {
-        SpecData specData = spectra.getCurrentSpectrum();
         Header header = null;
         if ( specData != null ) {
             header = specData.getHeaders();
@@ -246,21 +230,6 @@ public class FITSHeaderFrame
         {
             closeWindowEvent();
         }
-    }
-    
-
-    //
-    // Implement ActionListener interface.
-    //
-
-    /**
-     * Respond to selection of a new spectrum as the current one.
-     *
-     * @param e object describing the event.
-     */
-    public void actionPerformed( ActionEvent e )
-    {
-        updateDisplay();
     }
 }
 
