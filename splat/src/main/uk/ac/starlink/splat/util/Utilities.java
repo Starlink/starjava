@@ -278,7 +278,9 @@ public class Utilities
      * symmetric method {@link #saveFrameLocation}.
      *
      * If the defaults value is null and no values exist already then
-     * the frame is located and sized using pack.
+     * the frame is located and sized using pack. If the default position
+     * is set to 0,0 then that is ignored (allowing just the initial
+     * size to be set).
      */
     public static void setFrameLocation( Frame window, Rectangle defaults,
                                          Preferences prefs, String name )
@@ -299,7 +301,9 @@ public class Utilities
         int y = prefs.getInt( name + "_y", defaults.y );
         int width = prefs.getInt( name + "_width", defaults.width );
         int height = prefs.getInt( name + "_height", defaults.height );
-        window.setLocation( x, y );
+        if ( x > 0 && y > 0 ) {
+            window.setLocation( x, y );
+        }
         window.setSize( width, height );
     }
 
