@@ -18,10 +18,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -904,7 +906,21 @@ public class SpecDataFactory
         PathParser namer = null;
         try {
             //  Contact the resource.
-            InputStream is = url.openStream();
+            URLConnection connection = url.openConnection();
+
+            //  Handle switching from HTTP to HTTPS, if a HTTP 30x redirect is
+            //  returned, as Java doesn't do this by default (security issues
+            //  when moving from secure to non-secure).
+            if ( connection instanceof HttpURLConnection ) {
+                int code = ((HttpURLConnection)connection).getResponseCode();
+                if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+                     code == HttpURLConnection.HTTP_MOVED_TEMP ) {
+                    String newloc = connection.getHeaderField( "Location" );
+                    URL newurl = new URL( newloc );
+                    connection = newurl.openConnection();
+                }
+            }
+            InputStream is = connection.getInputStream();
 
             //  And read it into a local file. Use the existing file extension
             //  if available and we're not guessing the type.
