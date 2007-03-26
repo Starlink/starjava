@@ -56,6 +56,11 @@ public abstract class ErrorRenderer {
         new CappedLine( "Caps", false, 3 ),
     };
 
+    private static final Stroke CAP_ROUND =
+        new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
+    private static final Stroke CAP_BUTT = 
+        new BasicStroke( 1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER );
+
     private static final int[] NO_PIXELS = new int[ 0 ];
 
     private static final int LEGEND_WIDTH = 40;
@@ -356,9 +361,6 @@ public abstract class ErrorRenderer {
         private final boolean lines_;
         private final int capsize_;
         private final Icon legend_;
-        private final static Stroke CAP_STROKE = 
-            new BasicStroke( 1f, BasicStroke.CAP_ROUND,
-                             BasicStroke.JOIN_MITER );
 
         /**
          * Constructor.
@@ -396,7 +398,7 @@ public abstract class ErrorRenderer {
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
             drawErrors( g, x, y, xoffs, yoffs, g.getClipBounds(), 
-                        lines_, capsize_ );
+                        lines_, capsize_, false );
         }
 
         /**
@@ -410,13 +412,17 @@ public abstract class ErrorRenderer {
          * @param  clip   bounds of output
          * @param  lines  whether to draw lines
          * @param  capsize  size of capping lines (0 for none)
+         * @param  willCover  true if the ends of the radial lines will 
+         *                    subsequently be covered by more drawing 
+         *                    (affects line capping)
          */
         public static void drawErrors( Graphics g, int x, int y,
                                        int[] xoffs, int[] yoffs, Rectangle clip,
-                                       boolean lines, int capsize ) {
+                                       boolean lines, int capsize,
+                                       boolean willCover ) {
             Graphics2D g2 = (Graphics2D) g;
             Stroke oldStroke = g2.getStroke();
-            g2.setStroke( CAP_STROKE );
+            g2.setStroke( capsize > 0 || willCover ? CAP_BUTT : CAP_ROUND );
             int xmax = clip.width + 1;
             int ymax = clip.height + 1;
             int np = xoffs.length;
@@ -467,6 +473,7 @@ public abstract class ErrorRenderer {
 
                     /* Draw cap if required. */
                     if ( capsize > 0 && ! clipped ) {
+                        g2.setStroke( CAP_ROUND );
 
                         /* For rectilinear offsets, draw the cap manually. */
                         if ( xoff == 0 ) {
@@ -725,7 +732,8 @@ public abstract class ErrorRenderer {
 
             /* Draw crosshair if required. */
             if ( withLines_ ) {
-                CappedLine.drawErrors( g, x, y, xoffs, yoffs, clip, true, 0 );
+                CappedLine.drawErrors( g, x, y, xoffs, yoffs, clip, true, 0,
+                                       true );
             }
         }
 
