@@ -926,8 +926,12 @@ public class SSAQueryBrowser
                     }
                 }
 
-                //  Version 1.0 utypes.
-                utype = (String) colInfo.getAuxDatumValueByName( "utype", String.class );
+                //  Version 1.0 utypes. XXX not sure if axes names
+                //  are in columns or are really parameters. Assume
+                //  these work like the old-style scheme and appear in
+                //  the columns.
+                utype = (String) 
+                    colInfo.getAuxDatumValueByName( "utype", String.class );
                 if ( utype != null ) {
                     utype = utype.toLowerCase();
                     if ( utype.endsWith( "access.reference" ) ) {

@@ -11,13 +11,15 @@ package uk.ac.starlink.splat.data;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import uk.ac.starlink.table.ColumnInfo;
 
 /**
  * Centralising class for making the choices about what are the coordinates,
  * data values and data errors columns in tables.
  * <p>
  * The choices are controlled by a series of regular expressions that can be
- * extended as needed.
+ * extended as needed, or by looking for the standard set of utypes defined
+ * by the IVOA spectral data model (1.0).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -42,8 +44,7 @@ public class TableColumnChooser
     /** Singleton class */
     private TableColumnChooser()
     {
-        //  Default patterns... Could try matching to things like data
-        //  source. Any joy from UCDs and IVOA work?
+        //  Default patterns.
         coordPatterns = new ArrayList();
         addCoordPattern( "wavelength.*" );
         addCoordPattern( "freq.*" );
@@ -64,7 +65,7 @@ public class TableColumnChooser
         addErrorPattern( "error.*" );
         addErrorPattern( "sigma.*" );
         addErrorPattern( "stddev.*" );
-    }
+   }
 
     /**
      * Get reference to the single instance of this class.
@@ -78,31 +79,81 @@ public class TableColumnChooser
     }
 
     /**
-     * Return the index of the String that most matches a coordinate.
+     * Return the index of the coordinate column of the table.
+     * Matches either the spectral data model utype, or the current set of 
+     * patterns.
      * Returns -1 if no match is located.
      */
-    public int getCoordMatch( String[] names )
+    public int getCoordMatch( ColumnInfo[] infos, String[] names )
     {
-        return match( coordPatterns, names );
+        //  First check column infos for the IVOA spectral data model utype.
+        int column = matchUtype( infos, "data.spectralaxis.value" );
+        if ( column == -1 ) {
+            column = match( coordPatterns, names );
+        }
+        return column;
     }
     
     /**
-     * Return the index of the String that most matches a data value.
+     * Return the index of the data values column of the table.
+     * Matches either the spectral data model utype, or the current set of 
+     * patterns.
      * Returns -1 if no match is located.
      */
-    public int getDataMatch( String[] names )
+    public int getDataMatch( ColumnInfo[] infos, String[] names )
     {
-        return match( dataPatterns, names );
+        //  First check column infos for the IVOA spectral data model utype.
+        int column = matchUtype( infos, "data.fluxaxis.value" );
+        if ( column == -1 ) {
+            column = match( dataPatterns, names );
+        }
+        return column;
     }
     
     /**
-     * Return the index of the String that most matches a data error.
+     * Return the index of the data errors column of the table.
+     * Matches either the spectral data model utypes, or the current set of 
+     * patterns.
      * Returns -1 if no match is located.
      */
-    public int getErrorMatch( String[] names )
+    public int getErrorMatch( ColumnInfo[] infos, String[] names )
     {
-        return match( errorPatterns, names );
+        //  First check column infos for the IVOA spectral data model utypes.
+        int column = matchUtype( infos, "data.fluxaxis.accuracy.staterror" );
+        if ( column == -1 ) {
+            column = matchUtype( infos, "data.fluxaxis.accuracy.staterrlow" );
+            if ( column == -1 ) {
+                column = matchUtype( infos, 
+                                     "data.fluxaxis.accuracy.staterrhigh" );
+                if ( column == -1 ) {
+                    column = match( errorPatterns, names );
+                }
+            }
+        }
+        return column;
     }
+
+    /** 
+     * Match the utype to that of the spectral data model. Returns the index
+     * of the matched column or -1. Note modelUtype should be lower case and
+     * only have the trailing context (no ssa: or Spectrum.).
+     */
+    protected int matchUtype( ColumnInfo[] infos, String modelUtype )
+    {
+        String utype;
+        for( int k = 0; k < infos.length; k++ ) {
+            utype = (String) 
+                infos[k].getAuxDatumValueByName( "utype", String.class );
+            if ( utype != null ) {
+                utype = utype.toLowerCase();
+                if ( utype.endsWith( modelUtype ) ) {
+                    return k;
+                }
+            }
+        }
+        return -1;
+    }
+
     
     /**
      * Compares the Patterns stored in list against the strings stored in

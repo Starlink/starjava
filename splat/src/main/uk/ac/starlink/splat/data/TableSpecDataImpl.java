@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     26-FEB-2004 (Peter W. Draper):
@@ -249,15 +250,6 @@ public class TableSpecDataImpl
     }
 
     /**
-     * Get the format of this table.
-     */
-    public String getTableFormat()
-        throws SplatException
-    {
-        throw new SplatException( "Implement this now!" );
-    }
-
-    /**
      * Get the list of formats that are supported.
      */
     public static List getKnownFormats()
@@ -483,7 +475,8 @@ public class TableSpecDataImpl
         }
 
         coordColumn =
-            TableColumnChooser.getInstance().getCoordMatch( columnNames );
+            TableColumnChooser.getInstance().getCoordMatch( columnInfos, 
+                                                            columnNames );
         if ( coordColumn == -1 ) {
             // No match for coordinates, look for "first" numeric column.
             for ( int i = 0; i < columnInfos.length; i++ ) {
@@ -496,7 +489,8 @@ public class TableSpecDataImpl
         }
 
         dataColumn =
-            TableColumnChooser.getInstance().getDataMatch( columnNames );
+            TableColumnChooser.getInstance().getDataMatch( columnInfos,
+                                                           columnNames );
         if ( dataColumn == -1 ) {
             // No match for data, look for "second" numeric column.
             int count = 0;
@@ -519,7 +513,8 @@ public class TableSpecDataImpl
 
         //  No fallback for errors, just don't have any.
         errorColumn =
-            TableColumnChooser.getInstance().getErrorMatch( columnNames );
+            TableColumnChooser.getInstance().getErrorMatch( columnInfos,
+                                                            columnNames );
 
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();

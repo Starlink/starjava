@@ -225,7 +225,6 @@ public class SSAQuery
         else if ( queryBandLower != null ) {
             buffer.append( "&BAND=" + queryBandLower );
         }
-        System.out.println( "SSAP query to: " + buffer.toString() );
         return new URL( buffer.toString() );
     }
 }
