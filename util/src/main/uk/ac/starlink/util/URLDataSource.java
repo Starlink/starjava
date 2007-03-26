@@ -2,12 +2,15 @@ package uk.ac.starlink.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * A DataSource implementation based on a {@link java.net.URL}.
  * 
  * @author   Mark Taylor (Starlink)
+ * @author   Peter W. Draper (JAC, Durham University)
  */
 public class URLDataSource extends DataSource {
 
@@ -25,7 +28,23 @@ public class URLDataSource extends DataSource {
     }
 
     protected InputStream getRawInputStream() throws IOException {
-        return url.openStream();
+
+        //  Contact the resource.
+        URLConnection connection = url.openConnection();
+
+        //  Handle switching from HTTP to HTTPS (but not vice-versa, that's
+        //  insecure), if a HTTP 30x redirect is returned, as Java doesn't do
+        //  this by default.
+        if ( connection instanceof HttpURLConnection ) {
+            int code = ((HttpURLConnection)connection).getResponseCode();
+            if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+                 code == HttpURLConnection.HTTP_MOVED_TEMP ) {
+                String newloc = connection.getHeaderField( "Location" );
+                URL newurl = new URL( newloc );
+                connection = newurl.openConnection();
+            }
+        }
+        return connection.getInputStream();
     }
 
     /**
