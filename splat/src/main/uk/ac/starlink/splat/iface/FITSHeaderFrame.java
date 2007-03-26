@@ -2,7 +2,7 @@
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
- *     18-APR-2005 (Peter W. Draper):
+ *     23-MAR-2007 (Peter W. Draper):
  *       Original version.
  */
 package uk.ac.starlink.splat.iface;
@@ -31,6 +31,7 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -93,6 +94,7 @@ public class FITSHeaderFrame
         this.spectra = spectra;
         initUI();
         initFrame();
+        updateDisplay();
     }
 
     /**
@@ -179,13 +181,18 @@ public class FITSHeaderFrame
     public void updateDisplay() 
     {
         SpecData specData = spectra.getCurrentSpectrum();
-        if ( specData == null || ! ( specData instanceof FITSHeaderSource ) ) {
+        Header header = null;
+        if ( specData != null ) {
+            header = specData.getHeaders();
+        }
+
+        //  Stop with null table if no spectrum or no headers.
+        if ( specData == null || header == null ) {
             table.setModel( new DefaultTableModel() );
             return;
         }
 
         String[] columnNames = { "Keyword", "Value", "Comment" };
-        Header header = ((FITSHeaderSource)specData).getFitsHeaders();
         int numKeywords = header.getNumberOfCards();
         String[][] values = new String[numKeywords][3];
         Iterator it = header.iterator();
@@ -200,6 +207,14 @@ public class FITSHeaderFrame
             values[n++][2] = comment;
         }
         table.setModel( new DefaultTableModel( values, columnNames ) );
+
+        //  Set default widths... (once?).
+        TableColumn column = table.getColumnModel().getColumn( 0 );
+        column.setPreferredWidth( 100 );
+        column = table.getColumnModel().getColumn( 1 );
+        column.setPreferredWidth( 250 );
+        column = table.getColumnModel().getColumn( 2 );
+        column.setPreferredWidth( 400 );
     }
 
 

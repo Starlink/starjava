@@ -136,6 +136,11 @@ public class PlotControlFrame
     protected StatsFrame statsFrame = null;
 
     /**
+     * The FITS headers frame.
+     */
+    protected FITSHeaderFrame headerFrame = null;
+
+    /**
      *  The global list of spectra and plots.
      */
     private static GlobalSpecPlotList globalList =
@@ -472,6 +477,8 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
+        ImageIcon fitsImage = new ImageIcon(
+            ImageHolder.class.getResource( "fits.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -545,6 +552,12 @@ public class PlotControlFrame
                              "Get statistics on regions of spectrum" );
         analysisMenu.add( statsAction ).setMnemonic( KeyEvent.VK_S );
         toolBar.add( statsAction );
+
+        HeaderAction headerAction =
+            new HeaderAction( "FITS headers", fitsImage,
+                              "View the FITS headers of a spectrum" );
+        analysisMenu.add( headerAction ).setMnemonic( KeyEvent.VK_S );
+        toolBar.add( headerAction );
     }
 
     /**
@@ -1355,6 +1368,45 @@ public class PlotControlFrame
         }
     }
 
+    /**
+     *  Activate the FITS header window.
+     */
+    public void showHeaders()
+    {
+        if ( headerFrame == null ) {
+            headerFrame = new FITSHeaderFrame( plot.getSpecDataComp() );
+            //  We'd like to know if the window is closed.
+            headerFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        headerClosed();
+                    }
+                });
+        }
+	else {
+            Utilities.raiseFrame( headerFrame );
+        }
+    }
+
+    /**
+     * FITS header window is closed.
+     */
+    protected void headerClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // headerFrame = null;
+    }
+
+    /**
+     *  Close the FITS header window.
+     */
+    protected void closeHeaders()
+    {
+        if ( headerFrame != null ) {
+            headerFrame.dispose();
+            headerFrame = null;
+        }
+    }
+
 
     /**
      * Set the main cursor to indicate waiting for some action to
@@ -1394,6 +1446,7 @@ public class PlotControlFrame
         closeUnits();
         closeFlip();
         closeStats();
+        closeHeaders();
         plot.release();
     }
 
@@ -1697,6 +1750,23 @@ public class PlotControlFrame
         public void actionPerformed( ActionEvent ae )
         {
             showStats();
+        }
+    }
+
+    /**
+     *  Inner class defining the view FITS headers action.
+     */
+    protected class HeaderAction extends AbstractAction
+    {
+        public HeaderAction( String name, Icon icon, String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+            //putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showHeaders();
         }
     }
 
