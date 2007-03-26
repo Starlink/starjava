@@ -272,6 +272,11 @@ public class SplatBrowser
     protected ArrayList specViewerFrames = null;
 
     /**
+     * FITS header viewer frames.
+     */
+    protected ArrayList fitsViewerFrames = null;
+
+    /**
      * Spectral coordinates viewer frame.
      */
     protected SpecCoordinatesFrame coordinatesFrame = null;
@@ -907,6 +912,16 @@ public class SplatBrowser
         JMenuItem cascade = new JMenuItem( "Cascade all plots" );
         viewMenu.add( cascade ).setMnemonic( KeyEvent.VK_C );
         cascade.addActionListener( this );
+
+        //  Add an action to view the FITS headers of the spectra.
+        ImageIcon fitsImage =
+            new ImageIcon(ImageHolder.class.getResource( "fits.gif" ) );
+        LocalAction fitsAction =
+            new LocalAction( LocalAction.FITS_VIEWER,
+                             "View FITS headers", fitsImage,
+                             "View the FITS header cards of the " + 
+                             "selected spectra");
+        toolBar.add( fitsAction );
     }
 
     /**
@@ -1274,10 +1289,6 @@ public class SplatBrowser
      * Enable the open file chooser. Any selected files are added to
      * the global list of spectra. Note that multiple selections are
      * allowed, but not shown correctly in the list of selected files.
-     *
-     * A better version of this would add a display as well as open
-     * option and could provide a query for the contents of HDS
-     * container and FITS MEF files.
      */
     protected void showOpenFileChooser()
     {
@@ -2378,6 +2389,29 @@ public class SplatBrowser
     }
 
     /**
+     * Display windows for viewing the FITS headers, if any, of the currently
+     * selected spectra.
+     */
+    public void fitsSelectedSpectra()
+    {
+        if ( fitsViewerFrames == null ) {
+            fitsViewerFrames = new ArrayList();
+        }
+
+        // Get the selected spectra.
+        int[] indices = getSelectedSpectra();
+        if ( indices != null ) {
+
+            //  And create view of each one.
+            SpecData spec = null;
+            for ( int i = 0; i < indices.length; i++ ) {
+                spec = globalList.getSpectrum( indices[i] );
+                fitsViewerFrames.add( new FITSHeaderFrame( spec ) );
+            }
+        }
+    }
+
+    /**
      * Remove the currently selected spectra from the global list and
      * this interface.
      */
@@ -2855,7 +2889,8 @@ public class SplatBrowser
         public static final int COPYSORT_SPECTRA = 24;
         public static final int CREATE_SPECTRUM = 25;
         public static final int PURGE_SPECTRA = 26;
-        public static final int EXIT = 27;
+        public static final int FITS_VIEWER = 27;
+        public static final int EXIT = 28;
 
         private int type = 0;
 
@@ -3036,6 +3071,12 @@ public class SplatBrowser
                    purgeSpectra();
                }
                break;
+
+               case FITS_VIEWER: {
+                   fitsSelectedSpectra();
+               }
+               break;
+
 
                case EXIT: {
                    exitApplicationEvent();
