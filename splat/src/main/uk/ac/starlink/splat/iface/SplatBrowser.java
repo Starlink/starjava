@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
@@ -908,11 +909,6 @@ public class SplatBrowser
         viewMenu.add( dataUnitsAction ).setMnemonic( KeyEvent.VK_E );
         toolBar.add( dataUnitsAction );
 
-        //  Add an action to cascade all the plot windows.
-        JMenuItem cascade = new JMenuItem( "Cascade all plots" );
-        viewMenu.add( cascade ).setMnemonic( KeyEvent.VK_C );
-        cascade.addActionListener( this );
-
         //  Add an action to view the FITS headers of the spectra.
         ImageIcon fitsImage =
             new ImageIcon(ImageHolder.class.getResource( "fits.gif" ) );
@@ -921,7 +917,14 @@ public class SplatBrowser
                              "View FITS headers", fitsImage,
                              "View the FITS header cards of the " + 
                              "selected spectra");
+        viewMenu.add( fitsAction );
         toolBar.add( fitsAction );
+
+        //  Add an action to cascade all the plot windows.
+        JMenuItem cascade = new JMenuItem( "Cascade all plots" );
+        viewMenu.add( cascade ).setMnemonic( KeyEvent.VK_C );
+        cascade.addActionListener( this );
+
     }
 
     /**
