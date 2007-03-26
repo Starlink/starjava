@@ -201,16 +201,20 @@ public class PackedSortPlotVolume extends PlotVolume {
          * of BufferedImage, WritableRaster and DataBuffer it would be 
          * possible to render directly from RGBA arrays of floats, but
          * it seems not. */
-        int npix = xdim_ * ydim_;
         ColorModel colorModel = image_.getColorModel();
         float[] rgba = new float[ 4 ];
+        Arrays.fill( rgbBuf_, colorModel.getDataElement( rgba, 0 ) );
+        int npix = xdim_ * ydim_;
         for ( int ipix = 0; ipix < npix; ipix++ ) {
-            float a1 = 1f / aBuf[ ipix ];
-            rgba[ 0 ] = rBuf[ ipix ] * a1;
-            rgba[ 1 ] = gBuf[ ipix ] * a1;
-            rgba[ 2 ] = bBuf[ ipix ] * a1;
-            rgba[ 3 ] = aBuf[ ipix ];
-            rgbBuf_[ ipix ] = colorModel.getDataElement( rgba, 0 );
+            float a = aBuf[ ipix ];
+            if ( a > 0f ) {
+                float a1 = 1f / aBuf[ ipix ];
+                rgba[ 0 ] = rBuf[ ipix ] * a1;
+                rgba[ 1 ] = gBuf[ ipix ] * a1;
+                rgba[ 2 ] = bBuf[ ipix ] * a1;
+                rgba[ 3 ] = a;
+                rgbBuf_[ ipix ] = colorModel.getDataElement( rgba, 0 );
+            }
         }
         image_.setRGB( 0, 0, xdim_, ydim_, rgbBuf_, 0, xdim_ );
 
