@@ -26,11 +26,11 @@ Research Councils \\
 Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.25}
+\newcommand{\stardocnumber}    {243.26}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {23 March 2007}
+\newcommand{\stardocdate}      {26 March 2007}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.7-0}
+\newcommand{\stardocversion}   {3.7-1}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -792,6 +792,11 @@ in the following figure:
   This can be useful when just setting the units displayed in a plot, but
   can also be used to convert spectra between flux systems when they are
   drawn (making them correctly aligned).
+
+  \item[\inline{fits}] View the FITS headers of any selected spectra.
+  A window displaying the headers will be opened for each of the selected
+  spectra. Note that only 1D FITS and NDFs will generally have FITS headers
+  other types, including FITS tables, will not.
 
   \item[\inline{rainbow}] Change the colour of \hitext{all} the spectra
   in the global list. Each time you press this button a new random seed
@@ -3635,6 +3640,12 @@ components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
 
 \section{Changes}
+
+\subsection{3.7-1}
+
+The FITS headers of all selected spectra can now be viewed using actions
+available in the main window. Only NDFs and 1D FITS spectra (not tables) can
+currently have FITS headers.
 
 \subsection{3.7-0}
 

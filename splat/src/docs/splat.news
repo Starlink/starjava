@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.7-1
+   =====
+
+   The FITS headers of all selected spectra can now be viewed using
+   actions available in the main window. Only NDFs and 1D FITS spectra
+   (not tables) can currently have FITS headers.
+
    3.7-0
    =====
 
