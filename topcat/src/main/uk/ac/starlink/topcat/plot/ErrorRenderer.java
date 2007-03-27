@@ -731,15 +731,18 @@ public abstract class ErrorRenderer {
                     y + yo[1] + yo[2], y + yo[0] + yo[3], y + yo[0] + yo[2],
                     1,                 1,                 1,
                 };
-                double[] m3 = Matrices.mmMult( m2, Matrices.invert( m1 ) );
-                AffineTransform trans = new AffineTransform( m3[ 0 ], m3[ 3 ],
-                                                             m3[ 1 ], m3[ 4 ],
-                                                             m3[ 2 ], m3[ 5 ] );
-                AffineTransform oldTrans = g2.getTransform();
-                g2.transform( trans );
-                drawOblong( g2, 0, 0, (int) Math.round( width ),
-                            (int) Math.round( height ) );
-                g2.setTransform( oldTrans );
+                if ( Matrices.det( m1 ) != 0 ) {
+                    double[] m3 = Matrices.mmMult( m2, Matrices.invert( m1 ) );
+                    AffineTransform trans =
+                        new AffineTransform( m3[ 0 ], m3[ 3 ],
+                                             m3[ 1 ], m3[ 4 ],
+                                             m3[ 2 ], m3[ 5 ] );
+                    AffineTransform oldTrans = g2.getTransform();
+                    g2.transform( trans );
+                    drawOblong( g2, 0, 0, (int) Math.round( width ),
+                                (int) Math.round( height ) );
+                    g2.setTransform( oldTrans );
+                }
             }
 
             /* Draw crosshair if required. */
