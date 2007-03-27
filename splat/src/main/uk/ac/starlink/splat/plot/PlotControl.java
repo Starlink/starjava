@@ -27,26 +27,10 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
-import java.awt.print.PageFormat;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Vector;
 
-import javax.print.PrintService;
-import javax.print.StreamPrintService;
-import javax.print.StreamPrintServiceFactory;
-import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.standard.JobName;
-import javax.print.attribute.standard.MediaSizeName;
-import javax.print.attribute.standard.OrientationRequested;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -64,8 +48,6 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import org.jibble.epsgraphics.EpsGraphics2D;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.SpecFrame;
@@ -94,6 +76,7 @@ import uk.ac.starlink.splat.iface.SpecChangedEvent;
 import uk.ac.starlink.splat.iface.SpecListener;
 import uk.ac.starlink.splat.iface.SpecTransferHandler;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.PrintUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -1087,96 +1070,31 @@ public class PlotControl
     }
 
     /**
-     * Look for postscript printing services.
-     */
-    protected PrintService[] getPostscriptPrintServices( String fileName )
-        throws SplatException
-    {
-        FileOutputStream outstream;
-        StreamPrintService psPrinter;
-        String psMimeType = "application/postscript";
-
-        StreamPrintServiceFactory[] factories =
-            PrinterJob.lookupStreamPrintServices( psMimeType );
-        if ( factories.length > 0 ) {
-            try {
-                outstream = new FileOutputStream( new File( fileName ) );
-                PrintService[] services = new PrintService[1];
-                services[0] =  factories[0].getPrintService( outstream );
-                return services;
-            }
-            catch ( FileNotFoundException e ) {
-                throw new SplatException( e );
-            }
-        }
-        return new PrintService[0];
-    }
-
-    /**
-     * Print to a postscript file.
+     * Print to a postscript file, EPS if requested.
      */
     public void printPostscript( boolean eps, String fileName )
         throws SplatException
     {
+        Rectangle bounds = null;
         if ( eps ) {
-            try {
-                BufferedOutputStream ostrm =
-                    new BufferedOutputStream( new FileOutputStream(fileName) );
-                Rectangle bounds;
-
-                // Only print visible portion when axes are limited to the
-                // visible part.
-                if ( plot.isVisibleOnly() ) {
-                    bounds = getViewport().getViewRect();
-                }
-                else {
-                    bounds = plot.getBounds();
-                    //  EPS only likes positive bounds, this seems to work.
-                    if ( bounds.x < 0 ) {
-                        bounds.x = 0;
-                        bounds.y = 0;
-                    }
-                }
-                EpsGraphics2D g2 =
-                    new EpsGraphics2D( name, ostrm,
-                                       bounds.x, bounds.y,
-                                       bounds.x + bounds.width,
-                                       bounds.y + bounds.height );
-                plot.print( g2 );
-                g2.close();
-            }
-            catch (Exception e) {
-                throw new SplatException( e );
-            }
-        }
-        else {
-            PrintService[] services = getPostscriptPrintServices( fileName );
-            if ( services.length != 0 ) {
-                try {
-                    PrinterJob pj = PrinterJob.getPrinterJob();
-                    pj.setPrintService( services[0] );
-                    pj.setPrintable( plot );
-                    makePageSet();
-                    if ( pj.printDialog( pageSet ) ) {
-                        pj.print( pageSet );
-                        StreamPrintService sps =
-                            (StreamPrintService) services[0];
-                        sps.dispose();
-                        sps.getOutputStream().close();
-                    }
-                }
-                catch ( PrinterException e ) {
-                    throw new SplatException( e );
-                }
-                catch ( IOException e ) {
-                    throw new SplatException( e );
-                }
+            // Only print visible portion when axes are limited to the
+            // visible part.
+            if ( plot.isVisibleOnly() ) {
+                bounds = getViewport().getViewRect();
             }
             else {
-                // Report there are no printers available.
-                throw new SplatException( "Sorry no printers are available" );
+                bounds = plot.getBounds();
+                //  EPS only likes positive bounds, this seems to work.
+                if ( bounds.x < 0 ) {
+                    bounds.x = 0;
+                    bounds.y = 0;
+                }
             }
         }
+        if ( pageSet == null ) {
+            pageSet = PrintUtilities.makePageSet( true );
+        }
+        PrintUtilities.printPostscript( plot, eps, pageSet, bounds, fileName );
     }
 
     /**
@@ -1185,40 +1103,10 @@ public class PlotControl
     public void print()
         throws SplatException
     {
-        PrintService[] services = PrinterJob.lookupPrintServices();
-        if ( services.length == 0 ) {
-
-            // No actual print services are available (i.e. no valid local
-            // printers), then fall back to the postscript option.
-            printPostscript( false, "out.ps" );
-            return;
-        }
-        try {
-            PrinterJob pj = PrinterJob.getPrinterJob();
-            pj.setPrintService( services[0] );
-            pj.setPrintable( plot );
-            makePageSet();
-            if ( pj.printDialog( pageSet ) ) {
-                pj.print( pageSet );
-            }
-        }
-        catch ( PrinterException e ) {
-            throw new SplatException( e );
-        }
-    }
-
-    /**
-     * Create the default PageSet for printing. This is A4.
-     */
-    private void makePageSet()
-    {
         if ( pageSet == null ) {
-            pageSet = new HashPrintRequestAttributeSet();
-            pageSet.add( OrientationRequested.LANDSCAPE );
-            pageSet.add( MediaSizeName.ISO_A4 );
-            pageSet.add
-                ( new JobName( Utilities.getTitle( "printer job" ), null ) );
+            pageSet = PrintUtilities.makePageSet( true );
         }
+        PrintUtilities.print( plot, pageSet, "out.ps", true );
     }
 
     /**

@@ -1557,25 +1557,31 @@ public class DivaPlot
     }
 
     //  Make a postscript copy of the spectra. Implements Printable interface.
+    //  If pf is null we just pass the Graphics object on.
     public int print( Graphics g, PageFormat pf, int pageIndex )
     {
         if ( pageIndex > 0 ) {
             return NO_SUCH_PAGE;
         }
 
-        //  Set background to white to match paper.
-        Color oldback = getBackground();
-        setBackground( Color.white );
+        Color oldback = null;
+        if ( pf != null ) {
 
-        //  Make graphics shift and scale up/down to fit the page.
-        Graphics2D g2 = (Graphics2D) g;
-        fitToPage( g2, pf );
+            //  Set background to white to match paper.
+            oldback = getBackground();
+            setBackground( Color.white );
+
+            //  Make graphics shift and scale up/down to fit the page.
+            fitToPage( (Graphics2D) g, pf );
+        }
 
         //  Print the spectra and AST graphics.
-        print( g2 );
+        print( (Graphics2D) g );
 
-        //  Restore background colour.
-        setBackground( oldback );
+        if ( pf != null ) {
+            //  Restore background colour.
+            setBackground( oldback );
+        }
 
         return PAGE_EXISTS;
     }
