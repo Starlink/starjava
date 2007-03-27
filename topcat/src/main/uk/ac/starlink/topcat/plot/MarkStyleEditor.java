@@ -220,10 +220,8 @@ public class MarkStyleEditor extends StyleEditor {
             markBox.add( Box.createVerticalStrut( 5 ) );
             markBox.add( errorBox );
         }
-        if ( withLines ) {
-            markBox.add( Box.createVerticalStrut( 5 ) );
-            markBox.add( hideBox );
-        }
+        markBox.add( Box.createVerticalStrut( 5 ) );
+        markBox.add( hideBox );
         markBox.setBorder( AuxWindow.makeTitledBorder( "Marker" ) );
         add( markBox );
 
