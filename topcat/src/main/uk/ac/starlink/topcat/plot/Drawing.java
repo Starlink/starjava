@@ -274,18 +274,18 @@ public class Drawing {
         int ylo = Math.max( y0 - ymax, bounds_.y );
         int yhi = Math.min( y0 + ymax, bounds_.y + bounds_.height );
 
-        int kxx = ay * ay + by * by;
-        int kxy = -2 * ( ax * ay + bx * by );
-        int kyy = ax * ax + bx * bx;
-        int r1 = ax * by - bx * ay;
-        int r2 = r1 * r1;
+        double kxx = ay * ay + by * by;
+        double kxy = -2 * ( ax * ay + bx * by );
+        double kyy = ax * ax + bx * bx;
+        double r1 = ax * by - bx * ay;
+        double r2 = r1 * r1;
 
         for ( int x = xlo; x <= xhi; x++ ) {
-            int x1 = x - x0;
-            int x2 = x1 * x1;
-            int cA = kyy;
-            int cB = kxy * x1;
-            int cC = kxx * x2 - r2;
+            double x1 = x - x0;
+            double x2 = x1 * x1;
+            double cA = kyy;
+            double cB = kxy * x1;
+            double cC = kxx * x2 - r2;
             double a2r = 0.5 / cA;
             double yz = y0 - cB * a2r;
             double yd = Math.sqrt( cB * cB - 4 * cA * cC ) * a2r;
@@ -296,11 +296,11 @@ public class Drawing {
         }
 
         for ( int y = ylo; y <= yhi; y++ ) {
-            int y1 = y - y0;
-            int y2 = y1 * y1;
-            int cA = kxx;
-            int cB = kxy * y1;
-            int cC = kyy * y2 - r2;
+            double y1 = y - y0;
+            double y2 = y1 * y1;
+            double cA = kxx;
+            double cB = kxy * y1;
+            double cC = kyy * y2 - r2;
             double a2r = 0.5 / cA;
             double xz = x0 - cB * a2r;
             double xd = Math.sqrt( cB * cB - 4 * cA * cC ) * a2r;
@@ -329,19 +329,19 @@ public class Drawing {
         int ylo = Math.max( y0 - ymax, bounds_.y );
         int yhi = Math.min( y0 + ymax, bounds_.y + bounds_.height );
 
-        int kxx = ay * ay + by * by;
-        int kxy = -2 * ( ax * ay + bx * by );
-        int kyy = ax * ax + bx * bx;
-        int r = ax * by - bx * ay;
-        int r2 = r * r;
+        double kxx = ay * ay + by * by;
+        double kxy = -2 * ( ax * ay + bx * by );
+        double kyy = ax * ax + bx * bx;
+        double r = ax * by - bx * ay;
+        double r2 = r * r;
 
         if ( xhi - xlo > 0 && yhi - ylo > 0 ) {
             for ( int x = xlo; x <= xhi; x++ ) {
-                int x1 = x - x0;
-                int x2 = x1 * x1;
+                double x1 = x - x0;
+                double x2 = x1 * x1;
                 for ( int y = ylo; y <= yhi; y++ ) {
-                    int y1 = y - y0;
-                    int y2 = y1 * y1;
+                    double y1 = y - y0;
+                    double y2 = y1 * y1;
                     if ( kxx * x2 + kxy * x1 * y1 + kyy * y2 <= r2 ) {
                         addPixel( x, y );
                     }
