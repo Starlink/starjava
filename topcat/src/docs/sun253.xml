@@ -9743,6 +9743,12 @@ introduced since the last version:
     <li>Improve error message for broken CSV files.</li>
     <li>Worked around a Mac OSX Java bug which caused table display to
         go funny when columns were deleted.</li>
+    <li>Dramatic performance improvement for transparent pixel plotting in 
+        3D plots on some platforms.</li>
+    <li>3D plots now plot symbols for all subsets not just one,
+        as for 2D plots.</li>
+    <li>Cartesian 3D plot now permits zooming towards centre 
+        (though not panning).</li>
     </ul>
     </p></dd>
 
