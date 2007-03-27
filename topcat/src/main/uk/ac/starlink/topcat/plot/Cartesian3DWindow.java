@@ -11,7 +11,7 @@ import java.awt.Component;
 public class Cartesian3DWindow extends Plot3DWindow {
 
     private static final ErrorRenderer[] ERROR_RENDERERS =
-        ErrorRenderer.getOptionsGeneral();
+        ErrorRenderer.getOptions3d();
 
     /**
      * Constructs a new window.

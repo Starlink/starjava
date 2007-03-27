@@ -49,6 +49,8 @@ public abstract class ErrorRenderer {
         new FilledRectangle( "Filled Rectangle" ),
     };
 
+    private static final ErrorRenderer[] OPTIONS_3D = OPTIONS_2D;
+
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
@@ -236,6 +238,15 @@ public abstract class ErrorRenderer {
      */
     public static ErrorRenderer[] getOptions2d() {
         return (ErrorRenderer[]) OPTIONS_2D.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which can render 3-dimensional errors.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptions3d() {
+        return (ErrorRenderer[]) OPTIONS_3D.clone();
     }
 
     /**
