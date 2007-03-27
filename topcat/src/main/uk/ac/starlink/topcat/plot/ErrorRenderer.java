@@ -649,6 +649,7 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs, 
                                 int[] yoffs ) {
+            Graphics2D g2 = (Graphics2D) g;
             int noff = xoffs.length;
 
             /* Restrict the offsets to something sensible, to prevent the
@@ -734,11 +735,11 @@ public abstract class ErrorRenderer {
                 AffineTransform trans = new AffineTransform( m3[ 0 ], m3[ 3 ],
                                                              m3[ 1 ], m3[ 4 ],
                                                              m3[ 2 ], m3[ 5 ] );
-                Graphics2D g2 = (Graphics2D) g.create();
+                AffineTransform oldTrans = g2.getTransform();
                 g2.transform( trans );
                 drawOblong( g2, 0, 0, (int) Math.round( width ),
                             (int) Math.round( height ) );
-                g2.dispose();
+                g2.setTransform( oldTrans );
             }
 
             /* Draw crosshair if required. */
