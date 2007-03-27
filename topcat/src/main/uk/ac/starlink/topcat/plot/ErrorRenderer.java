@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -12,7 +13,9 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.util.IntList;
@@ -299,34 +302,47 @@ public abstract class ErrorRenderer {
             int w2 = width / 2 - xpad;
             int h2 = height / 2 - ypad;
             int ndim = modes.length;
-            xoffs_ = new int[ ndim * 2 ];
-            yoffs_ = new int[ ndim * 2 ];
+            List offList = new ArrayList( ndim );
             if ( ndim > 0 ) {
-                ErrorMode mode = modes[ 0 ];
-                xoffs_[ 0 ] = (int) Math.round( - mode.getExampleLower() * w2 );
-                yoffs_[ 0 ] = 0;
-                xoffs_[ 1 ] = (int) Math.round( + mode.getExampleUpper() * w2 );
-                yoffs_[ 1 ] = 0;
+                ErrorMode xmode = modes[ 0 ];
+                if ( ! ErrorMode.NONE.equals( xmode ) ) {
+                    float xlo = (float) xmode.getExampleLower();
+                    float xhi = (float) xmode.getExampleUpper();
+                    offList.add( new Point( Math.round( - xlo * w2 ), 0 ) );
+                    offList.add( new Point( Math.round( + xhi * w2 ), 0 ) );
+                }
             }
             if ( ndim > 1 ) {
-                ErrorMode mode = modes[ 1 ];
-                xoffs_[ 2 ] = 0;
-                yoffs_[ 2 ] = (int) Math.round( + mode.getExampleLower() * h2 );
-                xoffs_[ 3 ] = 0;
-                yoffs_[ 3 ] = (int) Math.round( - mode.getExampleUpper() * h2 );
+                ErrorMode ymode = modes[ 1 ];
+                if ( ! ErrorMode.NONE.equals( ymode ) ) {
+                    float ylo = (float) ymode.getExampleLower();
+                    float yhi = (float) ymode.getExampleUpper();
+                    offList.add( new Point( 0, Math.round( + ylo * h2 ) ) );
+                    offList.add( new Point( 0, Math.round( - yhi * h2 ) ) );
+                }
             }
             if ( ndim > 2 ) {
-                ErrorMode mode = modes[ 2 ];
-                double theta = Math.toRadians( 40 );
-                double slant = 0.8;
-                double c = Math.cos( theta ) * slant;
-                double s = Math.sin( theta ) * slant;
-                double lo = mode.getExampleLower();
-                double hi = mode.getExampleUpper();
-                xoffs_[ 4 ] = (int) Math.round( - c * lo * w2 );
-                yoffs_[ 4 ] = (int) Math.round( + s * lo * h2 );
-                xoffs_[ 5 ] = (int) Math.round( + c * hi * w2 );
-                yoffs_[ 5 ] = (int) Math.round( - s * hi * h2 );
+                ErrorMode zmode = modes[ 2 ];
+                if ( ! ErrorMode.NONE.equals( zmode ) ) {
+                    float zlo = (float) zmode.getExampleLower();
+                    float zhi = (float) zmode.getExampleUpper();
+                    float theta = (float) Math.toRadians( 40 );
+                    float slant = 0.8f;
+                    float c = (float) Math.cos( theta ) * slant;
+                    float s = (float) Math.sin( theta ) * slant;
+                    offList.add( new Point( Math.round( - c * zlo * w2 ),
+                                            Math.round( + s * zlo * h2 ) ) );
+                    offList.add( new Point( Math.round( + c * zhi * w2 ),
+                                            Math.round( - s * zhi * h2 ) ) );
+                }
+            }
+            int np = offList.size();
+            xoffs_ = new int[ np ];
+            yoffs_ = new int[ np ];
+            for ( int ip = 0; ip < np; ip++ ) {
+                Point point = (Point) offList.get( ip );
+                xoffs_[ ip ] = point.x;
+                yoffs_[ ip ] = point.y;
             }
         }
 
