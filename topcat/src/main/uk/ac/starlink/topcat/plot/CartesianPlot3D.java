@@ -17,7 +17,7 @@ public class CartesianPlot3D extends Plot3D {
      * Constructor.
      */
     public CartesianPlot3D() {
-        super( false );
+        super( true );
     }
 
     protected RangeChecker configureRanges( Plot3DState state ) {
