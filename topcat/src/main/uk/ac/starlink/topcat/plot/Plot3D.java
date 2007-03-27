@@ -489,7 +489,7 @@ public abstract class Plot3D extends JPanel {
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
                         boolean done = false;
-                        for ( int is = nset - 1; is >= 0 && ! done; is-- ) {
+                        for ( int is = 0; is < nset; is++ ) {
                             boolean plotted = false;
                             if ( showMarkErrors[ is ] ) {
                                 points.getErrors( ip, loErrs, hiErrs );
@@ -501,12 +501,10 @@ public abstract class Plot3D extends JPanel {
                                                 showMarkPoints[ is ], nerr,
                                                 xerrs, yerrs, zerrs );
                                     plotted = true;
-                                    done = true;
                                 }
                             }
                             if ( ! plotted && showMarkPoints[ is ] ) {
                                 vol.plot3d( coords, is );
-                                done = true;
                             }
                         }
                     }
