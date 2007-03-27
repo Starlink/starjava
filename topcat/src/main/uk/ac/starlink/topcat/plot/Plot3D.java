@@ -370,6 +370,14 @@ public abstract class Plot3D extends JPanel {
             allOpaque = allOpaque && plotStyles[ is ].getOpaqueLimit() == 1;
         }
 
+        /* See if there are any error bars to be plotted.  If not, we can
+         * use more efficient rendering machinery. */
+        boolean anyErrors = false;
+        for ( int is = 0; is < nset && ! anyErrors; is++ ) {
+            anyErrors = anyErrors ||
+                        MarkStyle.hasErrors( (MarkStyle) styles[ is ], points );
+        }
+
         /* Decide what rendering algorithm we're going to have to use, and
          * create a PlotVolume object accordingly. */
         PlotVolume vol;
@@ -377,18 +385,17 @@ public abstract class Plot3D extends JPanel {
             if ( ! allOpaque ) {
                 logger_.warning( "Can't render transparency in PostScript" );
             }
-            vol = new SortPlotVolume( c, g, plotStyles, padFactor,
-                                      padBorders_ );
+            vol = new VectorSortPlotVolume( c, g, plotStyles, padFactor,
+                                            padBorders_ );
         }
         else if ( allOpaque ) {
             vol = new ZBufferPlotVolume( c, g, plotStyles, padFactor,
                                          padBorders_, getZBufferWorkspace() );
         }
         else {
-            vol = new PackedSortPlotVolume( c, g, plotStyles, padFactor,
-                                            padBorders_, points.getCount() + 2,
-                                            -1.0, 2.0,
-                                            getPackedSortWorkspace() );
+            vol = new BitmapSortPlotVolume( c, g, plotStyles, padFactor,
+                                            padBorders_, anyErrors, -1.0, 2.0,
+                                            getBitmapSortWorkspace() );
         }
 
         /* Set its fog factor appropriately for depth rendering as requested. */
@@ -671,17 +678,17 @@ public abstract class Plot3D extends JPanel {
     }
 
     /**
-     * Lazily constructs and returns a PackedSortPlotVolume workspace object
+     * Lazily constructs and returns a BitmapSortPlotVolume workspace object
      * owned by this plot.
      *
      * @return   new or used workspace object
      */
-    private PackedSortPlotVolume.Workspace getPackedSortWorkspace() {
+    private BitmapSortPlotVolume.Workspace getBitmapSortWorkspace() {
         if ( ! ( plotvolWorkspace_ instanceof
-                 PackedSortPlotVolume.Workspace ) ) {
-            plotvolWorkspace_ = new PackedSortPlotVolume.Workspace();
+                 BitmapSortPlotVolume.Workspace ) ) {
+            plotvolWorkspace_ = new BitmapSortPlotVolume.Workspace();
         }
-        return (PackedSortPlotVolume.Workspace) plotvolWorkspace_;
+        return (BitmapSortPlotVolume.Workspace ) plotvolWorkspace_;
     }
 
     /**
