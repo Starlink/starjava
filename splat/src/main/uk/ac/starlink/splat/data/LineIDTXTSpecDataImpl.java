@@ -475,7 +475,7 @@ public class LineIDTXTSpecDataImpl
         //  counts and one for the coordinates. Note we no longer
         //  label these as known.
         Frame baseframe = new Frame( 1 );
-        baseframe.set( "Label(1)=Data count" );
+        baseframe.set( "Label(1)=Index" );
         SpecFrame currentframe = new SpecFrame();
 
         // Set all the attributes.
