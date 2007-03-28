@@ -94,12 +94,10 @@ public class ErrorBarTest extends TestCase {
 
                 ypos += STEP;
                 g2.setColor( Color.BLUE );
-                int[] coords =
+                Pixellator pixer =
                     renderer.getPixels( g2, xpos, ypos, xoffs_, yoffs_ );
-                for ( int ic = 0; ic < coords.length / 2; ic++ ) {
-                    int cx = coords[ ic * 2 + 0 ];
-                    int cy = coords[ ic * 2 + 1 ];
-                    g2.fillRect( cx, cy, 1, 1 );
+                for ( pixer.start(); pixer.next(); ) {
+                    g2.fillRect( pixer.getX(), pixer.getY(), 1, 1 );
                 }
             }
         }
