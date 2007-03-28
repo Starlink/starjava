@@ -3,9 +3,9 @@
    3.7-2
    =====
 
-   The FITS headers of all selected spectra can now be viewed using
-   actions available in the main window. Only NDFs and 1D FITS spectra
-   (not tables) can currently have FITS headers.
+   The FITS headers of all selected spectra can now be viewed and 
+   printed using actions available in the main window. Only NDFs 
+   and 1D FITS spectra (not tables) can currently have FITS headers.
 
    The builtin sub-millimetre line identifiers have been updated to match
    the latest ones used at the JAC.
