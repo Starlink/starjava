@@ -345,7 +345,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                                                   surface, hasErrors,
                                                   xoffs, yoffs ) ) {
                                 Rectangle bbox =
-                                    errorRenderer.getBounds( g, xp, yp,
+                                    errorRenderer.getBounds( xp, yp,
                                                              xoffs, yoffs );
                                 if ( g.hitClip( bbox.x, bbox.y,
                                                 bbox.width, bbox.height ) ) {
@@ -421,14 +421,10 @@ public abstract class ScatterPlot extends SurfacePlot {
             npixoffs[ is ] = pixoffs[ is ].length;
         }
 
-        /* Prepare a graphics context with clipping that corresponds to the
-         * BufferedImage we are drawing into..  This is just used to pass
-         * to the error renderer, since it needs the clip to proceed. */
+        /* Prepare a clip rectangle to act as bounds for the error renderer. */
         Rectangle bufClip = new Rectangle( surface.getClip().getBounds() );
         bufClip.x = pad;
         bufClip.y = pad;
-        Graphics gclip = g.create();
-        gclip.setClip( bufClip );
 
         /* For each point, if it's included in any subset, then increment
          * every element of its buffer which falls under the drawing of
@@ -487,7 +483,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                                                       xoffs, yoffs ) ) {
                                     Pixellator epixer = 
                                         styles[ is ].getErrorRenderer()
-                                       .getPixels( gclip, xbase, ybase,
+                                       .getPixels( bufClip, xbase, ybase,
                                                    xoffs, yoffs );
                                     for ( epixer.start(); epixer.next(); ) {
                                         int ipix = epixer.getX()

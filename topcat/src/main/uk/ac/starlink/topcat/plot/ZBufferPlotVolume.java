@@ -109,7 +109,8 @@ public class ZBufferPlotVolume extends PlotVolume {
         if ( nerr > 0 ) {
             Pixellator epixer =
                 styles_[ is ].getErrorRenderer()
-               .getPixels( graphics_, xbase, ybase, xoffs, yoffs );
+               .getPixels( graphics_.getClipBounds(),
+                           xbase, ybase, xoffs, yoffs );
             for ( epixer.start(); epixer.next(); ) {
                 int pixoff = epixer.getX() + xdim_ * epixer.getY();
                 hitPixel( pixoff, z, is );

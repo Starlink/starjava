@@ -199,16 +199,14 @@ public abstract class ErrorRenderer {
     /**
      * Returns a rectangle which will contain the rendered error bar 
      * graphics for a given point.
-     * The parameters are the same as for {@link #drawErrors},
      *
-     * @param  g  graphics context
      * @param  x  data point X coordinate
      * @param  y  data point Y coordinate
      * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
      * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
      * @return  bounding box
      */
-    public abstract Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
+    public abstract Rectangle getBounds( int x, int y, int[] xoffs,
                                          int[] yoffs );
 
     /**
@@ -224,15 +222,19 @@ public abstract class ErrorRenderer {
      * Subclasses are encouraged to override this method if they can 
      * calculate the pixels which will be painted directly.
      *
+     * @param  clip  clipping region
+     * @param  x  data point X coordinate
+     * @param  y  data point Y coordinate
+     * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
+     * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
      * @return  array of pixel coordinates representing the error bar
      *          as a bitmap
      */
-    public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
+    public Pixellator getPixels( Rectangle clip, int x, int y, int[] xoffs,
                                  int[] yoffs ) {
 
         /* Work out the size of raster we will need to paint onto. */
-        Rectangle bounds = getBounds( g, x, y, xoffs, yoffs )
-                          .intersection( g.getClipBounds() );
+        Rectangle bounds = getBounds( x, y, xoffs, yoffs ).intersection( clip );
         int xdim = bounds.width;
         int ydim = bounds.height;
 
@@ -570,9 +572,9 @@ public abstract class ErrorRenderer {
             g2.setStroke( oldStroke );
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
+        public Pixellator getPixels( Rectangle clip, int x, int y, int[] xoffs,
                                      int[] yoffs ) {
-            Drawing drawing = new Drawing( g.getClipBounds() );
+            Drawing drawing = new Drawing( clip );
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
                 int xoff = xoffs[ ip ];
@@ -606,8 +608,7 @@ public abstract class ErrorRenderer {
             return drawing;
         }
 
-        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
-                                    int[] yoffs ) {
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
             int xmin = 0;
             int xmax = 0;
             int ymin = 0;
@@ -645,14 +646,8 @@ public abstract class ErrorRenderer {
             else {
                 Rectangle box = new Rectangle( x + xmin, y + ymin,
                                                xmax - xmin, ymax - ymin );
-                if ( g instanceof Graphics2D ) {
-                    box = ((Graphics2D) g).getStroke().createStrokedShape( box )
-                                                      .getBounds();
-                }
-                else {
-                    box.width++;
-                    box.height++;
-                }
+                box.width++;
+                box.height++;
                 return box;
             }
         }
@@ -805,8 +800,7 @@ public abstract class ErrorRenderer {
             }
         }
 
-        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
-                                    int[] yoffs ) {
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
             int xmin = 0;
             int xmax = 0;
             int ymin = 0;
@@ -845,14 +839,8 @@ public abstract class ErrorRenderer {
             else {
                 Rectangle box = new Rectangle( x + xmin, y + ymin,
                                                xmax - xmin, ymax - ymin ); 
-                if ( g instanceof Graphics2D ) {
-                    box = ((Graphics2D) g).getStroke().createStrokedShape( box )
-                                                      .getBounds();
-                }
-                else {
-                    box.width++;
-                    box.height++;
-                }
+                box.width++;
+                box.height++;
                 return box;
             }
         }
@@ -895,8 +883,8 @@ public abstract class ErrorRenderer {
             g.drawOval( x, y, width, height );
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
-                                     int[] yoffs ) {
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
             if ( xoffs.length != 4 || yoffs.length != 4 ) {
                 return NO_PIXELS;
             }
@@ -908,7 +896,7 @@ public abstract class ErrorRenderer {
                 int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
                 int width = xhi - xlo;
                 int height = yhi - ylo;
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.drawOval( xlo, ylo, width, height );
                 if ( withLines_ ) {
                     for ( int i = 0; i < 4; i++ ) {
@@ -927,7 +915,7 @@ public abstract class ErrorRenderer {
                                          + xoffs[ 2 ] + xoffs[ 3 ] ) / 4f );
                 int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
                                          + yoffs[ 2 ] + yoffs[ 3 ] ) / 4f );
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.drawEllipse( x0, y0, ax, ay, bx, by );
                 if ( withLines_ ) {
                     for ( int i = 0; i < 4; i++ ) {
@@ -959,8 +947,8 @@ public abstract class ErrorRenderer {
             g.fillOval( x, y, width, height );
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
-                                     int[] yoffs ) {
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
             if ( xoffs.length != 4 || yoffs.length != 4 ) {
                 return NO_PIXELS;
             }
@@ -972,7 +960,7 @@ public abstract class ErrorRenderer {
                 int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
                 int width = xhi - xlo;
                 int height = yhi - ylo;
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.fillOval( xlo, ylo, width, height );
                 return drawing;
             }
@@ -985,7 +973,7 @@ public abstract class ErrorRenderer {
                                          + xoffs[ 2 ] + xoffs[ 3 ] ) / 4f );
                 int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
                                          + yoffs[ 2 ] + yoffs[ 3 ] ) / 4f );
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.fillEllipse( x0, y0, ax, ay, bx, by );
                 return drawing;
             }
@@ -1020,8 +1008,8 @@ public abstract class ErrorRenderer {
             return ndim == 2;
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
-                                     int[] yoffs ) {
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
             if ( xoffs.length == 4 && yoffs.length == 4 ) {
                 int xa = x + xoffs[ 0 ] + xoffs[ 2 ];
                 int xb = x + xoffs[ 0 ] + xoffs[ 3 ];
@@ -1031,7 +1019,7 @@ public abstract class ErrorRenderer {
                 int yb = y + yoffs[ 0 ] + yoffs[ 3 ];
                 int yc = y + yoffs[ 1 ] + yoffs[ 3 ];
                 int yd = y + yoffs[ 1 ] + yoffs[ 2 ];
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.drawLine( xa, ya, xb, yb );
                 drawing.drawLine( xb, yb, xc, yc );
                 drawing.drawLine( xc, yc, xd, yd );
@@ -1069,8 +1057,8 @@ public abstract class ErrorRenderer {
             g.fillRect( x, y, width, height );
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
-                                     int[] yoffs ) {
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
             if ( xoffs.length != 4 || yoffs.length != 4 ) {
                 return NO_PIXELS;
             }
@@ -1082,7 +1070,7 @@ public abstract class ErrorRenderer {
                 int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
                 int width = xhi - xlo;
                 int height = yhi - ylo;
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.fillRect( xlo, ylo, width, height );
                 return drawing;
             }
@@ -1097,7 +1085,7 @@ public abstract class ErrorRenderer {
                               yoffs[ 0 ] + yoffs[ 3 ], };
                 Polygon poly = new Polygon( xof, yof, 4 );
                 poly.translate( x, y );
-                Drawing drawing = new Drawing( g.getClipBounds() );
+                Drawing drawing = new Drawing( clip );
                 drawing.fill( poly );
                 return drawing;
             }
@@ -1145,13 +1133,11 @@ public abstract class ErrorRenderer {
             return modes != null && ErrorMode.allBlank( modes );
         }
 
-        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
-                                    int[] yoffs ) {
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
             Rectangle bounds = new Rectangle( x, y, 0, 0 );
             for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
                 int[][] offs = (int[][]) it.next();
-                bounds.add( rend2d_.getBounds( g, x, y, 
-                                               offs[ 0 ], offs[ 1 ] ) );
+                bounds.add( rend2d_.getBounds( x, y, offs[ 0 ], offs[ 1 ] ) );
             }
             return bounds;
         }
@@ -1164,12 +1150,12 @@ public abstract class ErrorRenderer {
             }
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
-                                     int[] yoffs ) {
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
             Drawing drawing = new Drawing();
             for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
                 int[][] offs = (int[][]) it.next();
-                drawing.addPixels( rend2d_.getPixels( g, x, y,
+                drawing.addPixels( rend2d_.getPixels( clip, x, y,
                                                       offs[ 0 ], offs[ 1 ] ) );
             }
             return drawing;
@@ -1313,13 +1299,12 @@ public abstract class ErrorRenderer {
                                 int[] yoffs ) {
         }
 
-        public Pixellator getPixels( Graphics g, int x, int y, int[] xoffs,
-                                int[] yoffs ) {
+        public Pixellator getPixels( Rectangle clip, int x, int y, int[] xoffs,
+                                     int[] yoffs ) {
             return NO_PIXELS;
         }
 
-        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
-                                    int[] yoffs ) {
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
             return new Rectangle( x, y, 0, 0 );
         }
     }
