@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
     private final int ydim_;
     private final int xoff_;
     private final int yoff_;
-    private final int[][] sortedPixoffs_;
+    private final Pixellator[] markPixoffs_;
     private final float[][] rgbas_;
     private final float[][] rgbaBufs_;
     private final int[] rgbBuf_;
@@ -84,22 +85,13 @@ public class BitmapSortPlotVolume extends PlotVolume {
         image_ = ws.image_;
 
         /* Set up pixel offsets for each style - this enables us to
-         * fill the pixel array with the pixels for each style very 
+         * fill the pixel array with the pixels for each style
          * efficiently for each marker that is plotted. */
         int nstyle = styles.length;
-        sortedPixoffs_ = new int[ nstyle ][];
+        markPixoffs_ = new Pixellator[ nstyle ];
         for ( int is = 0; is < nstyle; is++ ) {
             MarkStyle style = styles[ is ];
-            int[] xypixoffs = style.getPixelOffsets();
-            int npixoff = xypixoffs.length / 2;
-            int[] pixoffs = new int[ npixoff ];
-            for ( int ioff = 0; ioff < npixoff; ioff++ ) {
-                int xoffi = xypixoffs[ ioff * 2 + 0 ];
-                int yoffi = xypixoffs[ ioff * 2 + 1 ];
-                pixoffs[ ioff ] = xoffi + yoffi * xdim_;
-            }
-            Arrays.sort( pixoffs );
-            sortedPixoffs_[ is ] = pixoffs;
+            markPixoffs_[ is ] = style.getPixelOffsets();
         }
 
         /* Set up basic RGB colours for each style. */
@@ -143,14 +135,13 @@ public class BitmapSortPlotVolume extends PlotVolume {
               it.hasNext(); ) {
             BitmapPoint3D point = (BitmapPoint3D) it.next();
             int base = point.getPixelBase( this );
-            int[] pixoffs = point.getPixelOffsets( this );
+            Pixellator pixoffs = point.getPixelOffsets( this );
             float[] rgba = point.getRgba( this );
             double z = point.getZ();
 
             /* Treat each pixel painted by this point. */
-            int npix = pixoffs.length;
-            for ( int ioff = 0; ioff < npix; ioff++ ) {
-                int ipix = base + pixoffs[ ioff ];
+            for ( pixoffs.start(); pixoffs.next(); ) {
+                int ipix = base + pixoffs.getX() + xdim_ * pixoffs.getY();
                 float alpha = aBuf[ ipix ];
 
                 /* Only continue if we haven't used up all the opacity of
@@ -454,16 +445,16 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
 
         /**
-         * Returns an array of pixel offsets into the plot volume's pixel
-         * buffer relative to the value returned by {@link #getPixelBase} 
+         * Returns an iterator over pixel offsets 
+         * relative to the value returned by {@link #getPixelBase} 
          * which should be coloured in by this point.
-         * The returned array must not contain any repeated pixel indices.
+         * The returned array must not contain any repeated pixel positions.
          *
          * @param  vol  plot volume on which to operate
-         * @return   list of pixel offsets relative to base
+         * @return   pixel offset iterator relative to base
          */
-        public int[] getPixelOffsets( BitmapSortPlotVolume vol ) {
-            return vol.sortedPixoffs_[ istyle_ ];
+        public Pixellator getPixelOffsets( BitmapSortPlotVolume vol ) {
+            return vol.markPixoffs_[ istyle_ ];
         }
 
         /**
@@ -513,73 +504,22 @@ public class BitmapSortPlotVolume extends PlotVolume {
             yoffs_ = (int[]) yoffs.clone();
         }
 
-        public int[] getPixelOffsets( BitmapSortPlotVolume vol ) {
-            MarkStyle style = vol.getStyles()[ istyle_ ];
-            ErrorRenderer erend = style.getErrorRenderer();
-            int xbase = vol.xoff_;
-            int ybase = vol.yoff_;
-
-            /* Get the flattened offsets for the marker itself. */
-            int[] markOffs = showPoint_ ? vol.sortedPixoffs_[ istyle_ ]
-                                        : NO_OFFSETS;
-
-            /* Get the XY offsets for the error bars. */
-            int[] errXYs = erend.getPixels( vol.getGraphics(),
-                                            px_ - vol.xoff_, py_ - vol.yoff_,
-                                            xoffs_, yoffs_ );
-
-            /* With no errors, just return the marker pixels. */
-            if ( errXYs.length == 0 ) {
-                return markOffs;
+        public Pixellator getPixelOffsets( BitmapSortPlotVolume vol ) {
+            int xt = vol.xoff_ - px_;
+            int yt = vol.yoff_ - py_;
+            Rectangle clipRect = (Rectangle) vol.getGraphics().getClip();
+            Pixellator ePixer = vol.getStyles()[ istyle_ ].getErrorRenderer()
+                               .getPixels( vol.getGraphics(), 0, 0,
+                                           xoffs_, yoffs_ );
+  // NOT WORKING: clip is wrong.
+            if ( showPoint_ ) {
+                Drawing drawing = new Drawing();
+                drawing.addPixels( vol.markPixoffs_[ istyle_ ] );
+                drawing.addPixels( ePixer );
+                return drawing;
             }
-
-            /* If there are errors, combine the marker and error pixels.
-             * This shuffling of int[] arrays is a bit more inefficient than
-             * it needs to be - if I was returning an object which iterated
-             * over ints rather than an array I could avoid some array
-             * construction here. */
             else {
-                int nMark = markOffs.length;
-                boolean noMark = nMark == 0;
-                int nErr = errXYs.length / 2;
-                int xdim = vol.xdim_;
-                int base = getPixelBase( vol );
-
-                /* Prepare an array to hold the results. */
-                int[] pixOffs = new int[ nMark + nErr ];
-
-                /* Copy the marker pixel offsets into it. */
-                System.arraycopy( markOffs, 0, pixOffs, 0, nMark );
-
-                /* Iterate over error XY positions, flattening them into 
-                 * pixel offsets into the buffer. */
-                int ioff = nMark;
-                for ( int ie = 0; ie < nErr; ie++ ) {
-                    int xe = errXYs[ ie * 2 + 0 ];
-                    int ye = errXYs[ ie * 2 + 1 ];
-                    int ipix = xe + xdim * ye - base;
-
-                    /* Make sure that we don't put any pixels into the array
-                     * which are already present in the marker pixel list.
-                     * This is part of the contract of this method. 
-                     * Note the markOffs array must be sorted for the
-                     * binarySearch call to work. */
-                    if ( noMark || Arrays.binarySearch( markOffs, ipix ) < 0 ) {
-                        pixOffs[ ioff++ ] = xe + xdim * ye - base;
-                    }
-                }
-
-                /* If the number of pixels does not fill the array (because
-                 * some were duplicates of marker pixels) we have to repackage
-                 * the values in a new shrink-to-fit array before return. */
-                if ( ioff == pixOffs.length ) {
-                    return pixOffs;
-                }
-                else {
-                    int[] po = new int[ ioff ];
-                    System.arraycopy( pixOffs, 0, po, 0, ioff );
-                    return po;
-                }
+                return ePixer;
             }
         }
     }
