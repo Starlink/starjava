@@ -416,16 +416,9 @@ public abstract class ScatterPlot extends SurfacePlot {
         int[][] pixoffs = new int[ nset ][];
         int[] npixoffs = new int[ nset ];
         for ( int is = 0; is < nset; is++ ) {
-            MarkStyle style = styles[ is ];
             buffers[ is ] = new int[ npix ];
-            int[] xypixoffs = style.getPixelOffsets();
-            npixoffs[ is ] = xypixoffs.length / 2;
-            pixoffs[ is ] = new int[ npixoffs[ is ] ];
-            for ( int ioff = 0; ioff < npixoffs[ is ]; ioff++ ) {
-                int xoffi = xypixoffs[ ioff * 2 + 0 ];
-                int yoffi = xypixoffs[ ioff * 2 + 1 ];
-                pixoffs[ is ][ ioff ] = xoffi + yoffi * xdim;
-            }
+            pixoffs[ is ] = styles[ is ].getFlattenedPixelOffsets( xdim );
+            npixoffs[ is ] = pixoffs[ is ].length;
         }
 
         /* Prepare a graphics context with clipping that corresponds to the
@@ -492,15 +485,13 @@ public abstract class ScatterPlot extends SurfacePlot {
                                                       loErrs, hiErrs,
                                                       surface, hasErrors,
                                                       xoffs, yoffs ) ) {
-                                    int[] epixes = 
+                                    Pixellator epixer = 
                                         styles[ is ].getErrorRenderer()
                                        .getPixels( gclip, xbase, ybase,
                                                    xoffs, yoffs );
-                                    int nepix = epixes.length / 2;
-                                    for ( int iep = 0; iep < nepix; iep++ ) {
-                                        int xe = epixes[ iep * 2 + 0 ];
-                                        int ye = epixes[ iep * 2 + 1 ];
-                                        int ipix = xe + ye * xdim;
+                                    for ( epixer.start(); epixer.next(); ) {
+                                        int ipix = epixer.getX()
+                                                 + epixer.getY() * xdim;
                                         buffers[ is ][ ipix ]++;
                                         mask.set( ipix );
                                     }

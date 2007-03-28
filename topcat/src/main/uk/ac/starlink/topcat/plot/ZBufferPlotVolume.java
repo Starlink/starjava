@@ -79,15 +79,7 @@ public class ZBufferPlotVolume extends PlotVolume {
         int nstyle = styles.length;
         pixoffs_ = new int[ nstyle ][];
         for ( int is = 0; is < nstyle; is++ ) {
-            MarkStyle style = styles[ is ];
-            int[] xypixoffs = style.getPixelOffsets();
-            int npixoff = xypixoffs.length / 2;
-            pixoffs_[ is ] = new int[ npixoff ];
-            for ( int ioff = 0; ioff < npixoff; ioff++ ) {
-                int xoffi = xypixoffs[ ioff * 2 + 0 ];
-                int yoffi = xypixoffs[ ioff * 2 + 1 ];
-                pixoffs_[ is ][ ioff ] = xoffi + yoffi * xdim_;
-            }
+            pixoffs_[ is ] = styles[ is ].getFlattenedPixelOffsets( xdim_ );
         }
     }
 
@@ -115,14 +107,11 @@ public class ZBufferPlotVolume extends PlotVolume {
 
         /* Draw error bars if required. */
         if ( nerr > 0 ) {
-            ErrorRenderer rend = styles_[ is ].getErrorRenderer();
-            int[] pixels =
-                rend.getPixels( graphics_, xbase, ybase, xoffs, yoffs );
-            int nep = pixels.length / 2;
-            for ( int iep = 0; iep < nep; iep++ ) {
-                int xe = pixels[ iep * 2 + 0 ];
-                int ye = pixels[ iep * 2 + 1 ];
-                int pixoff = xe + xdim_ * ye;
+            Pixellator epixer =
+                styles_[ is ].getErrorRenderer()
+               .getPixels( graphics_, xbase, ybase, xoffs, yoffs );
+            for ( epixer.start(); epixer.next(); ) {
+                int pixoff = epixer.getX() + xdim_ * epixer.getY();
                 hitPixel( pixoff, z, is );
             }
         }

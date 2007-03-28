@@ -13,6 +13,7 @@ import java.awt.image.Raster;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Defines a style of marker for plotting in a scatter plot.
@@ -46,7 +47,7 @@ public abstract class MarkStyle extends DefaultStyle {
     private boolean hidePoints_;
     private int opaqueLimit_ = 1;
     private ErrorRenderer errorRenderer_;
-    private int[] pixoffs_;
+    private Pixellator pixoffs_;
     private static final RenderingHints pixHints_;
 
     /** Symbolic constant meaning join points by straight line segments. */
@@ -408,17 +409,15 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
-     * Returns an array of pixel offsets which can be used to draw this
+     * Returns an iterator over pixel offsets which can be used to draw this
      * marker onto a raster.  This can be used as an alternative to 
      * rendering the marker using the <code>drawMarker()</code> methods
      * in situations where it might be more efficient.
-     * The returned value is a 2N-element array describing N points
-     * as offsets from (0,0); the format is (xoff0,yoff0, xoff1,yoff1, ...).
      * The assumption is that all the pixels are the same colour.
      *
-     * @return   array of pixel offsets reprensenting this style as a bitmap
+     * @return   pixel offset iterator representing this style as a bitmap
      */
-    public int[] getPixelOffsets() {
+    public Pixellator getPixelOffsets() {
         if ( pixoffs_ == null ) {
 
             /* Construct a BufferedImage big enough to hold all the pixels
@@ -451,18 +450,28 @@ public abstract class MarkStyle extends DefaultStyle {
                     }
                 }
             }
-
-            /* Turn it into an xy array suitable for return. */
-            int noff = pointList.size();
-            int[] pixoffs = new int[ noff * 2 ];
-            for ( int ioff = 0; ioff < noff; ioff++ ) {
-                Point p = (Point) pointList.get( ioff );
-                pixoffs[ ioff * 2 + 0 ] = p.x;
-                pixoffs[ ioff * 2 + 1 ] = p.y;
-            }
-            pixoffs_ = pixoffs;
+            Point[] points =
+                (Point[]) pointList.toArray( new Point[ 0 ] );
+            pixoffs_ = new PointArrayPixellator( points );
         }
         return pixoffs_;
+    }
+
+    /** 
+     * Returns an array of 1-dimensional pixel offsets which can be used
+     * to draw this marker onto a raster.
+     *
+     * @param  xStride   X dimension of the buffer
+     * @return  array of offsets into a buffer at which pixels representing
+     *          this style should be inserted
+     */
+    public int[] getFlattenedPixelOffsets( int xStride ) {
+        IntList offList = new IntList();
+        Pixellator pixer = getPixelOffsets();
+        for ( pixer.start(); pixer.next(); ) {
+            offList.add( pixer.getX() + pixer.getY() * xStride );
+        }
+        return offList.toIntArray();
     }
 
     public boolean equals( Object o ) {

@@ -9,7 +9,6 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -25,9 +24,9 @@ public abstract class MarkShape {
 
     private final String name_;
 
-    private static final int[][] OPEN_CIRCLE_PIXELS =
+    private static final Pixellator[] OPEN_CIRCLE_PIXELS =
         calculateOpenCirclePixels();
-    private static final int[][] FILLED_CIRCLE_PIXELS =
+    private static final Pixellator[] FILLED_CIRCLE_PIXELS =
         calculateFilledCirclePixels();
 
     /**
@@ -78,7 +77,7 @@ public abstract class MarkShape {
                 protected void drawShape( Graphics g ) {
                     g.drawOval( off, off, diam, diam );
                 }
-                public int[] getPixelOffsets() {
+                public Pixellator getPixelOffsets() {
                     return size < OPEN_CIRCLE_PIXELS.length 
                          ? OPEN_CIRCLE_PIXELS[ size ]
                          : super.getPixelOffsets();
@@ -102,7 +101,7 @@ public abstract class MarkShape {
                      * ugly (asymmetric) if the outline is not painted too. */
                     g.drawOval( off, off, diam, diam );
                 }
-                public int[] getPixelOffsets() {
+                public Pixellator getPixelOffsets() {
                     return size < FILLED_CIRCLE_PIXELS.length
                          ? FILLED_CIRCLE_PIXELS[ size ]
                          : super.getPixelOffsets();
@@ -352,17 +351,17 @@ public abstract class MarkShape {
     }
 
     /**
-     * Returns the x,y pixel offsets for open circles of various size.
+     * Returns the x,y pixel offsets for open circles of various sizes.
      * For some reason the pixels you get when you call drawOval() with a
      * small radius on a graphics got from a BufferedImage is ugly 
      * (not very circular or symmetrical), so we construct these by hand.
-     * The returned value is an array of arrays of int; the first element
-     * is for size 0, the second for size 1, etc.
+     * The returned value is an array of offset pixel iterators; 
+     * the first element is for size 0, the second for size 1, etc.
      *
-     * @return  array of arrays of x0,y0,x1,y1,... pixel offsets for 
-     *          an open circle
+     * @return  array of pixel offset iterators for progressively increasing
+     *          sizes of open circle
      */
-    private static int[][] calculateOpenCirclePixels() {
+    private static Pixellator[] calculateOpenCirclePixels() {
         return rotatePixelLists( new int[][] {
             { 0,0, },
             { 0,1, 1,1 },
@@ -374,17 +373,17 @@ public abstract class MarkShape {
     }
 
     /**
-     * Returns the x,y pixel offsets for a filled circles of various sizes.
+     * Returns the x,y pixel offsets for filled circles of various sizes.
      * For some reason the pixels you get when you call fillOval() with a
      * small radius on a graphics got from a BufferedImage is ugly 
      * (not very circular or symmetrical), so we construct these by hand.
-     * The returned value is an array of arrays of int; the first element
-     * is for size 0, the second for size 1, etc.
+     * The returned value is an array of offset pixel iterators;
+     * the first element is for size 0, the second for size 1, etc.
      *
-     * @return  array of arrays of x0,y0,x1,y1,... pixel offsets for 
-     *          a filled circle
+     * @return  array of pixel offset iterators for progressively increasing
+     *          sizes of filled circle
      */
-    private static int[][] calculateFilledCirclePixels() {
+    private static Pixellator[] calculateFilledCirclePixels() {
         return rotatePixelLists( new int[][] {
             { 0,0, },
             { 0,0, 0,1, 1,1 },
@@ -400,39 +399,32 @@ public abstract class MarkShape {
      * Takes a list of arrays of X,Y positions and returns a list of arrays
      * containing the same data plus all their eight symmetrical images.
      * All coordinate pairs in the output list are distinct.
-     * Both input and output lists are in the form of an array of 
+     * The input list is in the form of an array of 
      * int arrays; these int arrays contain coordinates in the form
      * (x0,y0, x1,y1, x2,y2,...).
      *
      * @param  seeds   input list of coordinate arrays
-     * @return  output list of coordinate arrays
+     * @return  output array of pixellators, one for each input coordinate array
      */
-    private static int[][] rotatePixelLists( int[][] seeds ) {
-        int[][] results = new int[ seeds.length ][];
+    private static Pixellator[] rotatePixelLists( int[][] seeds ) {
+        Pixellator[] results = new Pixellator[ seeds.length ];
         for ( int size = 0; size < seeds.length; size++ ) {
             int[] seed = seeds[ size ];
-            Set points = new HashSet();
+            Set pointSet = new HashSet();
             for ( int ip = 0; ip < seed.length / 2; ip++ ) {
                 int a = seed[ ip * 2 + 0 ];
                 int b = seed[ ip * 2 + 1 ];
-                points.add( new Point( +a, +b ) );
-                points.add( new Point( -b, +a ) );
-                points.add( new Point( -a, -b ) );
-                points.add( new Point( +b, -a ) );
-                points.add( new Point( +b, +a ) );
-                points.add( new Point( -a, +b ) );
-                points.add( new Point( -b, -a ) );
-                points.add( new Point( +a, -b ) );
+                pointSet.add( new Point( +a, +b ) );
+                pointSet.add( new Point( -b, +a ) );
+                pointSet.add( new Point( -a, -b ) );
+                pointSet.add( new Point( +b, -a ) );
+                pointSet.add( new Point( +b, +a ) );
+                pointSet.add( new Point( -a, +b ) );
+                pointSet.add( new Point( -b, -a ) );
+                pointSet.add( new Point( +a, -b ) );
             }
-            int[] allpix = new int[ points.size() * 2 ];
-            int ipix = 0;
-            for ( Iterator it = points.iterator(); it.hasNext(); ) {
-                Point point = (Point) it.next();
-                allpix[ ipix * 2 + 0 ] = point.x;
-                allpix[ ipix * 2 + 1 ] = point.y;
-                ipix++;
-            }
-            results[ size ] = allpix;
+            Point[] points = (Point[]) pointSet.toArray( new Point[ 0 ] );
+            results[ size ] = new PointArrayPixellator( points );
         }
         return results;
     }

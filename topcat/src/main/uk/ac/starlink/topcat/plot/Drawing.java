@@ -22,18 +22,27 @@ import java.util.Set;
  * inefficient) to attempt drawing operations with coordinates far outside
  * the drawing's range.
  *
+ * <p>This class implements the {@link Pixellator} interface.
+ * There will be no repetitions in the pixels that it iterates over.
+ *
  * @author   Mark Taylor
  * @since    20 Mar 2007
  */
-public class Drawing {
+public class Drawing implements Pixellator {
 
     private final Set pixelSet_;
     private final Rectangle bounds_;
+    private Iterator it_;
+    private Point point_;
 
+    private final static int MIN_POS = Short.MIN_VALUE;
+    private final static int MAX_DIM = Short.MAX_VALUE - Short.MIN_VALUE;
+    private final static Rectangle DEFAULT_BOUNDS =
+        new Rectangle( MIN_POS, MIN_POS, MAX_DIM, MAX_DIM );
     private static final Stroke STROKE = new BasicStroke();
 
     /**
-     * Constructor.
+     * Constructs a drawing with given pixel bounds.
      *
      * @param  bounds  rectangle giving the region in which pixels may be
      *         plotted
@@ -44,25 +53,10 @@ public class Drawing {
     }
 
     /**
-     * Returns a list of the pixel coordinates which have been plotted
-     * by operations on this drawing.
-     * The format of the result is a 2N-element array giving the coordinates
-     * of N pixels, in the form (x0,y0, x1,y1, x2,y2, ...).
-     * No pixels will be repeated in the list.  No pixels in the list
-     * will come from outside the bounds given in the constructor.
-     *
-     * @return   list of x,y pixel coordinates for plotted pixels
+     * Constructs a drawing with default bounds (these are quite large).
      */
-    public int[] getPixels() {
-        int[] pixels = new int[ pixelSet_.size() * 2 ];
-        int ic = 0;
-        for ( Iterator it = pixelSet_.iterator(); it.hasNext(); ) {
-            Point p = (Point) it.next();
-            pixels[ ic++ ] = p.x;
-            pixels[ ic++ ] = p.y;
-        }
-        assert ic == pixels.length;
-        return pixels;
+    public Drawing() {
+        this( DEFAULT_BOUNDS );
     }
 
     /**
@@ -384,5 +378,48 @@ public class Drawing {
      */
     public void draw( Shape shape ) {
         fill( STROKE.createStrokedShape( shape ) );
+    }
+
+    /**
+     * Adds all the pixels from the given Pixellator to this drawing.
+     *
+     * @param  pixellator  iterator over pixels to add
+     */
+    public void addPixels( Pixellator pixellator ) {
+        if ( pixellator instanceof Drawing ) {
+            pixelSet_.addAll( ((Drawing) pixellator).pixelSet_ );
+        }
+        else {
+            for ( pixellator.start(); pixellator.next(); ) {
+                addPixel( pixellator.getX(), pixellator.getY() );
+            }
+        }
+    }
+
+    //
+    // Pixellator interface.
+    //
+    public void start() {
+        it_ = pixelSet_.iterator();
+    }
+
+    public boolean next() {
+        if ( it_.hasNext() ) {
+            point_ = (Point) it_.next();
+            return true;
+        }
+        else {
+            point_ = null;
+            it_ = null;
+            return false;
+        }
+    }
+
+    public int getX() {
+        return point_.x;
+    }
+
+    public int getY() {
+        return point_.y;
     }
 }
