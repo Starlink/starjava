@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.7-1"/>
+  <property name="version" value="3.7-2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -483,7 +483,7 @@
           description="-> create the distributable line identifier jar file" >
 
     <!-- Make the mirror tree with the pre-processed spectra -->
-    <java classname="uk.ac.starlink.splat.util.LineIDTree">
+    <java classname="uk.ac.starlink.splat.util.LineIDTree" fork="true">
       <classpath refid="classpath"/>
       <arg value="${src.etc}/ids"/>
       <arg value="${build.dir}/ids/ids"/>
