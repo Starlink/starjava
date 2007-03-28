@@ -16,6 +16,8 @@ import java.awt.event.KeyEvent;
 import java.util.prefs.Preferences;
 import java.util.Iterator;
 
+import javax.print.attribute.PrintRequestAttributeSet;
+
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,6 +36,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -79,6 +82,11 @@ public class FITSHeaderFrame
      */
     private JMenuBar menuBar = null;
     private JMenu fileMenu = null;
+
+    /**
+     * Printer page settings.
+     */
+    private PrintRequestAttributeSet pageSet = null;
 
     /**
      * Create an instance. 
@@ -193,22 +201,27 @@ public class FITSHeaderFrame
         int n = 0;
         while ( it.hasNext() ) {
             HeaderCard card = (HeaderCard) (it.next());
-            String name = card.getKey();
+            String key = card.getKey();
             String value = card.getValue();
             String comment = card.getComment();
-            values[n][0] = name;
+            //  A blank keyword is really a comment line.
+            if ( "".equals( key ) ) {
+                value = comment;
+                comment = "";
+            }
+            values[n][0] = key;
             values[n][1] = value;
             values[n++][2] = comment;
         }
         table.setModel( new DefaultTableModel( values, columnNames ) );
 
-        //  Set default widths... (once?).
+        //  Set default widths, matched to FITS format.
         TableColumn column = table.getColumnModel().getColumn( 0 );
         column.setPreferredWidth( 100 );
         column = table.getColumnModel().getColumn( 1 );
-        column.setPreferredWidth( 250 );
+        column.setPreferredWidth( 300 );
         column = table.getColumnModel().getColumn( 2 );
-        column.setPreferredWidth( 400 );
+        column.setPreferredWidth( 450 );
     }
 
     /**
@@ -216,10 +229,12 @@ public class FITSHeaderFrame
      */
     protected void printHeaders()
     {
+        Rectangle bounds = table.getBounds();
+        if ( pageSet == null ) {
+            pageSet = PrintUtilities.makePageSet( false );
+        }
         try {
-            Rectangle bounds = table.getBounds();
-            PrintUtilities.print( table, PrintUtilities.makePageSet( true ), 
-                                  bounds, "out.ps", false );
+            PrintUtilities.print( table, pageSet, bounds, "out.ps", false );
         }
         catch (SplatException e) {
             new ExceptionDialog( this, e );

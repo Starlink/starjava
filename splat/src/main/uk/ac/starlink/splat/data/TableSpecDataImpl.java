@@ -250,6 +250,15 @@ public class TableSpecDataImpl
     }
 
     /**
+     * Get the format of this table.
+     */
+    public String getTableFormat()
+        throws SplatException
+    {
+        throw new SplatException( "Implement this now!" );
+    }
+
+    /**
      * Get the list of formats that are supported.
      */
     public static List getKnownFormats()
@@ -271,7 +280,7 @@ public class TableSpecDataImpl
      */
     protected final static StarTableOutput writer = new StarTableOutput();
 
-   /**
+    /**
      * Set the full and short names of this object from the table if
      * possible, if not use a generated name.
      */
