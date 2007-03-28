@@ -13,17 +13,14 @@ import java.util.Set;
  * Provides drawing primitives on a pixel map.
  * This is a bit like a {@link java.awt.Graphics}, but renders only to
  * a one-bit-per-pixel bitmap.  After drawings have been done, the
- * {@link #getPixels} method can be called to get a list of the pixels
+ * object can be used as a {@link Pixellator} to get a list of the pixels
  * which have been hit at least once by one of the drawing methods called
- * during the life of the object.
+ * during the life of the object.  Pixels will not be repeated in this list.
  *
  * <p>The drawing methods are intended to be as efficient as possible.
  * Bounds checking is done, so it is generally not problematic (or 
  * inefficient) to attempt drawing operations with coordinates far outside
  * the drawing's range.
- *
- * <p>This class implements the {@link Pixellator} interface.
- * There will be no repetitions in the pixels that it iterates over.
  *
  * @author   Mark Taylor
  * @since    20 Mar 2007

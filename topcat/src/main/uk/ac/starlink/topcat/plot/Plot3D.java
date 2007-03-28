@@ -324,7 +324,7 @@ public abstract class Plot3D extends JPanel {
      * Indicates whether this component offers user-initiated zooming 
      * around the centre.
      *
-     * @retrun  true iff zooming is permitted
+     * @return  true iff zooming is permitted
      */
     public boolean canZoom() {
         return centreZoom_ != null;
@@ -747,8 +747,8 @@ public abstract class Plot3D extends JPanel {
          * information in a way which is kept up to date.
          *
          * @param   nPoint  total number of points available
-         * @param   nIncluded  number of points included in marked subsets
-         * @param   nVisible  number of points actually plotted (may be less
+         * @param   nInc  number of points included in marked subsets
+         * @param   nVis  number of points actually plotted (may be less
          *          nIncluded if some are out of bounds)
          */
         void reportCounts( int nPoint, int nInc, int nVis );
@@ -756,7 +756,7 @@ public abstract class Plot3D extends JPanel {
         /**
          * This method is called when a zoom request has been completed.
          *
-         * @param  scale  change in zoom level (relative) - 1 means no change,
+         * @param  zoom  change in zoom level (relative) - 1 means no change,
          *         greater than one is zoom in, less is zoom out
          */
         void requestZoom( double zoom );
