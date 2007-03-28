@@ -505,13 +505,10 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
 
         public Pixellator getPixelOffsets( BitmapSortPlotVolume vol ) {
-            int xt = vol.xoff_ - px_;
-            int yt = vol.yoff_ - py_;
-            Rectangle clipRect = (Rectangle) vol.getGraphics().getClip();
+            Rectangle clip = (Rectangle) vol.getGraphics().getClip();
+            clip.translate( -px_, -py_ );
             Pixellator ePixer = vol.getStyles()[ istyle_ ].getErrorRenderer()
-                               .getPixels( vol.getGraphics(), 0, 0,
-                                           xoffs_, yoffs_ );
-  // NOT WORKING: clip is wrong.
+                               .getPixels( clip, 0, 0, xoffs_, yoffs_ );
             if ( showPoint_ ) {
                 Drawing drawing = new Drawing();
                 drawing.addPixels( vol.markPixoffs_[ istyle_ ] );
