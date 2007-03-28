@@ -186,6 +186,24 @@ public class LineIDMEMSpecDataImpl
 // variable up to date.
 //
 
+    /**
+     * A totally BAD set of data positions are also BAD. May need to check
+     * for this occasionally (when initialising an instance from scratch
+     * rather than by cloning).
+     */
+    public void checkHaveDataPositions()
+    {
+        haveDataPositions = false;
+        if ( data != null ) {
+            for ( int i = 0; i < data.length; i++ ) {
+                if ( data[i] != SpecData.BAD ) {
+                    haveDataPositions = true;
+                    break;
+                }
+            }
+        }
+    }
+
     public void setSimpleData( double[] coords, String dataUnits,
                                double[] data )
         throws SplatException
