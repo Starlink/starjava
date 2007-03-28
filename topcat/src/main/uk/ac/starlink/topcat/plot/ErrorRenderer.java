@@ -15,7 +15,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import javax.swing.Icon;
 import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.util.IntList;
@@ -52,7 +58,19 @@ public abstract class ErrorRenderer {
         new FilledRectangle( "Filled Rectangle" ),
     };
 
-    private static final ErrorRenderer[] OPTIONS_3D = OPTIONS_2D;
+    private static final ErrorRenderer[] OPTIONS_3D = new ErrorRenderer[] {
+        NONE,
+        DEFAULT,
+        new CappedLine( "Capped Lines", true, 3 ),
+        new CappedLine( "Caps", false, 3 ),
+        new MultiPlaneRenderer( new OpenEllipse( "Ellipse", false ) ),
+        new MultiPlaneRenderer( new OpenEllipse( "Crosshair Ellipse", true ) ),
+        new MultiPlaneRenderer( new OpenRectangle( "Rectangle", false ) ),
+        new MultiPlaneRenderer( new OpenRectangle( "Crosshair Rectangle",
+                                                   true ) ),
+        new MultiPlaneRenderer( new FilledEllipse( "Filled Ellipse" ) ),
+        new MultiPlaneRenderer( new FilledRectangle( "Filled Rectangle" ) ),
+    };
 
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
@@ -65,6 +83,17 @@ public abstract class ErrorRenderer {
         new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
     private static final Stroke CAP_BUTT = 
         new BasicStroke( 1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER );
+    private static final Iterator EMPTY_ITERATOR = new Iterator() {
+        public boolean hasNext() {
+            return false;
+        }
+        public Object next() {
+            throw new NoSuchElementException();
+        }
+        public void remove() {
+            throw new NoSuchElementException();
+        }
+    };
 
     private static final int[] NO_PIXELS = new int[ 0 ];
 
@@ -1063,6 +1092,197 @@ public abstract class ErrorRenderer {
                 Drawing drawing = new Drawing( g.getClipBounds() );
                 drawing.fill( poly );
                 return drawing.getPixels();
+            }
+        }
+    }
+
+    /**
+     * Error renderer which renders N-dimensional (N probably equals 3)
+     * error bars by rendering 2-d error bars in each of the N(N-1) 
+     * pairs of dimensions.
+     */
+    private static class MultiPlaneRenderer extends ErrorRenderer {
+
+        private final ErrorRenderer rend2d_;
+        private final Icon legend_;
+
+        /**
+         * Constructor.
+         *
+         * @param  rend2d  2-dimensional renderer on which this one is based;
+         *         the name is taken from this
+         */
+        MultiPlaneRenderer( ErrorRenderer rend2d ) {
+            super( rend2d.getName() );
+            rend2d_ = rend2d;
+            legend_ = new ErrorRendererIcon( this, 3 );
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim == 3 
+                || ( ndim < 3 && rend2d_.supportsDimensionality( ndim ) );
+        }
+
+        public Icon getLegendIcon() {
+            return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return modes != null && ErrorMode.allBlank( modes );
+        }
+
+        public Rectangle getBounds( Graphics g, int x, int y, int[] xoffs,
+                                    int[] yoffs ) {
+            Rectangle bounds = new Rectangle( x, y, 0, 0 );
+            for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
+                int[][] offs = (int[][]) it.next();
+                bounds.add( rend2d_.getBounds( g, x, y, 
+                                               offs[ 0 ], offs[ 1 ] ) );
+            }
+            return bounds;
+        }
+
+        public void drawErrors( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
+                int[][] offs = (int[][]) it.next();
+                rend2d_.drawErrors( g, x, y, offs[ 0 ], offs[ 1 ] );
+            }
+        }
+
+        public int[] getPixels( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            Set pointSet = new HashSet();
+            int iPair = 0;
+            for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
+                int[][] offs = (int[][]) it.next();
+                int[] xyoffs =
+                     rend2d_.getPixels( g, x, y, offs[ 0 ], offs[ 1 ] );
+
+                /* Short cut if there is only one set. */
+                if ( iPair++ == 0 && ! it.hasNext() ) {
+                    return xyoffs;
+                }
+                int nxy = xyoffs.length / 2;
+                for ( int ixy = 0; ixy < nxy; ixy++ ) {
+                    int ox = xyoffs[ ixy * 2 + 0 ];
+                    int oy = xyoffs[ ixy * 2 + 1 ];
+                    pointSet.add( new Point( ox, oy ) );
+                }
+            }
+            int[] xyoffs = new int[ pointSet.size() * 2 ];
+            int ixy = 0;
+            for ( Iterator it = pointSet.iterator(); it.hasNext(); ) {
+                Point point = (Point) it.next();
+                xyoffs[ ixy++ ] = point.x;
+                xyoffs[ ixy++ ] = point.y;
+            }
+            assert ixy == xyoffs.length;
+            return xyoffs;
+        }
+
+        /**
+         * Returns an iterator over pairs of non-null offset dimensions.
+         * The iterator returns <code>int[npoint][2]</code> objects, being
+         * the X, Y coordinates of points defining the extrema of an
+         * error region.  The value of <code>npoint</code> is usually 4,
+         * defining 2-dimensional region, but in the case that only a
+         * single result is returned it <code>npoint</code> may be 2,
+         * representing a 1-dimensional region.
+         *
+         * @param  xoffs  2*ndim-element X offset point array
+         * @param  yoffs  2*ndim-element Y offset point array
+         * @return  iterator of X,Y point arrays
+         */
+        private Iterator get2dOffsets( final int[] xoffs, final int[] yoffs ) {
+
+            /* Number of dimensions is half the number of points (there 
+             * must be an upper and lower bound point in each dimension). */
+            final int ndim = xoffs.length / 2;
+
+            /* If there are less than 3 dimensions, it's trivial. */
+            if ( ndim < 3 ) {
+                return Collections.singletonList( new int[][] { xoffs, yoffs } )
+                                  .iterator();
+            }
+
+            /* Otherwise work out which pairs of dimensions have non-zero
+             * extents. */
+            else {
+                final boolean[] hasPoints = new boolean[ ndim ];
+                final int[] activeDims = new int[ ndim ];
+                int iActiveDim = 0;
+                for ( int idim = 0; idim < ndim; idim++ ) {
+                    int i2 = idim * 2;
+                    if ( xoffs[ i2 + 0 ] != 0 || yoffs[ i2 + 0 ] != 0 ||
+                         xoffs[ i2 + 1 ] != 0 || yoffs[ i2 + 0 ] != 0 ) {
+                        activeDims[ iActiveDim++ ] = idim;
+                    }
+                }
+                final int nActiveDim = iActiveDim;
+
+                /* If there are none, no points are returned. */
+                if ( nActiveDim == 0 ) {
+                    return EMPTY_ITERATOR;
+                }
+
+                /* If there's one, return a singleton iterator over the 
+                 * 2-point coordinate arrays. */
+                else if ( nActiveDim == 1 ) {
+                    int[][] offPairs = new int[ 2 ][ 2 ];
+                    int i2 = activeDims[ 0 ] * 2;
+                    offPairs[ 0 ][ 0 ] = xoffs[ i2 + 0 ];
+                    offPairs[ 1 ][ 0 ] = yoffs[ i2 + 0 ];
+                    offPairs[ 0 ][ 1 ] = xoffs[ i2 + 1 ];
+                    offPairs[ 1 ][ 1 ] = yoffs[ i2 + 1 ];
+                    return Collections.singletonList( offPairs ).iterator();
+                }
+
+                /* Otherwise return an iterator over non-blank 4-point arrays,
+                 * each formed from the coorindates from a pair of
+                 * non-blank dimensions. */
+                else {
+                    assert nActiveDim >= 2;
+                    return new Iterator() {
+                        int[][] offPairs = new int[ 2 ][ 4 ];
+                        boolean done;
+                        int iActive = 0;
+                        int jActive = 1;
+                        public Object next() {
+                            int i2 = activeDims[ iActive ] * 2;
+                            int j2 = activeDims[ jActive ] * 2;
+                            if ( ++iActive >= jActive ) {
+                                iActive = 0;
+                                if ( ++jActive >= nActiveDim ) {
+                                    done = true;
+                                }
+                            }
+                            offPairs[ 0 ][ 0 ] = xoffs[ i2 + 0 ];
+                            offPairs[ 1 ][ 0 ] = yoffs[ i2 + 0 ];
+                            offPairs[ 0 ][ 1 ] = xoffs[ i2 + 1 ];
+                            offPairs[ 1 ][ 1 ] = yoffs[ i2 + 1 ];
+                            offPairs[ 0 ][ 2 ] = xoffs[ j2 + 0 ];
+                            offPairs[ 1 ][ 2 ] = yoffs[ j2 + 0 ];
+                            offPairs[ 0 ][ 3 ] = xoffs[ j2 + 1 ];
+                            offPairs[ 1 ][ 3 ] = yoffs[ j2 + 1 ];
+                            return offPairs;
+                        }
+
+                        public boolean hasNext() {
+                            return ! done;
+                        }
+
+                        public void remove() {
+                            throw new UnsupportedOperationException();
+                        }
+                    };
+                }
             }
         }
     }
