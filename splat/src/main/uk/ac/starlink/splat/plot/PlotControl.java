@@ -1106,7 +1106,13 @@ public class PlotControl
         if ( pageSet == null ) {
             pageSet = PrintUtilities.makePageSet( true );
         }
-        PrintUtilities.print( plot, pageSet, "out.ps", true );
+        Rectangle bounds = plot.getBounds();
+        //  EPS only likes positive bounds, this seems to work.
+        if ( bounds.x < 0 ) {
+            bounds.x = 0;
+            bounds.y = 0;
+        }
+        PrintUtilities.print( plot, pageSet, bounds, "out.ps", true );
     }
 
     /**

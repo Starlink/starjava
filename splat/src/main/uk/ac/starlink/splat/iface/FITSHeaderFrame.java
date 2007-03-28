@@ -9,6 +9,7 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -40,7 +41,12 @@ import nom.tam.fits.HeaderCard;
 import uk.ac.starlink.splat.data.FITSHeaderSource;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.PrintUtilities;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.ExceptionDialog;
+
+import jsky.util.gui.PrintableJTable;
 
 /**
  * Window for viewing the FITS cards of a spectrum. 
@@ -61,7 +67,7 @@ public class FITSHeaderFrame
      * The {@link JTable} used to display the cards decomposed into keyword,
      * value and comment.
      */
-    private JTable table = null;
+    private PrintableJTable table = null;
 
     /**
      * {@link SpecData} instance to view.
@@ -114,7 +120,7 @@ public class FITSHeaderFrame
         add( splatName, BorderLayout.NORTH );
 
         //  Create the table.
-        table = new JTable();
+        table = new PrintableJTable();
 
         table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
         table.setIntercellSpacing( new Dimension( 6, 3 ) );
@@ -128,7 +134,7 @@ public class FITSHeaderFrame
             BorderFactory.createTitledBorder( "FITS headers:" );
         scrollPane.setBorder( scrollTitle );
         
-        //  Goes in the center and takes any extra space.
+        // Goes in the center and takes any extra space.
         add( scrollPane, BorderLayout.CENTER );
 
         // Action bar uses a BoxLayout and is placed at the south.
@@ -136,6 +142,10 @@ public class FITSHeaderFrame
         actionBar.setLayout( new BoxLayout( actionBar, BoxLayout.X_AXIS ) );
         actionBar.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
         add( actionBar, BorderLayout.SOUTH );
+        
+        // Print the headers.
+        PrintAction printAction = new PrintAction();
+        fileMenu.add( printAction ).setMnemonic( KeyEvent.VK_P );
 
         // Add an action to close the window (appears in File menu and action
         // bar).
@@ -201,6 +211,20 @@ public class FITSHeaderFrame
         column.setPreferredWidth( 400 );
     }
 
+    /**
+     * Print headers.
+     */
+    protected void printHeaders()
+    {
+        try {
+            Rectangle bounds = table.getBounds();
+            PrintUtilities.print( table, PrintUtilities.makePageSet( true ), 
+                                  bounds, "out.ps", false );
+        }
+        catch (SplatException e) {
+            new ExceptionDialog( this, e );
+        }
+    }
 
     /**
      * Close the window.
@@ -229,6 +253,28 @@ public class FITSHeaderFrame
         public void actionPerformed( ActionEvent ae )
         {
             closeWindowEvent();
+        }
+    }
+
+    // Print the headers.
+    private final static ImageIcon printImage = 
+        new ImageIcon( ImageHolder.class.getResource( "print.gif" ) );
+
+    /**
+     * Inner class defining Action for printing window.
+     */
+    protected class PrintAction
+        extends AbstractAction
+    {
+        public PrintAction()
+        {
+            super( "Print", printImage );
+            putValue( SHORT_DESCRIPTION, "Print headers" );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            printHeaders();
         }
     }
 }

@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.awt.print.PageFormat;
 import javax.print.PrintService;
 import javax.print.StreamPrintService;
 import javax.print.StreamPrintServiceFactory;
@@ -53,25 +54,27 @@ public class PrintUtilities
      * @param printable an object that supports the {@link Printable}
      *                  interface (Java2D).
      * @param pageSet the default page setup.
+     * @param bounds bounds of the region printed, if EPS.
      * @param postscriptFile name of a file to use if the postscript
      *                       option is only one available.
      */
-    public static void print( Printable printable, 
+    public static void print( Printable printable,
                               PrintRequestAttributeSet pageSet,
-                              String postscriptFile, boolean landscape )
+                              Rectangle bounds, String postscriptFile,
+                              boolean landscape )
         throws SplatException
     {
         try {
             PrintService[] services = PrinterJob.lookupPrintServices();
             if ( services.length == 0 ) {
-                
+
                 // No actual print services are available (i.e. no valid local
                 // printers), then fall back to the postscript option.
+                System.out.println( "Falling back to postscript" );
                 PrintUtilities.printPostscript( printable, false, pageSet,
-                                                null, postscriptFile );
+                                                bounds, postscriptFile );
                 return;
             }
-            
             PrinterJob pj = PrinterJob.getPrinterJob();
             pj.setPrintService( services[0] );
             pj.setPrintable( printable );
@@ -84,7 +87,6 @@ public class PrintUtilities
         }
     }
 
-
     /**
      * Print to a postscript file, EPS if requested.
      *
@@ -94,11 +96,11 @@ public class PrintUtilities
      * @param bounds bounds of the region printed, if EPS.
      * @param fileName name of the destination file, if EPS.
      *
-     * @throws SplatException if there are problems or an printer 
+     * @throws SplatException if there are problems or an printer
      *                        cannot be found
      */
     public static void printPostscript( Printable printable, boolean eps,
-                                        PrintRequestAttributeSet pageSet, 
+                                        PrintRequestAttributeSet pageSet,
                                         Rectangle bounds, String fileName )
         throws SplatException
     {
@@ -111,7 +113,8 @@ public class PrintUtilities
                                        bounds.x, bounds.y,
                                        bounds.x + bounds.width,
                                        bounds.y + bounds.height );
-                printable.print( g2, null, 0 );
+                PageFormat pf = new PageFormat();
+                printable.print( g2, pf, 0 );
                 g2.close();
             }
             catch (Exception e) {
@@ -119,7 +122,7 @@ public class PrintUtilities
             }
         }
         else {
-            PrintService service = 
+            PrintService service =
                 PrintUtilities.getPostscriptPrintService( fileName );
             if ( service != null ) {
                 try {
@@ -150,7 +153,7 @@ public class PrintUtilities
     /**
      * Look for a postscript printing service and it configured
      * to write to the given file.
-     * 
+     *
      * @param fileName the name of a file that the services should write too.
      * @return a {@link PrintService}s that produces postscript or null
      *         if none found.
@@ -178,7 +181,7 @@ public class PrintUtilities
     }
 
     /**
-     * Create a default {@link PrintRequestAttributeSet} for printing. 
+     * Create a default {@link PrintRequestAttributeSet} for printing.
      * This is A4.
      *
      * @param landscape if true the PageSet is landscape, otherwise portrait.
