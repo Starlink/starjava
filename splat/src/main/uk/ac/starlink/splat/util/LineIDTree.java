@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     25-APR-2005 (Peter W. Draper):
@@ -11,17 +12,36 @@ package uk.ac.starlink.splat.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import java.util.Arrays;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import org.xml.sax.SAXException;
+
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
+import uk.ac.starlink.ast.LutMap;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.SpecFrame;
+
+import uk.ac.starlink.splat.data.LineIDMEMSpecDataImpl;
 import uk.ac.starlink.splat.data.LineIDSpecData;
+import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
+import uk.ac.starlink.splat.data.SpecData;
 
 /**
  *  Utility class to create the distributable line identifier tree from
- *  a simple directory tree of line identifiers stored in SPLAT text format.
+ *  a directory tree of line identifiers stored in SPLAT text format
+ *  and the JAC XML format.
  *  <p>
  *  The distributable form is intended to be wrapped as a single jar file and
  *  contains each of the known line id spectra in serialized form, plus a text
@@ -45,7 +65,7 @@ public class LineIDTree
      */
     public LineIDTree( File rootInDir, File rootOutDir )
     {
-        this.rootDirLength = rootInDir.getAbsolutePath().length();
+        this.rootDirLength = rootOutDir.getAbsolutePath().length();
         process( rootInDir, rootOutDir );
         writeDescription( rootOutDir );
     }
@@ -70,9 +90,17 @@ public class LineIDTree
                 }
                 else {
                     //  Stop processing extraneous files by insisting on the
-                    //  ".ids" file extension.
+                    //  ".ids" and ".xml" file extensions.
                     if ( name.endsWith( ".ids" ) ) {
                         processSpectrum( list[i], outDir, name );
+                    }
+                    else if ( name.endsWith( ".xml" ) ) {
+                        try {
+                            processJACDataBase( list[i], outDir );
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                     else {
                         System.out.println( "Skipped: " + list[i] );
@@ -98,7 +126,7 @@ public class LineIDTree
             File newFile = new File( outDir, newName );
 
             //  Get the description.
-            addDescription( inSpec, specData );
+            addDescription( newFile, specData );
 
             //  Write the output file.
             FileOutputStream fos = new FileOutputStream( newFile );
@@ -118,11 +146,11 @@ public class LineIDTree
     /**
      * Add a description of a LineIDSpecData object to the dataBase.
      */
-    private void addDescription( File inSpec, LineIDSpecData specData )
+    private void addDescription( File outSpec, LineIDSpecData specData )
     {
         //  Get name relative to the root directory.
-        String inFile = inSpec.getAbsolutePath();
-        String name = inFile.substring( rootDirLength );
+        String outFile = outSpec.getAbsolutePath();
+        String name = outFile.substring( rootDirLength );
 
         //  Get the coordinate range.
         specData.setRange();
@@ -132,11 +160,11 @@ public class LineIDTree
         FrameSet frameSet = specData.getFrameSet();
         String units = frameSet.getC( "unit(1)" );
         String system = frameSet.getC( "system(1)" );
-        
-        dataBase.append( name     + "\t" + 
-                         range[0] + "\t" + 
+
+        dataBase.append( name     + "\t" +
+                         range[0] + "\t" +
                          range[1] + "\t" +
-                         units    + "\t" + 
+                         units    + "\t" +
                          system   + "\n" );
     }
 
@@ -158,6 +186,149 @@ public class LineIDTree
             System.out.println( "Failed to write description file" );
             throw new RuntimeException( e );
         }
+    }
+
+    /**
+     * Handle the JAC XML sub-millimetre line database. The format of this
+     * is
+     * <pre>
+     * <LineCatalog>
+     *   <species name = "CO">
+     *      <transition name="2  - 1 " frequency="230538.0"/>
+     *      ......
+     *   </species>
+     *   <species name = "13-CO">
+     *      ......
+     *   </species>
+     *   ......
+     * </LineCatalog>
+     * </pre>
+     * all measurements are in MHz.
+     */
+    private void processJACDataBase( File database, File outDir )
+        throws ParserConfigurationException, SAXException, 
+               SplatException, IOException
+    {
+        //  Read the input document.
+        DocumentBuilder docBuilder = 
+            DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        Document doc = docBuilder.parse( database );
+        
+        //  Work through the top-level elements of the input XML.
+        NodeList speciesList = 
+            doc.getDocumentElement().getElementsByTagName( "species" );
+
+        for ( int i = 0; i < speciesList.getLength(); i++ ) {
+            Element species = (Element) speciesList.item( i );
+            
+            //  Create name for the pseudo output file.
+            String newName = species.getAttribute( "name" );
+            File newFile = new File( outDir, newName );
+            
+            //  Make a memory line identifier to fill with the extracted 
+            //  content.
+            LineIDMEMSpecDataImpl impl = 
+                new LineIDMEMSpecDataImpl( getShortName( newFile ) );
+
+            //  Read transitions.
+            NodeList transList = species.getElementsByTagName( "transition" );
+            int nele = transList.getLength();
+            if ( nele == 0 ) {
+                System.out.println( "Warning species: " + newName + 
+                                    " has no transitions, skipped" );
+                continue;
+            }
+            double freq[] = new double[nele];
+            double data[] = new double[nele];
+            String names[] = new String[nele];
+            for ( int j = 0; j < nele; j++ ) {
+                Element trans = (Element) transList.item( j );
+                freq[j] = Double.parseDouble(trans.getAttribute("frequency"));
+                names[j] = cleanLabel( trans.getAttribute( "name" ) );
+                data[j] = SpecData.BAD;
+            }
+
+            //  Create the FrameSet with SpecFrame in Mhz.
+            FrameSet frameSet = createJACFrameSet( freq );
+
+            //  Setup the the implementation.
+            impl.setLabels( names );
+            impl.setSimpleUnitDataQuick( frameSet, freq, "Unknown", data );
+            impl.checkHaveDataPositions();
+
+            //  Create the SpecData.
+            LineIDSpecData specData = new LineIDSpecData( impl );
+
+            //  Add the description to the description catalogue.
+            addDescription( newFile, specData );
+
+            //  Write the output file.
+            FileOutputStream fos = new FileOutputStream( newFile );
+            ObjectOutputStream oos = new ObjectOutputStream( fos );
+            oos.writeObject( specData );
+            oos.close();
+            fos.close();
+            System.out.println( "Processed: " + newFile );
+        }
+    }
+
+    /**
+     * Create a FrameSet that describes a JAC line identifier species.
+     */
+    private FrameSet createJACFrameSet( double[] freq )
+    {
+        //  The SpecFrame, standard line identifier std of rest, in Mhz.
+        SpecFrame specFrame = new SpecFrame();
+        specFrame.setC( "System", "FREQ" );
+        specFrame.setC( "Unit", "MHz" );
+        specFrame.setC( "StdOfRest", "Source" );
+        specFrame.setC( "SourceVRF", "Topocentric" );
+        specFrame.setD( "SourceVel", 0.0 );
+
+        //  Pixel index frame.
+        Frame baseframe = new Frame( 1 );
+        baseframe.set( "Label(1)=Index" );
+
+        //  Create an AST lutmap that relates the index of the data
+        //  counts to the coordinates. Need to handle case of only 1
+        //  value.
+        if ( freq.length == 1 ) {
+            double[] newCoords = new double[2];
+            newCoords[0] = freq[0];
+            newCoords[1] = freq[0];
+            freq = newCoords;
+        }
+        LutMap lutmap = new LutMap( freq, 1.0, 1.0 );
+        Mapping simple = lutmap.simplify();
+
+        //  Now create a frameset and add all these to it.
+        FrameSet frameSet = new FrameSet( baseframe );
+        frameSet.addFrame( 1, simple, specFrame );
+
+        return frameSet;
+    }
+
+    /**
+     * Convert the name of a File into a suitable short name. That is remove
+     * the directory information, replace any spaces with underscore and
+     * append "_lines".
+     */
+    private String getShortName( File file )
+    {
+        return file.getName().replace( ' ', '_' ) + "_lines";
+    }
+
+    /**
+     * Clean a label by replacing all repeated blanks with a single blank,
+     * the string " - " with "-", and all single blanks with an underscore.
+     */ 
+    private String cleanLabel( String label )
+    {
+        String s = label.trim();
+        s = s.replaceAll( "  ", " " );  //  All repeated blanks with one.
+        s = s.replace( " - ", "-" );    //  " - " to "-"
+        s = s.replace( ' ', '_' );      //  " " to "_"
+        return s;
     }
 
     /**
