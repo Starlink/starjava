@@ -13,7 +13,6 @@ import java.util.ArrayList;
 public class RowRandomWrapperStarTable extends RandomWrapperStarTable {
 
     private List rows = new ArrayList();
-    private ColumnInfo[] colinfos;
 
     public RowRandomWrapperStarTable( StarTable baseTable ) throws IOException {
         super( baseTable );
