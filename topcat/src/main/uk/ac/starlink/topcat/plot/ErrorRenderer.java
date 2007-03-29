@@ -62,6 +62,7 @@ public abstract class ErrorRenderer {
         DEFAULT,
         new CappedLine( "Capped Lines", true, 3 ),
         new CappedLine( "Caps", false, 3 ),
+        new OpenCuboid( "Cuboid" ),
         new MultiPlaneRenderer( new OpenEllipse( "Ellipse", false ) ),
         new MultiPlaneRenderer( new OpenEllipse( "Crosshair Ellipse", true ) ),
         new MultiPlaneRenderer( new OpenRectangle( "Rectangle", false ) ),
@@ -1093,6 +1094,181 @@ public abstract class ErrorRenderer {
     }
 
     /**
+     * Renderer which draws a wire-net line/rectangle/cuboid in 
+     * 1/2/3 dimensions.
+     */
+    private static class OpenCuboid extends ErrorRenderer {
+
+        private final Icon legendIcon_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  renderer name
+         */
+        OpenCuboid( String name ) {
+            super( name );
+            legendIcon_ = new ErrorRendererIcon( this, 3 );
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim == 3;
+        }
+
+        public Icon getLegendIcon() {
+            return legendIcon_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad + width / 6,
+                                          ypad + height / 6 );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return modes != null && ErrorMode.allBlank( modes );
+        }
+
+        public void drawErrors( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            Graphics2D g2 = (Graphics2D) g;
+            Stroke oldStroke = g2.getStroke();
+            g2.setStroke( CAP_ROUND );
+            int ndim = xoffs.length / 2;
+            if ( ndim == 1 ) {
+                g.drawLine( x + xoffs[ 0 ], y + yoffs[ 0 ],
+                            x + xoffs[ 1 ], y + yoffs[ 1 ] );
+            }
+            else if ( ndim == 2 ) {
+                int x00 = x + xoffs[ 0 ] + xoffs[ 2 ];
+                int x01 = x + xoffs[ 0 ] + xoffs[ 3 ];
+                int x11 = x + xoffs[ 1 ] + xoffs[ 3 ];
+                int x10 = x + xoffs[ 1 ] + xoffs[ 2 ];
+                int y00 = y + yoffs[ 0 ] + yoffs[ 2 ];
+                int y01 = y + yoffs[ 0 ] + yoffs[ 3 ];
+                int y11 = y + yoffs[ 1 ] + yoffs[ 3 ];
+                int y10 = y + yoffs[ 1 ] + yoffs[ 2 ];
+                g.drawLine( x00, y00, x01, y01 );
+                g.drawLine( x01, y01, x11, y11 );
+                g.drawLine( x11, y11, x10, y10 );
+                g.drawLine( x10, y10, x00, y00 );
+            }
+            else if ( ndim == 3 ) {
+                int x000 = x + xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 4 ];
+                int x001 = x + xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 5 ];
+                int x010 = x + xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 4 ];
+                int x011 = x + xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 5 ];
+                int x100 = x + xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 4 ];
+                int x101 = x + xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 5 ];
+                int x110 = x + xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 4 ];
+                int x111 = x + xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 5 ];
+                int y000 = y + yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 4 ];
+                int y001 = y + yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 5 ];
+                int y010 = y + yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 4 ];
+                int y011 = y + yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 5 ];
+                int y100 = y + yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 4 ];
+                int y101 = y + yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 5 ];
+                int y110 = y + yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 4 ];
+                int y111 = y + yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 5 ];
+                g.drawLine( x000, y000, x001, y001 );
+                g.drawLine( x000, y000, x010, y010 );
+                g.drawLine( x000, y000, x100, y100 );
+                g.drawLine( x001, y001, x011, y011 );
+                g.drawLine( x001, y001, x101, y101 );
+                g.drawLine( x010, y010, x011, y011 );
+                g.drawLine( x010, y010, x110, y110 );
+                g.drawLine( x100, y100, x101, y101 );
+                g.drawLine( x100, y100, x110, y110 );
+                g.drawLine( x011, y011, x111, y111 );
+                g.drawLine( x101, y101, x111, y111 );
+                g.drawLine( x110, y110, x111, y111 );
+            }
+            g2.setStroke( oldStroke );
+        }
+
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
+            int xmin = 0;
+            int xmax = 0;
+            int ymin = 0;
+            int ymax = 0;
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs[ ip ];
+                int yoff = yoffs[ ip ];
+                xmin = Math.min( xmin, xoff );
+                xmax = Math.max( xmax, xoff );
+                ymin = Math.min( ymin, yoff );
+                ymax = Math.max( ymax, yoff );
+            }
+            return new Rectangle( x + xmin, x + ymin,
+                                  xmax - xmin, ymax - ymin );
+        }
+
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
+            int ndim = xoffs.length / 2;
+            if ( ndim == 1 ) {
+                Drawing drawing = new Drawing( clip );
+                drawing.drawLine( x + xoffs[ 0 ], y + yoffs[ 0 ],
+                                  x + xoffs[ 1 ], y + yoffs[ 1 ] );
+                return drawing;
+            }
+            else if ( ndim == 2 ) {
+                Drawing drawing = new Drawing( clip );
+                int x00 = x + xoffs[ 0 ] + xoffs[ 2 ];
+                int x01 = x + xoffs[ 0 ] + xoffs[ 3 ];
+                int x11 = x + xoffs[ 1 ] + xoffs[ 3 ];
+                int x10 = x + xoffs[ 1 ] + xoffs[ 2 ];
+                int y00 = y + yoffs[ 0 ] + yoffs[ 2 ];
+                int y01 = y + yoffs[ 0 ] + yoffs[ 3 ];
+                int y11 = y + yoffs[ 1 ] + yoffs[ 3 ];
+                int y10 = y + yoffs[ 1 ] + yoffs[ 2 ];
+                drawing.drawLine( x00, y00, x01, y01 );
+                drawing.drawLine( x01, y01, x11, y11 );
+                drawing.drawLine( x11, y11, x10, y10 );
+                drawing.drawLine( x10, y10, x00, y00 );
+                return drawing;
+            }
+            else if ( ndim == 3 ) {
+                int x000 = x + xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 4 ];
+                int x001 = x + xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 5 ];
+                int x010 = x + xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 4 ];
+                int x011 = x + xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 5 ];
+                int x100 = x + xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 4 ];
+                int x101 = x + xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 5 ];
+                int x110 = x + xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 4 ];
+                int x111 = x + xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 5 ];
+                int y000 = y + yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 4 ];
+                int y001 = y + yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 5 ];
+                int y010 = y + yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 4 ];
+                int y011 = y + yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 5 ];
+                int y100 = y + yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 4 ];
+                int y101 = y + yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 5 ];
+                int y110 = y + yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 4 ];
+                int y111 = y + yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 5 ];
+                Drawing drawing = new Drawing( clip );
+                drawing.drawLine( x000, y000, x001, y001 );
+                drawing.drawLine( x000, y000, x010, y010 );
+                drawing.drawLine( x000, y000, x100, y100 );
+                drawing.drawLine( x001, y001, x011, y011 );
+                drawing.drawLine( x001, y001, x101, y101 );
+                drawing.drawLine( x010, y010, x011, y011 );
+                drawing.drawLine( x010, y010, x110, y110 );
+                drawing.drawLine( x100, y100, x101, y101 );
+                drawing.drawLine( x100, y100, x110, y110 );
+                drawing.drawLine( x011, y011, x111, y111 );
+                drawing.drawLine( x101, y101, x111, y111 );
+                drawing.drawLine( x110, y110, x111, y111 );
+                return drawing;
+            }
+            else {
+                return NO_PIXELS;
+            }
+        }
+    }
+
+    /**
      * Error renderer which renders N-dimensional (N probably equals 3)
      * error bars by rendering 2-d error bars in each of the N(N-1) 
      * pairs of dimensions.
@@ -1126,7 +1302,8 @@ public abstract class ErrorRenderer {
         public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
                                    int xpad, int ypad ) {
             return new ErrorRendererIcon( this, modes, width, height,
-                                          xpad, ypad );
+                                          xpad + width / 6,
+                                          ypad + height / 6 );
         }
 
         public boolean isBlank( ErrorMode[] modes ) {
