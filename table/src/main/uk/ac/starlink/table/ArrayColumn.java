@@ -22,7 +22,7 @@ public abstract class ArrayColumn extends ColumnData {
      */
     ArrayColumn( ColumnInfo base, Object data ) {
         super( new ColumnInfo( base ) {
-            public void setContentClass() {
+            public void setContentClass( Class clazz ) {
                 throw new UnsupportedOperationException();
             }
         } );
