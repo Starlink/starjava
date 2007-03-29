@@ -71,13 +71,14 @@ public class LineIDSpecData
     /**
      * Current up vector.
      */
-    private float[] upVector = vertical;
+    private float[] upVector = verticalUp;
 
     /**
      * Up vectors for drawing text;
      */
-    private static float[] vertical = new float[] { 1.0F, 0.0F };
-    private static float[] horizontal = new float[] { 0.0F, 1.0F };
+    private static float[] verticalUp = new float[] { 1.0F, 0.0F };
+    private static float[] horizontalUp = new float[] { 0.0F, 1.0F };
+    private boolean horizontal = false;
 
     /**
      * The name used to prefix any labels. This is the shortname, but
@@ -217,13 +218,14 @@ public class LineIDSpecData
     /**
      * Set whether to draw labels horizontally.
      */
-    public void setDrawHorizontal( boolean drawHorizontal )
+    public void setDrawHorizontal( boolean horizontal )
     {
-        if ( drawHorizontal ) {
-            upVector = horizontal;
+        this.horizontal = horizontal;
+        if ( horizontal ) {
+            upVector = horizontalUp;
         }
         else {
-            upVector = vertical;
+            upVector = verticalUp;
         }
     }
 
@@ -435,14 +437,17 @@ public class LineIDSpecData
                 setShortName( shortName );
             }
             String label = null;
-            double shift;
+            double hshift = 0.2 * yshift; //  Offset when horizontal
+            double shift = hshift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
                 label = prefixName + labels[i];
                 plot.text( label, pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
-                    shift = 0.12 * yshift * (double) label.length();
+                    if ( ! horizontal ) {
+                        shift = hshift * (double) label.length();
+                    }
                     pos[1] = xypos[j+1] + shift;
                     plot.gridLine( 2, pos, lineLength );
                     pos[1] = xypos[j+1] - shift;
@@ -451,13 +456,16 @@ public class LineIDSpecData
             }
         }
         else {
-            double shift;
+            double hshift = 0.2 * yshift; //  Offset when horizontal
+            double shift = hshift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
                 plot.text( labels[i], pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
-                    shift = 0.12 * yshift * (double) labels[i].length();
+                    if ( ! horizontal ) {
+                        shift = hshift * (double) labels[i].length();
+                    }
                     pos[1] = xypos[j+1] + shift;
                     plot.gridLine( 2, pos, lineLength );
                     pos[1] = xypos[j+1] - shift;
