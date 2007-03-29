@@ -223,7 +223,6 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      */
     public boolean isMagic( byte[] buffer ) {
         final int ntest = FitsConstants.FITS_BLOCK / 80;
-        HeaderCard[] cards = new HeaderCard[ ntest ];
         int pos = 0;
         int ncard = 0;
         for ( int il = 0; il < ntest && buffer.length > pos + 80; il++ ) {

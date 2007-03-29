@@ -52,7 +52,6 @@ class VOTableDOMBuilder extends SkeletonDOMBuilder implements TableHandler {
         TableElement tableEl = getTableElement();
         if ( tableEl != null ) {
             String encoding = getAttribute( atts, "encoding" );
-            FieldElement[] fields = tableEl.getFields();
             Decoder[] decoders = 
                 SkeletonDOMBuilder.getDecoders( tableEl.getFields() );
             TabularData tdata = 

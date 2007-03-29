@@ -28,7 +28,6 @@ abstract class Decoder {
     static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
     static final long[] SCALAR_SIZE = new long[ 0 ];
 
-    private Object blank;
     protected String blankString;
     protected boolean isVariable;
     protected int sliceSize;

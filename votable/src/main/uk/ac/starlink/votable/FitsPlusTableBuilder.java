@@ -265,7 +265,6 @@ public class FitsPlusTableBuilder implements TableBuilder {
      */
     public static boolean isMagic( byte[] buffer ) {
         final int ntest = 5;
-        HeaderCard[] cards = new HeaderCard[ ntest ];
         int pos = 0;
         int ncard = 0;
         boolean ok = true;
