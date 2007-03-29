@@ -64,7 +64,7 @@ public class ValueStorePoints implements Points {
     }
 
     public void getCoords( int ipoint, double[] coords ) {
-        store_.get( ipoint * nword_, coords );
+        store_.get( ipoint * (long) nword_, coords );
     }
 
     public boolean[] hasErrors() {
@@ -92,7 +92,7 @@ public class ValueStorePoints implements Points {
      * @param   coords  coordinate array 
      */
     public void putCoords( int ipoint, double[] coords ) {
-        store_.put( ipoint * nword_, coords );
+        store_.put( ipoint * (long) nword_, coords );
     }
 
     /**

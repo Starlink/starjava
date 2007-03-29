@@ -36,13 +36,15 @@ public abstract class ErrorRenderer {
     private final String name_;
 
     /** Error renderer which draws nothing. */
-    public static ErrorRenderer NONE = new Blank( "None" );
+    public static final ErrorRenderer NONE = new Blank( "None" );
 
     /** General purpose error renderer. */
-    public static ErrorRenderer DEFAULT = new CappedLine( "Lines", true, 0 );
+    public static final ErrorRenderer DEFAULT =
+        new CappedLine( "Lines", true, 0 );
 
     /** Error renderer suitable for use in user controls. */
-    public static ErrorRenderer EXAMPLE = new CappedLine( "Lines", true, 3 );
+    public static final ErrorRenderer EXAMPLE =
+         new CappedLine( "Lines", true, 3 );
 
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
@@ -525,9 +527,9 @@ public abstract class ErrorRenderer {
                             yoff = + ymax;
                         }
                         else {
-                            double shrink =
-                                Math.sqrt( ( xmax * xmax + ymax * ymax )
-                                         / ( xoff * xoff + yoff * yoff ) );
+                            double s2 = (double) ( xmax * xmax + ymax * ymax )
+                                      / (double) ( xoff * xoff + yoff * yoff );
+                            double shrink = Math.sqrt( s2 );
                             xoff = (int) Math.ceil( shrink * xoff );
                             yoff = (int) Math.ceil( shrink * yoff );
                         }
@@ -1366,7 +1368,6 @@ public abstract class ErrorRenderer {
             /* Otherwise work out which pairs of dimensions have non-zero
              * extents. */
             else {
-                final boolean[] hasPoints = new boolean[ ndim ];
                 final int[] activeDims = new int[ ndim ];
                 int iActiveDim = 0;
                 for ( int idim = 0; idim < ndim; idim++ ) {
@@ -1406,6 +1407,9 @@ public abstract class ErrorRenderer {
                         int iActive = 0;
                         int jActive = 1;
                         public Object next() {
+                            if ( done ) {
+                                throw new NoSuchElementException();
+                            }
                             int i2 = activeDims[ iActive ] * 2;
                             int j2 = activeDims[ jActive ] * 2;
                             if ( ++iActive >= jActive ) {
