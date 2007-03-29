@@ -166,7 +166,7 @@ case "`uname -m`" in
    Power*)
        arch=ppc
        ;;
-   CYGWIN*)
+   CYGWIN* | i86pc)
        arch=x86
        ;;
    *)
