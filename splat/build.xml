@@ -526,9 +526,9 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="sparc"/>
     </antcall>
-    <!--antcall target="unpack_jni_arch">
+    <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86"/>
-    </antcall-->
+    </antcall>
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="ppc"/>
     </antcall>
@@ -660,7 +660,7 @@
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="SunOS">
       <env key="SYSTEM" value="sun4_Solaris"/>
       <env key="STARLINK" value="${stardev}"/>
-      <env key="JAVA_SYSTEM" value="solaris"/>
+      <env key="JAVA_SYSTEM" value="${os.arch}"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
@@ -852,6 +852,9 @@ JNI libraries not built (NDF library not installed in ${stardev})"
        <!-- SUN Solaris >
        <resources os="SunOS" arch="sparc">
          <nativelib href="sparc/${name}_libs.jar"/>
+       </resources>
+       <resources os="SunOS" arch="x86">
+         <nativelib href="x86/${name}_libs.jar"/>
        </resources-->
 
        <!-- Mac OS X > 

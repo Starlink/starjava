@@ -40,10 +40,15 @@
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
-#  SUN Sparcstations running SunOS 5.x (Solaris).
-#  ---------------------------------------------
+#  SUN Sparcstations and PCs running SunOS.
+#  ----------------------------------------
             sun4_Solaris)
-               BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
+               if test "$JAVA_SYSTEM" = "x86"; then
+                  BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -lfui -lfai -lfsu -lsunmath -Bdynamic -lm -lc; f'
+                  JAVA_SYSTEM="solaris"
+               else
+                  BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
+               fi
                CC='cc'
                FC=${FC:=f77}
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -K PIC'
