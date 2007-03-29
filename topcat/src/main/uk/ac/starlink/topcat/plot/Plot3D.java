@@ -472,11 +472,15 @@ public abstract class Plot3D extends JPanel {
         for ( int ip = 0; ip < np; ip += step ) {
             long lp = (long) ip;
             boolean use = false;
+            boolean useErrors = false;
             for ( int is = 0; is < nset; is++ ) {
                 boolean included = sets[ is ].isIncluded( lp );
                 use = use || included;
-                showMarkPoints[ is ] = included && showPoints[ is ];
-                showMarkErrors[ is ] = included && showErrors[ is ];
+                boolean showP = included && showPoints[ is ];
+                boolean showE = included && showErrors[ is ];
+                useErrors = useErrors || showE;
+                showMarkPoints[ is ] = showP;
+                showMarkErrors[ is ] = showE;
             }
             if ( use ) {
                 nInclude++;
@@ -488,20 +492,19 @@ public abstract class Plot3D extends JPanel {
                     nVisible++;
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
-                        boolean done = false;
+                        if ( useErrors ) {
+                            points.getErrors( ip, loErrs, hiErrs );
+                            useErrors = useErrors &&
+                                transformErrors( trans, ranger, logFlags,
+                                                 hasErrors, centre, loErrs,
+                                                 hiErrs, xerrs, yerrs, zerrs );
+                        }
                         for ( int is = 0; is < nset; is++ ) {
                             boolean plotted = false;
-                            if ( showMarkErrors[ is ] ) {
-                                points.getErrors( ip, loErrs, hiErrs );
-                                if ( transformErrors( trans, ranger, logFlags,
-                                                      hasErrors, centre,
-                                                      loErrs, hiErrs,
-                                                      xerrs, yerrs, zerrs ) ) {
-                                    vol.plot3d( coords, is,
-                                                showMarkPoints[ is ], nerr,
-                                                xerrs, yerrs, zerrs );
-                                    plotted = true;
-                                }
+                            if ( useErrors && showMarkErrors[ is ] ) {
+                                vol.plot3d( coords, is, showMarkPoints[ is ],
+                                            nerr, xerrs, yerrs, zerrs );
+                                plotted = true;
                             }
                             if ( ! plotted && showMarkPoints[ is ] ) {
                                 vol.plot3d( coords, is );
