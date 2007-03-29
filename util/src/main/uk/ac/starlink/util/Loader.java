@@ -186,7 +186,9 @@ public class Loader {
             propfile = getPropertiesFile();
             pstrm = new FileInputStream( propfile );
             Properties starProps = new Properties();
-            starProps.load( new FileInputStream( propfile ) );
+            InputStream propIn = new FileInputStream( propfile );
+            starProps.load( propIn );
+            propIn.close();
             System.getProperties().putAll( starProps );
             logger.config( "Properties read from " + propfile );
         }

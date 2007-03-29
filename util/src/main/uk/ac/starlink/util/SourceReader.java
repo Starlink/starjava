@@ -202,12 +202,17 @@ public class SourceReader {
              * directly from that to the writer. */
             Reader rdr = getReader( src );
             if ( rdr != null ) {
-                if ( ! ( rdr instanceof BufferedReader ) ) {
-                    rdr = new BufferedReader( rdr );
+                try {
+                    if ( ! ( rdr instanceof BufferedReader ) ) {
+                        rdr = new BufferedReader( rdr );
+                    }
+                    int c;
+                    while ( ( c = rdr.read() ) > -1 ) {
+                        wr.write( c );
+                    }
                 }
-                int c;
-                while ( ( c = rdr.read() ) > -1 ) {
-                    wr.write( c );
+                finally {
+                    rdr.close();
                 }
             }
 
@@ -247,12 +252,17 @@ public class SourceReader {
              * bytes directly from that to the OutputStream. */
             InputStream istrm = getInputStream( src );
             if ( istrm != null ) {
-                if ( ! ( istrm instanceof BufferedInputStream ) ) {
-                    istrm = new BufferedInputStream( istrm );
+                try {
+                    if ( ! ( istrm instanceof BufferedInputStream ) ) {
+                        istrm = new BufferedInputStream( istrm );
+                    }
+                    int b;
+                    while ( ( b = istrm.read() ) > -1 ) {
+                        ostrm.write( b );
+                    }
                 }
-                int b;
-                while ( ( b = istrm.read() ) > -1 ) {
-                    ostrm.write( b );
+                finally {
+                    istrm.close();
                 }
             }
 
