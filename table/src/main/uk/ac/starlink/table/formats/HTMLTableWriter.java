@@ -81,7 +81,6 @@ public class HTMLTableWriter extends StreamStarTableWriter {
             if ( standalone ) {
                 printHeader( ostrm, table );
             }
-            StringBuffer sbuf = new StringBuffer();
             printLine( ostrm, "<TABLE BORDER='1'>" );
             String tname = table.getName();
             if ( tname != null ) {
@@ -91,7 +90,6 @@ public class HTMLTableWriter extends StreamStarTableWriter {
             }
 
             /* Output column headings. */
-            sbuf = new StringBuffer();
             int ncol = table.getColumnCount();
             ColumnInfo[] colinfos = Tables.getColumnInfos( table );
             String[] names = new String[ ncol ];

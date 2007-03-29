@@ -192,7 +192,7 @@ public class LatexTableWriter extends StreamStarTableWriter {
     protected void printFooter( OutputStream ostrm, StarTable startab ) 
             throws IOException {
         String tname = startab.getName();
-        if ( tname != null && tname.trim().toString().length() > 0 ) {
+        if ( tname != null && tname.trim().length() > 0 ) {
             printLine( ostrm, "\\caption{" + escape( tname ) + "}" );
         }
         printLine( ostrm, "\\end{table}" );
