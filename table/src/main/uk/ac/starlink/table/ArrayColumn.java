@@ -20,10 +20,13 @@ public abstract class ArrayColumn extends ColumnData {
      * @param   base   the template <tt>ColumnInfo</tt>
      * @param   data   the array used to hold the data
      */
-    ArrayColumn( ColumnInfo base, Object data ) {
+    ArrayColumn( final ColumnInfo base, Object data ) {
         super( new ColumnInfo( base ) {
             public void setContentClass( Class clazz ) {
-                throw new UnsupportedOperationException();
+                if ( ! clazz.equals( base.getContentClass() ) ) {
+                    throw new IllegalArgumentException( "Can't change class" );
+                }
+                super.setContentClass( clazz );
             }
         } );
         this.data = data;
