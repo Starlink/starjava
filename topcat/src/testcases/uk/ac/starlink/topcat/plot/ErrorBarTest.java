@@ -95,7 +95,8 @@ public class ErrorBarTest extends TestCase {
                 ypos += STEP;
                 g2.setColor( Color.BLUE );
                 Pixellator pixer =
-                    renderer.getPixels( g2, xpos, ypos, xoffs_, yoffs_ );
+                    renderer.getPixels( g2.getClipBounds(),
+                                        xpos, ypos, xoffs_, yoffs_ );
                 for ( pixer.start(); pixer.next(); ) {
                     g2.fillRect( pixer.getX(), pixer.getY(), 1, 1 );
                 }
