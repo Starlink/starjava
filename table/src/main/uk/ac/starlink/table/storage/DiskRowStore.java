@@ -35,7 +35,6 @@ import uk.ac.starlink.table.WrapperStarTable;
 public class DiskRowStore implements RowStore {
 
     private final File file_;
-    private boolean isTempFile_;
     private StarTable template_;
     private Codec[] codecs_;
     private List[] colSizeLists_;
@@ -81,7 +80,6 @@ public class DiskRowStore implements RowStore {
     public DiskRowStore() throws IOException {
         this( File.createTempFile( "DiskRowStore", ".bin" ) );
         file_.deleteOnExit();
-        isTempFile_ = true;
     }
 
     public void acceptMetadata( StarTable meta ) throws TableFormatException {
@@ -136,7 +134,6 @@ public class DiskRowStore implements RowStore {
 
         /* Calculate lookup tables for row and column start offsets. */
         ColumnWidth[] colWidths = new ColumnWidth[ ncol_ ];
-        int[][] widthArrays = new int[ ncol_ ][];
         boolean someVariable = false;
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnWidth cw;
@@ -182,7 +179,7 @@ public class DiskRowStore implements RowStore {
     /**
      * Finalizer deletes the temporary file used to cache the table data.
      */
-    public void finalize() throws Throwable {
+    protected void finalize() throws Throwable {
         try {
             if ( file_.exists() ) {
                 if ( file_.delete() ) {

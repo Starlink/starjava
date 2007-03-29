@@ -164,6 +164,7 @@ public class SidewaysRowStore implements RowStore {
                     colStore = new IndexedStreamColumnStore( codec, dataFile,
                                                              indexFile );
                 }
+                colStores_[ icol ] = colStore;
             }
         }
     }
@@ -235,7 +236,7 @@ public class SidewaysRowStore implements RowStore {
         }
     }
 
-    public void finalize() throws Throwable {
+    protected void finalize() throws Throwable {
         try {
             tidy();
         }
