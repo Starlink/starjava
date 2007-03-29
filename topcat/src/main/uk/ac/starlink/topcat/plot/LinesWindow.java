@@ -271,7 +271,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected void doReplot( PlotState state, Points points ) {
-        PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( (LinesPlotState) state );
         plot_.repaint();
@@ -789,7 +788,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 Range[] ranges = calculateRanges( state.getPointSelection(),
                                                   points, xLimits );
                 getAxisWindow().clearRanges();
-                AxisEditor[] axEds = getAxisWindow().getEditors();
                 if ( scaleX_ ) {
                     getDataRanges()[ 0 ] = ranges[ 0 ];
                     getViewRanges()[ 0 ].clear();

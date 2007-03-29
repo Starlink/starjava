@@ -678,7 +678,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     private void editStyle( final int index ) {
         final StyleWindow styler = getStyleWindow();
         TopcatModel tcModel = getTable();
-        RowSubset rset = (RowSubset) tcModel.getSubsets().get( index );
         final StyleAnnotator annotator = annotator_;
         final StyleEditor editor = styler.getEditor();
         styler.setTarget( new ActionListener() {

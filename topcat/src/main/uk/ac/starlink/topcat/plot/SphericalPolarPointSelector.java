@@ -372,7 +372,6 @@ public class SphericalPolarPointSelector extends PointSelector {
         }
 
         public RowSequence getRowSequence() {
-            final StarTable baseTable = tcModel_.getDataModel();
             final long nrow = getRowCount();
             return new RowSequence() {
                 long lrow_ = 0;

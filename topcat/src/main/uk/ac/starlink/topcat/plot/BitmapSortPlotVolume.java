@@ -24,7 +24,6 @@ import uk.ac.starlink.util.LongList;
 public class BitmapSortPlotVolume extends PlotVolume {
 
     private PointStore pointStore_;
-    private int iseq_;
     private final int xdim_;
     private final int ydim_;
     private final int xoff_;

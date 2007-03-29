@@ -709,7 +709,6 @@ public abstract class ScatterPlot extends SurfacePlot {
          * @param  g  graphics context
          */
         void draw( Graphics graphics ) {
-            Graphics2D g2 = (Graphics2D) graphics.create();
 
             /* Check that the points object is not empty and bail out if so.
              * I think this is a hack; we shouldn't be here if it is empty.

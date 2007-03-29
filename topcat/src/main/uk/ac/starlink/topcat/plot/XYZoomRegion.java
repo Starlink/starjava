@@ -138,10 +138,6 @@ public abstract class XYZoomRegion extends ZoomRegion {
          * @param  p1  second point
          */
         private void xorRegion( Point p0, Point p1 ) {
-            Rectangle rect = new Rectangle( Math.min( p0.x, p1.x ),
-                                            Math.min( p0.y, p1.y ),
-                                            Math.abs( p1.x - p0.x ),
-                                            Math.abs( p1.y - p0.y ) );
             if ( sense_.booleanValue() ) {
                 g_.drawRect( Math.min( p0.x, p1.x ), Math.min( p0.y, p1.y ),
                              Math.abs( p1.x - p0.x ), Math.abs( p1.y - p0.y ) );

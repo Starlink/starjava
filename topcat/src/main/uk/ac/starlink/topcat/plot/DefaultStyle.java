@@ -159,7 +159,6 @@ public abstract class DefaultStyle implements Style {
     }
 
     public String toString() {
-        StringBuffer sbuf = new StringBuffer();
         return new StringBuffer()
             .append( getClass().getName() )
             .append( getColor() )

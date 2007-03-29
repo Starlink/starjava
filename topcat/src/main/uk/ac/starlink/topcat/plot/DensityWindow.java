@@ -363,7 +363,6 @@ public class DensityWindow extends GraphicsWindow {
         blobPanel_.setActive( false );
 
         /* Send the plot component the most up to date plotting state. */
-        PlotState lastState = plot_.getState();
         plot_.setPoints( points );
         plot_.setState( state );
 

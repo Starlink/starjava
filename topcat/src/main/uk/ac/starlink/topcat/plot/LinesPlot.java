@@ -102,7 +102,6 @@ public abstract class LinesPlot extends JComponent {
         boolean xFlipFlag = state.getFlipFlags()[ 0 ];
         boolean[] yLogFlags = state.getYLogFlags();
         final boolean[] yFlipFlags = state.getYFlipFlags();
-        ValueInfo xInfo = state.getAxes()[ 0 ];
         ValueInfo[] yInfos = state.getYAxes();
         int ngraph = yInfos.length;
         double[] xRange = state.getRanges()[ 0 ];
