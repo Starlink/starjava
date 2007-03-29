@@ -13,10 +13,10 @@ import java.util.Arrays;
 public abstract class Rounder {
 
     /** Number rounder for linear scaling.  All values are >0. */
-    public static Rounder LINEAR = new LinearRounder();
+    public static final Rounder LINEAR = new LinearRounder();
 
     /** Number rounder for logarithmic scaling.  All values are >1. */
-    public static Rounder LOG = new LogRounder();
+    public static final Rounder LOG = new LogRounder();
 
     private static final double LOG10 = Math.log( 10. );
 

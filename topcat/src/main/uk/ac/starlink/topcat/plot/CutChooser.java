@@ -25,10 +25,10 @@ public class CutChooser extends JPanel {
 
     private final JSlider loSlider_;
     private final JSlider hiSlider_;
-    private final int SCALE = 10000;
     private final List changeListeners_;
     private boolean percentileLabels_ = true;
     private double min_ = 0.001;
+    private static final int SCALE = 10000;
 
     /**
      * Constructor.
