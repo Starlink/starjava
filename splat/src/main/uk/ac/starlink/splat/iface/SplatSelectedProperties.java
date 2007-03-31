@@ -10,13 +10,11 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -26,16 +24,12 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JSlider;
 import javax.swing.SwingConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import uk.ac.starlink.ast.gui.AstStyleBox;
 import uk.ac.starlink.ast.gui.ColourIcon;
-import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.util.gui.GridBagLayouter;

@@ -12,7 +12,6 @@ import jargs.gnu.CmdLineParser;
 import java.io.File;
 import java.util.Properties;
 import java.util.prefs.Preferences;
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.splat.ast.ASTJ;

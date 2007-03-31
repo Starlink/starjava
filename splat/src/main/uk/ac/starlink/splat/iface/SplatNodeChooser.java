@@ -13,11 +13,6 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;

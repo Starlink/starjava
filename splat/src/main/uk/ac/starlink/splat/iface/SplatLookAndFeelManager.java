@@ -193,7 +193,7 @@ public class SplatLookAndFeelManager implements ActionListener
      */
     public void setLookAndFeel( String look )
     {
-        if( defaultLook != look ) {
+        if( defaultLook.equals( look ) ) {
             defaultLook = look;
             themeMenu.setEnabled( look.equals( metal ) );
             updateLookAndFeel();
@@ -254,7 +254,7 @@ public class SplatLookAndFeelManager implements ActionListener
     public void setThemeFromName( String name )
     {
         for ( int i = 0; i < themeMapping.length; i++ ) {
-            if ( name.equals( themeMapping[i][0] ) ) {
+            if ( themeMapping[i][0].equals( name ) ) {
                 try {
                     Constructor ct = 
                         ((Class)themeMapping[i][1]).getConstructor(null);
@@ -306,7 +306,6 @@ public class SplatLookAndFeelManager implements ActionListener
     public void actionPerformed( ActionEvent e )
     {
         JMenuItem item = (JMenuItem) e.getSource();
-        String name = item.getText();
         setThemeFromName( item.getText() );
     }
 }
