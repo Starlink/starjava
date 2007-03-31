@@ -36,7 +36,6 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.diva.interp.Interpolator;
-import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
 import uk.ac.starlink.splat.util.Utilities;
@@ -47,8 +46,6 @@ import uk.ac.starlink.util.AsciiFileParser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.diva.InterpolatedCurveFigure;
-
-import uk.ac.starlink.diva.XRangeFigure;
 
 /**
  * ModelLineView is controller and view for any properties associated
@@ -274,8 +271,7 @@ public class ModelLineView
      */
     protected void createSpectrum( Interpolator interpolator )
     {
-        ModelLine line = new ModelLine( plot, model, colour,
-                                        interpolator, true );
+        new ModelLine( plot, model, colour, interpolator, true );
     }
 
     /**
@@ -287,8 +283,7 @@ public class ModelLineView
     protected void createSpectrum( Interpolator interpolator, 
                                    double[] props )
     {
-        ModelLine line = new ModelLine( plot, model, colour,
-                                        interpolator, props );
+        new ModelLine( plot, model, colour, interpolator, props );
     }
 
     /**

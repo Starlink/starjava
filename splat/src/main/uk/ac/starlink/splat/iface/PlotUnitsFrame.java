@@ -471,7 +471,6 @@ public class PlotUnitsFrame
         Set entrySet = dataUnitsMap.entrySet();
         Iterator i = entrySet.iterator();
         Map.Entry entry;
-        String value;
         dataUnitsBox.setSelectedIndex( 0 ); //  Unknown
         while ( i.hasNext() ) {
             entry = (Map.Entry) i.next();
@@ -611,7 +610,7 @@ public class PlotUnitsFrame
             // underlying frameset, so the changes are used when the plot
             // frameset is regenerated.
             FrameSet plotFrameSet = spec.getAst().getRef();
-            if ( origin.equals( "Default" ) ) {
+            if ( "Default".equals( origin ) ) {
                 if ( originDefault != 0.0 ) {
                     //  Transform to the new coordinates from the ones that
                     //  the default is in.
@@ -627,7 +626,7 @@ public class PlotUnitsFrame
                     spec.getFrameSet().clear( "SpecOrigin" );
                 }
             }
-            else if ( origin.equals( "RestFreq" ) ) {
+            else if ( "RestFreq".equals( origin ) ) {
                 //  Get the rest frequency, that's always in GHz.
                 double restfreq = plotFrameSet.getD( "RestFreq" );
                 //  Transform to the new coordinates from the ones that

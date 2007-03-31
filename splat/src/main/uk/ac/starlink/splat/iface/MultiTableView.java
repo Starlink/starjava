@@ -90,11 +90,7 @@ public class MultiTableView
      */
     public boolean exists( String name )
     {
-        if ( tabbedPane.indexOfTab( name ) == -1 ) {
-            return false;
-        } else {
-            return true;
-        }
+        return ( tabbedPane.indexOfTab( name ) != -1 );
     }
 
     /**

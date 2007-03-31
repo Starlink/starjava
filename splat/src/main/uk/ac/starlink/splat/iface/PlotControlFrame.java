@@ -14,7 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -28,7 +27,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -39,7 +37,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.gui.AstFigureStore;
 import uk.ac.starlink.ast.gui.AstAxes;
 import uk.ac.starlink.ast.gui.AxesControls;
@@ -49,7 +46,6 @@ import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
 import uk.ac.starlink.ast.gui.GraphicsHintsControls;
 import uk.ac.starlink.ast.gui.PlotConfigurator;
 import uk.ac.starlink.diva.DrawActions;
-import uk.ac.starlink.diva.DrawFigureStore;
 import uk.ac.starlink.diva.DrawGraphicsMenu;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -472,8 +468,6 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
-        ImageIcon fitsImage = new ImageIcon(
-            ImageHolder.class.getResource( "fits.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.

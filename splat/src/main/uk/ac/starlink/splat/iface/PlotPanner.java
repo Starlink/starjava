@@ -255,7 +255,7 @@ public class PlotPanner extends JPanel
 		inverse = forward.createInverse();
 	    }
 	    catch ( NoninvertibleTransformException e ) {
-		throw new RuntimeException( e.toString() );
+		throw new RuntimeException( e );
 	    }
 
             //  The position needs to accomodate for the rectangle

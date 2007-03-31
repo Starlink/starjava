@@ -20,20 +20,17 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.SpecFrame;
-import uk.ac.starlink.splat.data.LineIDMEMSpecDataImpl;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecDataImpl;
 import uk.ac.starlink.splat.data.LineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Class that makes any locally installed line identification files
@@ -86,7 +83,7 @@ public class LocalLineIDManager
     /**
      * Return reference to the single instance of this class.
      */
-    public static LocalLineIDManager getInstance()
+    public static synchronized LocalLineIDManager getInstance()
     {
         if ( instance == null ) {
             instance = new LocalLineIDManager();
@@ -171,7 +168,7 @@ public class LocalLineIDManager
      */
     protected void addLineIDs()
     {
-        if ( propsList.size() > 0 ) {
+        if ( ! propsList.isEmpty() ) {
             JMenu lineIDMenu = new JMenu( "Line identifiers" );
             targetMenu.add( lineIDMenu );
             buildMenus( lineIDMenu );
@@ -193,7 +190,6 @@ public class LocalLineIDManager
         String name;
         String parent;
         HashMap subMenus = new HashMap();
-        int index;
 
         Iterator i = propsList.iterator();
         while( i.hasNext() ) {

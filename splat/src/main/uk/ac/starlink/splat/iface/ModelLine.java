@@ -7,7 +7,6 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import diva.canvas.event.EventLayer;
 import diva.canvas.event.LayerListener;
 
 import java.awt.Color;
