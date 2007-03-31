@@ -99,7 +99,7 @@ public class CoordinateGeneratorFrame
         JMenu fileMenu = new JMenu( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
-        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         //  Menu of useful pre-defined functions.
         JMenu functions = new JMenu( "Functions" );

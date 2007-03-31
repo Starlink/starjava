@@ -45,7 +45,6 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.ExceptionDialog;
-import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.ast.gui.ScientificFormat;
@@ -316,18 +315,12 @@ public class DeblendFrame
         //  Get icons.
         ImageIcon closeImage =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
-        ImageIcon readImage =
-            new ImageIcon( ImageHolder.class.getResource( "read.gif" ) );
-        ImageIcon saveImage =
-            new ImageIcon( ImageHolder.class.getResource( "save.gif" ) );
         ImageIcon resetImage =
             new ImageIcon( ImageHolder.class.getResource( "reset.gif" ) );
         ImageIcon deleteImage =
             new ImageIcon( ImageHolder.class.getResource( "delete.gif" ) );
         ImageIcon deblendImage =
             new ImageIcon( ImageHolder.class.getResource( "deblend.gif" ) );
-        ImageIcon helpImage =
-            new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
 
         //  Create the File menu.
         fileMenu.setText( "File" );
@@ -373,7 +366,7 @@ public class DeblendFrame
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
-        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );

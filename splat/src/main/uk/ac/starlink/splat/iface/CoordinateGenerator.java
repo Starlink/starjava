@@ -12,9 +12,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
@@ -32,8 +30,6 @@ import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.ExceptionDialog;
-import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**

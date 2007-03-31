@@ -26,7 +26,6 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
@@ -107,7 +106,6 @@ public class AboutFrame extends JDialog
      * Initialize the user interface components.
      */
     protected void initUI()
-        throws Exception
     {
         setTitle( "About " + Utilities.getReleaseName() );
         JPanel mainPane = (JPanel) getContentPane();

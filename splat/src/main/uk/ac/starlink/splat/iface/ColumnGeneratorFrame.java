@@ -97,7 +97,7 @@ public class ColumnGeneratorFrame
         JMenu fileMenu = new JMenu( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
-        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         // Add the pre-defined functions menu.
         addPreDefined();

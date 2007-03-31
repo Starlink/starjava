@@ -8,35 +8,22 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.text.DecimalFormat;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.border.TitledBorder;
 import javax.swing.SwingConstants;
 
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.MathMap;
-import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
