@@ -132,8 +132,7 @@ public class LineFitViewModel
     public LineProperties getLine( int index )
     {
         try {
-            LineProperties props = (LineProperties) lineList.get( index );
-            return props;
+            return (LineProperties) lineList.get( index );
         } catch (Exception e) {
             return null;
         }
@@ -147,7 +146,6 @@ public class LineFitViewModel
     public void removeLine( int index )
     {
         try {
-            LineProperties props = (LineProperties) lineList.get( index );
             lineList.remove( index );
             fireTableRowsDeleted( index, index );
         } catch (Exception e) {

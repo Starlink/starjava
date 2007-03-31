@@ -16,7 +16,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.prefs.Preferences;
@@ -228,14 +227,6 @@ public class LineFitFrame
     }
 
     /**
-     * Free any locally allocated resources.
-     */
-    public void finalize() throws Throwable
-    {
-        super.finalize();
-    }
-
-    /**
      * Initialise the main part of the user interface.
      */
     protected void initUI()
@@ -401,8 +392,6 @@ public class LineFitFrame
             ImageHolder.class.getResource( "delete.gif" ) );
         ImageIcon fitImage = new ImageIcon(
             ImageHolder.class.getResource( "fitback.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
 
         //  Create the File menu.
         fileMenu.setText( "File" );

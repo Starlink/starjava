@@ -7,7 +7,6 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -18,16 +17,13 @@ import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.event.ListDataListener;
 
 import uk.ac.starlink.ast.Frame;
-import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.AssociatedLineIDSpecData;
 import uk.ac.starlink.splat.data.AssociatedLineIDTXTSpecDataImpl;
 import uk.ac.starlink.splat.data.EditableSpecData;

@@ -9,15 +9,12 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
 
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
 import java.awt.Graphics;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 
 import uk.ac.starlink.splat.data.SpecData;
-import uk.ac.starlink.splat.plot.PlotControl;
 
 /**
  * LineRenderer is a ListCellRenderer that displays a rendering of a SpecData

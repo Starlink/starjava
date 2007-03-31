@@ -213,7 +213,6 @@ public class LineFitView
     {
         if ( models[type] != null ) {
             LineProperties props = models[type].matchID( values );
-            boolean add = false;
             if ( props == null ) {
                 props = new LineProperties( type, plot );
                 props.setFields( values );
