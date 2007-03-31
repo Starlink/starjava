@@ -14,8 +14,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -188,7 +186,7 @@ public class ToolButtonBar
     //  Update the toolbar to display the current number of actions.
     private void updateToolBar()
     {
-        if ( toolBar == null || actions.size() == 0 ) return;
+        if ( toolBar == null || actions.isEmpty() ) return;
 
         //  Remove any existing buttons.
         toolBar.removeAll();

@@ -24,7 +24,6 @@ import javax.swing.table.TableColumnModel;
 
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.AsciiFileParser;
 
 /**
@@ -38,7 +37,6 @@ public class StatsRangesView
     extends XGraphicsRangesView
 {
     private PlotControl control = null;
-    private boolean tableInit = true;
 
     /**
      * Create an instance with default colour and constraint.
@@ -84,9 +82,8 @@ public class StatsRangesView
         if ( interactive ) {
             //  Raise the plot to indicate that an interaction should begin.
             SwingUtilities.getWindowAncestor( plot ).toFront();
-            StatsRange xRange = new StatsRange( control, 
-                                                (StatsRangesModel) model, 
-                                                colour, constrain, null );
+            new StatsRange( control, (StatsRangesModel) model, colour, 
+                            constrain, null );
         }
         else {
 
@@ -114,8 +111,8 @@ public class StatsRangesView
      */
     protected void createRange( double[] range )
     {
-        StatsRange xRange = new StatsRange( control, (StatsRangesModel) model, 
-                                            colour, constrain, range );
+        new StatsRange( control, (StatsRangesModel) model, colour, 
+                        constrain, range );
     }
 
     private void configureColumnWidths()
@@ -199,10 +196,6 @@ public class StatsRangesView
         }
 
         // Now write the data.
-        if ( model instanceof StatsRangesModel ) {
-            
-        }
-
         Iterator i = model.rangeIterator();
         StatsRange s = null;
         double[] range = null;
