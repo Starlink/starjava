@@ -27,7 +27,6 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -462,16 +461,16 @@ public class SimpleBinaryMaths
         public void actionPerformed( ActionEvent ae )
         {
             String cmd = ae.getActionCommand();
-            if ( cmd.equals( "Add" ) ) {
+            if ( "Add".equals( cmd ) ) {
                 operate( ADD );
             }
-            else if ( cmd.equals( "Subtract" ) ) {
+            else if ( "Subtract".equals( cmd ) ) {
                 operate( SUBTRACT );
             }
-            else if ( cmd.equals( "Divide" ) ) {
+            else if ( "Divide".equals( cmd ) ) {
                 operate( DIVIDE );
             }
-            else if ( cmd.equals( "Multiply" ) ) {
+            else if ( "Multiply".equals( cmd ) ) {
                 operate( MULTIPLY );
             }
             else {

@@ -48,7 +48,6 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PolynomialFitter;
-import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -394,8 +393,6 @@ public class PolyFitFrame
             ImageHolder.class.getResource( "delete.gif" ) );
         ImageIcon fitImage = new ImageIcon(
             ImageHolder.class.getResource( "fitback.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
 
         //  Create the File menu.
         fileMenu.setText( "File" );
