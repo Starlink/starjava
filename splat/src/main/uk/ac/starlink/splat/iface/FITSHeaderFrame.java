@@ -11,7 +11,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.prefs.Preferences;
 import java.util.Iterator;
@@ -25,7 +24,6 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -169,7 +167,7 @@ public class FITSHeaderFrame
     /**
      * Initialise frame properties (disposal, title, menus etc.).
      */
-    protected void initFrame()
+    private void initFrame()
     {
         setTitle( Utilities.getTitle( "FITS Headers" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );

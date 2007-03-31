@@ -12,7 +12,6 @@ import diva.canvas.interactor.SelectionListener;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
@@ -37,7 +36,6 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -248,7 +246,8 @@ public class XGraphicsRangesView
     }
 
     /**
-     * Invoked when the selected range changes.
+     * Invoked when the selected range changes. Should select the 
+     * corresponding graphic.
      */
     protected void selectionChanged( ListSelectionEvent e )
     {
@@ -301,9 +300,7 @@ public class XGraphicsRangesView
         if ( interactive ) {
             //  Raise the plot to indicate that an interaction should begin.
             SwingUtilities.getWindowAncestor( plot ).toFront();
-
-            XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
-                                                        constrain, null );
+            new XGraphicsRange( plot, model, colour, constrain, null );
         }
         else {
 
@@ -331,8 +328,7 @@ public class XGraphicsRangesView
      */
     protected void createRange( double[] range )
     {
-        XGraphicsRange xRange = new XGraphicsRange( plot, model, colour,
-                                                    constrain, range );
+        new XGraphicsRange( plot, model, colour, constrain, range );
     }
 
     /**
