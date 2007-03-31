@@ -12,7 +12,6 @@ import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -39,14 +38,12 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -66,10 +63,8 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.data.SpecDataImpl;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.RemoteServer;
@@ -686,7 +681,7 @@ public class SplatBrowser
         LocalAction browseAction  = new LocalAction( LocalAction.BROWSE,
                                                      "Browse", browseImage,
                                                      "Browse for spectra" );
-        fileMenu.add( browseAction ).setMnemonic( KeyEvent.VK_B );;
+        fileMenu.add( browseAction ).setMnemonic( KeyEvent.VK_B );
         toolBar.add( browseAction );
 
         //  Add action to re-open a list of spectra if possible.
@@ -724,7 +719,7 @@ public class SplatBrowser
         LocalAction saveStackAction =
             new LocalAction( LocalAction.SAVE_STACK, "Save stack",
                              saveStackImage, "Save all spectra to disk file" );
-        fileMenu.add( saveStackAction ).setMnemonic( KeyEvent.VK_V );;
+        fileMenu.add( saveStackAction ).setMnemonic( KeyEvent.VK_V );
 
         //  Add an action to exit application.
         ImageIcon exitImage =
@@ -786,7 +781,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.SELECT_PLOTS,
                              "Select all plots", null,
                              "Select all plots in list" );
-        editMenu.add( selectPlotAction ).setMnemonic( KeyEvent.VK_E );;
+        editMenu.add( selectPlotAction ).setMnemonic( KeyEvent.VK_E );
 
         //  Add an action to deselect all plots.
         LocalAction deSelectPlotAction =
@@ -827,7 +822,7 @@ public class SplatBrowser
                              "Purge empty spectra", null,
                              "Remove spectra that cannot be autoranged from" +
                              " global list" );
-        editMenu.add( purgeSpectraAction ).setMnemonic( KeyEvent.VK_P );;
+        editMenu.add( purgeSpectraAction ).setMnemonic( KeyEvent.VK_P );
     }
 
     /**
