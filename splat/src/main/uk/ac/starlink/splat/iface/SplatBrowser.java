@@ -765,7 +765,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.DESELECT_SPECTRA,
                              "Deselect all spectra", null,
                              "Deselect any spectra selected in list" );
-        editMenu.add( deSelectSpectraAction ).setMnemonic( KeyEvent.VK_D );;
+        editMenu.add( deSelectSpectraAction ).setMnemonic( KeyEvent.VK_D );
 
         //  Add an action to remove the selected plots.
         ImageIcon removePlotImage =
@@ -774,7 +774,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.REMOVE_PLOTS,
                              "Remove selected plots", removePlotImage,
                              "Close any plots selected in views list" );
-        editMenu.add( removePlotAction ).setMnemonic( KeyEvent.VK_R );;
+        editMenu.add( removePlotAction ).setMnemonic( KeyEvent.VK_R );
 
         //  Add an action to select all plots.
         LocalAction selectPlotAction =

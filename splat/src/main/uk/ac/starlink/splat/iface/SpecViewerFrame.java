@@ -578,7 +578,6 @@ public class SpecViewerFrame
 
         //  Copy the first part, i.e. up to the selected row into new arrays.
         int start = 0;
-        int end = index;
         System.arraycopy( coords, start, newCoords, start, index );
         System.arraycopy( values, start, newValues, start, index );
         if ( errors != null ) {
@@ -648,7 +647,7 @@ public class SpecViewerFrame
                 specDataChanged();
             }
             catch (SplatException e) {
-                ExceptionDialog eDialog = new ExceptionDialog( this, e );
+                new ExceptionDialog( this, e );
             }
         }
         else if ( specData.haveYDataErrors() ) {
@@ -738,7 +737,7 @@ public class SpecViewerFrame
                     specDataChanged();
                 }
                 catch (SplatException e) {
-                    ExceptionDialog eDialog = new ExceptionDialog( this, e );
+                    new ExceptionDialog( this, e );
                 }
             }
             else {
