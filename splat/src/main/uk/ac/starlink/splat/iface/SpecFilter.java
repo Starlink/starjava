@@ -20,7 +20,6 @@ import uk.ac.starlink.splat.util.BinFilter;
 import uk.ac.starlink.splat.util.KernelFactory;
 import uk.ac.starlink.splat.util.KernelFilter;
 import uk.ac.starlink.splat.util.MedianFilter;
-import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.WaveletFilter;
 

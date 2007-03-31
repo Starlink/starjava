@@ -215,8 +215,6 @@ public class SpecFilterFrame
             ImageHolder.class.getResource( "reset.gif" ) );
         ImageIcon filterImage = new ImageIcon(
             ImageHolder.class.getResource( "filter.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
 
         //  Create the File menu.
         fileMenu.setText( "File" );
@@ -545,7 +543,6 @@ public class SpecFilterFrame
                                    " coefficients");
 
         JLabel percentLabel = new JLabel( "Threshold (percent):   " );
-        ScientificFormat scientificFormat = new ScientificFormat();
         double value = prefs.getDouble("SpecFilterFrame_waveletpercent", 50.0);
         waveletPercent = new ScientificSpinner
             ( new SpinnerNumberModel( value, 0.0, 100.0, 1.0 ) );

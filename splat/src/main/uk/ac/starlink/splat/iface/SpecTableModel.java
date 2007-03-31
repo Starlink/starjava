@@ -296,7 +296,7 @@ public class SpecTableModel
                 globalList.notifySpecListenersChange( specData );
             }
             catch (Exception e) {
-                ExceptionDialog eDialog = new ExceptionDialog( null, e );
+                new ExceptionDialog( null, e );
             }
         }
     }
