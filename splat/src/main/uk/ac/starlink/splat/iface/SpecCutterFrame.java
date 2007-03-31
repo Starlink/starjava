@@ -13,7 +13,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
@@ -28,7 +27,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
@@ -158,8 +156,6 @@ public class SpecCutterFrame
             ImageHolder.class.getResource( "cutter.gif" ) );
         ImageIcon removeImage = new ImageIcon(
             ImageHolder.class.getResource( "erase.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
 
         //  Create the File menu.
         fileMenu.setText( "File" );

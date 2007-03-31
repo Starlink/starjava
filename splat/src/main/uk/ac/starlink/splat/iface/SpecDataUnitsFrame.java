@@ -18,7 +18,6 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -34,9 +33,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import uk.ac.starlink.ast.AstException;
-import uk.ac.starlink.ast.FluxFrame;
-import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -502,7 +498,7 @@ public class SpecDataUnitsFrame
         if ( source instanceof JComboBox ) {
             JComboBox jb = (JComboBox) source;
             String name = (String) jb.getSelectedItem();
-            if ( jb == unitsBox ) {
+            if ( jb.equals( unitsBox ) ) {
                 // Convert to real string from symbolic.
                 String units = (String) unitsMap.get( name );
                 if ( units != null ) {

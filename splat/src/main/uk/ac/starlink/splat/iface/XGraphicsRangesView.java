@@ -252,6 +252,7 @@ public class XGraphicsRangesView
     protected void selectionChanged( ListSelectionEvent e )
     {
         int index = e.getFirstIndex();
+        // XXX do something?
     }
 
     /**

@@ -7,17 +7,13 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import diva.canvas.event.EventLayer;
 import diva.canvas.event.LayerListener;
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import javax.swing.Action;
 
 import uk.ac.starlink.ast.Mapping;
-import uk.ac.starlink.diva.DragRegion;
 import uk.ac.starlink.diva.DrawActions;
 import uk.ac.starlink.diva.DrawFigureFactory;
 import uk.ac.starlink.diva.FigureChangedEvent;
