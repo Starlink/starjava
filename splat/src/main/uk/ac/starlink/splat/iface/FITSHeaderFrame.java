@@ -39,7 +39,6 @@ import javax.swing.table.TableColumn;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 
-import uk.ac.starlink.splat.data.FITSHeaderSource;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PrintUtilities;

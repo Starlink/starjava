@@ -11,7 +11,6 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -43,7 +42,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -53,7 +51,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
@@ -62,14 +59,12 @@ import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.ast.gui.ScientificSpinner;
-import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.PhysicalConstants;
@@ -359,7 +354,7 @@ public class FlipFrame
             new LocalAction( LocalAction.CLOSE_KEEP, "Close keep", 
                              closeImage, "Close window keeping shift",
                              "control K" );
-        fileMenu.add( closeKeepAction ).setMnemonic( KeyEvent.VK_K );;
+        fileMenu.add( closeKeepAction ).setMnemonic( KeyEvent.VK_K );
         JButton closeKeepButton = new JButton( closeKeepAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeKeepButton );
@@ -372,7 +367,7 @@ public class FlipFrame
         LocalAction closeAction = 
             new LocalAction( LocalAction.CLOSE, "Close", closeImage,
                              "Close window resetting shift", "control W" );
-        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );;
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
         JButton closeButton = new JButton( closeAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
@@ -694,7 +689,7 @@ public class FlipFrame
             (EditableSpecData) availableSpectra.getSelectedItem();
         if ( spectrum == null ) {
             //  No selected spectra, look for any on the changed list.
-            if ( storedPropertiesMap.size() > 0 ) {
+            if ( ! storedPropertiesMap.isEmpty() ) {
                 Iterator i = storedPropertiesMap.keySet().iterator();
                 spectrum = (EditableSpecData) i.next();
             }

@@ -59,8 +59,7 @@ public class FuzzyBooleanCellEditor
     {
         Object obj = super.getCellEditorValue();
         if ( obj instanceof FuzzyBoolean ) {
-            FuzzyBoolean fb = (FuzzyBoolean) super.getCellEditorValue();
-            return fb;
+            return obj;
         }
         return new FuzzyBoolean( FuzzyBoolean.FALSE );
     }

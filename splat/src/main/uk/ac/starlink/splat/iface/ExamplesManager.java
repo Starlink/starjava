@@ -10,7 +10,6 @@ package uk.ac.starlink.splat.iface;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,10 +39,6 @@ import uk.ac.starlink.splat.plot.PlotControl;
 public class ExamplesManager
     implements ActionListener
 {
-    // Logger.
-    private static Logger logger =
-        Logger.getLogger( "uk.ac.starlink.splat.iface.ExamplesManager" );
-
     /**
      * The menu to populate with the available examples.
      */
@@ -117,7 +112,7 @@ public class ExamplesManager
             item.addActionListener( this );
             item.setActionCommand( (String) fileNames.get(i) );
         }
-        if ( fileNames.size() > 0 ) {
+        if ( ! fileNames.isEmpty() ) {
             return true;
         }
         return false;

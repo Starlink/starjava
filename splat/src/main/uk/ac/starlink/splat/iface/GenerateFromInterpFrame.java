@@ -16,7 +16,6 @@ import java.awt.event.KeyEvent;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -25,7 +24,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -36,7 +34,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.diva.DrawActions;
@@ -296,16 +293,12 @@ public class GenerateFromInterpFrame
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "close.gif" ) );
-        ImageIcon readImage = new ImageIcon(
-            ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon interpolateImage = new ImageIcon(
             ImageHolder.class.getResource( "interpolate.gif" ) );
         ImageIcon resetImage = new ImageIcon(
             ImageHolder.class.getResource( "reset.gif" ) );
         ImageIcon deleteImage = new ImageIcon(
             ImageHolder.class.getResource( "delete.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
         ImageIcon curveImage = new ImageIcon(
             ImageHolder.class.getResource( "curve.gif" ) );
 

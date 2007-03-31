@@ -10,7 +10,6 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
-import java.awt.event.KeyEvent;
 import java.net.URL;
 
 import javax.help.HelpSetException;
@@ -19,7 +18,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
 
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -34,7 +32,7 @@ import uk.ac.starlink.splat.util.Utilities;
 public class HelpFrame
     extends uk.ac.starlink.help.HelpFrame
 {
-    protected HelpFrame()
+    private HelpFrame()
         throws HelpSetException
     {
         super();
@@ -79,7 +77,7 @@ public class HelpFrame
         if ( toolBar != null ) {
             try {
                 Component c = menu.getMenuComponent( menu.getItemCount() - 2 );
-                if ( c!= null && c instanceof JMenuItem ) {
+                if ( c instanceof JMenuItem ) {
                     Action action = ((JMenuItem)c).getAction();
                     toolBar.add( action );
                     action.putValue( Action.SHORT_DESCRIPTION, "Help on window" );
