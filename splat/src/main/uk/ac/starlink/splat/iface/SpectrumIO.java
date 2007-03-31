@@ -51,7 +51,7 @@ public class SpectrumIO
     /**
      * Return the reference to the single instance of SpectrumIO.
      */
-    public static SpectrumIO getInstance()
+    public static synchronized SpectrumIO getInstance()
     {
         if ( instance == null ) {
             instance = new SpectrumIO();
@@ -102,7 +102,7 @@ public class SpectrumIO
      * to shift by 10% before it even thinks about displaying, which means
      * single spectra never get a ProgressMonitor).
      */
-    private static int USTEP = 200;
+    private static final int USTEP = 200;
 
     /**
      * Load an array of spectra whose specifications are contained in the
