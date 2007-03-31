@@ -13,18 +13,14 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ComboBoxEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -52,7 +48,6 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
@@ -1044,7 +1039,6 @@ public class SpecCoordinatesFrame
             String refdec = "";
             String restfreq = "";
             String specorigin = "0";
-            String specoriginDefault = "0";
             String sourcevel = "";
             String sourcevrf = "";
             String sourcesys = "VELO";
@@ -1104,7 +1098,6 @@ public class SpecCoordinatesFrame
                         refdec = "";
                         restfreq = "";
                         specorigin = "0";
-                        specoriginDefault = "0";
                         sourcevel = "";
                         sourcesys = "VELO";
                         sourcevrf = "";
@@ -1288,28 +1281,28 @@ public class SpecCoordinatesFrame
         if ( source instanceof JComboBox ) {
             JComboBox jb = (JComboBox) source;
             String name = (String) jb.getSelectedItem();
-            if ( jb == systemBox ) {
+            if ( jb.equals( systemBox ) ) {
                 // Set related default units.
                 String units = (String) systemUnits.get( name );
                 if ( units != null ) {
                     systemUnitsBox.setSelectedItem( units );
                 }
             }
-            else if ( jb == systemUnitsBox ) {
+            else if ( jb.equals( systemUnitsBox ) ) {
                 // Convert to real string from symbolic.
                 String units = (String) unitsMap.get( name );
                 if ( units != null ) {
                     systemUnitsBox.setSelectedItem( units );
                 }
             }
-            else if ( jb == stdOfRestBox ) {
+            else if ( jb.equals( stdOfRestBox ) ) {
                 String restFrame = (String) stdOfRest.get( name );
                 //  TODO: toggle according to stuff...
             }
-            else if ( jb == observatoryBox ) {
+            else if ( jb.equals( observatoryBox ) ) {
                 setObservatory();
             }
-            else if ( jb == restFrequencyUnits ) {
+            else if ( jb.equals( restFrequencyUnits ) ) {
                 String units = (String) unitsMap.get( name );
                 if ( units != null ) {
                     restFrequencyUnits.setSelectedItem( units );

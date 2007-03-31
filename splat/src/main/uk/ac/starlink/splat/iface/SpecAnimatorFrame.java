@@ -8,7 +8,6 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
