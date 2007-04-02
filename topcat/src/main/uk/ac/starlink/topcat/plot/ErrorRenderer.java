@@ -100,6 +100,9 @@ public abstract class ErrorRenderer {
     private static final Pixellator NO_PIXELS = new Pixellator() {
         public void start() {
         }
+        public Rectangle getBounds() {
+            return null;
+        }
         public boolean next() {
             return false;
         }
@@ -261,7 +264,7 @@ public abstract class ErrorRenderer {
          * into the coordinate list if it has been painted on (alpha is
          * non-zero). */
         Raster raster = im.getData();
-        Drawing drawing = new Drawing();
+        Drawing drawing = new Drawing( raster.getBounds() );
         for ( int ix = 0; ix < xdim; ix++ ) {
             for ( int iy = 0; iy < ydim; iy++ ) {
                 int alpha = raster.getSample( ix, iy, 3 );
@@ -1331,7 +1334,7 @@ public abstract class ErrorRenderer {
 
         public Pixellator getPixels( Rectangle clip, int x, int y,
                                      int[] xoffs, int[] yoffs ) {
-            Drawing drawing = new Drawing();
+            Drawing drawing = new Drawing( clip );
             for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
                 int[][] offs = (int[][]) it.next();
                 drawing.addPixels( rend2d_.getPixels( clip, x, y,
