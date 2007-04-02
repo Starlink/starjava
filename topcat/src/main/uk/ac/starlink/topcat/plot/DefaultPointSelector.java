@@ -206,6 +206,13 @@ public class DefaultPointSelector extends PointSelector {
         return eds;
     }
 
+    public PointStore createPointStore( int npoint ) {
+        CartesianPointStore store =
+            new CartesianPointStore( ndim_, getErrorModes() );
+        store.init( npoint );
+        return store;
+    }
+
     protected void configureSelectors( TopcatModel tcModel ) {
         for ( int i = 0; i < ndim_; i++ ) {
             dataSelectors_[ i ].setTable( tcModel );
