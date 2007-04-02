@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,10 +32,8 @@ public class PointSelection {
     private final RowSubset[] subsets_;
     private final Style[] styles_;
     private final SetId[] setIds_;
-    private final ErrorMode[] errorModes_;
+    private final PointSelector mainSelector_;
 
-    private static final double MILLISECONDS_PER_YEAR =
-        365.25 * 24 * 60 * 60 * 1000;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -59,12 +56,10 @@ public class PointSelection {
     public PointSelection( PointSelector[] selectors, int[][] subsetPointers,
                            String[] subsetNames ) {
         nTable_ = selectors.length;
-        ndim_ = selectors[ 0 ].getNdim();
-        errorModes_ = selectors[ 0 ].getErrorModes();
+        mainSelector_ = selectors[ 0 ];
+        ndim_ = mainSelector_.getNdim();
         for ( int i = 0; i < nTable_; i++ ) {
-            if ( selectors[ i ].getNdim() != ndim_ ||
-                 ! Arrays.equals( errorModes_,
-                                  selectors[ i ].getErrorModes() ) ) {
+            if ( selectors[ i ].getNdim() != ndim_ ) {
                 throw new IllegalArgumentException();
             }
         }
@@ -136,45 +131,33 @@ public class PointSelection {
             npoint += Tables.checkedLongToInt( tcModels_[ itab ]
                                               .getDataModel().getRowCount() );
         }
-        ValueStorePoints points =
-            new ValueStorePoints( ndim_, npoint, errorModes_ );
+        PointStore pointStore = mainSelector_.createPointStore( npoint );
         if ( progress != null ) {
             progress.setMinimum( 0 );
             progress.setMaximum( npoint );
         }
         int step = Math.max( npoint / 100, 1000 );
         int ipoint = 0;
-        double[] coords = new double[ ndim_ ];
-        int nerr = errorModes_.length;
-        int nextent = 0;
-        for ( int ierr = 0; ierr < nerr; ierr++ ) {
-            nextent += errorModes_[ ierr ].getExtents().length;
-        }
-        double[] errors = new double[ nextent ];
-        boolean hasErrors = nextent > 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             RowSequence datSeq = null;
             RowSequence errSeq = null;
             try {
                 datSeq = dataTables_[ itab ].getRowSequence();
-                if ( hasErrors ) {
+                if ( errorTables_[ itab ] != null ) {
                     errSeq = errorTables_[ itab ].getRowSequence();
                 }
                 while ( datSeq.next() ) {
                     Object[] datRow = datSeq.getRow();
-                    for ( int idim = 0; idim < ndim_; idim++ ) {
-                        coords[ idim ] = doubleValue( datRow[ idim ] );
+                    Object[] errRow;
+                    if ( errSeq == null ) {
+                        errRow = null;
                     }
-                    points.putCoords( ipoint, coords );
-                    if ( hasErrors ) {
+                    else {
                         boolean hasNext = errSeq.next();
                         assert hasNext;
-                        Object[] errRow = errSeq.getRow();
-                        for ( int iext = 0; iext < nextent; iext++ ) {
-                            errors[ iext ] = doubleValue( errRow[ iext ] );
-                        }
-                        points.putErrors( ipoint, errors );
+                        errRow = errSeq.getRow();
                     }
+                    pointStore.storePoint( datRow, errRow );
                     ipoint++;
                     if ( ipoint % step == 0 && progress != null ) {
                         progress.setValue( ipoint );
@@ -183,7 +166,7 @@ public class PointSelection {
                         throw new InterruptedException();
                     }
                 }
-                assert ( ! hasErrors ) || ( ! errSeq.next() );
+                assert ( errSeq == null ) || ( ! errSeq.next() );
             }
             finally {
                 if ( datSeq != null ) {
@@ -195,7 +178,7 @@ public class PointSelection {
             }
         }
         assert ipoint == npoint;
-        return points;
+        return pointStore;
     }
 
     /**
@@ -390,8 +373,7 @@ public class PointSelection {
     public boolean sameData( PointSelection other ) {
         return other != null 
             && Arrays.equals( this.dataTables_, other.dataTables_ )
-            && Arrays.equals( this.errorTables_, other.errorTables_ )
-            && Arrays.equals( this.errorModes_, other.errorModes_ );
+            && Arrays.equals( this.errorTables_, other.errorTables_ );
     }
 
     public boolean equals( Object otherObject ) {
@@ -411,34 +393,11 @@ public class PointSelection {
             code = 23 * code + ( errorTables_[ itab ] == null
                                  ? 99 : errorTables_[ itab ].hashCode() );
         }
-        for ( int ierr = 0; ierr < errorModes_.length; ierr++ ) {
-            code = 23 * code + errorModes_[ ierr ].hashCode();
-        }
         for ( int i = 0; i < subsets_.length; i++ ) {
             code = 23 * code + subsets_[ i ].hashCode();
             code = 23 * code + styles_[ i ].hashCode();
         }
         return code;
-    }
-
-    /**
-     * Returns a numeric (double) value for the given object where it
-     * can be done.
-     *
-     * @param  value  value to decode
-     * @return   double precision equivalent
-     */
-    private static double doubleValue( Object value ) {
-        if ( value instanceof Number ) {
-            return ((Number) value).doubleValue();
-        }
-        else if ( value instanceof Date ) {
-            long milliseconds = ((Date) value).getTime();
-            return 1970.0 + milliseconds / MILLISECONDS_PER_YEAR;
-        }
-        else {
-            return Double.NaN;
-        }
     }
 
     /**
@@ -541,16 +500,16 @@ public class PointSelection {
         public int getNdim() {
             return ndim_;
         }
+        public int getNerror() {
+            return 0;
+        }
         public int getCount() {
             return 0;
         }
-        public void getCoords( int ipoint, double[] coords ) {
+        public double[] getPoint( int ipoint ) {
             throw new IllegalArgumentException( "no data" );
         }
-        public boolean[] hasErrors() {
-            return new boolean[ errorModes_.length ];
-        }
-        public void getErrors( int ipoint, double[] loErrs, double[] hiErrs ) {
+        public double[][] getErrors( int ipoint ) {
             throw new IllegalArgumentException( "no data" );
         }
     }
