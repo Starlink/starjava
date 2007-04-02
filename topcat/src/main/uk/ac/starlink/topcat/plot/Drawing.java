@@ -44,7 +44,7 @@ public class Drawing implements Pixellator {
      */
     public Drawing( Rectangle bounds ) {
         bounds_ = bounds;
-        pixelMask_ = new BitSet();
+        pixelMask_ = new BitSet( bounds.width * bounds.height );
     }
 
     public Rectangle getBounds() {
