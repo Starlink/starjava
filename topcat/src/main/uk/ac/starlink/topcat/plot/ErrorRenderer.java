@@ -74,6 +74,16 @@ public abstract class ErrorRenderer {
         new MultiPlaneRenderer( new FilledRectangle( "Filled Rectangle" ) ),
     };
 
+    private static final ErrorRenderer[] OPTIONS_SPHERE = new ErrorRenderer[] {
+        NONE,
+        DEFAULT,
+        new CappedLine( "Capped Lines", true, 3 ),
+        new CappedLine( "Caps", false, 3 ),
+        new OpenEllipse( "Ellipse", false ),
+        new OpenEllipse( "Crosshair Ellipse", true ),
+        new FilledEllipse( "Filled Ellipse" ),
+    };
+
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
@@ -295,6 +305,18 @@ public abstract class ErrorRenderer {
      */
     public static ErrorRenderer[] getOptions3d() {
         return (ErrorRenderer[]) OPTIONS_3D.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which can render errors suitable
+     * for spherical or spherical polar coordinates.
+     * The first two dimensions of offset values submitted to such renderers
+     * are the tangential ones, and the third, if present, is the radial one.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsSpherical() {
+        return (ErrorRenderer[]) OPTIONS_SPHERE.clone();
     }
 
     /**
