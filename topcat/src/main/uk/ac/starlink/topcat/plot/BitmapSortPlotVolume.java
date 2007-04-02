@@ -509,10 +509,10 @@ public class BitmapSortPlotVolume extends PlotVolume {
             Pixellator ePixer = vol.getStyles()[ istyle_ ].getErrorRenderer()
                                .getPixels( clip, 0, 0, xoffs_, yoffs_ );
             if ( showPoint_ ) {
-                Drawing drawing = new Drawing();
-                drawing.addPixels( vol.markPixoffs_[ istyle_ ] );
-                drawing.addPixels( ePixer );
-                return drawing;
+                return Drawing.combinePixellators( new Pixellator[] {
+                    vol.markPixoffs_[ istyle_ ],
+                    ePixer,
+                } );
             }
             else {
                 return ePixer;

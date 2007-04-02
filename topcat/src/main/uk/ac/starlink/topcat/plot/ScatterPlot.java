@@ -456,30 +456,48 @@ public abstract class ScatterPlot extends SurfacePlot {
                         nVisible++;
                         int base = xbase + xdim * ybase;
                         for ( int is = 0; is < nset; is++ ) {
-                            if ( showPointMarks[ is ] ) {
+                            boolean done = false;
+                            if ( showPointErrors[ is ] ) {
+                                double[][] errors = points.getErrors( ip );
+                                if ( transformErrors( point, coords, errors,
+                                                      surface, xoffs,
+                                                      yoffs ) ) {
+                                    Pixellator pixer;
+                                    Pixellator epixer =
+                                        styles[ is ].getErrorRenderer()
+                                       .getPixels( bufClip, xbase, ybase,
+                                                   xoffs, yoffs );
+                                    if ( showPointMarks[ is ] ) {
+                                        Pixellator mpixer =
+                                            new TranslatedPixellator(
+                                                styles[ is ].getPixelOffsets(), 
+                                                xbase, ybase );
+                                        pixer = Drawing.combinePixellators(
+                                            new Pixellator[] {
+                                                mpixer, epixer, 
+                                            }
+                                        );
+                                    }
+                                    else {
+                                        pixer = epixer;
+                                    }
+                                    for ( pixer.start(); pixer.next(); ) {
+                                        int ipix = pixer.getX()
+                                                 + pixer.getY() * xdim;
+                                        buffers[ is ][ ipix ]++;
+                                        mask.set( ipix );
+                                    }
+                                    done = true;
+                                }
+                            }
+                            if ( showPointMarks[ is ] && ! done ) {
                                 for ( int ioff = 0; ioff < npixoffs[ is ];
                                       ioff++ ) {
                                     int ipix = base + pixoffs[ is ][ ioff ];
                                     buffers[ is ][ ipix ]++;
                                     mask.set( ipix );
                                 }
-                            }
-                            if ( showPointErrors[ is ] ) {
-                                double[][] errors = points.getErrors( ip );
-                                if ( transformErrors( point, coords, errors,
-                                                      surface, xoffs,
-                                                      yoffs ) ) {
-                                    Pixellator epixer = 
-                                        styles[ is ].getErrorRenderer()
-                                       .getPixels( bufClip, xbase, ybase,
-                                                   xoffs, yoffs );
-                                    for ( epixer.start(); epixer.next(); ) {
-                                        int ipix = epixer.getX()
-                                                 + epixer.getY() * xdim;
-                                        buffers[ is ][ ipix ]++;
-                                        mask.set( ipix );
-                                    }
-                                }
+                                done = true;
                             }
                         }
                     }
