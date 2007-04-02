@@ -175,6 +175,10 @@ public class SphericalPolarPointSelector extends PointSelector {
         return new AxisEditor[] { ed };
     }
 
+    public PointStore createPointStore( int npoint ) {
+  return null;
+    }
+
     protected void configureSelectors( TopcatModel tcModel ) {
         if ( tcModel == null ) {
             phiSelector_.getModel().getColumnModel().setSelectedItem( null );
