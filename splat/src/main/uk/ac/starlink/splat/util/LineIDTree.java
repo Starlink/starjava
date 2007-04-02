@@ -326,7 +326,7 @@ public class LineIDTree
     {
         String s = label.trim();
         s = s.replaceAll( "  ", " " );  //  All repeated blanks with one.
-        s = s.replace( " - ", "-" );    //  " - " to "-"
+        s = s.replaceAll( " - ", "-" );    //  " - " to "-"
         s = s.replace( ' ', '_' );      //  " " to "_"
         return s;
     }
