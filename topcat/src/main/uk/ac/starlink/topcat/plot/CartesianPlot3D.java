@@ -49,69 +49,6 @@ public class CartesianPlot3D extends Plot3D {
         };
     }
 
-    protected boolean transformErrors( Transformer3D trans, RangeChecker ranger,
-                                       boolean[] logFlags, boolean[] hasErrors,
-                                       double[] coords, double[] loErrs,
-                                       double[] hiErrs, double[] xerrs,
-                                       double[] yerrs, double[] zerrs ) {
-
-        /* Initialise output error values. */
-        int nerr = xerrs.length;
-        assert nerr == yerrs.length;
-        assert nerr == zerrs.length;
-        for ( int ierr = 0; ierr < nerr; ierr++ ) {
-            xerrs[ ierr ] = Double.NaN;
-            yerrs[ ierr ] = Double.NaN;
-            zerrs[ ierr ] = Double.NaN;
-        }
-
-        /* Initialise other variables. */
-        double cx = coords[ 0 ];
-        double cy = coords[ 1 ];
-        double cz = coords[ 2 ];
-        boolean hasError = false;
-        int ierr = 0;
-
-        /* Transform errors from each Cartesian dimension in turn. */
-        for ( int idim = 0; idim < 3; idim++ ) {
-            if ( hasErrors[ idim ] ) {
-                double loErr = loErrs[ idim ];
-                if ( loErr > 0 ) {
-                    coords[ 0 ] = cx;
-                    coords[ 1 ] = cy;
-                    coords[ 2 ] = cz;
-                    coords[ idim ] -= loErr;
-                    if ( ranger.inRange( coords ) &&
-                         logize( coords, logFlags ) ) {
-                        trans.transform( coords );
-                        xerrs[ ierr ] = coords[ 0 ];
-                        yerrs[ ierr ] = coords[ 1 ];
-                        zerrs[ ierr ] = coords[ 2 ];
-                        hasError = true;
-                    }
-                }
-                ierr++;
-                double hiErr = hiErrs[ idim ];
-                if ( hiErr > 0 ) {
-                    coords[ 0 ] = cx;
-                    coords[ 1 ] = cy;
-                    coords[ 2 ] = cz;
-                    coords[ idim ] += hiErr;
-                    if ( ranger.inRange( coords ) &&
-                         logize( coords, logFlags ) ) {
-                        trans.transform( coords );
-                        xerrs[ ierr ] = coords[ 0 ];
-                        yerrs[ ierr ] = coords[ 1 ];
-                        zerrs[ ierr ] = coords[ 2 ];
-                        hasError = true;
-                    }
-                }
-                ierr++;
-            }
-        }
-        return hasError;
-    }
- 
     protected double getPadding( Plot3DState state, Graphics g,
                                  int[] padBorders ) {
         padBorders[ 0 ] = 2;

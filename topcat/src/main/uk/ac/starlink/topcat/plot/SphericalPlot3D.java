@@ -52,25 +52,6 @@ public class SphericalPlot3D extends Plot3D {
         };
     }
 
-    /**
-     * Dummy implementation; currently ignores errors.
-     */
-    protected boolean transformErrors( Transformer3D trans, RangeChecker ranger,
-                                       boolean[] logFlags, boolean[] hasErrors,
-                                       double[] coords, double[] loErrs,
-                                       double[] hiErrs, double[] xerrs,
-                                       double[] yerrs, double[] zerrs ) {
-        int nerr = xerrs.length;
-        assert nerr == yerrs.length;
-        assert nerr == zerrs.length;
-        for ( int ierr = 0; ierr < nerr; ierr++ ) {
-            xerrs[ ierr ] = Double.NaN;
-            yerrs[ ierr ] = Double.NaN;
-            zerrs[ ierr ] = Double.NaN;
-        }
-        return false;
-    }
-
     protected double getPadding( Plot3DState state, Graphics g, 
                                  int[] padBorders ) {
         Arrays.fill( padBorders, SPHERE_PAD );
