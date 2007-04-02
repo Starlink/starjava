@@ -5,9 +5,9 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.util.HashSet;
+import java.util.BitSet;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Provides drawing primitives on a pixel map.
@@ -27,16 +27,14 @@ import java.util.Set;
  */
 public class Drawing implements Pixellator {
 
-    private final Set pixelSet_;
+    private final BitSet pixelMask_;
     private final Rectangle bounds_;
-    private Iterator it_;
+    private int nextPointKey_ = Integer.MAX_VALUE;
     private Point point_;
 
-    private final static int MIN_POS = Short.MIN_VALUE;
-    private final static int MAX_DIM = Short.MAX_VALUE - Short.MIN_VALUE;
-    private final static Rectangle DEFAULT_BOUNDS =
-        new Rectangle( MIN_POS, MIN_POS, MAX_DIM, MAX_DIM );
     private static final Stroke STROKE = new BasicStroke();
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
     /**
      * Constructs a drawing with given pixel bounds.
@@ -46,14 +44,11 @@ public class Drawing implements Pixellator {
      */
     public Drawing( Rectangle bounds ) {
         bounds_ = bounds;
-        pixelSet_ = new HashSet();
+        pixelMask_ = new BitSet();
     }
 
-    /**
-     * Constructs a drawing with default bounds (these are quite large).
-     */
-    public Drawing() {
-        this( DEFAULT_BOUNDS );
+    public Rectangle getBounds() {
+        return new Rectangle( bounds_ );
     }
 
     /**
@@ -66,7 +61,16 @@ public class Drawing implements Pixellator {
      */
     public void addPixel( int x, int y ) {
         if ( bounds_.contains( x, y ) ) {
-            pixelSet_.add( new Point( x, y ) );
+            int xoff = x - bounds_.x;
+            int yoff = y - bounds_.y;
+            int packed = xoff + bounds_.width * yoff;
+            if ( xoff < Short.MAX_VALUE && yoff < Short.MAX_VALUE ) {
+                pixelMask_.set( packed );
+            }
+            else {
+                logger_.warning( "Attempt to draw outside of plotting area: "
+                            + "(" + x + ", " + y + ")" );
+            }
         }
     }
 
@@ -384,7 +388,7 @@ public class Drawing implements Pixellator {
      */
     public void addPixels( Pixellator pixellator ) {
         if ( pixellator instanceof Drawing ) {
-            pixelSet_.addAll( ((Drawing) pixellator).pixelSet_ );
+            pixelMask_.or( ((Drawing) pixellator).pixelMask_ );
         }
         else {
             for ( pixellator.start(); pixellator.next(); ) {
@@ -397,17 +401,20 @@ public class Drawing implements Pixellator {
     // Pixellator interface.
     //
     public void start() {
-        it_ = pixelSet_.iterator();
+        point_ = new Point();
+        nextPointKey_ = -1;
     }
 
     public boolean next() {
-        if ( it_.hasNext() ) {
-            point_ = (Point) it_.next();
+        nextPointKey_ = pixelMask_.nextSetBit( nextPointKey_ + 1 );
+        if ( nextPointKey_ >= 0 ) {
+            point_.x = nextPointKey_ % bounds_.width + bounds_.x;
+            point_.y = nextPointKey_ / bounds_.width + bounds_.y;
             return true;
         }
         else {
             point_ = null;
-            it_ = null;
+            nextPointKey_ = Integer.MAX_VALUE;
             return false;
         }
     }
@@ -418,5 +425,42 @@ public class Drawing implements Pixellator {
 
     public int getY() {
         return point_.y;
+    }
+
+    /**
+     * Combines an array of given pixellators to produce a single one which
+     * iterates over all the pixels.  It is tempting just to provide a
+     * new Pixellator implementation which iterates over its consituent
+     * ones to do this, but that would risk returning some pixels multiple
+     * times, which we don't want.
+     *
+     * @param  pixers   array of pixellators to combine
+     * @return   pixellator comprising the union of the supplied ones
+     */
+    public static Pixellator combinePixellators( Pixellator[] pixers ) {
+        Rectangle bounds = null;
+        for ( int is = 0; is < pixers.length; is++ ) {
+            Rectangle sbounds = pixers[ is ].getBounds();
+            if ( bounds != null ) {
+                if ( sbounds != null ) {
+                    bounds.add( new Rectangle( sbounds ) );
+                }
+            }
+            else {
+                bounds = new Rectangle( sbounds );
+            }
+        }
+        if ( bounds == null ) {
+            return new Drawing( new Rectangle( 0, 0, 0, 0 ) ) {
+                public Rectangle getBounds() {
+                    return null;
+                }
+            };
+        }
+        Drawing union = new Drawing( bounds );
+        for ( int is = 0; is < pixers.length; is++ ) {
+            union.addPixels( pixers[ is ] );
+        }
+        return union;
     }
 }
