@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,6 +32,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
@@ -754,6 +758,86 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         /* Forward the event to other listeners. */
         for ( Iterator it = topcatListeners_.iterator(); it.hasNext(); ) {
             ((TopcatListener) it.next()).modelChanged( evt );
+        }
+    }
+
+    /**
+     * Utility method to create an instance of a table column of indefinite
+     * length which contains zero in every row. 
+     * Any instance is <code>equal</code> to any other instance.
+     *
+     * @return   column containing zeros
+     */
+    public static ColumnData createZeroColumnData() {
+        final Number value = new Double( 0.0 );
+        return new ColumnData( new DefaultValueInfo( "Zero", Double.class,
+                                                     "Empty" ) ) {
+            public Object readValue( long irow ) {
+                return value;
+            }
+            public boolean equals( Object o ) {
+                return o != null && o.getClass().equals( this.getClass() );
+            }
+            public int hashCode() {
+                return getClass().hashCode();
+            }
+        };
+    }
+
+    /**
+     * Utility method to create a StarTable built from ColumnData objects.
+     * The returned table will implement the <code>equals</code>
+     * (and <code>hashCode</code>) methods in such a way as to
+     * recognise two tables with the same columns as the same table.
+     *
+     * @param   tcModel  topcat model
+     * @param   cols   array of columns
+     * @return   table
+     */
+    public static StarTable createColumnDataTable( TopcatModel tcModel,
+                                                   ColumnData[] cols ) {
+        return new ColumnDataTable( tcModel, cols );
+    }
+
+    /**
+     * Table class built up from ColumnData objects.  Implements equals().
+     */
+    private static class ColumnDataTable extends ColumnStarTable {
+
+        private final TopcatModel tcModel_;
+        private final ColumnData[] cols_;
+
+        /**
+         * Constructor.
+         *
+         * @param   tcModel  topcat model
+         * @param   cols   array of columns
+         */
+        ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
+            tcModel_ = tcModel;
+            cols_ = cols;
+            for ( int i = 0; i < cols.length; i++ ) {
+                addColumn( cols[ i ] );
+            }
+        }
+
+        public long getRowCount() {
+            return tcModel_.getDataModel().getRowCount();
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof ColumnDataTable ) {
+                ColumnDataTable other = (ColumnDataTable) o;
+                return this.tcModel_ == other.tcModel_
+                    && Arrays.equals( this.cols_, other.cols_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            return tcModel_.hashCode() + Arrays.asList( cols_ ).hashCode();
         }
     }
 

@@ -3,15 +3,12 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ColumnStarTable;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -33,7 +30,7 @@ public class DefaultPointSelector extends PointSelector {
     private final JComponent entryBox_;
 
     /** A column data object which contains zeroes. */
-    private static final ColumnData ZERO_COLUMN_DATA = new ZeroColumnData();
+    private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
 
     /**
      * Constructs a point selector with no error bar capability.
@@ -146,7 +143,7 @@ public class DefaultPointSelector extends PointSelector {
     }
 
     public StarTable getData() {
-        return new ColumnDataTable( getTable(), getColumns() );
+        return createColumnDataTable( getTable(), getColumns() );
     }
 
     /**
@@ -176,7 +173,7 @@ public class DefaultPointSelector extends PointSelector {
                 cols[ icol ] = ZERO_COLUMN_DATA;
             }
         }
-        return new ColumnDataTable( getTable(), cols );
+        return createColumnDataTable( getTable(), cols );
     }
 
     /**
@@ -207,10 +204,7 @@ public class DefaultPointSelector extends PointSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-        CartesianPointStore store =
-            new CartesianPointStore( ndim_, getErrorModes() );
-        store.init( npoint );
-        return store;
+        return new CartesianPointStore( ndim_, getErrorModes() ).init( npoint );
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
@@ -252,67 +246,5 @@ public class DefaultPointSelector extends PointSelector {
             name_ = name;
             models_ = (ToggleButtonModel[]) models.clone(); 
         }       
-    }
-
-    /**
-     * ColumnData implementation which contains only zeroes.
-     * Any instance is <code>equal</code> to any other instance.
-     */
-    private static class ZeroColumnData extends ColumnData {
-        private final Number value_ = new Double( 0.0 );
-        ZeroColumnData() {
-            super( new DefaultValueInfo( "Zero", Double.class, "Empty" ) );
-        }
-        public Object readValue( long irow ) {
-            return value_;
-        }
-        public boolean equals( Object o ) {
-            return o != null && o.getClass().equals( this.getClass() );
-        }
-        public int hashCode() {
-            return getClass().hashCode();
-        }
-    }
-
-    /**
-     * Table class built up from ColumnData objects.  Implements equals().
-     */
-    private static class ColumnDataTable extends ColumnStarTable {
-
-        private final TopcatModel tcModel_;
-        private final ColumnData[] cols_;
-
-        /**
-         * Constructor.
-         *
-         * @param   tcModel  topcat model
-         * @param   cols   array of columns
-         */
-        ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
-            tcModel_ = tcModel;
-            cols_ = cols;
-            for ( int i = 0; i < cols.length; i++ ) {
-                addColumn( cols[ i ] );
-            }
-        }
-
-        public long getRowCount() {
-            return tcModel_.getDataModel().getRowCount();
-        }
-
-        public boolean equals( Object o ) {
-            if ( o instanceof ColumnDataTable ) {
-                ColumnDataTable other = (ColumnDataTable) o;
-                return this.tcModel_ == other.tcModel_
-                    && Arrays.equals( this.cols_, other.cols_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        public int hashCode() {
-            return tcModel_.hashCode() + Arrays.asList( cols_ ).hashCode();
-        }
     }
 }
