@@ -85,6 +85,7 @@ public class DensityWindow extends GraphicsWindow {
         new SuffixFileFilter( new String[] { ".fits", ".fit", ".fts", } );
     private static FileFilter jpegFilter_ =
         new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
+    private static final String[] AXIS_NAMES = new String[] { "X", "Y" };
 
     /**
      * Constructs a new DensityWindow.
@@ -92,7 +93,8 @@ public class DensityWindow extends GraphicsWindow {
      * @param   parent   parent component (may be used for positioning)
      */
     public DensityWindow( Component parent ) {
-        super( "Density Plot", new String[] { "X", "Y" }, 0, parent );
+        super( "Density Plot", AXIS_NAMES, new ErrorModeSelectionModel[ 0 ],
+               parent );
 
         /* There's only one style set it makes sense to use for this window.
          * Construct it here. */

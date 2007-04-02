@@ -149,18 +149,18 @@ public abstract class GraphicsWindow extends AuxWindow {
         new SuffixFileFilter( new String[] { ".gif" } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
-        
+
     /**
      * Constructor.
      *
      * @param   viewName  name of the view window
      * @param   axisNames  array of labels by which each axis is known;
      *          the length of this array defines the dimensionality of the plot
-     * @param   nerror   the number of dimensions in which errors may
-     *          appear
+     * @param   errorModeModels   array of selecction models for error modes
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( String viewName, String[] axisNames, int nerror,
+    public GraphicsWindow( String viewName, String[] axisNames,
+                           ErrorModeSelectionModel[] errorModeModels,
                            Component parent ) {
         super( viewName, parent );
         axisNames_ = axisNames;
@@ -189,10 +189,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
 
         /* Error mode selectors. */
-        errorModeModels_ = new ErrorModeSelectionModel[ nerror ];
-        for ( int ierr = 0; ierr < nerror; ierr++ ) {
-            errorModeModels_[ ierr ] =
-                new ErrorModeSelectionModel( ierr, axisNames[ ierr ] );
+        errorModeModels_ = (ErrorModeSelectionModel[]) errorModeModels.clone();
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
             errorModeModels_[ ierr ].addActionListener( replotListener_ );
         }
 
@@ -1251,6 +1249,25 @@ public abstract class GraphicsWindow extends AuxWindow {
             || ( g instanceof Graphics2D
                  && ((Graphics2D) g).getDeviceConfiguration().getDevice()
                                     .getType() == GraphicsDevice.TYPE_PRINTER );
+    }
+
+    /**
+     * Creates a default set of ErrorModeSelectionModels given a list of
+     * axis names.
+     *
+     * @param   axisNames   array of axis names
+     * @return  array of error model selection models, one for each axis
+     */
+    public static ErrorModeSelectionModel[] createErrorModeModels(
+                                                  String[] axisNames ) {
+        int nerror = axisNames.length;
+        ErrorModeSelectionModel[] errorModeModels =
+            new ErrorModeSelectionModel[ nerror ];
+        for ( int ierr = 0; ierr < nerror; ierr++ ) {
+            errorModeModels[ ierr ] =
+                new ErrorModeSelectionModel( ierr, axisNames[ ierr ] );
+        }
+        return errorModeModels;
     }
 
     /**

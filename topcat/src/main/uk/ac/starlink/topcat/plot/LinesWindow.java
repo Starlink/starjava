@@ -90,7 +90,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", new String[] { "X", "Y" }, 0, parent );
+        super( "Line Plot", new String[] { "X", "Y" },
+               new ErrorModeSelectionModel[ 0 ], parent );
 
         /* Set some initial values. */
         activePoints_ = new int[ 0 ];

@@ -63,7 +63,8 @@ public class HistogramWindow extends GraphicsWindow {
      * @param  parent  parent component (may be used for positioning)
      */
     public HistogramWindow( Component parent ) {
-        super( "Histogram", new String[] { "X" }, 0, parent );
+        super( "Histogram", new String[] { "X" },
+               new ErrorModeSelectionModel[ 0 ], parent );
 
         /* Create the histogram plot itself.  Being a histogram, there's
          * no point zooming in such a way that the Y axis goes below zero,
