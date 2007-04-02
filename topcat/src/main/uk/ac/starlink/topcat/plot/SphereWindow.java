@@ -17,6 +17,9 @@ public class SphereWindow extends Plot3DWindow {
 
     private final ToggleButtonModel logToggler_;
 
+    private final static ErrorRenderer[] ERROR_RENDERERS =
+        ErrorRenderer.getOptionsSpherical();
+
     /**
      * Constructs a new window.
      *
@@ -24,12 +27,17 @@ public class SphereWindow extends Plot3DWindow {
      */
     public SphereWindow( Component parent ) {
         super( "Spherical Plot",
-               new String[] { "Longitude", "Latitude", "Radius" }, parent, 0,
-               new SphericalPlot3D() );
+               new String[] { "Longitude", "Latitude", "Radius" }, parent, 
+               createErrorModeSelectionModels(), new SphericalPlot3D() );
         logToggler_ =
             new ToggleButtonModel( "Log", ResourceIcon.XLOG,
                                    "Scale radius value logarithmically" );
         logToggler_.addActionListener( getReplotListener() );
+        for ( int ierr = 0; ierr < 2; ierr++ ) {
+            getToolBar().add( getErrorModeModels()[ ierr ]
+                             .createOnOffToolbarButton() );
+        }
+        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
         getToolBar().addSeparator();
         addHelp( "SphereWindow" );
     }
@@ -47,7 +55,8 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     protected PointSelector createPointSelector() {
-        return new SphericalPolarPointSelector( getStyles(), logToggler_ );
+        return new SphericalPolarPointSelector( getStyles(), logToggler_,
+                                                getErrorModeModels() );
     }
 
     /**
@@ -92,5 +101,18 @@ public class SphereWindow extends Plot3DWindow {
         else {
             return new Range[] { new Range( 0.0, 1.0 ) };
         }
+    }
+
+    /**
+     * Constructs custom error mode selector array for SphereWindow
+     * (used in constructor).
+     *
+     * @return   error mode selector model array for use with SphereWindow
+     */
+    private static ErrorModeSelectionModel[] createErrorModeSelectionModels() {
+        return new ErrorModeSelectionModel[] {
+            new ErrorModeSelectionModel( 0, "Tangent" ),
+            new ErrorModeSelectionModel( 2, "Radius" ),
+        };
     }
 }
