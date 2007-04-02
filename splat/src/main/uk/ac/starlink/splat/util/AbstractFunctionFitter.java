@@ -7,8 +7,6 @@
  */
 package uk.ac.starlink.splat.util;
 
-import uk.ac.starlink.splat.data.AnalyticSpectrum;
-
 /**
  * Abstract class of for {@link FunctionFitter}s that perform fitting
  * of a  function to a spectral line using a {@link LevMarq}
