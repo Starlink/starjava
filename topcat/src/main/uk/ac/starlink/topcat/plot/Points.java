@@ -1,19 +1,13 @@
 package uk.ac.starlink.topcat.plot;
 
 /**
- * Encapsulates a list of N-dimensional points in data space.
+ * Encapsulates a list of N-dimensional points in data space, perhaps with
+ * additional information about error bounds.
  *
  * @author   Mark Taylor (Starlink)
  * @since    16 June 2004
  */
 public interface Points {
-
-    /**
-     * Returns the dimensionality of this point set.
-     *
-     * @return  number of coordinates in each point
-     */
-    int getNdim();
 
     /**
      * Returns the number of points in this dataset.
@@ -23,35 +17,44 @@ public interface Points {
     int getCount();
 
     /**
+     * Returns the length of the coordinate array for each point.
+     *
+     * @return  number of coordinate values at each point
+     */
+    int getNdim();
+
+    /**
      * Reads the coordinates of one of the stored points.
+     * The returned array may be modified by subsequent calls to this method.
+     * The caller is also permitted to modify it.
      *
      * @param   ipoint  point index
-     * @param   coords  an array to receive the data; must be at least
-     *          <code>ndim</code> elements
+     * @return  coords  an ndim-element array containing point coordinates
      */
-    void getCoords( int ipoint, double[] coords );
+    double[] getPoint( int ipoint );
 
     /**
-     * Indicates which dimensions may have associated error information.
-     * Elements of the returned array which are false indicate that
-     * the corresponding elements of the lower and upper error arrays 
-     * read by {@link #getErrors} will be zero for all points.
-     * The returned array may be of length <code>ndim</code>, but is
-     * not necessarily so.
+     * Returns the number of error points returned for each point.
      *
-     * @return  map of flags indicating which dimensions have error information
+     * @return  number of error values at each point
      */
-    boolean[] hasErrors();
+    int getNerror();
 
     /**
-     * Reads the error values for one of the stored points.
-     * The lower and upper error values are read respectively into 
-     * two supplied arrays.  These arrays must have (at least) the 
-     * same length as that of the array returned by {@link #hasErrors}.
+     * Reads the errors for one of the stored points.
+     * The returned value is an array of <code>nerror</code> double[] arrays,
+     * each of which has <code>ndim</code> elements and represents the
+     * coordinates of the end of an error bar.  If any of these
+     * coordinate arrays is <code>null</code>, it represents an error
+     * bar of zero size, that is one whose end sits right on the data point.
+     * The ordering of these points is up to the user of this object,
+     * but typically they will be in pairs, e.g. (xlo,xhi, ylo,hi, ...).
+     * The content of the returned double[][] array and of its elements
+     * may be modified by subsequent calls to this method.  The caller is
+     * also permitted to modify these.
      *
      * @param   ipoint  point index
-     * @param   loErrs  an array to receive the lower error values
-     * @param   hiErrs  an array to receive the upper error values
+     * @return  double[nerr][ndim] array with error extremum coordinates
      */
-    void getErrors( int ipoint, double[] loErrs, double[] hiErrs );
+    double[][] getErrors( int ipoint );
 }
