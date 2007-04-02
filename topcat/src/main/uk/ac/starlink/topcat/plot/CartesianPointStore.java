@@ -79,8 +79,9 @@ public class CartesianPointStore implements PointStore {
      * Initialises this object to receive points.
      *
      * @param  npoint  number of times {@link #storePoint} will be called.
+     * @return  this object, for convenience
      */
-    public void init( int npoint ) {
+    public CartesianPointStore init( int npoint ) {
         ValueStore store = createDoubleStore( nword_ * npoint );
         if ( ! double.class.equals( store.getType() ) ) {
             throw new RuntimeException( "Bad value store type" );
@@ -88,6 +89,7 @@ public class CartesianPointStore implements PointStore {
         valueStore_ = store;
         npoint_ = npoint;
         int ipoint_ = 0;
+        return this;
     }
 
     public void storePoint( Object[] coordRow, Object[] errorRow ) {
