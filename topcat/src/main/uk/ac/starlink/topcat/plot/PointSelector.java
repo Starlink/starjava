@@ -292,7 +292,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
      * The store will have to store <code>npoint</code> points, and
      * its {@link PointStore#storePoint} method will be called with 
      * the result of acquiring rows from the tables got from this
-     * selector's {@link #getData} and {@link getErrorData} methods.
+     * selector's {@link #getData} and {@link #getErrorData} methods.
      *
      * @param   npoint  number of points to store
      * @return   new point store

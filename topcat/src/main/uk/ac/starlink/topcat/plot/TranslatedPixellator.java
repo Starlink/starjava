@@ -20,7 +20,7 @@ public class TranslatedPixellator implements Pixellator {
      *
      * @param   base  base pixellator
      * @param   x     distance to translate in X direction
-     * @parm    y     distance to translate in Y direction
+     * @param   y     distance to translate in Y direction
      */
     public TranslatedPixellator( Pixellator base, int x, int y ) {
         base_ = base;

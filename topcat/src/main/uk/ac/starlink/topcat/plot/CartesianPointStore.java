@@ -42,7 +42,7 @@ public class CartesianPointStore implements PointStore {
      * Constructor.
      * Note that {@link #init} must be called before this object can be used.
      *
-     * @param  ncoord  coordinate dimensionality
+     * @param  ndim  coordinate dimensionality
      * @param  errorModes   error mode array
      */
     public CartesianPointStore( int ndim, ErrorMode[] errorModes ) {
