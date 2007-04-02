@@ -977,9 +977,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         RowSubset[] sets = pointSelection.getSubsets();
         int nset = sets.length;
         int npoint = points.getCount();
-        double[] coords = new double[ ndim ];
         for ( int ip = 0; ip < npoint; ip++ ) {
-            points.getCoords( ip, coords );
+            double[] coords = points.getPoint( ip );
             boolean isValid = true;
             for ( int idim = 0; idim < ndim && isValid; idim++ ) {
                 isValid = isValid && ( ! Double.isNaN( coords[ idim ] ) &&

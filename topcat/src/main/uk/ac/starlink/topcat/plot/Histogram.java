@@ -200,10 +200,9 @@ public abstract class Histogram extends SurfacePlot {
         int nset = rsets.length;
         Points points = getPoints();
         int np = points.getCount();
-        double[] coords = new double[ 1 ];
         BitSet mask = new BitSet();
         for ( int ip = 0; ip < np; ip++ ) {
-            points.getCoords( ip, coords );
+            double[] coords = points.getPoint( ip );
             double x = coords[ 0 ];
             if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
                 if ( x >= xbot && x <= xtop ) {
@@ -235,11 +234,10 @@ public abstract class Histogram extends SurfacePlot {
 
         /* Populate it. */
         int np = points.getCount();
-        double[] coords = new double[ 1 ];
         boolean[] setFlags = new boolean[ nset ];
         for ( int ip = 0; ip < np; ip++ ) {
             long lp = (long) ip;
-            points.getCoords( ip, coords );
+            double[] coords = points.getPoint( ip );
             double x = coords[ 0 ];
             if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
                 for ( int is = 0; is < nset; is++ ) {

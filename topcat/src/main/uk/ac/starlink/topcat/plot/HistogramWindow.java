@@ -425,11 +425,10 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Populate it. */
         int np = points.getCount();
-        double[] coords = new double[ 1 ];
         boolean[] setFlags = new boolean[ nset ];
         for ( int ip = 0; ip < np; ip++ ) {
             long lp = (long) ip;
-            points.getCoords( ip, coords );
+            double[] coords = points.getPoint( ip );
             double x = coords[ 0 ];
             if ( x >= xlo && x <= xhi ) {
                 for ( int is = 0; is < nset; is++ ) {

@@ -499,9 +499,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         /* Go through all the data finding extrema. */
         RowSubset[] sets = pointSelection.getSubsets();
         int npoint = points.getCount();
-        double[] coords = new double[ 2 ];
         for ( int ip = 0; ip < npoint; ip++ ) {
-            points.getCoords( ip, coords );
+            double[] coords = points.getPoint( ip );
             double x = coords[ 0 ];
             double y = coords[ 1 ];
             if ( x >= xlo && x <= xhi && y >= ylo && y <= yhi ) {

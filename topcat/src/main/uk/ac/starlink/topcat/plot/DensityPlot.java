@@ -295,10 +295,9 @@ public abstract class DensityPlot extends SurfacePlot {
         Points points = getPoints();
         int np = points.getCount();
         PlotSurface surface = getSurface();
-        double[] coords = new double[ 2 ];
         for ( int ip = 0; ip < np; ip++ ) {
             if ( visible_.get( ip ) ) {
-                points.getCoords( ip, coords );
+                double[] coords = points.getPoint( ip );
                 Point gpos = surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                      false );
                 assert gpos != null;
@@ -373,7 +372,6 @@ public abstract class DensityPlot extends SurfacePlot {
             int nset = rsets.length;
             Points points = getPoints();
             int np = points.getCount();
-            double[] coords = new double[ 2 ];
             BitSet visible = new BitSet();
             BinGrid[] grids;
 
@@ -403,7 +401,7 @@ public abstract class DensityPlot extends SurfacePlot {
                     use = use || inc;
                 }
                 if ( use ) {
-                    points.getCoords( ip, coords );
+                    double[] coords = points.getPoint( ip );
                     if ( ! Double.isNaN( coords[ 0 ] ) &&
                          ! Double.isNaN( coords[ 1 ] ) &&
                          ! Double.isInfinite( coords[ 0 ] ) &&

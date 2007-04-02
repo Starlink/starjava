@@ -69,11 +69,10 @@ public class SphereWindow extends Plot3DWindow {
             RowSubset[] sets = pointSelection.getSubsets();
             int nset = sets.length;
             int npoint = points.getCount();
-            double[] coords = new double[ 3 ];
             double r2max = 0.0;
             for ( int ip = 0; ip < npoint; ip++ ) {
                 long lp = (long) ip;
-                points.getCoords( ip, coords );
+                double[] coords = points.getPoint( ip );
                 boolean isUsed = false;
                 for ( int is = 0; is < nset && ! isUsed; is++ ) {
                     isUsed = isUsed || sets[ is ].isIncluded( lp );

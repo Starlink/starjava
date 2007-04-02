@@ -267,7 +267,6 @@ public abstract class LinesPlot extends JComponent {
         Style[] styles = state.getPointSelection().getStyles();
         int[] graphIndices = state.getGraphIndices();
         int nset = sets.length;
-        double[] coords = new double[ 2 ];
         for ( int iset = 0; iset < nset; iset++ ) {
             MarkStyle style = (MarkStyle) styles[ iset ];
             GraphSurface graph = graphs[ graphIndices[ iset ] ];
@@ -285,7 +284,7 @@ public abstract class LinesPlot extends JComponent {
                 for ( int ix = 0; ix < npoint; ix++ ) {
                     int ip = sequence_ == null ? ix : sequence_[ ix ];
                     if ( rset.isIncluded( (long) ip ) ) {
-                        points.getCoords( ip, coords );
+                        double[] coords = points.getPoint( ip );
                         Point point =
                             graph.dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                   noLines );
@@ -314,7 +313,7 @@ public abstract class LinesPlot extends JComponent {
                 }
             }
             if ( surface != null && points.getCount() > 0 ) {
-                points.getCoords( ip, coords );
+                double[] coords = points.getPoint( ip );
                 Point point =
                     surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
                 if ( point != null ) {
@@ -346,7 +345,6 @@ public abstract class LinesPlot extends JComponent {
         RowSubset[] sets = state_.getPointSelection().getSubsets();
         int nset = sets.length;
         BitSet inRange = new BitSet();
-        double[] coords = new double[ 2 ];
         for ( int ip = 0; ip < npoint; ip++ ) {
             long lp = (long) ip;
             boolean use = false;
@@ -354,7 +352,7 @@ public abstract class LinesPlot extends JComponent {
                 use = use || sets[ is ].isIncluded( lp );
             }
             if ( use ) {
-                points.getCoords( ip, coords );
+                double[] coords = points.getPoint( ip );
                 double x = coords[ 0 ];
                 if ( x >= xlo && x <= xhi ) {
                     inRange.set( ip );
@@ -385,7 +383,6 @@ public abstract class LinesPlot extends JComponent {
         return new PointIterator() {
             int ip = -1;
             int[] point = new int[ 3 ];
-            double[] coords = new double[ 2 ];
             protected int[] nextPoint() {
                 while ( ++ip < npoint ) {
                     long lp = (long) ip;
@@ -396,7 +393,7 @@ public abstract class LinesPlot extends JComponent {
                         }
                     }
                     if ( surface != null ) {
-                        points.getCoords( ip, coords );
+                        double[] coords = points.getPoint( ip );
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point p = surface.dataToGraphics( x, y, true );
@@ -476,7 +473,6 @@ public abstract class LinesPlot extends JComponent {
      */
     private int[] sortX( Points points ) {
         int npoint = points.getCount();
-        double[] coords = new double[ 2 ];
 
         /* As an optimisation, check if the points are sorted by X already.
          * This will often be the case and we can save ourselves construction
@@ -484,7 +480,7 @@ public abstract class LinesPlot extends JComponent {
         boolean sorted = true;
         double last = Double.NaN;
         for ( int i = 0; i < npoint && sorted; i++ ) {
-            points.getCoords( i, coords );
+            double[] coords = points.getPoint( i );
             if ( coords[ 0 ] < last ) {
                 sorted = false;
             }
@@ -532,7 +528,7 @@ public abstract class LinesPlot extends JComponent {
         /* Construct and populate an array representing the points data. */
         Item[] items = new Item[ npoint ];
         for ( int i = 0; i < npoint; i++ ) {
-            points.getCoords( i, coords );
+            double[] coords = points.getPoint( i );
             items[ i ] = new Item( i, coords[ 0 ] );
         }
 
