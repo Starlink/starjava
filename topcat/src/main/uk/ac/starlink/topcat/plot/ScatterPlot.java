@@ -132,7 +132,6 @@ public abstract class ScatterPlot extends SurfacePlot {
         }
 
         /* Join the dots as required. */
-        double[] coords = new double[ 2 ];
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
             if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
@@ -145,7 +144,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                 boolean notFirst = false;
                 for ( int ip = 0; ip < np; ip++ ) {
                     if ( set.isIncluded( (long) ip ) ) {
-                        points.getCoords( ip, coords );
+                        double[] coords = points.getPoint( ip );
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, false );
@@ -181,7 +180,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                 int maxr2 = maxr * 2;
                 for ( int ip = 0; ip < np; ip++ ) {
                     if ( set.isIncluded( (long) ip ) ) {
-                        points.getCoords( ip, coords );
+                        double[] coords = points.getPoint( ip );
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, true );
@@ -262,7 +261,6 @@ public abstract class ScatterPlot extends SurfacePlot {
         return new PointIterator() {
             int ip = -1;
             int[] point = new int[ 3 ];
-            double[] coords = new double[ 2 ];
             protected int[] nextPoint() {
                 while ( ++ip < np ) {
                     boolean use = false;
@@ -270,7 +268,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                         use = use || sets[ is ].isIncluded( (long) ip );
                     }
                     if ( use ) {
-                        points.getCoords( ip, coords );
+                        double[] coords = points.getPoint( ip );
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point p = surface.dataToGraphics( x, y, true );
@@ -308,11 +306,7 @@ public abstract class ScatterPlot extends SurfacePlot {
         int nIncluded = 0;
         int nVisible = 0;
         int nset = sets.length;
-        double[] coords = new double[ 2 ];
-        double[] loErrs = new double[ 2 ];
-        double[] hiErrs = new double[ 2 ];
-        boolean[] hasErrors = points.hasErrors();
-        int noff = ( hasErrors[ 0 ] ? 2 : 0 ) + ( hasErrors[ 1 ] ? 2 : 0 );
+        int noff = points.getNerror();
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ];
         for ( int is = 0; is < nset; is++ ) {
@@ -327,7 +321,7 @@ public abstract class ScatterPlot extends SurfacePlot {
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( set.isIncluded( (long) ip ) ) {
                     nIncluded++;
-                    points.getCoords( ip, coords );
+                    double[] coords = points.getPoint( ip );
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
                     Point point = surface.dataToGraphics( x, y, true );
@@ -340,10 +334,9 @@ public abstract class ScatterPlot extends SurfacePlot {
                             style.drawMarker( g, xp, yp );
                         }
                         if ( showErrors ) {
-                            points.getErrors( ip, loErrs, hiErrs );
-                            if ( transformErrors( point, coords, loErrs, hiErrs,
-                                                  surface, hasErrors,
-                                                  xoffs, yoffs ) ) {
+                            double[][] errors = points.getErrors( ip );
+                            if ( transformErrors( point, coords, errors,
+                                                  surface, xoffs, yoffs ) ) {
                                 Rectangle bbox =
                                     errorRenderer.getBounds( xp, yp,
                                                              xoffs, yoffs );
@@ -431,12 +424,8 @@ public abstract class ScatterPlot extends SurfacePlot {
          * that subset's marker.  This will give us, for each subset, 
          * a raster buffer which contains values indicating how many 
          * times each of its pixels has been painted. */
-        boolean[] hasErrors = points.hasErrors();
         BitSet mask = new BitSet( npix );
-        double[] coords = new double[ 2 ];
-        double[] loErrs = new double[ 2 ];
-        double[] hiErrs = new double[ 2 ];
-        int noff = ( hasErrors[ 0 ] ? 2 : 0 ) + ( hasErrors[ 1 ] ? 2 : 0 );
+        int noff = points.getNerror();
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ];
         boolean[] showPointMarks = new boolean[ nset ];
@@ -453,7 +442,7 @@ public abstract class ScatterPlot extends SurfacePlot {
             }
             if ( use ) {
                 nIncluded++;
-                points.getCoords( ip, coords );
+                double[] coords = points.getPoint( ip );
                 double x = coords[ 0 ];
                 double y = coords[ 1 ];
                 Point point = surface.dataToGraphics( x, y, true );
@@ -476,11 +465,10 @@ public abstract class ScatterPlot extends SurfacePlot {
                                 }
                             }
                             if ( showPointErrors[ is ] ) {
-                                points.getErrors( ip, loErrs, hiErrs );
-                                if ( transformErrors( point, coords,
-                                                      loErrs, hiErrs,
-                                                      surface, hasErrors,
-                                                      xoffs, yoffs ) ) {
+                                double[][] errors = points.getErrors( ip );
+                                if ( transformErrors( point, coords, errors,
+                                                      surface, xoffs,
+                                                      yoffs ) ) {
                                     Pixellator epixer = 
                                         styles[ is ].getErrorRenderer()
                                        .getPixels( bufClip, xbase, ybase,
@@ -581,11 +569,10 @@ public abstract class ScatterPlot extends SurfacePlot {
      *
      * @param  point  central value in graphics space
      * @param  centre  central value in data space (2-element array x,y)
-     * @param  loErrs  lower bounds in data space (2-element array xlo,ylo)
-     * @param  hiErrs  upper bounds in data space (2-element array xhi,yhi)
+     * @param  errors  error bar end positions in data space; these must be
+     *                 paired (lo,hi in each dimension) and may be null for
+     *                 no/zero error
      * @param  surface plotting surface
-     * @param  hasErrors  flags indicating whether transformations are to be
-     *         attempted (2-element array for X and Y dimensions respectively)
      * @param  xoffs   array into which X offset values from the central point
      *                 in graphics coordinates will be written
      * @param  yoffs   array into which Y offset values from the central point
@@ -594,9 +581,8 @@ public abstract class ScatterPlot extends SurfacePlot {
      *                <code>yoffs</code> are non-zero
      */
     private static boolean transformErrors( Point point, double[] centre,
-                                            double[] loErrs, double[] hiErrs, 
+                                            double[][] errors,
                                             PlotSurface surface,
-                                            boolean[] hasErrors,
                                             int[] xoffs, int[] yoffs ) {
 
         /* Initialise output offset values to zero. */
@@ -615,49 +601,34 @@ public abstract class ScatterPlot extends SurfacePlot {
         double cy = centre[ 1 ];
         int ioff = 0;
 
-        /* Perform transformations in X direction if required. */
-        if ( hasErrors[ 0 ] ) {
-            if ( loErrs[ 0 ] > 0 ) {
-                Point pe =
-                    surface.dataToGraphics( cx - loErrs[ 0 ], cy, false );
-                if ( pe != null ) {
-                    xoffs[ ioff ] = pe.x - px;
-                    yoffs[ ioff ] = pe.y - py;
-                    hasError = true;
+        /* Process pairs of lower/upper bounds in each dimension. */
+        int nerrDim = errors.length / 2;
+        for ( int ied = 0; ied < nerrDim; ied++ ) {
+            double[] lo = errors[ ied * 2 + 0 ];
+            double[] hi = errors[ ied * 2 + 1 ];
+            if ( lo != null ) {
+                Point plo = surface.dataToGraphics( lo[ 0 ], lo[ 1 ], false );
+                if ( plo != null ) {
+                    int xo = plo.x - px;
+                    int yo = plo.y - py;
+                    if ( xo != 0 || yo != 0 ) {
+                        xoffs[ ioff ] = xo;
+                        yoffs[ ioff ] = yo;
+                        hasError = true;
+                    }
                 }
             }
             ioff++;
-            if ( hiErrs[ 0 ] > 0 ) {
-                Point pe =
-                    surface.dataToGraphics( cx + hiErrs[ 0 ], cy, false );
-                if ( pe != null ) {
-                    xoffs[ ioff ] = pe.x - px;
-                    yoffs[ ioff ] = pe.y - py;
-                    hasError = true;
-                }
-            }
-            ioff++;
-        }
-
-        /* Perform transformations in Y direction if required. */
-        if ( hasErrors[ 1 ] ) {
-            if ( loErrs[ 1 ] > 0 ) {
-                Point pe =
-                    surface.dataToGraphics( cx, cy - loErrs[ 1 ], false );
-                if ( pe != null ) {
-                    xoffs[ ioff ] = pe.x - px;
-                    yoffs[ ioff ] = pe.y - py;
-                    hasError = true;
-                }
-            }
-            ioff++;
-            if ( hiErrs[ 1 ] > 0 ) {
-                Point pe =
-                    surface.dataToGraphics( cx, cy + hiErrs[ 1 ], false );
-                if ( pe != null ) {
-                    xoffs[ ioff ] = pe.x - px;
-                    yoffs[ ioff ] = pe.y - py;
-                    hasError = true;
+            if ( hi != null ) {
+                Point phi = surface.dataToGraphics( hi[ 0 ], hi[ 1 ], false );
+                if ( phi != null ) {
+                    int xo = phi.x - px;
+                    int yo = phi.y - py;
+                    if ( xo != 0 || yo != 0 ) {
+                        xoffs[ ioff ] = xo; 
+                        yoffs[ ioff ] = yo;
+                        hasError = true;
+                    }
                 }
             }
             ioff++;
@@ -720,8 +691,7 @@ public abstract class ScatterPlot extends SurfacePlot {
           
             /* Draw any active points. */
             for ( int i = 0; i < activePoints_.length; i++ ) {
-                double[] coords = new double[ 2 ];
-                points.getCoords( activePoints_[ i ], coords );
+                double[] coords = points.getPoint( activePoints_[ i ] );
                 Point p = getSurface().dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                        true );
                 if ( p != null ) {

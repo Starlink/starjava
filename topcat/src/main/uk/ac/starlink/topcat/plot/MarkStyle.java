@@ -505,13 +505,8 @@ public abstract class MarkStyle extends DefaultStyle {
      * @return  false if rendering the error bars will have no effect
      */
     public static boolean hasErrors( MarkStyle style, Points points ) {
-        boolean[] hasErrs = points.hasErrors();
-        for ( int i = 0; i < hasErrs.length; i++ ) {
-            if ( hasErrs[ i ] ) {
-                return ! style.getErrorRenderer().isBlank( null );
-            }
-        }
-        return false;
+        return points.getNerror() > 0
+            && ! style.getErrorRenderer().isBlank( null );
     }
 
     /**

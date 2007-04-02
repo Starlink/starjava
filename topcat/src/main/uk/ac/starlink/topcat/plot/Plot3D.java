@@ -179,46 +179,6 @@ public abstract class Plot3D extends JPanel {
                                       boolean front );
 
     /**
-     * Transforms errors from the form they assume in input data (offsets
-     * to a central data point in data space) to a set of absolute 
-     * coordinates of points in the transformed graphics space.
-     * The arrangement of the input data offsets
-     * (<code>loErrs</code>, <code>hiErrs</code>) is as determined by the 
-     * {@link Points} object.
-     * The number and ordering of the output data points
-     * (<code>xerrs</code>, <code>yerrs</code>, <code>zerrs</code>)
-     * are as required by {@link ErrorRenderer} objects.
-     *
-     * <p>Points which don't represent errors, either because they have
-     * zero offsets or because they fall outside of the range of this 3D plot,
-     * are represented in the output coordinates as <code>Double.NaN</code>.
-     * The return value indicates whether any of the transformed values 
-     * have non-blank values - if false, then error drawing is pointless.
-     *
-     * @param   trans   data space -> graphics space transformer
-     * @param   ranger  range checker - anything out of range will be discarded
-     * @param   logFlags  flags for which axes will be plotted logarithmically
-     * @param   hasErrors flags for which axes may have error information
-     * @param   centre   coordinates in data space of the central point
-     *                   (may be overwritten)
-     * @param   loErrs   data space lower bound error offsets
-     * @param   hiErrs   data space upper bound error offsets
-     * @param   xerrs   graphics space X coordinates for error points
-     * @param   yerrs   graphics space Y coordinates for error points
-     * @param   zerrs   graphics space Z coordinates for error points
-     * @return  true if some of the calculated errors are non-blank
-     */
-    protected abstract boolean transformErrors( Transformer3D trans,
-                                                RangeChecker ranger,
-                                                boolean[] logFlags,
-                                                boolean[] hasErrors,
-                                                double[] centre,
-                                                double[] loErrs,
-                                                double[] hiErrs,
-                                                double[] xerrs, double[] yerrs,
-                                                double[] zerrs );
-
-    /**
      * Sets the data set for this plot.  These are the points which will
      * be plotted the next time this component is painted.
      *
@@ -454,17 +414,8 @@ public abstract class Plot3D extends JPanel {
         boolean[] logFlags = getState().getLogFlags();
         boolean[] showMarkPoints = new boolean[ nset ];
         boolean[] showMarkErrors = new boolean[ nset ];
-        double[] coords = new double[ 3 ];
         double[] centre = new double[ 3 ];
-        double[] loErrs = new double[ 3 ];
-        double[] hiErrs = new double[ 3 ];
-        boolean[] hasErrors = points.hasErrors();
-        int nerr = 0;
-        for ( int ierr = 0; ierr < hasErrors.length; ierr++ ) {
-            if ( hasErrors[ ierr ] ) {
-                nerr += 2;
-            }
-        }
+        int nerr = points.getNerror();
         double[] xerrs = new double[ nerr ];
         double[] yerrs = new double[ nerr ];
         double[] zerrs = new double[ nerr ];
@@ -484,7 +435,7 @@ public abstract class Plot3D extends JPanel {
             }
             if ( use ) {
                 nInclude++;
-                points.getCoords( ip, coords );
+                double[] coords = points.getPoint( ip );
                 centre[ 0 ] = coords[ 0 ];
                 centre[ 1 ] = coords[ 1 ];
                 centre[ 2 ] = coords[ 2 ];
@@ -493,11 +444,10 @@ public abstract class Plot3D extends JPanel {
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
                         if ( useErrors ) {
-                            points.getErrors( ip, loErrs, hiErrs );
+                            double[][] errors = points.getErrors( ip );
                             useErrors = useErrors &&
                                 transformErrors( trans, ranger, logFlags,
-                                                 hasErrors, centre, loErrs,
-                                                 hiErrs, xerrs, yerrs, zerrs );
+                                                 errors, xerrs, yerrs, zerrs );
                         }
                         for ( int is = 0; is < nset; is++ ) {
                             boolean plotted = false;
@@ -608,7 +558,6 @@ public abstract class Plot3D extends JPanel {
             return new PointIterator() {
                 int ip = -1;
                 int[] point = new int[ 3 ];
-                double[] coords = new double[ 3 ];
                 protected int[] nextPoint() {
                     while ( ++ip < np ) {
                         long lp = (long) ip;
@@ -617,7 +566,7 @@ public abstract class Plot3D extends JPanel {
                             use = use || sets[ is ].isIncluded( lp );
                         }
                         if ( use ) {
-                            points.getCoords( ip, coords );
+                            double[] coords = points.getPoint( ip );
                             if ( ranger.inRange( coords ) &&
                                  logize( coords, logFlags ) ) {
                                 trans.transform( coords );
@@ -735,6 +684,79 @@ public abstract class Plot3D extends JPanel {
         return coords[ 0 ] >= lo[ 0 ] && coords[ 0 ] <= hi[ 0 ]
             && coords[ 1 ] >= lo[ 1 ] && coords[ 1 ] <= hi[ 1 ]
             && coords[ 2 ] >= lo[ 2 ] && coords[ 2 ] <= hi[ 2 ];
+    }
+
+    /**
+     * Transforms errors from the form they assume in input data (offsets
+     * to a central data point in data space) to a set of absolute 
+     * coordinates of points in the transformed graphics space.
+     * The arrangement of the input data offsets
+     * (<code>loErrs</code>, <code>hiErrs</code>) is as determined by the 
+     * {@link Points} object.
+     * The number and ordering of the output data points
+     * (<code>xerrs</code>, <code>yerrs</code>, <code>zerrs</code>)
+     * are as required by {@link ErrorRenderer} objects.
+     *
+     * <p>Points which don't represent errors, either because they have
+     * zero offsets or because they fall outside of the range of this 3D plot,
+     * are represented in the output coordinates as <code>Double.NaN</code>.
+     * The return value indicates whether any of the transformed values 
+     * have non-blank values - if false, then error drawing is pointless.
+     *
+     * @param   trans   data space -> graphics space transformer
+     * @param   ranger  range checker - anything out of range will be discarded
+     * @param   logFlags  flags for which axes will be plotted logarithmically
+     * @param   errors   data space error points, in pairs
+     * @param   xerrs   graphics space X coordinates for error points
+     * @param   yerrs   graphics space Y coordinates for error points
+     * @param   zerrs   graphics space Z coordinates for error points
+     * @return  true if some of the calculated errors are non-blank
+     */
+    protected static boolean transformErrors( Transformer3D trans,
+                                              RangeChecker ranger,
+                                              boolean[] logFlags,
+                                              double[][] errors, double[] xerrs,
+                                              double[] yerrs, double[] zerrs ) {
+
+        /* Initialise output error values. */
+        int nerr = xerrs.length;
+        assert nerr == yerrs.length;
+        assert nerr == zerrs.length;
+        for ( int ierr = 0; ierr < nerr; ierr++ ) {
+            xerrs[ ierr ] = Double.NaN;
+            yerrs[ ierr ] = Double.NaN;
+            zerrs[ ierr ] = Double.NaN;
+        }
+
+        /* Initialise other variables. */
+        boolean hasError = false;
+        int ierr = 0;
+        int nerrDim = errors.length / 2;
+        for ( int ied = 0; ied < nerrDim; ied++ ) {
+            double[] lo = errors[ ied * 2 + 0 ];
+            double[] hi = errors[ ied * 2 + 1 ];
+            if ( lo != null ) {
+                if ( ranger.inRange( lo ) && logize( lo, logFlags ) ) {
+                    trans.transform( lo );
+                    xerrs[ ierr ] = lo[ 0 ];
+                    yerrs[ ierr ] = lo[ 1 ];
+                    zerrs[ ierr ] = lo[ 2 ];
+                    hasError = true;
+                }
+            }
+            ierr++;
+            if ( hi != null ) {
+                if ( ranger.inRange( hi ) && logize( hi, logFlags ) ) {
+                    trans.transform( hi );
+                    xerrs[ ierr ] = hi[ 0 ];
+                    yerrs[ ierr ] = hi[ 1 ];
+                    zerrs[ ierr ] = hi[ 2 ];
+                    hasError = true;
+                }
+            }
+            ierr++;
+        }
+        return hasError;
     }
 
     /**
@@ -938,8 +960,7 @@ public abstract class Plot3D extends JPanel {
             /* Draw markers for any active points. */
             boolean[] logFlags = getState().getLogFlags();
             for ( int i = 0; i < activePoints_.length; i++ ) {
-                double[] coords = new double[ 3 ];
-                points.getCoords( activePoints_[ i ], coords );
+                double[] coords = points.getPoint( activePoints_[ i ] );
                 if ( logize( coords, logFlags ) ) {
                     trans.transform( coords );
                     cursorStyle_.drawMarker( g, vol.projectX( coords[ 0 ] ),
