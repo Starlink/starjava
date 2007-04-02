@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final BufferedImage image_;
     private final MarkStyle[] styles_;
     private final Graphics graphics_;
+    private final Rectangle clip_;
 
     /**
      * Constructs a new plot volume.
@@ -59,6 +61,8 @@ public class ZBufferPlotVolume extends PlotVolume {
         ydim_ = c.getHeight() + 2 * ppad;
         xoff_ = - ppad;
         yoff_ = - ppad;
+        clip_ = new Rectangle( graphics_.getClipBounds() );
+        clip_.translate( ppad, ppad );
 
         /* Initialise the workspace accordingly, and acquire from it the
          * various buffer objects we will require. */
@@ -109,8 +113,7 @@ public class ZBufferPlotVolume extends PlotVolume {
         if ( nerr > 0 ) {
             Pixellator epixer =
                 styles_[ is ].getErrorRenderer()
-               .getPixels( graphics_.getClipBounds(),
-                           xbase, ybase, xoffs, yoffs );
+               .getPixels( clip_, xbase, ybase, xoffs, yoffs );
             for ( epixer.start(); epixer.next(); ) {
                 int pixoff = epixer.getX() + xdim_ * epixer.getY();
                 hitPixel( pixoff, z, is );
