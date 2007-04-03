@@ -48,6 +48,9 @@ public class SphericalPolarPointSelector extends PointSelector {
     /** A column data object which contains zeroes. */
     private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
 
+    /** A column data object which contains ones. */
+    private static final ColumnData UNIT_COLUMN_DATA = createUnitColumnData();
+
     /**
      * Constructs a point selector with error bar capability.
      *
@@ -194,7 +197,28 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     public StarTable getErrorData() {
-        return createColumnDataTable( getTable(), new ColumnData[ 0 ] );
+        List colList = new ArrayList();
+        boolean hasTanerr = tangentErrorModeModel_.isSelected();
+        ErrorMode radialMode = radialErrorModeModel_.getMode();
+        if ( hasTanerr ) {
+            ColumnData tData = tanerrSelector_.getColumnData();
+            colList.add( tData == null ? ZERO_COLUMN_DATA : tData );
+        }
+        if ( radialMode != ErrorMode.NONE ) {
+            JComboBox[] rErrorSelectors = rSelector_.getErrorSelectors();
+            for ( int isel = 0; isel < rErrorSelectors.length; isel++ ) {
+                ColumnData rData = 
+                    (ColumnData) rErrorSelectors[ isel ].getSelectedItem();
+                colList.add( rData == null ? ZERO_COLUMN_DATA : rData );
+            }
+        }
+        ColumnData[] eCols =
+            (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
+        return createColumnDataTable( getTable(), eCols );
+    }
+
+    public PointStore createPointStore( int npoint ) {
+        return new CartesianPointStore( 3, new ErrorMode[ 0 ] ).init( npoint );
     }
 
     public ErrorMode[] getErrorModes() {
@@ -244,10 +268,6 @@ public class SphericalPolarPointSelector extends PointSelector {
             }
         } );
         return new AxisEditor[] { ed };
-    }
-
-    public PointStore createPointStore( int npoint ) {
-        return new CartesianPointStore( 3, new ErrorMode[ 0 ] ).init( npoint );
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
@@ -305,7 +325,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         ColumnData cdata =
             (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
-            return UnitColumnData.INSTANCE;
+            return UNIT_COLUMN_DATA;
         }
         else if ( logToggler_.isSelected() ) {
             return new LogColumnData( cdata );
@@ -337,17 +357,16 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     /**
-     * ColumnData implementation which returns unity for every entry.
+     * Returns a ColumnData implementation which returns unity for every entry.
      */
-    private static class UnitColumnData extends ColumnData {
-        final static UnitColumnData INSTANCE = new UnitColumnData();
-        private final Double ONE = new Double( 1.0 );
-        private UnitColumnData() {
-            super( new DefaultValueInfo( "Unit", Double.class, "Unit value" ) );
-        }
-        public Object readValue( long irow ) {
-            return ONE;
-        }
+    private static ColumnData createUnitColumnData() {
+        final Double one = new Double( 1.0 );
+        return new ColumnData( new DefaultValueInfo( "Unit", Double.class,
+                                                     "Unit value" ) ) {
+            public Object readValue( long irow ) {
+                return one;
+            }
+        };
     }
 
     /**
