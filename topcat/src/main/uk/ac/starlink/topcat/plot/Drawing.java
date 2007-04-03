@@ -7,7 +7,6 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.logging.Logger;
 
 /**
  * Provides drawing primitives on a pixel map.
@@ -33,8 +32,6 @@ public class Drawing implements Pixellator {
     private Point point_;
 
     private static final Stroke STROKE = new BasicStroke();
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
     /**
      * Constructs a drawing with given pixel bounds.
@@ -64,13 +61,8 @@ public class Drawing implements Pixellator {
             int xoff = x - bounds_.x;
             int yoff = y - bounds_.y;
             int packed = xoff + bounds_.width * yoff;
-            if ( xoff < Short.MAX_VALUE && yoff < Short.MAX_VALUE ) {
-                pixelMask_.set( packed );
-            }
-            else {
-                logger_.warning( "Attempt to draw outside of plotting area: "
-                            + "(" + x + ", " + y + ")" );
-            }
+            assert packed >= 0 && packed < bounds_.width * bounds_.height;
+            pixelMask_.set( packed );
         }
     }
 
@@ -387,13 +379,8 @@ public class Drawing implements Pixellator {
      * @param  pixellator  iterator over pixels to add
      */
     public void addPixels( Pixellator pixellator ) {
-        if ( pixellator instanceof Drawing ) {
-            pixelMask_.or( ((Drawing) pixellator).pixelMask_ );
-        }
-        else {
-            for ( pixellator.start(); pixellator.next(); ) {
-                addPixel( pixellator.getX(), pixellator.getY() );
-            }
+        for ( pixellator.start(); pixellator.next(); ) {
+            addPixel( pixellator.getX(), pixellator.getY() );
         }
     }
 
