@@ -31,8 +31,8 @@ public class CartesianPointStore implements PointStore {
     private final double[] centre_;
     private final double[][] errors_;
     private final double[] buf1_;
-    private ValueStore valueStore_;
-    private int npoint_;
+    private final ValueStore valueStore_;
+    private final int npoint_;
     private int ipoint_;
 
     private static final double MILLISECONDS_PER_YEAR =
@@ -133,7 +133,7 @@ public class CartesianPointStore implements PointStore {
      * @param  value  value to decode
      * @return   double precision equivalent
      */
-    private static double doubleValue( Object value ) {
+    public static double doubleValue( Object value ) {
         if ( value instanceof Number ) {
             return ((Number) value).doubleValue();
         }
