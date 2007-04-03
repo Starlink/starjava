@@ -29,6 +29,7 @@ public class PointSelection {
     private final long[] nrows_;
     private final StarTable[] dataTables_;
     private final StarTable[] errorTables_;
+    private final ErrorMode[] errorModes_;
     private final RowSubset[] subsets_;
     private final Style[] styles_;
     private final SetId[] setIds_;
@@ -65,6 +66,7 @@ public class PointSelection {
         }
 
         /* Store the tables and column indices representing the data. */
+        errorModes_ = (ErrorMode[]) mainSelector_.getErrorModes().clone();
         tcModels_ = new TopcatModel[ nTable_ ];
         dataTables_ = new StarTable[ nTable_ ];
         errorTables_ = new StarTable[ nTable_ ];
@@ -373,7 +375,8 @@ public class PointSelection {
     public boolean sameData( PointSelection other ) {
         return other != null 
             && Arrays.equals( this.dataTables_, other.dataTables_ )
-            && Arrays.equals( this.errorTables_, other.errorTables_ );
+            && Arrays.equals( this.errorTables_, other.errorTables_ )
+            && Arrays.equals( this.errorModes_, other.errorModes_ );
     }
 
     public boolean equals( Object otherObject ) {
@@ -393,9 +396,12 @@ public class PointSelection {
             code = 23 * code + ( errorTables_[ itab ] == null
                                  ? 99 : errorTables_[ itab ].hashCode() );
         }
-        for ( int i = 0; i < subsets_.length; i++ ) {
-            code = 23 * code + subsets_[ i ].hashCode();
-            code = 23 * code + styles_[ i ].hashCode();
+        for ( int ie = 0; ie < errorModes_.length; ie++ ) {
+            code = 23 * code + errorModes_[ ie ].hashCode();
+        }
+        for ( int is = 0; is < subsets_.length; is++ ) {
+            code = 23 * code + subsets_[ is ].hashCode();
+            code = 23 * code + styles_[ is ].hashCode();
         }
         return code;
     }
