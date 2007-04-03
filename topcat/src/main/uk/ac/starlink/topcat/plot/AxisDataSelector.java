@@ -239,7 +239,7 @@ public class AxisDataSelector extends JPanel {
      *
      * @return   array of combo boxes
      */
-    private JComboBox[] getSelectors() {
+    public JComboBox[] getSelectors() {
         return new JComboBox[] {
             atSelector_, loSelector_, hiSelector_, lhSelector_,
         };
