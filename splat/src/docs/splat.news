@@ -1,5 +1,11 @@
 1 Starlink SPLAT news.
 
+   3.8-0
+   =====
+
+   Added controls to the statistics toolbox so that the TSYS related 
+   parameters can be set and inspected.
+
    3.7-2
    =====
 
