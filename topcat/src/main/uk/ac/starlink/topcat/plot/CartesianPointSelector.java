@@ -216,7 +216,7 @@ public class CartesianPointSelector extends PointSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-        return new CartesianPointStore( ndim_, npoint, getErrorModes() );
+        return new CartesianPointStore( ndim_, getErrorModes(), npoint );
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
