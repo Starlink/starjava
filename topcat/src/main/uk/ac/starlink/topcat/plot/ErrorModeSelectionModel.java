@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
@@ -13,6 +14,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JToggleButton;
 import javax.swing.event.ListDataListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 
@@ -124,8 +126,8 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
      *
      * @return  toolbar button for toggling error bar status
      */
-    public JButton createOnOffToolbarButton() {
-        JButton button = createOnOffButton();
+    public AbstractButton createOnOffToolbarButton() {
+        AbstractButton button = createOnOffButton();
         button.setText( null );
         return button;
     }
@@ -137,18 +139,29 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
      *
      * @return  button for toggling error bar status
      */
-    public JButton createOnOffButton() {
+    public AbstractButton createOnOffButton() {
         ButtonModel model = new DefaultButtonModel() {
+            ErrorMode lastOnMode = ErrorMode.SYMMETRIC;
             public String getActionCommand() {
-                return ErrorMode.NONE.equals( getMode() )
-                     ? ErrorMode.SYMMETRIC.toString()
-                     : ErrorMode.NONE.toString();
+                ErrorMode currentMode = getMode();
+                if ( currentMode == ErrorMode.NONE ) {
+                    return lastOnMode.toString();
+                }
+                else {
+                    lastOnMode = currentMode;
+                    return ErrorMode.NONE.toString();
+                }
             }
         };
+        final AbstractButton button =
+            new JToggleButton( axisName_ + " Errors",
+                               getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
+        addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                button.setSelected( getMode() != ErrorMode.NONE );
+            }
+        } );
         model.addActionListener( this );
-        JButton button =
-            new JButton( axisName_ + " Errors",
-                         getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
         button.setModel( model );
         button.setToolTipText( "Toggle " + axisName_ + " error bars on/off" );
         return button;
