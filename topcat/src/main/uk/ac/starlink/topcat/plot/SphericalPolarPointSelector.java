@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -34,27 +36,42 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class SphericalPolarPointSelector extends PointSelector {
 
     private final JComponent colBox_;
+    private final JComponent tanerrContainer_;
     private final ColumnSelector phiSelector_;
     private final ColumnSelector thetaSelector_;
-    private final JComboBox rSelector_;
+    private final AxisDataSelector rSelector_;
+    private final ColumnSelector tanerrSelector_;
     private final ToggleButtonModel logToggler_;
+    private final ToggleButtonModel tangentErrorModeModel_;
+    private final ErrorModeSelectionModel radialErrorModeModel_;
+
+    /** A column data object which contains zeroes. */
+    private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
 
     /**
-     * Constructor.
+     * Constructs a point selector with error bar capability.
      *
+     * @param  styles  initial style set
      * @param  logToggler model for determining whether the radial coordinate
      *         is to be scaled logarithmically
-     * @param  styles  initial style set
+     * @param  tangentErrorModeModel  model indicating whether tangential
+     *         errors will be drawn
+     * @param  radialErrorModeModel   model indicating whether/how radial
+     *         errors will be drawn
      */
     public SphericalPolarPointSelector( MutableStyleSet styles,
-                                        ToggleButtonModel logToggler ) {
-        super( styles, new ErrorModeSelectionModel[ 0 ] );
+                               ToggleButtonModel logToggler,
+                               ToggleButtonModel tangentErrorModeModel,
+                               ErrorModeSelectionModel radialErrorModeModel ) {
+        super( styles );
         logToggler_ = logToggler;
+        tangentErrorModeModel_ = tangentErrorModeModel;
+        radialErrorModeModel_ = radialErrorModeModel;
 
         /* Prepare column selection panel. */
         colBox_ = Box.createVerticalBox();
-        String[] axisNames = new String[] { "Longitude", "Latitude", "Radius" };
-        JComponent[] selectors = new JComponent[ 3 ];
+        String[] axisNames = new String[] { "Longitude", "Latitude" };
+        JComponent[] selectors = new JComponent[ axisNames.length ];
 
         /* Selector for longitude column. */
         phiSelector_ = new ColumnSelector( Tables.RA_INFO, false );
@@ -70,43 +87,90 @@ public class SphericalPolarPointSelector extends PointSelector {
         thetaSelector_.setEnabled( false );
         selectors[ 1 ] = thetaSelector_;
 
-        /* Selector for radius column. */
-        rSelector_ = ColumnDataComboBoxModel.createComboBox();
-        rSelector_.addActionListener( actionForwarder_ );
-        rSelector_.setEnabled( false );
-        Box rBox = Box.createHorizontalBox();
-        rBox.add( new ShrinkWrapper( rSelector_ ) );
-        rBox.add( Box.createHorizontalStrut( 5 ) );
-        rBox.add( new ComboBoxBumper( rSelector_ ) );
-        rBox.add( Box.createHorizontalStrut( 5 ) );
-        rBox.add( logToggler_.createCheckBox() );
-        selectors[ 2 ] = rBox;
-
-        /* Place selectors. */
-        JLabel[] axLabels = new JLabel[ 3 ];
-        for ( int i = 0; i < 3; i++ ) {
+        /* Place longitude and latitude selectors. */
+        Box tandatBox = Box.createVerticalBox();
+        JLabel[] axLabels = new JLabel[ axisNames.length ];
+        for ( int i = 0; i < axisNames.length; i++ ) {
             String aName = axisNames[ i ];
             JComponent cPanel = Box.createHorizontalBox();
             axLabels[ i ] = new JLabel( " " + aName + " Axis: " );
             cPanel.add( axLabels[ i ] );
-            colBox_.add( Box.createVerticalStrut( 5 ) );
-            colBox_.add( cPanel );
-            cPanel.add( selectors[ i ] );
+            cPanel.add( new ShrinkWrapper( selectors[ i ] ) );
             cPanel.add( Box.createHorizontalStrut( 5 ) );
             cPanel.add( Box.createHorizontalGlue() );
+            tandatBox.add( Box.createVerticalStrut( 5 ) );
+            tandatBox.add( cPanel );
         }
+
+        /* Place long/lat selectors alongside a container for a tangential
+         * error column. */
+        tanerrContainer_ = Box.createHorizontalBox();
+        final Box tanerrBox = Box.createHorizontalBox();
+        tanerrBox.add( Box.createVerticalGlue() );
+        tanerrBox.add( tanerrContainer_ );
+        tanerrBox.add( Box.createVerticalGlue() );
+
+        /* Selector for tangential errors. */
+        DefaultValueInfo sizeInfo = 
+            new DefaultValueInfo( "Angular Size", Number.class,
+                                  "Angular size or error" );
+        sizeInfo.setUnitString( "radians" );
+        sizeInfo.setNullable( true );
+        tanerrSelector_ = new ColumnSelector( sizeInfo, false );
+        tanerrSelector_.addActionListener( actionForwarder_ );
+        tanerrSelector_.setTable( null );
+        tanerrSelector_.setEnabled( false );
+        ChangeListener tanerrListener = new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                tanerrBox.removeAll();
+                if ( tangentErrorModeModel_.isSelected() ) {
+                    tanerrBox.add( new JLabel( " +/- " ) );
+                    tanerrBox.add( new ShrinkWrapper( tanerrSelector_ ) );
+                }
+            }
+        };
+        tangentErrorModeModel_.addChangeListener( tanerrListener );
+        tanerrListener.stateChanged( null );
+        
+        /* Add long/lat business to main selector panel. */
+        Box tanBox = Box.createHorizontalBox();
+        tanBox.add( new ShrinkWrapper( tandatBox ) );
+        tanBox.add( new ShrinkWrapper( tanerrBox ) );
+        tanBox.add( Box.createHorizontalGlue() );
+        colBox_.add( tanBox );
+
+        /* Selector for radius column. */
+        rSelector_ =
+            new AxisDataSelector( "Radial", new String[] { "Log" },
+                                  new ToggleButtonModel[] { logToggler } );
+        rSelector_.addActionListener( actionForwarder_ );
+        rSelector_.setEnabled( false );
         colBox_.add( Box.createVerticalStrut( 5 ) );
+        colBox_.add( rSelector_ );
         colBox_.add( Box.createVerticalGlue() );
 
         /* Align axis labels. */
         Dimension labelSize = new Dimension( 0, 0 );
-        for ( int i = 0; i < 3; i++ ) {
+        for ( int i = 0; i < axisNames.length; i++ ) {
             Dimension s = axLabels[ i ].getPreferredSize();
             labelSize.width = Math.max( labelSize.width, s.width );
             labelSize.height = Math.max( labelSize.height, s.height );
         }
-        for ( int i = 0; i < 3; i++ ) {
+        for ( int i = 0; i < axisNames.length; i++ ) {
             axLabels[ i ].setPreferredSize( labelSize );
+        }
+
+        /* Fix for changes to the error mode selections to modify the
+         * state of the axis data selectors. */
+        if ( radialErrorModeModel_ != null ) {
+            ActionListener radialErrorListener = new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateAnnotator();
+                    rSelector_.setErrorMode( radialErrorModeModel_.getMode() );
+                }
+            };
+            radialErrorModeModel_.addActionListener( radialErrorListener );
+            radialErrorListener.actionPerformed( null );
         }
     }
 
@@ -129,11 +193,17 @@ public class SphericalPolarPointSelector extends PointSelector {
                                         getPhi(), getTheta(), getR() );
     }
 
-    /**
-     * Returns null.
-     */
     public StarTable getErrorData() {
-        return null;
+        return createColumnDataTable( getTable(), new ColumnData[ 0 ] );
+    }
+
+    public ErrorMode[] getErrorModes() {
+        ErrorMode[] modes = new ErrorMode[ 3 ];
+        boolean hasTan = tangentErrorModeModel_.isSelected();
+        modes[ 0 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
+        modes[ 1 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
+        modes[ 2 ] = radialErrorModeModel_.getMode();
+        return modes;
     }
 
     public AxisEditor[] createAxisEditors() {
@@ -168,7 +238,8 @@ public class SphericalPolarPointSelector extends PointSelector {
         
         rSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
+                ColumnData cdata = 
+                    (ColumnData) rSelector_.getMainSelector().getSelectedItem();
                 ed.setAxis( cdata == null ? null : cdata.getColumnInfo() );
             }
         } );
@@ -176,7 +247,7 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-  return null;
+        return new CartesianPointStore( 3, new ErrorMode[ 0 ] ).init( npoint );
     }
 
     protected void configureSelectors( TopcatModel tcModel ) {
@@ -186,17 +257,19 @@ public class SphericalPolarPointSelector extends PointSelector {
             thetaSelector_.getModel().getColumnModel().setSelectedItem( null );
             thetaSelector_.getModel().getConverterModel()
                                      .setSelectedItem( null );
-            rSelector_.setSelectedItem( null );
+            tanerrSelector_.getModel().getColumnModel().setSelectedItem( null );
+            tanerrSelector_.getModel().getConverterModel()
+                                      .setSelectedItem( null );
         }
         else {
             phiSelector_.setTable( tcModel );
             thetaSelector_.setTable( tcModel );
-            rSelector_.setModel( new ColumnDataComboBoxModel( tcModel,
-                                                              Number.class,
-                                                              true ) );
+            tanerrSelector_.setTable( tcModel );
         }
+        rSelector_.setTable( tcModel );
         phiSelector_.setEnabled( tcModel != null );
         thetaSelector_.setEnabled( tcModel != null );
+        tanerrSelector_.setEnabled( tcModel != null );
         rSelector_.setEnabled( tcModel != null );
     }
 
@@ -229,7 +302,8 @@ public class SphericalPolarPointSelector extends PointSelector {
      * @return   radius column
      */
     private ColumnData getR() {
-        ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
+        ColumnData cdata =
+            (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
             return UnitColumnData.INSTANCE;
         }
@@ -249,7 +323,8 @@ public class SphericalPolarPointSelector extends PointSelector {
      * @return   radial column info
      */
     public ValueInfo getRadialInfo() {
-        ColumnData cdata = (ColumnData) rSelector_.getSelectedItem();
+        ColumnData cdata =
+            (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
             return null;
         }
