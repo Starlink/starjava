@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
+import javax.swing.Icon;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
@@ -16,6 +19,8 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 public class SphereWindow extends Plot3DWindow {
 
     private final ToggleButtonModel logToggler_;
+    private final ToggleButtonModel tangentErrorModeModel_;
+    private final ErrorModeSelectionModel radialErrorModeModel_;
 
     private final static ErrorRenderer[] ERROR_RENDERERS =
         ErrorRenderer.getOptionsSpherical();
@@ -28,16 +33,21 @@ public class SphereWindow extends Plot3DWindow {
     public SphereWindow( Component parent ) {
         super( "Spherical Plot",
                new String[] { "Longitude", "Latitude", "Radius" }, parent, 
-               createErrorModeSelectionModels(), new SphericalPlot3D() );
+               new ErrorModeSelectionModel[ 0 ], new SphericalPlot3D() );
         logToggler_ =
             new ToggleButtonModel( "Log", ResourceIcon.XLOG,
                                    "Scale radius value logarithmically" );
         logToggler_.addActionListener( getReplotListener() );
-        for ( int ierr = 0; ierr < 2; ierr++ ) {
-            getToolBar().add( getErrorModeModels()[ ierr ]
-                             .createOnOffToolbarButton() );
-        }
-        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+
+        tangentErrorModeModel_ = 
+            new ToggleButtonModel( "Tangent errors", createTangentErrorIcon(),
+                                   "Draw tangential error regions" );
+        tangentErrorModeModel_.addActionListener( getReplotListener() );
+        radialErrorModeModel_ = new ErrorModeSelectionModel( 2, "Radial" );
+        radialErrorModeModel_.addActionListener( getReplotListener() );
+
+        getToolBar().add( tangentErrorModeModel_.createToolbarButton() );
+        getToolBar().add( radialErrorModeModel_.createOnOffToolbarButton() );
         getToolBar().addSeparator();
         addHelp( "SphereWindow" );
     }
@@ -56,7 +66,8 @@ public class SphereWindow extends Plot3DWindow {
 
     protected PointSelector createPointSelector() {
         return new SphericalPolarPointSelector( getStyles(), logToggler_,
-                                                getErrorModeModels() );
+                                                tangentErrorModeModel_,
+                                                radialErrorModeModel_ );
     }
 
     /**
@@ -104,15 +115,35 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     /**
-     * Constructs custom error mode selector array for SphereWindow
-     * (used in constructor).
+     * Returns an icon for the button which toggles whether tangential errors
+     * will be drawn.
      *
-     * @return   error mode selector model array for use with SphereWindow
+     * @return   error icon
      */
-    private static ErrorModeSelectionModel[] createErrorModeSelectionModels() {
-        return new ErrorModeSelectionModel[] {
-            new ErrorModeSelectionModel( 0, "Tangent" ),
-            new ErrorModeSelectionModel( 2, "Radius" ),
+    private static Icon createTangentErrorIcon() {
+        ErrorMode[] modes = new ErrorMode[] {
+            ErrorMode.SYMMETRIC, ErrorMode.SYMMETRIC,
+        };
+        final Icon icon =
+            ErrorRenderer.TANGENT.getLegendIcon( modes, 24, 24, 1, 2 );
+        return new Icon() {
+            public int getIconHeight() {
+                return icon.getIconHeight();
+            }
+            public int getIconWidth() {
+                return icon.getIconWidth();
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                Color oldColor = g.getColor();
+                g.setColor( Color.BLACK );
+                icon.paintIcon( c, g, x, y );
+                g.setColor( Color.WHITE );
+                int radius = 2;
+                g.drawOval( x + getIconWidth() / 2 - radius,
+                            y + getIconHeight() / 2 - radius,
+                            radius * 2, radius * 2 );
+                g.setColor( oldColor );
+            }
         };
     }
 }
