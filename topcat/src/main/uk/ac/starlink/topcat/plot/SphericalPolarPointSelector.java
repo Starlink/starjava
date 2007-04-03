@@ -218,7 +218,9 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-        return new CartesianPointStore( 3, new ErrorMode[ 0 ] ).init( npoint );
+        boolean hasTanerr = tangentErrorModeModel_.isSelected();
+        ErrorMode radialMode = radialErrorModeModel_.getMode();
+        return new SphericalPolarPointStore( radialMode, hasTanerr, npoint );
     }
 
     public ErrorMode[] getErrorModes() {
