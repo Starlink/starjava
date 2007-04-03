@@ -56,6 +56,19 @@ public class StatsRangesModel
     }
 
     /**
+     * Cause all Figures to recalculate their stats.
+     */
+    public void recalculateAll()
+    {
+        Iterator i = rangeIterator();
+        while ( i.hasNext() ) {
+            ((StatsRange) i.next()).updateStats();
+        }
+        fireTableStructureChanged();
+    }
+
+
+    /**
      * Set whether we're showing an integrated flux, or not.
      */
     protected void setShowFlux( boolean showFlux )
@@ -65,12 +78,11 @@ public class StatsRangesModel
 
             //  Get an update of all the Fluxes, if needed.
             if ( showFlux ) {
-                Iterator i = rangeIterator();
-                while ( i.hasNext() ) {
-                    ((StatsRange) i.next()).updateStats();
-                }
+                recalculateAll();
             }
-            fireTableStructureChanged();
+            else {
+                fireTableStructureChanged();
+            }
         }
         this.showFlux = showFlux;
     }
@@ -93,12 +105,11 @@ public class StatsRangesModel
 
             //  Get an update of all the TSYS values, if needed.
             if ( showTSYS ) {
-                Iterator i = rangeIterator();
-                while ( i.hasNext() ) {
-                    ((StatsRange) i.next()).updateStats();
-                }
+                recalculateAll();
             }
-            fireTableStructureChanged();
+            else {
+                fireTableStructureChanged();
+            }
         }
         this.showTSYS = showTSYS;
     }
