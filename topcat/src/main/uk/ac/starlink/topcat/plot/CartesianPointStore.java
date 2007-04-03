@@ -40,15 +40,14 @@ public class CartesianPointStore implements PointStore {
 
     /**
      * Constructor.
-     * Note that {@link #init} must be called before this object can be used.
      *
      * @param  ndim  coordinate dimensionality
+     * @param  npoint  number of times {@link #storePoint} will be called.
      * @param  errorModes   error mode array
      */
-    public CartesianPointStore( int ndim, ErrorMode[] errorModes ) {
-
-        /* Set the number of dimensions of coordinates. */
+    public CartesianPointStore( int ndim, int npoint, ErrorMode[] errorModes ) {
         ndim_ = ndim;
+        npoint_ = npoint;
 
         /* Set up an array of objects which can read error information for
          * each error dimension from the ValueStore. */
@@ -73,23 +72,11 @@ public class CartesianPointStore implements PointStore {
         point_ = new double[ ndim_ ];
         centre_ = new double[ ndim_ ];
         errors_ = new double[ errorReaders_.length * 2 ][];
-    }
 
-    /**
-     * Initialises this object to receive points.
-     *
-     * @param  npoint  number of times {@link #storePoint} will be called.
-     * @return  this object, for convenience
-     */
-    public CartesianPointStore init( int npoint ) {
-        ValueStore store = createDoubleStore( nword_ * npoint );
-        if ( ! double.class.equals( store.getType() ) ) {
-            throw new RuntimeException( "Bad value store type" );
-        }
-        valueStore_ = store;
-        npoint_ = npoint;
-        int ipoint_ = 0;
-        return this;
+        /* Initialise the value store which will hold the values.
+         * Other implementations are possible. */
+        valueStore_ = new ArrayPrimitiveStore( double.class, nword_ * npoint_ );
+        assert double.class.equals( valueStore_.getType() );
     }
 
     public void storePoint( Object[] coordRow, Object[] errorRow ) {
@@ -137,21 +124,6 @@ public class CartesianPointStore implements PointStore {
         assert ierr == errorReaders_.length * 2;
         assert off == ( ipoint + 1 ) * nword_;
         return errors_;
-    }
-
-    /**
-     * Creates the ValueStore used to store the data for this object.
-     * The ValueStore must be able to store <code>double</code> objects.
-     * The default implementation currently uses an 
-     * {@link uk.ac.starlink.table.storage.ArrayPrimitiveStore},
-     * but this could be changed or overridden to use, for instance, the
-     * default storage policy.
-     *
-     * @param   nval  size of the value store
-     * @return  value store
-     */
-    protected ValueStore createDoubleStore( int nval ) {
-        return new ArrayPrimitiveStore( double.class, nval );
     }
 
     /**
