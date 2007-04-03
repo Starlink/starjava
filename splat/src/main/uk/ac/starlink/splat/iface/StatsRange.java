@@ -22,7 +22,8 @@ import uk.ac.starlink.splat.util.Statistics;
 /**
  * StatsRange extends the {@link XGraphicsRange} class to add four or five new
  * rows that contain statistics values for the spectrum being drawn over (the
- * current spectrum of a {@link PlotControl}).
+ * current spectrum of a {@link PlotControl}), under the supervision of 
+ * a {@link StatsFrame} instance.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -30,22 +31,26 @@ import uk.ac.starlink.splat.util.Statistics;
 public class StatsRange
     extends XGraphicsRange
 {
+    /** The StatsFrame */
+    private StatsFrame statsFrame = null;
+
     /** The PlotControl instance. */
-    protected PlotControl control = null;
+    private PlotControl control = null;
 
     /** The Statistics instance. */
-    protected Statistics stats = new Statistics( new double[] {0.0} );
+    private Statistics stats = new Statistics( new double[] {0.0} );
 
     /** The NumericIntegrator instance */
-    protected NumericIntegrator integ = new NumericIntegrator();
+    private NumericIntegrator integ = new NumericIntegrator();
 
     /** The TSYS value */
-    protected double tsys = -1.0;
+    private double tsys = -1.0;
 
     /**
      * Create a range interactively or non-interactively.
      *
-     * @param control PlotControl that is to display the range.
+     * @param statsRange StatsFrame with a PlotControl that is to display the
+     *                   range. 
      * @param model StatsRangesModel model that arranges to have the
      *              properties of the range displayed (may be null).
      * @param colour the colour of any figures.
@@ -55,11 +60,13 @@ public class StatsRange
      *              coordinates) to be used. Set null if the figure is to be
      *              created interactively.
      */
-    public StatsRange( PlotControl control, StatsRangesModel model,
+    public StatsRange( StatsFrame statsFrame, StatsRangesModel model,
                        Color colour, boolean constrain, double[] range )
     {
-        super( control.getPlot(), model, colour, constrain );
-        setControl( control );
+        super( statsFrame.getPlotControl().getPlot(), model, colour, 
+               constrain );
+        this.statsFrame = statsFrame;
+        setControl( statsFrame.getPlotControl() );
 
         //  Do this after construction to avoid problems with initialization
         //  order.
@@ -167,12 +174,12 @@ public class StatsRange
                 //  Perform stats...
                 stats.setData( rangeData );
 
-                //  TSYS requires the standard deviation.
+                //  TSYS requires the standard deviation and factors held
+                //  by the StatsFrame.
                 tsys = -1.0;
                 if ( showTSYS ) {
                     double std = getStandardDeviation();
-                    double[] factors =
-                        JACUtilities.gatherTSYSFactors( currentSpectrum );
+                    double[] factors = statsFrame.getTSYSFactors();
                     if ( factors != null ) {
                         tsys = JACUtilities.calculateTSYS( factors[0],
                                                            factors[1],

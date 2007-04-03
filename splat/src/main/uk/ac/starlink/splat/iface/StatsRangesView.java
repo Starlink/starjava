@@ -37,19 +37,21 @@ public class StatsRangesView
     extends XGraphicsRangesView
 {
     private PlotControl control = null;
+    private StatsFrame statsFrame = null;
 
     /**
      * Create an instance with default colour and constraint.
      *
-     * @param plot the DivaPlot that we're drawing into.
+     * @param statsFrame the {@link StatsFrame} instance related to the 
+     *                   plot we are required to interact with.
      * @param menu a menu for adding the ranges actions (can be null).
      * @param model the model used to populate the table, if null a default
      *              instance of XGraphicsRangesModel will be used.
      */
-    public StatsRangesView( PlotControl control, JMenu menu, 
+    public StatsRangesView( StatsFrame statsFrame, JMenu menu, 
                             StatsRangesModel model )
     {
-        this( control, menu, Color.green, true, model );
+        this( statsFrame, menu, Color.green, true, model );
         configureColumnWidths();
     }
 
@@ -57,7 +59,8 @@ public class StatsRangesView
      * Create an instance with a given colour and constained property and
      * StatsRangesModel instance.
      *
-     * @param plot the DivaPlot that we're drawing into.
+     * @param statsFrame the {@link StatsFrame} instance related to the 
+     *                   plot we are required to interact with.
      * @param menu a menu for adding the ranges actions (can be null).
      * @param colour the colour that any figures should be drawn using.
      * @param constrain whether the figure moves just X and show a full range
@@ -65,11 +68,14 @@ public class StatsRangesView
      * @param model the model used to populate the table, if null a default
      *              instance of XGraphicsRangesModel will be used.
      */
-    protected StatsRangesView( PlotControl control, JMenu menu, Color colour, 
-                               boolean constrain, StatsRangesModel model )
+    protected StatsRangesView( StatsFrame statsFrame, JMenu menu, 
+                               Color colour, boolean constrain, 
+                               StatsRangesModel model )
     {
-        super( control.getPlot(), menu, colour, constrain, model );
-        this.control = control;
+        super( statsFrame.getPlotControl().getPlot(), menu, colour, 
+               constrain, model );
+        this.statsFrame = statsFrame;
+        this.control = statsFrame.getPlotControl();
         configureColumnWidths();
     }
 
@@ -82,7 +88,7 @@ public class StatsRangesView
         if ( interactive ) {
             //  Raise the plot to indicate that an interaction should begin.
             SwingUtilities.getWindowAncestor( plot ).toFront();
-            new StatsRange( control, (StatsRangesModel) model, colour, 
+            new StatsRange( statsFrame, (StatsRangesModel) model, colour, 
                             constrain, null );
         }
         else {
@@ -111,7 +117,7 @@ public class StatsRangesView
      */
     protected void createRange( double[] range )
     {
-        new StatsRange( control, (StatsRangesModel) model, colour, 
+        new StatsRange( statsFrame, (StatsRangesModel) model, colour, 
                         constrain, range );
     }
 

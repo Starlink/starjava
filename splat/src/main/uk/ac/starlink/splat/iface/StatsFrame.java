@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     17-JUN-2005 (Peter W. Draper):
@@ -10,6 +11,7 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -27,14 +29,19 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
@@ -56,36 +63,55 @@ public class StatsFrame
     extends JFrame
 {
     /** UI preferences. */
-    protected static Preferences prefs =
+    private static Preferences prefs =
         Preferences.userNodeForPackage( StatsFrame.class );
 
     /** Content pane of frame */
-    protected JPanel contentPane = null;
+    private JPanel contentPane = null;
 
     /** The PlotControl that is displaying the current spectrum */
-    protected PlotControl control = null;
-
-    /** The global list of spectra and plots */
-    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+    private PlotControl control = null;
 
     /** Text area for results of all statistics fits. */
-    protected JTextArea statsResults = null;
+    private JTextArea statsResults = null;
 
     /** Ranges of data. */
-    protected StatsRangesView rangesView = null;
-    protected StatsRangesModel rangesModel = null;
+    private StatsRangesView rangesView = null;
+    private StatsRangesModel rangesModel = null;
 
     /** Level of full stats reported */
-    protected JCheckBoxMenuItem fullStatsBox = null;
+    private JCheckBoxMenuItem fullStatsBox = null;
 
     /** Include an estimate of the integrated flux in the fast readout */
-    protected JCheckBoxMenuItem fluxBox = null;
+    private JCheckBoxMenuItem fluxBox = null;
 
     /** Include an estimate of the TSYS value (specialist) */
-    protected JCheckBoxMenuItem tSYSBox = null;
+    private JCheckBoxMenuItem tSYSBox = null;
+
+    /** Display additional controls that allow the TSYS related constants
+     *  to be defined */
+    private JCheckBoxMenuItem tSYSControlsBox = null;
+
+    /** Panel holding the TSYS controls panel */
+    private JPanel tSYSControls = null;
+
+    /** Panel inside tSYSControls */
+    private JPanel realTSYSControls = null;
+
+    /** Whether TSYS controls have been displayed. Happen once per-session */
+    private boolean tSYSControlsDisplayed = false;
+
+    /** TSYS backend factor */
+    private DecimalField backEndFactor = null;
+
+    /** TSYS effective exposure time */
+    private DecimalField effectiveExposure = null;
+
+    /** TSYS channel spacing */
+    private JTextField channelSpacing = null;
 
     /** Include variance stats if variance component exists */
-    protected JCheckBoxMenuItem varBox = null;
+    private JCheckBoxMenuItem varBox = null;
 
     /**
      * Create an instance.
@@ -104,7 +130,7 @@ public class StatsFrame
      *
      * @return the PlotControl
      */
-    public PlotControl getPlot()
+    public PlotControl getPlotControl()
     {
         return control;
     }
@@ -123,8 +149,27 @@ public class StatsFrame
     /**
      * Initialise the main part of the user interface.
      */
-    protected void initUI()
+    private void initUI()
     {
+        //  Menubar and toolbars.
+        JMenuBar menuBar = new JMenuBar();
+        setJMenuBar( menuBar );
+
+        //  File menu.
+        JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
+        menuBar.add( fileMenu );
+
+        //  Options.
+        JMenu optionsMenu = new JMenu( "Options" );
+        optionsMenu.setMnemonic( KeyEvent.VK_O );
+        menuBar.add( optionsMenu );
+
+        //  Ranges.
+        JMenu rangesMenu = new JMenu( "Ranges" );
+        optionsMenu.setMnemonic( KeyEvent.VK_R );
+        menuBar.add( rangesMenu );
+
         //  Central region.
         JPanel centre = new JPanel();
         GridBagLayouter layouter =
@@ -132,17 +177,283 @@ public class StatsFrame
         contentPane.add( centre, BorderLayout.CENTER );
 
         //  The ranges.
+        rangesView = createRangesView( rangesMenu, optionsMenu );
+        layouter.add( rangesView, true );
+
+        //  The TSYS parameters, and reveal if shown.
+        tSYSControls = createTSYSPanel( optionsMenu );
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.0;
+
+        layouter.add( tSYSControls, gbc );
+        toggleTSYSControls();
+
+        //  Text pane to show report on statistics.
+        JPanel statsPanel = createStatsPanel( optionsMenu );
+        layouter.add( statsPanel, true );
+
+        //  Action bar for buttons.
+        JPanel actionBar = createActionBar( fileMenu );
+        contentPane.add( actionBar, BorderLayout.SOUTH );
+
+        //  Add the help menu.
+        HelpFrame.createHelpMenu( "stats-window", "Help on window",
+                                  menuBar, null );
+    }
+
+    /**
+     * Create the {@link StatsRangesView} that displays the simple statistics
+     * of each of the ranges in real-time, and the menu items that configure
+     * it.
+     */
+    private StatsRangesView createRangesView( JMenu rangesMenu,
+                                              JMenu optionsMenu )
+    {
         boolean showFlux = prefs.getBoolean( "StatsFrame_flux", true );
         boolean showTSYS = prefs.getBoolean( "StatsFrame_tsys", false );
         boolean showVarStats = prefs.getBoolean( "StatsFrame_varstats",
                                                  false );
         rangesModel = new StatsRangesModel( control, showFlux , showTSYS );
-        JMenu rangesMenu = new JMenu( "Ranges" );
-        rangesView = new StatsRangesView( control, rangesMenu, rangesModel );
-        layouter.add( rangesView, true );
+        rangesView = new StatsRangesView( this, rangesMenu, rangesModel );
 
-        //  Text pane to show report on statistics. Use this so that
-        //  previous reports can be reviewed.
+        //  Option to control whether flux is shown.
+        fluxBox = new JCheckBoxMenuItem( "Show flux integral" );
+        optionsMenu.add( fluxBox );
+        fluxBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = fluxBox.isSelected();
+                    rangesModel.setShowFlux( state );
+                    prefs.putBoolean( "StatsFrame_flux", state );
+                }
+            });
+        fluxBox.setToolTipText("Show integrated flux value in fast readouts" );
+
+        //  User setting for this value.
+        fluxBox.setSelected( showFlux );
+
+        //  Option to control whether TSYS is shown in fast readouts.
+        tSYSBox = new JCheckBoxMenuItem( "Show TSYS" );
+        optionsMenu.add( tSYSBox );
+        tSYSBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = tSYSBox.isSelected();
+                    rangesModel.setShowTSYS( state );
+                    prefs.putBoolean( "StatsFrame_tsys", state );
+                }
+            });
+        tSYSBox.setToolTipText( "Show TSYS value in fast readouts" );
+
+        //  User setting for this value.
+        tSYSBox.setSelected( showTSYS );
+
+        //  Option to control whether variance stats are shown in
+        //  full values, if variance component exists.
+        varBox = new JCheckBoxMenuItem( "Error stats" );
+        optionsMenu.add( varBox );
+        varBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = varBox.isSelected();
+                    prefs.putBoolean( "StatsFrame_varstats", state );
+                }
+            });
+        varBox.setToolTipText("Show statistics for variance/error component" );
+
+        //  User setting for this value.
+        varBox.setSelected( showVarStats );
+
+        return rangesView;
+    }
+
+    /**
+     * Create the panel for the TSYS parameters. These are not shown by
+     * default, and are activated by toggling the options menu item
+     * "Set TSYS parameters".
+     */
+    private JPanel createTSYSPanel( JMenu optionsMenu )
+    {
+        boolean show = prefs.getBoolean( "StatsFrame_tsyscontrols", false );
+
+        //  Two panels, one for the controls and one to hold the other panel.
+        //  This is used so that the controls can be created but may be kept
+        //  hidden until its clear the user wants them. See toggleTSYSControls.
+        JPanel tsysPanel = new JPanel();
+        realTSYSControls = new JPanel();
+
+        //  Menu item for enabling and disabling these controls.
+        tSYSControlsBox = new JCheckBoxMenuItem( "Set TSYS parameters" );
+        tSYSControlsBox.setSelected( show );
+        optionsMenu.add( tSYSControlsBox );
+        tSYSControlsBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    toggleTSYSControls();
+                }
+            });
+        tSYSControlsBox.setToolTipText
+            ( "Show and use controls for setting TSYS parameters" );
+
+
+        //  Create the controls.
+        realTSYSControls.setBorder
+            ( BorderFactory.createTitledBorder( "TSYS parameters:" ) );
+        GridBagLayouter gbl =
+            new GridBagLayouter( realTSYSControls, GridBagLayouter.SCHEME4 );
+
+        //  Backend degradation.
+        JLabel label = new JLabel( "Backend degradation factor:" );
+        gbl.add( label, false );
+
+        ScientificFormat scientificFormat = new ScientificFormat();
+        backEndFactor = new DecimalField( 1.0, 5, scientificFormat );
+        backEndFactor.setToolTipText
+            ( "Instrument backend degradation factor (dimensionless)" );
+        
+        //  When a value is completed update the readouts.
+        backEndFactor.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    rangesModel.recalculateAll();
+                }
+            });
+
+        gbl.add( backEndFactor, true );
+
+        //  Exposure time.
+        label = new JLabel( "Effective exposure time:" );
+        gbl.add( label, false );
+
+        scientificFormat = new ScientificFormat();
+        effectiveExposure = new DecimalField( 1.0, 5, scientificFormat );
+        effectiveExposure.setToolTipText
+            ( "Effective exposure time for spectrum (secs)" );
+
+        effectiveExposure.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    rangesModel.recalculateAll();
+                }
+            });
+
+
+        gbl.add( effectiveExposure, true );
+
+        //  Channel spacing, readonly, calculated from the spectrum.
+        label = new JLabel( "Channel spacing:" );
+        gbl.add( label, false );
+
+        channelSpacing = new JTextField();
+        channelSpacing.setToolTipText( "Channel spacing (Hz)" );
+        channelSpacing.setEditable( false );
+        gbl.add( channelSpacing, true );
+
+        // Update the fields with the information in the spectrum.
+        JButton checkSpectrum = new JButton( "Check spectrum" );
+        checkSpectrum.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    checkSpectrum();
+                }
+            });
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add( Box.createGlue() );
+        buttonPanel.add( checkSpectrum );
+        buttonPanel.add( Box.createGlue() );
+        gbl.add( buttonPanel, true );
+
+        return tsysPanel;
+    }
+
+    /**
+     * Check the system for the TSYS parameters and update the TSYS fields
+     * with the values.
+     */
+    protected void checkSpectrum()
+    {
+        SpecData currentSpectrum = control.getCurrentSpectrum();
+        double[] factors = JACUtilities.gatherTSYSFactors( currentSpectrum );
+        if ( factors != null ) {
+            backEndFactor.setText( Double.toString( factors[0] ) );
+            channelSpacing.setText( Double.toString( factors[1] * 1.0E-6 ) );
+            effectiveExposure.setText( Double.toString( factors[2] ) );
+        }
+    }
+
+    /**
+     * Gather the TSYS factors. These are obtained from the spectrum
+     * or the interface, if requested. If not available a null is
+     * returned.
+     */
+    public double[] getTSYSFactors()
+    {
+        double[] factors = null;
+        SpecData currentSpectrum = control.getCurrentSpectrum();
+        if ( tSYSControlsBox.isSelected() ) {
+            //  User supplied values. Note we generate the channel spacing.
+            String value = backEndFactor.getText();
+            if ( ! "".equals( value ) ) {
+                factors = new double[3];
+                factors[0] = Double.parseDouble( value );
+                value = effectiveExposure.getText();
+                if ( ! "".equals( value ) ) {
+                    factors[2] = Double.parseDouble( value );
+                    try {
+                        factors[1] = currentSpectrum
+                            .channelSpacing( "System=FREQ,Unit=Hz" );
+                    }
+                    catch (AstException e) {
+                        // Cannot do anything.
+                        factors = null;
+                    }
+                }
+                else {
+                    factors = null;
+                }
+            }
+        }
+        else {
+            factors = JACUtilities.gatherTSYSFactors( currentSpectrum );
+        }
+        return factors;
+    }
+
+    /**
+     * Show or hide the TSYS parameter controls.
+     */
+    private void toggleTSYSControls()
+    {
+        boolean state = tSYSControlsBox.isSelected();
+        prefs.putBoolean( "StatsFrame_tsyscontrols", state );
+
+        //  Draw for the first time.
+        if ( ! tSYSControlsDisplayed && state ) {
+            tSYSControls.setLayout( new BorderLayout() );
+            tSYSControls.add( realTSYSControls, BorderLayout.NORTH );
+            tSYSControlsDisplayed = true;
+            validate();
+        }
+
+        //  Now set state.
+        backEndFactor.setEnabled( state );
+        effectiveExposure.setEnabled( state );
+        channelSpacing.setEnabled( state );
+    }
+
+    /**
+     * Create a panel for displaying the fuller statistics. Consists mainly
+     * of a text area.
+     */
+    private JPanel createStatsPanel( JMenu optionsMenu )
+    {
         JPanel statsPanel = new JPanel();
         statsPanel.setBorder
             ( BorderFactory.createTitledBorder( "Full stats log:" ) );
@@ -168,27 +479,31 @@ public class StatsFrame
         gbl.add( clearButton, false );
         gbl.eatLine();
 
-        layouter.add( statsPanel, true );
+        //  Menu item to control quantity of stats shown.
+        fullStatsBox = new JCheckBoxMenuItem( "Show extra stats" );
+        optionsMenu.add( fullStatsBox );
+        fullStatsBox.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e )
+                {
+                    boolean state = fullStatsBox.isSelected();
+                    prefs.putBoolean( "StatsFrame_extra", state );
+                }
+            });
+        fullStatsBox.setToolTipText( "Show extra full statistics" );
 
-        //  Menubar and toolbars.
-        JMenuBar menuBar = new JMenuBar();
-        setJMenuBar( menuBar );
+        //  User setting for this value.
+        boolean state = prefs.getBoolean( "StatsFrame_extra", false );
+        fullStatsBox.setSelected( state );
 
-        //  File menu.
-        JMenu fileMenu = new JMenu( "File" );
-        fileMenu.setMnemonic( KeyEvent.VK_F );
-        menuBar.add( fileMenu );
+        return statsPanel;
+    }
 
-        //  Options.
-        JMenu optionsMenu = new JMenu( "Options" );
-        optionsMenu.setMnemonic( KeyEvent.VK_O );
-        menuBar.add( optionsMenu );
-
-        //  Ranges.
-        optionsMenu.setMnemonic( KeyEvent.VK_R );
-        menuBar.add( rangesMenu );
-
-        //  Action bar for buttons.
+    /**
+     * Create and populate the action bar. Also adds actions to the file
+     * menu.
+     */
+    private JPanel createActionBar( JMenu fileMenu )
+    {
         JPanel actionBar = new JPanel();
 
         //  Images.
@@ -236,7 +551,6 @@ public class StatsFrame
         actionBar.add( wholeButton );
 
         actionBar.add( Box.createGlue() );
-        contentPane.add( actionBar, BorderLayout.SOUTH );
 
         //  Read and write ranges to disk file.
         Action readAction = rangesView.getReadAction( "Read ranges",
@@ -258,79 +572,13 @@ public class StatsFrame
         actionBar.add( Box.createGlue() );
         actionBar.add( closeButton );
 
-        //  Option to control quantity of stats shown.
-        fullStatsBox = new JCheckBoxMenuItem( "Show extra stats" );
-        optionsMenu.add( fullStatsBox );
-        fullStatsBox.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e )
-                {
-                    boolean state = fullStatsBox.isSelected();
-                    prefs.putBoolean( "StatsFrame_extra", state );
-                }
-            });
-        fullStatsBox.setToolTipText( "Show extra full statistics" );
-
-        //  User setting for this value.
-        boolean state = prefs.getBoolean( "StatsFrame_extra", false );
-        fullStatsBox.setSelected( state );
-
-        //  Option to control whether flux is shown in the fast readouts.
-        fluxBox = new JCheckBoxMenuItem( "Show flux integral" );
-        optionsMenu.add( fluxBox );
-        fluxBox.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e )
-                {
-                    boolean state = fluxBox.isSelected();
-                    rangesModel.setShowFlux( state );
-                    prefs.putBoolean( "StatsFrame_flux", state );
-                }
-            });
-        fluxBox.setToolTipText("Show integrated flux value in fast readouts" );
-
-        //  User setting for this value.
-        fluxBox.setSelected( showFlux );
-
-        //  Option to control whether TSYS is shown in fast readouts.
-        tSYSBox = new JCheckBoxMenuItem( "Show TSYS" );
-        optionsMenu.add( tSYSBox );
-        tSYSBox.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e )
-                {
-                    boolean state = tSYSBox.isSelected();
-                    rangesModel.setShowTSYS( state );
-                    prefs.putBoolean( "StatsFrame_tsys", state );
-                }
-            });
-        tSYSBox.setToolTipText( "Show TSYS value in fast readouts" );
-
-        //  User setting for this value.
-        tSYSBox.setSelected( showTSYS );
-
-        //  Option to control whether variance stats are shown in 
-        //  full values, if variance component exists.
-        varBox = new JCheckBoxMenuItem( "Error stats" );
-        optionsMenu.add( varBox );
-        varBox.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e )
-                {
-                    boolean state = varBox.isSelected();
-                    prefs.putBoolean( "StatsFrame_varstats", state );
-                }
-            });
-        varBox.setToolTipText("Show statistics for variance/error component" );
-
-        //  User setting for this value.
-        varBox.setSelected( showVarStats );
-
-        //  Add the help menu.
-        HelpFrame.createHelpMenu( "stats-window", "Help on window",
-                                  menuBar, null );
+        return actionBar;
     }
 
     /**
      * Initialise frame properties (disposal, title, menus etc.).
      */
-    protected void initFrame()
+    private void initFrame()
     {
         setTitle( Utilities.getTitle( "Region statistics" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
@@ -372,7 +620,9 @@ public class StatsFrame
                 int low = ranges[i];
                 int high = Math.min( ranges[i+1], yData.length - 1 );
                 for ( int j = low; j <= high; j++ ) {
-                    if ( yData[j] != SpecData.BAD ) count++;
+                    if ( yData[j] != SpecData.BAD ) {
+                        count++;
+                    }
                 }
             }
 
@@ -490,9 +740,11 @@ public class StatsFrame
             }
         }
 
-        //  TSYS requires the standard deviation.
+        //  TSYS requires the standard deviation and various factors.
+        //  These are gathered from the spectrum by default, but some can
+        //  be supplied.
         double std = stats.getStandardDeviation();
-        double[] factors = JACUtilities.gatherTSYSFactors( currentSpectrum );
+        double[] factors = getTSYSFactors();
         if ( factors != null ) {
             double tsys = JACUtilities.calculateTSYS( factors[0], factors[1],
                                                       factors[2], std );
@@ -521,11 +773,11 @@ public class StatsFrame
     {
         StringBuffer buf = new StringBuffer();
         buf.append( prefix + "Mean of errors = " + stats.getMean() + "\n" );
-        buf.append( prefix + "Standard deviation of errors = " + 
+        buf.append( prefix + "Standard deviation of errors = " +
                     stats.getStandardDeviation() + "\n");
-        buf.append( prefix + "Minimum of errors = " + 
+        buf.append( prefix + "Minimum of errors = " +
                     stats.getMinimum() + "\n" );
-        buf.append( prefix + "Maximum of errors = " + 
+        buf.append( prefix + "Maximum of errors = " +
                     stats.getMaximum() + "\n" );
         return buf;
     }
