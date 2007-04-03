@@ -446,6 +446,11 @@ public class StatsFrame
         backEndFactor.setEnabled( state );
         effectiveExposure.setEnabled( state );
         channelSpacing.setEnabled( state );
+
+        //  If not using these values, make sure the interface is up to date.
+        if ( ! state ) {
+            rangesModel.recalculateAll();
+        }
     }
 
     /**
