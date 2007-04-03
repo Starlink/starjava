@@ -263,7 +263,7 @@ public class CartesianPointStore implements PointStore {
                         errCoords[ 0 ] = lo;
                     }
                     else {
-                        errCoords[ 1 ] = null;
+                        errCoords[ 0 ] = null;
                     }
                     if ( hiOff > 0 ) {
                         for ( int id = 0; id < ndim_; id++ ) {
