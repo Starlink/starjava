@@ -3,7 +3,9 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -59,7 +61,7 @@ public class DefaultPointSelector extends PointSelector {
     public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
                                  ToggleSet[] toggleSets,
                                  ErrorModeSelectionModel[] errorModeModels ) {
-        super( styles, errorModeModels );
+        super( styles );
         axisNames_ = axisNames;
         errorModeModels_ = errorModeModels;
         ndim_ = axisNames.length;
@@ -176,6 +178,15 @@ public class DefaultPointSelector extends PointSelector {
         return createColumnDataTable( getTable(), cols );
     }
 
+    public ErrorMode[] getErrorModes() {
+        int nerr = errorModeModels_.length;
+        ErrorMode[] modes = new ErrorMode[ nerr ];
+        for ( int ierr = 0; ierr < nerr; ierr++ ) {
+            modes[ ierr ] = errorModeModels_[ ierr ].getMode();
+        }
+        return modes;
+    }
+
     /**
      * Returns one of the the column selector boxes used by this selector.
      *
@@ -213,11 +224,39 @@ public class DefaultPointSelector extends PointSelector {
         }
     }
 
+    /**
+     * Initialises the selectors to the first ndim suitable columns available.
+     * This is not particularly likely to be what the user is after, but
+     * it means that a plot rather than a blank screen will be seen as soon
+     * as the window is visible.
+     */
     protected void initialiseSelectors() {
-        for ( int i = 0; i < ndim_; i++ ) {
-            JComboBox colSelector = dataSelectors_[ i ].getMainSelector();
-            if ( i + 1 < colSelector.getItemCount() ) {
-                colSelector.setSelectedIndex( i + 1 );
+        Set usedCols = new HashSet();
+        usedCols.add( null );
+
+        /* Iterate over each dimension. */
+        for ( int id = 0; id < ndim_; id++ ) {
+            AxisDataSelector dataSelector = dataSelectors_[ id ];
+            JComboBox colSelector = dataSelector.getMainSelector();
+
+            /* Locate the next unused column in the list available from the
+             * dimension's selection. */
+            boolean done = false;
+            for ( int ic = 0; ic < colSelector.getItemCount() && !done; ic++ ) {
+                ColumnData col = (ColumnData) colSelector.getItemAt( ic );
+                if ( ! usedCols.contains( col ) ) {
+
+                    /* Set the column selector accordingly. */
+                    colSelector.setSelectedItem( col );
+
+                    /* Add the selected column, as well as any associated
+                     * error columns, to the list of used ones. */
+                    JComboBox[] errSels = dataSelector.getSelectors();
+                    for ( int isel = 0; isel < errSels.length; isel++ ) {
+                        usedCols.add( errSels[ isel ].getSelectedItem() );
+                    }
+                    done = true;
+                }
             }
         }
     }
