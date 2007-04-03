@@ -106,14 +106,15 @@ public class DefaultPointSelector extends PointSelector {
         if ( errorModeModels_.length > 0 ) {
             for ( int id = 0; id < ndim_; id++ ) {
                 final int idim = id;
-                errorModeModels_[ idim ]
-                               .addActionListener( new ActionListener() {
+                ActionListener listener = new ActionListener() {
                     public void actionPerformed( ActionEvent evt ) {
                         updateAnnotator();
                         dataSelectors_[ idim ]
                             .setErrorMode( errorModeModels_[ idim ].getMode() );
                     }
-                } );
+                };
+                errorModeModels_[ idim ].addActionListener( listener );
+                listener.actionPerformed( null );
             }
         }
     }
