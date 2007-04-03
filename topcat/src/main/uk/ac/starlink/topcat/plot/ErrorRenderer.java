@@ -46,6 +46,10 @@ public abstract class ErrorRenderer {
     public static final ErrorRenderer EXAMPLE =
          new CappedLine( "Lines", true, 3 );
 
+    /** Error renderer suitable for displaying 2D tangential errors. */
+    public static final ErrorRenderer TANGENT =
+         new OpenEllipse( "Ellipse", true );
+
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
