@@ -42,10 +42,10 @@ public class CartesianPointStore implements PointStore {
      * Constructor.
      *
      * @param  ndim  coordinate dimensionality
-     * @param  npoint  number of times {@link #storePoint} will be called.
      * @param  errorModes   error mode array
+     * @param  npoint  number of times {@link #storePoint} will be called.
      */
-    public CartesianPointStore( int ndim, int npoint, ErrorMode[] errorModes ) {
+    public CartesianPointStore( int ndim, ErrorMode[] errorModes, int npoint ) {
         ndim_ = ndim;
         npoint_ = npoint;
 
@@ -156,7 +156,7 @@ public class CartesianPointStore implements PointStore {
      */
     private ErrorReader createErrorReader( final int idim, ErrorMode mode ) {
         if ( ErrorMode.SYMMETRIC.equals( mode ) ) {
-            return new ErrorReader( 1, true, true ) {
+            return new ErrorReader( 1 ) {
                 final double[] lo = new double[ ndim_ ];
                 final double[] hi = new double[ ndim_ ];
                 protected void convertErrors( double[] point, double[] rawErrs,
@@ -180,7 +180,7 @@ public class CartesianPointStore implements PointStore {
             };
         }
         else if ( ErrorMode.LOWER.equals( mode ) ) {
-            return new ErrorReader( 1, true, false ) {
+            return new ErrorReader( 1 ) {
                 final double[] lo = new double[ ndim_ ];
                 protected void convertErrors( double[] point, double[] rawErrs,
                                               double[][] errCoords ) {
@@ -200,7 +200,7 @@ public class CartesianPointStore implements PointStore {
             };
         }
         else if ( ErrorMode.UPPER.equals( mode ) ) {
-            return new ErrorReader( 1, false, true ) {
+            return new ErrorReader( 1 ) {
                 final double[] hi = new double[ ndim_ ];
                 protected void convertErrors( double[] point, double[] rawErrs,
                                               double[][] errCoords ) {
@@ -220,7 +220,7 @@ public class CartesianPointStore implements PointStore {
             };
         }
         else if ( ErrorMode.BOTH.equals( mode ) ) {
-            return new ErrorReader( 2, true, true ) {
+            return new ErrorReader( 2 ) {
                 final double[] lo = new double[ ndim_ ];
                 final double[] hi = new double[ ndim_ ];
                 protected void convertErrors( double[] point, double[] rawErrs,
@@ -265,8 +265,6 @@ public class CartesianPointStore implements PointStore {
     private abstract class ErrorReader {
 
         private final int wordCount_;
-        private final boolean hasLower_;
-        private final boolean hasUpper_;
         private final double[] buf_;
         private final double[][] pair_;
 
@@ -276,10 +274,8 @@ public class CartesianPointStore implements PointStore {
          * @param  wordCount  number of words read from the value store for
          *                    each point
          */
-        ErrorReader( int wordCount, boolean hasLower, boolean hasUpper ) {
+        ErrorReader( int wordCount ) {
             wordCount_ = wordCount;
-            hasLower_ = hasLower;
-            hasUpper_ = hasUpper;
             buf_ = new double[ wordCount ];
             pair_ = new double[ 2 ][];
         }
@@ -291,26 +287,6 @@ public class CartesianPointStore implements PointStore {
          */
         public int getWordCount() {
             return wordCount_;
-        }
-
-        /**
-         * Indicates whether the lower bound returned by this reader is
-         * ever non-blank.
-         *
-         * @return  false if this reader always reads blank lower bounds
-         */
-        public boolean hasLower() {
-            return hasLower_;
-        }
-
-        /**
-         * Indicates whether the upper bound returned by this reader is
-         * ever non-blank.
-         *
-         * @return  false if this reader always reads blank upper bounds
-         */
-        public boolean hasUpper() {
-            return hasUpper_;
         }
 
         /**
