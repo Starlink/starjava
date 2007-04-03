@@ -23,7 +23,7 @@ import uk.ac.starlink.topcat.TopcatModel;
  * @author   Mark Taylor
  * @since    23 Dec 2005
  */
-public class DefaultPointSelector extends PointSelector {
+public class CartesianPointSelector extends PointSelector {
 
     private final int ndim_;
     private final String[] axisNames_;
@@ -43,8 +43,8 @@ public class DefaultPointSelector extends PointSelector {
      *                     <code>toggleSets</code> itself or any of
      *                     its elements may be null
      */
-    public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
-                                 ToggleSet[] toggleSets ) {
+    public CartesianPointSelector( MutableStyleSet styles, String[] axisNames,
+                                   ToggleSet[] toggleSets ) {
         this( styles, axisNames, toggleSets, new ErrorModeSelectionModel[ 0 ] );
     }
     
@@ -58,9 +58,9 @@ public class DefaultPointSelector extends PointSelector {
      *                     its elements may be null
      * @param   errorModeModels  selection models for error modes, one per axis
      */
-    public DefaultPointSelector( MutableStyleSet styles, String[] axisNames,
-                                 ToggleSet[] toggleSets,
-                                 ErrorModeSelectionModel[] errorModeModels ) {
+    public CartesianPointSelector( MutableStyleSet styles, String[] axisNames,
+                                   ToggleSet[] toggleSets,
+                                   ErrorModeSelectionModel[] errorModeModels ) {
         super( styles );
         axisNames_ = axisNames;
         errorModeModels_ = errorModeModels;

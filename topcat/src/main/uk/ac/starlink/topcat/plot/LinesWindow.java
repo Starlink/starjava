@@ -377,8 +377,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
          * new selector with.  We'll do this if all the existing valid
          * point selectors are using the same X axis. */
         PointSelectorSet pointSelectors = getPointSelectors();
-        DefaultPointSelector mainSel =
-            (DefaultPointSelector) pointSelectors.getMainSelector();
+        CartesianPointSelector mainSel =
+            (CartesianPointSelector) pointSelectors.getMainSelector();
         TopcatModel mainTable = null;
         Object mainXAxis = null;
         if ( mainSel != null && mainSel.isReady() ) {
@@ -388,8 +388,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                   mainTable != null && mainXAxis != null
                                     && i < pointSelectors.getSelectorCount();
                   i++ ) {
-                DefaultPointSelector psel =
-                    (DefaultPointSelector) pointSelectors.getSelector( i );
+                CartesianPointSelector psel =
+                    (CartesianPointSelector) pointSelectors.getSelector( i );
                 if ( psel.isReady() ) {
                     TopcatModel table = psel.getTable();
                     Object xAxis =
@@ -812,7 +812,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * selector, unlike those in plot windows which share the same
      * log/flip flag arrays for each axis.
      */
-    private static class LinesPointSelector extends DefaultPointSelector {
+    private static class LinesPointSelector extends CartesianPointSelector {
         private final ToggleButtonModel yLogModel_;
         private final ToggleButtonModel yFlipModel_;
 
@@ -827,11 +827,11 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                             ToggleButtonModel yLogModel,
                             ToggleButtonModel yFlipModel ) {
             super( styles, new String[] { "X", "Y" },
-                   new DefaultPointSelector.ToggleSet[] {
-                       new DefaultPointSelector.ToggleSet(
+                   new CartesianPointSelector.ToggleSet[] {
+                       new CartesianPointSelector.ToggleSet(
                            "Log", new ToggleButtonModel[] { null,
                                                             yLogModel } ),
-                       new DefaultPointSelector.ToggleSet(
+                       new CartesianPointSelector.ToggleSet(
                            "Flip", new ToggleButtonModel[] { null,
                                                              yFlipModel } ),
                    } );

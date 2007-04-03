@@ -238,10 +238,10 @@ public class HistogramWindow extends GraphicsWindow {
     protected PointSelector createPointSelector() {
 
         /* This bit just copied from the superclass. */
-        DefaultPointSelector.ToggleSet[] toggleSets =
-            new DefaultPointSelector.ToggleSet[] {
-                new DefaultPointSelector.ToggleSet( "Log", getLogModels() ),
-                new DefaultPointSelector.ToggleSet( "Flip", getFlipModels() ),
+        CartesianPointSelector.ToggleSet[] toggleSets =
+            new CartesianPointSelector.ToggleSet[] {
+                new CartesianPointSelector.ToggleSet( "Log", getLogModels() ),
+                new CartesianPointSelector.ToggleSet( "Flip", getFlipModels() ),
             };
 
         /* The superclass implementation assumes that the number of
@@ -250,8 +250,8 @@ public class HistogramWindow extends GraphicsWindow {
          * respectively).  So we need to make sure the AxisEditor array
          * supplied by the PointSelector is 2 long - one for the data
          * axis and one for the counts axis (screen Y axis). */
-        return new DefaultPointSelector( getStyles(), new String[] { "X" },
-                                         toggleSets ) {
+        return new CartesianPointSelector( getStyles(), new String[] { "X" },
+                                           toggleSets ) {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor countEd = new AxisEditor( "Count" );
                 countEd.setAxis( COUNT_INFO );
