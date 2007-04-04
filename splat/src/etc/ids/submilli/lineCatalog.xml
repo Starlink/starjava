@@ -1122,7 +1122,7 @@ the end of the transition name - it makes the display nicer.
     <transition name="4 4 4  - 3 3 3 " frequency="349398.9061"/>
     <transition name="4 4 3  - 3 3 2 " frequency="349400.2918"/>
   </species>
-   <species name = "HNC-13">
+   <species name = "HN-13-C">
     <transition name="3  - 2 " frequency="261263.3101"/>
     <transition name="4  - 3 " frequency="348340.2695"/>
   </species>
