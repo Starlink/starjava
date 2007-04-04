@@ -70,6 +70,13 @@ public class SphereWindow extends Plot3DWindow {
                                                 radialErrorModeModel_ );
     }
 
+    protected StyleEditor createStyleEditor() {
+        return new MarkStyleEditor( false, true, ERROR_RENDERERS,
+                                    new ErrorModeSelectionModel[] {
+                                        radialErrorModeModel_
+                                    } );
+    }
+
     /**
      * Returns a single range, corresponding to the radial axis.
      * Ranges on the other axes aren't much use.
