@@ -8,11 +8,6 @@ strictly necessary since the values are sorted internally within the code.
 Note that the units of frequency are MHz, and this should be maintained
 if any additionas are made to the list.  Also, please leave a space at
 the end of the transition name - it makes the display nicer.
-
-Original source file:
-
-   /jac_sw/orac3/OT/cfg/jcmt/lineCatalog.xml
- 
 -->
 <LineCatalog>
   <species name = "CO">
@@ -1106,5 +1101,29 @@ Original source file:
   </species>
   <species name = "H2D+">
     <transition name="1 1 0 0   -  1 1 1 0 " frequency="372421.34"/>
+  </species>
+    <species name = "CO+">
+    <transition name="2 2  - 1 2 " frequency="235380.0460"/>
+    <transition name="2 2  - 1 1 " frequency="235789.6410"/>
+    <transition name="2 3  - 1 2 " frequency="236062.5530"/>
+    <transition name="3 3  - 2 3 " frequency="353058.9285"/>
+    <transition name="3 3  - 2 2 " frequency="353741.2620"/>
+    <transition name="3 4  - 2 3 " frequency="354014.2470"/>
+  </species>
+   <species name = "CCH">
+    <transition name="3 4 4  - 2 3 3 " frequency="262004.2266"/>
+    <transition name="3 4 3  - 2 3 2 " frequency="262006.4034"/>
+    <transition name="3 3 3  - 2 2 2 " frequency="262064.8433"/>
+    <transition name="3 3 2  - 2 2 1 " frequency="262067.3312"/>
+    <transition name="3 3 2  - 2 2 2 " frequency="262078.7758"/>
+    <transition name="3 3 3  - 2 3 3 " frequency="262208.4388"/>
+    <transition name="4 5 5  - 3 4 4 " frequency="349337.4558"/>
+    <transition name="4 5 4  - 3 4 3 " frequency="349338.7284"/>
+    <transition name="4 4 4  - 3 3 3 " frequency="349398.9061"/>
+    <transition name="4 4 3  - 3 3 2 " frequency="349400.2918"/>
+  </species>
+   <species name = "HNC-13">
+    <transition name="3  - 2 " frequency="261263.3101"/>
+    <transition name="4  - 3 " frequency="348340.2695"/>
   </species>
 </LineCatalog>
