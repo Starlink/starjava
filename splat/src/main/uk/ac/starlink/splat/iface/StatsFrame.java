@@ -380,11 +380,25 @@ public class StatsFrame
     protected void checkSpectrum()
     {
         SpecData currentSpectrum = control.getCurrentSpectrum();
-        double[] factors = JACUtilities.gatherTSYSFactors( currentSpectrum );
-        if ( factors != null ) {
-            backEndFactor.setText( Double.toString( factors[0] ) );
-            channelSpacing.setText( Double.toString( factors[1] * 1.0E-6 ) );
-            effectiveExposure.setText( Double.toString( factors[2] ) );
+        if ( currentSpectrum != null ) {
+            double[] factors = 
+                JACUtilities.gatherTSYSFactors( currentSpectrum );
+            if ( factors != null ) {
+                backEndFactor.setText( Double.toString( factors[0] ) );
+                channelSpacing.setText( Double.toString( factors[1] ) );
+                effectiveExposure.setText( Double.toString( factors[2] ) );
+            }
+            else {
+                //  Maybe we can calculate the channel spacing anyway.
+                try {
+                    double cs =
+                        currentSpectrum.channelSpacing("System=FREQ,Unit=Hz");
+                    channelSpacing.setText( Double.toString( cs ));
+                }
+                catch (AstException e) {
+                    //  That's OK, just no SpecFrame available.
+                }
+            }
         }
     }
 
@@ -439,6 +453,10 @@ public class StatsFrame
             tSYSControls.setLayout( new BorderLayout() );
             tSYSControls.add( realTSYSControls, BorderLayout.NORTH );
             tSYSControlsDisplayed = true;
+
+
+            //  Set the various defaults from the current spectrum, this once.
+            checkSpectrum();
             validate();
         }
 
