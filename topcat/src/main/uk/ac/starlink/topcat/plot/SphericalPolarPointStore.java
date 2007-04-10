@@ -42,6 +42,7 @@ public class SphericalPolarPointStore implements PointStore {
     private final double[] rhi_;
     private final double[] transMatrix_;
     private int ipoint_;
+    private double minTanError_;
 
     /**
      * Constructor.
@@ -163,6 +164,20 @@ public class SphericalPolarPointStore implements PointStore {
     }
 
     /**
+     * Sets the smallest value for tan error which should generate non-blank
+     * tangent error bar points.  The idea is that if the graphical 
+     * destination of the points represented by this object is known to
+     * have a pixel size/resolution smaller than a given angular distance
+     * over its whole range, we can save a lot of work by assuming that
+     * certain errors are effectively non-existent.
+     *
+     * @param   minTanError  minimum non-negligable tangent error in radians
+     */
+    public void setMinimumTanError( double minTanError ) {
+        minTanError_ = Math.max( 0, minTanError );
+    }
+
+    /**
      * Calculates the returned error points given the raw error values.
      *
      * @param  centre   central point coordinates
@@ -220,7 +235,8 @@ public class SphericalPolarPointStore implements PointStore {
     private void calcTangentErrors( double[] centre, double tanErr,
                                     double[][] points, int pointOff ) {
         double[] rotmat;
-        if ( tanErr > 0 && ( rotmat = transformFrom001( centre ) ) != null ) {
+        if ( tanErr >= minTanError_ &&
+             ( rotmat = transformFrom001( centre ) ) != null ) {
             double s = Math.sin( tanErr );
             double c = Math.cos( tanErr );
             points[ pointOff++ ] =

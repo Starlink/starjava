@@ -66,6 +66,27 @@ public class SphericalPlot3D extends Plot3D {
         return 1.0;
     }
 
+    public Points getPoints() {
+
+        /* Modify the Points object where applicable by telling it roughly 
+         * what the pixel size is for display on this plot.  This enables
+         * skipping some expensive calulations of error points where it's
+         * known they will end up in the same pixel as the data point. */
+        Points points = super.getPoints();
+        if ( points instanceof SphericalPolarPointStore ) {
+            SphericalPolarPointStore spoints = 
+                (SphericalPolarPointStore) points;
+            Plot3DState state = getState();
+            int scale = Math.max( getWidth(), getHeight() );
+
+            /* This is a rough estimate, but it should be an underestimate,
+             * which is safe though perhaps not maximally efficient. */
+            double minTanErr = 1.0 / ( scale * state.getZoomScale() );
+            spoints.setMinimumTanError( minTanErr );
+        }
+        return points;
+    }
+
     protected boolean frontOnly( Plot3DState state ) {
         SphericalPlotState sstate = (SphericalPlotState) state;
         return sstate.getZoomScale() > 2
