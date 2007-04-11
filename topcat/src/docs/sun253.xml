@@ -9749,6 +9749,7 @@ introduced since the last version:
         as for 2D plots.</li>
     <li>Cartesian 3D plot now permits zooming towards centre 
         (though not panning).</li>
+    <li>3D plots now correctly report number of visible points.</li>
     </ul>
     </p></dd>
 
