@@ -440,7 +440,6 @@ public abstract class Plot3D extends JPanel {
                 centre[ 1 ] = coords[ 1 ];
                 centre[ 2 ] = coords[ 2 ];
                 if ( ranger.inRange( coords ) && logize( coords, logFlags ) ) {
-                    nVisible++;
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
                         if ( useErrors ) {
@@ -452,12 +451,20 @@ public abstract class Plot3D extends JPanel {
                         for ( int is = 0; is < nset; is++ ) {
                             boolean plotted = false;
                             if ( useErrors && showMarkErrors[ is ] ) {
-                                vol.plot3d( coords, is, showMarkPoints[ is ],
-                                            nerr, xerrs, yerrs, zerrs );
+                                boolean vis =
+                                    vol.plot3d( coords, is,
+                                                showMarkPoints[ is ],
+                                                nerr, xerrs, yerrs, zerrs );
+                                if ( vis ) {
+                                    nVisible++;
+                                }
                                 plotted = true;
                             }
                             if ( ! plotted && showMarkPoints[ is ] ) {
-                                vol.plot3d( coords, is );
+                                boolean vis = vol.plot3d( coords, is );
+                                if ( vis ) {
+                                    nVisible++;
+                                }
                             }
                         }
                     }

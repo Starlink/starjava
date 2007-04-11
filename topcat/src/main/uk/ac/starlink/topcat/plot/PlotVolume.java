@@ -94,16 +94,23 @@ public abstract class PlotVolume {
      * coordinates, in which points inside the unit cube 
      * centred at (.5,.5,.5) are intended to be visible under normal 
      * circumstances.
-     * Note that the <code>coords</code> array is not guaranteed to retain
+     *
+     * <p>Note that the <code>coords</code> array is not guaranteed to retain
      * its contents after this call returns; this method must make copies
      * of the values if it needs to retain them.
+     *
+     * <p>The return value indicates whether the point was actually plotted;
+     * it may be false if the point was known to be off screen.
+     * This isn't guaranteed to be exact; there may be false positives or
+     * false negatives near the edge of the plotting area.
      *
      * @param   coords   normalised (x,y,z) coordinates
      * @param   istyle   index into the array of styles set up for this volume
      *                   which will define how the marker is plotted
+     * @return  true iff the point was actually plotted
      */
-    public void plot3d( double[] coords, int istyle ) {
-        plot3d( coords, istyle, true, 0, null, null, null );
+    public boolean plot3d( double[] coords, int istyle ) {
+        return plot3d( coords, istyle, true, 0, null, null, null );
     }
 
     /**
@@ -123,6 +130,11 @@ public abstract class PlotVolume {
      * its contents after this call returns; this method must make copies
      * of the values if it needs to retain them.
      *
+     * <p>The return value indicates whether the point was actually plotted;
+     * it may be false if the point was known to be off screen.
+     * This isn't guaranteed to be exact; there may be false positives or
+     * false negatives near the edge of the plotting area.
+     *
      * @param  centre  normalised (x,y,z) coordinates of main point
      * @param  istyle  index into the array of styles set up for this volume
      *                 which will define how the marker is plotted
@@ -134,10 +146,11 @@ public abstract class PlotVolume {
      *                 error points
      * @param  zerrs   <code>nerr</code>-element array of Z coordinates of
      *                 error points
+     * @return  true iff the point was actually plotted
      */
-    public void plot3d( double[] centre, int istyle,
-                        boolean showPoint, int nerr,
-                        double[] xerrs, double[] yerrs, double[] zerrs ) {
+    public boolean plot3d( double[] centre, int istyle,
+                           boolean showPoint, int nerr,
+                           double[] xerrs, double[] yerrs, double[] zerrs ) {
 
         /* Calculate the position of the point in 2D graphics coordinates. */
         int xp = projectX( centre[ 0 ] );
@@ -155,7 +168,7 @@ public abstract class PlotVolume {
         int maxr = styles_[ istyle ].getMaximumRadius();
         int maxr2 = maxr * 2;
         if ( ! graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
-            return;
+            return false;
         }
 
         /* Calculate the positions of the error bar offsets in 2D graphics
@@ -177,9 +190,11 @@ public abstract class PlotVolume {
 
             /* Hand off the actual plotting to the concrete subclass. */
             plot2d( xp, yp, z, istyle, showPoint, nerr, xoffs, yoffs, zerrs );
+            return true;
         }
         else {
             plot2d( xp, yp, z, istyle );
+            return true;
         }
     }
 
