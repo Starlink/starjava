@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -21,6 +23,7 @@ public class SphereWindow extends Plot3DWindow {
     private final ToggleButtonModel logToggler_;
     private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
+    private final ErrorModeSelectionModel[] tangentErrorModeModels_;
 
     private final static ErrorRenderer[] ERROR_RENDERERS =
         ErrorRenderer.getOptionsSpherical();
@@ -34,18 +37,46 @@ public class SphereWindow extends Plot3DWindow {
         super( "Spherical Plot",
                new String[] { "Longitude", "Latitude", "Radius" }, parent, 
                new ErrorModeSelectionModel[ 0 ], new SphericalPlot3D() );
+
+        /* Set up toggle button model for logarithmic radial axis. */
         logToggler_ =
             new ToggleButtonModel( "Log", ResourceIcon.XLOG,
                                    "Scale radius value logarithmically" );
         logToggler_.addActionListener( getReplotListener() );
 
+
+        /* Set up toggle button model for tangential errors. */
         tangentErrorToggler_ = 
             new ToggleButtonModel( "Tangent errors", createTangentErrorIcon(),
                                    "Draw tangential error regions" );
         tangentErrorToggler_.addActionListener( getReplotListener() );
+
+        /* Set error mode selection models for tangential errors.
+         * These are only used for reading by components which need them -
+         * they are slaves of the toggle button model which is what is
+         * used for user interaction. */
+        tangentErrorModeModels_ = new ErrorModeSelectionModel[] {
+            new ErrorModeSelectionModel( 0, "Longitude" ),
+            new ErrorModeSelectionModel( 1, "Latitude" ),
+        };
+        tangentErrorToggler_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                boolean hasTan = tangentErrorToggler_.isSelected();
+                ErrorMode mode = hasTan ? ErrorMode.SYMMETRIC
+                                        : ErrorMode.NONE;
+                if ( tangentErrorModeModels_[ 0 ].getMode() != mode ) {
+                    assert tangentErrorModeModels_[ 1 ].getMode() != mode;
+                    tangentErrorModeModels_[ 0 ].setMode( mode );
+                    tangentErrorModeModels_[ 1 ].setMode( mode );
+                }
+            }
+        } );
+
+        /* Set up error mode selection model for radial errors. */
         radialErrorModeModel_ = new ErrorModeSelectionModel( 2, "Radial" );
         radialErrorModeModel_.addActionListener( getReplotListener() );
 
+        /* Add toolbar buttons. */
         getToolBar().add( tangentErrorToggler_.createToolbarButton() );
         getToolBar().add( radialErrorModeModel_.createOnOffToolbarButton() );
         getToolBar().addSeparator();
@@ -73,7 +104,9 @@ public class SphereWindow extends Plot3DWindow {
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( false, true, ERROR_RENDERERS,
                                     new ErrorModeSelectionModel[] {
-                                        radialErrorModeModel_
+                                        tangentErrorModeModels_[ 0 ],
+                                        tangentErrorModeModels_[ 1 ],
+                                        radialErrorModeModel_,
                                     } );
     }
 
