@@ -49,6 +49,7 @@ public abstract class MarkStyle extends DefaultStyle {
     private ErrorRenderer errorRenderer_;
     private Pixellator pixoffs_;
     private static final RenderingHints pixHints_;
+    private ErrorModeSelectionModel[] errorModeModels_;
 
     /** Symbolic constant meaning join points by straight line segments. */
     public static final Line DOT_TO_DOT = new Line( "DotToDot" );
@@ -89,6 +90,7 @@ public abstract class MarkStyle extends DefaultStyle {
         size_ = size;
         maxr_ = maxr;
         errorRenderer_ = ErrorRenderer.DEFAULT;
+        errorModeModels_ = new ErrorModeSelectionModel[ 0 ];
     }
 
     /**
@@ -226,6 +228,18 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Sets the error mode selection models with which this mark style will
+     * be used.  These objects are only used to affect the way that legends
+     * are drawn; in particular they are NOT used when determining 
+     * object equality.
+     *
+     * @param   errModels  error mode models
+     */
+    public void setErrorModeModels( ErrorModeSelectionModel[] errModels ) {
+        errorModeModels_ = errModels;
+    }
+
+    /**
      * Draws this marker centered at a given position.  
      * This method sets the colour of the graphics context and 
      * then calls {@link #drawShape}.
@@ -322,7 +336,12 @@ public abstract class MarkStyle extends DefaultStyle {
      * @return   legend icon
      */
     public Icon getLegendIcon() {
-        return getLegendIcon( new ErrorMode[ 0 ] );
+        int nerr = errorModeModels_.length;
+        ErrorMode[] modes = new ErrorMode[ nerr ];
+        for ( int ierr = 0; ierr < nerr; ierr++ ) {
+            modes[ ierr ] = errorModeModels_[ ierr ].getMode();
+        }
+        return getLegendIcon( modes );
     }
 
     /**
@@ -344,18 +363,14 @@ public abstract class MarkStyle extends DefaultStyle {
                 return LEGEND_ICON_WIDTH;
             }
             public void paintIcon( Component c, Graphics g, int x, int y ) {
-                boolean hide;
+                boolean hide = getHidePoints();
                 if ( getLine() != null ) {
                     Graphics g1 = createLegendContext( g );
                     configureForLine( g1, BasicStroke.CAP_BUTT,
                                           BasicStroke.JOIN_MITER );
                     int ypos = y + LEGEND_ICON_HEIGHT / 2;
                     g1.drawLine( x, ypos, x + LEGEND_ICON_WIDTH, ypos );
-                    hide = getHidePoints();
                     g1.dispose();
-                }
-                else {
-                    hide = false;
                 }
                 if ( errorIcon != null ) {
                     Graphics g1 = createLegendContext( g );
