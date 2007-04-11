@@ -284,7 +284,8 @@ public class MarkStyleEditor extends StyleEditor {
                          (ErrorRenderer) errorSelector_.getSelectedItem(),
                          (MarkStyle.Line) lineSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
-                         dashSelector_.getSelectedDash() );
+                         dashSelector_.getSelectedDash(),
+                         errorModeModels_ );
     }
 
     public String getHelpID() {
@@ -308,7 +309,8 @@ public class MarkStyleEditor extends StyleEditor {
                                        int opaqueLimit, boolean hidePoints,
                                        ErrorRenderer errorRenderer,
                                        MarkStyle.Line line,
-                                       int thick, float[] dash ) {
+                                       int thick, float[] dash,
+                                       ErrorModeSelectionModel[] errModels ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
                                     : shape.getStyle( color, size );
         style.setOpaqueLimit( opaqueLimit );
@@ -317,6 +319,7 @@ public class MarkStyleEditor extends StyleEditor {
         style.setErrorRenderer( errorRenderer );
         style.setLineWidth( thick );
         style.setDash( dash );
+        style.setErrorModeModels( errModels );
         return style;
     }
 
@@ -385,7 +388,7 @@ public class MarkStyleEditor extends StyleEditor {
      *
      * @return   array of error modes, one per error dimension
      */
-    public ErrorMode[] getErrorModes() {
+    private ErrorMode[] getErrorModes() {
         int ndim = errorModeModels_.length;
         ErrorMode[] modes = new ErrorMode[ ndim ];
         for ( int idim = 0; idim < ndim; idim++ ) {
@@ -489,12 +492,14 @@ public class MarkStyleEditor extends StyleEditor {
                                             getMarkSize( index ),
                                             getMarkColor( index ),
                                             1, false, ErrorRenderer.NONE,
-                                            null, 1, null )
+                                            null, 1, null,
+                                            new ErrorModeSelectionModel[ 0 ] )
                                 : getStyle( getMarkShape(),
                                             getMarkSize(),
                                             getMarkColor(),
                                             1, false, ErrorRenderer.NONE,
-                                            null, 1, null );
+                                            null, 1, null,
+                                            new ErrorModeSelectionModel[ 0 ] );
                 label.setIcon( style.getLegendIcon() );
             }
             return c;
