@@ -64,7 +64,7 @@ public class SphericalPolarPointStore implements PointStore {
         nradWord_ = radialReader_.getWordCount();
         nerrorWord_ = ntanWord_ + nradWord_;
         nword_ = 3 + nerrorWord_;
-        nerror_ = ( hasTanerr ? 6 : 0 )
+        nerror_ = ( hasTanerr ? 4 : 0 )
                 + ( radialMode == ErrorMode.NONE ? 0 : 2 );
 
         /* Initialise some buffers. */
