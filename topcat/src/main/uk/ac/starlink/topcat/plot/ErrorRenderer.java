@@ -78,15 +78,50 @@ public abstract class ErrorRenderer {
         new MultiPlaneRenderer( new FilledRectangle( "Filled Rectangle" ) ),
     };
 
-    private static final ErrorRenderer[] OPTIONS_SPHERE = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_SPHERE =
+            spherizeRenderers( new ErrorRenderer[] {
+
+        // Generic
         NONE,
         DEFAULT,
         new CappedLine( "Capped Lines", true, 3 ),
-        new CappedLine( "Caps", false, 3 ),
+
+        // 2D (tangent only)
         new OpenEllipse( "Ellipse", false ),
         new OpenEllipse( "Crosshair Ellipse", true ),
+        new OpenRectangle( "Rectangle", false ),
+        new OpenRectangle( "Crosshair Rectangle", true ),
         new FilledEllipse( "Filled Ellipse" ),
-    };
+        new FilledRectangle( "Filled Rectangle" ),
+
+        // 3D (tangent plus radius)
+        new OpenCuboid( "Cuboid" ),
+        new Wrapper( new MultiPlaneRenderer( new OpenRectangle( 
+                                                   "Crosshair Rectangle",
+                                                   true ) ) ) {
+            public boolean supportsDimensionality( int ndim ) {
+                return ndim == 3;
+            }
+        },
+        new TangentRadialRenderer( "Ellipse",
+                                   new OpenEllipse( "Ellipse", false ),
+                                   new CappedLine( "Capped Lines", true, 0 ) ),
+        new TangentRadialRenderer( "Crosshair Ellipse",
+                                   new OpenEllipse( "Ellipse", true ),
+                                   new CappedLine( "Capped Lines", true, 0 ) ),
+        new TangentRadialRenderer( "Filled Ellipse",
+                                   new FilledEllipse( "Ellipse" ),
+                                   new CappedLine( "Capped Lines", true, 0 ) ),
+        new TangentRadialRenderer( "Capped Ellipse",
+                                   new OpenEllipse( "Ellipse", false ),
+                                   new CappedLine( "Capped Lines", true, 3 ) ),
+        new TangentRadialRenderer( "Capped Crosshair Ellipse",
+                                   new OpenEllipse( "Ellipse", true ),
+                                   new CappedLine( "Capped Lines", true, 3 ) ),
+        new TangentRadialRenderer( "Capped Filled Ellipse",
+                                   new FilledEllipse( "Ellipse" ),
+                                   new CappedLine( "Capped Lines", true, 3 ) ),
+    } );
 
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
@@ -331,6 +366,97 @@ public abstract class ErrorRenderer {
      */
     public static ErrorRenderer[] getOptionsGeneral() {
         return (ErrorRenderer[]) OPTIONS_GENERAL.clone();
+    }
+
+    /**
+     * Utility method to convert an array of normal 3D renderers to ones
+     * which will work for spherical arrangement of coordinates.
+     *
+     * @param   rends  array of renderers
+     * @return  input array, with elements modified
+     */
+    private static ErrorRenderer[] spherizeRenderers( ErrorRenderer[] rends ) {
+        for ( int ir = 0; ir < rends.length; ir++ ) {
+            rends[ ir ] = spherizeRenderer( rends[ ir ] );
+        }
+        return rends;
+    }
+
+    /**
+     * Converts an array of normal 3D renderers to ones which will work
+     * for spherical arrangement of coordinates.  The difference is in the
+     * ordering of the ErrorMode arrays: in the spherical case there are
+     * always 3 error modes, the first two tangential and the third radial.
+     * For normal 3D there may be 0, 1, 2 or 3 error modes.
+     *
+     * @param  rend  generic 1, 2, or 3D renderer
+     * @return spherical 3D renderer
+     */
+    private static ErrorRenderer spherizeRenderer( final ErrorRenderer rend ) {
+        return new Wrapper( rend ) {
+            public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                       int xpad, int ypad ) {
+                boolean hasTan = modes[ 0 ] != ErrorMode.NONE;
+                boolean hasRad = modes[ 2 ] != ErrorMode.NONE;
+                ErrorMode[] smodes;
+                if ( hasTan && hasRad ) {
+                    smodes = modes;
+                }
+                else if ( hasTan ) {
+                    smodes = new ErrorMode[] { modes[ 0 ], modes[ 1 ], };
+                }
+                else if ( hasRad ) {
+                    smodes = new ErrorMode[] { modes[ 2 ], };
+                }
+                else {
+                    smodes = new ErrorMode[] { ErrorMode.NONE, };
+                }
+                return super.getLegendIcon( smodes, width, height, xpad, ypad );
+            }
+        };
+    }
+
+    /**
+     * ErrorRenderer implementation which wraps an existing renderer.
+     * It performs exactly the same as the supplied "base" renderer, but
+     * any of its methods can be subclassed to modify behaviour as required.
+     */
+    private static class Wrapper extends ErrorRenderer {
+        private final ErrorRenderer base_;
+
+        /**
+         * Constructor.
+         *
+         * @param   base  base renderer
+         */
+        public Wrapper( ErrorRenderer base ) {
+            super( base.getName() );
+            base_ = base;
+        }
+        public Icon getLegendIcon() {
+            return base_.getLegendIcon();
+        }
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return base_.getLegendIcon( modes, width, height, xpad, ypad );
+        }
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
+            return base_.getBounds( x, y, xoffs, yoffs );
+        }
+        public void drawErrors( Graphics g, int x, int y, int[] xoffs,
+                                int[] yoffs ) {
+            base_.drawErrors( g, x, y, xoffs, yoffs );
+        }
+        public Pixellator getPixels( Rectangle clip, int x, int y, int[] xoffs,
+                                     int[] yoffs ) {
+            return base_.getPixels( clip, x, y, xoffs, yoffs );
+        }
+        public boolean supportsDimensionality( int ndim ) {
+            return base_.supportsDimensionality( ndim );
+        }
+        public boolean isBlank( ErrorMode[] modes ) {
+            return base_.isBlank( modes );
+        }
     }
 
     /**
@@ -1467,6 +1593,112 @@ public abstract class ErrorRenderer {
                         }
                     };
                 }
+            }
+        }
+    }
+
+    /**
+     * ErrorRenderer implementation which will render errors approptirately
+     * for spherical polar coordinates.  The first two dimensions are 
+     * tangential and the third one is radial.
+     */
+    private static class TangentRadialRenderer extends ErrorRenderer {
+        private final ErrorRenderer tanRenderer_;
+        private final ErrorRenderer radRenderer_;
+        private final Icon legend_;
+        private final int[] tanXoffs_;
+        private final int[] tanYoffs_;
+        private final int[] radXoffs_;
+        private final int[] radYoffs_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  renderer name
+         * @param  tanRenderer   2-d renderer for tangential component
+         * @param  radRenderer   1-d renderer for radial component
+         */
+        TangentRadialRenderer( String name, ErrorRenderer tanRenderer,
+                               ErrorRenderer radRenderer ) {
+            super( name );
+            tanRenderer_ = tanRenderer;
+            radRenderer_ = radRenderer;
+            legend_ = new ErrorRendererIcon( this, 3 );
+            tanXoffs_ = new int[ 4 ];
+            tanYoffs_ = new int[ 4 ];
+            radXoffs_ = new int[ 4 ];
+            radYoffs_ = new int[ 4 ];
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim == 3;
+        }
+
+        public Icon getLegendIcon() {
+            return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return modes != null && ErrorMode.allBlank( modes );
+        }
+
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
+            int ndim = xoffs.length / 2;
+            if ( ndim == 3 ) {
+                splitOffs( xoffs, yoffs );
+                Rectangle bounds = 
+                    tanRenderer_.getBounds( x, y, tanXoffs_, tanYoffs_ );
+                bounds.add( radRenderer_
+                           .getBounds( x, y, radXoffs_, radYoffs_ ) );
+                return bounds;
+            }
+            else {
+                return new Rectangle( x, y, 0, 0 );
+            }
+        }
+
+        public void drawErrors( Graphics g, int x, int y, int[] xoffs, 
+                                int[] yoffs ) {
+            int ndim = xoffs.length / 2;
+            if ( ndim == 3 ) {
+                splitOffs( xoffs, yoffs );
+                radRenderer_.drawErrors( g, x, y, radXoffs_, radYoffs_ );
+                tanRenderer_.drawErrors( g, x, y, tanXoffs_, tanYoffs_ );
+            }
+        }
+
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
+            int ndim = xoffs.length / 2;
+            if ( ndim == 3 ) {
+                splitOffs( xoffs, yoffs );
+                Pixellator tanPixes =
+                    tanRenderer_.getPixels( clip, x, y, tanXoffs_, tanYoffs_ );
+                Pixellator radPixes = 
+                    radRenderer_.getPixels( clip, x, y, radXoffs_, radYoffs_ );
+                return Drawing
+                      .combinePixellators( new Pixellator[] { radPixes,
+                                                              tanPixes, } );
+            }
+            else {
+                return NO_PIXELS;
+            }
+        }
+
+        private final void splitOffs( int[] xoffs, int[] yoffs ) {
+            for ( int i = 0; i < 4; i++ ) {
+                tanXoffs_[ i ] = xoffs[ i ];
+                tanYoffs_[ i ] = yoffs[ i ];
+            }
+            for ( int i = 0; i < 2; i++ ) {
+                radXoffs_[ i ] = xoffs[ i + 4 ];
+                radYoffs_[ i ] = yoffs[ i + 4 ];
             }
         }
     }
