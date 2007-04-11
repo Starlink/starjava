@@ -42,7 +42,7 @@ public class SphericalPolarPointSelector extends PointSelector {
     private final AxisDataSelector rSelector_;
     private final ColumnSelector tanerrSelector_;
     private final ToggleButtonModel logToggler_;
-    private final ToggleButtonModel tangentErrorModeModel_;
+    private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
 
     /** A column data object which contains zeroes. */
@@ -57,18 +57,18 @@ public class SphericalPolarPointSelector extends PointSelector {
      * @param  styles  initial style set
      * @param  logToggler model for determining whether the radial coordinate
      *         is to be scaled logarithmically
-     * @param  tangentErrorModeModel  model indicating whether tangential
+     * @param  tangentErrorToggler  model indicating whether tangential
      *         errors will be drawn
      * @param  radialErrorModeModel   model indicating whether/how radial
      *         errors will be drawn
      */
     public SphericalPolarPointSelector( MutableStyleSet styles,
                                ToggleButtonModel logToggler,
-                               ToggleButtonModel tangentErrorModeModel,
+                               ToggleButtonModel tangentErrorToggler,
                                ErrorModeSelectionModel radialErrorModeModel ) {
         super( styles );
         logToggler_ = logToggler;
-        tangentErrorModeModel_ = tangentErrorModeModel;
+        tangentErrorToggler_ = tangentErrorToggler;
         radialErrorModeModel_ = radialErrorModeModel;
 
         /* Prepare column selection panel. */
@@ -126,13 +126,13 @@ public class SphericalPolarPointSelector extends PointSelector {
         ChangeListener tanerrListener = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 tanerrBox.removeAll();
-                if ( tangentErrorModeModel_.isSelected() ) {
+                if ( tangentErrorToggler_.isSelected() ) {
                     tanerrBox.add( new JLabel( " +/- " ) );
                     tanerrBox.add( new ShrinkWrapper( tanerrSelector_ ) );
                 }
             }
         };
-        tangentErrorModeModel_.addChangeListener( tanerrListener );
+        tangentErrorToggler_.addChangeListener( tanerrListener );
         tanerrListener.stateChanged( null );
         
         /* Add long/lat business to main selector panel. */
@@ -198,7 +198,7 @@ public class SphericalPolarPointSelector extends PointSelector {
 
     public StarTable getErrorData() {
         List colList = new ArrayList();
-        boolean hasTanerr = tangentErrorModeModel_.isSelected();
+        boolean hasTanerr = tangentErrorToggler_.isSelected();
         ErrorMode radialMode = radialErrorModeModel_.getMode();
         if ( hasTanerr ) {
             ColumnData tData = tanerrSelector_.getColumnData();
@@ -218,14 +218,14 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-        boolean hasTanerr = tangentErrorModeModel_.isSelected();
+        boolean hasTanerr = tangentErrorToggler_.isSelected();
         ErrorMode radialMode = radialErrorModeModel_.getMode();
         return new SphericalPolarPointStore( radialMode, hasTanerr, npoint );
     }
 
     public ErrorMode[] getErrorModes() {
         ErrorMode[] modes = new ErrorMode[ 3 ];
-        boolean hasTan = tangentErrorModeModel_.isSelected();
+        boolean hasTan = tangentErrorToggler_.isSelected();
         modes[ 0 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
         modes[ 1 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
         modes[ 2 ] = radialErrorModeModel_.getMode();

@@ -19,7 +19,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 public class SphereWindow extends Plot3DWindow {
 
     private final ToggleButtonModel logToggler_;
-    private final ToggleButtonModel tangentErrorModeModel_;
+    private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
 
     private final static ErrorRenderer[] ERROR_RENDERERS =
@@ -39,14 +39,14 @@ public class SphereWindow extends Plot3DWindow {
                                    "Scale radius value logarithmically" );
         logToggler_.addActionListener( getReplotListener() );
 
-        tangentErrorModeModel_ = 
+        tangentErrorToggler_ = 
             new ToggleButtonModel( "Tangent errors", createTangentErrorIcon(),
                                    "Draw tangential error regions" );
-        tangentErrorModeModel_.addActionListener( getReplotListener() );
+        tangentErrorToggler_.addActionListener( getReplotListener() );
         radialErrorModeModel_ = new ErrorModeSelectionModel( 2, "Radial" );
         radialErrorModeModel_.addActionListener( getReplotListener() );
 
-        getToolBar().add( tangentErrorModeModel_.createToolbarButton() );
+        getToolBar().add( tangentErrorToggler_.createToolbarButton() );
         getToolBar().add( radialErrorModeModel_.createOnOffToolbarButton() );
         getToolBar().addSeparator();
         addHelp( "SphereWindow" );
@@ -66,7 +66,7 @@ public class SphereWindow extends Plot3DWindow {
 
     protected PointSelector createPointSelector() {
         return new SphericalPolarPointSelector( getStyles(), logToggler_,
-                                                tangentErrorModeModel_,
+                                                tangentErrorToggler_,
                                                 radialErrorModeModel_ );
     }
 
@@ -132,7 +132,7 @@ public class SphereWindow extends Plot3DWindow {
             ErrorMode.SYMMETRIC, ErrorMode.SYMMETRIC,
         };
         final Icon icon =
-            ErrorRenderer.TANGENT.getLegendIcon( modes, 24, 24, 1, 2 );
+            ErrorRenderer.TANGENT.getLegendIcon( modes, 24, 24, 1, 4 );
         return new Icon() {
             public int getIconHeight() {
                 return icon.getIconHeight();
