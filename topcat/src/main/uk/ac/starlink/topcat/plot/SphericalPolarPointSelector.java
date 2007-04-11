@@ -163,18 +163,24 @@ public class SphericalPolarPointSelector extends PointSelector {
             axLabels[ i ].setPreferredSize( labelSize );
         }
 
-        /* Fix for changes to the error mode selections to modify the
-         * state of the axis data selectors. */
-        if ( radialErrorModeModel_ != null ) {
-            ActionListener radialErrorListener = new ActionListener() {
-                public void actionPerformed( ActionEvent evt ) {
-                    updateAnnotator();
-                    rSelector_.setErrorMode( radialErrorModeModel_.getMode() );
-                }
-            };
-            radialErrorModeModel_.addActionListener( radialErrorListener );
-            radialErrorListener.actionPerformed( null );
-        }
+        /* Fix for changes to the error mode selections to update the
+         * legend icons and modify the state of the axis data selectors
+         * as appropriate. */
+        ActionListener radialErrorListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updateAnnotator();
+                rSelector_.setErrorMode( radialErrorModeModel_.getMode() );
+            }
+        };
+        radialErrorModeModel_.addActionListener( radialErrorListener );
+        radialErrorListener.actionPerformed( null );
+        ActionListener tangentErrorListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updateAnnotator();
+            }
+        };
+        tangentErrorToggler_.addActionListener( tangentErrorListener );
+        tangentErrorListener.actionPerformed( null );
     }
 
     protected JComponent getColumnSelectorPanel() {
