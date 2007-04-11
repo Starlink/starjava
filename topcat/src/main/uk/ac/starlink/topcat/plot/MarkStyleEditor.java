@@ -517,8 +517,8 @@ public class MarkStyleEditor extends StyleEditor {
 
         private final ErrorRenderer[] allRenderers_;
         private final ErrorModeSelectionModel[] modeModels_;
-        private ErrorRenderer[] activeRenderers_;
-        private int iSel_;
+        private List activeRendererList_;
+        private ErrorRenderer selected_;;
 
         /**
          * Constructor.
@@ -541,25 +541,25 @@ public class MarkStyleEditor extends StyleEditor {
         }
 
         public Object getElementAt( int index ) {
-            return activeRenderers_[ index ];
+            return (ErrorRenderer) activeRendererList_.get( index );
         }
 
         public int getSize() {
-            return activeRenderers_.length;
+            return activeRendererList_.size();
         }
 
         public Object getSelectedItem() {
-            return activeRenderers_[ iSel_ ];
+            return selected_;
         }
 
         public void setSelectedItem( Object item ) {
-            for ( int i = 0; i < activeRenderers_.length; i++ ) {
-                if ( activeRenderers_[ i ].equals( item ) ) {
-                    iSel_ = i;
-                    return;
-                }
+            if ( activeRendererList_.contains( item ) ) {
+                selected_ = (ErrorRenderer) item;
             }
-            throw new IllegalArgumentException( "No such selection " + item );
+            else {
+                throw new IllegalArgumentException( "No such selection "
+                                                  + item );
+            }
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -592,14 +592,18 @@ public class MarkStyleEditor extends StyleEditor {
                 }
             }
 
-            /* Check that the current selection is compatible with this.
-             * If it's not, pick one that is (more or less at random). */
-            iSel_ = Math.min( iSel_, rendererList.size() - 1 );
+            /* If the current selection does not exist in the new list,
+             * pick one that does.  This is picked more or less at random,
+             * but typically item 1 will be the first non-blank renderer. */
+            if ( ! rendererList.contains( selected_ ) ) {
+                selected_ = rendererList.size() > 1
+                          ? (ErrorRenderer) rendererList.get( 1 )
+                          : ErrorRenderer.NONE;
+            }
 
             /* Install the new list into this model and inform listeners. */
-            activeRenderers_ = (ErrorRenderer[])
-                               rendererList.toArray( new ErrorRenderer[ 0 ] );
-            fireContentsChanged( this, 0, activeRenderers_.length - 1 );
+            activeRendererList_ = rendererList;
+            fireContentsChanged( this, 0, activeRendererList_.size() - 1 );
         }
     }
 
