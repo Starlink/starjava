@@ -598,10 +598,10 @@ public abstract class ScatterPlot extends SurfacePlot {
      * @return  true   iff any of the elements of <code>xoffs</code>, 
      *                <code>yoffs</code> are non-zero
      */
-    private static boolean transformErrors( Point point, double[] centre,
-                                            double[][] errors,
-                                            PlotSurface surface,
-                                            int[] xoffs, int[] yoffs ) {
+    public static boolean transformErrors( Point point, double[] centre,
+                                           double[][] errors,
+                                           PlotSurface surface,
+                                           int[] xoffs, int[] yoffs ) {
 
         /* Initialise output offset values to zero. */
         int noff = xoffs.length;
