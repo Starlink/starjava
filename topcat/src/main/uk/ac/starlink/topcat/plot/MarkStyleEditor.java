@@ -16,6 +16,7 @@ import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.ListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JCheckBox;
@@ -120,13 +121,10 @@ public class MarkStyleEditor extends StyleEditor {
 
         /* Error renderer selector. */
         errorModeModels_ = errorModeModels;
-        errorSelector_ = 
-            new JComboBox( new ErrorRendererComboBoxModel( errorRenderers,
-                                                           errorModeModels ) );
+        errorSelector_ = createErrorSelector( errorRenderers, errorModeModels );
         for ( int idim = 0; idim < errorModeModels_.length; idim++ ) {
             errorModeModels_[ idim ].addActionListener( this );
         }
-        errorSelector_.setRenderer( new ErrorRendererRenderer() );
         errorSelector_.addActionListener( this );
 
         /* Marker hiding selector. */
@@ -440,6 +438,26 @@ public class MarkStyleEditor extends StyleEditor {
     }
 
     /**
+     * Returns a new JComboBox which will contain ErrorRenderer objects.
+     *
+     * @param    errorRenderers  full list of renderers to select from
+     *           (may be subsetted according to current ErrorMode selections)
+     * @param    errorModeModels error mode selection models, one per axis
+     * @return   new error renderer combo box
+     */
+    public static JComboBox createErrorSelector(
+            ErrorRenderer[] errorRenderers,
+            ErrorModeSelectionModel[] errorModeModels ) {
+        ComboBoxModel model =
+            new ErrorRendererComboBoxModel( errorRenderers, errorModeModels );
+        ListCellRenderer renderer =
+            new ErrorRendererRenderer( errorModeModels );
+        JComboBox errorSelector = new JComboBox( model );
+        errorSelector.setRenderer( renderer );
+        return errorSelector;
+    }
+
+    /**
      * ComboBoxRenderer class suitable for rendering MarkStyles.
      */
     private static abstract class MarkRenderer extends BasicComboBoxRenderer {
@@ -585,7 +603,7 @@ public class MarkStyleEditor extends StyleEditor {
             if ( ! rendererList.contains( selected_ ) ) {
                 selected_ = rendererList.size() > 1
                           ? (ErrorRenderer) rendererList.get( 1 )
-                          : ErrorRenderer.NONE;
+                          : ErrorRenderer.DEFAULT;
             }
 
             /* Install the new list into this model and inform listeners. */
@@ -597,7 +615,11 @@ public class MarkStyleEditor extends StyleEditor {
     /**
      * Class which performs rendering of ErrorRenderer objects in a JComboBox.
      */
-    private class ErrorRendererRenderer extends BasicComboBoxRenderer {
+    private static class ErrorRendererRenderer extends BasicComboBoxRenderer {
+        private final ErrorModeSelectionModel[] errModels_;
+        ErrorRendererRenderer( ErrorModeSelectionModel[] errorModeModels ) {
+            errModels_ = errorModeModels;
+        }
         public Component getListCellRendererComponent( JList list, Object value,
                                                        int index,
                                                        boolean isSelected,
@@ -610,7 +632,11 @@ public class MarkStyleEditor extends StyleEditor {
                 Icon icon = null;
                 if ( value instanceof ErrorRenderer ) {
                     ErrorRenderer er = (ErrorRenderer) value;
-                    icon = er.getLegendIcon( getErrorModes(), 40, 15, 5, 1 );
+                    ErrorMode[] modes = new ErrorMode[ errModels_.length ];
+                    for ( int imode = 0; imode < modes.length; imode++ ) {
+                        modes[ imode ] = errModels_[ imode ].getMode();
+                    }
+                    icon = er.getLegendIcon( modes, 40, 15, 5, 1 );
                     icon = new ColoredIcon( icon, c.getForeground() );
                 }
                 label.setText( icon == null ? "??" : null );
