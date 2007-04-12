@@ -70,19 +70,6 @@ public class MarkStyleEditor extends StyleEditor {
     };
 
     /**
-     * Constructs a style editor with no error style selection.
-     *
-     * @param   withLines  whether to show a panel for selecting line styles
-     * @param   withTransparency  whether to show a control for selecting
-     *          marker opacity
-     */
-    public MarkStyleEditor( boolean withLines, boolean withTransparency ) {
-        this( withLines, withTransparency,
-              new ErrorRenderer[] { ErrorRenderer.NONE },
-              new ErrorModeSelectionModel[ 0 ] );
-    }
-
-    /**
      * Constructs a style editor with optional error style selection.
      *
      * @param   withLines  whether to show a panel for selecting line styles
