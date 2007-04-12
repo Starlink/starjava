@@ -83,6 +83,9 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
         MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
     };
+    private static final ErrorRenderer[] ERROR_RENDERERS =
+        ErrorRenderer.getOptions2d();
+    private static final String[] AXIS_NAMES = new String[] { "X", "Y", };
 
     /**
      * Constructor.
@@ -90,8 +93,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", new String[] { "X", "Y" },
-               new ErrorModeSelectionModel[ 0 ], parent );
+        super( "Line Plot", AXIS_NAMES, createErrorModeModels( AXIS_NAMES ),
+               parent );
 
         /* Set some initial values. */
         activePoints_ = new int[ 0 ];
@@ -247,6 +250,9 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         }
         getJMenuBar().add( styleMenu );
 
+        /* Construct a new menu for error modes. */
+        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+
         /* Populate toolbar. */
         getToolBar().add( rescaleActionXY );
         getToolBar().add( rescaleActionX );
@@ -254,6 +260,10 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( zeroLineModel_.createToolbarButton() );
+        getToolBar().add( getErrorModeModels()[ 0 ]
+                                             .createOnOffToolbarButton() );
+        getToolBar().add( getErrorModeModels()[ 1 ]
+                                             .createOnOffToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
         getToolBar().add( fromXRangeAction );
@@ -371,7 +381,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         logModel.addActionListener( getReplotListener() );
         flipModel.addActionListener( getReplotListener() );
         LinesPointSelector newSelector =
-            new LinesPointSelector( getStyles(), logModel, flipModel );
+            new LinesPointSelector( getStyles(), logModel, flipModel,
+                                    getErrorModeModels() );
 
         /* Work out if there is a default X axis we should initialise the
          * new selector with.  We'll do this if all the existing valid
@@ -417,7 +428,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new LinesStyleEditor();
+        return new LinesStyleEditor( ERROR_RENDERERS, getErrorModeModels() );
     }
 
     public void setStyles( StyleSet styles ) {
@@ -822,11 +833,14 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
          * @param  styles      initial style set
          * @param  yLogModel   toggler for Y axis log scaling
          * @param  yFlipModel  toggler for Y axis inverted sense
+         * @param  errorModeModels  selection models for error modes,
+         *                          one per axis
          */
         LinesPointSelector( MutableStyleSet styles,
                             ToggleButtonModel yLogModel,
-                            ToggleButtonModel yFlipModel ) {
-            super( styles, new String[] { "X", "Y" },
+                            ToggleButtonModel yFlipModel,
+                            ErrorModeSelectionModel[] errorModeModels ) {
+            super( styles, AXIS_NAMES,
                    new CartesianPointSelector.ToggleSet[] {
                        new CartesianPointSelector.ToggleSet(
                            "Log", new ToggleButtonModel[] { null,
@@ -834,7 +848,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                        new CartesianPointSelector.ToggleSet(
                            "Flip", new ToggleButtonModel[] { null,
                                                              yFlipModel } ),
-                   } );
+                   },
+                   errorModeModels );
             yLogModel_ = yLogModel;
             yFlipModel_ = yFlipModel;
         }

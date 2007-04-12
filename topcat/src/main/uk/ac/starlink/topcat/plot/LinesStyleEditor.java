@@ -21,20 +21,28 @@ import uk.ac.starlink.util.gui.ValueButtonGroup;
  */
 public class LinesStyleEditor extends StyleEditor {
 
+    private final ErrorModeSelectionModel[] errorModeModels_;
     private final ColorComboBox colorSelector_;
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
     private final JComboBox shapeSelector_;
     private final JComboBox sizeSelector_;
+    private final JComboBox errorSelector_;
     private final ValueButtonGroup lineMarkSelector_;
 
     private static final int MAX_THICK = 6;
 
     /**
      * Constructor.
+     *
+     * @param  errorRenderers  list of error renderers to be available from
+     *         this style editor
+     * @param  errorModeModels  error mode selection models
      */
-    public LinesStyleEditor() {
+    public LinesStyleEditor( ErrorRenderer[] errorRenderers,
+                             ErrorModeSelectionModel[] errorModeModels ) {
         super();
+        errorModeModels_ = errorModeModels;
 
         /* Lines/markers selection. */
         JRadioButton lineButton = new JRadioButton( "Line", true );
@@ -61,6 +69,15 @@ public class LinesStyleEditor extends StyleEditor {
         shapeSelector_.addActionListener( this );
         sizeSelector_ = MarkStyleEditor.createSizeSelector();
         sizeSelector_.addActionListener( this );
+
+        /* Error style selector. */
+        errorSelector_ =
+            MarkStyleEditor.createErrorSelector( errorRenderers,
+                                                 errorModeModels );
+        errorSelector_.addActionListener( this );
+        for ( int idim = 0; idim < errorModeModels.length; idim++ ) {
+            errorModeModels[ idim ].addActionListener( this );
+        }
 
         /* Place components. */
         JComponent colorBox = Box.createHorizontalBox();
@@ -105,8 +122,21 @@ public class LinesStyleEditor extends StyleEditor {
         markBox.add( Box.createHorizontalStrut( 5 ) );
         markBox.add( Box.createHorizontalGlue() );
 
+        JComponent errorBox = Box.createHorizontalBox();
+        errorBox.add( new JLabel( "Error Bars: " ) );
+        errorBox.add( new ShrinkWrapper( errorSelector_ ) );
+        errorBox.add( Box.createHorizontalStrut( 5 ) );
+        errorBox.add( new ComboBoxBumper( errorSelector_ ) );
+        errorBox.add( Box.createHorizontalStrut( 5 ) );
+        errorBox.add( Box.createHorizontalGlue() );
+
         JComponent displayBox = Box.createVerticalBox();
-        displayBox.add( colorBox );
+        JComponent d1Box = Box.createHorizontalBox();
+        d1Box.add( colorBox );
+        d1Box.add( Box.createHorizontalStrut( 10 ) );
+        d1Box.add( errorBox );
+        displayBox.add( d1Box );
+        displayBox.add( Box.createVerticalStrut( 5 ) );
         displayBox.add( lineMarkBox );
         displayBox.setBorder( AuxWindow.makeTitledBorder( "Display" ) );
         add( displayBox );
@@ -120,12 +150,15 @@ public class LinesStyleEditor extends StyleEditor {
 
     public void setStyle( Style style ) {
         MarkStyle mstyle = (MarkStyle) style;
+        shapeSelector_.setSelectedItem( mstyle.getShapeId() );
+        sizeSelector_.setSelectedIndex( mstyle.getSize() );
         colorSelector_.setSelectedItem( mstyle.getColor() );
-        thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
-        dashSelector_.setSelectedDash( mstyle.getDash() );
         lineMarkSelector_
            .setValue( booleanList( mstyle.getLine() == MarkStyle.DOT_TO_DOT,
                                    ! mstyle.getHidePoints() ) );
+        thickSelector_.setSelectedThickness( mstyle.getLineWidth() );
+        dashSelector_.setSelectedDash( mstyle.getDash() );
+        errorSelector_.setSelectedItem( mstyle.getErrorRenderer() );
     }
 
     public Style getStyle() {
@@ -135,6 +168,7 @@ public class LinesStyleEditor extends StyleEditor {
                          colorSelector_.getSelectedColor(),
                          ((Boolean) lineMark.get( 0 )).booleanValue(),
                          ((Boolean) lineMark.get( 1 )).booleanValue(),
+                         (ErrorRenderer) errorSelector_.getSelectedItem(),
                          thickSelector_.getSelectedThickness(),
                          dashSelector_.getSelectedDash() );
     }
@@ -148,10 +182,13 @@ public class LinesStyleEditor extends StyleEditor {
         List lineMark = (List) lineMarkSelector_.getValue();
         boolean hasLine = ((Boolean) lineMark.get( 0 )).booleanValue();
         boolean hasMark = ((Boolean) lineMark.get( 1 )).booleanValue();
+        boolean hasError = errorModeModels_[ 0 ].getMode() != ErrorMode.NONE
+                        || errorModeModels_[ 1 ].getMode() != ErrorMode.NONE;
         thickSelector_.setEnabled( hasLine );
         dashSelector_.setEnabled( hasLine );
         sizeSelector_.setEnabled( hasMark );
         shapeSelector_.setEnabled( hasMark );
+        errorSelector_.setEnabled( hasError );
     }
 
     /**
@@ -162,17 +199,20 @@ public class LinesStyleEditor extends StyleEditor {
      * @param  color  marker colour
      * @param  hasLine  whether lines are plotted
      * @param  hasMark  whether markers are plotted
+     * @param  errorRenderer  error renderer
      * @param  thick  line thickness
      * @param  dash   line dash pattern
      * @return line/marker style
      */
     private static MarkStyle getStyle( MarkShape shape, int size, Color color,
                                        boolean hasLine, boolean hasMark,
-                                       int thick, float[] dash ) {
+                                       ErrorRenderer errorRenderer, int thick,
+                                       float[] dash ) {
         MarkStyle style = size == 0 ? MarkShape.POINT.getStyle( color, 0 )
                                     : shape.getStyle( color, size );
         style.setLine( hasLine ? MarkStyle.DOT_TO_DOT : null );
         style.setHidePoints( ! hasMark );
+        style.setErrorRenderer( errorRenderer );
         style.setLineWidth( thick );
         style.setDash( dash );
         return style;

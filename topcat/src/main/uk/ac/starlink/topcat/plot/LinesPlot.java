@@ -267,10 +267,14 @@ public abstract class LinesPlot extends JComponent {
         Style[] styles = state.getPointSelection().getStyles();
         int[] graphIndices = state.getGraphIndices();
         int nset = sets.length;
+        int nerr = points.getNerror();
+        int[] xoffs = new int[ nerr ];
+        int[] yoffs = new int[ nerr ];
         for ( int iset = 0; iset < nset; iset++ ) {
             MarkStyle style = (MarkStyle) styles[ iset ];
             GraphSurface graph = graphs[ graphIndices[ iset ] ];
             boolean noLines = style.getLine() != MarkStyle.DOT_TO_DOT;
+            boolean hasErrors = MarkStyle.hasErrors( style, points );
             Rectangle graphClip = graph.getClip().getBounds();
             if ( g.hitClip( graphClip.x, graphClip.y,
                             graphClip.width, graphClip.height ) ) {
@@ -279,7 +283,7 @@ public abstract class LinesPlot extends JComponent {
                              graphClip.width, graphClip.height );
                 PointPlotter plotter =
                     new PointPlotter( g1, style, state.getAntialias(),
-                                      work_[ 0 ], work_[ 1 ] );
+                                      hasErrors, work_[ 0 ], work_[ 1 ] );
                 RowSubset rset = sets[ iset ];
                 for ( int ix = 0; ix < npoint; ix++ ) {
                     int ip = sequence_ == null ? ix : sequence_[ ix ];
@@ -289,6 +293,14 @@ public abstract class LinesPlot extends JComponent {
                             graph.dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                   noLines );
                         if ( point != null ) {
+                            if ( hasErrors ) {
+                                double[][] errors = points.getErrors( ip );
+                                if ( ScatterPlot
+                                    .transformErrors( point, coords, errors,
+                                                      graph, xoffs, yoffs ) ) {
+                                    plotter.errors( point, xoffs, yoffs );
+                                }
+                            }
                             plotter.point( point );
                         }
                     }
@@ -555,6 +567,9 @@ public abstract class LinesPlot extends JComponent {
         private final Graphics lineGraphics_;
         private final Rectangle pointBounds_;
         private final int huge_;
+        private final boolean hasLines_;
+        private final boolean hasMarks_;
+        private final boolean hasErrors_;
         private int xLo_;
         private int xHi_;
         private Point lastPoint_;
@@ -571,23 +586,29 @@ public abstract class LinesPlot extends JComponent {
          *            what gets plotted
          * @param  style  the mark/line plotting style for points
          * @param  antialiasLines  true iff you want lines antialiased
+         * @param  hasErrors   true if you might want errors drawn
          * @param  work1  workspace array
          * @param  work2  workspace array
          */
         PointPlotter( Graphics g, MarkStyle style, boolean antialiasLines,
-                      int[] work1, int[] work2 ) {
+                      boolean hasErrors, int[] work1, int[] work2 ) {
             style_ = style;
             xWork_ = work1;
             yWork_ = work2;
             nWork_ = Math.min( xWork_.length, yWork_.length );
 
+            /* Work out which components we will need to be drawing. */
+            hasLines_ = style.getLine() == MarkStyle.DOT_TO_DOT;
+            hasMarks_ = ! style.getHidePoints();
+            hasErrors_ = hasErrors;
+
             /* Set up a graphics context for plotting points.
              * Null if no points are to be plotted. */
-            pointGraphics_ = style.getHidePoints() ? null : g.create();
+            pointGraphics_ = hasMarks_ || hasErrors_ ? g.create() : null;
 
             /* Set up a graphics context for drawing lines.
              * Null if no lines are to be drawn. */
-            if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
+            if ( hasLines_ ) {
                 lineGraphics_ = g.create();
                 style.configureForLine( lineGraphics_, BasicStroke.CAP_BUTT,
                                         BasicStroke.JOIN_ROUND );
@@ -620,11 +641,10 @@ public abstract class LinesPlot extends JComponent {
          */
         void point( Point point ) {
             if ( ! point.equals( lastPoint_ ) ) {
-                if ( pointGraphics_ != null &&
-                     pointBounds_.contains( point ) ) {
+                if ( hasMarks_ && pointBounds_.contains( point ) ) {
                     style_.drawMarker( pointGraphics_, point.x, point.y );
                 }
-                if ( lineGraphics_ != null ) {
+                if ( hasLines_ ) {
                     boolean include = point.x >= xLo_ && point.x <= xHi_;
                     if ( include && ! lastInclude_ && lastPoint_ != null ) {
                         addLineVertex( lastPoint_.x, lastPoint_.y );
@@ -637,6 +657,20 @@ public abstract class LinesPlot extends JComponent {
                 assert lastPoint_ != point
                     : "PlotSurface keeps returning same mutable Point object?";
                 lastPoint_ = point;
+            }
+        }
+
+        /**
+         * Adds a set of errors to the sequence to be plotted.
+         *
+         * @param  point  central point
+         * @param  xoffs  error point offsets in X dimension
+         * @param  yoffs  error point offsets in Y dimension
+         */
+        void errors( Point point, int[] xoffs, int[] yoffs ) {
+            if ( hasErrors_ ) {
+                style_.drawErrors( pointGraphics_, point.x, point.y,
+                                   xoffs, yoffs );
             }
         }
 
