@@ -3,10 +3,12 @@ package uk.ac.starlink.ttools;
 import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 
@@ -52,7 +54,17 @@ import uk.ac.starlink.table.Tables;
  * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a column name or 
  *     $ID identifier (see above) returns a boolean value which is 
  *     <tt>true</tt> iff the value in that column at the current row
- *     is the <tt>null</tt> value.
+ *     has a blank value.
+ *
+ * <dt>Parameter names:
+ * <dd>The name of a table parameter (case-insensitive) is constant for
+ *     the table (as a primitive, if applicable) - this can only work
+ *     if the parameter name is a legal java identifier.
+ *
+ * <dt>Parameter null-queries:
+ * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a parameter name
+ *     returns a boolean value which is <tt>true</tt> iff that parameter
+ *     has a blank value.
  *
  * <dt>"RANDOM":
  * <dd>The special token "RANDOM" evaluates to a double-precision random
@@ -68,6 +80,7 @@ public abstract class JELRowReader extends DVMap {
     private final StarTable table_;
     private final Object[] args_;
     private boolean isNullExpression_;
+    private List constantList_;
     private final long HASH_LONG = System.identityHashCode( this );
 
     /**
@@ -84,7 +97,9 @@ public abstract class JELRowReader extends DVMap {
     private static final byte NULL_VALUE_ID = (byte) 2;
     private static final byte NULL_EXPRESSION_ID = (byte) 3;
     private static final byte RANDOM_ID = (byte) 4;
-    
+    private static final byte FALSE_ID = (byte) 5;
+    private static final byte TRUE_ID = (byte) 6;
+
     /**
      * Constructs a new row reader for a given StarTable. 
      * Note that this reader cannot become aware of changes to the 
@@ -97,6 +112,7 @@ public abstract class JELRowReader extends DVMap {
     public JELRowReader( StarTable table ) {
         table_ = table;
         args_ = new Object[] { this };
+        constantList_ = new ArrayList();
     }
 
     /**
@@ -155,11 +171,13 @@ public abstract class JELRowReader extends DVMap {
                 case NULL_VALUE_ID: return "Object";
                 case NULL_EXPRESSION_ID: return "Byte";
                 case RANDOM_ID: return "Double";
+                case FALSE_ID: return "Boolean";
+                case TRUE_ID: return "Boolean";
                 default: throw new AssertionError( "Unknown special" );
             }
         }
 
-        /* See if it's a null indicator, and return a Boolean value type
+        /* See if it's a null column indicator, and return a Boolean value type
          * if so. */
         int inul = getNullColumnIndex( name );
         if ( inul >= 0 ) {
@@ -170,76 +188,26 @@ public abstract class JELRowReader extends DVMap {
          * looking at the column info if so. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
-            Class clazz = table_.getColumnInfo( icol ).getContentClass();
-            if ( clazz.equals( Boolean.class ) ) {
-                return "Boolean";
-            }
-            else if ( clazz.equals( boolean[].class ) ) {
-                return "BooleanArray";
-            }
-            else if ( clazz.equals( Byte.class ) ) {
-                return "Byte";
-            }
-            else if ( clazz.equals( byte[].class ) ) {
-                return "ByteArray";
-            }
-            else if ( clazz.equals( Character.class ) ) {
-                return "Char";
-            }
-            else if ( clazz.equals( char[].class ) ) {
-                return "CharArray";
-            }
-            else if ( clazz.equals( Short.class ) ) {
-                return "Short";
-            }
-            else if ( clazz.equals( short[].class ) ) {
-                return "ShortArray";
-            }
-            else if ( clazz.equals( Integer.class ) ) {
-                return "Int";
-            }
-            else if ( clazz.equals( int[].class ) ) {
-                return "IntArray";
-            }
-            else if ( clazz.equals( Long.class ) ) {
-                return "Long";
-            }
-            else if ( clazz.equals( long[].class ) ) {
-                return "LongArray";
-            }
-            else if ( clazz.equals( Float.class ) ) {
-                return "Float";
-            }
-            else if ( clazz.equals( float[].class ) ) {
-                return "FloatArray";
-            }
-            else if ( clazz.equals( Double.class ) ) {
-                return "Double";
-            }
-            else if ( clazz.equals( double[].class ) ) {
-                return "DoubleArray";
-            }
-            else if ( clazz.equals( Number.class ) ) {
-                return "Number";
-            }
-            else if ( clazz.equals( String.class ) ) {
-                return "String";
-            }
-            else if ( clazz.equals( String[].class ) ) {
-                return "StringArray";
-            }
-            else if ( clazz.equals( Date.class ) ) {
-                return "Date";
-            }
-            else if ( clazz.equals( Date[].class ) ) {
-                return "DateArray";
-            }
-            else if ( clazz.getComponentType() != null ) {
-                return "ObjectArray";
-            }
-            else {
-                return "Object";
-            }
+            return getTypeName( table_.getColumnInfo( icol )
+                                      .getContentClass() );
+        }
+
+        /* See if it's a null constant indicator, and return a Boolean value
+         * type if so. */
+        int inulconst = getNullConstantIndex( name );
+        if ( inulconst >= 0 ) {
+            return "Boolean";
+        }
+
+        /* See if it's a known constant, and get the type by looking at
+         * the actual value, or if null the value metadata, if so. */
+        int iconst = getConstantIndex( name );
+        if ( iconst >= 0 ) {
+            DescribedValue dval = getConstant( iconst );
+            Object value = dval.getValue();
+            Class clazz = value != null ? value.getClass()
+                                        : dval.getInfo().getContentClass();
+            return getTypeName( clazz );
         }
 
         /* If we haven't got it yet, we don't know what it is. */
@@ -247,12 +215,96 @@ public abstract class JELRowReader extends DVMap {
     }
 
     /**
+     * Returns the type name corresponding to a given class.
+     * The significance of this return value is that it appears in
+     * the names of the corresponding <tt>getXXXProperty</tt>
+     * methods in this class.
+     *
+     * @param   name  the value class
+     * @return  the corresponding method name fragment
+     * @see   "JEL manual"
+     */
+    private static String getTypeName( Class clazz ) {
+        if ( clazz.equals( Boolean.class ) ) {
+            return "Boolean";
+        }
+        else if ( clazz.equals( boolean[].class ) ) {
+            return "BooleanArray";
+        }
+        else if ( clazz.equals( Byte.class ) ) {
+            return "Byte";
+        }
+        else if ( clazz.equals( byte[].class ) ) {
+            return "ByteArray";
+        }
+        else if ( clazz.equals( Character.class ) ) {
+            return "Char";
+        }
+        else if ( clazz.equals( char[].class ) ) {
+            return "CharArray";
+        }
+        else if ( clazz.equals( Short.class ) ) {
+            return "Short";
+        }
+        else if ( clazz.equals( short[].class ) ) {
+            return "ShortArray";
+        }
+        else if ( clazz.equals( Integer.class ) ) {
+            return "Int";
+        }
+        else if ( clazz.equals( int[].class ) ) {
+            return "IntArray";
+        }
+        else if ( clazz.equals( Long.class ) ) {
+            return "Long";
+        }
+        else if ( clazz.equals( long[].class ) ) {
+            return "LongArray";
+        }
+        else if ( clazz.equals( Float.class ) ) {
+            return "Float";
+        }
+        else if ( clazz.equals( float[].class ) ) {
+            return "FloatArray";
+        }
+        else if ( clazz.equals( Double.class ) ) {
+            return "Double";
+        }
+        else if ( clazz.equals( double[].class ) ) {
+            return "DoubleArray";
+        }
+        else if ( clazz.equals( Number.class ) ) {
+            return "Number";
+        }
+        else if ( clazz.equals( String.class ) ) {
+            return "String";
+        }
+        else if ( clazz.equals( String[].class ) ) {
+            return "StringArray";
+        }
+        else if ( clazz.equals( Date.class ) ) {
+            return "Date";
+        }
+        else if ( clazz.equals( Date[].class ) ) {
+            return "DateArray";
+        }
+        else if ( clazz.getComponentType() != null ) {
+            return "ObjectArray";
+        }
+        else {
+            return "Object";
+        }
+    }
+
+    /**
      * Turns a value specification into a constant object which can be
      * used at evaluation time to reference a particular quantity to
      * evaluate.  Currently this routine returns 
      * <ul>
-     * <li>an <tt>Integer</tt> object (the column index) if 
+     * <li>a non-negative <tt>Integer</tt> object (the column index) if 
      *     <tt>name</tt> appears to reference a known column 
+     * <li>a negative <tt>Integer</tt> object (-1-constIndex) if
+     *     <tt>name</tt> appears to reference a known constant
      * <li>a <tt>Long</tt> object if it is a null query on a known column
      * <li>a <tt>Byte</tt> object for one of the defined "special" values
      * <li><tt>null</tt> otherwise
@@ -276,7 +328,7 @@ public abstract class JELRowReader extends DVMap {
             return new Byte( ispecial );
         }
 
-        /* See if it corresponds to a null indicator. */
+        /* See if it corresponds to a null column indicator. */
         int inul = getNullColumnIndex( name );
         if ( inul >= 0 ) {
             return new Long( inul );
@@ -288,54 +340,78 @@ public abstract class JELRowReader extends DVMap {
             return new Integer( icol );
         }
 
+        /* See if it corresponds to a constant (parameter) value. */
+        int iconst = getConstantIndex( name );
+        if ( iconst >= 0 ) {
+            return new Integer( -1 - iconst );
+        }
+
         /* It is an error if the column name doesn't exist, since the
          * variable substitution isn't going to come from anywhere else. */
         return null;
-   }
+    }
 
-   /**
-    * Returns the column index in the table model which corresponds to
-    * the column name as a null query.  If <tt>name</tt> has the form
-    * "{@link #NULL_QUERY_PREFIX}<i>column-name</i>" where 
-    * <i>column-name</i> is as 
-    * recognised by the {@link #getColumnIndex} method, then the return
-    * value will be the index of the column corresponding to 
-    * <i>column-name</i>.
-    * Otherwise (if it doesn't start with the NULL_QUERY_PREFIX string or 
-    * the <tt>name</tt> part
-    * doesn't correspond to a known column) the value -1 will be returned.
-    * <p>
-    * Note this method is only called during expression compilation,
-    * so it doesn't need to be particularly efficient.
-    *
-    * @param   name  null-query column identifier
-    * @return  column index for which <tt>name</tt> is a null-query, 
-    *          or -1
-    */
-   private int getNullColumnIndex( String name ) {
-       if ( name.startsWith( NULL_QUERY_PREFIX ) ) {
-           String colname = name.substring( NULL_QUERY_PREFIX.length() );
-           return getColumnIndex( colname );
-       }
-       return -1;
-   }
+    /**
+     * Returns the column index in the table model which corresponds to
+     * the column name as a null query.  If <tt>name</tt> has the form
+     * "{@link #NULL_QUERY_PREFIX}<i>column-name</i>" where 
+     * <i>column-name</i> is as 
+     * recognised by the {@link #getColumnIndex} method, then the return
+     * value will be the index of the column corresponding to 
+     * <i>column-name</i>.
+     * Otherwise (if it doesn't start with the NULL_QUERY_PREFIX string or 
+     * the <tt>name</tt> part
+     * doesn't correspond to a known column) the value -1 will be returned.
+     * <p>
+     * Note this method is only called during expression compilation,
+     * so it doesn't need to be particularly efficient.
+     *
+     * @param   name  null-query column identifier
+     * @return  column index for which <tt>name</tt> is a null-query, 
+     *          or -1
+     */
+    private int getNullColumnIndex( String name ) {
+        if ( name.startsWith( NULL_QUERY_PREFIX ) ) {
+            String colname = name.substring( NULL_QUERY_PREFIX.length() );
+            return getColumnIndex( colname );
+        }
+        return -1;
+    }
 
-   /**
-    * Returns the column index in the table model which corresponds to 
-    * a given name.  The current formats are
-    * <ul>
-    * <li> column name (case insensitive, first occurrence used)
-    * <li> "$"+(index+1) (so first column would be "$1")
-    * </ul>
-    * Note that the name '$0' is reserved for the special index column.
-    * <p>
-    * Note this method is only called during expression compilation,
-    * so it doesn't need to be particularly efficient.
-    *
-    * @param  name  column identifier
-    * @return  column index, or -1 if the column was not known
-    */
-   public int getColumnIndex( String name ) {
+    /**
+     * Returns the constant index which corresponds to the given name as a 
+     * null query.
+     *
+     * @param  name  null-query identifier
+     * @return  constant index for which <code>name</code> is a null-query
+     *          or -1
+     * @see  #getNullColumnIndex
+     * @see  #getConstantIndex
+     */
+    private int getNullConstantIndex( String name ) {
+        if ( name.startsWith( NULL_QUERY_PREFIX ) ) {
+            String constname = name.substring( NULL_QUERY_PREFIX.length() );
+            return getConstantIndex( constname );
+        }
+        return -1;
+    }
+
+    /**
+     * Returns the column index in the table model which corresponds to 
+     * a given name.  The current formats are
+     * <ul>
+     * <li> column name (case insensitive, first occurrence used)
+     * <li> "$"+(index+1) (so first column would be "$1")
+     * </ul>
+     * Note that the name '$0' is reserved for the special index column.
+     * <p>
+     * Note this method is only called during expression compilation,
+     * so it doesn't need to be particularly efficient.
+     *
+     * @param  name  column identifier
+     * @return  column index, or -1 if the column was not known
+     */
+    public int getColumnIndex( String name ) {
 
         /* Blank name, unknown column. */
         if ( name.length() == 0 ) {
@@ -364,6 +440,48 @@ public abstract class JELRowReader extends DVMap {
         }
 
         /* It's not a column. */
+        return -1;
+    }
+
+    /**
+     * Returns the index into this reader's list of known constants which
+     * corresponds to a given name.  Matching is case insensitive and
+     * the list of table parameters is searched.
+     * <p>
+     * Note this method is only called during expression compilation,
+     * so it doesn't need to be particularly efficient.
+     *
+     * @param   name  parameter name
+     * @return  index into constants list, or -1 if no such constant was found
+     * @see     #getConstant
+     */
+    private int getConstantIndex( String name ) {
+ 
+         /* Null name - no match. */
+         if ( name == null ) {
+             return -1;
+         }
+ 
+         /* Search the existing list of known constants for a name match.
+          * If one is found return the index. */
+         for ( int i = 0; i < constantList_.size(); i++ ) {
+             DescribedValue dval = (DescribedValue) constantList_.get( i );
+             if ( name.equalsIgnoreCase( dval.getInfo().getName() ) ) {
+                 return i;
+             }
+        }
+
+        /* Search the table's parameter list for a name match.  If one is
+         * found add it to the constants list and return the index. */
+        for ( Iterator it = table_.getParameters().iterator(); it.hasNext(); ) {
+            DescribedValue dval = (DescribedValue) it.next();
+            if ( name.equalsIgnoreCase( dval.getInfo().getName() ) ) {
+                constantList_.add( dval );
+                return constantList_.size() - 1;
+            }
+        } 
+
+        /* No luck. */
         return -1;
     }
 
@@ -397,7 +515,32 @@ public abstract class JELRowReader extends DVMap {
         else if ( name.equals( "RANDOM" ) ) {
             return RANDOM_ID;
         }
+        else if ( getNullConstantIndex( name ) >= 0 ) {
+            DescribedValue dval = getConstant( getNullConstantIndex( name ) );
+            return Tables.isBlank( dval.getValue() ) ? TRUE_ID
+                                                     : FALSE_ID;
+        }
         return (byte) -1;
+    }
+
+    /**
+     * Returns one of the constants established for this reader object.
+     *
+     * @param  iconst  constant index as returned by {@link #getConstantIndex}
+     * @return  constant value+metadata object
+     */
+    private DescribedValue getConstant( int iconst ) {
+        return (DescribedValue) constantList_.get( iconst );
+    }
+
+    /**
+     * Return the value of a constant with a given index.
+     *
+     * @param  iconst  constant index as returned by {@link #getConstantIndex}
+     * @return  value as an Object
+     */
+    private Object getConstantValue( int iconst ) {
+        return getConstant( iconst ).getValue();
     }
 
     /**
@@ -459,6 +602,23 @@ public abstract class JELRowReader extends DVMap {
     }
 
     /**
+     * Return the values for boolean-typed special variables.
+     *
+     * @param  ispecial  the identifier for the special
+     * @param  the special's value
+     */
+    public boolean getBooleanProperty( byte ispecial ) {
+        switch ( ispecial ) {
+            case FALSE_ID:
+                return false;
+            case TRUE_ID:
+                return true;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
      * Indicates whether the cell at the current row in a given column
      * has a blank value.  This is the case if the value is the
      * java <tt>null</tt> reference, or if it is a Float or Double
@@ -478,18 +638,35 @@ public abstract class JELRowReader extends DVMap {
     }
 
     /**
+     * Indicates whether the constant with the given index has a blank value.
+     * This is the case if the value is the java <tt>null</tt> reference,
+     * or if it is a Float or Double with a NaN value.
+     *
+     * @param  inul  constant index as returned by {@link #getConstantIndex}
+     * @return  whether the constant has a null value
+     */
+    public boolean getBooleanProperty( short inul ) {
+        return Tables.isBlank( getConstant( inul ).getValue() );
+    }
+
+    /**
      * Returns the cell value for the current row and a given column.
      *
      * @param  icol  column index
      * @return  cell value as an Object
      */
     private Object getValue( int icol ) {
-        try {
-            return getCell( icol );
+        if ( icol >= 0 ) {
+            try {
+                return getCell( icol );
+            }
+            catch( IOException e ) {
+                e.printStackTrace();
+                return null;
+            }
         }
-        catch( IOException e ) {
-            e.printStackTrace();
-            return null;
+        else {
+            return getConstantValue( -1 - icol );
         }
     }
 
