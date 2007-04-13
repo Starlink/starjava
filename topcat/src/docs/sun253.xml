@@ -9750,6 +9750,7 @@ introduced since the last version:
     <li>Cartesian 3D plot now permits zooming towards centre 
         (though not panning).</li>
     <li>3D plots now correctly report number of visible points.</li>
+    <li>Can use table parameter names in expressions.</li>
     </ul>
     </p></dd>
 

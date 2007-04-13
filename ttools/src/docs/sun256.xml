@@ -4197,6 +4197,7 @@ but my thanks are especially due to the following:
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
         cards - write them as numeric not string values.</li>
     <li>Improve error message for broken CSV files.</li>
+    <li>Can use table parameter names in expresssions.</li>
     </ul>
     </p></dd>
 
