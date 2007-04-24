@@ -211,8 +211,6 @@ public class ColumnSelectorModel {
             units = units.toLowerCase();
             cunits = cunits.toLowerCase();
             int nconv = convChooser_.getSize();
-
-            /* Known converters for radians are radian or degree. */
             if ( units.equals( "radian" ) || units.equals( "radians" ) ) {
                 if ( cunits.startsWith( "rad" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
@@ -241,6 +239,26 @@ public class ColumnSelectorModel {
                             (ColumnConverter) convChooser_.getElementAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "hour" ) ) {
+                            return conv;
+                        }
+                    }
+                }
+                else if ( cunits.startsWith( "arcmin" ) ) {
+                    for ( int i = 0; i < nconv; i++ ) {
+                        ColumnConverter conv = 
+                            (ColumnConverter) convChooser_.getElementAt( i );
+                        if ( conv.toString().toLowerCase()
+                                            .startsWith( "arcmin" ) ) {
+                            return conv;
+                        }
+                    }
+                }
+                else if ( cunits.startsWith( "arcsec" ) ) {
+                    for ( int i = 0; i < nconv; i++ ) {
+                        ColumnConverter conv =
+                            (ColumnConverter) convChooser_.getElementAt( i );
+                        if ( conv.toString().toLowerCase()
+                                            .startsWith( "arcsec" ) ) {
                             return conv;
                         }
                     }
