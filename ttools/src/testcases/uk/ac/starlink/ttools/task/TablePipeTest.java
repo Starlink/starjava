@@ -70,6 +70,20 @@ public class TablePipeTest extends TableTestCase {
             box( new double[] { 11., 22., 33., Double.NaN, } ),
             getColData( apply( "addcol -before 1 XX 'a + b'" ), 0 ) );
 
+        assertArrayEquals(
+            box( new int[] { 5, 5, 5, 5, } ),
+            getColData( apply( "setparam fiver 5;"
+                             + "addcol -before 1 COL_FIVE fiver" ), 0 ) );
+        try {
+            apply( "setparam fiver 5;"
+                 + "clearparams fiver;"
+                 + "addcol -before 1 COL_FIVE fiver" );
+            fail();
+        }
+        catch ( IOException e ) {
+            assertTrue( e.getMessage().indexOf( "fiver" ) >= 0 );
+        }
+
         ColumnInfo sizeInfo = apply( "addcol -before 1"
                                    + " -ucd PHYS.SIZE"
                                    + " -desc 'Not important'"
