@@ -5,17 +5,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -44,6 +48,14 @@ public class SphericalPolarPointSelector extends PointSelector {
     private final ToggleButtonModel logToggler_;
     private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
+
+    private static final Pattern TANERR_UCD_REGEX = Pattern.compile(
+           "pos\\.angDistance"
+        + "|pos\\.angResolution"
+        + "|pos\\.errorEllipse"
+        + "|(stat\\.(error|stdev);"
+          + "pos\\.(eq|galactic|supergalactic|ecliptic|earth\\.l..)[.a-z]*)"
+    );
 
     /** A column data object which contains zeroes. */
     private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
@@ -293,6 +305,20 @@ public class SphericalPolarPointSelector extends PointSelector {
             phiSelector_.setTable( tcModel );
             thetaSelector_.setTable( tcModel );
             tanerrSelector_.setTable( tcModel );
+            if ( tanerrSelector_.getColumnData() == null ) {
+                ColumnData tanerr =
+                    guessTanerrColumn( tcModel, tanerrSelector_
+                                               .getModel().getColumnModel() );
+                if ( tanerr != null ) {
+                    tanerrSelector_.setColumnData( tanerr );
+                }
+            }
+            if ( tanerrSelector_.getColumnData() == null ) {
+                ColumnData tanerr = guessTanerrParam( tcModel );
+                if ( tanerr != null ) {
+                    tanerrSelector_.setColumnData( tanerr );
+                }
+            }
         }
         rSelector_.setTable( tcModel );
         phiSelector_.setEnabled( tcModel != null );
@@ -375,6 +401,88 @@ public class SphericalPolarPointSelector extends PointSelector {
                 return one;
             }
         };
+    }
+
+    /**
+     * Attempts to locate a column from a given list which corresponds to
+     * a tangent-plane error.
+     *
+     * @param  tcModel  table for which the errors are required
+     * @param  list of candidate ColumnData objects 
+     * @return  a ColumnData which probably represents tangent error, or null
+     */
+    private static ColumnData guessTanerrColumn( TopcatModel tcModel,
+                                                 ListModel colModel ) {
+        ColumnData bestCol = null;
+        int bestScore = 0;
+        for ( int icol = 0; icol < colModel.getSize(); icol++ ) {
+            ColumnData colData = (ColumnData) colModel.getElementAt( icol );
+            if ( colData != null ) {
+                int score = getTanerrLikeness( colData.getColumnInfo() );
+                if ( score > bestScore ) {
+                    bestScore = score;
+                    bestCol = colData;
+                }
+            }
+        }
+        return bestCol;
+    }
+
+    /**
+     * Attempts to determine a parameter from a given table which corresponds
+     * to tangent-plane error.
+     * 
+     * @param  tcModel  table for which the errors are required
+     * @return   a ColumnData which probably represents tangent error, or null
+     */
+    private static ColumnData guessTanerrParam( TopcatModel tcModel ) {
+        ColumnData bestCol = null;
+        int bestScore = 0;
+        List paramList = tcModel.getDataModel().getParameters();
+        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+            DescribedValue dval = (DescribedValue) it.next();
+            ValueInfo info = dval.getInfo();
+            Object value = dval.getValue();
+            if ( value instanceof Number ) {
+                int score = getTanerrLikeness( info );
+                if ( score > bestScore ) {
+                    bestScore = score;
+                    bestCol = new ParameterColumnData( dval );
+                }
+            }
+        }
+        return bestCol;
+    }
+
+    /**
+     * Returns a number indicating how much a ValueInfo looks like the
+     * description of a tangent plane error.  This is the result of some
+     * ad-hoc grubbing through UCDs, units etc.  A zero result means that
+     * it doesn't look like a tangent plane error; higher results look
+     * like progressively better bets.
+     * 
+     * @param  info  metadata object describing value
+     * @return  resemblance score (>=0)
+     */
+    private static int getTanerrLikeness( ValueInfo info ) {
+        if ( ! Number.class.isAssignableFrom( info.getContentClass() ) ) {
+            return 0;
+        }
+        int score = 0;
+        String ucd = info.getUCD();
+        String units = info.getUnitString();
+        if ( ucd != null && TANERR_UCD_REGEX.matcher( ucd ).matches() ) {
+            score += 3;
+        }
+        if ( units != null ) {
+            if ( units.matches( "arcsec[a-z]*" ) ) {
+                score += 2;
+            }
+            else if ( units.matches( "arcmin[a-z]*" ) ) {
+                score += 1;
+            }
+        }
+        return score;
     }
 
     /**
@@ -548,6 +656,50 @@ public class SphericalPolarPointSelector extends PointSelector {
             code = 23 * code + thetaData_.hashCode();
             code = 23 * code + rData_.hashCode();
             return code;
+        }
+    }
+
+    /**
+     * ColumnData which contains the (constant) value of a table parameter.
+     * Implements <code>equals</code> and <code>hashCode</code> properly.
+     */
+    private static class ParameterColumnData extends ColumnData {
+
+        private final String name_;
+        private final Object value_;
+
+        /**
+         * Constructor.
+         *
+         * @param  dval   object giving parameter metadata and value
+         */
+        ParameterColumnData( DescribedValue dval ) {
+            value_ = dval.getValue();
+            ColumnInfo info = new ColumnInfo( dval.getInfo() );
+            info.setContentClass( dval.getClass() );
+            setColumnInfo( info );
+            name_ = info.getName();
+            assert value_ != null;
+        }
+
+        public Object readValue( long irow ) {
+            return value_;
+        }
+
+        public String toString() {
+            return name_;
+        }
+
+        public int hashCode() {
+            return value_.hashCode();
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof ParameterColumnData ) {
+                ParameterColumnData other = (ParameterColumnData) o;
+                return other.value_.equals( this.value_ );
+            }
+            return false;
         }
     }
 }
