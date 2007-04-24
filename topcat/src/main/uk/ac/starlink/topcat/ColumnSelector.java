@@ -156,6 +156,16 @@ public class ColumnSelector extends JComponent {
     }
 
     /**
+     * Sets the currently selected column data value.
+     * Does not have to be to one of the values in the selection model.
+     *
+     * @param  colData  new column data selection
+     */
+    public void setColumnData( ColumnData colData ) {
+        model_.getColumnModel().setSelectedItem( colData );
+    }
+
+    /**
      * Returns the model for this selector.
      *
      * @return  data model
