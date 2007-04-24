@@ -963,6 +963,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     public Range[] calculateRanges( PointSelection pointSelection,
                                     Points points ) {
+        boolean hasErrors = points.getNerror() > 0;
 
         /* Set up blank range objects. */
         int ndim = points.getNdim();
@@ -990,6 +991,17 @@ public abstract class GraphicsWindow extends AuxWindow {
                 if ( isUsed ) {
                     for ( int idim = 0; idim < ndim; idim++ ) {
                         ranges[ idim ].submit( coords[ idim ] );
+                    }
+                    if ( hasErrors ) {
+                        double[][] errs = points.getErrors( ip );
+                        for ( int ierr = 0; ierr < errs.length; ierr++ ) {
+                            double[] err= errs[ ierr ];
+                            if ( err != null ) {
+                                for ( int idim = 0; idim < ndim; idim++ ) {
+                                    ranges[ idim ].submit( err[ idim ] );
+                                }
+                            }
+                        }
                     }
                 }
             }
