@@ -19,7 +19,7 @@ public class DemoTest extends TestCase {
         StarTable[] demoTables = Driver.getDemoTables();
         int ix = 0;
 
-        assertEquals( 15, demoTables[ ix ].getColumnCount() );
+        assertEquals( 17, demoTables[ ix ].getColumnCount() );
         assertEquals( 875, demoTables[ ix++ ].getRowCount() );
 
         // assertEquals( 14, demoTables[ ix ].getColumnCount() );
