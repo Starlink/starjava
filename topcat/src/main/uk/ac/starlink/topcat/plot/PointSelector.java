@@ -730,7 +730,7 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     public void modelChanged( TopcatEvent evt ) {
         assert evt.getModel() == tcModel_;
         int code = evt.getCode();
-        if ( code == TopcatEvent.SUBSET ) {
+        if ( code == TopcatEvent.CURRENT_SUBSET ) {
             setDefaultSubsetSelection();
         }
 

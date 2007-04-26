@@ -153,7 +153,7 @@ public class StatsWindow extends AuxWindow {
          * global current subset is changed. */
         tcModel.addTopcatListener( new TopcatListener() {
             public void modelChanged( TopcatEvent evt ) {
-                if ( evt.getCode() == TopcatEvent.SUBSET ) {
+                if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
                     subSelector.setSelectedItem( StatsWindow.this.tcModel
                                                 .getSelectedSubset() );
                 }

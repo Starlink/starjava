@@ -1200,7 +1200,7 @@ public class TopcatModel {
             fireContentsChanged( this, -1, -1 );
 
             /* Notify registered listeners to the TopcatModel. */
-            fireModelChanged( TopcatEvent.SUBSET, null );
+            fireModelChanged( TopcatEvent.CURRENT_SUBSET, null );
         }
 
         public Object getElementAt( int index ) {

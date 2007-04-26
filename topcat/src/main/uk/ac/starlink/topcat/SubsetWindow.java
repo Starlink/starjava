@@ -168,7 +168,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
          * work the other way round). */
         tcModel.addTopcatListener( new TopcatListener() {
             public void modelChanged( TopcatEvent evt ) {
-                if ( evt.getCode() == TopcatEvent.SUBSET ) {
+                if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
                     selectionModel.setValueIsAdjusting( true );
                     selectionModel.clearSelection();
                     RowSubset selected = tcModel.getSelectedSubset();

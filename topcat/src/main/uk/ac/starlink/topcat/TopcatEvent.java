@@ -22,7 +22,7 @@ public class TopcatEvent {
     public static final int PARAMETERS = 3;
 
     /** Code indicating change in current RowSubset. */
-    public static final int SUBSET = 4;
+    public static final int CURRENT_SUBSET = 4;
 
     /**
      * Code indicating that a row has been highlighted.
