@@ -4,7 +4,8 @@
  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.1 http://www.ivoa.net/xml/VOTable/v1.1"
  xmlns="http://www.ivoa.net/xml/VOTable/v1.1">
 <!--
- !  VOTable written by uk.ac.starlink.votable.VOTableWriter
+ !  VOTable written by STIL version 2.6+ (uk.ac.starlink.votable.VOTableWriter)
+ !  at 2007-04-26T10:44:31
  !-->
 <RESOURCE>
 <TABLE name="Messier" nrows="110">
@@ -27,17 +28,17 @@
 <FIELD arraysize="1" datatype="char" name="Type">
 <DESCRIPTION>Object type</DESCRIPTION>
 </FIELD>
-<FIELD datatype="double" name="RA" ucd="POS_EQ_RA" unit="deg">
+<FIELD datatype="double" name="RA" ucd="pos.eq.ra" unit="deg">
 <DESCRIPTION>J2000.0 Right Ascencsion</DESCRIPTION>
 </FIELD>
-<FIELD datatype="double" name="DEC" ucd="POS_EQ_DEC" unit="deg">
+<FIELD datatype="double" name="DEC" ucd="pos.eq.dec" unit="deg">
 <DESCRIPTION>J2000.0 declination</DESCRIPTION>
 </FIELD>
 <FIELD datatype="float" name="BMAG" unit="mag">
 <DESCRIPTION>Apparent visual magnitude</DESCRIPTION>
 </FIELD>
-<FIELD arraysize="8" datatype="char" name="Size" unit="arcmin">
-<DESCRIPTION>Apparent angular diameter</DESCRIPTION>
+<FIELD datatype="float" name="Radius" ucd="stat.error;pos.eq.ra" unit="arcmin">
+<DESCRIPTION>Maximum diameter</DESCRIPTION>
 </FIELD>
 <FIELD datatype="float" name="Dist" unit="k.lightyear">
 <DESCRIPTION>Distance</DESCRIPTION>
@@ -59,7 +60,7 @@
     <TD>83.50208333333335</TD>
     <TD>22.016666666666662</TD>
     <TD>8.4</TD>
-    <TD>6x4</TD>
+    <TD>6.0</TD>
     <TD>6.3</TD>
     <TD>http://www.seds.org/messier/m/m001.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m1.jpg</TD>
@@ -157,7 +158,7 @@
     <TD>270.75333333313466</TD>
     <TD>-24.383333333333333</TD>
     <TD>6.0</TD>
-    <TD>90x40</TD>
+    <TD>90.0</TD>
     <TD>5.2</TD>
     <TD>http://www.seds.org/messier/m/m008.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m8.jpg</TD>
@@ -381,7 +382,7 @@
     <TD>274.0037499984105</TD>
     <TD>-18.483333333333334</TD>
     <TD>4.6</TD>
-    <TD>90</TD>
+    <TD>90.0</TD>
     <TD>10.0</TD>
     <TD>http://www.seds.org/messier/m/m024.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m24.jpg</TD>
@@ -423,7 +424,7 @@
     <TD>299.7524999936422</TD>
     <TD>22.716666666666665</TD>
     <TD>7.4</TD>
-    <TD>8.0x5.7</TD>
+    <TD>8.0</TD>
     <TD>1.25</TD>
     <TD>http://www.seds.org/messier/m/m027.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m27.jpg</TD>
@@ -479,7 +480,7 @@
     <TD>10.50291666984558</TD>
     <TD>41.266666666666666</TD>
     <TD>3.4</TD>
-    <TD>178x63</TD>
+    <TD>178.0</TD>
     <TD>2900.0</TD>
     <TD>http://www.seds.org/messier/m/m031.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m31.jpg</TD>
@@ -493,7 +494,7 @@
     <TD>10.50291666984558</TD>
     <TD>40.86666666666666</TD>
     <TD>8.1</TD>
-    <TD>8x6</TD>
+    <TD>8.0</TD>
     <TD>2900.0</TD>
     <TD>http://www.seds.org/messier/m/m032.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m32.jpg</TD>
@@ -507,7 +508,7 @@
     <TD>23.253750006357834</TD>
     <TD>30.650000000000002</TD>
     <TD>5.7</TD>
-    <TD>73x45</TD>
+    <TD>73.0</TD>
     <TD>3000.0</TD>
     <TD>http://www.seds.org/messier/m/m033.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m33.jpg</TD>
@@ -633,7 +634,7 @@
     <TD>83.75166667302452</TD>
     <TD>-5.45</TD>
     <TD>4.0</TD>
-    <TD>85x60</TD>
+    <TD>85.0</TD>
     <TD>1.6</TD>
     <TD>http://www.seds.org/messier/m/m042.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m42.jpg</TD>
@@ -647,7 +648,7 @@
     <TD>83.75249999364216</TD>
     <TD>-5.266666666666666</TD>
     <TD>9.0</TD>
-    <TD>20x15</TD>
+    <TD>20.0</TD>
     <TD>1.6</TD>
     <TD>http://www.seds.org/messier/m/m043.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m43.jpg</TD>
@@ -731,7 +732,7 @@
     <TD>187.25333333015442</TD>
     <TD>8.0</TD>
     <TD>8.4</TD>
-    <TD>9x7.5</TD>
+    <TD>9.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m049.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m49.jpg</TD>
@@ -759,7 +760,7 @@
     <TD>202.25374999841054</TD>
     <TD>47.2</TD>
     <TD>8.4</TD>
-    <TD>11x7</TD>
+    <TD>11.0</TD>
     <TD>37000.0</TD>
     <TD>http://www.seds.org/messier/m/m051.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m51.jpg</TD>
@@ -843,7 +844,7 @@
     <TD>283.2524999936422</TD>
     <TD>33.03333333333333</TD>
     <TD>8.8</TD>
-    <TD>1.4x1.0</TD>
+    <TD>1.4</TD>
     <TD>2.3</TD>
     <TD>http://www.seds.org/messier/m/m057.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m57.jpg</TD>
@@ -857,7 +858,7 @@
     <TD>189.25291666984555</TD>
     <TD>11.816666666666668</TD>
     <TD>9.7</TD>
-    <TD>5.5x4.5</TD>
+    <TD>5.5</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m058.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m58.jpg</TD>
@@ -871,7 +872,7 @@
     <TD>190.5</TD>
     <TD>11.65</TD>
     <TD>9.6</TD>
-    <TD>5x3.5</TD>
+    <TD>5.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m059.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m59.jpg</TD>
@@ -885,7 +886,7 @@
     <TD>190.7529166698456</TD>
     <TD>11.550000000000002</TD>
     <TD>8.8</TD>
-    <TD>7x6</TD>
+    <TD>7.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m060.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m60.jpg</TD>
@@ -899,7 +900,7 @@
     <TD>185.2537499984105</TD>
     <TD>4.466666666666667</TD>
     <TD>9.7</TD>
-    <TD>6x5.5</TD>
+    <TD>6.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m061.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m61.jpg</TD>
@@ -927,7 +928,7 @@
     <TD>198.75333333412806</TD>
     <TD>42.03333333333333</TD>
     <TD>8.6</TD>
-    <TD>10x6</TD>
+    <TD>10.0</TD>
     <TD>37000.0</TD>
     <TD>http://www.seds.org/messier/m/m063.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m63.jpg</TD>
@@ -941,7 +942,7 @@
     <TD>194.00291666984558</TD>
     <TD>21.683333333333337</TD>
     <TD>8.5</TD>
-    <TD>9.3x5.4</TD>
+    <TD>9.3</TD>
     <TD>19000.0</TD>
     <TD>http://www.seds.org/messier/m/m064.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m64.jpg</TD>
@@ -955,7 +956,7 @@
     <TD>169.50374999841057</TD>
     <TD>13.083333333333332</TD>
     <TD>9.3</TD>
-    <TD>8x1.5</TD>
+    <TD>8.0</TD>
     <TD>35000.0</TD>
     <TD>http://www.seds.org/messier/m/m065.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m65.jpg</TD>
@@ -969,7 +970,7 @@
     <TD>170.00083333651222</TD>
     <TD>12.983333333333333</TD>
     <TD>8.9</TD>
-    <TD>8x2.5</TD>
+    <TD>8.0</TD>
     <TD>35000.0</TD>
     <TD>http://www.seds.org/messier/m/m066.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m66.jpg</TD>
@@ -1081,7 +1082,7 @@
     <TD>24.00291666984558</TD>
     <TD>15.783333333333331</TD>
     <TD>9.4</TD>
-    <TD>10.2x9.5</TD>
+    <TD>10.2</TD>
     <TD>35000.0</TD>
     <TD>http://www.seds.org/messier/m/m074.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m74.jpg</TD>
@@ -1109,7 +1110,7 @@
     <TD>25.501666673024495</TD>
     <TD>51.56666666666667</TD>
     <TD>10.1</TD>
-    <TD>2.7x1.8</TD>
+    <TD>2.7</TD>
     <TD>3.4</TD>
     <TD>http://www.seds.org/messier/m/m076.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m76.jpg</TD>
@@ -1123,7 +1124,7 @@
     <TD>40.50291666984558</TD>
     <TD>-0.016666666666666666</TD>
     <TD>8.9</TD>
-    <TD>7x6</TD>
+    <TD>7.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m077.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m77.jpg</TD>
@@ -1137,7 +1138,7 @@
     <TD>86.50291666984558</TD>
     <TD>0.05</TD>
     <TD>8.3</TD>
-    <TD>8x6</TD>
+    <TD>8.0</TD>
     <TD>1.6</TD>
     <TD>http://www.seds.org/messier/m/m078.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m78.jpg</TD>
@@ -1179,7 +1180,7 @@
     <TD>148.75249999364215</TD>
     <TD>69.06666666666665</TD>
     <TD>6.9</TD>
-    <TD>21x10</TD>
+    <TD>21.0</TD>
     <TD>12000.0</TD>
     <TD>http://www.seds.org/messier/m/m081.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m81.jpg</TD>
@@ -1193,7 +1194,7 @@
     <TD>148.75333333015445</TD>
     <TD>69.68333333333334</TD>
     <TD>8.4</TD>
-    <TD>9x4</TD>
+    <TD>9.0</TD>
     <TD>12000.0</TD>
     <TD>http://www.seds.org/messier/m/m082.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m82.jpg</TD>
@@ -1207,7 +1208,7 @@
     <TD>204.24999999999997</TD>
     <TD>-29.866666666666667</TD>
     <TD>7.6</TD>
-    <TD>11x10</TD>
+    <TD>11.0</TD>
     <TD>15000.0</TD>
     <TD>http://www.seds.org/messier/m/m083.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m83.jpg</TD>
@@ -1235,7 +1236,7 @@
     <TD>186.2516666650772</TD>
     <TD>18.183333333333334</TD>
     <TD>9.1</TD>
-    <TD>7.1x5.2</TD>
+    <TD>7.1</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m085.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m85.jpg</TD>
@@ -1249,7 +1250,7 @@
     <TD>186.50083333651222</TD>
     <TD>12.95</TD>
     <TD>8.9</TD>
-    <TD>7.5x5.5</TD>
+    <TD>7.5</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m086.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m86.jpg</TD>
@@ -1277,7 +1278,7 @@
     <TD>187.99999999999997</TD>
     <TD>14.416666666666666</TD>
     <TD>9.6</TD>
-    <TD>7x4</TD>
+    <TD>7.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m088.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m88.jpg</TD>
@@ -1305,7 +1306,7 @@
     <TD>189.00333333015442</TD>
     <TD>13.166666666666666</TD>
     <TD>9.5</TD>
-    <TD>9.5x4.5</TD>
+    <TD>9.5</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m090.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m90.jpg</TD>
@@ -1319,7 +1320,7 @@
     <TD>188.75166667302452</TD>
     <TD>14.5</TD>
     <TD>10.2</TD>
-    <TD>5.4x4.4</TD>
+    <TD>5.4</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m091.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m91.jpg</TD>
@@ -1361,7 +1362,7 @@
     <TD>192.5037500063578</TD>
     <TD>41.116666666666674</TD>
     <TD>8.2</TD>
-    <TD>7x3</TD>
+    <TD>7.0</TD>
     <TD>14500.0</TD>
     <TD>http://www.seds.org/messier/m/m094.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m94.jpg</TD>
@@ -1375,7 +1376,7 @@
     <TD>160.99999999999997</TD>
     <TD>11.700000000000001</TD>
     <TD>9.7</TD>
-    <TD>4.4x3.3</TD>
+    <TD>4.4</TD>
     <TD>38000.0</TD>
     <TD>http://www.seds.org/messier/m/m095.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m95.jpg</TD>
@@ -1389,7 +1390,7 @@
     <TD>161.50333333015442</TD>
     <TD>11.816666666666668</TD>
     <TD>9.2</TD>
-    <TD>6x4</TD>
+    <TD>6.0</TD>
     <TD>38000.0</TD>
     <TD>http://www.seds.org/messier/m/m096.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m96.jpg</TD>
@@ -1403,7 +1404,7 @@
     <TD>168.5033333341281</TD>
     <TD>55.01666666666667</TD>
     <TD>9.9</TD>
-    <TD>3.4x3.3</TD>
+    <TD>3.4</TD>
     <TD>2.6</TD>
     <TD>http://www.seds.org/messier/m/m097.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m97.jpg</TD>
@@ -1417,7 +1418,7 @@
     <TD>183.25333333412806</TD>
     <TD>14.900000000000002</TD>
     <TD>10.1</TD>
-    <TD>9.5x3.2</TD>
+    <TD>9.5</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m098.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m98.jpg</TD>
@@ -1431,7 +1432,7 @@
     <TD>184.50333333015442</TD>
     <TD>14.416666666666666</TD>
     <TD>9.9</TD>
-    <TD>5.4x4.8</TD>
+    <TD>5.4</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m099.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m99.jpg</TD>
@@ -1445,7 +1446,7 @@
     <TD>185.50374999841054</TD>
     <TD>15.816666666666666</TD>
     <TD>9.3</TD>
-    <TD>7x6</TD>
+    <TD>7.0</TD>
     <TD>60000.0</TD>
     <TD>http://www.seds.org/messier/m/m100.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m100.jpg</TD>
@@ -1473,7 +1474,7 @@
     <TD>226.50208333333333</TD>
     <TD>55.76666666666667</TD>
     <TD>9.9</TD>
-    <TD>5.2x2.3</TD>
+    <TD>5.2</TD>
     <TD>40000.0</TD>
     <TD>http://www.seds.org/messier/m/m102.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m102.jpg</TD>
@@ -1501,7 +1502,7 @@
     <TD>189.99999999999997</TD>
     <TD>-11.616666666666669</TD>
     <TD>8.0</TD>
-    <TD>9x4</TD>
+    <TD>9.0</TD>
     <TD>50000.0</TD>
     <TD>http://www.seds.org/messier/m/m104.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m104.jpg</TD>
@@ -1529,7 +1530,7 @@
     <TD>184.74999999999997</TD>
     <TD>47.3</TD>
     <TD>8.4</TD>
-    <TD>19x8</TD>
+    <TD>19.0</TD>
     <TD>25000.0</TD>
     <TD>http://www.seds.org/messier/m/m106.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m106.jpg</TD>
@@ -1557,7 +1558,7 @@
     <TD>167.75208333333336</TD>
     <TD>55.666666666666664</TD>
     <TD>10.0</TD>
-    <TD>8x1</TD>
+    <TD>8.0</TD>
     <TD>45000.0</TD>
     <TD>http://www.seds.org/messier/m/m108.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m108.jpg</TD>
@@ -1571,7 +1572,7 @@
     <TD>179.25249999364215</TD>
     <TD>53.383333333333326</TD>
     <TD>9.8</TD>
-    <TD>7x4</TD>
+    <TD>7.0</TD>
     <TD>55000.0</TD>
     <TD>http://www.seds.org/messier/m/m109.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m109.jpg</TD>
@@ -1585,7 +1586,7 @@
     <TD>10.001666673024493</TD>
     <TD>41.68333333333333</TD>
     <TD>8.5</TD>
-    <TD>17x10</TD>
+    <TD>17.0</TD>
     <TD>2900.0</TD>
     <TD>http://www.seds.org/messier/m/m110.html</TD>
     <TD>http://www.seds.org/messier/Jpg/m110.jpg</TD>
