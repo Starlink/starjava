@@ -594,9 +594,9 @@ public class TopcatPlasticListener extends HubManager {
      */
     private boolean showObjects( URI sender, String tableId, List objList ) {
         TableWithRows tr = (TableWithRows) lookupTable( tableId );
-        final TopcatModel tcModel = tr == null
-                                  ? null
-                                  : (TopcatModel) tr.tcModelRef_.get();
+        TopcatModel tcModel = tr == null
+                            ? null
+                            : (TopcatModel) tr.tcModelRef_.get();
         if ( tcModel != null ) {
 
             /* Turn the list of row indices into a bit vector. */
@@ -609,60 +609,9 @@ public class TopcatPlasticListener extends HubManager {
                     mask.set( rowMap == null ? index : rowMap[ index ] );
                 }
             }
+            applyNewSubset( tcModel, mask, 
+                            getAppName( sender ).replaceAll( "\\s+", "_" ) );
 
-            /* See if this is identical to an existing subset.  If so, don't
-             * create a new one.  It's arguable whether this is the behaviour
-             * that you want, but at least until we have some way to delete
-             * subsets it's probably best to do it like this to cut down on
-             * subset proliferation. */
-            RowSubset matching = null;
-            for ( Iterator it = tcModel.getSubsets().iterator();
-                  matching == null && it.hasNext(); ) {
-                RowSubset rset = (RowSubset) it.next();
-                int nrow = Tables.checkedLongToInt( tcModel.getDataModel()
-                                                           .getRowCount() );
-                if ( matches( mask, rset, nrow ) ) {
-                    matching = rset;
-                }
-            }
-
-            /* If we've found an existing set with the same content, 
-             * apply that one. */
-            if ( matching != null ) {
-                final RowSubset rset = matching;
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        tcModel.applySubset( rset );
-                    }
-                } );
-            }
-
-            /* Otherwise make sure we have a unique name for the new subset. */
-            else {
-                String basename = getAppName( sender )
-                                 .replaceAll( "\\s+", "_" );
-                int ipset = 0;
-                for ( Iterator it = tcModel.getSubsets().iterator();
-                      it.hasNext(); ) {
-                    String setName = ((RowSubset) it.next()).getName();
-                    if ( setName.matches( basename + "-[0-9]+" ) ) {
-                        String digits =
-                            setName.substring( basename.length() + 1 );
-                        ipset = Math.max( ipset, Integer.parseInt( digits ) );
-                    }
-                }
-                String setName = basename + '-' + ( ipset + 1 );
-
-                /* Then construct, add and apply the new subset. */
-                final RowSubset rset = new BitsRowSubset( setName, mask );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        tcModel.addSubset( rset );
-                        tcModel.applySubset( rset );
-                    }
-                } );
-            }
-    
             /* Success return. */
             return true;
         }
@@ -670,6 +619,72 @@ public class TopcatPlasticListener extends HubManager {
 
             /* Failure return. */
             return false;
+        }
+    }
+
+    /**
+     * Takes a bit mask representing selected rows and causes it to become
+     * the Current Row Subset for the given table.  Usually this means
+     * creating a new Row Subset corresponding to that mask prior to
+     * applying it.  However, in the special case that the mask is
+     * identical to an existing subset, that one will be used instead.
+     *
+     * @param  tcModel   topcat model
+     * @param  mask      row selection mask
+     * @param  baseName  name of the sending application
+     */
+    private void applyNewSubset( final TopcatModel tcModel, BitSet mask,
+                                 String appName ) {
+
+        /* See if this is identical to an existing subset.  If so, don't
+         * create a new one.  It's arguable whether this is the behaviour
+         * that you want, but at least until we have some way to delete
+         * subsets it's probably best to do it like this to cut down on
+         * subset proliferation. */
+        RowSubset matching = null;
+        for ( Iterator it = tcModel.getSubsets().iterator();
+              matching == null && it.hasNext(); ) {
+            RowSubset rset = (RowSubset) it.next();
+            int nrow = Tables.checkedLongToInt( tcModel.getDataModel()
+                                                       .getRowCount() );
+            if ( matches( mask, rset, nrow ) ) {
+                matching = rset;
+            }
+        }
+
+        /* If we've found an existing set with the same content, 
+         * apply that one. */
+        if ( matching != null ) {
+            final RowSubset rset = matching;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    tcModel.applySubset( rset );
+                }
+            } );
+        }
+
+        /* Otherwise make sure we have a unique name for the new subset. */
+        else {
+            int ipset = 0;
+            for ( Iterator it = tcModel.getSubsets().iterator();
+                  it.hasNext(); ) {
+                String setName = ((RowSubset) it.next()).getName();
+                if ( setName.matches( appName + "-[0-9]+" ) ) {
+                    String digits =
+                        setName.substring( appName.length() + 1 );
+                    ipset = Math.max( ipset, Integer.parseInt( digits ) );
+                }
+            }
+            String setName = appName + '-' + ( ipset + 1 );
+
+            /* Then construct, add and apply the new subset. */
+            final RowSubset rset = new BitsRowSubset( setName, mask );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    tcModel.addSubset( rset );
+                    tcModel.applySubset( rset );
+                }
+            } );
         }
     }
 
