@@ -238,7 +238,9 @@ public class SphericalPolarPointSelector extends PointSelector {
     public PointStore createPointStore( int npoint ) {
         boolean hasTanerr = tangentErrorToggler_.isSelected();
         ErrorMode radialMode = radialErrorModeModel_.getMode();
-        return new SphericalPolarPointStore( radialMode, hasTanerr, npoint );
+        boolean radialLog = logToggler_.isSelected();
+        return new SphericalPolarPointStore( radialMode, hasTanerr, radialLog,
+                                             npoint );
     }
 
     public ErrorMode[] getErrorModes() {

@@ -23,6 +23,7 @@ public class SphericalPolarPointStore implements PointStore {
 
     private final ValueStore valueStore_;
     private final boolean hasTanerr_;
+    private final boolean radialLog_;
     private final int npoint_;
     private final int nword_;
     private final int ntanWord_;
@@ -38,8 +39,7 @@ public class SphericalPolarPointStore implements PointStore {
     private final double[] rawerrs_;
     private final double[][] errors_;
     private final double[] pair_;
-    private final double[] rlo_;
-    private final double[] rhi_;
+    private final double[][] rpair_;
     private final double[] transMatrix_;
     private int ipoint_;
     private double minTanError_;
@@ -49,11 +49,13 @@ public class SphericalPolarPointStore implements PointStore {
      *
      * @param   radialMode  type of radial error information to store
      * @param   hasTanerr   whether to store tangential error information
+     * @param   radialLog   whether radial coordinates are logarithmic
      * @param   npoint  number of points to store
      */
     public SphericalPolarPointStore( ErrorMode radialMode, boolean hasTanerr,
-                                     int npoint ) {
+                                     boolean radialLog, int npoint ) {
         hasTanerr_ = hasTanerr;
+        radialLog_ = radialLog;
         npoint_ = npoint;
 
         /* Set up the object which will interpret radial error information. */
@@ -76,8 +78,9 @@ public class SphericalPolarPointStore implements PointStore {
         rawerrs_ = new double[ nerrorWord_ ];
         errors_ = new double[ nerror_ ][];
         pair_ = new double[ 2 ];
-        rlo_ = new double[ 3 ];
-        rhi_ = new double[ 3 ];
+        double[] rlo = new double[ 3 ];
+        double[] rhi = new double[ 3 ];
+        rpair_ = new double[][] { rlo, rhi };
         transMatrix_ = new double[ 9 ];
 
         /* Initialise the value store which will hold the values.
@@ -117,6 +120,9 @@ public class SphericalPolarPointStore implements PointStore {
             double r = Math.sqrt( coordBuf_[ 0 ] * coordBuf_[ 0 ]
                                 + coordBuf_[ 1 ] * coordBuf_[ 1 ]
                                 + coordBuf_[ 2 ] * coordBuf_[ 2 ] );
+            if ( radialLog_ ) {
+                r = Math.exp( r );
+            }
             double r1 = 1.0 / r;
             for ( int i = 0; i < nradWord_; i++ ) {
                 double delta =
@@ -187,7 +193,6 @@ public class SphericalPolarPointStore implements PointStore {
      */
     public void calcErrors( double[] centre, double[] tanErrs, double[] radErrs,
                             double[][] errors ) {
-        int rawOff = 0;
         int pointOff = 0;
         if ( ntanWord_ > 0 ) {
             assert ntanWord_ == 1;
@@ -197,30 +202,8 @@ public class SphericalPolarPointStore implements PointStore {
         }
         if ( nradWord_ > 0 ) {
             radialReader_.convert( radErrs, pair_ );
-            double flo = pair_[ 0 ];
-            double fhi = pair_[ 1 ];
-            if ( flo > 1.0 ) {
-                double fm = Math.max( 2.0 - flo, 0.0 );
-                rlo_[ 0 ] = fm * centre[ 0 ];
-                rlo_[ 1 ] = fm * centre[ 1 ];
-                rlo_[ 2 ] = fm * centre[ 2 ];
-                errors[ pointOff ] = rlo_;
-            }
-            else {
-                errors[ pointOff ] = null;
-            }
-            pointOff++;
-            if ( fhi > 1.0 ) {
-                double fp = fhi;
-                rhi_[ 0 ] = fp * centre[ 0 ];
-                rhi_[ 1 ] = fp * centre[ 1 ];
-                rhi_[ 2 ] = fp * centre[ 2 ];
-                errors[ pointOff ] = rhi_;
-            }
-            else {
-                errors[ pointOff ] = null;
-            }
-            pointOff++;
+            calcRadialErrors( centre, pair_, errors, pointOff );
+            pointOff += 2;
         }
     }
 
@@ -253,6 +236,47 @@ public class SphericalPolarPointStore implements PointStore {
             points[ pointOff++ ] = null;
             points[ pointOff++ ] = null;
             points[ pointOff++ ] = null;
+        }
+    }
+
+    /**
+     * Calculates radial error points.
+     *
+     * @param  centre  coordinates of central point
+     * @param  posFacts  array of factors representing (lo,hi) error values;
+     *         each is >1 for a non-blank error value
+     * @param  points  array into which two error points will be written
+     * @param  pointOff  position at which to write to <code>points</code>
+     */
+    private void calcRadialErrors( double[] centre, double[] posFacts,
+                                   double[][] points, int pointOff ) {
+        double cx = centre[ 0 ];
+        double cy = centre[ 1 ];
+        double cz = centre[ 2 ];
+        for ( int iend = 0; iend < 2; iend++ ) {
+            double posFact = posFacts[ iend ];
+            double[] rerr;
+            if ( posFact > 1.0 ) {
+                rerr = rpair_[ iend ];
+                assert iend == 0 || iend == 1;
+                double fact = iend == 0 ? Math.max( 2.0 - posFact, 0.0 )
+                                        : posFact;
+                double fe;
+                if ( radialLog_ ) {
+                    double logR = Math.sqrt( cx * cx + cy * cy + cz * cz );
+                    fe = Math.max( 1.0 + Math.log( fact ) / logR, 0.0 );
+                }
+                else {
+                    fe = fact;
+                }
+                rerr[ 0 ] = fe * cx;
+                rerr[ 1 ] = fe * cy;
+                rerr[ 2 ] = fe * cz;
+            }
+            else {
+                rerr = null;
+            }
+            points[ pointOff++ ] = rerr;
         }
     }
 
