@@ -9751,6 +9751,9 @@ introduced since the last version:
         (though not panning).</li>
     <li>3D plots now correctly report number of visible points.</li>
     <li>Can use table parameter names in expressions.</li>
+    <li>Modified what happens when subsets get received from PLASTIC.</li>
+    <li>Fixed a number of bugs in responding to PLASTIC messages
+        (threading, failure to respond).</li>
     </ul>
     </p></dd>
 
