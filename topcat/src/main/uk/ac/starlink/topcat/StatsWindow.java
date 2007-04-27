@@ -157,6 +157,9 @@ public class StatsWindow extends AuxWindow {
                     subSelector.setSelectedItem( StatsWindow.this.tcModel
                                                 .getSelectedSubset() );
                 }
+                if ( evt.getCode() == TopcatEvent.SHOW_SUBSET ) {
+                    subSelector.setSelectedItem( (RowSubset) evt.getDatum() );
+                }
             }
         } );
     }
