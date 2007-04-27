@@ -47,6 +47,7 @@ import uk.ac.starlink.topcat.TablesListComboBoxModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.WeakTopcatListener;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -57,7 +58,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    28 Oct 2005
  */
-public abstract class PointSelector extends JPanel implements TopcatListener {
+public abstract class PointSelector extends JPanel {
 
     private final JComboBox tableSelector_;
     private final JScrollPane subsetScroller_;
@@ -68,6 +69,8 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
     private final List topcatListeners_;
     private final JPanel colPanel_;
     private final Map subsetLabels_;
+    private final TopcatListener tcListener_;
+    private final TopcatListener weakTcListener_;
     protected final ActionForwarder actionForwarder_;
     private boolean initialised_;
     private MutableStyleSet styles_;
@@ -104,6 +107,55 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         topcatListeners_ = new ArrayList();
         final JComponent controlBox = Box.createHorizontalBox();
         add( controlBox, BorderLayout.SOUTH );
+
+        /* Set up a listener for TopcatEvents.  A reference is kept in this
+         * object, but the listener registered with any TopcatModels only 
+         * contains a weak reference to it.  This prevents the TopcatModel 
+         * keeping alive references to this PointSelector (and hence its 
+         * parent GraphicsWindow, which is typically expensive on memory)
+         * after the GraphicsWindow disappears. */
+        tcListener_ = new TopcatListener() {
+            public void modelChanged( TopcatEvent evt ) {
+                assert evt.getModel() == tcModel_;
+                int code = evt.getCode();
+
+                /* If the current subset changes, fix to plot only that one. */
+                if ( code == TopcatEvent.CURRENT_SUBSET ) {
+                    setDefaultSubsetSelection();
+                }
+
+                /* If we get a request to highlight a given subset, make sure
+                 * it's set to plot and force a replot. */
+                else if ( code == TopcatEvent.SHOW_SUBSET ) {
+                    RowSubset rset = (RowSubset) evt.getDatum();
+                    OptionsListModel subsets = tcModel_.getSubsets();
+                    int nrsets = subsets.size();
+                    for ( int is = 0; is < nrsets; is++ ) {
+                        if ( subsets.get( is ) == rset ) {
+
+                            /* As well as making sure that the given subset
+                             * is selected, we need to force a replot since
+                             * its content might have changed.  We do this
+                             * here by unselecting it then selecting it.
+                             * This has the desired effect, but also means
+                             * that the replot gets done twice.  It would be
+                             * more efficient to cause a replot directly 
+                             * somehow, but the required objects are not
+                             * currently available from this class. */
+                            subSelModel_.removeSelectionInterval( is, is );
+                            subSelModel_.addSelectionInterval( is, is );
+                        }
+                    }
+                }
+
+                /* Forward the event to other listeners. */
+                for ( Iterator it = topcatListeners_.iterator();
+                      it.hasNext(); ) {
+                    ((TopcatListener) it.next()).modelChanged( evt );
+                }
+            }
+        };
+        weakTcListener_ = new WeakTopcatListener( tcListener_ );
 
         /* Construct the box for input of axes etc, and insert it into a 
          * scroll pane.  Fix it so that the preferred size takes account of
@@ -610,14 +662,14 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
         /* Reset our record of the topcat model, ensuring that we continue
          * to listen to the right one. */
         if ( tcModel_ != null ) {
-            tcModel_.removeTopcatListener( this );
+            tcModel_.removeTopcatListener( weakTcListener_ );
 
             /* Reset column selector models to prevent unhelpful events being
              * triggered while we're reconfiguring. */
             configureSelectors( null );
         }
         tcModel_ = tcModel; 
-        tcModel_.addTopcatListener( this );
+        tcModel_.addTopcatListener( weakTcListener_ );
 
         /* Hide the style editor if visible, to avoid problems with it
          * having the wrong idea of what table it refers to. */
@@ -722,22 +774,6 @@ public abstract class PointSelector extends JPanel implements TopcatListener {
             }
         }
         subSelModel_.setValueIsAdjusting( false );
-    }
-
-    /*
-     * TopcatListener implementation.
-     */
-    public void modelChanged( TopcatEvent evt ) {
-        assert evt.getModel() == tcModel_;
-        int code = evt.getCode();
-        if ( code == TopcatEvent.CURRENT_SUBSET ) {
-            setDefaultSubsetSelection();
-        }
-
-        /* Forward the event to other listeners. */
-        for ( Iterator it = topcatListeners_.iterator(); it.hasNext(); ) {
-            ((TopcatListener) it.next()).modelChanged( evt );
-        }
     }
 
     /**
