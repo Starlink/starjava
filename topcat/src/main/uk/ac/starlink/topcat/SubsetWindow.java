@@ -168,14 +168,20 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
          * work the other way round). */
         tcModel.addTopcatListener( new TopcatListener() {
             public void modelChanged( TopcatEvent evt ) {
+                RowSubset rset = null;
                 if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
+                    rset = getSelectedSubset();
+                }
+                else if ( evt.getCode() == TopcatEvent.SHOW_SUBSET ) {
+                    rset = (RowSubset) evt.getDatum();
+                }
+                if ( rset != null ) {
                     selectionModel.setValueIsAdjusting( true );
                     selectionModel.clearSelection();
-                    RowSubset selected = tcModel.getSelectedSubset();
                     ComboBoxModel tcSelModel = 
                         tcModel.getSubsetSelectionModel();
                     for ( int i = 0; i < tcSelModel.getSize(); i++ ) {
-                        if ( tcSelModel.getElementAt( i ) == selected ) {
+                        if ( tcSelModel.getElementAt( i ) == rset ) {
                             selectionModel.addSelectionInterval( i, i );
                         }
                     }
