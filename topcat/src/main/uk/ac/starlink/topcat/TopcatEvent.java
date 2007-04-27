@@ -39,6 +39,14 @@ public class TopcatEvent {
     public static final int COLUMN = 6;
 
     /**
+     * Code indicating that a given RowSubset should be made visible.
+     * The subset may also have changed its content, so a replot may be
+     * in order.
+     * The datum is the relevant {@link RowSubset}.
+     */
+    public static final int SHOW_SUBSET = 7;
+
+    /**
      * Constructor.
      *
      * @param  model  the model which generated this event
