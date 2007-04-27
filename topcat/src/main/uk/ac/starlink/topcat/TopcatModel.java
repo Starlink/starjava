@@ -6,8 +6,6 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -519,15 +517,10 @@ public class TopcatModel {
     /**
      * Adds a listener to be notified of changes in this model.
      *
-     * <p>We use a WeakReference to keep track of the listeners.
-     * This means that if a listener becomes otherwise unreachable it
-     * can be garbage collected - its presence in this TopcatModel's 
-     * listener list will not prevent that from happening.
-     *
      * @param  listener  listener to add
      */
     public void addTopcatListener( TopcatListener listener ) {
-        listeners_.add( new WeakReference( listener ) );
+        listeners_.add( listener );
     }
 
     /**
@@ -536,13 +529,7 @@ public class TopcatModel {
      * @param  listener  listener to remove
      */
     public void removeTopcatListener( TopcatListener listener ) {
-        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            TopcatListener referent =
-                (TopcatListener) ((Reference) it.next()).get();
-            if ( referent == null || referent.equals( listener ) ) {
-                it.remove();
-            }
-        }
+        listeners_.remove( listener );
     }
 
     /**
@@ -556,14 +543,7 @@ public class TopcatModel {
     public void fireModelChanged( int code, Object datum ) {
         TopcatEvent evt = new TopcatEvent( this, code, datum );
         for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            TopcatListener listener =
-                (TopcatListener) ((Reference) it.next()).get();
-            if ( listener == null ) {
-                it.remove();
-            }
-            else {
-                listener.modelChanged( evt );
-            }
+            ((TopcatListener) it.next()).modelChanged( evt );
         }
     }
 
@@ -849,12 +829,26 @@ public class TopcatModel {
     }
 
     /**
-     * Trigger a selection of rows in a given RowSubset for the viewModel.
+     * Sets a given row subset to the Current one.  Amongst other things
+     * this causes a {@link TopcatEvent#CURRENT_SUBSET} event to be sent
+     * to listeners and changes the selection of rows visible in the
+     * viewModel.
      *
-     * @param  rset  the row subset to use
+     * @param  rset  the row subset to use (must be one from the known list)
      */
     public void applySubset( RowSubset rset ) {
         subsetSelectionModel_.setSelectedItem( rset );
+    }
+
+    /**
+     * Causes a given row subset to be be highlighted in some way.
+     * This does not set the current subset, but does cause a 
+     * {@link TopcatEvent#SHOW_SUBSET} event to be sent to listeners.
+     *
+     * @param  rset  the row subset to use (must be one from the known list)
+     */
+    public void showSubset( RowSubset rset ) {
+        fireModelChanged( TopcatEvent.SHOW_SUBSET, rset );
     }
 
     /**
