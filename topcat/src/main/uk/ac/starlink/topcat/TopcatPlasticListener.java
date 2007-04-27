@@ -566,8 +566,8 @@ public class TopcatPlasticListener extends HubManager {
         if ( tcModel != null ) {
 
             /* Find out what row is named in the message. */
-            long lrow = tr.rowMap_ == null ? (long) irow
-                                           : (long) tr.rowMap_[ irow ];
+            final long lrow = tr.rowMap_ == null ? (long) irow
+                                                 : (long) tr.rowMap_[ irow ];
 
             /* Call a highlight on this row.  However, if it's the same
              * as the last-highlighted row for this table, do nothing.
@@ -576,7 +576,11 @@ public class TopcatPlasticListener extends HubManager {
              * applications.  It doesn't completely work though. */
             Long lastHigh = (Long) highlightMap_.get( tcModel );
             if ( lastHigh == null || lastHigh.longValue() != lrow ) {
-                tcModel.highlightRow( lrow );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        tcModel.highlightRow( lrow );
+                    }
+                } );
             }
             highlightMap_.put( tcModel, new Long( lrow ) );
             return true;
@@ -609,8 +613,17 @@ public class TopcatPlasticListener extends HubManager {
                     mask.set( rowMap == null ? index : rowMap[ index ] );
                 }
             }
-            applyNewSubset( tcModel, mask, 
-                            getAppName( sender ).replaceAll( "\\s+", "_" ) );
+            String appname = getAppName( sender ).replaceAll( "\\s+", "_" );
+
+            /* Behaviour changed here.  At rev 1.25, the response was to 
+             * generate a new subset and set it current.  Subsequently,
+             * it's to co-opt an existing subset if one of the right name
+             * exists (otherwise generate a new one) and send a SHOW_SUBSET
+             * message.  This is less drastic and easier to see what's going
+             * on, and probably better.  However it may make sense to provide
+             * the old (applyNewSubset) behaviour as an option?. */
+            // applyNewSubset( tcModel, mask, appname );
+            showSubset( tcModel, mask, appname );
 
             /* Success return. */
             return true;
@@ -620,6 +633,44 @@ public class TopcatPlasticListener extends HubManager {
             /* Failure return. */
             return false;
         }
+    }
+
+    /**
+     * Takes a bit mask representing selected rows and causes it to be 
+     * highlighted for the given table.  If a subset with the given 
+     * <code>appName</code> does not exist, a new one is created and added.
+     * If it does, then its content is changed.
+     * Either way, an appropriate SHOW_SUBSET message is sent on the model.
+     *
+     * @param  tcModel   topcat model
+     * @param  mask      row selection mask
+     * @param  baseName  name of the sending application
+     */
+    private void showSubset( final TopcatModel tcModel, BitSet mask,
+                             String appName ) {
+        final List subsetList = tcModel.getSubsets();
+        int nset = subsetList.size();
+        final RowSubset rset = new BitsRowSubset( appName, mask );
+        int iset = -1;
+        for ( int is = 0; is < nset && iset < 0; is++ ) {
+            RowSubset rs = (RowSubset) subsetList.get( is );
+            if ( appName.equals( rs.getName() ) ) {
+                iset = is;
+            }
+        }
+
+        final int iset1 = iset;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                if ( iset1 >= 0 ) {
+                    subsetList.set( iset1, rset );
+                }
+                else {
+                    tcModel.addSubset( rset );
+                }
+                tcModel.showSubset( rset );
+            }
+        } );
     }
 
     /**
