@@ -2,6 +2,7 @@ package uk.ac.starlink.table.jdbc;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -10,13 +11,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
-
 
 /**
  * A StarTable implementation based on the results of an SQL query 
@@ -28,6 +30,13 @@ public class JDBCStarTable extends AbstractStarTable {
     private ColumnInfo[] colinfo;
     private final Connector connx;
     private final String sql;
+
+    private static final Pattern POSTGRESQL_DRIVER_REGEX =
+        Pattern.compile( ".*PostgreSQL.*", Pattern.CASE_INSENSITIVE );
+    private static final Pattern MYSQL_DRIVER_REGEX =
+        Pattern.compile( ".*MySQL.*", Pattern.CASE_INSENSITIVE );
+    private static final Pattern SQLSERVER_DRIVER_REGEX =
+        Pattern.compile( ".*SQL.?Server.*", Pattern.CASE_INSENSITIVE );
 
     /**
      * Holds a TYPE_SCROLL ResultSet if this object provides random access.
@@ -102,7 +111,12 @@ public class JDBCStarTable extends AbstractStarTable {
             rsmeta = randomResultSet.getMetaData();
         }
         else {
-            Statement stmt = conn.createStatement();
+
+            /* The intention here is only to select a single row, which 
+             * should be cheap.  However, MySQL at least takes just as long
+             * to retrieve this single row as to retrieve the entire 
+             * ResultSet :-(. */
+            Statement stmt = createStreamingStatement( conn );
             stmt.setMaxRows( 1 );
             ResultSet rset = stmt.executeQuery( sql );
             rsmeta = rset.getMetaData();
@@ -145,6 +159,11 @@ public class JDBCStarTable extends AbstractStarTable {
                  ! label.equalsIgnoreCase( name ) ) {
                 auxdata.add( new DescribedValue( labelInfo, label.trim() ) );
             }
+        }
+
+        /* Wind up the connection if it is no longer needed. */
+        if ( randomResultSet == null ) {
+            conn.close();
         }
     }
 
@@ -244,23 +263,40 @@ public class JDBCStarTable extends AbstractStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         final ResultSet rset;
-        final Connection conn;
+        Connection conn = null;
         try {
             conn = connx.getConnection();
-            rset = conn.createStatement().executeQuery( sql );
+            Statement stmt = createStreamingStatement( conn );
+            rset = stmt.executeQuery( sql );
             checkConsistent( rset );
         }
         catch ( SQLException e ) {
+            if ( conn != null ) {
+                try {
+                    conn.close();
+                }
+                catch ( SQLException e2) {
+                }
+            }
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
         catch ( OutOfMemoryError e ) {
+            if ( conn != null ) {
+                try {
+                    conn.close();
+                }
+                catch ( SQLException e2) {
+                }
+            }
             String msg = "Out of memory during SQL statement execution; "
                        + "looks like JDBC driver is assembling a read-only "
-                       + "in memory on the client, which is questionable "
-                       + "behaviour";
+                       + "ResultSet in memory on the client, "
+                       + "which is questionable behaviour";
             throw (OutOfMemoryError) new OutOfMemoryError( msg ).initCause( e );
         }
+        assert conn != null;
+        final Connection connection = conn;
         return new RowSequence() {
 
             public boolean next() throws IOException {
@@ -310,7 +346,10 @@ public class JDBCStarTable extends AbstractStarTable {
             public void close() throws IOException {
                 try {
                     rset.close();
-                    conn.close();
+                    if ( ! connection.getAutoCommit() ) {
+                        connection.commit();
+                    }
+                    connection.close();
                 }
                 catch ( SQLException e ) {
                     throw (IOException) new IOException( e.getMessage() )
@@ -393,5 +432,77 @@ public class JDBCStarTable extends AbstractStarTable {
         }
     }
 
+    /**
+     * Returns a statement which tries its best to stream data.
+     * It may be necessary to jump through various (database/driver-dependent)
+     * hoops to persuade JDBC not to grab the whole query result and
+     * store it locally - doing that risks running out of heap memory 
+     * in this JVM for large queries. 
+     *
+     * <p>Note that in some cases the supplied connection may have its
+     * autocommit mode modified by this call.
+     *
+     * @param   conn  connection
+     * @return  statement which (hopefully) streams results
+     */
+    public static Statement createStreamingStatement( Connection conn )
+            throws SQLException {
 
+        /* Work out what database (driver) we are using. */
+        DatabaseMetaData metadata = conn.getMetaData();
+        String driver = metadata.getDriverName();
+        if ( driver == null ) {
+            driver = "";
+        }
+
+        /* PostgreSQL: see
+         * http://jdbc.postgresql.org/documentation/81/query.html
+         *    #query-with-cursor */
+        if ( POSTGRESQL_DRIVER_REGEX.matcher( driver ).matches() ) {
+            logger.info( "Fixing PostgreSQL driver to stream results" );
+            conn.setAutoCommit( false );
+            Statement stmt = conn.createStatement();
+            stmt.setFetchSize( 1024 );
+            return stmt;
+        }
+
+        /* MySQL: see
+         * http://dev.mysql.com/doc/refman/5.0/en/
+         *    connector-j-reference-implementation-notes.html */
+        else if ( MYSQL_DRIVER_REGEX.matcher( driver ).matches() ) {
+            logger.info( "Fixing MySQL driver to stream results" );
+            Statement stmt = conn.createStatement( ResultSet.TYPE_FORWARD_ONLY,
+                                                   ResultSet.CONCUR_READ_ONLY );
+            stmt.setFetchSize(Integer.MIN_VALUE);
+            return stmt;
+        }
+
+        /* SQL Server: see
+         *    http://msdn2.microsoft.com/en-us/library/ms378405.aspx 
+         * (untested). */
+        else if ( SQLSERVER_DRIVER_REGEX.matcher( driver ).matches() ) {
+            logger.info( "Fixing SQL Server driver to stream results" );
+            try {
+                int cursorType =
+                    Class.forName( "com.microsoft.sqlserver.jdbc."
+                                 + "SQLServerResultSet" )
+                         .getField( "TYPE_SS_SERVER_CURSOR_FORWARD_ONLY" )
+                         .getInt( null );
+                assert cursorType == 2004;
+                return conn.createStatement( cursorType, 
+                                             ResultSet.CONCUR_READ_ONLY );
+            }
+            catch ( Throwable e ) {
+                logger.warning( "SQL Server tweaking failed: " + e );
+                return conn.createStatement();
+            }
+        }
+
+        /* Other. */
+        else {
+            logger.info( "No special steps to stream results - "
+                       + "may run out of memory for large ResultSet?" );
+            return conn.createStatement();
+        }
+    }
 }
