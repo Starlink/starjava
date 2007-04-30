@@ -28,6 +28,8 @@ public abstract class PlotVolume {
     private final int xoff_;
     private final int yoff_;
     private final Fogger fogger_;
+    private final int width_;
+    private final int height_;
 
     /**
      * Constructor.
@@ -50,6 +52,8 @@ public abstract class PlotVolume {
         int padTop = padBorders[ 3 ];
         int w = c.getWidth() - padLeft - padRight;
         int h = c.getHeight() - padBottom - padTop;
+        width_ = c.getWidth();
+        height_ = c.getHeight();
         scale_ = (int) Math.round( Math.min( h, w ) / padFactor );
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. ) + padLeft;
         yoff_ = h - (int) ( ( h - scale_ ) / 2. ) + padTop;
@@ -161,13 +165,12 @@ public abstract class PlotVolume {
          * check the bounds of the error bars as well for this, but 
          * (a) that can be a bit expensive and (b) if only the error bar 
          * and not the point is visible it is debatable whether you want 
-         * to see it.  Since the graphics context belonging to this 
-         * volume belongs to a component, I *think* it's likely to retain 
-         * a clip of the same shape (rectangular), rather than having one 
-         * which changes shape as parts of the window are obscured. */
+         * to see it.  Use the component dimensions here and not the clip,
+         * since the clip may correspond only to the part of the window
+         * being repainted following a partial obscuration. */
         int maxr = styles_[ istyle ].getMaximumRadius();
-        int maxr2 = maxr * 2;
-        if ( ! graphics_.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
+        if ( xp - maxr < 0 || xp + maxr > width_ ||
+             yp - maxr < 0 || yp + maxr > height_ ) {
             return false;
         }
 
