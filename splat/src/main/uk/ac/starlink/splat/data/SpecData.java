@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
- * Copyright (C) 2007 Particle Physics and Astronomy Reseach Council
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     01-SEP-2002 (Peter W. Draper):
@@ -987,12 +988,29 @@ public class SpecData
             newSpec.setSimpleUnitDataQuick( frameSet, coords,
                                             getCurrentDataUnits(), data,
                                             errors );
+            applyRenderingProperties( newSpec );
         }
         catch ( Exception e ) {
             e.printStackTrace();
             newSpec = null;
         }
         return newSpec;
+    }
+
+    /**
+     * Copy some rendering properties so that another spectrum seems to
+     * inherit this one. 
+     */
+    public void applyRenderingProperties( SpecData newSpec )
+    {
+        newSpec.setLineThickness( lineThickness );
+        newSpec.setLineStyle( lineStyle );
+        newSpec.setAlphaComposite( alphaComposite );
+        newSpec.setLineColour( (int) lineColour );
+        newSpec.setErrorColour( (int) errorColour );
+        newSpec.setPlotStyle( plotStyle );
+        newSpec.setPointType( pointType );
+        newSpec.setPointSize( pointSize );
     }
 
     /**
@@ -1214,7 +1232,7 @@ public class SpecData
      */
     public void setLineColour( int lineColour )
     {
-        this.lineColour = lineColour;
+        this.lineColour = (double) lineColour;
     }
 
 
@@ -1223,9 +1241,9 @@ public class SpecData
      *
      * @return the line colour (an RGB integer).
      */
-    public double getLineColour()
+    public int getLineColour()
     {
-        return lineColour;
+        return (int) lineColour;
     }
 
 
@@ -1245,9 +1263,9 @@ public class SpecData
      *
      * @return the error bar colour (an RGB integer).
      */
-    public double getErrorColour()
+    public int getErrorColour()
     {
-        return errorColour;
+        return (int) errorColour;
     }
 
     /**
