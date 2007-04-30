@@ -635,6 +635,7 @@ public class SpecFilterFrame
         //  global list.
         SpecData newSpec = null;
         SpecFilter filter = SpecFilter.getInstance();
+        boolean useHistogram = false;
         switch ( tabbedPane.getSelectedIndex() ) {
             case 0: {
                 // Average.
@@ -649,6 +650,7 @@ public class SpecFilterFrame
                 int value = rebinWidth.getIntValue();
                 prefs.putInt( "SpecFilterFrame_rebinwidth", value );
                 newSpec = filter.rebinFilter( currentSpectrum, value );
+                useHistogram = true;
             }
             break;
             case 2: {
@@ -674,6 +676,7 @@ public class SpecFilterFrame
                     filter.waveletFilter( currentSpectrum,
                                           (String)waveletBox.getSelectedItem(),
                                           percent, ranges, include );
+                useHistogram = true;
             }
             break;
             case 5: {
@@ -694,10 +697,12 @@ public class SpecFilterFrame
 
         // And plot the filter.
         try {
+            if ( useHistogram ) {
+                newSpec.setPlotStyle( SpecData.HISTOGRAM );
+            }
             globalList.addSpectrum( plot, newSpec );
-            globalList.setKnownNumberProperty( newSpec,
-                                               SpecData.LINE_COLOUR,
-                                               new Integer(Color.red.getRGB()) );
+            globalList.setKnownNumberProperty( newSpec, SpecData.LINE_COLOUR,
+                                               new Integer(Color.red.getRGB()));
             if ( replace ) {
                 plot.removeSpectrum( currentSpectrum );
 
