@@ -152,7 +152,7 @@ public class SpecDataFactory
         {"ids"}
     };
 
-    /** 
+    /**
      * Our DataNodeFactory.
      */
     private DataNodeFactory dataNodeFactory = null;
@@ -730,6 +730,8 @@ public class SpecDataFactory
      * LineIDSpecData then another LineIDSpecData instance will be
      * returned, otherwise a plain EditableSpecData instance will be
      * returned.
+     * <p>
+     * Some of the rendering properties will also be copied.
      *
      * @param shortname the short name to use for the spectrum copy.
      *
@@ -741,15 +743,18 @@ public class SpecDataFactory
     {
         // Check the actual type to see if this needs special handling.
         if ( specData instanceof LineIDSpecData ) {
-            LineIDSpecData newSpecData = new LineIDSpecData
-                ( new LineIDMEMSpecDataImpl( shortname, specData ) );
+            LineIDMEMSpecDataImpl impl = new LineIDMEMSpecDataImpl( shortname,
+                                                                    specData );
+            LineIDSpecData newSpecData = new LineIDSpecData( impl );
             LocalLineIDManager.getInstance().addSpectrum( newSpecData );
+            specData.applyRenderingProperties( newSpecData );
             return newSpecData;
         }
-        else {
-            return new EditableSpecData
-                ( new MEMSpecDataImpl( shortname, specData ) );
-        }
+
+        MEMSpecDataImpl impl = new MEMSpecDataImpl( shortname, specData );
+        EditableSpecData newSpecData = new EditableSpecData( impl );
+        specData.applyRenderingProperties( newSpecData );
+        return newSpecData;
     }
 
     /**
@@ -768,7 +773,8 @@ public class SpecDataFactory
                                             boolean sort )
         throws SplatException
     {
-        EditableSpecData editableSpecData = createEditable( shortname, specData );
+        EditableSpecData editableSpecData = createEditable( shortname,
+                                                            specData );
         if ( sort && ! specData.isMonotonic() ) {
             editableSpecData.sort();
         }
@@ -861,7 +867,7 @@ public class SpecDataFactory
         }
     }
 
-    /** 
+    /**
      * Return the "types" of a given {@link SpecData} instance.
      * The types are the local data type constant, DEFAULT etc., and the table
      * index, if the underlying representation is a table.
@@ -1091,7 +1097,7 @@ public class SpecDataFactory
             double range[] = spectra[i].getRange();
             if ( range[0] != SpecData.BAD &&
                  range[1] != SpecData.BAD &&
-                 range[2] != SpecData.BAD && 
+                 range[2] != SpecData.BAD &&
                  range[3] != SpecData.BAD ) {
                 n++;
             }
@@ -1106,7 +1112,7 @@ public class SpecDataFactory
                 double range[] = spectra[i].getRange();
                 if ( range[0] != SpecData.BAD &&
                      range[1] != SpecData.BAD &&
-                     range[2] != SpecData.BAD && 
+                     range[2] != SpecData.BAD &&
                      range[3] != SpecData.BAD ) {
                     results[n] = spectra[i];
                     n++;
@@ -1138,7 +1144,7 @@ public class SpecDataFactory
         }
         else {
             //  Need to pick an axis to step along collapsing each section in
-            //  turn onto the dispersion axis. 
+            //  turn onto the dispersion axis.
             int stepaxis = specDims.getSelectAxis( true );
             int displen = specDims.getSigDims()[stepaxis];
             results = new SpecData[displen];
@@ -1332,7 +1338,7 @@ public class SpecDataFactory
         }
 
         try {
-            DataNode node = 
+            DataNode node =
                 dataNodeFactory.makeDataNode( null, new File( specspec ) );
             specData = SplatDataNode.makeSpecData( node );
         }
