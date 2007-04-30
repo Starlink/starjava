@@ -3,6 +3,8 @@
    3.8-1
    =====
 
+   Generated spectra how inherit some of the properties of the parent
+   spectrum (line and plotting style).
    Rebinned spectra are now displayed with a histogram style.
 
    3.8-0
