@@ -2,10 +2,12 @@ package uk.ac.starlink.table.jdbc;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.StarTable;
@@ -15,6 +17,9 @@ public class JDBCHandler {
     private JDBCAuthenticator auth;
     private String user;
     private String passwd;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     public JDBCHandler() {
         this( new TerminalAuthenticator() );
@@ -66,7 +71,15 @@ public class JDBCHandler {
             Connector connector = new Connector() {
                 public Connection getConnection() throws SQLException {
                     try {
-                        return JDBCHandler.this.getConnection( url );
+                        Connection conn = JDBCHandler.this.getConnection( url );
+                        DatabaseMetaData meta = conn.getMetaData();
+                        logger_.info( "JDBC Connection to "
+                                    + meta.getDatabaseProductName() + " "
+                                    + meta.getDatabaseProductVersion() + " "
+                                    + "with driver "
+                                    + meta.getDriverName() + " "
+                                    + meta.getDriverVersion() );
+                        return conn;
                     }
                     catch ( IOException e ) {
                         throw (SQLException) 
