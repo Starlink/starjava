@@ -337,13 +337,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                             double[][] errors = points.getErrors( ip );
                             if ( transformErrors( point, coords, errors,
                                                   surface, xoffs, yoffs ) ) {
-                                Rectangle bbox =
-                                    errorRenderer.getBounds( xp, yp,
-                                                             xoffs, yoffs );
-                                if ( g.hitClip( bbox.x, bbox.y,
-                                                bbox.width, bbox.height ) ) {
-                                    style.drawErrors( g, xp, yp, xoffs, yoffs );
-                                }
+                                style.drawErrors( g, xp, yp, xoffs, yoffs );
                             }
                         }
                     }
