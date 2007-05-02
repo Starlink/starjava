@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     11-NOV-2004 (Peter W. Draper):
@@ -70,6 +71,8 @@ import uk.ac.starlink.splat.iface.ToolButtonBar;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.SplatPlastic;
+import uk.ac.starlink.splat.util.StarTableTransmitter;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -318,6 +321,24 @@ public class SSAQueryBrowser
         bg.add( jrbmi );
         jrbmi.setAction( new ResolverAction( "NED", nedCatalogue ) );
         resolverCatalogue = simbadCatalogue;
+
+
+        //  Create a menu for PLASTIC interoperations.
+        JMenu interopMenu = new JMenu( "Interop" );
+        interopMenu.setMnemonic( KeyEvent.VK_I );
+        menuBar.add( interopMenu );
+
+        //  Need an actions to transmit and broadcast the current
+        //  results table.
+        SplatPlastic plasticServer = browser.getPlasticServer();
+
+        // Add table transmit options.
+        StarTableTransmitter transmitter = 
+            new StarTableTransmitter( plasticServer, this );
+        interopMenu.add( transmitter.getBroadcastAction() )
+            .setMnemonic( KeyEvent.VK_B );
+        interopMenu.add( transmitter.createSendMenu() )
+            .setMnemonic( KeyEvent.VK_T );
 
         //  Create the Help menu.
         HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
@@ -1271,6 +1292,21 @@ public class SSAQueryBrowser
         catch (IOException e) {
                 throw new SplatException( "Failed to save queries", e );
         }
+    }
+
+    /**
+     * Return a StarTable of the currently selected tab of query results.
+     */
+    public StarTable getCurrentTable()
+    {
+        if ( starJTables != null && starJTables.size() > 0 ) {
+            int index = resultsPane.getSelectedIndex();
+            if ( index > -1 ) {
+                StarJTable jTable = (StarJTable) starJTables.get( index );
+                return jTable.getStarTable();
+            }
+        }
+        return null;
     }
 
     /**
