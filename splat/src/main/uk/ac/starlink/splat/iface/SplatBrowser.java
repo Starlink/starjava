@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
@@ -1062,6 +1063,17 @@ public class SplatBrowser
         interopMenu.addSeparator();
         interopMenu.add( HelpFrame.getAction( "Help on interoperability",
                                               "plastic" ) );
+    }
+
+    /**
+     * Return the instance of {@link PlasticServer} to use.
+     */
+    public SplatPlastic getPlasticServer()
+    {
+        if ( plasticServer == null ) {
+            plasticServer = new SplatPlastic( this );
+        }
+        return plasticServer;
     }
 
     /**
