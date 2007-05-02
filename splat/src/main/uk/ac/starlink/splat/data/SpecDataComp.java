@@ -95,9 +95,9 @@ public class SpecDataComp
     private boolean dataUnitsMatching = false;
 
     /**
-     * Whether we're matching sidebands or not. The AST default is true.
+     * Whether we're matching sidebands or not. The AST default is false.
      */
-    private boolean sidebandMatching = true;
+    private boolean sidebandMatching = false;
 
     /**
      * Whether we're matching to offsets or not. The AST default is false.

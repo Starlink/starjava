@@ -599,7 +599,7 @@ public class PlotControlFrame
         boolean state2 = 
             prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
         boolean state3 = 
-            prefs.getBoolean( "PlotControlFrame_sidebandmatch", true );
+            prefs.getBoolean( "PlotControlFrame_sidebandmatch", false );
         boolean state4 = 
             prefs.getBoolean( "PlotControlFrame_offsetmatch", false );
         boolean state5 = 
@@ -1831,7 +1831,7 @@ public class PlotControlFrame
                     //  Trigger rematch?
                     coordinateMatching.setSelected( false );
                     dataUnitsMatching.setSelected( false );
-                    sidebandMatching.setSelected( true );
+                    sidebandMatching.setSelected( false );
                     offsetMatching.setSelected( false );
                     baseSystemMatching.setSelected( true );
                 }
