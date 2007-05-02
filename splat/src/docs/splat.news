@@ -9,6 +9,10 @@
 
    The alignment of sidebands is now not done by default.
 
+   An Interop menu has been added to the SSAP query results controls.
+   This allows a table to be transmitted to other applications for
+   further analysis.
+
    3.8-0
    =====
 
