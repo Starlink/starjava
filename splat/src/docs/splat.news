@@ -13,6 +13,9 @@
    This allows a table to be transmitted to other applications for
    further analysis.
 
+   The plot spectrum synopsis now includes the number of channels
+   (points in the spectrum).
+
    3.8-0
    =====
 
