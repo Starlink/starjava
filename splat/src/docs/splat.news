@@ -16,6 +16,9 @@
    The plot spectrum synopsis now includes the number of channels
    (points in the spectrum).
 
+   When changing the DSB sideband the labels now include which sideband
+   is the observed and which the image.
+
    3.8-0
    =====
 
