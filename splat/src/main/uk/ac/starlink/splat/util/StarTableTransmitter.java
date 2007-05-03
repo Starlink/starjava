@@ -92,7 +92,7 @@ public class StarTableTransmitter
             throw e;
         }
         catch ( Throwable e ) {
-            throw new IOException( e );
+            throw (IOException) new IOException().initCause( e );
         }
         url = URLUtils.makeFileURL( tmpFile ).toString();
        
