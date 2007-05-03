@@ -26,6 +26,7 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -201,15 +202,31 @@ public class PlotUnitsFrame
     };
 
     /**
-     * List of the possible sidebands for DSBSpecFrames. Only two.
+     * List of the possible sidebands for DSBSpecFrames. Only two, but
+     * this is confused by the fact that LSB and USB can also be known
+     * as the observed and image sidebands (observed includes the central
+     * frequency, the choice is determined by the value of IF, if > 0 then
+     * LSB=observed and USB=image, otherwise LSB=image and USB=observed).
      */
-    private static Map sideBandMap = null;
+    private Map sideBandMap = ifPosSideBandMap;
+    private DefaultComboBoxModel ifPosSideBandModel = null;
+    private static Map ifPosSideBandMap = null;
     static {
-        sideBandMap = new LinkedHashMap();
-        sideBandMap.put( UNKNOWN, UNKNOWN );
-        sideBandMap.put( "Lower", "LSB" );
-        sideBandMap.put( "Upper", "USB" );
-        sideBandMap.put( "Offset from LO", "LO" );
+        ifPosSideBandMap = new LinkedHashMap();
+        ifPosSideBandMap.put( UNKNOWN, UNKNOWN );
+        ifPosSideBandMap.put( "Lower (observed)", "LSB" );
+        ifPosSideBandMap.put( "Upper (image)", "USB" );
+        ifPosSideBandMap.put( "Offset from LO", "LO" );
+    };
+
+    private DefaultComboBoxModel ifNegSideBandModel = null;
+    private static Map ifNegSideBandMap = null;
+    static {
+        ifNegSideBandMap = new LinkedHashMap();
+        ifNegSideBandMap.put( UNKNOWN, UNKNOWN );
+        ifNegSideBandMap.put( "Lower (image)", "LSB" );
+        ifNegSideBandMap.put( "Upper (observed)", "USB" );
+        ifNegSideBandMap.put( "Offset from LO", "LO" );
     };
 
     /** Default spectral origin */
@@ -356,8 +373,12 @@ public class PlotUnitsFrame
         gbl.add( coordinatesBox, false );
         coordinatesBox.setToolTipText( "Units of the spectral coordinates" );
 
-        //  DSB side band
-        sideBandBox = new JComboBox( sideBandMap.keySet().toArray() );
+        //  DSB side band, start with positive IF assumption.
+        ifNegSideBandModel = 
+            new DefaultComboBoxModel( ifNegSideBandMap.keySet().toArray() );
+        ifPosSideBandModel = 
+            new DefaultComboBoxModel( ifPosSideBandMap.keySet().toArray() );
+        sideBandBox = new JComboBox( ifPosSideBandModel );
         label = new JLabel( "SideBand: " );
         gbl.add( label, false );
         gbl.add( sideBandBox, false );
@@ -442,8 +463,10 @@ public class PlotUnitsFrame
 
         boolean isDSB = astJ.isFirstAxisDSBSpecFrame();
         String sideband = UNKNOWN;
+        double interFreq = 1.0;
         if ( isDSB ) {
             sideband = frameSet.getC( "SideBand" );
+            interFreq = frameSet.getD( "IF" );
         }
 
         String stdOfRest = UNKNOWN;
@@ -493,6 +516,14 @@ public class PlotUnitsFrame
             }
         }
 
+        if ( interFreq > 0 ) {
+            sideBandMap = ifPosSideBandMap;
+            sideBandBox.setModel( ifPosSideBandModel );
+        }
+        else {
+            sideBandMap = ifNegSideBandMap;
+            sideBandBox.setModel( ifNegSideBandModel );
+        }
         entrySet = sideBandMap.entrySet();
         i = entrySet.iterator();
         sideBandBox.setSelectedIndex( 0 ); //  Unknown
@@ -539,7 +570,6 @@ public class PlotUnitsFrame
         if ( ! sideBandBox.isEnabled() ) {
             sideBand = UNKNOWN;
         }
-
         if ( dataUnits.equals( UNKNOWN ) &&
              coordUnits.equals( UNKNOWN ) ) {
             new SplatException
