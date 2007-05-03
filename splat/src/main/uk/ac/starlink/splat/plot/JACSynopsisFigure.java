@@ -387,6 +387,10 @@ public class JACSynopsisFigure
             }
         }
 
+        //  Number of channels in spectrum.
+        int nchan = specData.size();
+        b.append( "Number of channels: " + nchan + "\n" );
+
         //  TSYS and TRX. TRX only for ACSIS timeseries cubes.
         prop = specData.getProperty( "TSYS" );
         if ( ! "".equals( prop ) ) {
