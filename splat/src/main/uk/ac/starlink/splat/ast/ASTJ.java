@@ -147,6 +147,16 @@ public class ASTJ
     }
 
     /**
+     *  Print the frameset to System.out.
+     */
+    public void astWrite()
+    {
+        if ( astRef != null ) {
+            ASTChannel.astWrite( astRef );
+        }
+    }
+
+    /**
      * Return if the an axis of the current FrameSet is of a given Class.
      */
     public boolean isAxisClass( int axis, Class clazz )
