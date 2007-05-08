@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
 import java.awt.Component;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
@@ -15,8 +17,8 @@ import javax.swing.JTextField;
 public abstract class AbstractSubsetQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
-    private JTextField nameField_;
-    private JTextField exprField_;
+    private final JComboBox nameSelector_;
+    private final JTextField exprField_;
 
     /**
      * Constructs a new query window, which on user completion will
@@ -31,7 +33,7 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
                                       String title ) {
         super( title, parent );
         tcModel_ = tcModel;
-        nameField_ = new JTextField();
+        nameSelector_ = tcModel.createNewSubsetNameSelector();
         exprField_ = new JTextField();
 
         /* Add tools. */
@@ -43,12 +45,31 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
     }
 
     /**
-     * Returns the text component used to store the name of the new subset.
+     * Returns the component with which the user selects the name of the
+     * new subset.
      *
      * @return  name field
      */
-    public JTextField getNameField() {
-        return nameField_;
+    public JComponent getNameField() {
+        return nameSelector_;
+    }
+
+    /**
+     * Sets the name of the RowSubset which the action of this window will
+     * be to create (or replace).
+     *
+     * @param   name   subset name
+     */
+    public void setSelectedName( String name ) {
+        for ( int i = 0; i < nameSelector_.getItemCount(); i++ ) {
+            Object item = nameSelector_.getItemAt( i );
+            RowSubset rset = (RowSubset) item;
+            if ( rset.getName().equals( name ) ) {
+                nameSelector_.setSelectedItem( rset );
+                return;
+            }
+        }
+        nameSelector_.setSelectedItem( name );
     }
 
     /**
@@ -62,14 +83,38 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
     }
 
     protected boolean perform() {
-        String name = getNameField().getText();
+
+        /* Get the name object and the expression, checking that neither is
+         * a null value. */
+        Object selected = nameSelector_.getSelectedItem();
+        if ( selected == null || selected.toString().length() == 0 ) {
+            JOptionPane.showMessageDialog( this, "No subset name entered",
+                                           "Missing Name Error",
+                                           JOptionPane.ERROR_MESSAGE );
+            return false;
+        }
         String expr = getExpressionField().getText();
-        OptionsListModel subsets = tcModel_.getSubsets();
-        PlasticStarTable dataModel = tcModel_.getDataModel();
+        if ( expr == null || expr.trim().length() == 0 ) {
+            JOptionPane.showMessageDialog( this, "No expression entered",
+                                           "Missing Expression Error",
+                                           JOptionPane.ERROR_MESSAGE );
+            return false;
+        }
+
+        /* The item selected in the name selector will either be a string
+         * or an existing RowSubset from the subsets list belonging to 
+         * the tcModel.  Get the name as a string either way. */
+        assert selected instanceof RowSubset || selected instanceof String;
+        String name = selected instanceof RowSubset
+                    ? ((RowSubset) selected).getName()
+                    : selected.toString();
+
+        /* Construct a new RowSubset with the given name and add it to the
+         * model. */
         try {
-            RowSubset rset = new SyntheticRowSubset( dataModel, subsets,
-                                                     name, expr );
-            subsets.add( rset );
+            tcModel_.addSubset( new SyntheticRowSubset( tcModel_.getDataModel(),
+                                                        tcModel_.getSubsets(),
+                                                        name, expr ) );
             return true;
         }
         catch ( CompilationException e ) {
