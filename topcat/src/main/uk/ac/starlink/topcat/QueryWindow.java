@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -11,9 +12,11 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -185,7 +188,35 @@ public abstract class QueryWindow extends AuxWindow {
         KeyStroke hitEnter = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 );
         Component[] fields = stack.getFields();
         for ( int i = 0; i < fields.length; i++ ) {
-            if ( fields[ i ] instanceof JComponent ) {
+
+            /* For an editable combo box, arrange that hitting return when a
+             * string is entered will trigger the OK action.  Implementing
+             * this is a bit involved; if you just add the okAction to the
+             * comboBox.getEditor(), the action is invoked before the 
+             * combo box has its value set (at least at Sun's J2SE1.4.2 - 
+             * Swing misfeature?), so we have to work round this. */
+            if ( fields[ i ] instanceof JComboBox ) {
+                final JComboBox cbox = (JComboBox) fields[ i ];
+                if ( cbox.isEditable() &&
+                     cbox.getEditor().getEditorComponent()
+                     instanceof JTextField ) {
+                    final JTextField tfield =
+                       (JTextField) cbox.getEditor().getEditorComponent();
+                    tfield.addActionListener( new ActionListener() {
+                        public void actionPerformed( ActionEvent evt ) {
+                            String text = tfield.getText();
+                            if ( text != null && text.trim().length() > 0 ) {
+                                cbox.setSelectedItem( text );
+                                okAction.actionPerformed( evt );
+                            }
+                        }
+                    } );
+                }
+            }
+
+            /* For other kinds of fields (mostly, JTextFields) fix for an
+             * Enter key to trigger OK. */
+            else if ( fields[ i ] instanceof JComponent ) {
                 JComponent field = (JComponent) fields[ i ];
                 field.getInputMap().put( hitEnter, okKey );
                 field.getActionMap().put( okKey, okAction );
