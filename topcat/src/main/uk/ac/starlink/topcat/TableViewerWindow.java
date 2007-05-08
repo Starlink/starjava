@@ -548,6 +548,9 @@ public class TableViewerWindow extends AuxWindow
                 scrollToColumn( viewCol );
             }
         }
+        else if ( code == TopcatEvent.SHOW_SUBSET ) {
+            setSelection( (RowSubset) evt.getDatum() );
+        }
     }
 
     /*
@@ -579,6 +582,27 @@ public class TableViewerWindow extends AuxWindow
     public void columnMoved( TableColumnModelEvent evt ) {}
     public void columnSelectionChanged( ListSelectionEvent evt ) {}
 
+    /**
+     * Sets the row selection for this window's JTable to correspond to a 
+     * given row subset.
+     *
+     * @param   rset  row subset
+     */
+    private void setSelection( RowSubset rset ) {
+        ListSelectionModel selModel = jtab.getSelectionModel();
+        selModel.setValueIsAdjusting( true );
+        selModel.clearSelection();
+        int nrow = (int) viewModel.getRowCount();
+        int[] rowMap = viewModel.getRowMap();
+        for ( int irow = 0; irow < nrow; irow++ ) {
+            long jrow = rowMap == null ? (long) irow
+                                       : (long) rowMap[ irow ];
+            if ( rset.isIncluded( jrow ) ) {
+                selModel.addSelectionInterval( irow, irow );
+            }
+        }
+        selModel.setValueIsAdjusting( false );
+    }
 
     /** 
      * TableViewerWindow specific actions.
@@ -591,7 +615,8 @@ public class TableViewerWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == includeAct || this == excludeAct ) {
                 boolean exclude = this == excludeAct;
-                String name = enquireSubsetName();
+                String name =
+                    tcModel.enquireNewSubsetName( TableViewerWindow.this );
                 if ( name != null ) {
                     BitSet bits = exclude ? getUnselectedRowFlags()
                                           : getSelectedRowFlags();
