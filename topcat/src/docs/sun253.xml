@@ -9754,6 +9754,9 @@ introduced since the last version:
     <li>Modified what happens when subsets get received from PLASTIC.</li>
     <li>Fixed a number of bugs in responding to PLASTIC messages
         (threading, failure to respond).</li>
+    <li>Row Subset names can now be re-used.  If you need to enter a new
+        subset name, you can select from the list of existing ones as an
+        alternative to typing a new one in.</li>
     </ul>
     </p></dd>
 
