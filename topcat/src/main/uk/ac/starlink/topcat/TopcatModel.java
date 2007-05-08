@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,10 +18,15 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -780,12 +786,162 @@ public class TopcatModel {
     }
 
     /**
+     * Pops up a modal dialogue to ask the user the name for a new RowSubset.
+     * The user may either choose the name of one of the subsets in the
+     * existing list, or enter a new one.
+     *
+     * @param   parent  parent component
+     * @return  a new subset name entered by the user, or <code>null</code>
+     *          if s/he bailed out
+     */
+    public String enquireNewSubsetName( Component parent ) {
+
+        /* Set up a selector for a new subset name. */
+        final JComboBox nameSelector = createNewSubsetNameSelector();
+
+        /* Use this as the "message" part of a JOptionPane dialogue. */
+        JComponent inputBox = Box.createHorizontalBox();
+        inputBox.add( new JLabel( "New Subset Name: " ) );
+        inputBox.add( nameSelector );
+        final JOptionPane dialog =
+            new JOptionPane( inputBox, JOptionPane.QUESTION_MESSAGE,
+                             JOptionPane.OK_CANCEL_OPTION );
+
+        /* Arrange that hitting return on the editable part of the selector
+         * will cause the dialogue OK button to be triggered.  This is a
+         * bit involved and fragile; however certain more obvious ways
+         * don't seem to work. */
+        if ( nameSelector.getEditor().getEditorComponent()
+             instanceof JTextField ) {
+            final JTextField tfield =
+                (JTextField) nameSelector.getEditor().getEditorComponent();
+            tfield.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    String text = tfield.getText();
+                    if ( text != null && text.trim().length() > 0 ) {
+                        nameSelector.setSelectedItem( text );
+                        dialog.setValue( new Integer( JOptionPane.OK_OPTION ) );
+                    }
+                }
+            } );
+        }
+
+        /* Present the dialogue and wait for a synchronous result. */
+        dialog.createDialog( parent, "Enter Subset Name" ).show();
+
+        /* Analyse the selected content of the selector - it will either be
+         * a name or a RowSubset.  Either way, what we want is the string. */
+        if ( new Integer( JOptionPane.OK_OPTION )
+            .equals( dialog.getValue() ) ) {
+            Object item = nameSelector.getSelectedItem();
+            if ( item instanceof String ) {
+                String name = (String) item;
+                return name.trim().length() > 0 ? name : null;
+            }
+            else if ( item instanceof RowSubset ) {
+                return ((RowSubset) item).getName();
+            }
+            else {
+                assert item == null;
+                return null;
+            }
+        }
+
+        /* If the Cancel button was hit, return null. */
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a new editable JComboBox which can be used to select the
+     * name of a new RowSubset.  The selectable items in the combo box
+     * are the existing RowSubsets for this model, with the exception of
+     * RowSubset.ALL, which ought not to be redefined.  The user may either
+     * select one of these existing subsets, or may type in a new name.
+     * Thus the selectedItem for the returned combo box may be either a
+     * String, or an existing RowSubset (which is generally to be used by
+     * using its name as the name of a new RowSubset to be added to 
+     * this model).
+     *
+     * @return  a selector to determine the name of a new RowSubset
+     */
+    public JComboBox createNewSubsetNameSelector() {
+
+        /* Get a selector containing the names of all existing subsets. */
+        JComboBox selector = subsets_.makeComboBox();
+
+        /* Doctor its model so that it excludes RowSubset.ALL. */
+        final ComboBoxModel baseModel = selector.getModel();
+        Object item0 = baseModel.getElementAt( 0 );
+        if ( item0 == RowSubset.ALL ) {
+            selector.setModel( new ComboBoxModel() {
+                public int getSize() {
+                    return baseModel.getSize() - 1;
+                }
+                public Object getElementAt( int index ) {
+                    return baseModel.getElementAt( index >= 0 ? index + 1
+                                                              : index );
+                }
+                public Object getSelectedItem() {
+                    return baseModel.getSelectedItem();
+                }
+                public void setSelectedItem( Object item ) {
+                    baseModel.setSelectedItem( item );
+                }
+                public void addListDataListener( ListDataListener lr ) {
+                    baseModel.addListDataListener( lr );
+                }
+                public void removeListDataListener( ListDataListener lr ) {
+                    baseModel.removeListDataListener( lr );
+                }
+            } );
+        }
+        else {
+            assert false;
+        }
+
+        /* Set it editable. */
+        selector.setEditable( true );
+
+        /* Set no initial default. */
+        selector.setSelectedItem( null );
+
+        /* Return. */
+        return selector;
+    }
+
+    /**
      * Adds a new row subset to the list which this model knows about.
+     * If the supplied subset has a name which is the same as an existing
+     * one in the list, the new one replaces the old one.  Otherwise,
+     * it is appended to the end.
      *
      * @param  rset  the new row subset
      */
     public void addSubset( RowSubset rset ) {
-        subsets_.add( rset );
+
+        /* Look for one with a matching name in the list. */
+        boolean done = false;
+        int nset = subsets_.size();
+        for ( int is = 0; is < nset && ! done; is++ ) {
+            RowSubset rs = (RowSubset) subsets_.get( is );
+            if ( rset != RowSubset.ALL &&
+                 rset.getName().equals( rs.getName() ) ) {
+                subsets_.set( is, rset );
+                done = true;
+            }
+        }
+
+        /* If we didn't find one, append it to the end. */
+        if ( ! done ) {
+            subsets_.add( rset );
+            done = true;
+        }
+        assert done;
+
+        /* Encourage listeners to flag the new addition/change. */
+        showSubset( rset );
     }
 
     /**
