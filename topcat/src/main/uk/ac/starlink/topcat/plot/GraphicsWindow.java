@@ -912,7 +912,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
   
         /* Get the name for the new subset(s). */
-        String name = enquireSubsetName();
+        String name = getPointSelectors().getMainSelector().getTable()
+                     .enquireNewSubsetName( this );
         if ( name == null ) {
             return;
         }
@@ -930,24 +931,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
             /* Try adding a new subset to the table. */
             if ( tmask.cardinality() > 0 ) {
-                OptionsListModel subsets = tcModel.getSubsets();
-                int inew = subsets.size();
-                assert tmask.length() <= tcModel.getDataModel().getRowCount();
-                subsets.add( new BitsRowSubset( name, tmask ) );
-
-                /* Then make sure that the newly added subset is selected
-                 * in each of the point selectors. */
-                PointSelectorSet pointSelectors = getPointSelectors();
-                for ( int ips = 0; ips < pointSelectors.getSelectorCount();
-                      ips++ ) {
-                    PointSelector psel = pointSelectors.getSelector( ips );
-                    if ( psel.getTable() == tcModel ) {
-                        boolean[] flags = psel.getSubsetSelection();
-                        assert flags.length == inew + 1;
-                        flags[ inew ] = true;
-                        psel.setSubsetSelection( flags );
-                    }
-                }
+                tcModel.addSubset( new BitsRowSubset( name, tmask ) );
             }
         }
     }
