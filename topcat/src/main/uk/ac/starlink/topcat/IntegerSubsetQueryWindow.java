@@ -76,7 +76,7 @@ public abstract class IntegerSubsetQueryWindow
         }
         else {
             lastNum_ = "";
-            getNameField().setText( "" );
+            setSelectedName( null );
             getExpressionField().setText( "" );
         }
     }

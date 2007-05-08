@@ -452,7 +452,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                               "Regular Sample", 
                                               "Sample Interval" ) {
                     protected void configureFields( int num ) {
-                        getNameField().setText( "every_" + num );
+                        setSelectedName( "every_" + num );
                         getExpressionField().setText( "$0 % " + num + " == 0" );
                     }
                 }.setVisible( true );
@@ -463,7 +463,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                               "New Subset from First Rows",
                                               "Row Count" ) {
                     protected void configureFields( int num ) {
-                        getNameField().setText( "head_" + num );
+                        setSelectedName( "head_" + num );
                         getExpressionField().setText( "$0 <= " + num );
                     }
                 }.setVisible( true );
@@ -474,7 +474,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                               "New Subset from Last Rows",
                                               "Row Count" ) {
                     protected void configureFields( int num ) {
-                        getNameField().setText( "tail_" + num );
+                        setSelectedName( "tail_" + num );
                         long nrow = tcModel.getDataModel().getRowCount();
                         String expr = nrow + " - $0 < " + num;
                         getExpressionField().setText( expr );
