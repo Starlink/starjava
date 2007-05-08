@@ -1131,8 +1131,9 @@ public class DivaPlot
         visibleBaseBox = tmp;
 
         //  Extract the Frame containing the DSBSpecFrame and make a
-        //  copy. Then switch copy to other sideband, and get the mapping
-        //  between them.
+        //  copy. Then switch copy to other sideband, make sure we take
+        //  sidebands into account when aligning and get the mapping between
+        //  them.
         Frame f1 = astref.getFrame( FrameSet.AST__CURRENT );
         Frame f2 = (Frame) f1.copy();
         if ( "USB".equals( sideband ) ) {
@@ -1141,6 +1142,7 @@ public class DivaPlot
         else {
             f2.setC( "SideBand", "USB" );
         }
+        f2.setB( "AlignSideBand", true );
         Mapping map = f1.convert( f2, "" );
 
         //  Transform existing baseBox values into new sideband.
