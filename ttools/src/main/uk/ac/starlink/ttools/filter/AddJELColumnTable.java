@@ -160,6 +160,9 @@ public class AddJELColumnTable extends WrapperStarTable {
         return new WrapperRowSequence( seqReader ) {
 
             public Object getCell( int icol ) throws IOException {
+                if ( seqReader.getCurrentRow() < 0 ) {
+                    throw new IllegalStateException( "Before start of table" );
+                }
                 int ibase = colMap_[ icol ];
                 return ibase >= 0 ? super.getCell( ibase )
                                   : evaluate( -1 - ibase );
@@ -213,6 +216,9 @@ public class AddJELColumnTable extends WrapperStarTable {
      *         column is zero, second is 1, ...)
      */
     private Object evaluateAtRow( long irow, int iAddcol ) throws IOException {
+        if ( irow < 0 ) {
+            throw new IllegalStateException( "Illegal row index " + irow );
+        }
         try {
             return randomReader_
                   .evaluateAtRow( randomCompexs_[ iAddcol ], irow );
