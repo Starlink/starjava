@@ -42,5 +42,19 @@ public class WrapperRowSequence implements RowSequence {
     public void close() throws IOException {
         baseSeq.close();
     }
-        
+
+    /**
+     * Returns an indication of the wrapper structure of this sequence.
+     *
+     * @return  string representation
+     */
+    public String toString() {
+        StringBuffer sbuf = new StringBuffer( super.toString() );
+        for ( RowSequence rseq = this; rseq instanceof WrapperRowSequence; ) {
+            rseq = ((WrapperRowSequence) rseq).baseSeq;
+            sbuf.append( " -> " );
+            sbuf.append( rseq.getClass().getName() );
+        }
+        return sbuf.toString();
+    }
 }

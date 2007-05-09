@@ -123,4 +123,18 @@ public class WrapperStarTable implements StarTable {
         return Tables.checkedLongToInt( lval );
     }
 
+    /**
+     * Returns an indication of the wrapper structure of this table.
+     *
+     * @return   string representation
+     */
+    public String toString() {
+        StringBuffer sbuf = new StringBuffer( super.toString() );
+        for ( StarTable table = this; table instanceof WrapperStarTable; ) {
+            table = ((WrapperStarTable) table).getBaseTable();
+            sbuf.append( " -> " );
+            sbuf.append( table.getClass().getName() );
+        }
+        return sbuf.toString();
+    }
 }
