@@ -16,6 +16,8 @@
   <!-- Define some character constants. -->
   <!ENTITY column.id.char '$'>
   <!ENTITY subset.id.char '_'>
+  <!ENTITY ucd.prefix 'ucd$'>
+  <!ENTITY param.prefix 'param$'>
 
   <!-- Define illustrations -->
   <!ENTITY figs '../figures/'>
@@ -574,7 +576,7 @@ rows in their currently sorted order in the
 Each column has header information which determines the kind of 
 data which can fill the cells of that column as well as a name,
 and maybe some additional information like units and 
-<webref url="http://vizier.u-strasbg.fr/doc/UCD.htx"
+<webref url="http://www.ivoa.net/Documents/latest/UCD.html"
          >Unified Content Descriptor</webref>.
 All this information can be viewed, and in some cases modified,
 in the <ref id="ColumnInfoWindow">Columns Window</ref>.
@@ -1936,12 +1938,12 @@ expressions won't work at all, and the buttons which allow you to
 enter them will be disabled.
 </p>
 
-<subsect>
+<subsect id="jelCols">
 <subhead><title>Referencing Cell Values</title></subhead>
 
 <p>To create a useful expression for a cell in a column, you will
 have to refer to other cells in different columns of the same table row.
-You can do this in two ways:
+You can do this in three ways:
 <dl>
 <dt>By Name</dt>
 <dd><p>The Name of the column may be used if it is unique (no other column in
@@ -1965,6 +1967,31 @@ You can do this in two ways:
     You can find out the &column.id.char;ID identifier by looking in the
     <ref id="ColumnInfoWindow">Columns Window</ref>.
     </p></dd>
+
+<dt>By &ucd.prefix; specifier</dt>
+<dd><p>If the column has a
+    <webref url="http://www.ivoa.net/Documents/latest/UCD.html"
+            >Unified Content Descriptor</webref>
+    (this will usually only be the case for VOTable or possibly FITS format
+    tables) you can refer to it using an identifier of the form
+    "<code>ucd$&lt;ucd-spec&gt;</code>".  Depending on the version of
+    UCD scheme used, UCDs can contain various punctuation marks such
+    as underscores, semicolons and dots; for the purpose of this syntax
+    these should all be represented as underscores ("<code>_</code>").
+    So to identify a column which has the UCD "<code>phot.mag;em.opt.R</code>",
+    you should use the identifier "<code>ucd$phot_mag_em_opt_r</code>".
+    Matching is not case-sensitive.  Futhermore, a trailing underscore
+    acts as a wildcard, so that the above column could also be referenced
+    using the identifier "<code>ucd$phot_mag_</code>".  If multiple
+    columns have UCDs which match the given identifer, the first one
+    will be used.
+    </p>
+    <p>Note that the same syntax can be used for referencing table
+    parameters (see <ref id="jelParams"/>);
+    columns take preference so if a column and a parameter both match
+    the requested UCD, the column value will be used.
+    </p></dd>
+
 </dl>
 </p>
 <p>There is a special column whose name is "Index" and whose 
@@ -1983,7 +2010,7 @@ be an Object of the type held by the column, for instance a String.
 In practice this means: you can write the name of a column, and it will
 evaluate to the numeric (or string) value that that column contains
 in each row.  You can then use this in normal algebraic expressions
-such as "<code>B_MAG - U_MAG</code>" as you'd expect.
+such as "<code>B_MAG-U_MAG</code>" as you'd expect.
 </p>
 
 </subsect>
@@ -2021,6 +2048,42 @@ in conjunction with the conditional "<code>? :</code>" operator or
 when combining existing subsets using logical operators to create
 a new subset.
 </p>
+</subsect>
+
+<subsect id="jelParams">
+<subhead><title>Referencing Table Parameters</title></subhead>
+
+<p>Some tables have constant values associated with them; these may
+represent such things as the epoch at which observations were taken,
+the name of the catalogue, an angular resolution associated with
+all observations, or any number of other things.
+Such constants are known as <em>table parameters</em> and
+can be viewed and modified in the 
+<ref id="ParameterWindow">Parameter Window</ref>.
+The values of such parameters can be referenced in algebraic expressions
+as follows:
+<dl>
+<dt>&param.prefix;<em>name</em></dt>
+<dd><p>If the parameter name has a suitable form (starting with a letter
+    and continuing with letters or numbers) it can be referenced by
+    prefixing that name with the string <code>&param.prefix;</code>.
+    </p></dd>
+
+<dt>&ucd.prefix;<em>ucd-spec</em></dt>
+<dd><p>If the column has a
+    <webref url="http://www.ivoa.net/Documents/latest/UCD.html"
+            >Unified Content Descriptor</webref>
+    it can be referenced by prefixing the UCD specifier with the
+    string <code>&ucd.prefix;</code>.  Any punctuation marks in the
+    UCD should be replaced by underscores, and a trailing underscore
+    is interpreted as a wildcard.  See <ref id="jelCols"/> for 
+    more discussion.
+    </p></dd>
+</dl>
+Note that if a parameter has a name in an unsuitable form (e.g. containing
+spaces) and has no UCD then it cannot be referenced in an expression.
+</p>
+
 </subsect>
 
 <subsect>
@@ -9736,6 +9799,11 @@ introduced since the last version:
 <dt>Next release</dt>
 <dd><p>
     <ul>
+    <li>Table parameters can be referenced in expressions using
+        <code>&param.prefix;</code> notation (<ref id="jelParams"/>).</li>
+    <li>Columns and parameters can be referenced in expressions using
+        <code>&ucd.prefix;</code> notation (<ref id="jelCols"/>).</li>
+
     <li>Error bars!</li>
     <li>Improved deduplication of column names when joining tables.</li>
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
