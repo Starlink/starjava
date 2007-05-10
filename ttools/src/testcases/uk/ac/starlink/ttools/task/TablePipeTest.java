@@ -73,26 +73,58 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals(
             box( new int[] { 5, 5, 5, 5, } ),
             getColData( apply( "setparam fiver 5;"
-                             + "addcol -before 1 COL_FIVE fiver" ), 0 ) );
+                             + "addcol -before 1 COL_FIVE param$fiver" ), 0 ) );
+
+        assertArrayEquals(
+            box( new int[] { 5, 5, 5, 5, } ),
+            getColData( apply( "setparam fiver 5;"
+                             + "addcol -before 1 COL_FIVE PARAM$fiver" ), 0 ) );
+
         try {
             apply( "setparam fiver 5;"
                  + "clearparams fiver;"
-                 + "addcol -before 1 COL_FIVE fiver" );
+                 + "addcol -before 1 COL_FIVE param$fiver" );
             fail();
         }
         catch ( IOException e ) {
-            assertTrue( e.getMessage().indexOf( "fiver" ) >= 0 );
+            assertTrue( e.getMessage().indexOf( "param$fiver" ) >= 0 );
         }
 
-        ColumnInfo sizeInfo = apply( "addcol -before 1"
-                                   + " -ucd PHYS.SIZE"
-                                   + " -desc 'Not important'"
-                                   + " -units parsec" 
-                                   + " SIZE 99.f" ).getColumnInfo( 0 );
+        StarTable withSize = apply( "addcol -before 1"
+                                  + " -ucd PHYS.SIZE"
+                                  + " -desc 'Not important'"
+                                  + " -units parsec" 
+                                  + " SIZE 99.f" );
+        ColumnInfo sizeInfo = withSize.getColumnInfo( 0 );
         assertEquals( "SIZE", sizeInfo.getName() );
         assertEquals( "PHYS.SIZE", sizeInfo.getUCD() );
         assertEquals( "parsec", sizeInfo.getUnitString() );
         assertEquals( Float.class, sizeInfo.getContentClass() );
+
+        assertEquals( new Float( 99f ),
+                      process( withSize, "keepcols ucd$PHYS_SIZE" )
+                     .getCell( 1L, 0 ) );
+        assertEquals( new Float( 99f ),
+                      process( withSize, "keepcols ucd$PHYS_" )
+                     .getCell( 1L, 0 ) );
+
+        assertEquals(
+            new Double( 100 ),
+            process( withSize,
+                     "addcol sizzle ucd$PHYS_SIZE+1.; keepcols sizzle" )
+                     .getCell( 2L, 0 ) );
+        assertEquals(
+            new Double( 100 ),
+            process( withSize,
+                     "addcol sizzle ucd$PHYS_+1.; keepcols sizzle" )
+                     .getCell( 2L, 0 ) );
+
+        StarTable justSize = process( withSize, "keepcols ucd$PHYS_SIZE" );
+        ColumnInfo sInfo = justSize.getColumnInfo( 0 );
+        assertEquals( "SIZE", sInfo.getName() );
+        assertEquals( "PHYS.SIZE", sInfo.getUCD() );
+        assertEquals( "parsec", sInfo.getUnitString() );
+        assertEquals( Float.class, sInfo.getContentClass() );
     }
 
     public void testAddskycoords() throws Exception {
