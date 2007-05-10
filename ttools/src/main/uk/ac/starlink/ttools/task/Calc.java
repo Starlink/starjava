@@ -66,7 +66,10 @@ public class Calc implements Task {
     }
 
     public Parameter[] getParameters() {
-        return new Parameter[] { exprParam_ };
+        return new Parameter[] {
+            exprParam_,
+            tableParam_,
+        };
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
