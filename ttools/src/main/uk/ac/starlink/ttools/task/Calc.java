@@ -56,7 +56,8 @@ public class Calc implements Task {
             "(table parameters) associated with the table.",
             "These can be referenced using identifiers of the form",
             "<code>" + JELRowReader.PARAM_PREFIX + "*</code> or",
-            "<code>" + JELRowReader.UCD_PREFIX + "*</code>.",
+            "<code>" + JELRowReader.UCD_PREFIX + "*</code> -",
+            "see <ref id='jel-paramref'/> for more detail.",
             "</p>",
         } );
     }
