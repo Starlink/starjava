@@ -30,9 +30,12 @@ public class CalcTest extends TestCase {
         wibInfo.setUCD( "meta.cryptic;arith.factor" );
         table.setParameter( new DescribedValue( wibInfo, new Integer( 23 ) ) );
         assertEquals( "5", eval( "2+3", table ) );
-        assertEquals( "30", eval( "7 + param$wibbleness", table ) );
-        assertEquals( "30", eval( "7 + ucd$meta_cryptic_arith_factor", table ));
-        assertEquals( "30", eval( "7 + ucd$meta_cryptic_", table ) );
+        assertEquals( "46", eval( "param$wibbleness + param$wibbleness",
+                                  table ) );
+        assertEquals( "46", eval( "ucd$meta_cryptic_arith_factor + "
+                                + "ucd$meta_cryptic_arith_factor", table ));
+        assertEquals( "46", eval( "ucd$meta_cryptic_ + ucd$meta_cryptic_",
+                                  table ) );
         try {
             eval( "7 + ucd$meta_cryptic" );
             fail();
