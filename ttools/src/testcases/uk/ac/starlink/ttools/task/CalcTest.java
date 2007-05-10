@@ -40,6 +40,16 @@ public class CalcTest extends TestCase {
         catch ( TaskException e ) {
             assertTrue( e.getCause() instanceof CompilationException );
         }
+
+        assertEquals( "false", eval( "NULL_param$wibbleness", table ) );
+        assertEquals( "false", eval( "NULL_ucd$meta_cryptic_", table ) );
+        assertEquals( "false", eval( "NULL_ucd$meta_cryptic_arith_factor",
+                                     table ) );
+        table.setParameter( new DescribedValue( wibInfo, null ) );
+        assertEquals( "true", eval( "NULL_param$wibbleness", table ) );
+        assertEquals( "true", eval( "NULL_ucd$meta_cryptic_", table ) );
+        assertEquals( "true", eval( "null_ucd$meta_cryptic_arith_factor",
+                                    table ) );
     }
 
     public void testError() throws Exception {
