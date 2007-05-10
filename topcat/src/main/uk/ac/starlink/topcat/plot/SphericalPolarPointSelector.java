@@ -28,6 +28,7 @@ import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.JELRowReader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -689,7 +690,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         }
 
         public String toString() {
-            return name_;
+            return JELRowReader.PARAM_PREFIX + name_;
         }
 
         public int hashCode() {
