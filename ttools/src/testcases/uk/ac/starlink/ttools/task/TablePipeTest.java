@@ -2,6 +2,8 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -28,6 +30,9 @@ public class TablePipeTest extends TableTestCase {
             col( "c", new boolean[] { true, true, false, false, } ),
             col( "d", new String[] { "Mark", "Beauchamp", "Taylor", null, } ),
         } );
+
+        Logger.getLogger( "uk.ac.starlink.ttools.filter" )
+              .setLevel( Level.WARNING );
     }
 
     private StarTable apply( String cmd ) throws Exception {
