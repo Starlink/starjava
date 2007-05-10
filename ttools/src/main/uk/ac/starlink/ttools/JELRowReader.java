@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -50,21 +51,26 @@ import uk.ac.starlink.table.Tables;
  *     that column in the current row (as a primitive, if applicable) - 
  *     this can only work if the column name is a legal java identifier.
  * 
- * <dt>Column null-queries:
- * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a column name or 
- *     $ID identifier (see above) returns a boolean value which is 
- *     <tt>true</tt> iff the value in that column at the current row
- *     has a blank value.
- *
  * <dt>Parameter names:
- * <dd>The name of a table parameter (case-insensitive) is constant for
- *     the table (as a primitive, if applicable) - this can only work
+ * <dd>The string {@link #PARAM_PREFIX} followed by the name of a table
+ *     parameter (case-insensitive) is a constant for the table 
+ *     (as a primitive, if applicable).  This can only work
  *     if the parameter name is a legal java identifier.
  *
- * <dt>Parameter null-queries:
- * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a parameter name
- *     returns a boolean value which is <tt>true</tt> iff that parameter
- *     has a blank value.
+ * <dt>UCD spedifiers:
+ * <dd>The string {@link #UCD_PREFIX} followed by the text of a UCD 
+ *     giving the required value.  Any punctuation (such as ".", ";", "-")
+ *     in the UCD should be replaced with a "_" (since these symbols cannot
+ *     appear in identifiers).  If the identifier has a trailing "_", 
+ *     then any UCD which starts as specified is considered to match.
+ *     The first matching column, or if there is none the first matching
+ *     parameter value is returned.  UCD matching is case-insensitive.
+ *
+ * <dt>Null queries:
+ * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a value identifier
+ *     (column name, column $ID or parameter identifier - see above)
+ *     returns a boolean value which is <tt>true</tt> iff the corresponding
+ *     value (at the current row, if applicable) has a blank value.
  *
  * <dt>"RANDOM":
  * <dd>The special token "RANDOM" evaluates to a double-precision random
@@ -88,6 +94,20 @@ public abstract class JELRowReader extends DVMap {
      * that the null-ness of the column should be queried.
      */
     public static final String NULL_QUERY_PREFIX = "NULL_";
+
+    /**
+     * The string which should be prefixed to a table parameter (constant)
+     * name to result in substituting its value.
+     */
+    public static final String PARAM_PREFIX = "param$";
+
+    /**
+     * A string to prefix to a UCD string to indicate the column/parameter
+     * with that UCD.  The first matching column, else the first matching 
+     * parameter, is used.  Punctuation in the UCD name is all mapped to "_".
+     * A trailing "_" corresponds to a wildcard.
+     */
+    public static final String UCD_PREFIX = "ucd$";
 
     /** Prefix identifying a unique column identifier. */
     public static final char COLUMN_ID_CHAR = '$';
@@ -371,8 +391,8 @@ public abstract class JELRowReader extends DVMap {
      *          or -1
      */
     private int getNullColumnIndex( String name ) {
-        if ( name.startsWith( NULL_QUERY_PREFIX ) ) {
-            String colname = name.substring( NULL_QUERY_PREFIX.length() );
+        String colname = stripPrefix( name, NULL_QUERY_PREFIX );
+        if ( colname != null ) {
             return getColumnIndex( colname );
         }
         return -1;
@@ -389,8 +409,8 @@ public abstract class JELRowReader extends DVMap {
      * @see  #getConstantIndex
      */
     private int getNullConstantIndex( String name ) {
-        if ( name.startsWith( NULL_QUERY_PREFIX ) ) {
-            String constname = name.substring( NULL_QUERY_PREFIX.length() );
+        String constname = stripPrefix( name, NULL_QUERY_PREFIX );
+        if ( constname != null ) {
             return getConstantIndex( constname );
         }
         return -1;
@@ -419,7 +439,7 @@ public abstract class JELRowReader extends DVMap {
         }
 
         /* Try the '$' + number format. */
-        else if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
+        if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
             try {
                 int icol = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( icol >= 0 && icol < table_.getColumnCount() ) {
@@ -429,6 +449,19 @@ public abstract class JELRowReader extends DVMap {
             catch ( NumberFormatException e ) {
                 // no good
             }
+        }
+
+        /* Try it as a UCD specification. */
+        String ucdSpec = stripPrefix( name, UCD_PREFIX );
+        if ( ucdSpec != null ) {
+            Pattern ucdRegex = getUcdRegex( ucdSpec );
+            for ( int icol = 0; icol < table_.getColumnCount(); icol++ ) {
+                String ucd = table_.getColumnInfo( icol ).getUCD();
+                if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
+                    return icol;
+                }
+            }
+            return -1;
         }
 
         /* Try the column name. */
@@ -457,29 +490,56 @@ public abstract class JELRowReader extends DVMap {
      */
     private int getConstantIndex( String name ) {
  
-         /* Null name - no match. */
-         if ( name == null ) {
-             return -1;
-         }
+         /* Try it as a named parameter. */
+         String pname = stripPrefix( name, PARAM_PREFIX );
+         if ( pname != null ) {
  
-         /* Search the existing list of known constants for a name match.
-          * If one is found return the index. */
-         for ( int i = 0; i < constantList_.size(); i++ ) {
-             DescribedValue dval = (DescribedValue) constantList_.get( i );
-             if ( name.equalsIgnoreCase( dval.getInfo().getName() ) ) {
-                 return i;
-             }
+             /* Search the existing list of known constants for a name match.
+              * If one is found return the index. */
+             for ( int i = 0; i < constantList_.size(); i++ ) {
+                 DescribedValue dval = (DescribedValue) constantList_.get( i );
+                 if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
+                     return i;
+                 }
+            }
+
+            /* Search the table's parameter list for a name match.  If one is
+             * found add it to the constants list and return the index. */
+            for ( Iterator it = table_.getParameters().iterator();
+                  it.hasNext(); ) {
+                DescribedValue dval = (DescribedValue) it.next();
+                if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
+                    constantList_.add( dval );
+                    return constantList_.size() - 1;
+                }
+            } 
+
+            /* No luck. */
+            return -1;
         }
 
-        /* Search the table's parameter list for a name match.  If one is
-         * found add it to the constants list and return the index. */
-        for ( Iterator it = table_.getParameters().iterator(); it.hasNext(); ) {
-            DescribedValue dval = (DescribedValue) it.next();
-            if ( name.equalsIgnoreCase( dval.getInfo().getName() ) ) {
-                constantList_.add( dval );
-                return constantList_.size() - 1;
+        /* Try it as a UCD specification. */
+        String ucdSpec = stripPrefix( name, UCD_PREFIX );
+        if ( ucdSpec != null ) {
+            Pattern ucdRegex = getUcdRegex( ucdSpec );
+            for ( int i = 0; i < constantList_.size(); i++ ) {
+                DescribedValue dval = (DescribedValue) constantList_.get( i );
+                String ucd = dval.getInfo().getUCD();
+                if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
+                    return i;
+                }
             }
-        } 
+            for ( Iterator it = table_.getParameters().iterator();
+                  it.hasNext(); ) {
+                DescribedValue dval = (DescribedValue) it.next();
+                String ucd = dval.getInfo().getUCD();
+                if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
+                    constantList_.add( dval );
+                    return constantList_.size() - 1;
+                }
+            }
+            return -1;
+        }
 
         /* No luck. */
         return -1;
@@ -605,7 +665,7 @@ public abstract class JELRowReader extends DVMap {
      * Return the values for boolean-typed special variables.
      *
      * @param  ispecial  the identifier for the special
-     * @param  the special's value
+     * @return  the special's value
      */
     public boolean getBooleanProperty( byte ispecial ) {
         switch ( ispecial ) {
@@ -642,7 +702,7 @@ public abstract class JELRowReader extends DVMap {
      * This is the case if the value is the java <tt>null</tt> reference,
      * or if it is a Float or Double with a NaN value.
      *
-     * @param  inul  constant index as returned by {@link #getConstantIndex}
+     * @param  inul  constant index as returned by <code>getConstantIndex</code>
      * @return  whether the constant has a null value
      */
     public boolean getBooleanProperty( short inul ) {
@@ -798,5 +858,50 @@ public abstract class JELRowReader extends DVMap {
     }
     public Object[] getObjectArrayProperty( int icol ) {
         return (Object[]) getValue( icol );
+    }
+
+    /**
+     * Takes a token and strips a given prefix from it, returning the 
+     * remainder.  If the given <code>name</code> does not begin with
+     * <code>prefix</code> (or if it is exactly equal to it), 
+     * then <code>null</code> is returned.
+     *
+     * @param    name  token which may begin with <code>prefix</code>
+     * @param    prefix   maybe matches the start of <code>name</code>
+     * @return   <code>name</code> minux <code>prefix</code>,
+     *           or <code>null</code>
+     * @see   #NULL_QUERY_PREFIX
+     * @see   #PARAM_PREFIX
+     * @see   #UCD_PREFIX
+     */
+    public static String stripPrefix( String name, String prefix ) {
+        if ( name != null &&
+             name.length() > prefix.length() &&
+             name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
+            return name.substring( prefix.length() );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Takes a (non-prefixed) UCD specification and returns a Pattern
+     * actual UCDs should match if they represent the same thing.
+     * Punctuation is mapped to underscores, and the pattern is 
+     * case-insensitive, which means that the same
+     * syntax can work for UCD1s and UCD1+s.  If a trailing underscore
+     * (or other punctuation mark) is present in the input <code>ucd</code>
+     * it is considered as a trailing match-all wildcard.
+     *
+     * @param   ucd  UCD1 or UCD1+ specification/pattern
+     * @return   regular expression pattern which matches actual UCD1s or UCD1+s
+     */
+    public static Pattern getUcdRegex( String ucd ) {
+        String regex = ucd.replaceAll( "[_\\W]", "\\[_\\\\W\\]" );
+        if ( regex.endsWith( "[_\\W]" ) ) {
+            regex = regex.substring( 0, regex.length() - 5 ) + ".*";
+        }
+        return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
     }
 }
