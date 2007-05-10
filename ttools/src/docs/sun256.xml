@@ -1795,7 +1795,7 @@ from the command line though.
 
 <p>To create a useful expression which can be evaluated for each row
 in a table, you will have to refer to cells in different columns of that row.
-You can do this in two ways:
+You can do this in three ways:
 <dl>
 <dt>By Name</dt>
 <dd><p>The Name of the column may be used if it is unique (no other column in
@@ -1835,7 +1835,7 @@ You can do this in two ways:
     columns have UCDs which match the given identifer, the first one
     will be used.
     </p>
-    <p>Note that the same syntax is can be used for referencing table
+    <p>Note that the same syntax can be used for referencing table
     parameters (see the <ref id="jel-paramref">next section</ref>);
     columns take preference so if a column and a parameter both match
     the requested UCD, the column value will be used.
