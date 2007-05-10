@@ -1,7 +1,14 @@
 package uk.ac.starlink.ttools.task;
 
+import gnu.jel.CompilationException;
 import junit.framework.TestCase;
+import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.QuickTable;
 
 public class CalcTest extends TestCase {
 
@@ -12,6 +19,27 @@ public class CalcTest extends TestCase {
     public void testCalc() throws Exception {
         assertEquals( "3", eval( "1+2" ) );
         assertEquals( "53729.0", eval( "isoToMjd(\"2005-12-25T00:00:00\")" ) );
+    }
+
+    public void testWithTable() throws Exception {
+        StarTable table = new QuickTable( 4, new ColumnData[] {
+            ArrayColumn.makeColumn( "a", new int[] { 1, 2, 3, 4, } ),
+        } );
+        DefaultValueInfo wibInfo =
+            new DefaultValueInfo( "WIBBLENESS", Integer.class, "Who knows?" );
+        wibInfo.setUCD( "meta.cryptic;arith.factor" );
+        table.setParameter( new DescribedValue( wibInfo, new Integer( 23 ) ) );
+        assertEquals( "5", eval( "2+3", table ) );
+        assertEquals( "30", eval( "7 + param$wibbleness", table ) );
+        assertEquals( "30", eval( "7 + ucd$meta_cryptic_arith_factor", table ));
+        assertEquals( "30", eval( "7 + ucd$meta_cryptic_", table ) );
+        try {
+            eval( "7 + ucd$meta_cryptic" );
+            fail();
+        }
+        catch ( TaskException e ) {
+            assertTrue( e.getCause() instanceof CompilationException );
+        }
     }
 
     public void testError() throws Exception {
@@ -26,6 +54,16 @@ public class CalcTest extends TestCase {
     private Object eval( String expr ) throws Exception {
         MapEnvironment env = new MapEnvironment()
                       .setValue( "expression", expr );
+        new Calc().createExecutable( env ).execute();
+        return env.getOutputText().trim();
+    }
+
+    private Object eval( String expr, StarTable table ) throws Exception {
+        MapEnvironment env = new MapEnvironment()
+                            .setValue( "expression", expr );
+        if ( table != null ) {
+            env.setValue( "table", table );
+        }
         new Calc().createExecutable( env ).execute();
         return env.getOutputText().trim();
     }

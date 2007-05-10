@@ -5,6 +5,9 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
@@ -25,6 +28,10 @@ import uk.ac.starlink.ttools.filter.DummyJELRowReader;
 public class Calc implements Task {
 
     private final Parameter exprParam_;
+    private final InputTableParameter tableParam_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     public Calc() {
         exprParam_ = new Parameter( "expression" );
@@ -34,6 +41,22 @@ public class Calc implements Task {
         exprParam_.setDescription( new String[] {
             "<p>An expression to evaluate.",
             "The functions in <ref id='staticMethods'/> can be used.",
+            "</p>",
+        } );
+
+        tableParam_ = new InputTableParameter( "table" );
+        tableParam_.setNullPermitted( true );
+        tableParam_.setUsage( "<table>" );
+        tableParam_.setPrompt( "Table providing context for expression" );
+        tableParam_.setDescription( new String[] {
+            "<p>A table which provides the context within which",
+            "<code>" + exprParam_.getName() + "</code> is evaluated.",
+            "This parameter is optional, and will usually not be required;",
+            "its only purpose is to allow use of constant expressions",
+            "(table parameters) associated with the table.",
+            "These can be referenced using identifiers of the form",
+            "<code>" + JELRowReader.PARAM_PREFIX + "*</code> or",
+            "<code>" + JELRowReader.UCD_PREFIX + "*</code>.",
             "</p>",
         } );
     }
@@ -47,8 +70,30 @@ public class Calc implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        StarTable dummyTable = ColumnStarTable.makeTableWithRows( 0 );
-        final JELRowReader rdr = new DummyJELRowReader( dummyTable );
+
+        /* Create a dummy table, since a JELRowReader is required.  However,
+         * we will be using no table data. */
+        StarTable table = ColumnStarTable.makeTableWithRows( 0 );
+
+        /* If an (optional) table is supplied, use its parameter list by 
+         * transferring it into the dummy table. */
+        List paramList = table.getParameters();
+        try {
+            paramList.clear();
+            String tname = tableParam_.stringValue( env );
+            if ( tname != null && tname.trim().length() > 0 ) {
+                paramList.addAll( tableParam_.tableValue( env )
+                                             .getParameters() );
+            }
+        }
+        catch ( UnsupportedOperationException e ) {
+            logger_.log( Level.WARNING, "Immutable table parameter list: " + e,
+                         e );
+            assert false;
+        }
+
+        /* Compile the expression. */
+        final JELRowReader rdr = new DummyJELRowReader( table );
         Library lib = JELUtils.getLibrary( rdr );
         String expr = exprParam_.stringValue( env );
         final PrintStream out = env.getOutputStream();
@@ -60,6 +105,8 @@ public class Calc implements Task {
             throw new TaskException( "Bad expression \"" + expr + "\": " + 
                                      e.getMessage(), e );
         }
+
+        /* Create and return the executable. */
         return new Executable() {
 
             public void execute() throws TaskException {
