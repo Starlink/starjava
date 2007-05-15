@@ -494,7 +494,7 @@ public class DivaPlot
     }
 
     /**
-     * Add an action to associate with a KeyStroke. Probably best not to 
+     * Add an action to associate with a KeyStroke. Probably best not to
      * over-write existing associations.
      *
      * @param keyStroke the KeyStroke (e.g. shift-left would be obtained
@@ -953,7 +953,7 @@ public class DivaPlot
                 }
 
                 //  Get the AST FrameSet to use and check if this contains a
-                //  DSBSpecFrame, we handle those differently, unless the 
+                //  DSBSpecFrame, we handle those differently, unless the
                 //  sideband is set to "LO".
                 FrameSet astref = astJ.getRef();
                 boolean isDSB = astJ.isFirstAxisDSBSpecFrame();
@@ -975,7 +975,7 @@ public class DivaPlot
                 int current = astref.getCurrent();
                 int base = astref.getBase();
                 astref.setBase( current );
-                String options = isDSB ? plotConfig.getAst( true ) : 
+                String options = isDSB ? plotConfig.getAst( true ) :
                                          plotConfig.getAst();
                 createPlot( astref, graphicsEdges.getXLeft(),
                             graphicsEdges.getXRight(), graphicsEdges.getYTop(),
@@ -1027,7 +1027,7 @@ public class DivaPlot
                     setSideBandBaseBox( astref, sideband );
                     astref.setBase( current );
                     createPlot( astref, graphicsEdges.getXLeft(),
-                                graphicsEdges.getXRight(), 
+                                graphicsEdges.getXRight(),
                                 graphicsEdges.getYTop(),
                                 graphicsEdges.getYBottom(),
                                 plotConfig.getAst( false ) );
@@ -1050,7 +1050,7 @@ public class DivaPlot
                     mainPlot = mainMainPlot;
                     astref.setC( "SideBand", sideband );
                 }
-                    
+
                 //  Draw the spectra, if required.
                 if ( xyScaled ) {
                     mainGrf.establishContext( "SPECTRA" );
@@ -1152,9 +1152,9 @@ public class DivaPlot
         xin[1] = sbandBaseBox[2];
         yin[0] = sbandBaseBox[1];
         yin[1] = sbandBaseBox[3];
-        
+
         double[][] trn = map.tran2( 2, xin, yin, true );
-        
+
         baseBox[0] = trn[0][0];
         baseBox[1] = sbandBaseBox[1];
         baseBox[2] = trn[0][1];
