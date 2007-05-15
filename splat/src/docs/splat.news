@@ -19,6 +19,9 @@
    When changing the DSB sideband the labels now include which sideband
    is the observed and which the image.
 
+   The readout of the spectral coordinate in a plot should now always
+   have sufficient precision so that adjacent values can be distinguished.
+
    3.8-0
    =====
 
