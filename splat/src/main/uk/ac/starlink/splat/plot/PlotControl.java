@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  * History:
  *    16-SEP-1999 (Peter W. Draper):
@@ -1527,6 +1528,16 @@ public class PlotControl
         if ( spectra.have( specData ) ) {
             spectra.setCurrentSpectrum( specData );
         }
+    }
+
+    /**
+     * Set whether we're displaying the current spectrum synopsis, without
+     * causing any drawing. Use when creating an instance and will be adding
+     * spectra later.
+     */
+    public void simpleSetShowSynopsis( boolean showSynopsis )
+    {
+        this.showSynopsis = showSynopsis;
     }
 
     /**

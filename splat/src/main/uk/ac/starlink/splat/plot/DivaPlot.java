@@ -914,7 +914,7 @@ public class DivaPlot
     {
         //  No spectra or not realized then nothing to do yet.
         if ( spectra.count() == 0 || getPreferredSize().width == 0
-             || ! isVisible() ) {
+             || ! isVisible() || astJ == null ) {
             return true;
         }
 

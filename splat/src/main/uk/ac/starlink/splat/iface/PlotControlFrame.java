@@ -663,14 +663,18 @@ public class PlotControlFrame
         showSynopsis =
             new JCheckBoxMenuItem( "Display synopsis" );
         optionsMenu.add( showSynopsis );
-        showSynopsis.addItemListener( this );
         state1 = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
         try {
+            //  Set up synopsis, but don't show it yet.
             showSynopsis.setSelected( state1 );
+            plot.simpleSetShowSynopsis( state1 );
         }
         catch (Exception e) {
             e.printStackTrace();
         }
+
+        //  Now enable listener.
+        showSynopsis.addItemListener( this );
     }
 
     /**
