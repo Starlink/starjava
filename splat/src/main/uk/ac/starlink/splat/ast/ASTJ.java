@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1999-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  * History:
  *    21-SEP-1999 (Peter W. Draper):
@@ -560,7 +561,7 @@ public class ASTJ
 
         // Set up label, symbol and units for axis 2 (the data values axis).
         frame1.setC( "Symbol(2)", "Data" );
-        if ( ! label.equals( "")  ) {
+        if ( ! label.equals( "" )  ) {
             frame1.setC( "Label(2)", label );
         }
         else {
@@ -598,7 +599,7 @@ public class ASTJ
             catch (AstException e) {
                 //  Units are invalid.
                 f2 = null;
-                logger.info( "Data units: " + units  + " (" +
+                logger.info( "Data units unknown: " + units  + " (" +
                              e.getMessage() + ")" );
             }
         }
