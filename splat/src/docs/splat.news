@@ -22,6 +22,13 @@
    The readout of the spectral coordinate in a plot should now always
    have sufficient precision so that adjacent values can be distinguished.
 
+   Problems displaying spectra sent from GAIA when the plot synopsis is
+   enabled (which came out at the wrong size and with the synopsis misplaced) 
+   should be resolved.
+
+   The synopsis should now be placed at the top-left hand corner of the 
+   axis for all plot aspect ratios.
+
    3.8-0
    =====
 
