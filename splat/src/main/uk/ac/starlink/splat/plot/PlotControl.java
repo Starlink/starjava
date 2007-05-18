@@ -230,9 +230,9 @@ public class PlotControl
     protected JACSynopsisFigure synopsisFigure = null;
 
     /**
-     *  Initial position, just a guess.
+     *  Position of the synopsis.
      */
-    protected Point synopsisAnchor = new Point( 120, 55 );
+    protected Point synopsisAnchor = null;
 
     /**
      * Create a PlotControl, adding spectra later.
@@ -788,7 +788,7 @@ public class PlotControl
                     zoomAboutTheCentre( 0, 1 );
                 }
             };
-        plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS, 
+        plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS,
                                                         KeyEvent.SHIFT_MASK ),
                                 zoomInYAction );
 
@@ -1002,7 +1002,7 @@ public class PlotControl
     /**
      * Fit spectrum to the displayed width and height at same time.
      */
-    public void fitToWidthAndHeight()
+    public void fitToWidthAndHeight( boolean positionSynopsis )
     {
         matchViewportSize();
         plot.fitToWidth();
@@ -1012,6 +1012,11 @@ public class PlotControl
         double[] centre = getCentre();
         recordOrigin( centre[0], centre[1] );
         setScale();
+
+        if ( positionSynopsis ) {
+            positionSynopsisAnchor();
+            updateSynopsis();
+        }
     }
 
     /**
@@ -1560,27 +1565,57 @@ public class PlotControl
     /**
      * Update the synopsis. Needs to be done when enabling, or a change in
      * current spectrum has occurred, or some property of the spectrum.
+     * Should also be called after an external repositioning of the anchor.
      */
-    protected void updateSynopsis()
+    public void updateSynopsis()
     {
         if ( showSynopsis ) {
             if ( synopsisFigure == null ) {
-                synopsisFigure = 
-                    new JACSynopsisFigure( getCurrentSpectrum(), 
-                                           getViewport(), synopsisAnchor );
+                if ( synopsisAnchor == null ) positionSynopsisAnchor();
+                synopsisFigure = new JACSynopsisFigure( getCurrentSpectrum(), 
+                                                        getViewport(),
+                                                        synopsisAnchor );
                 plot.getDrawActions().addDrawFigure( synopsisFigure );
             }
             else {
                 synopsisFigure.setSpecData( getCurrentSpectrum() );
+                synopsisFigure.setLocalAnchor( synopsisAnchor );
             }
         }
         else {
+            //  Not showing the synopsis, so remove if exists. Keep
+            //  the anchor position so it can be used for restoration.
             if ( synopsisFigure != null ) {
                 plot.getDrawActions().deleteFigure( synopsisFigure );
                 synopsisAnchor = synopsisFigure.getLocalAnchor();
                 synopsisFigure = null;
             }
         }
+    }
+
+    /**
+     * Position the anchor at the top-left of the visible plot.
+     * Should be just inside the axes.
+     */
+    public void positionSynopsisAnchor()
+    {
+        Rectangle rect = plot.getVisibleRect();
+        int w = rect.width;
+        int h = rect.height;
+        int xo = 0; //rect.x;
+        int yo = 0; //rect.y;
+        if ( rect.width == 0 ) {
+            //  Not realized yet, so used preferred size (OK as
+            //  cannot be zoomed yet).
+            Dimension size = plot.getPreferredSize();
+            w = size.width;
+            h = size.height;
+        }
+        GraphicsEdges ge = plot.getGraphicsEdges();
+        Insets inset = plot.getInsets();
+        int lgap = xo + inset.left + (int)( w * ge.getXLeft() );
+        int tgap = yo + inset.top + (int)( h * ge.getYTop() );
+        synopsisAnchor = new Point( lgap, tgap );
     }
 
     /**
