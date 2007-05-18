@@ -583,7 +583,7 @@ public class SpecAnimatorFrame
                     spectrumName.setText( spec.getShortName() );
                     removeLastSpectrum();
                     if ( scaleType == AUTO ) {
-                        animatePlot.fitToWidthAndHeight();
+                        animatePlot.fitToWidthAndHeight( false );
                     }
 
                     //  If we're capturing then do it.
