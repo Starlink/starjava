@@ -123,6 +123,15 @@ public class JACSynopsisFigure
     }
 
     /**
+     * Set the local anchor position.
+     */
+    public void setLocalAnchor( Point anchor )
+    {
+        this.anchor = anchor.getLocation();
+        reAnchor();
+    }
+
+    /**
      * Return a copy of the current local anchor position.
      */
     public Point getLocalAnchor()
@@ -463,5 +472,11 @@ public class JACSynopsisFigure
     {
         //  Reset anchor as should be from an interactive movement.
         translate( x, y, true );
+    }
+
+    
+    public void paint (Graphics2D g) 
+    {
+        super.paint( g );
     }
 }
