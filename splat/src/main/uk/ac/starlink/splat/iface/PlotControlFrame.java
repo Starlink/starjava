@@ -203,7 +203,22 @@ public class PlotControlFrame
     public PlotControlFrame( SpecDataComp specDataComp )
         throws SplatException
     {
-        this( "PlotControlFrame", specDataComp );
+        this( "PlotControlFrame", specDataComp, -1 );
+    }
+
+    /**
+     *  Create an instance using an existing SpecDataComp and new PlotControl
+     *  with a given plot index.
+     *
+     *  @param specDataComp Active SpecDataComp reference.
+     *  @param id plot identifier (-1 for automatic, otherwise must not be in
+     *            use). 
+     *
+     */
+    public PlotControlFrame( SpecDataComp specDataComp, int id )
+        throws SplatException
+    {
+        this( "PlotControlFrame", specDataComp, id );
     }
 
     /**
@@ -225,7 +240,7 @@ public class PlotControlFrame
     public PlotControlFrame( String title )
         throws SplatException
     {
-        this( title, (SpecDataComp) null );
+        this( title, (SpecDataComp) null, -1 );
     }
 
     /**
@@ -238,7 +253,23 @@ public class PlotControlFrame
     public PlotControlFrame( String title, SpecDataComp specDataComp )
         throws SplatException
     {
-        this( title, new PlotControl( specDataComp ) );
+        this( title, specDataComp, -1 );
+    }
+
+    /**
+     *  Create an instance with a given title and SpecDataComp.
+     *  A new default PlotControl instance will be created.
+     *
+     *  @param title for window
+     *  @param specDataComp active SpecDataComp reference.
+     *  @param id plot identifier (-1 for automatic, otherwise must not be in
+     *            use). 
+     *
+     */
+    public PlotControlFrame( String title, SpecDataComp specDataComp, int id )
+        throws SplatException
+    {
+        this( title, new PlotControl( specDataComp, id ) );
     }
 
     /**
