@@ -283,7 +283,7 @@ public class PlotControl
      *                   use).
      * @exception SplatException thrown if problems reading spectra.
      */
-    protected PlotControl( SpecDataComp spectra, int identifier )
+    public PlotControl( SpecDataComp spectra, int identifier )
         throws SplatException
     {
         if ( spectra == null ) {
