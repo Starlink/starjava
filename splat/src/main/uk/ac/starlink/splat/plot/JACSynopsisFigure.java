@@ -477,6 +477,13 @@ public class JACSynopsisFigure
     
     public void paint (Graphics2D g) 
     {
-        super.paint( g );
+        // XXX strange exception from Ducus library in Java 1.6. Just handle
+        // this for now.
+        try {
+            super.paint( g );
+        }
+        catch (Exception e) {
+            System.out.println( e.getMessage() );
+        }
     }
 }
