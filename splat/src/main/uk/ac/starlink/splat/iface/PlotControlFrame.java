@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     29-SEP-2000 (Peter W. Draper):
@@ -663,18 +664,10 @@ public class PlotControlFrame
         showSynopsis =
             new JCheckBoxMenuItem( "Display synopsis" );
         optionsMenu.add( showSynopsis );
-        state1 = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
-        try {
-            //  Set up synopsis, but don't show it yet.
-            showSynopsis.setSelected( state1 );
-            plot.simpleSetShowSynopsis( state1 );
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //  Now enable listener.
         showSynopsis.addItemListener( this );
+        state1 = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
+        showSynopsis.setSelected( state1 );
+        plot.setShowSynopsis( state1 );
     }
 
     /**
