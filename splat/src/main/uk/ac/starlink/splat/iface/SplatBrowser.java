@@ -2134,7 +2134,6 @@ public class SplatBrowser
         //  Create a plot for our spectra and display them all.
         SpecData spec = globalList.getSpectrum( indices[0] );
         PlotControl plot = displaySpectrum( spec ).getPlot();
-        SplatException lastException = null;
 
         if ( openedCount > 1 ) {
             SpecData[] spectra = new SpecData[openedCount-1];
@@ -2145,13 +2144,9 @@ public class SplatBrowser
                 globalList.addSpectra( plot, spectra );
             }
             catch (SplatException e) {
-                lastException = e;
+                new ExceptionDialog( this, "Failed to display spectra", e);
+                return -1;
             }
-        }
-        if ( lastException != null ) {
-            new ExceptionDialog( this, "Failed to display spectra",
-                                 lastException );
-            return -1;
         }
         return plot.getIdentifier();
     }
@@ -2177,39 +2172,10 @@ public class SplatBrowser
         int count = st.countTokens();
         if ( count == 0 ) return -1;
 
-        //  Access an existing plot with this index.
-        int plotIndex = globalList.getPlotIndex( id );
-        PlotControl plot = null;
-
-        //  If no current PlotControl instance with this identifier then
-        //  create a new one.
-        if ( plotIndex == -1 ) {
-            try {
-                plot = new PlotControl( id );
-                PlotControlFrame plotControl = new PlotControlFrame( plot );
-                id = globalList.add( plot );
-                plotControl.setTitle( Utilities.getReleaseName() + ": " +
-                                      globalList.getPlotName( id ) );
-
-                //  We'd like to know if the plot window is closed.
-                plotControl.addWindowListener( new WindowAdapter() {
-                        public void windowClosed( WindowEvent evt ) {
-                            removePlot( (PlotControlFrame) evt.getWindow() );
-                        }
-                    });
-            }
-            catch (SplatException e) {
-                new ExceptionDialog( this, "Failed to display spectra", e );
-                return -1;
-            }
-        }
-        else {
-            plot = globalList.getPlot( plotIndex );
-        }
-
-        //  Attempt to open each one and keep a list of their indices.
+        //  Attempt to open all the spectra and keep a list of their indices.
         int[] indices = new int[count];
         int openedCount = 0;
+        int start = 0;
         SpecList specList = SpecList.getInstance();
         for ( int i = 0; i < count; i++ ) {
             if ( addSpectrum( st.nextToken() ) ) {
@@ -2218,42 +2184,43 @@ public class SplatBrowser
         }
         if ( openedCount == 0 ) return -1;
 
-        //  Remove all existing spectra, if clear is true and this isn't a new
-        //  plot. Do this before adding so that there are no problems with
-        //  matching the coordinate systems.
-        if ( clear && plotIndex != -1 ) {
-            SpecData[] dispSpec = plot.getPlot().getSpecDataComp().get();
-            plot.getPlot().getSpecDataComp().remove( dispSpec );
+        //  Attempt to access an existing plot with this index.
+        int plotIndex = globalList.getPlotIndex( id );
+        PlotControl plot = null;
+
+        //  If no current PlotControl instance with this identifier then
+        //  create a new one, using the first spectrum to initialise it
+        //  (obviously clear has no effect).
+        if ( plotIndex == -1 ) {
+            SpecData spectrum = globalList.getSpectrum( indices[0] );
+            start = 1;
+            PlotControlFrame plotControlFrame = displaySpectrum(id, spectrum);
+            plot = plotControlFrame.getPlot();
+        }
+        else {
+            //  Use existing plot.
+            plot = globalList.getPlot( plotIndex );
+
+            //  Remove all existing spectra, if clear is true. Do this before
+            //  adding so that there are no problems with matching the
+            //  coordinate systems.
+            if ( clear ) {
+                SpecData[] dispSpec = plot.getPlot().getSpecDataComp().get();
+                plot.getPlot().getSpecDataComp().remove( dispSpec );
+            }
         }
 
-        //  Display new spectra in the plot.
-        SplatException lastException = null;
-        SpecData spectra[] = new SpecData[openedCount];
-        for ( int i = 0; i < openedCount; i++ ) {
+        //  Display remaining spectra in the plot.
+        SpecData spectra[] = new SpecData[openedCount-start];
+        for ( int i = start; i < openedCount; i++ ) {
             spectra[i] = globalList.getSpectrum( indices[i] );
         }
+
         try {
             globalList.addSpectra( plot, spectra );
         }
         catch (SplatException e) {
-            lastException = e;
-        }
-
-        //  Get a display update, if these are the first spectra to be drawn
-        //  (Plot was created without any spectra to display, so its internal
-        //  geometry is messed up).
-        if ( plotIndex == -1 ) {
-            try {
-                plot.getPlot().updateProps( true );
-            }
-            catch (SplatException e) {
-                //  Not important.
-            }
-        }
-
-        if ( lastException != null ) {
-            new ExceptionDialog( this, "Failed to display spectra",
-                                 lastException );
+            new ExceptionDialog( this, "Failed to display spectra", e );
             return -1;
         }
         return id;
@@ -2474,13 +2441,25 @@ public class SplatBrowser
      */
     public PlotControlFrame displaySpectrum( SpecData spectrum )
     {
+        return displaySpectrum( -1, spectrum );
+    }
+
+    /**
+     * Display a spectrum in a new plot.
+     *
+     * @param id plot identifier, -1 for automatic value.
+     * @param spectrum The spectrum to display.
+     * @return the plot that the spectrum is displayed in.
+     */
+    public PlotControlFrame displaySpectrum( int id, SpecData spectrum )
+    {
         // Set the cursor to wait while the plot is created.
         setWaitCursor();
 
         SpecDataComp comp = new SpecDataComp( spectrum );
         PlotControlFrame plot = null;
         try {
-            plot = new PlotControlFrame( comp );
+            plot = new PlotControlFrame( comp, id );
             int index = globalList.add( plot.getPlot() );
             plot.setTitle( Utilities.getReleaseName() + ": " +
                            globalList.getPlotName( index ) );
