@@ -2031,7 +2031,6 @@ public class SplatBrowser
         int failed = 0;
         final int[] plotIndices = getSelectedPlots();
         if ( plotIndices != null ) {
-
             //  Add all spectra in a single list for efficiency.
             SpecData spectra[] = new SpecData[specIndices.length];
             for ( int i = 0; i < specIndices.length; i++ ) {
@@ -2057,7 +2056,7 @@ public class SplatBrowser
                             for ( int j = 0; j < plotIndices.length; j++ ) {
                                 if ( plotIndices[j] != -1 ) {
                                     globalList.getPlot( plotIndices[j] )
-                                        .fitToWidthAndHeight();
+                                        .fitToWidthAndHeight( false );
                                 }
                             }
                         }
@@ -2090,7 +2089,7 @@ public class SplatBrowser
                         public void run()
                         {
                             if ( plot != null ) {
-                                plot.getPlot().fitToWidthAndHeight();
+                                plot.getPlot().fitToWidthAndHeight( true );
                             }
                         }
                     };
@@ -2490,6 +2489,16 @@ public class SplatBrowser
             plot.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
                         removePlot( (PlotControlFrame) evt.getWindow() );
+                    }
+                });
+
+            //  Reposition the synopsis, after everything has settled.
+            final PlotControl plotControl = plot.getPlot();
+            SwingUtilities.invokeLater( new Runnable() {
+                    public void run() 
+                    {
+                        plotControl.positionSynopsisAnchor();
+                        plotControl.updateSynopsis();
                     }
                 });
         }
