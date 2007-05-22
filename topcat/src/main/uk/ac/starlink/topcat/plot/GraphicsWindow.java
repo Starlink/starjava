@@ -375,18 +375,43 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
-     * Constructs and returns a menu suitable which can be used to select
-     * error modes and possibly styles.
+     * Constructs and returns a menu for selecting marker styles.
+     * Selecting an item from this list resets all plotting styles in this
+     * window according to the selected StyleSet.
      *
-     * @param  renderers  list of renderers which should be offered as 
-     *         additional style options at the end of the menu (or null)
+     * @param   styleSet  style sets to be presented in the menu
+     * @return  menu
+     */
+    public JMenu createMarkerStyleMenu( StyleSet[] styleSets ) {
+        JMenu styleMenu = new JMenu( "Marker Style" );
+        styleMenu.setMnemonic( KeyEvent.VK_M );
+        for ( int i = 0; i < styleSets.length; i++ ) {
+            final StyleSet styleSet = styleSets[ i ];
+            String name = styleSet.getName();
+            Icon icon = MarkStyles.getIcon( styleSet );
+            Action stylesAct = new BasicAction( name, icon,
+                                                "Set marker plotting style to "
+                                              + name ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setStyles( styleSet );
+                    replot();
+                }
+            };
+            styleMenu.add( stylesAct );
+        }
+        return styleMenu;
+    }
+
+    /**
+     * Constructs and returns a menu which can be used to select error modes
+     * for this window.
+     *
      * @return  new error mode selection menu
      */
-    public JMenu createErrorMenu( final ErrorRenderer[] renderers ) {
+    public JMenu createErrorModeMenu() {
 
         /* Create a new menu. */
-        final JMenu errorMenu = new JMenu( "Error Bars" );
-        errorMenu.setMnemonic( KeyEvent.VK_B );
+        JMenu errorMenu = new JMenu( "Errors" );
 
         /* For each dimension add menu items corresponding to what mode of
          * error bar it requires. */
@@ -399,29 +424,40 @@ public abstract class GraphicsWindow extends AuxWindow {
                 errorMenu.add( errItems[ imode ] );
             }
         }
+        return errorMenu;
+    }
+
+    /**
+     * Constructs and returns a menu which can be used to select error styles
+     * to be imposed at once on all subsets.
+     *
+     * @param   renderers  full list of renderers which may be used to 
+     *          draw errors
+     */
+    public JMenu createErrorRendererMenu( final ErrorRenderer[] renderers ) {
+
+        /* Create a new menu. */
+        final JMenu styleMenu = new JMenu( "Error Style" );
 
         /* Prepare to add items at the end of the menu for selecting error
          * rendering style.  This is not a fixed list, because it depends
          * on what the current error mode selection is.  So we need and
          * error mode selection listener which deletes and re-adds suitable
          * error renderer items each time the mode selection changes. */
-        if ( renderers != null ) {
-            final int nfixed = errorMenu.getItemCount();
-            ActionListener errStyleListener = new ActionListener() {
-                public void actionPerformed( ActionEvent evt ) {
-                    updateErrorMenu( errorMenu, nfixed, renderers );
-                }
-            };
-            for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
-                errorModeModels_[ ierr ].addActionListener( errStyleListener );
+        ActionListener errStyleListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updateErrorRendererMenu( styleMenu, 0, renderers );
             }
-
-            /* Invoke the update now to cope with the current state. */
-            updateErrorMenu( errorMenu, nfixed, renderers );
+        };
+        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+            errorModeModels_[ ierr ].addActionListener( errStyleListener );
         }
 
+        /* Invoke the update now to set it up for the current state. */
+        errStyleListener.actionPerformed( null );
+
         /* Return the configured menu. */
-        return errorMenu;
+        return styleMenu;
     }
 
     /**
@@ -437,14 +473,16 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param  renderers  array of renderers for which menu actions may be
      *                    added
      */
-    private void updateErrorMenu( JMenu errorMenu, int nfixed,
-                                  ErrorRenderer[] renderers ) {
+    private void updateErrorRendererMenu( JMenu errorMenu, int nfixed,
+                                          ErrorRenderer[] renderers ) {
 
         /* Delete any of the menu items which we added last time. */
         while ( errorMenu.getItemCount() > nfixed ) {
             errorMenu.remove( errorMenu.getItemCount() - 1 );
         }
-        errorMenu.addSeparator();
+        if ( nfixed > 0 ) {
+            errorMenu.addSeparator();
+        }
 
         /* Count the number of non-blank dimensions for error bars. */
         int ndim = 0;
@@ -458,6 +496,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* For each known renderer, add an action to the menu if it makes
          * sense for the current error bar dimensionality. */
+        int nAdded = 0;
         for ( int ir = 0; ir < renderers.length; ir++ ) {
             final ErrorRenderer erend = renderers[ ir ];
             if ( erend.supportsDimensionality( ndim ) ) {
@@ -471,7 +510,13 @@ public abstract class GraphicsWindow extends AuxWindow {
                     }
                 };
                 errorMenu.add( rendAct );
+                nAdded++;
             }
+        }
+
+        /* If no errors are in use, just add a disabled entry to that effect. */
+        if ( nAdded == 0 ) {
+            errorMenu.add( "No error bars" ).setEnabled( false );
         }
     }
 
