@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Icon;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
@@ -75,6 +77,19 @@ public class SphereWindow extends Plot3DWindow {
         /* Set up error mode selection model for radial errors. */
         radialErrorModeModel_ = new ErrorModeSelectionModel( 2, "Radial" );
         radialErrorModeModel_.addActionListener( getReplotListener() );
+
+        /* Error mode menu. */
+        JMenu errorMenu = new JMenu( "Errors" );
+        JMenuItem[] radialItems = radialErrorModeModel_.createMenuItems();
+        for ( int i = 0; i < radialItems.length; i++ ) {
+            errorMenu.add( radialItems[ i ] );
+        }
+        errorMenu.addSeparator();
+        errorMenu.add( tangentErrorToggler_.createMenuItem() );
+        getJMenuBar().add( errorMenu );
+
+        /* Style Menu. */
+        getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );
 
         /* Add toolbar buttons. */
         getToolBar().add( tangentErrorToggler_.createToolbarButton() );
