@@ -123,6 +123,7 @@ public class ResourceIcon implements Icon {
         Y0_LINE = makeIcon( "y0line1.gif" ),
         TO_COLUMN = makeIcon( "Column.gif" ),
         COUNT = makeIcon( "ab3.gif" ),
+        RECOUNT = makeIcon( "re-ab3.gif" ),
         INVERT = makeIcon( "invert3.gif" ),
         HEAD = makeIcon( "head.gif" ),
         TAIL = makeIcon( "tail.gif" ),
