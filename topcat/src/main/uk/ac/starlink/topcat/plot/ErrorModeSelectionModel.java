@@ -235,8 +235,19 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
         for ( int i = 0; i < modes.length; i++ ) {
             modes[ i ] = i == iaxis_ ? mode : ErrorMode.NONE;
         }
-        final Icon icon =
-            errorRenderer_.getLegendIcon( modes, width, height, xpad, ypad );
+        return markCentre( errorRenderer_
+                          .getLegendIcon( modes, width, height, xpad, ypad ) );
+    }
+
+    /**
+     * Returns an icon based on a given one but with a little circle
+     * painted in the middle to represent the point around which the
+     * error bars are displayed.  Suitable for using in menus etc.
+     *
+     * @param   icon  input icon representing error bars
+     * @return  same as <code>icon</code> but with a centre mark
+     */
+    private static Icon markCentre( final Icon icon ) {
         return new Icon() {
             public int getIconHeight() {
                 return icon.getIconHeight();
