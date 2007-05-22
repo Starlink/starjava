@@ -32,11 +32,10 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class SyntheticColumn extends ColumnData {
 
-    private StarTable stable;
-    private List subsets;
-    private String expression;
-    private CompiledExpression compEx;
-    private TopcatJELRowReader rowReader;
+    private StarTable stable_;
+    private List subsets_;
+    private CompiledExpression compEx_;
+    private TopcatJELRowReader rowReader_;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -60,8 +59,8 @@ public class SyntheticColumn extends ColumnData {
                             String expression, Class resultType )
             throws CompilationException {
         super( vinfo );
-        this.stable = stable;
-        this.subsets = subsets;
+        stable_ = stable;
+        subsets_ = subsets;
         setExpression( expression, resultType );
     }
 
@@ -82,15 +81,15 @@ public class SyntheticColumn extends ColumnData {
 
         /* Get an up-to-date RowReader (an old one may not be aware of recent
          * changes to the StarTable or subset list). */
-        RowSubset[] subsetArray = subsets == null
+        RowSubset[] subsetArray = subsets_ == null
                                 ? new RowSubset[ 0 ]
                                 : (RowSubset[]) 
-                                  subsets.toArray( new RowSubset[ 0 ] );
-        rowReader = new TopcatJELRowReader( stable, subsetArray );
+                                  subsets_.toArray( new RowSubset[ 0 ] );
+        rowReader_ = new TopcatJELRowReader( stable_, subsetArray );
 
         /* Compile the expression. */
-        Library lib = TopcatJELUtils.getLibrary( rowReader, false );
-        compEx = Evaluator.compile( expression, lib, resultType );
+        Library lib = TopcatJELUtils.getLibrary( rowReader_, false );
+        compEx_ = Evaluator.compile( expression, lib, resultType );
 
         /* Work out the type of the compiled expression. */
         Class actualType =
@@ -128,7 +127,7 @@ public class SyntheticColumn extends ColumnData {
 
     public Object readValue( long lrow ) throws IOException {
         try {
-            return rowReader.evaluateAtRow( compEx, lrow );
+            return rowReader_.evaluateAtRow( compEx_, lrow );
         }
         catch ( RuntimeException e ) {
             logger.info( e.toString() );
