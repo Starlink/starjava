@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +88,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         tcm.getColumn( icol++ ).setPreferredWidth( 64 );
         tcm.getColumn( icol++ ).setPreferredWidth( 200 );
         tcm.getColumn( icol++ ).setPreferredWidth( 80 );
+        tcm.getColumn( icol++ ).setPreferredWidth( 60 );
         tcm.getColumn( icol++ ).setPreferredWidth( 200 );
         tcm.getColumn( icol++ ).setPreferredWidth( 80 );
 
@@ -260,6 +263,31 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             }
         };
 
+        /* Percentage column. */
+        MetaColumn fracCol = new MetaColumn( "Fraction", String.class ) {
+            final NumberFormat fmt;
+            {
+               fmt = NumberFormat.getInstance();
+               if ( fmt instanceof DecimalFormat ) {
+                   ((DecimalFormat) fmt).applyPattern( "      ###%" );
+               }
+            }
+            public Object getValue( int irow ) {
+                RowSubset rset = getSubset( irow );
+                Number count = (Number) subsetCounts.get( rset );
+                if ( count == null ) {
+                    return null;
+                }
+                else {
+                    double fraction = count.doubleValue()
+                                    / tcModel.getDataModel().getRowCount();
+                    String txt = fmt.format( fraction );
+                    txt = txt.replaceFirst( "  100%", "100%" );
+                    return txt;
+                }
+            }
+        };
+
         /* Expression column for algebraic subsets. */
         MetaColumn exprCol = new MetaColumn( "Expression", String.class ) { 
             public Object getValue( int irow ) {
@@ -318,6 +346,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         cols.add( idCol );
         cols.add( nameCol );
         cols.add( sizeCol );
+        cols.add( fracCol );
         cols.add( exprCol );
         cols.add( colCol );
         return new MetaColumnTableModel( cols ) {
