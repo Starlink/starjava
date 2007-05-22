@@ -27,7 +27,9 @@ public class Cartesian3DWindow extends Plot3DWindow {
             getToolBar().add( getErrorModeModels()[ ierr ]
                                                  .createOnOffToolbarButton() );
         }
-        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+        getJMenuBar().add( createErrorModeMenu() );
+        getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );
+        getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
         getToolBar().addSeparator();
 
         addHelp( "Cartesian3DWindow" );

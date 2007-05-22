@@ -210,28 +210,14 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         subsetMenu.add( fromVisibleAction_ );
         getJMenuBar().add( subsetMenu );
 
-        /* Construct a new menu for marker style set selection. */
-        JMenu styleMenu = new JMenu( "Marker Style" );
-        styleMenu.setMnemonic( KeyEvent.VK_M );
-        StyleSet[] styleSets = STYLE_SETS;
-        for ( int i = 0; i < styleSets.length; i++ ) {
-            final StyleSet styleSet = styleSets[ i ];
-            String name = styleSet.getName();
-            Icon icon = MarkStyles.getIcon( styleSet );
-            Action stylesAct = new BasicAction( name, icon,
-                                                "Set marker plotting style to "
-                                                + name ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    setStyles( styleSet );
-                    replot();
-                }
-            };
-            styleMenu.add( stylesAct );
-        }
-        getJMenuBar().add( styleMenu );
-
         /* Construct a new menu for error modes. */
-        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+        getJMenuBar().add( createErrorModeMenu() );
+
+        /* Construct a new menu for marker style set selection. */
+        getJMenuBar().add( createMarkerStyleMenu( STYLE_SETS ) );
+
+        /* Add a new menu for error bar style selection. */
+        getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );

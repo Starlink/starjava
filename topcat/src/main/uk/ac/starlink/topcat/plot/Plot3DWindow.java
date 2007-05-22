@@ -177,26 +177,6 @@ public abstract class Plot3DWindow extends GraphicsWindow
         }
         getJMenuBar().add( subsetMenu );
 
-        /* Construct a new menu for marker style set selection. */
-        JMenu styleMenu = new JMenu( "Marker Style" );
-        styleMenu.setMnemonic( KeyEvent.VK_M );
-        StyleSet[] styleSets = PlotWindow.STYLE_SETS;
-        for ( int i = 0; i < styleSets.length; i++ ) {
-            final StyleSet styleSet = styleSets[ i ];
-            String name = styleSet.getName();
-            Icon icon = MarkStyles.getIcon( styleSet );
-            Action stylesAct = new BasicAction( name, icon,
-                                                "Set marker plotting style to "
-                                                + name ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    setStyles( styleSet );
-                    replot();
-                }
-            };
-            styleMenu.add( stylesAct );
-        }
-        getJMenuBar().add( styleMenu );
-
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );

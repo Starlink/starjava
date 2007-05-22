@@ -231,6 +231,9 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         subsetMenu.add( fromXRangeAction );
         getJMenuBar().add( subsetMenu );
 
+        /* Construct a new menu for error modes. */
+        getJMenuBar().add( createErrorModeMenu() );
+
         /* Construct a menu for line style set selection. */
         JMenu styleMenu = new JMenu( "Line Style" );
         styleMenu.setMnemonic( KeyEvent.VK_L );
@@ -250,8 +253,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         }
         getJMenuBar().add( styleMenu );
 
-        /* Construct a new menu for error modes. */
-        getJMenuBar().add( createErrorMenu( ERROR_RENDERERS ) );
+        /* Add a new menu for error bar style selection. */
+        getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Populate toolbar. */
         getToolBar().add( rescaleActionXY );
