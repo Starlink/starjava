@@ -19,12 +19,13 @@ import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.ColumnInfo;
@@ -43,6 +44,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Map subsetCounts;
     private final PlasticStarTable dataModel;
     private final MetaColumnTableModel subsetsTableModel;
+    private final ToggleButtonModel autoCountModel;
     private final Action addAct;
     private final Action tocolAct;
     private final Action countAct;
@@ -53,6 +55,16 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
+
+    /* JTable Column names. */
+    private static final String CNAME_ID =
+        TopcatJELRowReader.SUBSET_ID_CHAR + "ID";
+    private static final String CNAME_NAME = "Name";
+    private static final String CNAME_SIZE = "Size";
+    private static final String CNAME_FRACTION = "Fraction";
+    private static final String CNAME_EXPRESSION = "Expression";
+    private static final String CNAME_COLID =
+        "Col " + TopcatJELRowReader.COLUMN_ID_CHAR + "ID";
 
     /**
      * Constructs a new SubsetWindow from a TableViewer;
@@ -82,15 +94,16 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( true );
 
-        /* Configure column widths. */
-        TableColumnModel tcm = jtab.getColumnModel();
-        int icol = 0;
-        tcm.getColumn( icol++ ).setPreferredWidth( 64 );
-        tcm.getColumn( icol++ ).setPreferredWidth( 200 );
-        tcm.getColumn( icol++ ).setPreferredWidth( 80 );
-        tcm.getColumn( icol++ ).setPreferredWidth( 60 );
-        tcm.getColumn( icol++ ).setPreferredWidth( 200 );
-        tcm.getColumn( icol++ ).setPreferredWidth( 80 );
+        /* Configure column widths and alignments. */
+        jtab.getColumn( CNAME_ID ).setPreferredWidth( 64 );
+        jtab.getColumn( CNAME_NAME ).setPreferredWidth( 200 );
+        jtab.getColumn( CNAME_SIZE ).setPreferredWidth( 100 );
+        jtab.getColumn( CNAME_FRACTION ).setPreferredWidth( 80 );
+        jtab.getColumn( CNAME_EXPRESSION ).setPreferredWidth( 200 );
+        jtab.getColumn( CNAME_COLID ).setPreferredWidth( 80 );
+        DefaultTableCellRenderer rightRend = new DefaultTableCellRenderer();
+        rightRend.setHorizontalAlignment( SwingConstants.RIGHT );
+        jtab.getColumn( CNAME_FRACTION ).setCellRenderer( rightRend );
 
         /* Customise the JTable's column model to provide control over
          * which columns are displayed. */
@@ -192,6 +205,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 }
             }
         } );
+
+        /* Toggle for determining whether counts are performed automatically
+         * when they are needed for display and not yet known. */
+        autoCountModel =
+            new ToggleButtonModel( "Autocount", ResourceIcon.RECOUNT,
+                                   "Count subset size automatically" );
+        autoCountModel.setSelected( true );
  
         /* Toolbar. */
         getToolBar().add( addAct );
@@ -215,6 +235,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         subsetsMenu.add( invertAct );
         subsetsMenu.add( tocolAct );
         subsetsMenu.add( countAct );
+        subsetsMenu.add( autoCountModel.createMenuItem() );
         getJMenuBar().add( subsetsMenu );
 
         /* Display menu. */
@@ -242,54 +263,47 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     public MetaColumnTableModel makeTableModel() {
 
         /* ID column. */
-        MetaColumn idCol = new MetaColumn( TopcatJELRowReader.SUBSET_ID_CHAR 
-                                           + "ID", String.class ) {
+        MetaColumn idCol = new MetaColumn( CNAME_ID, String.class ) {
             public Object getValue( int irow ) {
                 return getSubsetID( irow );
             }
         };
 
         /* Name column. */
-        MetaColumn nameCol = new MetaColumn( "Name", String.class ) {
+        MetaColumn nameCol = new MetaColumn( CNAME_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return getSubsetName( irow );
             }
         };
 
         /* Size column. */
-        MetaColumn sizeCol = new MetaColumn( "Size", Long.class ) {
+        MetaColumn sizeCol = new MetaColumn( CNAME_SIZE, Long.class ) {
             public Object getValue( int irow ) {
                 return getSubsetSize( irow );
             }
         };
 
         /* Percentage column. */
-        MetaColumn fracCol = new MetaColumn( "Fraction", String.class ) {
+        MetaColumn fracCol = new MetaColumn( CNAME_FRACTION, String.class ) {
             final NumberFormat fmt;
             {
-               fmt = NumberFormat.getInstance();
-               if ( fmt instanceof DecimalFormat ) {
-                   ((DecimalFormat) fmt).applyPattern( "      ###%" );
-               }
+                fmt = NumberFormat.getInstance();
+                if ( fmt instanceof DecimalFormat ) {
+                    ((DecimalFormat) fmt).applyPattern( "###% " );
+                }
             }
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
                 Number count = (Number) subsetCounts.get( rset );
-                if ( count == null ) {
-                    return null;
-                }
-                else {
-                    double fraction = count.doubleValue()
-                                    / tcModel.getDataModel().getRowCount();
-                    String txt = fmt.format( fraction );
-                    txt = txt.replaceFirst( "  100%", "100%" );
-                    return txt;
-                }
+                return count == null
+                     ? null
+                     : fmt.format( count.doubleValue()
+                                 / tcModel.getDataModel().getRowCount() );
             }
         };
 
         /* Expression column for algebraic subsets. */
-        MetaColumn exprCol = new MetaColumn( "Expression", String.class ) { 
+        MetaColumn exprCol = new MetaColumn( CNAME_EXPRESSION, String.class ) { 
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
                 if ( rset instanceof SyntheticRowSubset ) {
@@ -326,8 +340,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         };
 
         /* Column ID column for column subsets. */
-        String ccname = "Column " + TopcatJELRowReader.COLUMN_ID_CHAR + "ID";
-        MetaColumn colCol = new MetaColumn( ccname, String.class ) {
+        MetaColumn colCol = new MetaColumn( CNAME_COLID, String.class ) {
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
                 if ( rset instanceof BooleanColumnRowSubset ) {
@@ -408,7 +421,27 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private Object getSubsetSize( int irow ) {
         RowSubset rset = getSubset( irow );
         Number count = (Number) subsetCounts.get( rset );
-        return ( count == null || count.longValue() < 0 ) ? null : count;
+        if ( count == null || count.longValue() < 0 ) {
+
+            /* If the value is unknown and autocount mode is on, then kick
+             * off a thread to count the included rows.  Make sure this is
+             * only attempted if a count is not already in progress. */
+            if ( autoCountModel.isSelected() ) {
+                if ( activeCounter == null ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            if ( activeCounter == null ) {
+                                countAct.actionPerformed( null );
+                            }
+                        }
+                    } );
+                }
+            }
+            return null;
+        }
+        else {
+            return count;
+        }
     }
 
     /**
