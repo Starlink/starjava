@@ -9825,6 +9825,9 @@ introduced since the last version:
     <li>Row Subset names can now be re-used.  If you need to enter a new
         subset name, you can select from the list of existing ones as an
         alternative to typing a new one in.</li>
+    <li>Add percentage column to SubsetWindow.</li>
+    <li>Subset sizes are now counted automatically by default in SubsetWindow.
+        New checkbox added in menu to switch off/on this behaviour.</li>
     </ul>
     </p></dd>
 
