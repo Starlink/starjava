@@ -90,6 +90,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
 
         /* If the superclass implementation recognises it, use that. */
         Object translation = super.translate( name );
+        assert ! ( translation instanceof Short );
         if ( translation != null ) {
             return translation;
         }
