@@ -104,7 +104,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
             String modeName = mode.toString();
             JRadioButtonMenuItem item =
                 new JRadioButtonMenuItem( " " + axisName_ + " " + mode,
-                                          getIcon( mode, 22, 20, 0, 0 ) );
+                                          getIcon( mode, 24, 24, 1, 1 ) );
             final int im = imode;
             item.setModel( new DefaultButtonModel() {
                 public boolean isSelected() {
