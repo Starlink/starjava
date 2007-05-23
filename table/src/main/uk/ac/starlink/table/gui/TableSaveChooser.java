@@ -302,6 +302,24 @@ public abstract class TableSaveChooser extends JPanel {
     }
 
     /**
+     * Returns the currently selected format string.
+     *
+     * @return  format label
+     */
+    public String getSelectedFormat() {
+        return (String) formatSelector_.getSelectedItem();
+    }
+
+    /**
+     * Sets the currently selected format string.
+     *
+     * @param   format  format label
+     */
+    public void setSelectedFormat( String format ) {
+        formatSelector_.setSelectedItem( format );
+    }
+
+    /**
      * Creates a dialogue which can be used for user interaction.
      *
      * @param  parent  parent component
@@ -363,7 +381,7 @@ public abstract class TableSaveChooser extends JPanel {
      */
     private void submitLocation( final String loc ) {
         final StarTableOutput sto = getTableOutput();
-        final String format = (String) formatSelector_.getSelectedItem();
+        final String format = getSelectedFormat();
         worker_ = new SaveWorker( getProgressBar(), getTable(), loc ) {
             protected void attemptSave( StarTable table ) throws IOException {
                 sto.writeStarTable( table, loc, format );
