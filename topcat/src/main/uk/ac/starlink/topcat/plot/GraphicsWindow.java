@@ -415,11 +415,12 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* For each dimension add menu items corresponding to what mode of
          * error bar it requires. */
-        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
+        ErrorModeSelectionModel[] errorModeModels = getErrorModeModels();
+        for ( int ierr = 0; ierr < errorModeModels.length; ierr++ ) {
             if ( ierr > 0 ) {
                 errorMenu.addSeparator();
             }
-            JMenuItem[] errItems = errorModeModels_[ ierr ].createMenuItems();
+            JMenuItem[] errItems = errorModeModels[ ierr ].createMenuItems();
             for ( int imode = 0; imode < errItems.length; imode++ ) {
                 errorMenu.add( errItems[ imode ] );
             }
@@ -435,6 +436,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      *          draw errors
      */
     public JMenu createErrorRendererMenu( final ErrorRenderer[] renderers ) {
+        final ErrorModeSelectionModel[] modeModels = getErrorModeModels();
 
         /* Create a new menu. */
         final JMenu styleMenu = new JMenu( "Error Style" );
@@ -446,11 +448,12 @@ public abstract class GraphicsWindow extends AuxWindow {
          * error renderer items each time the mode selection changes. */
         ActionListener errStyleListener = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                updateErrorRendererMenu( styleMenu, 0, renderers );
+                updateErrorRendererMenu( styleMenu, 0, renderers,
+                                         modeModels );
             }
         };
-        for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
-            errorModeModels_[ ierr ].addActionListener( errStyleListener );
+        for ( int ierr = 0; ierr < modeModels.length; ierr++ ) {
+            modeModels[ ierr ].addActionListener( errStyleListener );
         }
 
         /* Invoke the update now to set it up for the current state. */
@@ -472,9 +475,11 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param  nfixed     number of initial menu items to leave alone
      * @param  renderers  array of renderers for which menu actions may be
      *                    added
+     * @param  modeModels error mode models
      */
     private void updateErrorRendererMenu( JMenu errorMenu, int nfixed,
-                                          ErrorRenderer[] renderers ) {
+                                          ErrorRenderer[] renderers,
+                                          ErrorModeSelectionModel[] modeModels ) {
 
         /* Delete any of the menu items which we added last time. */
         while ( errorMenu.getItemCount() > nfixed ) {
@@ -486,9 +491,9 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Count the number of non-blank dimensions for error bars. */
         int ndim = 0;
-        ErrorMode[] modes = new ErrorMode[ errorModeModels_.length ];
-        for ( int idim = 0; idim < errorModeModels_.length; idim++ ) {
-            modes[ idim ] = errorModeModels_[ idim ].getMode();
+        ErrorMode[] modes = new ErrorMode[ modeModels.length ];
+        for ( int idim = 0; idim < modeModels.length; idim++ ) {
+            modes[ idim ] = modeModels[ idim ].getMode();
             if ( ! ErrorMode.NONE.equals( modes[ idim ] ) ) {
                 ndim++;
             }
@@ -648,7 +653,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 new CartesianPointSelector.ToggleSet( "Flip", flipModels_ ),
             };
         return new CartesianPointSelector( getStyles(), axisNames_, toggleSets,
-                                           errorModeModels_ );
+                                           getErrorModeModels() );
     };
 
     /**
