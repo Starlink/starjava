@@ -43,19 +43,18 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  */
 public class StatsWindow extends AuxWindow {
 
-    private TopcatModel tcModel;
-    private StarTable dataModel;
-    private TableColumnModel columnModel;
-    private OptionsListModel subsets;
-    private RowSubset rset = RowSubset.ALL;
-    private StatsCalculator activeCalculator;
-    private StatsCalculator lastCalc;
-    private Map calcMap;
-    private JTable jtab;
-    private JProgressBar progBar;
-    private JComboBox subSelector;
-    private AbstractTableModel statsTableModel;
-    private BitSet hideColumns = new BitSet();
+    private final TopcatModel tcModel_;
+    private final StarTable dataModel_;
+    private final TableColumnModel columnModel_;
+    private final OptionsListModel subsets_;
+    private final Map calcMap_;
+    private final JTable jtab_;
+    private final JProgressBar progBar_;
+    private final JComboBox subSelector_;
+    private final AbstractTableModel statsTableModel_;
+    private final BitSet hideColumns_ = new BitSet();
+    private StatsCalculator activeCalculator_;
+    private StatsCalculator lastCalc_;
 
     /**
      * Constructs a StatsWindow to report on the statistics of data in a
@@ -67,34 +66,34 @@ public class StatsWindow extends AuxWindow {
      */
     public StatsWindow( TopcatModel tcModel, Component parent ) {
         super( tcModel, "Row Statistics", parent );
-        this.tcModel = tcModel;
-        this.dataModel = tcModel.getDataModel();
-        this.columnModel = tcModel.getColumnModel();
-        this.subsets = tcModel.getSubsets();
+        tcModel_ = tcModel;
+        dataModel_ = tcModel.getDataModel();
+        columnModel_ = tcModel.getColumnModel();
+        subsets_ = tcModel.getSubsets();
 
         /* Set up a map to contain statistic sets that have been calculated. */
-        calcMap = new HashMap();
+        calcMap_ = new HashMap();
 
         /* Construct a table model which contains the results of the
          * current calculation. */
-        statsTableModel = makeStatsTableModel();
+        statsTableModel_ = makeStatsTableModel();
 
         /* Construct, configure and place the JTable which will form the 
          * main display area. */
-        jtab = new JTable( statsTableModel );
-        configureJTable( jtab );
-        getMainArea().add( new SizingScrollPane( jtab ) );
+        jtab_ = new JTable( statsTableModel_ );
+        configureJTable( jtab_ );
+        getMainArea().add( new SizingScrollPane( jtab_ ) );
 
         /* Customise the JTable's column model to provide control over
          * which columns are displayed. */
         MetaColumnModel statsColumnModel =
-            new MetaColumnModel( jtab.getColumnModel(), statsTableModel );
-        jtab.setColumnModel( statsColumnModel );
+            new MetaColumnModel( jtab_.getColumnModel(), statsTableModel_ );
+        jtab_.setColumnModel( statsColumnModel );
 
         /* By default, hide some of the less useful columns. */
         int nstat = statsColumnModel.getColumnCount();
         for ( int i = 0; i < nstat; i++ ) {
-            if ( hideColumns.get( i ) ) {
+            if ( hideColumns_.get( i ) ) {
                 statsColumnModel.removeColumn( i );
             }
         }
@@ -102,8 +101,8 @@ public class StatsWindow extends AuxWindow {
         /* Construct and place a widget for selecting which subset to
          * present results for. */
         JPanel controlPanel = getControlPanel();
-        subSelector = subsets.makeComboBox();
-        subSelector.addItemListener( new ItemListener() {
+        subSelector_ = subsets_.makeComboBox();
+        subSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 if ( evt.getStateChange() == ItemEvent.SELECTED ) {
                     setSubset( (RowSubset) evt.getItem() );
@@ -111,15 +110,15 @@ public class StatsWindow extends AuxWindow {
             }
         } );
         controlPanel.add( new JLabel( "Subset for calculations: " ) );
-        controlPanel.add( subSelector );
+        controlPanel.add( subSelector_ );
 
         /* Provide a button for requesting a recalculation. */
         Action recalcAct = new BasicAction( "Recalculate", ResourceIcon.REDO,
                                             "Recalculate the statistics for " +
                                             "the current subset" ) {
             public void actionPerformed( ActionEvent evt ) {
-                RowSubset rset = (RowSubset) subSelector.getSelectedItem();
-                calcMap.remove( rset );
+                RowSubset rset = (RowSubset) subSelector_.getSelectedItem();
+                calcMap_.remove( rset );
                 setSubset( rset );
             }
         };
@@ -138,7 +137,7 @@ public class StatsWindow extends AuxWindow {
         getJMenuBar().add( displayMenu );
 
         /* Add a progress bar for table scanning. */
-        progBar = placeProgressBar();
+        progBar_ = placeProgressBar();
 
         /* Add standard help actions. */
         addHelp( "StatsWindow" );
@@ -147,18 +146,18 @@ public class StatsWindow extends AuxWindow {
          * which triggers the initial statistics calculation.
          * It doesn't continue to reflect this value (for performance reasons)
          * but it needs an initial value from somewhere. */
-        subSelector.setSelectedItem( tcModel.getSelectedSubset() );
+        subSelector_.setSelectedItem( tcModel.getSelectedSubset() );
 
         /* Add a trigger to recalculate for a different subset if the
          * global current subset is changed. */
         tcModel.addTopcatListener( new TopcatListener() {
             public void modelChanged( TopcatEvent evt ) {
                 if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
-                    subSelector.setSelectedItem( StatsWindow.this.tcModel
-                                                .getSelectedSubset() );
+                    subSelector_.setSelectedItem( tcModel_
+                                                 .getSelectedSubset() );
                 }
                 if ( evt.getCode() == TopcatEvent.SHOW_SUBSET ) {
-                    subSelector.setSelectedItem( (RowSubset) evt.getDatum() );
+                    subSelector_.setSelectedItem( (RowSubset) evt.getDatum() );
                 }
             }
         } );
@@ -175,7 +174,6 @@ public class StatsWindow extends AuxWindow {
      * @param   rset  the RowSubset for which results are to be displayed
      */
     public void setSubset( RowSubset rset ) {
-        this.rset = rset;
 
         /* In the below, note that this window's calculator object keeps
          * a record of the active calculator.  Any StatsCalculator which
@@ -186,27 +184,27 @@ public class StatsWindow extends AuxWindow {
 
         /* Stop any calculations that are in train, since we will not now
          * need their results. */
-        if ( activeCalculator != null ) {
-            activeCalculator.interrupt();
+        if ( activeCalculator_ != null ) {
+            activeCalculator_.interrupt();
         }
 
         /* Ensure consistency with the subset selector. */
-        if ( rset != subSelector.getSelectedItem() ) {
-            subSelector.setSelectedItem( rset );
+        if ( rset != subSelector_.getSelectedItem() ) {
+            subSelector_.setSelectedItem( rset );
             return;
         }
 
         /* If we have already done this calculation, display the results
          * directly. */
-        if ( calcMap.containsKey( rset ) ) {
-            displayCalculations( (StatsCalculator) calcMap.get( rset ) );
+        if ( calcMap_.containsKey( rset ) ) {
+            displayCalculations( (StatsCalculator) calcMap_.get( rset ) );
         }
 
         /* Otherwise, kick off a new thread which will perform the
          * calculations and display the results in due course. */
         else {
-            activeCalculator = new StatsCalculator( rset );
-            activeCalculator.start();
+            activeCalculator_ = new StatsCalculator( rset );
+            activeCalculator_.start();
         }
     }
 
@@ -220,26 +218,23 @@ public class StatsWindow extends AuxWindow {
 
         /* Make the new results available to the table model and notify
          * it to update its data. */
-        boolean firstTime = lastCalc == null;
-        lastCalc = stats;
-        statsTableModel.fireTableDataChanged();
+        boolean firstTime = lastCalc_ == null;
+        lastCalc_ = stats;
+        statsTableModel_.fireTableDataChanged();
 
         /* First time only, configure the column widths according to 
          * contents. */
         if ( firstTime ) {
-            StarJTable.configureColumnWidths( jtab, 200, Integer.MAX_VALUE );
+            StarJTable.configureColumnWidths( jtab_, 200, Integer.MAX_VALUE );
         }
         
-        /* Write a heading appropriate to the subset we have the results for. */
-        // configureTitle();
-
         /* Since we've worked out the subset count, update the count model. */
         RowSubset rset = stats.rset;
         long nrow = stats.ngoodrow;
-        int irset = subsets.indexOf( rset );
+        int irset = subsets_.indexOf( rset );
         if ( irset >= 0 ) {
-            tcModel.getSubsetCounts().put( rset, new Long( nrow ) );
-            subsets.fireContentsChanged( irset, irset );
+            tcModel_.getSubsetCounts().put( rset, new Long( nrow ) );
+            subsets_.fireContentsChanged( irset, irset );
         }
     }
 
@@ -248,9 +243,9 @@ public class StatsWindow extends AuxWindow {
      */
     public void dispose() {
         super.dispose();
-        if ( activeCalculator != null ) {
-            activeCalculator.interrupt();
-            activeCalculator = null;
+        if ( activeCalculator_ != null ) {
+            activeCalculator_.interrupt();
+            activeCalculator_ = null;
             setBusy( false );
         }
     }
@@ -285,7 +280,7 @@ public class StatsWindow extends AuxWindow {
     }
 
     private int getModelIndexFromRow( int irow ) {
-        return columnModel.getColumn( irow ).getModelIndex();
+        return columnModel_.getColumn( irow ).getModelIndex();
     }
 
     /**
@@ -327,7 +322,7 @@ public class StatsWindow extends AuxWindow {
         List metas = new ArrayList();
 
         /* Index. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Index", Integer.class ) {
             public Object getValue( int irow ) {
                 return new Integer( irow + 1 );
@@ -335,11 +330,11 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* $ID. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         final ValueInfo idInfo = TopcatUtils.COLID_INFO;
         metas.add( new MetaColumn( idInfo.getName(), String.class ) {
             public Object getValue( int irow ) {
-                return ((StarTableColumn) columnModel .getColumn( irow ))
+                return ((StarTableColumn) columnModel_.getColumn( irow ))
                       .getColumnInfo()
                       .getAuxDatum( idInfo )
                       .getValue();
@@ -350,21 +345,21 @@ public class StatsWindow extends AuxWindow {
         metas.add( new MetaColumn( "Name", String.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                return dataModel.getColumnInfo( jcol ).getName();
+                return dataModel_.getColumnInfo( jcol ).getName();
             }
         } );
 
         /* Sum. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Sum", Double.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                if ( lastCalc.isNumber[ jcol ] ) {
-                    return new Double( lastCalc.sums[ jcol ] );
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                if ( lastCalc_.isNumber[ jcol ] ) {
+                    return new Double( lastCalc_.sums[ jcol ] );
                 }
-                else if ( lastCalc.isBoolean[ jcol ] ) {
-                    return new Long( lastCalc.ntrues[ jcol ] );
+                else if ( lastCalc_.isBoolean[ jcol ] ) {
+                    return new Long( lastCalc_.ntrues[ jcol ] );
                 }
                 else {
                     return null;
@@ -376,9 +371,9 @@ public class StatsWindow extends AuxWindow {
         metas.add( new MetaColumn( "Mean", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ] || lastCalc.isBoolean[ jcol ]
-                     ? new Float( lastCalc.means[ jcol ] )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ] || lastCalc_.isBoolean[ jcol ]
+                     ? new Float( lastCalc_.means[ jcol ] )
                      : null;
             }
         } );
@@ -387,69 +382,69 @@ public class StatsWindow extends AuxWindow {
         metas.add( new MetaColumn( "S.D.", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.popsdevs[ jcol ] ) 
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ]
+                     ? new Float( lastCalc_.popsdevs[ jcol ] ) 
                      : null;
             }
         } );
 
         /* Population Variance. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Variance", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.popvars[ jcol ] )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ]
+                     ? new Float( lastCalc_.popvars[ jcol ] )
                      : null;
             }
         } );
 
         /* Sample Standard Deviation. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Sample S.D.", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.sampsdevs[ jcol ] ) 
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ]
+                     ? new Float( lastCalc_.sampsdevs[ jcol ] ) 
                      : null;
             }
         } );
 
         /* Sample Variance. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Sample Variance", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.sampvars[ jcol ] )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ]
+                     ? new Float( lastCalc_.sampvars[ jcol ] )
                      : null;
             }
         } );
 
         /* Skew. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Skew", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.skews[ jcol ] )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ]
+                     ? new Float( lastCalc_.skews[ jcol ] )
                      : null;
             }
         } );
 
         /* Kurtosis. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Kurtosis", Float.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.isNumber[ jcol ]
-                     ? new Float( lastCalc.kurts[ jcol ] )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.isNumber[ jcol ]
+                     ? new Float( lastCalc_.kurts[ jcol ] )
                      : null;
             }
         } );
@@ -458,19 +453,19 @@ public class StatsWindow extends AuxWindow {
         metas.add( new MetaColumn( "Minimum", Object.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.mins[ jcol ];
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.mins[ jcol ];
             }
         } );
 
         /* Row for minimum. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Row of min.", Long.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if  ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.mins[ jcol ] != null
-                     ? new Long( lastCalc.imins[ jcol ] )
+                if  ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.mins[ jcol ] != null
+                     ? new Long( lastCalc_.imins[ jcol ] )
                      : null;
             }
         } );
@@ -479,19 +474,19 @@ public class StatsWindow extends AuxWindow {
         metas.add( new MetaColumn( "Maximum", Object.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.maxs[ jcol ];
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.maxs[ jcol ];
             }
         } );
 
         /* Row for maximum. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Row of max.", Long.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return lastCalc.maxs[ jcol ] != null
-                     ? new Long( lastCalc.imaxs[ jcol ] )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return lastCalc_.maxs[ jcol ] != null
+                     ? new Long( lastCalc_.imaxs[ jcol ] )
                      : null;
             }
         } );
@@ -500,29 +495,29 @@ public class StatsWindow extends AuxWindow {
         metas.add( new MetaColumn( "Good cells", Long.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return new Long( lastCalc.ngoods[ jcol ] );
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return new Long( lastCalc_.ngoods[ jcol ] );
             }
         } );
 
         /* Count of null rows. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Bad cells", Long.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                return new Long( lastCalc.nbads[ jcol ] );
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                return new Long( lastCalc_.nbads[ jcol ] );
             }
         } );
 
         /* Cardinality. */
-        hideColumns.set( metas.size() );
+        hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Cardinality", Integer.class ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
-                int card = lastCalc.cards[ jcol ];
-                return ( lastCalc.isCardinal[ jcol ] && card > 0 )
+                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+                int card = lastCalc_.cards[ jcol ];
+                return ( lastCalc_.isCardinal[ jcol ] && card > 0 )
                      ? new Integer( card )
                      : null;
             }
@@ -531,12 +526,12 @@ public class StatsWindow extends AuxWindow {
         /* Construct a new TableModel based on these meta columns. */
         final MetaColumnTableModel tmodel = new MetaColumnTableModel( metas ) {
             public int getRowCount() {
-                return columnModel.getColumnCount();
+                return columnModel_.getColumnCount();
             }
         };
 
         /* Ensure that it responds to changes in the main column model. */
-        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
+        columnModel_.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
                 tmodel.fireTableDataChanged();
             }
@@ -610,14 +605,14 @@ public class StatsWindow extends AuxWindow {
         public void run() {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    if ( StatsCalculator.this == activeCalculator ) {
+                    if ( StatsCalculator.this == activeCalculator_ ) {
                         StatsWindow.this.setBusy( true );
                     }
                 }
             } );
             try {
                 calculate();
-                calcMap.put( rset, StatsCalculator.this );
+                calcMap_.put( rset, StatsCalculator.this );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         displayCalculations( StatsCalculator.this );
@@ -630,8 +625,8 @@ public class StatsWindow extends AuxWindow {
             finally {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        if ( StatsCalculator.this == activeCalculator ) {
-                            activeCalculator = null;
+                        if ( StatsCalculator.this == activeCalculator_ ) {
+                            activeCalculator_ = null;
                             StatsWindow.this.setBusy( false );
                         }
                     }
@@ -650,7 +645,7 @@ public class StatsWindow extends AuxWindow {
          * @throws  IOException if calculation is not complete
          */
         private void calculate() throws IOException {
-            ncol = dataModel.getColumnCount();
+            ncol = dataModel_.getColumnCount();
 
             /* Allocate result objects. */
             isNumber = new boolean[ ncol ];
@@ -686,7 +681,8 @@ public class StatsWindow extends AuxWindow {
 
             /* See which columns we can sensibly gather statistics on. */
             for ( int icol = 0; icol < ncol; icol++ ) {
-                Class clazz = dataModel.getColumnInfo( icol ).getContentClass();
+                Class clazz = dataModel_.getColumnInfo( icol )
+                                        .getContentClass();
                 isNumber[ icol ] = Number.class.isAssignableFrom( clazz );
                 isComparable[ icol ] = Comparable.class
                                                  .isAssignableFrom( clazz );
@@ -698,9 +694,9 @@ public class StatsWindow extends AuxWindow {
             }
 
             /* Iterate over the selected rows in the table. */
-            RowSequence rseq = new ProgressBarStarTable( dataModel, progBar )
+            RowSequence rseq = new ProgressBarStarTable( dataModel_, progBar_ )
                               .getRowSequence();
-            int cardlimit = getCardinalityLimit( dataModel.getRowCount() );
+            int cardlimit = getCardinalityLimit( dataModel_.getRowCount() );
             IOException interruption = null;
             long lrow = 0L;
             ngoodrow = 0L;
