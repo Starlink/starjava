@@ -26,6 +26,7 @@ public class SphereWindow extends Plot3DWindow {
     private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
     private final ErrorModeSelectionModel[] tangentErrorModeModels_;
+    private final ErrorModeSelectionModel[] errorModeModels3d_;
 
     private final static ErrorRenderer[] ERROR_RENDERERS =
         ErrorRenderer.getOptionsSpherical();
@@ -78,6 +79,15 @@ public class SphereWindow extends Plot3DWindow {
         radialErrorModeModel_ = new ErrorModeSelectionModel( 2, "Radial" );
         radialErrorModeModel_.addActionListener( getReplotListener() );
 
+        /* Set up a 3-element array of the error mode selection models - 
+         * this is a convenience item for use when constructing error 
+         * renderer icons for legends. */
+        errorModeModels3d_ = new ErrorModeSelectionModel[] {
+            tangentErrorModeModels_[ 0 ],
+            tangentErrorModeModels_[ 1 ],
+            radialErrorModeModel_,
+        };
+
         /* Error mode menu. */
         JMenu errorMenu = new JMenu( "Errors" );
         JMenuItem[] radialItems = radialErrorModeModel_.createMenuItems();
@@ -90,6 +100,7 @@ public class SphereWindow extends Plot3DWindow {
 
         /* Style Menu. */
         getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );
+        getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Add toolbar buttons. */
         getToolBar().add( tangentErrorToggler_.createToolbarButton() );
@@ -118,11 +129,11 @@ public class SphereWindow extends Plot3DWindow {
 
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( false, true, ERROR_RENDERERS,
-                                    new ErrorModeSelectionModel[] {
-                                        tangentErrorModeModels_[ 0 ],
-                                        tangentErrorModeModels_[ 1 ],
-                                        radialErrorModeModel_,
-                                    } );
+                                    errorModeModels3d_ );
+    }
+
+    public ErrorModeSelectionModel[] getErrorModeModels() {
+        return errorModeModels3d_;
     }
 
     /**
