@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat;
 
+import uk.ac.starlink.table.ColumnInfo;
+
 /**
  * This class describes columns in a table of metadata.  Such columns
  * may be editable, have names, etc.
@@ -8,8 +10,7 @@ package uk.ac.starlink.topcat;
  */
 public abstract class MetaColumn {
 
-    private String name;
-    private Class clazz;
+    private final ColumnInfo info_;
 
     /**
      * Constructs a new MetaColumn with a given name and content class.
@@ -19,8 +20,29 @@ public abstract class MetaColumn {
      *         be a member
      */
     public MetaColumn( String name, Class clazz ) {
-        this.name = name;
-        this.clazz = clazz;
+        this( name, clazz, null );
+    }
+
+    /**
+     * Constructs a new MetaColumn with a given name, content class and
+     * description.
+     *
+     * @param  name  the name of the column
+     * @param  clazz  the Class of which every entry in this column will
+     *         be a member
+     * @param  description  short textual description of column
+     */
+    public MetaColumn( String name, Class clazz, String description ) {
+        this( new ColumnInfo( name, clazz, description ) );
+    }
+
+    /**
+     * Constructs a new MetaColumn with a given metadata object.
+     *
+     * @param   info  column metadata
+     */
+    public MetaColumn( ColumnInfo info ) {
+        info_ = info;
     }
 
     /**
@@ -60,7 +82,7 @@ public abstract class MetaColumn {
      * @return  name
      */
     public String getName() {
-        return name;
+        return info_.getName();
     }
 
     /**
@@ -69,7 +91,15 @@ public abstract class MetaColumn {
      * @return  content class
      */
     public Class getContentClass() {
-        return clazz;
+        return info_.getContentClass();
     }
 
+    /**
+     * Returns the metadata object describing this column.
+     *
+     * @return  column metadata
+     */
+    public ColumnInfo getColumnInfo() {
+        return info_;
+    }
 }
