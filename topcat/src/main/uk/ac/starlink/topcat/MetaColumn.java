@@ -33,7 +33,8 @@ public abstract class MetaColumn {
      * @param  description  short textual description of column
      */
     public MetaColumn( String name, Class clazz, String description ) {
-        this( new ColumnInfo( name, clazz, description ) );
+        this( new ColumnInfo( name.replaceAll( " ", "_" ),
+                              clazz, description ) );
     }
 
     /**
@@ -82,7 +83,7 @@ public abstract class MetaColumn {
      * @return  name
      */
     public String getName() {
-        return info_.getName();
+        return info_.getName().replaceAll( "_", " " );
     }
 
     /**
