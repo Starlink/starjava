@@ -28,9 +28,15 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable; 
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -55,6 +61,19 @@ public class StatsWindow extends AuxWindow {
     private final BitSet hideColumns_ = new BitSet();
     private StatsCalculator activeCalculator_;
     private StatsCalculator lastCalc_;
+    private SaveTableQueryWindow saveWindow_;
+
+    private static final ValueInfo NROW_INFO =
+        new DefaultValueInfo( "statRows", Long.class,
+                              "Number of rows over which statistics " +
+                              "were gathered" );
+    private static final ValueInfo LOC_INFO =
+        new DefaultValueInfo( "dataLocation", String.class,
+                              "Location of original table" );
+    private static final ValueInfo RSET_INFO =
+        new DefaultValueInfo( "subset", String.class,
+                              "Name of row subset over which statistics " +
+                              "were gathered" );
 
     /**
      * Constructs a StatsWindow to report on the statistics of data in a
@@ -112,7 +131,28 @@ public class StatsWindow extends AuxWindow {
         controlPanel.add( new JLabel( "Subset for calculations: " ) );
         controlPanel.add( subSelector_ );
 
-        /* Provide a button for requesting a recalculation. */
+        /* Provide an action for exporting the stats table to file. */
+        Action saveAct = new BasicAction( "Save", ResourceIcon.SAVE,
+                                          "Save calculated statistics " +
+                                          "as a table to disk" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                getSaveWindow().setVisible( true );
+            }       
+        };      
+
+        /* Provide an action for importing the stats table as a new
+         * TOPCAT table. */
+        Action importAct = new BasicAction( "Import", ResourceIcon.IMPORT,
+                                            "Import calculated statistics " +
+                                            "as a new table" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                ControlWindow.getInstance()
+                             .addTable( getStatsTable(), 
+                                        "Stats of " + tcModel_.getID(), true );
+            }
+        };
+
+        /* Provide an action for requesting a recalculation. */
         Action recalcAct = new BasicAction( "Recalculate", ResourceIcon.REDO,
                                             "Recalculate the statistics for " +
                                             "the current subset" ) {
@@ -122,8 +162,16 @@ public class StatsWindow extends AuxWindow {
                 setSubset( rset );
             }
         };
+
+        /* Add actions to toolbar. */
+        getToolBar().add( importAct );
+        getToolBar().add( saveAct );
         getToolBar().add( recalcAct );
         getToolBar().addSeparator();
+
+        /* Add export-type actions to File menu. */
+        getFileMenu().insert( saveAct, 1 );
+        getFileMenu().insert( importAct, 2 );
 
         /* Add a menu for statistics operations. */
         JMenu statsMenu = new JMenu( "Statistics" );
@@ -323,7 +371,7 @@ public class StatsWindow extends AuxWindow {
 
         /* Index. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Index", Integer.class ) {
+        metas.add( new MetaColumn( "Index", Integer.class, "Column index" ) {
             public Object getValue( int irow ) {
                 return new Integer( irow + 1 );
             }
@@ -332,7 +380,8 @@ public class StatsWindow extends AuxWindow {
         /* $ID. */
         hideColumns_.set( metas.size() );
         final ValueInfo idInfo = TopcatUtils.COLID_INFO;
-        metas.add( new MetaColumn( idInfo.getName(), String.class ) {
+        metas.add( new MetaColumn( idInfo.getName(), String.class,
+                                   "Column unique identifier" ) {
             public Object getValue( int irow ) {
                 return ((StarTableColumn) columnModel_.getColumn( irow ))
                       .getColumnInfo()
@@ -342,7 +391,7 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Name. */
-        metas.add( new MetaColumn( "Name", String.class ) {
+        metas.add( new MetaColumn( "Name", String.class, "Column name" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 return dataModel_.getColumnInfo( jcol ).getName();
@@ -351,7 +400,8 @@ public class StatsWindow extends AuxWindow {
 
         /* Sum. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Sum", Double.class ) {
+        metas.add( new MetaColumn( "Sum", Double.class,
+                                   "Sum of all values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -368,7 +418,8 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Mean. */
-        metas.add( new MetaColumn( "Mean", Float.class ) {
+        metas.add( new MetaColumn( "Mean", Float.class,
+                                   "Mean of values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -379,7 +430,9 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Population Standard Deviation. */
-        metas.add( new MetaColumn( "S.D.", Float.class ) {
+        metas.add( new MetaColumn( "SD", Float.class,
+                                   "Population standard deviation " +
+                                   "of values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -391,7 +444,8 @@ public class StatsWindow extends AuxWindow {
 
         /* Population Variance. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Variance", Float.class ) {
+        metas.add( new MetaColumn( "Variance", Float.class,
+                                   "Population variance of values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -403,7 +457,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Sample Standard Deviation. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Sample S.D.", Float.class ) {
+        metas.add( new MetaColumn( "Sample_SD", Float.class,
+                                   "Sample standard deviation of " +
+                                   "values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -415,7 +471,8 @@ public class StatsWindow extends AuxWindow {
 
         /* Sample Variance. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Sample Variance", Float.class ) {
+        metas.add( new MetaColumn( "Sample_Variance", Float.class,
+                                   "Sample variance of values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -427,7 +484,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Skew. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Skew", Float.class ) {
+        metas.add( new MetaColumn( "Skew", Float.class, 
+                                   "Gamma 1 measure of skewness " +
+                                   "of column value distribution" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -439,7 +498,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Kurtosis. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Kurtosis", Float.class ) {
+        metas.add( new MetaColumn( "Kurtosis", Float.class,
+                                   "Gamma 2 measure of peakedness of " +
+                                   "column value distribution" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -450,7 +511,9 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Minimum. */
-        metas.add( new MetaColumn( "Minimum", Object.class ) {
+        metas.add( new MetaColumn( "Minimum", Object.class,
+                                   "Numerically or other (e.g. alphabetically) "
+                                 + "smallest value in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -460,7 +523,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Row for minimum. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Row of min.", Long.class ) {
+        metas.add( new MetaColumn( "Row_of_min", Long.class,
+                                   "Row index of the minimum value " +
+                                   "from column"  ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if  ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -471,7 +536,9 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Maximum. */
-        metas.add( new MetaColumn( "Maximum", Object.class ) {
+        metas.add( new MetaColumn( "Maximum", Object.class,
+                                   "Numerically or other (e.g. alphabetically) "
+                                 + "largest value in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -481,7 +548,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Row for maximum. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Row of max.", Long.class ) {
+        metas.add( new MetaColumn( "Row_of_max", Long.class,
+                                   "Row index of the maximum value " +
+                                   "from column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -492,7 +561,8 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Count of non-null rows. */
-        metas.add( new MetaColumn( "Good cells", Long.class ) {
+        metas.add( new MetaColumn( "nGood", Long.class,
+                                   "Number of non-blank values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -502,7 +572,8 @@ public class StatsWindow extends AuxWindow {
 
         /* Count of null rows. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Bad cells", Long.class ) {
+        metas.add( new MetaColumn( "nBad", Long.class,
+                                   "Number of blank values in column" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -512,7 +583,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Cardinality. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Cardinality", Integer.class ) {
+        metas.add( new MetaColumn( "Cardinality", Integer.class,
+                                   "Number of distinct non-blank values " +
+                                   "in column (blank if too large)" ) {
             public Object getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
@@ -545,6 +618,88 @@ public class StatsWindow extends AuxWindow {
 
         /* Return the new model. */
         return tmodel;
+    }
+
+    /**
+     * Returns a window which allows you to save the most-recently calculated
+     * statistics as a table to disk.
+     *
+     * @return   save query window
+     */
+    private QueryWindow getSaveWindow() {
+        if ( saveWindow_ == null ) {
+            StarTableOutput sto = ControlWindow.getInstance().getTableOutput();
+            saveWindow_ = new SaveTableQueryWindow( "Save Statistics as Table",
+                                                    this, sto, false ) {
+                protected StarTable getTable() {
+                    return getStatsTable();
+                }
+            };
+            saveWindow_.setDefaultFormat( new AsciiTableWriter()
+                                         .getFormatName() );
+        }
+        return saveWindow_;
+    }
+
+    /**
+     * Returns a StarTable giving the results of the most recent statistics
+     * calculations.
+     *
+     * <p>The returned table is self-contained, and does not rely on any
+     * of the data models held by this window.  This is not an efficiency 
+     * problem, since the amount of data associated with a stats table
+     * should always be relatively small (unless you have many thousands
+     * of columns??).  And it's a Good Thing if this table is going to
+     * be used later as imported into TOPCAT.
+     *
+     * @return   table of statistics
+     */
+    private StarTable getStatsTable() {
+
+        /* Get an array of the column infos, one for each displayed item
+         * of statistical data. */
+        int ncol = jtab_.getColumnCount();
+        ColumnInfo[] infos = new ColumnInfo[ ncol ];
+        MetaColumnTableModel statsModel =
+            (MetaColumnTableModel) jtab_.getModel();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            int jcol = jtab_.getColumnModel().getColumn( icol ).getModelIndex();
+            infos[ icol ] =
+                new ColumnInfo( statsModel.getMeta( jcol ).getColumnInfo() );
+        }
+
+        /* Construct an empty table with these columns. */
+        RowListStarTable table = new RowListStarTable( infos );
+
+        /* Add parameter metadata giving a basic description of what
+         * this statistics table represents. */
+        table.setName( "Statistics for " + tcModel_.getLabel() );
+        RowSubset rset = (RowSubset) subSelector_.getSelectedItem();
+        String loc = tcModel_.getLocation();
+        if ( loc != null && loc.trim().length() > 0 ) {
+            table.setParameter( new DescribedValue( LOC_INFO, loc ) );
+        }
+        table.setParameter( new DescribedValue( NROW_INFO,
+                                                new Long( lastCalc_
+                                                         .ngoodrow ) ) );
+        if ( rset != null && rset != RowSubset.ALL ) {
+            table.setParameter( new DescribedValue( RSET_INFO,
+                                                    rset.getName() ) );
+        }
+
+        /* Populate the table with data as currently displayed in this
+         * window's JTable. */
+        int nrow = jtab_.getRowCount();
+        for ( int irow = 0; irow < nrow; irow++ ) {
+            Object[] row = new Object[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                row[ icol ] = jtab_.getValueAt( irow, icol );
+            }
+            table.addRow( row );
+        }
+
+        /* Return the table. */
+        return table;
     }
 
     /**
