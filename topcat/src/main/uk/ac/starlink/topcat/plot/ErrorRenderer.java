@@ -1070,9 +1070,9 @@ public abstract class ErrorRenderer {
                 int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
                 int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
                 int x0 = x + Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
-                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 4f );
-                int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
-                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 4f );
+                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 2f );
+                int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ] 
+                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 2f );
                 Drawing drawing = new Drawing( clip );
                 drawing.drawEllipse( x0, y0, ax, ay, bx, by );
                 if ( withLines_ ) {
@@ -1128,9 +1128,9 @@ public abstract class ErrorRenderer {
                 int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
                 int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
                 int x0 = x + Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
-                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 4f );
+                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 2f );
                 int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
-                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 4f );
+                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 2f );
                 Drawing drawing = new Drawing( clip );
                 drawing.fillEllipse( x0, y0, ax, ay, bx, by );
                 return drawing;
