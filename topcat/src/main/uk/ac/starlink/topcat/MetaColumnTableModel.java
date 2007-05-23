@@ -45,7 +45,13 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
         return getMeta( icol ).isEditable( irow );
     }
 
-    private MetaColumn getMeta( int icol ) {
+    /**
+     * Returns the MetaColumn object on which a given column is based.
+     *
+     * @param  icol  column index
+     * @return  metacolumn at <code>icol</code>
+     */
+    public MetaColumn getMeta( int icol ) {
         return (MetaColumn) metas.get( icol );
     }
 }
