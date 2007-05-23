@@ -9828,6 +9828,10 @@ introduced since the last version:
     <li>Add percentage column to SubsetWindow.</li>
     <li>Subset sizes are now counted automatically by default in SubsetWindow.
         New checkbox added in menu to switch off/on this behaviour.</li>
+    <li>Add new Save and Import actions to
+        <ref id="StatsWindow">Statistics Window</ref>.
+        (Note some of the column names in the StatsWindow JTable have
+         undergone slight changes).</li>
     </ul>
     </p></dd>
 
