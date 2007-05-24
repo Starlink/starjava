@@ -713,7 +713,7 @@ public class StatsWindow extends AuxWindow {
         ColumnInfo[] infos = new ColumnInfo[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             infos[ icol ] =
-                new ColumnInfo( getMetaColumn( icol ).getColumnInfo() );
+                new ColumnInfo( getMetaColumn( icol ).getInfo() );
         }
 
         /* Construct an empty table with these columns. */
@@ -780,6 +780,7 @@ public class StatsWindow extends AuxWindow {
          * Constructor.
          *
          * @param   quant   value at which quantile is calculated (0-1)
+         */
         QuantileColumn( double quant ) {
             this( quant, (String) QUANTILE_NAMES.get( new Double( quant ) ) );
         }

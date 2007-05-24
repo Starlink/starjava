@@ -100,7 +100,7 @@ public abstract class MetaColumn {
      *
      * @return  column metadata
      */
-    public ColumnInfo getColumnInfo() {
+    public ColumnInfo getInfo() {
         return info_;
     }
 }
