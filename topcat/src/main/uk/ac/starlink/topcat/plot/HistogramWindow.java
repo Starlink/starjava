@@ -21,12 +21,19 @@ import javax.swing.Action;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.IteratorRowSequence;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatModel;
 
 /**
  * GraphicsWindow which presents one-dimensional data as a histogram.
@@ -120,6 +127,19 @@ public class HistogramWindow extends GraphicsWindow {
             new ToggleButtonModel( "Cumulative Plot", ResourceIcon.CUMULATIVE,
                                    "Plot cumulative bars rather than counts" );
         cumulativeModel_.addActionListener( getReplotListener() );
+
+        /* Actions for saving or exporting the binned data as a table. */
+        TableSource binSrc = new TableSource() {
+            public StarTable getStarTable() {
+                return getBinDataTable();
+            }
+        };
+        Action saveAct = createSaveTableAction( "binned data", binSrc );
+        Action importAct = createImportTableAction( "binned data", binSrc,
+                                                    "histogram" );
+        getExportMenu().addSeparator();
+        getExportMenu().add( saveAct );
+        getExportMenu().add( importAct );
 
         /* Bin size and offset selector box. */
         binSizer_ = new RoundingSpinner();
@@ -477,6 +497,167 @@ public class HistogramWindow extends GraphicsWindow {
         /* The value used for logarithmic axes here is a bit arbitrary,
          * but something a bit below zero makes sense. */
         return yLogModel_.isSelected() ? -1. : 0.;
+    }
+
+    /**
+     * Returns the binned data in the form of a StarTable suitable for
+     * saving or otherwise exporting.
+     *
+     * @return   table representing the current histogram
+     */
+    private StarTable getBinDataTable() {
+
+        /* Get the binned data object from the last plotted histogram. */
+        final BinnedData binData = plot_.getBinnedData();
+
+        /* Get the list of set IDs which describes which table/subset pairs
+         * each of the sets in the binned data represents. */
+        SetId[] setIds = getPointSelectors().getPointSelection().getSetIds();
+        final int nset = setIds.length;
+
+        /* Set up the first two columns of the output table, which are
+         * lower and upper bounds for each bin. */
+        final int ipre = 2;
+        final ColumnInfo[] infos = new ColumnInfo[ ipre + nset ];
+        int icol = 0;
+        infos[ icol++ ] =
+            new ColumnInfo( "LOW", Double.class, "Bin lower bound" );
+        infos[ icol++ ] =
+            new ColumnInfo( "HIGH", Double.class, "Bin upper bound" );
+        assert icol == ipre;
+
+        /* Add a new column for each of the different subsets represented
+         * in the histogram. */
+        SetNamer namer = createSetNamer( setIds );
+        for ( int is = 0; is < nset; is++ ) {
+            SetId setId = setIds[ is ];
+            TopcatModel tcModel = setId.getPointSelector().getTable();
+            StringBuffer descrip = new StringBuffer();
+            descrip.append( "Bin count for row subset " )
+                   .append( ((RowSubset)
+                             tcModel.getSubsets().get( setId.getSetIndex() ))
+                           .getName() )
+                   .append( " in table " )
+                   .append( tcModel.getLabel() );
+            infos[ icol++ ] =
+                new ColumnInfo( namer.getName( setId ), Integer.class,
+                                descrip.toString() );
+        }
+        assert icol == infos.length;
+
+        /* Construct and return a non-random table which gets its data
+         * from the BinnedData object. */
+        AbstractStarTable binsTable = new AbstractStarTable() {
+            public int getColumnCount() {
+                return infos.length;
+            }
+            public long getRowCount() {
+                return -1L;
+            }
+            public ColumnInfo getColumnInfo( int icol ) {
+                return (ColumnInfo) infos[ icol ];
+            }
+            public RowSequence getRowSequence() {
+                final Iterator binIt = binData.getBinIterator( true );
+                Iterator rowIt = new Iterator() {
+                    public boolean hasNext() {
+                        return binIt.hasNext();
+                    }
+                    public Object next() {
+                        BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                        Object[] row = new Object[ ipre + nset ];
+                        int icol = 0;
+                        row[ icol++ ] = new Double( bin.getLowBound() );
+                        row[ icol++ ] = new Double( bin.getHighBound() );
+                        for ( int iset = 0; iset < nset; iset++ ) {
+                            row[ icol++ ] = new Integer( bin.getCount( iset ) );
+                        }
+                        return row;
+                    }
+                    public void remove() {
+                        binIt.remove();
+                    }
+                };
+                return new IteratorRowSequence( rowIt );
+            }
+        };
+        binsTable.setName( "Histogram" );
+        return binsTable;
+    }
+
+    /**
+     * Returns an object which can provide sensible labels for elements of
+     * a set of SetId objects.  Depending on what similarities/differences
+     * these have, the choice about how to label them best (compactly)
+     * will be different.
+     *
+     * @param  setIds  array of objects which needs to be distinguished
+     * @return  suitable setId namer object
+     */
+    private SetNamer createSetNamer( SetId[] setIds ) {
+        int nset = setIds.length;
+
+        /* Only one set - call it anything. */
+        if ( nset == 1 ) {
+            return new SetNamer() {
+                String getName( SetId setId ) {
+                    return "COUNT";
+                }
+            };
+        }
+
+        /* Multiple sets: need some distinguishing names. */
+        else {
+
+            /* Work out whether they all have the same table and/or all 
+             * represent the ALL subset. */
+            boolean multiTable = false;
+            boolean multiSet = false;
+            TopcatModel table0 = setIds[ 0 ].getPointSelector().getTable();
+            for ( int is = 0; is < nset; is++ ) {
+                multiTable = multiTable
+                    || setIds[ is ].getPointSelector().getTable() != table0;
+                multiSet = multiSet || setIds[ is ].getSetIndex() != 0;
+            }
+            final boolean useTable = multiTable;
+            final boolean useSet = multiSet;
+
+            /* Return a namer which names according to table or subset or both,
+             * as appropriate. */
+            return new SetNamer() {
+                String getName( SetId setId ) {
+                    TopcatModel tcModel = setId.getPointSelector().getTable();
+                    StringBuffer sbuf = new StringBuffer();
+                    if ( useTable ) {
+                        sbuf.append( "t" );
+                        sbuf.append( tcModel.getID() );
+                    }
+                    if ( useTable && useSet ) {
+                        sbuf.append( "_" );
+                    }
+                    if ( useSet ) {
+                        RowSubset rset = (RowSubset)
+                            tcModel.getSubsets().get( setId.getSetIndex() );
+                        sbuf.append( rset.getName() );
+                    }
+                    return sbuf.toString();
+                }
+            };
+        }
+    }
+
+    /**
+     * Interface describing an object which can give names to SetId objects.
+     */
+    private abstract class SetNamer {
+
+        /**
+         * Returns a good name for a SetId.
+         *
+         * @param  setId   object to label
+         * @param  compact human-readable name
+         */
+        abstract String getName( SetId setId );
     }
 
     /**
