@@ -36,6 +36,7 @@ import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable; 
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
@@ -156,26 +157,17 @@ public class StatsWindow extends AuxWindow {
         controlPanel.add( new JLabel( "Subset for calculations: " ) );
         controlPanel.add( subSelector_ );
 
-        /* Provide an action for exporting the stats table to file. */
-        Action saveAct = new BasicAction( "Save", ResourceIcon.SAVE,
-                                          "Save calculated statistics " +
-                                          "as a table to disk" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                getSaveWindow().setVisible( true );
-            }       
-        };      
-
-        /* Provide an action for importing the stats table as a new
-         * TOPCAT table. */
-        Action importAct = new BasicAction( "Import", ResourceIcon.IMPORT,
-                                            "Import calculated statistics " +
-                                            "as a new table" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                ControlWindow.getInstance()
-                             .addTable( getStatsTable(), 
-                                        "Stats of " + tcModel_.getID(), true );
+        /* Provide actions for saving the calculated statistics as a table
+         * or importing them into TOPCAT as a new table. */
+        TableSource statsSrc = new TableSource() {
+            public StarTable getStarTable() {
+                return getStatsTable();
             }
         };
+        Action saveAct = createSaveTableAction( "statistics", statsSrc );
+        Action importAct =
+            createImportTableAction( "statistics", statsSrc,
+                                     "stats of " + tcModel_.getID() );
 
         /* Provide an action for requesting a recalculation. */
         recalcAct_ = new BasicAction( "Recalculate", ResourceIcon.REDO,
@@ -194,9 +186,11 @@ public class StatsWindow extends AuxWindow {
         getToolBar().add( recalcAct_ );
         getToolBar().addSeparator();
 
-        /* Add export-type actions to File menu. */
-        getFileMenu().insert( saveAct, 1 );
-        getFileMenu().insert( importAct, 2 );
+        /* Add Export menu. */
+        JMenu exportMenu = new JMenu( "Export" );
+        exportMenu.add( saveAct );
+        exportMenu.add( importAct );
+        getJMenuBar().add( exportMenu );
 
         /* Add a menu for statistics operations. */
         JMenu statsMenu = new JMenu( "Statistics" );
@@ -660,27 +654,6 @@ public class StatsWindow extends AuxWindow {
     }
 
     /**
-     * Returns a window which allows you to save the most-recently calculated
-     * statistics as a table to disk.
-     *
-     * @return   save query window
-     */
-    private QueryWindow getSaveWindow() {
-        if ( saveWindow_ == null ) {
-            StarTableOutput sto = ControlWindow.getInstance().getTableOutput();
-            saveWindow_ = new SaveTableQueryWindow( "Save Statistics as Table",
-                                                    this, sto, false ) {
-                protected StarTable getTable() {
-                    return getStatsTable();
-                }
-            };
-            saveWindow_.setDefaultFormat( new AsciiTableWriter()
-                                         .getFormatName() );
-        }
-        return saveWindow_;
-    }
-
-    /**
      * Returns the MetaColumn providing the metadata and data for a given
      * column in the JTable displayed by this window.
      *
@@ -746,8 +719,12 @@ public class StatsWindow extends AuxWindow {
             table.addRow( row );
         }
 
-        /* Return the table. */
-        return table;
+        /* Return the table.  In its raw form it may have some columns with 
+         * types including Number and Object - it's not wise to let these
+         * loose outside of this window, since they typically cannot be 
+         * serialized by table output handlers.  So normalise it to contain
+         * only sensible types. */
+        return new NormaliseTable( table );
     }
 
     /**
@@ -792,7 +769,8 @@ public class StatsWindow extends AuxWindow {
          * @param  name   column name
          */
         QuantileColumn( double quant, String name ) {
-            super( name, Number.class, "Quantile corresponding to " + quant );
+            super( name, Number.class,
+                   "Value below which " + quant + " of column contents fall" );
             quant_ = quant;
             key_ = new Double( quant );
         }
