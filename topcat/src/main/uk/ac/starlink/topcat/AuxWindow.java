@@ -18,7 +18,10 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -38,6 +41,12 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.TableSource;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.AsciiTableWriter;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Provides a common superclass for windows popped up by TOPCAT.
@@ -55,6 +64,7 @@ public class AuxWindow extends JFrame {
     private JPanel mainArea;
     private JPanel controlPanel;
     private JMenuBar menuBar;
+    private Map saveWindows;
     private boolean closeIsExit;
     private boolean isStandalone;
     private boolean packed;
@@ -82,6 +92,7 @@ public class AuxWindow extends JFrame {
         if ( parent != null ) {
             positionAfter( parent, this );
         }
+        saveWindows = new HashMap();
 
         /* Set up a basic menubar with a File menu. */
         menuBar = new JMenuBar();
@@ -334,6 +345,84 @@ public class AuxWindow extends JFrame {
             == JOptionPane.OK_OPTION;
     }
 
+    /**
+     * Constructs and returns an action which allows a user to save a supplied
+     * table to disk.
+     *
+     * @param  dataType  short textual description of the table content
+     * @param  tSrc   table supplier object
+     */
+    public Action createSaveTableAction( final String dataType,
+                                         final TableSource tSrc ) {
+        return new BasicAction( "Save as Table", ResourceIcon.SAVE,
+                                "Save " + dataType + " as a table to disk" ) {
+            public void actionPerformed( ActionEvent evt ) {
+
+                /* Lazily create a table saver window for saving this kind
+                 * of data. */
+                if ( ! saveWindows.containsKey( dataType ) ) {
+                    StarTableOutput sto =
+                        ControlWindow.getInstance().getTableOutput();
+                    SaveTableQueryWindow saveWindow =
+                        new SaveTableQueryWindow( "Save " + dataType +
+                                                  " as table",
+                                                  AuxWindow.this, tSrc, sto,
+                                                  false );
+                    saveWindows.put( dataType, saveWindow );
+
+                    /* Default format is text, since this method is typically
+                     * used for small tables. */
+                    saveWindow.setDefaultFormat( new AsciiTableWriter()
+                                                .getFormatName() );
+                }
+
+                /* Pop up the window thereby inviting the user to save the
+                 * table. */
+                ((SaveTableQueryWindow) saveWindows.get( dataType ))
+                                       .setVisible( true );
+            }
+        };
+    }
+
+    /**
+     * Constructs and returns an action which allows a user to import a
+     * supplied table into TOPCAT as if it had just been loaded.
+     *
+     * @param   dataType  short textual description of the table content
+     * @param   tSrc     table supplier object
+     * @param   label    TocpatModel identifier label
+     */
+    public Action createImportTableAction( String dataType,
+                                           final TableSource tSrc,
+                                           final String label ) {
+        return new BasicAction( "Import as Table", ResourceIcon.IMPORT,
+                                "Import " + dataType + " into " + 
+                                TopcatUtils.getApplicationName() + 
+                                " as a new table" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                StarTable table = tSrc.getStarTable();
+
+                /* Ensure the table is random access, since TOPCAT requires
+                 * this. */
+                try {
+                    table = Tables.randomTable( table );
+                }
+                catch ( IOException e ) {
+                    ErrorDialog.showError( AuxWindow.this,
+                                           "Table Conversion Error", e );
+                    return;
+                }
+                catch ( OutOfMemoryError e ) {
+                    TopcatUtils.memoryError( e );
+                    return;
+                }
+
+                /* Load into TOPCAT. */
+                ControlWindow.getInstance().addTable( table, label, true );
+            }
+        };
+    }
+ 
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
     }
@@ -388,7 +477,7 @@ public class AuxWindow extends JFrame {
 
             /* As long as we won't go outside the bounds of the screen,
              * reposition the second window accordingly. */
-            // This code, though well-intentioned, doesn't do anythiing very
+            // This code, though well-intentioned, doesn't do anything very
             // useful since the bounds of the new window are typically
             // both zero (because it's not been posted to the screen yet
             // or something).  Not sure what to do about this.
