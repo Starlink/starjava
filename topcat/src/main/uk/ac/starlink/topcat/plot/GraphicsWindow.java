@@ -379,7 +379,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * Selecting an item from this list resets all plotting styles in this
      * window according to the selected StyleSet.
      *
-     * @param   styleSet  style sets to be presented in the menu
+     * @param   styleSets  style sets to be presented in the menu
      * @return  menu
      */
     public JMenu createMarkerStyleMenu( StyleSet[] styleSets ) {
