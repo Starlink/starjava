@@ -9799,11 +9799,13 @@ introduced since the last version:
 <dt>Next release</dt>
 <dd><p>
     <ul>
+    <!-- documented already -->
     <li>Table parameters can be referenced in expressions using
         <code>&param.prefix;</code> notation (<ref id="jelParams"/>).</li>
     <li>Columns and parameters can be referenced in expressions using
         <code>&ucd.prefix;</code> notation (<ref id="jelCols"/>).</li>
 
+    <!-- not yet documented -->
     <li>Error bars!</li>
     <li>Improved deduplication of column names when joining tables.</li>
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
@@ -9828,12 +9830,14 @@ introduced since the last version:
     <li>Add percentage column to SubsetWindow.</li>
     <li>Subset sizes are now counted automatically by default in SubsetWindow.
         New checkbox added in menu to switch off/on this behaviour.</li>
+    <li>Can now calculate quantiles (median, quartiles, .001, .01, .99 and .999)
+        in Statistics Window.</li>
     <li>Add new Save and Import actions to
         <ref id="StatsWindow">Statistics Window</ref>.
         (Note some of the column names in the StatsWindow JTable have
          undergone slight changes).</li>
-    <li>Can now calculate quantiles (median, quartiles, .001, .01, .99 and .999)
-        in Statistics Window.</li>
+    <li>Add new Save and Import actions to
+        <ref id="HistogramWindow">Histogram Window</ref>.</li>
     </ul>
     </p></dd>
 
