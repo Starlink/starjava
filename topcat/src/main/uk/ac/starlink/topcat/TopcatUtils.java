@@ -245,6 +245,15 @@ public class TopcatUtils {
     }
 
     /**
+     * Returns the name of this application.
+     *
+     * @return  "TOPCAT"
+     */
+    public static String getApplicationName() {
+        return "TOPCAT";
+    }
+
+    /**
      * Returns some lines of text describing this copy of the software
      * including its version and versions of some important components.
      *
