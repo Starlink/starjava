@@ -9832,6 +9832,8 @@ introduced since the last version:
         <ref id="StatsWindow">Statistics Window</ref>.
         (Note some of the column names in the StatsWindow JTable have
          undergone slight changes).</li>
+    <li>Can now calculate quantiles (median, quartiles, .001, .01, .99 and .999)
+        in Statistics Window.</li>
     </ul>
     </p></dd>
 
