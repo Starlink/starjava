@@ -4,6 +4,7 @@ import java.awt.Component;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.gui.TableSaveChooser;
+import uk.ac.starlink.table.TableSource;
 
 /**
  * QueryWindow which allows the user to save a normal table 
@@ -12,7 +13,7 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
  * @author   Mark Taylor
  * @since    23 May 2007
  */
-public abstract class SaveTableQueryWindow extends QueryWindow {
+public class SaveTableQueryWindow extends QueryWindow {
 
     private final TableSaveChooser chooser_;
 
@@ -21,15 +22,18 @@ public abstract class SaveTableQueryWindow extends QueryWindow {
      *
      * @param  title  window title
      * @param  parent   parent window
+     * @param  tsrc    supplier of the table to be saved (invoked when the
+     *                 window save operation is activated)
      * @param  sto    table output handler
      * @param  progress  true iff you want a save progress bar
      */
     public SaveTableQueryWindow( String title, Component parent,
-                                 StarTableOutput sto, boolean progress ) {
+                                 final TableSource tsrc, StarTableOutput sto,
+                                 boolean progress ) {
         super( title, parent );
         chooser_ = new TableSaveChooser( sto ) {
             public StarTable getTable() {
-                return SaveTableQueryWindow.this.getTable();
+                return tsrc.getStarTable();
             }
             public void done() {
                 super.done();
@@ -50,13 +54,6 @@ public abstract class SaveTableQueryWindow extends QueryWindow {
     public void setDefaultFormat( String fmt ) {
         chooser_.setSelectedFormat( fmt );
     }
-
-    /**
-     * Returns the table to be saved.
-     *
-     * @return  table
-     */
-    protected abstract StarTable getTable();
 
     public boolean perform() {
         return false;
