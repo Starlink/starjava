@@ -52,7 +52,7 @@ public abstract class Histogram extends SurfacePlot {
      *
      * @return  binned data
      */
-    private BinnedData getBinnedData() {
+    public BinnedData getBinnedData() {
         if ( binned_ == null ) {
             binned_ = binData( getPoints() );
         }
