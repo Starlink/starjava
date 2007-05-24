@@ -26,6 +26,7 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.ColumnInfo;
@@ -57,8 +58,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private SubsetCounter activeCounter;
 
     /* JTable Column names. */
-    private static final String CNAME_ID =
-        TopcatJELRowReader.SUBSET_ID_CHAR + "ID";
+    private static final String CNAME_ID = "ID";
     private static final String CNAME_NAME = "Name";
     private static final String CNAME_SIZE = "Size";
     private static final String CNAME_FRACTION = "Fraction";
@@ -95,15 +95,23 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         jtab.setRowSelectionAllowed( true );
 
         /* Configure column widths and alignments. */
-        jtab.getColumn( CNAME_ID ).setPreferredWidth( 64 );
-        jtab.getColumn( CNAME_NAME ).setPreferredWidth( 200 );
-        jtab.getColumn( CNAME_SIZE ).setPreferredWidth( 100 );
-        jtab.getColumn( CNAME_FRACTION ).setPreferredWidth( 80 );
-        jtab.getColumn( CNAME_EXPRESSION ).setPreferredWidth( 200 );
-        jtab.getColumn( CNAME_COLID ).setPreferredWidth( 80 );
+        TableColumnModel tcm = jtab.getColumnModel();
+        tcm.getColumn( tcm.getColumnIndex( CNAME_ID ) )
+           .setPreferredWidth( 64 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_NAME ) )
+           .setPreferredWidth( 200 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_SIZE ) )
+           .setPreferredWidth( 100 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_FRACTION ) )
+           .setPreferredWidth( 80 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_EXPRESSION ) )
+           .setPreferredWidth( 200 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_COLID ) )
+           .setPreferredWidth( 80 );
         DefaultTableCellRenderer rightRend = new DefaultTableCellRenderer();
         rightRend.setHorizontalAlignment( SwingConstants.RIGHT );
-        jtab.getColumn( CNAME_FRACTION ).setCellRenderer( rightRend );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_FRACTION ) )
+           .setCellRenderer( rightRend );
 
         /* Customise the JTable's column model to provide control over
          * which columns are displayed. */
@@ -128,7 +136,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
         /* Action for counting subset sizes. */
         countAct = new SubsetAction( "Count rows", ResourceIcon.COUNT,
-                                     "Count the number of rows in each " +
+                                     "(Re)count the number of rows in each " +
                                      "subset" );
 
         /* Action for producing inverse subset. */
