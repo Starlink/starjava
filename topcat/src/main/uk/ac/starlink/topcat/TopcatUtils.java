@@ -15,6 +15,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.IOUtils;
 
@@ -266,7 +267,7 @@ public class TopcatUtils {
                 "",
                 "TOPCAT Version " + getVersion(),
                 "STIL Version " + getSTILVersion(),
-                "Java Version " + getJavaVersion(),
+                "JVM: " + InvokeUtils.getJavaVM(),
                 "SPLAT: " + ( canSplat() ? "available" : "absent" ),
                 "SoG: " + ( canSog() ? "available" : "absent" ),
                 "",
@@ -449,20 +450,6 @@ public class TopcatUtils {
      */
     public static String getSTILVersion() {
         return IOUtils.getResourceContents( StarTable.class, "stil.version" );
-    }
-
-    /**
-     * Returns the version string for the current JVM's JRE version.
-     *
-     * @return   java version string
-     */
-    public static String getJavaVersion() {
-        try {
-            return System.getProperty( "java.version" );
-        }
-        catch ( SecurityException e ) {
-            return "???";
-        }
     }
 
     /**
