@@ -69,6 +69,23 @@ public class InvokeUtils {
     }
 
     /**
+     * Returns the JVM name and version string, without throwing any exceptions.
+     *
+     * @return   JVM description
+     */
+    public static String getJavaVM() {
+        try {
+            return System.getProperty( "java.vm.name", "???" )
+                 + " version "
+                 + System.getProperty( "java.vm.version", "???" );
+        }
+        catch ( SecurityException e ) {
+            return "???";
+        }
+    }
+
+
+    /**
      * Writes a summary of a (possibly nested) exception to a given
      * output stream.
      *
