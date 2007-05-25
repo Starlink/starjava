@@ -82,7 +82,7 @@ public class LineInvoker {
                         "STIL version "
                         + IOUtils.getResourceContents( StarTable.class,
                                                        "stil.version" ),
-                        "Java version " + InvokeUtils.getJavaVersion(),
+                        "JVM: " + InvokeUtils.getJavaVM(),
                         "",
                         "Author: Mark Taylor",
                         "WWW: http://www.starlink.ac.uk/stilts/",
@@ -270,6 +270,34 @@ public class LineInvoker {
                 }
                 if ( env.isDebug() ) {
                     e.printStackTrace( System.err );
+                }
+                return 1;
+            }
+            catch ( NoClassDefFoundError e ) {
+                System.err.println( e );
+                if ( env.isDebug() ) {
+                    e.printStackTrace( System.err );
+                }
+                try {
+                    String msg = new StringBuffer()
+                        .append( "\n" )
+                        .append( "The runtime Java Runtime Environment (JRE) " )
+                        .append( "is missing some compile-time classes.\n" )
+                        .append( "The most likely reason is that you are " )
+                        .append( "using an incomplete java such as GNU gcj.\n" )
+                        .append( "The JVM you are using is " )
+                        .append( System.getProperty( "java.vm.name",
+                                                     "unknown" ) )
+                        .append( " version " )
+                        .append( System.getProperty( "java.vm.version", "?" ) )
+                        .append( ".\n" )
+                        .append( "The recommended JRE is Sun's J2SE " )
+                        .append( "version 1.4 or greater.\n" )
+                        .toString();
+                    System.err.println( msg );
+                }
+                catch ( Throwable e1 ) {
+                    e1.printStackTrace( System.err );
                 }
                 return 1;
             }

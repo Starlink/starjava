@@ -52,7 +52,7 @@ public class Driver {
     private static Boolean canWrite;
     private static StarTable[] demoTables;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
-    private static StarTableFactory tabfact = new StarTableFactory( true );
+    private static StarTableFactory tabfact;
     private static ControlWindow control;
     private static String[] extraLoaders;
     private static final ValueInfo DEMOLOC_INFO = 
@@ -166,6 +166,47 @@ public class Driver {
      * @param  args  list of table specifications
      */
     public static void main( String[] args ) {
+        try {
+            runMain( args );
+        }
+        catch ( NoClassDefFoundError e ) {
+            for ( int i = 0; i < args.length; i++ ) {
+                if ( args[ i ].toLowerCase().startsWith( "-debug" ) ) {
+                    e.printStackTrace( System.err );
+                }
+            }
+            try {
+                String msg = new StringBuffer()
+                    .append( "\n" )
+                    .append( "The runtime Java Runtime Environment (JRE) " )
+                    .append( "is missing some compile-time classes.\n" )
+                    .append( "The most likely reason is that you are " )
+                    .append( "using an incomplete java such as GNU gcj.\n" )
+                    .append( "The JVM you are using is " )
+                    .append( System.getProperty( "java.vm.name",
+                                                 "unknown" ) )
+                    .append( " version " )
+                    .append( System.getProperty( "java.vm.version", "?" ) )
+                    .append( ".\n" )
+                    .append( "The recommended JRE is Sun's J2SE " )
+                    .append( "version 1.4 or greater.\n" )
+                    .toString();
+                System.err.println( msg );
+            }
+            catch ( Throwable e1 ) {
+                e1.printStackTrace( System.err );
+            }
+        }
+    }
+
+    /**
+     * Does the work for the <code>main</code> method, but may throw
+     * throwables.
+     *
+     * @param  args  list of table specifications
+     */
+    private static void runMain( String[] args ) {
+        tabfact = new StarTableFactory( true );
         String cmdname;
         try {
             Loader.loadProperties();
