@@ -4299,6 +4299,8 @@ but my thanks are especially due to the following:
     <li>Modified JDBC handling so that MySQL and PostgreSQL do not run out
         of heap memory when streaming large datasets for input.
         Think I've done the same for SQL Server, but this is not tested.</li>
+    <li>Improve error reporting in the presence of a deficient JVM
+        (such as GNU <code>gcj</code>).</li>
     </ul>
     </p></dd>
 

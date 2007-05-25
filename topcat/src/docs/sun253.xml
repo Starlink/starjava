@@ -9838,6 +9838,8 @@ introduced since the last version:
          undergone slight changes).</li>
     <li>Add new Save and Import actions to
         <ref id="HistogramWindow">Histogram Window</ref>.</li>
+    <li>Improve error reporting in the presence of a deficient JVM
+        (such as GNU <code>gcj</code>).</li>
     </ul>
     </p></dd>
 
