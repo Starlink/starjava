@@ -509,17 +509,24 @@ As with column names, it is a good idea to follow a few rules for these
 names so that they can be used in <ref id="jel">algebraic expressions</ref>.  
 They should be:
 <ul>
-<li>Different from other subset and column names, 
+<li>Distinct from other subset and column names, 
     even apart from upper/lower case distinctions</li>
 <li>In the form of a java identifier (starts with a letter, continues with
     alphanumerics including underscore, no spaces)</li>
 <li>Not too long</li>
 </ul>
+When you choose a name, you can either type one in, or select one from
+the drop-down list, which gives the names of all the existing subsets.
+This allows you to redefine existing subsets.  Note if you do select 
+or type in one of the existing names, 
+any previous content of that subset will be lost.
 </p>
 
-<p>In the first two subset definition methods above, 
+<p>In the first subset definition method above, 
 the <label>current</label> subset will be set immediately to the
-newly created one.
+newly created one.  In other cases the new subset may be highlighted
+appropriately in other windows, for instance by being plotted in
+scatter plot windows.
 </p>
 
 </subsubsect>
@@ -4882,12 +4889,19 @@ are as follows:
     </p></dd>
 
 <dt>Size</dt>
-<dd><p>The number of rows in this subset.  This column is initially blank,
-    and is not guaranteed to remain correct if the subset definitions
-    or the table data change, since counting may be an expensive
+<dd><p>The number of rows in this subset.  This column is usually 
+    filled in when the subset is defined, but it is
+    not guaranteed to remain correct if the table data change,
+    since counting may be an expensive
     process so it is not automatically done with every change.
-    A count can be forced by using the 
+    If values in this column are blank or suspected incorrect, 
+    a recount can be forced by using the
     <label>Count Subsets</label> (&IMG.COUNT;) button described below.
+    </p></dd>
+
+<dt>Fraction</dt>
+<dd><p>Shows the same information as the preceding <label>Size</label> column,
+    but as a percentage of the total number of rows in the table.
     </p></dd>
 
 <dt>Expression</dt>
@@ -4972,6 +4986,21 @@ can be edited by double-clicking on them in the normal way.
 </dl>
 </p>
 
+<p>The following additional menu item is available:
+<dl>
+<dt>&IMG.RECOUNT; Count subset size automatically</dt>
+<dd><p>Normally, the <label>Size</label> and <label>Fraction</label>
+    columns of the displayed table (see above) are filled in as soon 
+    as a new subset is defined.  However for very large tables this could
+    be slow - if you want to prevent this autocounting
+    you can deselect this menu item.  In this case the Size and Fraction
+    columns will only be filled in when the <label>Count</label> (&IMG.COUNT;)
+    button is hit or if TOPCAT finds out the size as the result of some
+    other operation (such as plotting).
+    </p></dd>
+</dl>
+</p>
+
 </subsubsect>
 
 <subsubsect id="StatsWindow">
@@ -5005,7 +5034,7 @@ The following columns are shown by default:
     the proportion of good cells which are True.
     </p></dd>
 
-<dt>S.D.</dt>
+<dt>SD</dt>
 <dd><p>The population standard deviation of the good cells.
     </p></dd>
 
@@ -5020,7 +5049,7 @@ The following columns are shown by default:
 <dd><p>As minimum, but shows the largest values.
     </p></dd>
 
-<dt>Good cells</dt>
+<dt>nGood</dt>
 <dd><p>The number of non-blank cells.
     </p></dd>
 
@@ -5048,7 +5077,7 @@ You can reveal these by using the <label>Display</label> menu:
 <dd><p>The population variance of the good cells.
     </p></dd>
 
-<dt>Sample S.D.</dt>
+<dt>Sample SD</dt>
 <dd><p>The sample standard deviation of the good cells.
     </p></dd>
 
@@ -5064,17 +5093,17 @@ You can reveal these by using the <label>Display</label> menu:
 <dd><p>Gamma 2 measure of peakedness of the value distribution.
     </p></dd>
 
-<dt>Row of min.</dt>
+<dt>Row of min</dt>
 <dd><p>The index of the row in the main table at which the minimum value
     occurred.
     </p></dd>
 
-<dt>Row of max.</dt>
+<dt>Row of max</dt>
 <dd><p>The index of the row in the main table at which the maximum value
     occurred.
     </p></dd>
 
-<dt>Bad cells</dt>
+<dt>nBad</dt>
 <dd><p>The number of blank cells; the sum of
     this value and the Good cells value will be the same for each
     column.
@@ -5092,6 +5121,31 @@ You can reveal these by using the <label>Display</label> menu:
 </dl>
 </p>
 
+<p>In addition, some <label>quantile</label> values can calculated on demand 
+(by selecting their values in the <label>Display</label> menu, as for
+the previous list).  The available values are:
+<dl>
+<dt>Q001:</dt>
+<dd><p>value below which 0.1% of rows fall</p></dd>
+<dt>Q01:</dt>
+<dd><p>value below which 1% of rows fall (1st percentile)</p></dd>
+<dt>Quartile1:</dt> 
+<dd><p>value below which 25% of rows fall (first quartile)</p></dd>
+<dt>Median:</dt>
+<dd><p>value below which 50% of rows fall (median)</p></dd>
+<dt>Quartile3:</dt>
+<dd><p>value below which 75% of rows fall (third quartile)</p></dd>
+<dt>Q99:</dt>
+<dd><p>value below which 99% of rows fall (99th percentile)</p></dd>
+<dt>Q999:</dt>
+<dd><p>value below which 99.9% of rows fall</p></dd>
+</dl>
+These are considerably more expensive to calculate than the other 
+statistical quantities, and so they are not provided by default.
+If you attempt to calculate them for large tables, 
+you may get a message saying that there is insufficient memory.
+</p>
+
 <p>The quantities displayed in this window are not necessarily those for
 the entire table; they are those for a particular
 <ref id="subsets" plaintextref="yes">Row Subset</ref>.
@@ -5105,14 +5159,31 @@ or the toolbar in the <ref id="ControlWindow">Control Window</ref>,
 the subset will correspond to the current row subset.
 </p>
 
-<p>The toolbar contains the following extra button:
+<p>The toolbar contains the following extra buttons:
 <dl>
+
+<dt>&IMG.SAVE; Save as Table</dt>
+<dd><p>Clicking this button will save the quantities displayed in this
+    window to a table on disk.  It can be saved in any of the tabular
+    formats which TOPCAT understands.
+    </p></dd>
+
+<dt>&IMG.IMPORT; Import as Table</dt>
+<dd><p>The table of statistical quantities displayed by this window 
+    (rows corresponding to input table columns and columns corresponding
+    to statistical quantities) is itself a table.  By clicking this 
+    button it can be loaded into TOPCAT as a new table and manipulated
+    in all the usual ways.  This has the same effect as saving the
+    statistics to file (see previous button) and then reloading that file.
+    </p></dd>
+
 <dt>&IMG.REDO; Recalculate</dt>
 <dd><p>Once statistics have been calculated for a given subset they are
     cached and not normally recalculated again.
     Use this button if you want to force a recalculation because the
     data may have changed.
     </p></dd>
+
 </dl>
 </p>
 
@@ -5629,6 +5700,27 @@ and if it's unchecked then zero is on a bin boundary.
     data in the bars which are visible in the current plot.
     See <ref id="plotSubsets"/> for more explanation.
     </p></dd>
+</dl>
+</p>
+
+<p>The <label>Export</label> menu also contains the following options 
+specific to the histogram:
+<dl>
+
+<dt>&IMG.SAVE; Save as Table</dt>
+<dd><p>The bin counts corresponding to the currently plotted histogram
+    will be written to disk in tabular form.  The first two columns give
+    the lower and upper bounds of each bin, and the subsequent columns
+    give the occupancies of each bin for each plotted data set.
+    If only one row subset is plotted, there will only be three columns.
+    </p></dd>
+
+<dt>&IMG.IMPORT; Import as Table</dt>
+<dd><p>Assembles a table as per the <label>Save</label> option above,
+    but rather than writing it to disk imports it directly into TOPCAT,
+    where it can be manipulated in all the usual ways.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -6249,6 +6341,20 @@ finished (i.e. when you release the mouse button) all the points will
 come back again.
 </p>
 
+<p><label>Zooming</label> is also possible.  You can zoom in around the
+centre of the plot so that the viewing window only covers the middle.
+This resembles the <label>Axis Zoom</label> in some of the 2-d plots,
+but in this case the active region is to the right of the plot where
+the legends appear.  Drag the mouse down to zoom in or up to zoom
+out on this part of the window.  Currently it is only possible
+to zoom in/out around the centre of the plot.
+When zoomed you can use the 
+<label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button
+to define a new <label>Row Subset</label> consisting only of the
+points which are currently visible.
+See <ref id="plotSubsets"/> for more explanation.
+</p>
+
 <p>Clicking on any of the plotted points will <label>activate</label> it - 
 see <ref id="activation"/>.
 </p>
@@ -6462,23 +6568,11 @@ sphere, at a distance from the centre given by the value of the radial
 coordinate.
 </p>
 
-<p>Rotation, subset creation, fogging, marker customisation and toolbar
-actions are all as for the Cartesian 3D plot window - 
+<p>Rotation, zooming, subset creation, fogging, marker customisation and 
+toolbar actions are all as for the Cartesian 3D plot window - 
 see <ref id="Cartesian3DWindow"/>.
 </p>
 
-<p><label>Zooming</label> is also possible.  You can zoom in around the
-centre of the plot so that the viewing window only covers the middle.
-This resembles the <label>Axis Zoom</label> in some of the 2-d plots,
-but in this case the active region is to the right of the plot where
-the legends appear.  Drag the mouse down to zoom in or up to zoom
-out on this part of the window.
-When zoomed you can use the 
-<label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button
-to define a new <label>Row Subset</label> consisting only of the
-points which are currently visible.
-See <ref id="plotSubsets"/> for more explanation.
-</p>
 
 </subsubsect>
 
@@ -9804,42 +9898,40 @@ introduced since the last version:
         <code>&param.prefix;</code> notation (<ref id="jelParams"/>).</li>
     <li>Columns and parameters can be referenced in expressions using
         <code>&ucd.prefix;</code> notation (<ref id="jelCols"/>).</li>
+    <li>Row Subset names can now be re-used.  If you need to enter a new
+        subset name, you can select from the list of existing ones as an
+        alternative to typing a new one in.</li>
+    <li>Subset sizes are now counted automatically by default in SubsetWindow.
+        New checkbox added in menu to switch off/on this behaviour.</li>
+    <li>Can now calculate quantiles (median, quartiles, .001, .01, .99 and .999)
+        in the <ref id="StatsWindow">Statistics Window</ref>.</li>
+    <li>Add new Save and Import actions to
+        <ref id="StatsWindow">Statistics Window</ref>.</li>
+    <li>Add new Save and Import actions to
+        <ref id="HistogramWindow">Histogram Window</ref>.</li>
+    <li>Cartesian 3D plot now permits zooming towards centre 
+        (though not panning).</li>
 
-    <!-- not yet documented -->
-    <li>Error bars!</li>
-    <li>Improved deduplication of column names when joining tables.</li>
+    <!-- Bugfixes and minor changes -->
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
         cards - write them as numeric not string values.</li>
-    <li>Improve error message for broken CSV files.</li>
     <li>Worked around a Mac OSX Java bug which caused table display to
         go funny when columns were deleted.</li>
     <li>Dramatic performance improvement for transparent pixel plotting in 
         3D plots on some platforms.</li>
-    <li>3D plots now plot symbols for all subsets not just one,
-        as for 2D plots.</li>
-    <li>Cartesian 3D plot now permits zooming towards centre 
-        (though not panning).</li>
+    <li>Improve error message for broken CSV files.</li>
     <li>3D plots now correctly report number of visible points.</li>
-    <li>Can use table parameter names in expressions.</li>
-    <li>Modified what happens when subsets get received from PLASTIC.</li>
     <li>Fixed a number of bugs in responding to PLASTIC messages
         (threading, failure to respond).</li>
-    <li>Row Subset names can now be re-used.  If you need to enter a new
-        subset name, you can select from the list of existing ones as an
-        alternative to typing a new one in.</li>
-    <li>Add percentage column to SubsetWindow.</li>
-    <li>Subset sizes are now counted automatically by default in SubsetWindow.
-        New checkbox added in menu to switch off/on this behaviour.</li>
-    <li>Can now calculate quantiles (median, quartiles, .001, .01, .99 and .999)
-        in Statistics Window.</li>
-    <li>Add new Save and Import actions to
-        <ref id="StatsWindow">Statistics Window</ref>.
-        (Note some of the column names in the StatsWindow JTable have
-         undergone slight changes).</li>
-    <li>Add new Save and Import actions to
-        <ref id="HistogramWindow">Histogram Window</ref>.</li>
     <li>Improve error reporting in the presence of a deficient JVM
         (such as GNU <code>gcj</code>).</li>
+    <li>Improved deduplication of column names when joining tables.</li>
+    <li>3D plots now plot symbols for all subsets not just one,
+        as for 2D plots.</li>
+
+    <!-- not yet documented -->
+    <li>Error bars!</li>
+    <li>Modified what happens when subsets get received from PLASTIC.</li>
     </ul>
     </p></dd>
 
