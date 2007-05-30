@@ -181,8 +181,8 @@ public class StatsWindow extends AuxWindow {
         };
 
         /* Add actions to toolbar. */
-        getToolBar().add( importAct );
         getToolBar().add( saveAct );
+        getToolBar().add( importAct );
         getToolBar().add( recalcAct_ );
         getToolBar().addSeparator();
 
