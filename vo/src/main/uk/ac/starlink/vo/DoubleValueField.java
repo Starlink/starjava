@@ -150,7 +150,7 @@ public class DoubleValueField {
      * Returns an instance suitable for entering Right Ascension,
      * for which {@link #getValue} returns degrees.
      *
-     * @param  ra field
+     * @return  ra field
      */
     public static DoubleValueField makeRADegreesField() {
         DefaultValueInfo info = new DefaultValueInfo( "RA", Double.class, 
@@ -167,7 +167,7 @@ public class DoubleValueField {
      * Returns an instance suitable for entering Declination
      * for which {@link #getValue} returns degrees.
      *
-     * @param  dec field
+     * @return  dec field
      */
     public static DoubleValueField makeDecDegreesField() {
         DefaultValueInfo info = new DefaultValueInfo( "Dec", Double.class,
@@ -184,7 +184,7 @@ public class DoubleValueField {
      * Returns an instance suitable for entering an angular radius,
      * for which {@link #getValue} returns degrees.
      *
-     * @param  radius field
+     * @return  radius field
      */
     public static DoubleValueField makeRadiusDegreesField() {
         DefaultValueInfo info = new DefaultValueInfo( "Radius", Double.class,

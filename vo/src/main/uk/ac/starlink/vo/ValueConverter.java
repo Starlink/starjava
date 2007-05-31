@@ -23,7 +23,7 @@ public abstract class ValueConverter {
     /**
      * Constructor.
      *
-     * @param   format name (suitable for display in a combo box)
+     * @param  name   format name (suitable for display in a combo box)
      */
     public ValueConverter( String name ) {
         name_ = name;
@@ -62,8 +62,8 @@ public abstract class ValueConverter {
         /**
          * Constructor.
          *
-         * @param  unit name
-         * @param  unit conversion factor
+         * @param  name  unit name
+         * @param  factor unit conversion factor
          */
         public UnitValueConverter( String name, double factor ) {
             super( name );

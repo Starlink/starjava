@@ -87,7 +87,7 @@ public class BeanTableModel extends AbstractTableModel {
      * The runtime type of the returned array matches that of the bean class
      * this model displays.
      *
-     * @param  table data
+     * @return  table data
      */
     public Object[] getData() {
         return data_;
