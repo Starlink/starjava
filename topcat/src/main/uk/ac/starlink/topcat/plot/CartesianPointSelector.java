@@ -35,43 +35,22 @@ public class CartesianPointSelector extends PointSelector {
     private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
 
     /**
-     * Constructs a point selector with no error bar capability.
-     *
-     * @param   styles   initial style set
-     * @param   axisNames  labels for the columns to choose, one per axis
-     * @param   toggleSets toggle sets to associate with each axis;
-     *                     <code>toggleSets</code> itself or any of
-     *                     its elements may be null
-     */
-    public CartesianPointSelector( MutableStyleSet styles, String[] axisNames,
-                                   ToggleSet[] toggleSets ) {
-        this( styles, axisNames, toggleSets, new ErrorModeSelectionModel[ 0 ] );
-    }
-    
-    /**
      * Constructs a point selector optionally with error bar capability.
      *
      * @param   styles   initial style set
      * @param   axisNames  labels for the columns to choose, one per axis
-     * @param   toggleSets toggle sets to associate with each axis;
-     *                     <code>toggleSets</code> itself or any of
-     *                     its elements may be null
+     * @param   logModels  log scaling toggle models, one per axis
+     * @param   flipModels axis reversal toggle models, one per axis
      * @param   errorModeModels  selection models for error modes, one per axis
      */
     public CartesianPointSelector( MutableStyleSet styles, String[] axisNames,
-                                   ToggleSet[] toggleSets,
+                                   ToggleButtonModel[] logModels, 
+                                   ToggleButtonModel[] flipModels,
                                    ErrorModeSelectionModel[] errorModeModels ) {
         super( styles );
         axisNames_ = axisNames;
         errorModeModels_ = errorModeModels;
         ndim_ = axisNames.length;
-
-        /* Assemble names for toggle buttons. */
-        int ntog = toggleSets == null ? 0 : toggleSets.length;
-        String[] togNames = new String[ ntog ];
-        for ( int itog = 0; itog < ntog; itog++ ) {
-            togNames[ itog ] = toggleSets[ itog ].name_;
-        }
 
         /* Prepare the visual components. */
         entryBox_ = Box.createVerticalBox();
@@ -79,12 +58,11 @@ public class CartesianPointSelector extends PointSelector {
         for ( int idim = 0; idim < ndim_; idim++ ) {
 
             /* Prepare toggle buttons. */
-            ToggleButtonModel[] togModels = new ToggleButtonModel[ ntog ];
-            for ( int itog = 0; itog < ntog; itog++ ) {
-                ToggleSet togSet = toggleSets[ itog ];
-                togModels[ itog ] = togSet == null ? null
-                                                   : togSet.models_[ idim ];
-            }
+            String[] togNames = new String[] { "Log", "Flip", };
+            ToggleButtonModel[] togModels = new ToggleButtonModel[] {
+                logModels == null ? null : logModels[ idim ],
+                flipModels == null ? null : flipModels[ idim ],
+            };
 
             /* Create and add column selectors. */
             dataSelectors_[ idim ] =
@@ -274,17 +252,5 @@ public class CartesianPointSelector extends PointSelector {
                                                         .getSelectedItem();
         }
         return cols;
-    }
-
-    /**     
-     * Encapsulates an array of toggle button models with an associated name.
-     */         
-    static class ToggleSet {
-        final String name_;
-        final ToggleButtonModel[] models_;
-        ToggleSet( String name, ToggleButtonModel[] models ) {
-            name_ = name;
-            models_ = (ToggleButtonModel[]) models.clone(); 
-        }       
     }
 }

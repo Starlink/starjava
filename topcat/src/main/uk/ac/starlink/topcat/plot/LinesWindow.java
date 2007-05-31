@@ -844,14 +844,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                             ToggleButtonModel yFlipModel,
                             ErrorModeSelectionModel[] errorModeModels ) {
             super( styles, AXIS_NAMES,
-                   new CartesianPointSelector.ToggleSet[] {
-                       new CartesianPointSelector.ToggleSet(
-                           "Log", new ToggleButtonModel[] { null,
-                                                            yLogModel } ),
-                       new CartesianPointSelector.ToggleSet(
-                           "Flip", new ToggleButtonModel[] { null,
-                                                             yFlipModel } ),
-                   },
+                   new ToggleButtonModel[] { null, yLogModel, },
+                   new ToggleButtonModel[] { null, yFlipModel, },
                    errorModeModels );
             yLogModel_ = yLogModel;
             yFlipModel_ = yFlipModel;

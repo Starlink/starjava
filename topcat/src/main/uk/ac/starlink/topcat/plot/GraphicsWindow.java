@@ -647,13 +647,8 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @return   new point selector component
      */
     protected PointSelector createPointSelector() {
-        CartesianPointSelector.ToggleSet[] toggleSets = 
-            new CartesianPointSelector.ToggleSet[] {
-                new CartesianPointSelector.ToggleSet( "Log", logModels_ ),
-                new CartesianPointSelector.ToggleSet( "Flip", flipModels_ ),
-            };
-        return new CartesianPointSelector( getStyles(), axisNames_, toggleSets,
-                                           getErrorModeModels() );
+        return new CartesianPointSelector( getStyles(), axisNames_, logModels_,
+                                           flipModels_, getErrorModeModels() );
     };
 
     /**

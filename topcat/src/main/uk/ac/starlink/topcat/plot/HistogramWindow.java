@@ -257,13 +257,6 @@ public class HistogramWindow extends GraphicsWindow {
 
     protected PointSelector createPointSelector() {
 
-        /* This bit just copied from the superclass. */
-        CartesianPointSelector.ToggleSet[] toggleSets =
-            new CartesianPointSelector.ToggleSet[] {
-                new CartesianPointSelector.ToggleSet( "Log", getLogModels() ),
-                new CartesianPointSelector.ToggleSet( "Flip", getFlipModels() ),
-            };
-
         /* The superclass implementation assumes that the number of
          * axes on the screen is the same as the number of dimensions of
          * the data being plotted - not true for a histogram (2 vs. 1,
@@ -271,7 +264,8 @@ public class HistogramWindow extends GraphicsWindow {
          * supplied by the PointSelector is 2 long - one for the data
          * axis and one for the counts axis (screen Y axis). */
         return new CartesianPointSelector( getStyles(), new String[] { "X" },
-                                           toggleSets ) {
+                                           getLogModels(), getFlipModels(),
+                                           new ErrorModeSelectionModel[ 0 ] ) {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor countEd = new AxisEditor( "Count" );
                 countEd.setAxis( COUNT_INFO );
