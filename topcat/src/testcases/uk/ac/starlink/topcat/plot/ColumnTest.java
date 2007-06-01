@@ -20,5 +20,10 @@ public class ColumnTest extends TestCase {
                       new ConstantColumnData( "one", 1. ) );
         assertFalse( ConstantColumnData.NAN
                     .equals( new ConstantColumnData( "Unity", 1.0 ) ) );
+
+        assertEquals( "Two", 
+                      new ConstantColumnData( "Two", 2.0 ).getColumnInfo()
+                                                          .getName() );
     }
+
 }
