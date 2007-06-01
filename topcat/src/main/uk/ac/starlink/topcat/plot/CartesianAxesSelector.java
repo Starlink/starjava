@@ -112,7 +112,7 @@ public class CartesianAxesSelector implements AxesSelector {
     }
 
     public StarTable getData() {
-        return PointSelector.createColumnDataTable( tcModel_, getColumns() );
+        return new ColumnDataTable( tcModel_, getColumns() );
     }
 
     /**
@@ -142,7 +142,7 @@ public class CartesianAxesSelector implements AxesSelector {
                 cols[ icol ] = ConstantColumnData.ZERO;
             }
         }
-        return PointSelector.createColumnDataTable( tcModel_, cols );
+        return new ColumnDataTable( tcModel_, cols );
     }
 
     public ErrorMode[] getErrorModes() {
@@ -152,6 +152,16 @@ public class CartesianAxesSelector implements AxesSelector {
             modes[ ierr ] = errorModeModels_[ ierr ].getMode();
         }
         return modes;
+    }
+
+    /**
+     * Returns one of the axis selector boxes used by this selector.
+     *
+     * @param  icol  column index
+     * @return axis selector
+     */
+    public AxisDataSelector getDataSelector( int icol ) {
+        return dataSelectors_[ icol ];
     }
 
     /**
@@ -182,7 +192,7 @@ public class CartesianAxesSelector implements AxesSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-        return new CartesianPointStore( ndim_, getErrorModes(), npoint );
+        return new CartesianPointStore( getNdim(), getErrorModes(), npoint );
     }
 
     public void setTable( TopcatModel tcModel ) {
@@ -243,8 +253,9 @@ public class CartesianAxesSelector implements AxesSelector {
     private ColumnData[] getColumns() {
         ColumnData[] cols = new ColumnData[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (ColumnData) dataSelectors_[ i ].getMainSelector()
-                                                        .getSelectedItem();
+            ColumnData cdata = (ColumnData) dataSelectors_[ i ]
+                                           .getMainSelector().getSelectedItem();
+            cols[ i ] = cdata == null ? ConstantColumnData.NAN : cdata;
         }
         return cols;
     }
