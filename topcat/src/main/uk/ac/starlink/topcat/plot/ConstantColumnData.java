@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 
 /**
  * ColumnData implementation which always returns the same Double value.
@@ -33,6 +34,8 @@ public class ConstantColumnData extends ColumnData {
      * @param   value  constant column value
      */
     public ConstantColumnData( String name, double value ) {
+        super( new ColumnInfo( name, Double.class,
+                               "Constant value of " + value ) );
         value_ = new Double( value );
     }
 
