@@ -211,7 +211,7 @@ public class SphericalAxesSelector implements AxesSelector {
         }
         ColumnData[] eCols =
             (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
-        return PointSelector.createColumnDataTable( tcModel_, eCols );
+        return new ColumnDataTable( tcModel_, eCols );
     }
 
     public PointStore createPointStore( int npoint ) {

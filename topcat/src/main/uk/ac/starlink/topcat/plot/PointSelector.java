@@ -689,63 +689,6 @@ public class PointSelector extends JPanel {
     }
 
     /**
-     * Utility method to create a StarTable built from ColumnData objects.
-     * The returned table will implement the <code>equals</code>
-     * (and <code>hashCode</code>) methods in such a way as to
-     * recognise two tables with the same columns as the same table.
-     *
-     * @param   tcModel  topcat model
-     * @param   cols   array of columns
-     * @return   table
-     */
-    public static StarTable createColumnDataTable( TopcatModel tcModel,
-                                                   ColumnData[] cols ) {
-        return new ColumnDataTable( tcModel, cols );
-    }
-
-    /**
-     * Table class built up from ColumnData objects.  Implements equals().
-     */
-    private static class ColumnDataTable extends ColumnStarTable {
-
-        private final TopcatModel tcModel_;
-        private final ColumnData[] cols_;
-
-        /**
-         * Constructor.
-         *
-         * @param   tcModel  topcat model
-         * @param   cols   array of columns
-         */
-        ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
-            tcModel_ = tcModel;
-            cols_ = cols;
-            for ( int i = 0; i < cols.length; i++ ) {
-                addColumn( cols[ i ] );
-            }
-        }
-
-        public long getRowCount() {
-            return tcModel_.getDataModel().getRowCount();
-        }
-
-        public boolean equals( Object o ) {
-            if ( o instanceof ColumnDataTable ) {
-                ColumnDataTable other = (ColumnDataTable) o;
-                return this.tcModel_ == other.tcModel_
-                    && Arrays.equals( this.cols_, other.cols_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        public int hashCode() {
-            return tcModel_.hashCode() + Arrays.asList( cols_ ).hashCode();
-        }
-    }
-
-    /**
      * Defines how to draw the annotating buttons which accompany each
      * subset in the subset checkbox stack.
      */
