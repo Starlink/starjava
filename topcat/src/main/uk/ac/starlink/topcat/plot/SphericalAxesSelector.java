@@ -58,13 +58,6 @@ public class SphericalAxesSelector implements AxesSelector {
           + "pos\\.(eq|galactic|supergalactic|ecliptic|earth\\.l..)[.a-z]*)"
     );
 
-    /** A column data object which contains zeroes. */
-    private static final ColumnData ZERO_COLUMN_DATA = 
-        PointSelector.createZeroColumnData();
-
-    /** A column data object which contains ones. */
-    private static final ColumnData UNIT_COLUMN_DATA = createUnitColumnData();
-
     /** 
      * Constructor.
      *
@@ -206,14 +199,14 @@ public class SphericalAxesSelector implements AxesSelector {
         ErrorMode radialMode = radialErrorModeModel_.getMode();
         if ( hasTanerr ) {
             ColumnData tData = tanerrSelector_.getColumnData();
-            colList.add( tData == null ? ZERO_COLUMN_DATA : tData );
+            colList.add( tData == null ? ConstantColumnData.ZERO : tData );
         }
         if ( radialMode != ErrorMode.NONE ) {
             JComboBox[] rErrorSelectors = rSelector_.getErrorSelectors();
             for ( int isel = 0; isel < rErrorSelectors.length; isel++ ) {
                 ColumnData rData =
                     (ColumnData) rErrorSelectors[ isel ].getSelectedItem();
-                colList.add( rData == null ? ZERO_COLUMN_DATA : rData );
+                colList.add( rData == null ? ConstantColumnData.ZERO : rData );
             }
         }
         ColumnData[] eCols =
@@ -381,7 +374,7 @@ public class SphericalAxesSelector implements AxesSelector {
         ColumnData cdata =
             (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
-            return UNIT_COLUMN_DATA;
+            return ConstantColumnData.ONE;
         }
         else if ( logToggler_.isSelected() ) {
             return new LogColumnData( cdata );
@@ -389,19 +382,6 @@ public class SphericalAxesSelector implements AxesSelector {
         else {
             return cdata;
         }
-    }
-
-    /**
-     * Returns a ColumnData implementation which returns unity for every entry.
-     */
-    private static ColumnData createUnitColumnData() {
-        final Double one = new Double( 1.0 );
-        return new ColumnData( new DefaultValueInfo( "Unit", Double.class,
-                                                     "Unit value" ) ) {
-            public Object readValue( long irow ) {
-                return one;
-            }
-        };
     }
 
     /**

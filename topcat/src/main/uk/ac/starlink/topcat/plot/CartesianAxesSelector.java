@@ -31,10 +31,6 @@ public class CartesianAxesSelector implements AxesSelector {
     private final JComponent entryBox_;
     private TopcatModel tcModel_;
 
-    /** A column data object which contains zeroes. */
-    private static final ColumnData ZERO_COLUMN_DATA = 
-        PointSelector.createZeroColumnData();
-
     /**
      * Constructor.
      */
@@ -143,7 +139,7 @@ public class CartesianAxesSelector implements AxesSelector {
             (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
         for ( int icol = 0; icol < cols.length; icol++ ) {
             if ( cols[ icol ] == null ) {
-                cols[ icol ] = ZERO_COLUMN_DATA;
+                cols[ icol ] = ConstantColumnData.ZERO;
             }
         }
         return PointSelector.createColumnDataTable( tcModel_, cols );

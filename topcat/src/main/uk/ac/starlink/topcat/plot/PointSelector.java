@@ -689,29 +689,6 @@ public class PointSelector extends JPanel {
     }
 
     /**
-     * Utility method to create an instance of a table column of indefinite
-     * length which contains zero in every row.
-     * Any instance is <code>equal</code> to any other instance.
-     *
-     * @return   column containing zeros
-     */
-    public static ColumnData createZeroColumnData() {
-        final Number value = new Double( 0.0 );
-        return new ColumnData( new DefaultValueInfo( "Zero", Double.class,
-                                                     "Empty" ) ) {
-            public Object readValue( long irow ) {
-                return value;
-            }
-            public boolean equals( Object o ) {
-                return o != null && o.getClass().equals( this.getClass() );
-            }
-            public int hashCode() {
-                return getClass().hashCode();
-            }
-        };
-    }
-
-    /**
      * Utility method to create a StarTable built from ColumnData objects.
      * The returned table will implement the <code>equals</code>
      * (and <code>hashCode</code>) methods in such a way as to
