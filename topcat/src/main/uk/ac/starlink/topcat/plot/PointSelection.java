@@ -58,15 +58,16 @@ public class PointSelection {
                            String[] subsetNames ) {
         nTable_ = selectors.length;
         mainSelector_ = selectors[ 0 ];
-        ndim_ = mainSelector_.getNdim();
+        ndim_ = mainSelector_.getAxesSelector().getNdim();
         for ( int i = 0; i < nTable_; i++ ) {
-            if ( selectors[ i ].getNdim() != ndim_ ) {
+            if ( selectors[ i ].getAxesSelector().getNdim() != ndim_ ) {
                 throw new IllegalArgumentException();
             }
         }
 
         /* Store the tables and column indices representing the data. */
-        errorModes_ = (ErrorMode[]) mainSelector_.getErrorModes().clone();
+        errorModes_ = (ErrorMode[]) mainSelector_.getAxesSelector()
+                                                 .getErrorModes().clone();
         tcModels_ = new TopcatModel[ nTable_ ];
         dataTables_ = new StarTable[ nTable_ ];
         errorTables_ = new StarTable[ nTable_ ];
@@ -76,8 +77,9 @@ public class PointSelection {
         for ( int itab = 0; itab < nTable_; itab++ ) {
             PointSelector psel = selectors[ itab ];
             tcModels_[ itab ] = psel.getTable();
-            dataTables_[ itab ] = psel.getData();
-            errorTables_[ itab ] = psel.getErrorData();
+            AxesSelector axsel = psel.getAxesSelector();
+            dataTables_[ itab ] = axsel.getData();
+            errorTables_[ itab ] = axsel.getErrorData();
             nrows_[ itab ] = tcModels_[ itab ].getDataModel().getRowCount();
             offsets[ itab ] = offset;
             offset += nrows_[ itab ];
@@ -133,7 +135,8 @@ public class PointSelection {
             npoint += Tables.checkedLongToInt( tcModels_[ itab ]
                                               .getDataModel().getRowCount() );
         }
-        PointStore pointStore = mainSelector_.createPointStore( npoint );
+        PointStore pointStore =
+            mainSelector_.getAxesSelector().createPointStore( npoint );
         if ( progress != null ) {
             progress.setMinimum( 0 );
             progress.setMaximum( npoint );

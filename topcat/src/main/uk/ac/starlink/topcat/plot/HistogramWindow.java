@@ -263,8 +263,9 @@ public class HistogramWindow extends GraphicsWindow {
          * respectively).  So we need to make sure the AxisEditor array
          * supplied by the PointSelector is 2 long - one for the data
          * axis and one for the counts axis (screen Y axis). */
-        return new CartesianPointSelector( getStyles(), new String[] { "X" },
-                                           getLogModels(), getFlipModels(),
+        AxesSelector axsel =
+                new CartesianAxesSelector( new String[] { "X" }, getLogModels(),
+                                           getFlipModels(),
                                            new ErrorModeSelectionModel[ 0 ] ) {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor countEd = new AxisEditor( "Count" );
@@ -275,6 +276,7 @@ public class HistogramWindow extends GraphicsWindow {
                 };
             }
         };
+        return new PointSelector( axsel, getStyles() );
     }
 
     protected void doReplot( PlotState pstate, Points points ) {
@@ -413,8 +415,9 @@ public class HistogramWindow extends GraphicsWindow {
 
             double gap = ( xBounds[ 1 ] - xBounds[ 0 ] ) / DEFAULT_BINS;
             assert gap > 0.0;
-            Class clazz = getPointSelectors().getMainSelector().getData()
-                         .getColumnInfo( 0 ).getContentClass();
+            Class clazz = getPointSelectors().getMainSelector()
+                         .getAxesSelector().getData().getColumnInfo( 0 )
+                         .getContentClass();
             double bwLinear = Rounder.LINEAR.round( gap );
             if ( clazz == Byte.class ||
                  clazz == Short.class ||

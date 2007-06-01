@@ -292,7 +292,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         pointSelectors_.revalidate();
 
         /* Add axis editors and corresponding data and view range arrays. */
-        AxisEditor[] axeds = mainSel.createAxisEditors();
+        AxisEditor[] axeds = mainSel.getAxesSelector().createAxisEditors();
         int nax = axeds.length;
         dataRanges_ = new Range[ nax ];
         viewRanges_ = new Range[ nax ];
@@ -647,8 +647,16 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @return   new point selector component
      */
     protected PointSelector createPointSelector() {
-        return new CartesianPointSelector( getStyles(), axisNames_, logModels_,
-                                           flipModels_, getErrorModeModels() );
+        ErrorModeSelectionModel[] errorModeModels = getErrorModeModels();
+        AxesSelector axsel =
+            new CartesianAxesSelector( axisNames_, logModels_, flipModels_,
+                                       errorModeModels );
+        PointSelector psel = new PointSelector( axsel, getStyles() );
+        ActionListener errorModeListener = psel.getErrorModeListener();
+        for ( int i = 0; i < errorModeModels.length; i++ ) {
+            errorModeModels[ i ].addActionListener( errorModeListener );
+        }
+        return psel;
     };
 
     /**
@@ -732,7 +740,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
 
         /* Set per-axis characteristics. */
-        StarTable mainData = pointSelectors_.getMainSelector().getData();
+        StarTable mainData =
+            pointSelectors_.getMainSelector().getAxesSelector().getData();
         ColumnInfo[] axinfos = new ColumnInfo[ ndim_ ];
         boolean[] flipFlags = new boolean[ ndim_ ];
         boolean[] logFlags = new boolean[ ndim_ ];
