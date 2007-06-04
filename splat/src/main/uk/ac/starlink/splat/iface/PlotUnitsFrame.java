@@ -145,6 +145,7 @@ public class PlotUnitsFrame
      * Unknown units, could also be unrecognised.
      */
     private static final String UNKNOWN = "Unknown";
+    private static final String UNKNOWN_LABEL = "Not set or unrecognised";
 
     /**
      * No units (redshift, beta factor).
@@ -157,7 +158,7 @@ public class PlotUnitsFrame
     private static Map dataUnitsMap = null;
     static {
         dataUnitsMap = new LinkedHashMap();
-        dataUnitsMap.put( UNKNOWN, UNKNOWN);
+        dataUnitsMap.put( UNKNOWN_LABEL, UNKNOWN );
         dataUnitsMap.put( "Jansky", "Jy");
         dataUnitsMap.put( "W/m^2/Hz", "W/m^2/Hz" );
         dataUnitsMap.put( "W/m^2/Angstrom", "W/m^2/Angstrom" );
@@ -173,7 +174,7 @@ public class PlotUnitsFrame
     private static Vector coordinateSystems = null;
     static {
         coordinateSystems = new Vector();
-        coordinateSystems.add( new Cdus( UNKNOWN, UNKNOWN, UNKNOWN ) );
+        coordinateSystems.add( new Cdus( UNKNOWN_LABEL, UNKNOWN, UNKNOWN ) );
         coordinateSystems.add( new Cdus( "Angstroms", "Angstrom", "WAVE" ) );
         coordinateSystems.add( new Cdus( "Nanometres", "nm", "WAVE" ) );
         coordinateSystems.add( new Cdus( "Micrometres", "um", "WAVE" ) );
@@ -213,7 +214,7 @@ public class PlotUnitsFrame
     private static Map ifPosSideBandMap = null;
     static {
         ifPosSideBandMap = new LinkedHashMap();
-        ifPosSideBandMap.put( UNKNOWN, UNKNOWN );
+        ifPosSideBandMap.put( UNKNOWN_LABEL, UNKNOWN );
         ifPosSideBandMap.put( "Lower (observed)", "LSB" );
         ifPosSideBandMap.put( "Upper (image)", "USB" );
         ifPosSideBandMap.put( "Offset from LO", "LO" );
@@ -223,7 +224,7 @@ public class PlotUnitsFrame
     private static Map ifNegSideBandMap = null;
     static {
         ifNegSideBandMap = new LinkedHashMap();
-        ifNegSideBandMap.put( UNKNOWN, UNKNOWN );
+        ifNegSideBandMap.put( UNKNOWN_LABEL, UNKNOWN );
         ifNegSideBandMap.put( "Lower (image)", "LSB" );
         ifNegSideBandMap.put( "Upper (observed)", "USB" );
         ifNegSideBandMap.put( "Offset from LO", "LO" );
@@ -252,7 +253,7 @@ public class PlotUnitsFrame
     private static Map stdOfRestMap = null;
     static {
         stdOfRestMap = new LinkedHashMap();
-        stdOfRestMap.put( UNKNOWN, UNKNOWN );
+        stdOfRestMap.put( UNKNOWN_LABEL, UNKNOWN );
         stdOfRestMap.put( "Observer", "Topocentric" );
         stdOfRestMap.put( "Centre of Earth", "Geocentric" );
         stdOfRestMap.put( "Solar system barycentre", "Barycentric" );
@@ -453,7 +454,7 @@ public class PlotUnitsFrame
     /**
      * Match the UI to the properties of the current spectrum. If the
      * units cannot be matched against the list of possibles then
-     * "Unknown" is shown.
+     * {@link UNKNOWN} is shown.
      */
     protected void matchCurrentSpectrum()
     {
@@ -595,8 +596,8 @@ public class PlotUnitsFrame
 
     /**
      * Convert current units of a given spectrum to some new values.
-     * Units that are "Unknown" are skipped and remain at there current
-     * values.
+     * Units that are {@link UNKNOWN} are skipped and remain at their 
+     * current values.
      */
     protected void convertToUnits( SpecData spec, String dataUnits,
                                    String coordUnits, String coordSystem,
