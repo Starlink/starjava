@@ -158,13 +158,29 @@ public class PointSelector extends JPanel {
         weakTcListener_ = new WeakTopcatListener( tcListener_ );
 
         /* Construct the box for input of axes etc, and insert it into a
-         * scroll pane.  Fix it so that the preferred size takes account of
-         * scrollbars if they may be present.  You can achieve a similar
-         * effect by just setting scrollbar policies to *_SCROLLBAR_ALWAYS,
-         * but that leaves an empty scrollbar when it's not necessary,
-         * which is (IMHO) ugly. */
+         * somewhat customised scroll pane. */
         final Box entryBox = new Box( BoxLayout.Y_AXIS );
         entryScroller_ = new JScrollPane( entryBox ) {
+
+            /**
+             * Validate root is false. This means that the 
+             * scrollpane is allowed to fix its own size, based on the 
+             * preferred size of its contents, if there is enough space
+             * available.  This is the effect that we want to achieve here.
+             *
+             * @return  false
+             */
+            public boolean isValidateRoot() {
+                return false;
+            }
+
+            /**
+             * Fix it so that the preferred size takes account of scrollbars
+             * if they may be present.  You can achieve a similar effect
+             * by just setting scrollbar policies to *_SCROLLBAR_ALWAYS,
+             * but that leaves an empty scrollbar when it's not necessary,
+             * which is (IMHO) ugly.
+             */
             public Dimension getPreferredSize() {
                 Dimension size =
                     new Dimension( entryBox.getPreferredSize() );
