@@ -63,7 +63,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                          Component parent,
                          ErrorModeSelectionModel[] errorModeModels,
                          Plot3D plot ) {
-        super( viewName, axisNames, errorModeModels, parent );
+        super( viewName, axisNames, 0, errorModeModels, parent );
 
         /* Configure the plot to provide some callbacks when interesting
          * things happen. */

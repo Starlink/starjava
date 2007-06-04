@@ -93,7 +93,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", AXIS_NAMES, createErrorModeModels( AXIS_NAMES ),
+        super( "Line Plot", AXIS_NAMES, 0, createErrorModeModels( AXIS_NAMES ),
                parent );
 
         /* Set some initial values. */
