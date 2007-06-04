@@ -109,12 +109,15 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public abstract class GraphicsWindow extends AuxWindow {
 
     private final int ndim_;
+    private final int naux_;
     private final PointSelectorSet pointSelectors_;
 
     private final ReplotListener replotListener_;
     private final Action replotAction_;
     private final Action axisEditAction_;
     private final Action rescaleAction_;
+    private final Action incAuxAction_;
+    private final Action decAuxAction_;
     private final String[] axisNames_;
     private final ToggleButtonModel gridModel_;
     private final ToggleButtonModel[] flipModels_;
@@ -123,6 +126,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final JMenu exportMenu_;
     private final JProgressBar progBar_;
     private final BoundedRangeModel noProgress_;
+    private final BoundedRangeModel auxVisibleModel_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -151,31 +155,39 @@ public abstract class GraphicsWindow extends AuxWindow {
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
     /**
-     * Constructor.
+     * Constructor.  A number of main axes are defined by the 
+     * <code>axisNames</code> array, which also defines the dimensionality.
+     * The <code>naux</code> variable gives a maximum number of auxiliary
+     * axes which will be managed by this window - these give extra
+     * dimensions which can be mapped to, for instance, colour changes in
+     * plotted points.  If no auxiliary axes are required, supply
+     * <code>naux=0</code>.
      *
      * @param   viewName  name of the view window
-     * @param   axisNames  array of labels by which each axis is known;
-     *          the length of this array defines the dimensionality of the plot
+     * @param   axisNames  array of labels by which each main axis is known
+     * @param   naux   number of auxiliary axes
      * @param   errorModeModels   array of selecction models for error modes
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( String viewName, String[] axisNames,
+    public GraphicsWindow( String viewName, String[] axisNames, int naux,
                            ErrorModeSelectionModel[] errorModeModels,
                            Component parent ) {
         super( viewName, parent );
         axisNames_ = axisNames;
         ndim_ = axisNames.length;
+        naux_ = naux;
         replotListener_ = new ReplotListener();
 
         /* Axis flags. */
-        flipModels_ = new ToggleButtonModel[ ndim_ ];
-        logModels_ = new ToggleButtonModel[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            String ax = axisNames[ i ];
+        flipModels_ = new ToggleButtonModel[ ndim_ + naux_ ];
+        logModels_ = new ToggleButtonModel[ ndim_ + naux_ ];
+        for ( int i = 0; i < ndim_ + naux_; i++ ) {
+            String ax = i < ndim_ ? axisNames[ i ]
+                                  : "Aux " + ( i - ndim_ + 1 );
             flipModels_[ i ] = new ToggleButtonModel( "Flip " + ax + " Axis",
-                null, "Reverse the sense of the " + axisNames[ i ] + " axis" );
+                null, "Reverse the sense of the " + ax + " axis" );
             logModels_[ i ] = new ToggleButtonModel( "Log " + ax + " Axis",
-                null, "Logarithmic scale for the " + axisNames[ i ] + " axis" );
+                null, "Logarithmic scale for the " + ax + " axis" );
             flipModels_[ i ].addActionListener( replotListener_ );
             logModels_[ i ].addActionListener( replotListener_ );
         }
@@ -193,6 +205,26 @@ public abstract class GraphicsWindow extends AuxWindow {
         for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
             errorModeModels_[ ierr ].addActionListener( replotListener_ );
         }
+
+        /* Auxiliary axis visible model - controls how many of the auxiliary
+         * axes are visible to the user. */
+        auxVisibleModel_ = new DefaultBoundedRangeModel( 0, 0, 0, naux_ );
+        incAuxAction_ =
+            new GraphicsAction( "Add Aux Axis", ResourceIcon.ADD,
+                                "Add an auxiliary axis" );
+        decAuxAction_ =
+            new GraphicsAction( "Remove Aux Axis", ResourceIcon.SUBTRACT,
+                                "Remove the highest-numbered auxiliary axis" );
+        auxVisibleModel_.addChangeListener( replotListener_ );
+        ChangeListener auxEnabler = new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                int val = auxVisibleModel_.getValue();
+                incAuxAction_.setEnabled( val < auxVisibleModel_.getMaximum() );
+                decAuxAction_.setEnabled( val > auxVisibleModel_.getMinimum() );
+            }
+        };
+        auxVisibleModel_.addChangeListener( auxEnabler );
+        auxEnabler.stateChanged( null );
 
         /* Set up point selector component. */
         pointSelectors_ = new PointSelectorSet() {
@@ -256,6 +288,12 @@ public abstract class GraphicsWindow extends AuxWindow {
         axisEditAction_ = new GraphicsAction( "Configure Axes",
                                               ResourceIcon.AXIS_EDIT,
                                               "Set axis labels and ranges" );
+
+        /* Add toolbar items for showing additional auxiliary axes. */
+        if ( naux_ > 0 ) {
+            getToolBar().add( incAuxAction_ );
+            getToolBar().add( decAuxAction_ );
+        }
     }
 
     public void setVisible( boolean visible ) {
@@ -292,7 +330,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         pointSelectors_.revalidate();
 
         /* Add axis editors and corresponding data and view range arrays. */
-        AxisEditor[] axeds = mainSel.getAxesSelector().createAxisEditors();
+        final AxisEditor[] axeds =
+            mainSel.getAxesSelector().createAxisEditors();
         int nax = axeds.length;
         dataRanges_ = new Range[ nax ];
         viewRanges_ = new Range[ nax ];
@@ -301,8 +340,28 @@ public abstract class GraphicsWindow extends AuxWindow {
             axeds[ i ].addMaintainedRange( viewRanges_[ i ] );
             axeds[ i ].addActionListener( replotListener_ );
         }
-        axisWindow_ = new AxisWindow( this, axeds );
+        axisWindow_ = new AxisWindow( this );
         axisWindow_.addActionListener( replotListener_ );
+
+        /* If there are auxiliary axes arrange for the editors
+         * in the axis window to keep track of which are visible. */
+        if ( naux_ > 0 ) {
+            ChangeListener auxVisListener = new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
+                        int nvis = ndim_ + auxVisibleModel_.getValue();
+                        AxisEditor[] eds = new AxisEditor[ nvis ];
+                        System.arraycopy( axeds, 0, eds, 0, nvis );
+                        axisWindow_.setEditors( eds );
+                    }
+                }
+            };
+            auxVisibleModel_.addChangeListener( auxVisListener );
+            auxVisListener.stateChanged( null );
+        }
+        else {
+            axisWindow_.setEditors( axeds );
+        }
 
         /* Set a suitable default style set. */
         long npoint = 0;
@@ -647,17 +706,43 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @return   new point selector component
      */
     protected PointSelector createPointSelector() {
+
+        /* Default implementation uses Cartesian axes according to the
+         * nominal dimensionality of this window. */
         ErrorModeSelectionModel[] errorModeModels = getErrorModeModels();
         AxesSelector axsel =
             new CartesianAxesSelector( axisNames_, logModels_, flipModels_,
                                        errorModeModels );
+
+        /* If there are auxiliar axes, construct a composite AxesSelector
+         * which can keep track of them. */
+        if ( naux_ > 0 ) {
+            ToggleButtonModel[] auxLogModels = new ToggleButtonModel[ naux_ ];
+            ToggleButtonModel[] auxFlipModels = new ToggleButtonModel[ naux_ ];
+            System.arraycopy( logModels_, ndim_, auxLogModels, 0, naux_ );
+            System.arraycopy( flipModels_, ndim_, auxFlipModels, 0, naux_ );
+            final AugmentedAxesSelector augsel =
+                new AugmentedAxesSelector( axsel, naux_, auxLogModels,
+                                           auxFlipModels );
+            auxVisibleModel_.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
+                        augsel.setAuxVisible( auxVisibleModel_.getValue() );
+                    }
+                }
+            } );
+            augsel.setAuxVisible( auxVisibleModel_.getValue() );
+            axsel = augsel;
+        }
+
+        /* Create, configure and return the point selector. */
         PointSelector psel = new PointSelector( axsel, getStyles() );
         ActionListener errorModeListener = psel.getErrorModeListener();
         for ( int i = 0; i < errorModeModels.length; i++ ) {
             errorModeModels[ i ].addActionListener( errorModeListener );
         }
         return psel;
-    };
+    }
 
     /**
      * Creates a style editor suitable for this window.
@@ -742,11 +827,12 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Set per-axis characteristics. */
         StarTable mainData =
             pointSelectors_.getMainSelector().getAxesSelector().getData();
-        ColumnInfo[] axinfos = new ColumnInfo[ ndim_ ];
-        boolean[] flipFlags = new boolean[ ndim_ ];
-        boolean[] logFlags = new boolean[ ndim_ ];
-        ValueConverter[] converters = new ValueConverter[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
+        int nd = mainData.getColumnCount();
+        ColumnInfo[] axinfos = new ColumnInfo[ nd ];
+        boolean[] flipFlags = new boolean[ nd ];
+        boolean[] logFlags = new boolean[ nd ];
+        ValueConverter[] converters = new ValueConverter[ nd ];
+        for ( int i = 0; i < nd; i++ ) {
             ColumnInfo cinfo = mainData.getColumnInfo( i );
             axinfos[ i ] = cinfo;
             converters[ i ] =
@@ -804,8 +890,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Set axis labels configured in the axis editor window. */
         AxisEditor[] eds = axisWindow_.getEditors();
-        int nax = eds.length;
-        String[] labels = new String[ nax ];
+        String[] labels = new String[ eds.length ];
         for ( int i = 0; i < eds.length; i++ ) {
             AxisEditor ed = eds[ i ];
             labels[ i ] = ed.getLabel();
@@ -890,7 +975,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 performReplot();
             }
         } );
-    }                              
+    }
 
     /**
      * Redraws the plot in-thread, perhaps taking account of whether 
@@ -1017,7 +1102,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         for ( int ip = 0; ip < npoint; ip++ ) {
             double[] coords = points.getPoint( ip );
             boolean isValid = true;
-            for ( int idim = 0; idim < ndim && isValid; idim++ ) {
+            for ( int idim = 0; idim < ndim_ && isValid; idim++ ) {
                 isValid = isValid && ( ! Double.isNaN( coords[ idim ] ) &&
                                        ! Double.isInfinite( coords[ idim ] ) );
             }
@@ -1562,6 +1647,12 @@ public abstract class GraphicsWindow extends AuxWindow {
             else if ( this == rescaleAction_ ) {
                 rescale();
                 replot();
+            }
+            else if ( this == incAuxAction_ ) {
+                auxVisibleModel_.setValue( auxVisibleModel_.getValue() + 1 );
+            }
+            else if ( this == decAuxAction_ ) {
+                auxVisibleModel_.setValue( auxVisibleModel_.getValue() - 1 );
             }
         }
     }
