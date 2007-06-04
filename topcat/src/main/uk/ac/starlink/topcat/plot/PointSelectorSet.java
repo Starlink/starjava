@@ -62,7 +62,7 @@ public abstract class PointSelectorSet extends JPanel {
         selectorsCreated_ = 0;
         actionForwarder_ = new ActionForwarder();
         topcatForwarder_ = new TopcatForwarder();
-        add( new SizeWrapper( tabber_ ), BorderLayout.CENTER );
+        add( tabber_, BorderLayout.CENTER );
 
         Action newSelectorAction =
             new BasicAction( "Add Dataset", ResourceIcon.ADD,
