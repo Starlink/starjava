@@ -16,7 +16,7 @@ public interface AxesSelector {
 
     /**
      * Returns the panel which contains column selectors and any other
-     * UI compoenents that the concrete subclass wants to place.
+     * UI components that the concrete subclass wants to place.
      *
      * @return   column selector panel
      */
