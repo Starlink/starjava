@@ -104,6 +104,26 @@ public class AugmentedAxesSelector implements AxesSelector {
         auxPanel_.revalidate();
     }
 
+    /**
+     * Returns the number of columns which may have non-blank data.
+     * High-numbered columns which have not been filled in are excluded
+     * from this count.  Low-numbered ones (ones for which there is a filled
+     * one with a higher index) are included so as not to confuse the arrays.
+     *
+     * @return  one plus the index of the highest-numbered visible 
+     *          auxiliary column which has (or may have) non-blank data
+     */
+    public int getFilledAuxColumnCount() {
+        int count = 0;
+        for ( int icol = 0; icol < nVisible_; icol++ ) {
+            if ( auxSelector_.getColumnSelector( icol )
+                             .getSelectedItem() != null ) {
+                count = icol + 1;
+            }
+        }
+        return count;
+    }
+
     public JComponent getColumnSelectorPanel() {
         return selectorPanel_;
     }
