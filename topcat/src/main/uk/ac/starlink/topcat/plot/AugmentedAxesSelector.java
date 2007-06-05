@@ -99,9 +99,9 @@ public class AugmentedAxesSelector implements AxesSelector {
             else {
                 assert isVis == wantVis;
             }
-            nVisible_ = nVis;
-            auxPanel_.revalidate();
         }
+        nVisible_ = nVis;
+        auxPanel_.revalidate();
     }
 
     public JComponent getColumnSelectorPanel() {
@@ -136,13 +136,12 @@ public class AugmentedAxesSelector implements AxesSelector {
                 assert baseData instanceof ColumnDataTable;
                 assert auxData instanceof ColumnDataTable;
                 int nbase = baseData.getColumnCount();
-                int naux = auxData.getColumnCount();
-                ColumnData[] cols = new ColumnData[ nbase + naux ];
+                ColumnData[] cols = new ColumnData[ nbase + nVisible_ ];
                 for ( int i = 0; i < nbase; i++ ) {
                     cols[ i ] =
                         ((ColumnStarTable) baseData).getColumnData( i );
                 }
-                for ( int i = 0; i < naux; i++ ) {
+                for ( int i = 0; i < nVisible_; i++ ) {
                     cols[ i + nbase ] =
                         ((ColumnStarTable) auxData).getColumnData( i );
                 }
