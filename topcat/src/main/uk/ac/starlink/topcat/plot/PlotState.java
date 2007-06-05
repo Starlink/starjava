@@ -11,6 +11,10 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
  * plot component needs to draw a plot, apart from the Points data itself.
  * There are specific subclasses for the various different plot types.
  *
+ * <p>Some of the items held by this object are arrays with one element
+ * per axis.  Where appropriate these can be used to hold values for
+ * the main axes, followed by values for any visible auxiliary axes.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    21 Jun 2004
  */
@@ -26,6 +30,7 @@ public class PlotState {
     private PointSelection pointSelection_;
     private double[][] ranges_ = new double[ 0 ][];
     private String[] axisLabels_ = new String[ 0 ];
+    private Shader[] shaders_ = new Shader[ 0 ];
 
     /**
      * Sets whether this state should be used to attempt a successful plot.
@@ -186,6 +191,26 @@ public class PlotState {
     }
 
     /**
+     * Sets the shader objects to use for modifying the colour of plotted
+     * points according to auxiliary axis data.  The length of this array
+     * defines the number of auxiliary axes in use.
+     *
+     * @param   shaders   shaders, one per auxiliary axis
+     */
+    public void setShaders( Shader[] shaders ) {
+        shaders_ = shaders;
+    }
+
+    /**
+     * Returns the shader objects for using auxiliary axis data.
+     * 
+     * @return  shaders, one per auxiliary axis
+     */
+    public Shader[] getShaders() {
+        return shaders_;
+    }
+
+    /**
      * Sets an array of numeric converter objects, one for each axis.
      * The {@link uk.ac.starlink.ttools.convert.ValueConverter#unconvert}
      * method of these should convert a numeric value back to the
@@ -237,6 +262,7 @@ public class PlotState {
             && Arrays.equals( logFlags_, other.logFlags_ )
             && Arrays.equals( flipFlags_, other.flipFlags_ )
             && Arrays.equals( axisLabels_, other.axisLabels_ )
+            && Arrays.equals( shaders_, other.shaders_ )
             && Arrays.equals( converters_, other.converters_ )
             && equalRanges( ranges_, other.ranges_ )
             && ( pointSelection_ == null 
@@ -263,6 +289,7 @@ public class PlotState {
         sbuf.append( Arrays.equals( flipFlags_, o.flipFlags_  ) ? "" :" flip ");
         sbuf.append( Arrays.equals( axisLabels_, o.axisLabels_ )
                      ? "" : " axisLabels" );
+        sbuf.append( Arrays.equals( shaders_, o.shaders_ ) ? "" : " shaders" );
         sbuf.append( Arrays.equals( converters_, o.converters_ ) 
                      ? "" : " converters" );
         sbuf.append( equalRanges( ranges_, o.ranges_ ) ? "" : " ranges" );
@@ -290,6 +317,10 @@ public class PlotState {
         for ( int i = 0; i < axisLabels_.length; i++ ) {
             code = 23 * code + ( axisLabels_[ i ] == null
                                ? 0 : axisLabels_[ i ].hashCode() );
+        }
+        for ( int i = 0; i < shaders_.length; i++ ) {
+            code = 23 * code + ( shaders_[ i ] == null
+                               ? 0 : shaders_[ i ].hashCode() );
         }
         for ( int i = 0; i < converters_.length; i++ ) {
             code = 23 * code + ( converters_[ i ] == null
