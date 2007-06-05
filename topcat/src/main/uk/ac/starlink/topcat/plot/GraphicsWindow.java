@@ -847,6 +847,26 @@ public abstract class GraphicsWindow extends AuxWindow {
         state.setLogFlags( logFlags );
         state.setFlipFlags( flipFlags );
 
+        /* Set array of shader objects.  Exclude high-numbered ones which 
+         * have no associated data (because no columns are chosen for 
+         * them in any of the PointSelectors), since these will have no
+         * effect on the plot other than maybe slowing it down. */
+        int nShader = 0;
+        int nvis = auxVisibleModel_.getValue();
+        if ( nvis > 0 ) {
+            int nsel = pointSelectors_.getSelectorCount();
+            for ( int isel = 0; isel < nsel; isel++ ) {
+                AugmentedAxesSelector sel =
+                    (AugmentedAxesSelector) pointSelectors_.getSelector( isel )
+                                                           .getAxesSelector();
+                nShader = Math.max( nShader, sel.getFilledAuxColumnCount() );
+            }
+        }
+        assert nShader <= nvis;
+        Shader[] shaders = new Shader[ nShader ];
+        System.arraycopy( Shaders.STANDARD_SHADERS, 0, shaders, 0, nShader );
+        state.setShaders( shaders );
+
         /* Set grid status. */
         state.setGrid( gridModel_.isSelected() );
 
