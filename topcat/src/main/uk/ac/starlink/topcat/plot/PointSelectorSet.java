@@ -47,6 +47,8 @@ public abstract class PointSelectorSet extends JPanel {
     private final ActionForwarder actionForwarder_;
     private final TopcatForwarder topcatForwarder_;
     private final OrderRecorder orderRecorder_;
+    private final Action addSelectorAction_;
+    private final Action removeSelectorAction_;
     private BitSet usedMarkers_;
     private int selectorsCreated_;
     private StyleWindow styleWindow_;
@@ -64,7 +66,7 @@ public abstract class PointSelectorSet extends JPanel {
         topcatForwarder_ = new TopcatForwarder();
         add( tabber_, BorderLayout.CENTER );
 
-        Action newSelectorAction =
+        addSelectorAction_ =
             new BasicAction( "Add Dataset", ResourceIcon.ADD,
                              "Add a new data set" ) {
                 public void actionPerformed( ActionEvent evt ) {
@@ -72,29 +74,23 @@ public abstract class PointSelectorSet extends JPanel {
                     addNewSelector( psel );
                 } 
             };
-        final Action removeSelectorAction =
+        removeSelectorAction_ =
             new BasicAction( "Remove Dataset", ResourceIcon.SUBTRACT,
                              "Remove the current dataset" ) {
                 public void actionPerformed( ActionEvent evt ) {
                     removeCurrentSelector();
                 }
             };
-        removeSelectorAction.setEnabled( false );
+        removeSelectorAction_.setEnabled( false );
         tabber_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                removeSelectorAction.setEnabled( tabber_
-                                                .getSelectedIndex() > 0 );
+                removeSelectorAction_.setEnabled( tabber_
+                                                 .getSelectedIndex() > 0 );
             }
         } );
 
         orderRecorder_ = new OrderRecorder();
         addActionListener( orderRecorder_ );
-
-        JToolBar toolBox = new JToolBar( JToolBar.VERTICAL );
-        toolBox.setFloatable( false );
-        toolBox.add( newSelectorAction );
-        toolBox.add( removeSelectorAction );
-        add( toolBox, BorderLayout.WEST );
     }
 
     /**
@@ -114,6 +110,24 @@ public abstract class PointSelectorSet extends JPanel {
      */
     public PointSelector getSelector( int index ) {
         return (PointSelector) tabber_.getComponentAt( index );
+    }
+
+    /**
+     * Returns an action which adds a new selector to this set.
+     *
+     * @return  add action
+     */
+    public Action getAddSelectorAction() {
+        return addSelectorAction_;
+    }
+
+    /**
+     * Returns an action which removes a selector from this set.
+     *
+     * @return  remove action
+     */
+    public Action getRemoveSelectorAction() {
+        return removeSelectorAction_;
     }
 
     /**
