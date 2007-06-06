@@ -4,12 +4,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * AxesSelector implementation that wraps an existing one and adds some
@@ -26,6 +29,7 @@ public class AugmentedAxesSelector implements AxesSelector {
     private final ToggleButtonModel[] logModels_;
     private final ToggleButtonModel[] flipModels_;
     private final CartesianAxesSelector auxSelector_;
+    private final ComboBoxModel[] shaderModels_;
     private final JComponent selectorPanel_;
     private final JComponent auxPanel_;
     private TopcatModel tcModel_;
@@ -38,18 +42,24 @@ public class AugmentedAxesSelector implements AxesSelector {
      *          auxiliary axes
      * @param   naux  number of auxiliary axes to append
      * @param   logModels  <code>naux</code>-element array of models flagging
-     *          per-axis log scaling
+     *          per-axis log scaling (or null)
      * @param   flipModels  <code>naux</code>-element array of models flagging
-     *          per-axis sense inversion
+     *          per-axis sense inversion (or null)
+     * @param   shaderModels <code>naux</code>-element array of combo box
+     *          models to display with each aux axis (or null)
      */
     public AugmentedAxesSelector( AxesSelector baseSelector, int naux,
                                   ToggleButtonModel[] logModels,
-                                  ToggleButtonModel[] flipModels ) {
+                                  ToggleButtonModel[] flipModels,
+                                  ComboBoxModel[] shaderModels ) {
         baseSelector_ = baseSelector;
         naux_ = naux;
         logModels_ = logModels;
         flipModels_ = flipModels;
-        if ( logModels.length != naux || flipModels.length != naux ) {
+        shaderModels_ = shaderModels;
+        if ( logModels != null && logModels.length != naux ||
+             flipModels != null &&  flipModels.length != naux ||
+             shaderModels != null && shaderModels.length != naux ) {
             throw new IllegalArgumentException();
         }
 
@@ -65,6 +75,20 @@ public class AugmentedAxesSelector implements AxesSelector {
         auxSelector_ =
             new CartesianAxesSelector( auxNames, logModels, flipModels,
                                        new ErrorModeSelectionModel[ 0 ] );
+
+        /* Add selectors for choosing per-aux axis shaders if required. */
+        if ( shaderModels_ != null ) {
+            for ( int i = 0; i < naux; i++ ) {
+                AxisDataSelector selector = auxSelector_.getDataSelector( i );
+                JComboBox shaderSelector = new JComboBox( shaderModels_[ i ] );
+                shaderSelector.setRenderer( Shaders.SHADER_RENDERER );
+                JComponent box = Box.createHorizontalBox();
+                box.add( new ShrinkWrapper( shaderSelector ) );
+                box.add( Box.createHorizontalStrut( 5 ) );
+                box.add( new ComboBoxBumper( shaderSelector ) );
+                selector.add( box );
+            }
+        }
 
         /* Prepare a panel to hold the auxiliary axes. */
         for ( int i = 0; i < naux; i++ ) {
