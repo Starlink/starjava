@@ -22,8 +22,8 @@ public interface PointStore extends Points {
      * methods, since there may be some translation between the arrays.
      *
      * <p>The {@link PointSelection} submits rows here as retrieved
-     * directly from the PointSelectors {@link PointSelector#getData} and
-     * {@link PointSelector#getErrorData} tables.
+     * directly from the AxesSelector {@link AxesSelector#getData} and
+     * {@link AxesSelector#getErrorData} tables.
      *
      * @param  coordRow  array of objects representing coordinate values
      * @param  errorRow  array of objects representing error values

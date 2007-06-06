@@ -47,7 +47,7 @@ public interface AxesSelector {
     void addActionListener( ActionListener listener );
 
     /**
-     * Removes a listener added by {@link #addListener}.
+     * Removes a listener added by {@link #addActionListener}.
      *
      * @param  listener  listener to remove
      */
@@ -89,8 +89,8 @@ public interface AxesSelector {
      * by the current selections.  The details of how the table columns
      * are laid out are down to the concrete subclass.
      *
-     * <p>See the notes in {@link PointSelector#getData}
-     * about table equality - the same constraints apply.
+     * <p>See the notes in {@link #getData} about table equality - 
+     * the same constraints apply.
      *
      * @return  error data table
      */
