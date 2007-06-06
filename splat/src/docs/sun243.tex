@@ -28,11 +28,11 @@ Copyright \copyright\ 2007 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.27}
+\newcommand{\stardocnumber}    {243.28}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {3 April 2007}
+\newcommand{\stardocdate}      {5 June 2007}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.8-0}
+\newcommand{\stardocversion}   {3.8-1}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1434,8 +1434,8 @@ AST also provides the flux and data value conversion utilities used by
 in FITS-WCS paper I \textit{Representation of World Coordinate in FITS}
 by Greisen \& Calabretta.
 Conversion between fluxes is currently restricted to flux per unit wavelength
-and flux per unit frequency is provided and does not require any "dimensional
-analysis" information to be present, just correctly formed units strings.
+and flux per unit frequency is provided and does not require any `dimensional
+analysis' information to be present, just correctly formed units strings.
 
 The SSAP query is limited to just a cone region on the sky and optional query
 parameters are not supported.
@@ -1797,11 +1797,12 @@ fluxes and can be intercompared:
 \verb+erg/cm^2/s/Angstrom+ & ($erg*cm^{-2}*s^{-1}*Angstrom^{-1}$)
 \end{tabular}
 \end{quote}
-Plus variations like $Joules$ instead of $ergs$ or maybe $N m$, \etc\
-When reading unit strings like \verb+W/m^2/Hz+ you should say Watts per metre
+Plus variations like $Joules$ instead of $ergs$ or maybe $N m$, \etc\ When
+reading unit strings like \verb+W/m^2/Hz+ you should say Watts per metre
 squared per Hertz, which is actually mathematically the same as the
-expressions shown in to the right in parentheses
-(\hitext{$W*m^{-2}*Hz^{-1}$} in this case).
+expressions shown in to the right in parentheses (\hitext{$W*m^{-2}*Hz^{-1}$}
+in this case). Note that dimensionally equivalent unit strings to those above
+maybe be recognised and re-formatted.
 
 In addition to flux systems dimensionally similar ones can also be used and
 transformed between in a plot, things like temperature. \SPLAT\ understands
@@ -2937,10 +2938,17 @@ units.
 
 If you need to set the coordinates or data units you must use the two
 toolboxes available in the main window. These also offer considerably more
-flexibility, particularly when setting spectral coordinates.
+flexibility, particularly when defining spectral coordinates.
 
 If you do not want to change the units of an axis, just leave the value set at
-"Unknown".
+\labelitem{Not set or unrecognised}.
+
+When you see the value \labelitem{Not set or unrecognised}, that means that
+the current spectrum has no properly defined coordinates or data units for
+that axis (as appropriate), or, that the settings do not match one of the
+pre-defined set that you can switch to.  Note that data units which match one
+of the preset values dimensionally will be displayed in the preset format, so
+may not match values shown elsewhere, say in the plot labels.
 
 When the plot is displaying more than one spectrum, only the current one is
 actually modified. If you want the other spectra to be drawn as if in the same
@@ -2967,7 +2975,7 @@ origin then you need to use the advanced toolbox available in the main window.
 
 The \labelitem{Standard of rest:} control allows you to switch between
 the various supported rest frames. If the current spectrum doesn't support
-these the value will be set to \labelitem{Unknown}.
+these the value will be set to \labelitem{Not set or unrecognised}.
 
 The \labelitem{Rest Frequency:} field displays the current rest frequency in
 \labelitem{GHz}. This can be changed in two ways, either by selecting a

@@ -29,6 +29,11 @@
    The synopsis should now be placed at the top-left hand corner of the 
    axis for all plot aspect ratios.
 
+   Data units which dimensionally match one of the preset flux values 
+   will now be identified and shown as the preset value in the data units
+   and plot units toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now
+   be recognised as "erg/cm^2/s/Angstrom".
+
    3.8-0
    =====
 
