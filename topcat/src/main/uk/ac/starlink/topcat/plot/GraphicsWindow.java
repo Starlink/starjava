@@ -35,6 +35,7 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
@@ -69,6 +70,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -127,6 +129,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final JProgressBar progBar_;
     private final BoundedRangeModel noProgress_;
     private final BoundedRangeModel auxVisibleModel_;
+    private final ComboBoxModel[] auxShaderModels_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -153,6 +156,20 @@ public abstract class GraphicsWindow extends AuxWindow {
         new SuffixFileFilter( new String[] { ".gif" } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+    private static final Shader[] SHADERS = new Shader[] {
+        Shaders.LUT_PASTEL,
+        Shaders.LUT_RAINBOW,
+        Shaders.LUT_STANDARD,
+        Shaders.LUT_HEAT,
+        Shaders.LUT_COLOR,
+        Shaders.GREYSCALE,
+        Shaders.RBSCALE,
+        Shaders.FIX_INTENSITY,
+        Shaders.SCALE_INTENSITY,
+        Shaders.FIX_RED,
+        Shaders.FIX_GREEN,
+        Shaders.FIX_BLUE,
+    };
 
     /**
      * Constructor.  A number of main axes are defined by the 
@@ -225,6 +242,15 @@ public abstract class GraphicsWindow extends AuxWindow {
         };
         auxVisibleModel_.addChangeListener( auxEnabler );
         auxEnabler.stateChanged( null );
+
+        /* Shader selection models for each auxiliary axis. */
+        auxShaderModels_ = new ComboBoxModel[ naux ];
+        for ( int i = 0; i < naux; i++ ) {
+            ChangingComboBoxModel shaderModel =
+                new ChangingComboBoxModel( SHADERS );
+            shaderModel.addChangeListener( replotListener_ );
+            auxShaderModels_[ i ] = shaderModel;
+        }
 
         /* Set up point selector component. */
         pointSelectors_ = new PointSelectorSet() {
@@ -723,7 +749,7 @@ public abstract class GraphicsWindow extends AuxWindow {
             System.arraycopy( flipModels_, ndim_, auxFlipModels, 0, naux_ );
             final AugmentedAxesSelector augsel =
                 new AugmentedAxesSelector( axsel, naux_, auxLogModels,
-                                           auxFlipModels );
+                                           auxFlipModels, auxShaderModels_ );
             auxVisibleModel_.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
                     if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
@@ -864,7 +890,9 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
         assert nShader <= nvis;
         Shader[] shaders = new Shader[ nShader ];
-        System.arraycopy( Shaders.STANDARD_SHADERS, 0, shaders, 0, nShader );
+        for ( int i = 0; i < nShader; i++ ) {
+            shaders[ i ] = (Shader) auxShaderModels_[ i ].getSelectedItem();
+        }
         state.setShaders( shaders );
 
         /* Set grid status. */
