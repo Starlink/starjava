@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import Acme.JPM.Encoders.GifEncoder;
 import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
@@ -45,8 +46,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -263,7 +266,22 @@ public abstract class GraphicsWindow extends AuxWindow {
         };
         getControlPanel().setLayout( new BoxLayout( getControlPanel(),
                                                     BoxLayout.Y_AXIS ) );
-        getControlPanel().add( new SizeWrapper( pointSelectors_ ) );
+        JComponent pselBox = new JPanel( new BorderLayout() );
+        pselBox.add( pointSelectors_, BorderLayout.CENTER );
+        getControlPanel().add( new SizeWrapper( pselBox ) );
+
+        /* Set up and populate a toolbar for controls relating specifically
+         * to the point selectors. */
+        JToolBar pselToolbar = new JToolBar( JToolBar.VERTICAL );
+        pselToolbar.setFloatable( false );
+        pselBox.add( pselToolbar, BorderLayout.WEST );
+        pselToolbar.add( pointSelectors_.getAddSelectorAction() );
+        pselToolbar.add( pointSelectors_.getRemoveSelectorAction() );
+        if ( naux_ > 0 ) {
+            pselToolbar.addSeparator();
+            pselToolbar.add( incAuxAction_ );
+            pselToolbar.add( decAuxAction_ );
+        }
 
         /* Ensure that changes to the point selection trigger a replot. */
         pointSelectors_.addActionListener( replotListener_ );
@@ -314,12 +332,6 @@ public abstract class GraphicsWindow extends AuxWindow {
         axisEditAction_ = new GraphicsAction( "Configure Axes",
                                               ResourceIcon.AXIS_EDIT,
                                               "Set axis labels and ranges" );
-
-        /* Add toolbar items for showing additional auxiliary axes. */
-        if ( naux_ > 0 ) {
-            getToolBar().add( incAuxAction_ );
-            getToolBar().add( decAuxAction_ );
-        }
     }
 
     public void setVisible( boolean visible ) {
