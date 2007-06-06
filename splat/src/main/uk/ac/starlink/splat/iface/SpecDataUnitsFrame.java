@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     10-JAN-2005 (Peter W. Draper):
@@ -11,8 +12,8 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Iterator;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -33,11 +34,13 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.Triple;
 import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -92,21 +95,27 @@ public class SpecDataUnitsFrame
     private JComboBox unitsBox = null;
 
     /**
-     * List of useful units.
-     */
-    private static Map unitsMap = null;
-
-    /**
      * Initialization of useful AST units information.
      */
+    private static Vector unitsVector = null;
     static {
-        unitsMap = new LinkedHashMap(); 
-        unitsMap.put( "Jansky", "Jy");
-        unitsMap.put( "W/m^2/Hz", "W/m^2/Hz" );
-        unitsMap.put( "W/m^2/Angstrom", "W/m^2/Angstrom" );
-        unitsMap.put( "W/cm^2/um", "W/cm^2/um" );
-        unitsMap.put( "erg/cm^2/s/Hz", "erg/cm^2/s/Hz" );
-        unitsMap.put( "erg/cm^2/s/Angstrom", "erg/cm^2/s/Angstrom" ); 
+        unitsVector = new Vector();
+        Frame testFrame = new Frame( 1 );
+        unitsVector.add( new Triple( "Jansky", "Jy", "Jy" ) );
+        String[] canonicalUnits = { "W/m^2/Hz",
+                                    "W/m^2/Angstrom",
+                                    "W/cm^2/um",
+                                    "erg/cm^2/s/Hz",
+                                    "erg/cm^2/s/Angstrom" 
+        };
+        
+        for ( int i = 0; i < canonicalUnits.length; i++ ) {
+            testFrame.setUnit( 1, canonicalUnits[i] );
+            unitsVector.add( new Triple( canonicalUnits[i], 
+                                         canonicalUnits[i], 
+                                         testFrame.getC( "normunit" ) ) );
+        }
+        testFrame.annul();
     };
 
     /**
@@ -247,7 +256,7 @@ public class SpecDataUnitsFrame
         GridBagLayouter gbl = new GridBagLayouter( panel,
                                                    GridBagLayouter.SCHEME3 );
 
-        unitsBox = new JComboBox( unitsMap.keySet().toArray() );
+        unitsBox = new JComboBox( unitsVector );
         unitsBox.setEditable( true );
         unitsBox.addActionListener( this );
         JLabel label = new JLabel( "Units: " );
@@ -307,9 +316,16 @@ public class SpecDataUnitsFrame
      */
     protected String getUnits()
     {
-        String value = (String) unitsBox.getEditor().getItem();
-        if ( isValid( value ) ) {
-            return UnitUtilities.fixUpUnits( value );
+        Object value = unitsBox.getEditor().getItem();
+        String units = null;
+        if ( value instanceof String ) {
+            units = (String) value;
+        }
+        else {
+            units = ((Triple) value).gets2();
+        }
+        if ( isValid( units ) ) {
+            return UnitUtilities.fixUpUnits( units );
         }
         return "";
     }
@@ -494,15 +510,32 @@ public class SpecDataUnitsFrame
     //
     public void actionPerformed( ActionEvent e )
     {
+        //  Handle case when a String has been entered by the user.
+        //  Want to see if the form matches the canonical ones and if
+        //  so display that instead.
         Object source = e.getSource();
         if ( source instanceof JComboBox ) {
             JComboBox jb = (JComboBox) source;
-            String name = (String) jb.getSelectedItem();
             if ( jb.equals( unitsBox ) ) {
-                // Convert to real string from symbolic.
-                String units = (String) unitsMap.get( name );
-                if ( units != null ) {
-                    unitsBox.setSelectedItem( units );
+                Object selected = jb.getSelectedItem();
+
+                //  If source is String assume user value.
+                if ( selected instanceof String ) {
+
+                    Frame f = new Frame( 1 );
+                    f.setUnit( 1, (String) selected );
+                    String normunit = f.getC( "normunit" );
+                    f.annul();
+
+                    Iterator i = unitsVector.iterator();
+                    Triple t;
+                    while ( i.hasNext() ) {
+                        t = (Triple) i.next();
+                        if ( t.gets3().equals( normunit ) ) {
+                            unitsBox.setSelectedItem( t );
+                            break;
+                        }
+                    }
                 }
             }
         }

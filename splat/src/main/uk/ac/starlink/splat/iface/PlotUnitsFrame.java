@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilties Council
  *
  *  History:
  *     18-APR-2005 (Peter W. Draper):
@@ -54,11 +55,11 @@ import uk.ac.starlink.splat.plot.PlotClickedListener;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.Triple;
 import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
-
-
+ 
 /**
  * Window for choosing a pre-defined set of spectral coordinates and data
  * units for application to the current spectrum of a PlotControl instance.
@@ -153,18 +154,29 @@ public class PlotUnitsFrame
     private static final String NONE = "None";
 
     /**
-     * List of the possible data units.
+     * List of the possible data units. Use canonical strings for
+     * presentation and AST normalised forms for comparisons.
      */
-    private static Map dataUnitsMap = null;
+    private static Vector dataUnitsVector = null;
     static {
-        dataUnitsMap = new LinkedHashMap();
-        dataUnitsMap.put( UNKNOWN_LABEL, UNKNOWN );
-        dataUnitsMap.put( "Jansky", "Jy");
-        dataUnitsMap.put( "W/m^2/Hz", "W/m^2/Hz" );
-        dataUnitsMap.put( "W/m^2/Angstrom", "W/m^2/Angstrom" );
-        dataUnitsMap.put( "W/cm^2/um", "W/cm^2/um" );
-        dataUnitsMap.put( "erg/cm^2/s/Hz", "erg/cm^2/s/Hz" );
-        dataUnitsMap.put( "erg/cm^2/s/Angstrom", "erg/cm^2/s/Angstrom" );
+        dataUnitsVector = new Vector();
+        Frame testFrame = new Frame( 1 );
+        dataUnitsVector.add( new Triple( UNKNOWN_LABEL, UNKNOWN, UNKNOWN ) );
+        dataUnitsVector.add( new Triple( "Jansky", "Jy", "Jy" ) );
+        String[] canonicalUnits = { "W/m^2/Hz",
+                                    "W/m^2/Angstrom",
+                                    "W/cm^2/um",
+                                    "erg/cm^2/s/Hz",
+                                    "erg/cm^2/s/Angstrom" 
+        };
+        
+        for ( int i = 0; i < canonicalUnits.length; i++ ) {
+            testFrame.setUnit( 1, canonicalUnits[i] );
+            dataUnitsVector.add( new Triple( canonicalUnits[i], 
+                                             canonicalUnits[i], 
+                                             testFrame.getC( "normunit" ) ) );
+        }
+        testFrame.annul();
     };
 
     /**
@@ -174,32 +186,32 @@ public class PlotUnitsFrame
     private static Vector coordinateSystems = null;
     static {
         coordinateSystems = new Vector();
-        coordinateSystems.add( new Cdus( UNKNOWN_LABEL, UNKNOWN, UNKNOWN ) );
-        coordinateSystems.add( new Cdus( "Angstroms", "Angstrom", "WAVE" ) );
-        coordinateSystems.add( new Cdus( "Nanometres", "nm", "WAVE" ) );
-        coordinateSystems.add( new Cdus( "Micrometres", "um", "WAVE" ) );
-        coordinateSystems.add( new Cdus( "Millimetres", "mm", "WAVE" ) );
-        coordinateSystems.add( new Cdus( "Metres", "m", "WAVE" ) );
-        coordinateSystems.add( new Cdus( "Terahertz", "THz", "FREQ" ) );
-        coordinateSystems.add( new Cdus( "Gigahertz", "GHz", "FREQ" ) );
-        coordinateSystems.add( new Cdus( "Megahertz", "MHz", "FREQ" ) );
-        coordinateSystems.add( new Cdus( "Kilohertz", "kHz", "FREQ" ) );
-        coordinateSystems.add( new Cdus( "Hertz", "Hz", "FREQ" ) );
-        coordinateSystems.add( new Cdus( "Joules", "J", "ENER" ) );
-        coordinateSystems.add( new Cdus( "Ergs", "erg", "ENER" ) );
-        coordinateSystems.add( new Cdus( "Electron-volts", "eV", "ENER" ) );
-        coordinateSystems.add( new Cdus( "Kilo-electron-volts", "keV",
+        coordinateSystems.add( new Triple( UNKNOWN_LABEL, UNKNOWN, UNKNOWN ) );
+        coordinateSystems.add( new Triple( "Angstroms", "Angstrom", "WAVE" ) );
+        coordinateSystems.add( new Triple( "Nanometres", "nm", "WAVE" ) );
+        coordinateSystems.add( new Triple( "Micrometres", "um", "WAVE" ) );
+        coordinateSystems.add( new Triple( "Millimetres", "mm", "WAVE" ) );
+        coordinateSystems.add( new Triple( "Metres", "m", "WAVE" ) );
+        coordinateSystems.add( new Triple( "Terahertz", "THz", "FREQ" ) );
+        coordinateSystems.add( new Triple( "Gigahertz", "GHz", "FREQ" ) );
+        coordinateSystems.add( new Triple( "Megahertz", "MHz", "FREQ" ) );
+        coordinateSystems.add( new Triple( "Kilohertz", "kHz", "FREQ" ) );
+        coordinateSystems.add( new Triple( "Hertz", "Hz", "FREQ" ) );
+        coordinateSystems.add( new Triple( "Joules", "J", "ENER" ) );
+        coordinateSystems.add( new Triple( "Ergs", "erg", "ENER" ) );
+        coordinateSystems.add( new Triple( "Electron-volts", "eV", "ENER" ) );
+        coordinateSystems.add( new Triple( "Kilo-electron-volts", "keV",
                                          "ENER" ) );
-        coordinateSystems.add( new Cdus( "Metres-per-sec (radio)", "m/s",
+        coordinateSystems.add( new Triple( "Metres-per-sec (radio)", "m/s",
                                          "VRAD" ) );
-        coordinateSystems.add( new Cdus( "Kilometres-per-sec (radio)", "km/s",
+        coordinateSystems.add( new Triple( "Kilometres-per-sec (radio)", "km/s",
                                          "VRAD" ) );
-        coordinateSystems.add( new Cdus( "Redshift", NONE, "ZOPT" ) );
-        coordinateSystems.add( new Cdus( "Kilometres-per-sec (rela)", "km/s",
+        coordinateSystems.add( new Triple( "Redshift", NONE, "ZOPT" ) );
+        coordinateSystems.add( new Triple( "Kilometres-per-sec (rela)", "km/s",
                                          "VELO" ) );
-        coordinateSystems.add( new Cdus( "Kilometres-per-sec (opt)", "km/s",
+        coordinateSystems.add( new Triple( "Kilometres-per-sec (opt)", "km/s",
                                          "VOPT" ) );
-        coordinateSystems.add( new Cdus( "Per-metre", "1/m", "WAVN" ) );
+        coordinateSystems.add( new Triple( "Per-metre", "1/m", "WAVN" ) );
     };
 
     /**
@@ -351,7 +363,7 @@ public class PlotUnitsFrame
      */
     protected void initFrame()
     {
-        setTitle( Utilities.getTitle( "Plot Units" ) );
+        setTitle( Utilities.getTitle( "Current Spectrum Units" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         Utilities.setFrameLocation( this, null, prefs, "PlotUnitsFrame" );
         pack();
@@ -375,9 +387,9 @@ public class PlotUnitsFrame
         coordinatesBox.setToolTipText( "Units of the spectral coordinates" );
 
         //  DSB side band, start with positive IF assumption.
-        ifNegSideBandModel = 
+        ifNegSideBandModel =
             new DefaultComboBoxModel( ifNegSideBandMap.keySet().toArray() );
-        ifPosSideBandModel = 
+        ifPosSideBandModel =
             new DefaultComboBoxModel( ifPosSideBandMap.keySet().toArray() );
         sideBandBox = new JComboBox( ifPosSideBandModel );
         label = new JLabel( "SideBand: " );
@@ -388,7 +400,7 @@ public class PlotUnitsFrame
             ( "Current sideband when display dual sideband data" );
 
         //  Data units
-        dataUnitsBox = new JComboBox( dataUnitsMap.keySet().toArray() );
+        dataUnitsBox = new JComboBox( dataUnitsVector );
         label = new JLabel( "Data units: " );
         gbl.add( label, false );
         gbl.add( dataUnitsBox, false );
@@ -476,7 +488,7 @@ public class PlotUnitsFrame
         }
 
         String coordUnits = frameSet.getC( "unit(1)" );
-        String dataUnits = frameSet.getC( "unit(2)" );
+        String dataUnits = frameSet.getC( "normunit(2)" );
         try {
             originDefault = frameSet.getD( "SpecOrigin" );
             originDefaultFrame = (Frame)
@@ -491,28 +503,27 @@ public class PlotUnitsFrame
             originDefaultFrame = null;
         }
 
-        //  Need to transform these into local strings.
-        Set entrySet = dataUnitsMap.entrySet();
-        Iterator i = entrySet.iterator();
-        Map.Entry entry;
+        //  Need to transform these into local strings. We use the normalised
+        //  forms so that comparison of dimensionally similar units succeeds.
+        Iterator i = dataUnitsVector.iterator();
         dataUnitsBox.setSelectedIndex( 0 ); //  Unknown
+        Triple triple = null;
         while ( i.hasNext() ) {
-            entry = (Map.Entry) i.next();
-            if ( entry.getValue().equals( dataUnits ) ) {
-                dataUnitsBox.setSelectedItem( (String) entry.getKey() );
+            triple = (Triple) i.next();
+            if ( triple.gets3().equals( dataUnits ) ) {
+                dataUnitsBox.setSelectedItem( triple );
                 break;
             }
         }
 
         i = coordinateSystems.iterator();
         coordinatesBox.setSelectedIndex( 0 ); // Unknown
-        Cdus cdus = null;
         String units;
         while ( i.hasNext() ) {
-            cdus = (Cdus) i.next();
-            units = cdus.getUnits();
+            triple = (Triple) i.next();
+            units = triple.gets2();
             if ( ! units.equals( NONE ) && units.equals( coordUnits ) ) {
-                coordinatesBox.setSelectedItem( cdus );
+                coordinatesBox.setSelectedItem( triple );
                 break;
             }
         }
@@ -525,9 +536,10 @@ public class PlotUnitsFrame
             sideBandMap = ifNegSideBandMap;
             sideBandBox.setModel( ifNegSideBandModel );
         }
-        entrySet = sideBandMap.entrySet();
+        Set entrySet = sideBandMap.entrySet();
         i = entrySet.iterator();
         sideBandBox.setSelectedIndex( 0 ); //  Unknown
+        Map.Entry entry = null;
         while ( i.hasNext() ) {
             entry = (Map.Entry) i.next();
             if ( entry.getValue().equals( sideband ) ) {
@@ -556,15 +568,16 @@ public class PlotUnitsFrame
      */
     protected void matchUIUnits()
     {
-        String dataUnits = (String) dataUnitsBox.getSelectedItem();
-        dataUnits = (String) dataUnitsMap.get( dataUnits );
+        //  Get data units in canonical form.
+        Triple triple = (Triple) dataUnitsBox.getSelectedItem();
+        String dataUnits = (String) triple.gets2();
 
-        Cdus cdus = (Cdus) coordinatesBox.getSelectedItem();
-        String coordUnits = cdus.getUnits();
+        triple = (Triple) coordinatesBox.getSelectedItem();
+        String coordUnits = triple.gets2();
         if ( coordUnits.equals( NONE ) ) {
             coordUnits = "";
         }
-        String coordSystem = cdus.getSystem();
+        String coordSystem = triple.gets3();
 
         String sideBand = (String) sideBandBox.getSelectedItem();
         sideBand = (String) sideBandMap.get( sideBand );
@@ -596,7 +609,7 @@ public class PlotUnitsFrame
 
     /**
      * Convert current units of a given spectrum to some new values.
-     * Units that are {@link UNKNOWN} are skipped and remain at their 
+     * Units that are {@link UNKNOWN} are skipped and remain at their
      * current values.
      */
     protected void convertToUnits( SpecData spec, String dataUnits,
@@ -764,7 +777,7 @@ public class PlotUnitsFrame
             }
             if ( bestindex != -1 ) {
                 int index = specData[bestindex].nearestIndex( bestcoord );
-                bestcoord = 
+                bestcoord =
                     ((LineIDSpecData)specData[bestindex]).getFrequency(index);
             }
         }
@@ -787,7 +800,7 @@ public class PlotUnitsFrame
             String restfreq = "RestFreq=" + bestcoord + "GHz";
             try {
                 SpecCoordinatesFrame.convertToAttributes
-                    ( currentSpectrum, restfreq, 
+                    ( currentSpectrum, restfreq,
                       currentSpectrum.getMostSignificantAxis(), false );
                 restFrequencyField.setText( Double.toString( bestcoord ) );
             }
@@ -853,40 +866,6 @@ public class PlotUnitsFrame
         public void actionPerformed( ActionEvent ae )
         {
             matchUIUnits();
-        }
-    }
-
-    /**
-     * Inner class for containing the description of a known coordinate
-     * system.
-     */
-    protected static class Cdus
-    {
-        private String description;
-        private String units;
-        private String system;
-
-        public Cdus( String description, String units, String system )
-        {
-            this.description = description;
-            this.units = units;
-            this.system = system;
-        }
-        public String toString()
-        {
-            return description;
-        }
-        public String getDescription()
-        {
-            return description;
-        }
-        public String getUnits()
-        {
-            return units;
-        }
-        public String getSystem()
-        {
-            return system;
         }
     }
 
