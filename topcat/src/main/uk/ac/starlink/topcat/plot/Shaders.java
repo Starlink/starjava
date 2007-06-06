@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -8,7 +10,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.util.FloatList;
 
 /**
@@ -49,7 +58,7 @@ public class Shaders {
 
     /** Interpolates between black (0) and white (1). */
     public static final Shader GREYSCALE =
-        createInterpolationShader( "Greyscale", Color.BLACK, Color.WHITE );
+        createInterpolationShader( "Greyscale", Color.WHITE, Color.BLACK );
 
     /** Shader based on lookup table Aips0. */
     public static final Shader LUT_AIPS0;
@@ -123,23 +132,41 @@ public class Shaders {
         LUT_STANDARD = new ResourceLutShader( "Standard", "standard.lut" ),
     };
 
-    /** Selection of useful shader implementations. */
-    public static Shader[] STANDARD_SHADERS = new Shader[] {
-        FIX_RED,
-        FIX_GREEN,
-        FIX_BLUE,
-        GREYSCALE,
-        RBSCALE,
-        LUT_STANDARD,
-        LUT_COLOR,
-        LUT_HEAT,
-        LUT_PASTEL,
-        LUT_RAINBOW,
+    /** ListCellRenderer suitable for a combo box containing Shaders. */
+    public static final ListCellRenderer SHADER_RENDERER =
+        new ShaderListCellRenderer();
+
+    /** Shader which sets intensity. */
+    public static final Shader FIX_INTENSITY = new Shader() {
+        public void adjustRgba( float[] rgba, float value ) {
+            float max = Math.max( rgba[ 0 ], Math.max( rgba[ 1 ], rgba[ 2 ] ) );
+            float m1 = 1f / max;
+            for ( int i = 0; i < 3; i++ ) {
+                rgba[ i ] = 1f - value * ( 1f - rgba[ i ] * m1 );
+            }
+        }
+        public String toString() {
+            return "Fix Intensity";
+        }
     };
+
+    /** Shader which scales intensity. */
+    public static final Shader SCALE_INTENSITY = new Shader() {
+        public void adjustRgba( float[] rgba, float value ) {
+            for ( int i = 0; i < 3; i++ ) {
+                rgba[ i ] = 1f - value * ( 1f - rgba[ i ] );
+            }
+        }
+        public String toString() {
+            return "Scale Intensity";
+        }
+    };
+
+    /** Base directory for locating binary colour map lookup table resources. */
+    private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
-    private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
 
     /**
      * Constructs a shader which interpolates smoothly between two colours.
@@ -159,6 +186,28 @@ public class Shaders {
                     float f0 = rgba0[ i ];
                     float f1 = rgba1[ i ];
                     rgba[ i ] = f0 + ( f1 - f0 ) * value;
+                }
+            }
+            public String toString() {
+                return name;
+            }
+        };
+    }
+
+    /**
+     * Creates a shader which always returns a fixed colour regardless of the
+     * supplied parameter.
+     *
+     * @param  name  shader name
+     * @param  color  fixed output colour
+     * @return   fixed colour shader
+     */
+    public static Shader createFixedShader( final String name, Color color ) {
+        final float[] fixedRgba = color.getRGBComponents( new float[ 4 ] );
+        return new Shader() {
+            public void adjustRgba( float[] rgba, float value ) {
+                for ( int i = 0; i < 4; i++ ) {
+                    rgba[ i ] = fixedRgba[ i ];
                 }
             }
             public String toString() {
@@ -338,6 +387,212 @@ public class Shaders {
                 }
             }
             return lut_;
+        }
+    }
+
+    /**
+     * Icon representing a Shader in one dimension.  
+     * A horizontal or vertical bar is drawn
+     * which gives the full range of colours produced by the shader as
+     * operating on a given base colour.
+     */
+    private static class ShaderIcon1 implements Icon {
+
+        private final Shader shader_;
+        private final boolean horizontal_;
+        private final int width_;
+        private final int height_;
+        private final int xpad_;
+        private final int ypad_;
+        private final float[] baseRgba_;
+
+        /**
+         * Constructor.
+         *
+         * @param  shader   shader
+         * @param  horizontal   true for a horizontal bar, false for vertical
+         * @param  baseColor   the base colour modified by the shader
+         * @param  width    total width of the icon
+         * @param  height   total height of the icon
+         * @param  xpad     internal padding in the X direction
+         * @param  ypad     internal padding in the Y direction
+         */
+        ShaderIcon1( Shader shader, boolean horizontal, Color baseColor,
+                     int width, int height, int xpad, int ypad ) {
+            shader_ = shader;
+            horizontal_ = horizontal;
+            width_ = width;
+            height_ = height;
+            xpad_ = xpad;
+            ypad_ = ypad;
+            baseRgba_ = baseColor.getRGBComponents( null );
+        }
+
+        public int getIconWidth() {
+            return width_;
+        }
+
+        public int getIconHeight() {
+            return height_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            Color origColor = g.getColor();
+            int npix = horizontal_ ? width_ - 2 * xpad_
+                                   : height_ - 2 * ypad_;
+            float np1 = 1f / ( npix - 1 );
+            int xlo = x + xpad_;
+            int xhi = x + width_ - xpad_;
+            int ylo = y + ypad_;
+            int yhi = y + height_ - ypad_;
+            for ( int ipix = 0; ipix < npix; ipix++ ) {
+                g.setColor( getColor( ipix * np1 ) );
+                if ( horizontal_ ) {
+                    int xpos = xlo + ipix;
+                    g.drawLine( xpos, ylo, xpos, yhi );
+                }
+                else {
+                    int ypos = ylo + ipix;
+                    g.drawLine( xlo, ypos, xhi, ypos );
+                }
+            }
+            g.setColor( origColor );
+        }
+
+        /**
+         * Returns the colour corresponding to a given parameter value for
+         * this icon's shader.
+         *
+         * @param  value  parameter value
+         * @return colour
+         */
+        private Color getColor( float value ) {
+            float[] rgba = (float[]) baseRgba_.clone();
+            shader_.adjustRgba( rgba, value );
+            return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+        }
+    }
+
+
+    /**
+     * Icon representing a Shader operating in two dimensions.
+     */
+    private static class ShaderIcon2 implements Icon {
+
+        private final Shader xShader_;
+        private final Shader yShader_;
+        private final boolean xFirst_;
+        private final int width_;
+        private final int height_;
+        private final int xpad_;
+        private final int ypad_;
+        private final float[] baseRgba_;
+
+        /**
+         * Constructor.
+         *
+         * @param  xShader  shader for X direction
+         * @param  yShader  shader for Y direction
+         * @param  xFirst   true if X shader is to be applied first
+         * @param  baseColor  base colour for the shaders to work on 
+         * @param  width    total width of the icon
+         * @param  height   total height of the icon
+         * @param  xpad     internal padding in the X direction
+         * @param  ypad     internal padding in the Y direction
+         */
+        ShaderIcon2( Shader xShader, Shader yShader, boolean xFirst, 
+                     Color baseColor, int width, int height,
+                     int xpad, int ypad ) {
+            xShader_ = xShader;
+            yShader_ = yShader;
+            xFirst_ = xFirst;
+            width_ = width;
+            height_ = height;
+            xpad_ = xpad;
+            ypad_ = ypad;
+            baseRgba_ = baseColor.getRGBComponents( null );
+        }
+
+        public int getIconWidth() {
+            return width_;
+        }
+
+        public int getIconHeight() {
+            return height_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            Color origColor = g.getColor();
+            int nx = width_ - 2 * xpad_;
+            int ny = height_ - 2 * ypad_;
+            float nx1 = 1f / ( nx - 1 );
+            float ny1 = 1f / ( ny - 1 );
+            for ( int ix = 0; ix < nx; ix++ ) {
+                for ( int iy = 0; iy < ny; iy++ ) {
+                    g.setColor( getColor( ix * nx1, iy * ny1 ) );
+                    g.drawRect( ix + xpad_, iy + ypad_, 1, 1 );
+                }
+            }
+            g.setColor( origColor );
+        }
+
+        /**
+         * Returns the colour generated by this icon's shaders at particular
+         * values of the X and Y parameters.
+         *
+         * @param   xval  X shader parameter
+         * @param   yval  Y shader parameter
+         * @return  colour
+         */
+        private Color getColor( float xval, float yval ) {
+            float[] rgba = (float[]) baseRgba_.clone();
+            if ( xFirst_ ) {
+                xShader_.adjustRgba( rgba, xval );
+                yShader_.adjustRgba( rgba, yval );
+            }
+            else {
+                yShader_.adjustRgba( rgba, yval );
+                xShader_.adjustRgba( rgba, xval );
+            }
+            return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+        }
+    }
+
+    /**
+     * ListCellRenderer suitable for a combo box containing shaders.
+     */
+    private static class ShaderListCellRenderer extends BasicComboBoxRenderer {
+
+        private static final Map iconMap_ = new HashMap();
+
+        public Component getListCellRendererComponent( JList list, Object value,
+                                                       int index, boolean isSel,
+                                                       boolean hasFocus ) {
+            Component comp =
+                super.getListCellRendererComponent( list, value, index, isSel,
+                                                    hasFocus );
+            if ( comp instanceof JLabel && value instanceof Shader ) {
+                JLabel label = (JLabel) comp;
+                Shader shader = (Shader) value;
+                label.setText( shader.toString() );
+                label.setIcon( getIcon( shader ) );
+            }
+            return comp;
+        }
+
+        private static Icon getIcon( Shader shader ) {
+            if ( ! iconMap_.containsKey( shader ) ) {
+
+                /* It looks a bit expensive redrawing these icons each time
+                 * since each pixel is a separate rectangle, so possibly 
+                 * the icon ought to be cached in an image or something ...
+                 * doesn't seem to cause any noticeable load though. */
+                Icon icon =
+                    new ShaderIcon2( shader, LUT_PASTEL, false, Color.BLACK,
+                                     48, 16, 4, 1 );
+                iconMap_.put( shader, icon );
+            }
+            return (Icon) iconMap_.get( shader );
         }
     }
 }
