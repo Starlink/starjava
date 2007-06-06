@@ -1,0 +1,43 @@
+These *.lut colour map files are 3*N arrays of floats, representing
+r1, g1, b1, r2, g2, b2, ....  They represent colour maps for a 
+univariate scale.
+
+The values are taken from SkyCat/GAIA.
+They were derived from the *.lasc files in directory 
+applications/gaia/skycat/rtd/rtdimg/colormaps/ from the starlink source tree.
+
+Conversion was done using the following filter program:
+
+import java.io.BufferedReader;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class LutConvert {
+    public static void main( String[] args ) throws IOException {
+        BufferedReader in =
+            new BufferedReader( new InputStreamReader( System.in ) );
+        DataOutputStream out =
+            new DataOutputStream( new BufferedOutputStream( System.out ) );
+        Pattern regex = Pattern.compile( "\\s*([01]?\\.[0-9]*)"
+                                       + "\\s+([01]?\\.[0-9]*)"
+                                       + "\\s+([01]?\\.[0-9]*)\\s*" );
+        for ( String line = in.readLine(); line != null;
+              line = in.readLine() ) {
+            Matcher matcher = regex.matcher( line );
+            if ( matcher.matches() ) {
+                for ( int i = 0; i < 3; i++ ) {
+                    float fval = Float.parseFloat( matcher.group( i + 1 ) );
+                    out.writeFloat( fval );
+                }
+            }
+            else {
+                throw new IOException( "Line " + line + " not a float triple" );
+            }
+        }
+        out.flush();
+    }
+}
