@@ -740,7 +740,7 @@ public abstract class GraphicsWindow extends AuxWindow {
             new CartesianAxesSelector( axisNames_, logModels_, flipModels_,
                                        errorModeModels );
 
-        /* If there are auxiliar axes, construct a composite AxesSelector
+        /* If there are auxiliary axes, construct a composite AxesSelector
          * which can keep track of them. */
         if ( naux_ > 0 ) {
             ToggleButtonModel[] auxLogModels = new ToggleButtonModel[ naux_ ];
