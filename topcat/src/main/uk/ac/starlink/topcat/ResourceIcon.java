@@ -152,6 +152,10 @@ public class ResourceIcon implements Icon {
         AXIS_EDIT = makeIcon( "axed3.gif" ),
         BROADCAST = makeIcon( "tx3.gif" ),
         SEND = makeIcon( "phone2.gif" ),
+        ADD_TAB = makeIcon( "atab3.gif" ),
+        REMOVE_TAB = makeIcon( "rtab3.gif" ),
+        ADD_COLOURS = makeIcon( "acolour1.gif" ),
+        REMOVE_COLOURS = makeIcon( "rcolour1.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),

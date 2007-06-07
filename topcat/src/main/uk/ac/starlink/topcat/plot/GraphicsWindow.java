@@ -230,10 +230,10 @@ public abstract class GraphicsWindow extends AuxWindow {
          * axes are visible to the user. */
         auxVisibleModel_ = new DefaultBoundedRangeModel( 0, 0, 0, naux_ );
         incAuxAction_ =
-            new GraphicsAction( "Add Aux Axis", ResourceIcon.ADD,
+            new GraphicsAction( "Add Aux Axis", ResourceIcon.ADD_COLOURS,
                                 "Add an auxiliary axis" );
         decAuxAction_ =
-            new GraphicsAction( "Remove Aux Axis", ResourceIcon.SUBTRACT,
+            new GraphicsAction( "Remove Aux Axis", ResourceIcon.REMOVE_COLOURS,
                                 "Remove the highest-numbered auxiliary axis" );
         auxVisibleModel_.addChangeListener( replotListener_ );
         ChangeListener auxEnabler = new ChangeListener() {

@@ -66,7 +66,7 @@ public abstract class PointSelectorSet extends JPanel {
         add( tabber_, BorderLayout.CENTER );
 
         addSelectorAction_ =
-            new BasicAction( "Add Dataset", ResourceIcon.ADD,
+            new BasicAction( "Add Dataset", ResourceIcon.ADD_TAB,
                              "Add a new data set" ) {
                 public void actionPerformed( ActionEvent evt ) {
                     PointSelector psel = createSelector();
@@ -74,7 +74,7 @@ public abstract class PointSelectorSet extends JPanel {
                 } 
             };
         removeSelectorAction_ =
-            new BasicAction( "Remove Dataset", ResourceIcon.SUBTRACT,
+            new BasicAction( "Remove Dataset", ResourceIcon.REMOVE_TAB,
                              "Remove the current dataset" ) {
                 public void actionPerformed( ActionEvent evt ) {
                     removeCurrentSelector();
