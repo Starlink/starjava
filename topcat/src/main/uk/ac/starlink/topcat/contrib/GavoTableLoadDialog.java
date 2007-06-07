@@ -36,16 +36,15 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 
 public class GavoTableLoadDialog extends BasicTableLoadDialog {
 
-    private List queries = new Vector();
-    private GavoCSVTableParser csvParser = new GavoCSVTableParser();
+    private int nquery = 0;
 
+    private static final String MILL_URL =
+        "http://www.g-vo.org/Millennium?action=doQuery&SQL=";
+    private static final String MYMILL_URL =
+        "http://www.g-vo.org/MyMillennium?action=doQuery&SQL=";
     private static final Database[] DATABASES = new Database[] {
-        new Database( "Millennium",
-                      "http://www.g-vo.org/Millennium?action=doQuery&SQL=",
-                      false ),
-        new Database( "MyMillennium",
-                      "http://www.g-vo.org/MyMillennium?action=doQuery&SQL=",
-                      true ),
+        new Database( MILL_URL, MILL_URL, false ),
+        new Database( MYMILL_URL, MYMILL_URL, true ),
     };
 
     private static final ValueInfo URL_INFO =
@@ -89,12 +88,12 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
 
         ActionListener urlListener = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                Database db = (Database) urlField_.getSelectedItem();
-                boolean requiresAuth = db != null && db.requiresAuth_;
-                userLabel.setEnabled( requiresAuth );
-                userField_.setEnabled( requiresAuth );
-                passLabel.setEnabled( requiresAuth );
-                passField_.setEnabled( requiresAuth );
+                Database db = getSelectedDatabase();
+                boolean acceptsAuth = db != null && db.acceptsAuth_;
+                userLabel.setEnabled( acceptsAuth );
+                userField_.setEnabled( acceptsAuth );
+                passLabel.setEnabled( acceptsAuth );
+                passField_.setEnabled( acceptsAuth );
             }
         };
         urlListener.actionPerformed( null );
@@ -124,6 +123,19 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         return true;
     }
 
+    private Database getSelectedDatabase() {
+        Object db = urlField_.getSelectedItem();
+        if ( db instanceof Database ) {
+            return (Database) db;
+        }
+        else if ( db instanceof String && ((String) db).trim().length() > 0 ) {
+            return new Database( "database", (String) db, true );
+        }
+        else {
+            return null;
+        }
+    }
+
     /**
      * Interrogates the internal state of this component and returns a
      * TableSupplier object.
@@ -131,26 +143,21 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     protected TableSupplier getTableSupplier() {
 
         /* Get state. */
-        Database db = (Database) urlField_.getSelectedItem();
-        final boolean requiresAuth = db.requiresAuth_;
+        Database db = getSelectedDatabase();
+        if ( db == null ) {
+            throw new IllegalArgumentException( "No database URL provided" );
+        }
+        final boolean acceptsAuth = db.acceptsAuth_;
         final String url = db.url_;
-        final String user = requiresAuth ? userField_.getText() : "";
-        final String pass = requiresAuth
+        final String user = acceptsAuth ? userField_.getText() : "";
+        final String pass = acceptsAuth
                           ? new String( passField_.getPassword() )
                           : null;
         final String sql = sqlField_.getText();
-        queries.add(sql);
-
-        /* Validate state, throwing an IllegalArgumentException if we can
-         * tell straight away that this isn't going to result in a readable
-         * table. */
-        if ( url == null || url.trim().length() == 0 ||
-             sql == null || sql.trim().length() == 0 ||
-             requiresAuth && ( user == null || user.trim().length() == 0 ||
-                               pass == null || pass.trim().length() == 0 ) ) {
-            throw new IllegalArgumentException(
-                "All fields must be filled in" );
+        if ( sql == null || sql.trim().length() == 0 ) {
+            throw new IllegalArgumentException( "No SQL query provided" );
         }
+        nquery++;
 
         String sqlEncoding;
         try {
@@ -168,17 +175,16 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
             queryUrl = new URL( urlString );
         }
         catch ( MalformedURLException e ) {
-            // shouldn't happen
             throw (IllegalArgumentException)
                   new IllegalArgumentException( "Bad url: " + url )
                  .initCause( e );
         }
-        final String id = db.toString() + " query " + queries.size();
+        final String id = db.toString() + " query " + nquery;
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory tabFact, String fmt )
                     throws IOException {
                 URLConnection uc = queryUrl.openConnection();
-                if ( requiresAuth ) {
+                if ( acceptsAuth ) {
                     uc.setRequestProperty ("Authorization",
                                            "Basic " + encoding);
                 }
@@ -186,6 +192,8 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 Logger.getLogger( "uk.ac.starlink.topcat.contrib" )
                       .info( "Content type = " + uc.getContentType() );
                 StarTable table;
+                GavoCSVTableParser csvParser =
+                    new GavoCSVTableParser( tabFact.getStoragePolicy() );
                 try {
                     table = csvParser.parse(stream);
                 }
@@ -225,10 +233,10 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     private static class Database {
         final String name_;
         final String url_;
-        final boolean requiresAuth_;
-        Database( String name, String url, boolean requiresAuth ) {
+        final boolean acceptsAuth_;
+        Database( String name, String url, boolean acceptsAuth ) {
             name_ = name;
-            requiresAuth_ = requiresAuth;
+            acceptsAuth_ = acceptsAuth;
             url_ = url;
         }
         public String toString() {

@@ -17,9 +17,13 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowListStarTable;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.Tables;
 
 
 /**
@@ -64,6 +68,10 @@ import uk.ac.starlink.table.StarTable;
  * @author Mark Taylor
  */
 public class GavoCSVTableParser  {
+
+    /** Storage policy for managing bulk table data. */
+    final StoragePolicy storage;
+
     //~ Static fields/initializers ---------------------------------------------
 
     /** The default delimiter between table entries */
@@ -82,8 +90,8 @@ public class GavoCSVTableParser  {
     /**
      * Creates a new instance of CSVTableParser
      */
-    public GavoCSVTableParser() {
-        this(DEFAULT_DELIMITER);
+    public GavoCSVTableParser(StoragePolicy storage) {
+        this(storage, DEFAULT_DELIMITER);
     }
 
     /**
@@ -91,7 +99,8 @@ public class GavoCSVTableParser  {
      *
      * @param delimiter the character delimiter ('separator')
      */
-    public GavoCSVTableParser(String delimiter) {
+    public GavoCSVTableParser(StoragePolicy storage, String delimiter) {
+        this.storage = storage;
         setDelimiter(delimiter);
     }
 
@@ -140,7 +149,6 @@ public class GavoCSVTableParser  {
     
     public StarTable parse(InputStream stream) throws Exception
     {
-        RowListStarTable starTable = null;
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String line = reader.readLine();
         
@@ -150,7 +158,7 @@ public class GavoCSVTableParser  {
           while((line = reader.readLine()) != null && line.startsWith("#"))
             if(line.startsWith("#COLUMN"))
               columnLines.add(line);
-          ColumnInfo[] columnInfo = new ColumnInfo[columnLines.size()];
+          final ColumnInfo[] columnInfo = new ColumnInfo[columnLines.size()];
           int dim = columnLines.size();
           int[] types = new int[dim];
           for(int i = 0; i < dim; i++)
@@ -165,23 +173,51 @@ public class GavoCSVTableParser  {
               String name = columnLine.substring(index1, index2);
               columnInfo[i] = new ColumnInfo(name, type, "");
           }
-          starTable = new RowListStarTable(columnInfo);
-          
-          Object[] row = null;
-          while((line = reader.readLine()) != null)
-          {
-              if ( Thread.interrupted() ) {
-                  throw new InterruptedException();
+          StarTable metaData = new AbstractStarTable() {
+              public int getColumnCount() {
+                  return columnInfo.length;
               }
-              List cells_ = parseLine(line);
-              
-              String[] cells = (String[])cells_.toArray(new String[]{}); 
-              row = new Object[dim];
-              for(int i = 0; i < dim; i++)
-                  row[i] = objectForJDBCType(types[i],cells[i]);
-              starTable.addRow(row);
+              public ColumnInfo getColumnInfo(int icol) {
+                  return columnInfo[icol];
+              }
+              public long getRowCount() {
+                  return -1L;
+              }
+              public RowSequence getRowSequence() {
+                  throw new UnsupportedOperationException();
+              }
+          };
+          RowStore rowStore = storage.makeConfiguredRowStore( metaData );
+          
+          try {
+              Object[] row = null;
+              while((line = reader.readLine()) != null)
+              {
+                  if ( Thread.interrupted() ) {
+                      throw new InterruptedException();
+                  }
+                  if ( line.startsWith( "#ERROR" ) ) {
+                      StringBuffer sb = new StringBuffer( line );
+                      while ( (line = reader.readLine()) != null && 
+                              sb.length() < 8096 ) {
+                          sb.append(line+"\n");
+                      }
+                      throw new IOException( sb.toString() );
+                  }
+                  List cells_ = parseLine(line);
+                  
+                  String[] cells = (String[])cells_.toArray(new String[]{}); 
+                  row = new Object[dim];
+                  for(int i = 0; i < dim; i++)
+                      row[i] = objectForJDBCType(types[i],cells[i]);
+                  rowStore.acceptRow(row);
+              }
           }
-          reader.close();
+          finally {
+              rowStore.endRows();
+              reader.close();
+          }
+          return Tables.randomTable( rowStore.getStarTable() );
         }
         else
         {
@@ -190,8 +226,6 @@ public class GavoCSVTableParser  {
               sb.append(line+"\n");
             throw new IOException("Error\n"+sb.toString());
         }
-        
-        return starTable;
     }
 
     //~ Inner Classes ----------------------------------------------------------
