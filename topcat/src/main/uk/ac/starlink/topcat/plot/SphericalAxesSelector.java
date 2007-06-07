@@ -25,23 +25,21 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
-import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.JELRowReader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * PointSelector implementation which queries for spherical polar
- * coordinates and yields 3D Cartesian ones.
+ * AxesSelector implementation which queries for spherical polar coordinates
+ * and yields 3D Cartesian ones.
  *
  * @author   Mark Taylor
- * @since    23 Dec 2005
+ * @since    31 May 2007
  */
-public class SphericalPolarPointSelector extends PointSelector {
+public class SphericalAxesSelector implements AxesSelector {
 
     private final JComponent colBox_;
-    private final JComponent tanerrContainer_;
     private final ColumnSelector phiSelector_;
     private final ColumnSelector thetaSelector_;
     private final AxisDataSelector rSelector_;
@@ -49,7 +47,9 @@ public class SphericalPolarPointSelector extends PointSelector {
     private final ToggleButtonModel logToggler_;
     private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
+    private TopcatModel tcModel_;
 
+    /** Pattern for matching (probable) tangent error UCDs. */
     private static final Pattern TANERR_UCD_REGEX = Pattern.compile(
            "pos\\.angDistance"
         + "|pos\\.angResolution"
@@ -58,16 +58,9 @@ public class SphericalPolarPointSelector extends PointSelector {
           + "pos\\.(eq|galactic|supergalactic|ecliptic|earth\\.l..)[.a-z]*)"
     );
 
-    /** A column data object which contains zeroes. */
-    private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
-
-    /** A column data object which contains ones. */
-    private static final ColumnData UNIT_COLUMN_DATA = createUnitColumnData();
-
-    /**
-     * Constructs a point selector with error bar capability.
+    /** 
+     * Constructor.
      *
-     * @param  styles  initial style set
      * @param  logToggler model for determining whether the radial coordinate
      *         is to be scaled logarithmically
      * @param  tangentErrorToggler  model indicating whether tangential
@@ -75,11 +68,9 @@ public class SphericalPolarPointSelector extends PointSelector {
      * @param  radialErrorModeModel   model indicating whether/how radial
      *         errors will be drawn
      */
-    public SphericalPolarPointSelector( MutableStyleSet styles,
-                               ToggleButtonModel logToggler,
-                               ToggleButtonModel tangentErrorToggler,
-                               ErrorModeSelectionModel radialErrorModeModel ) {
-        super( styles );
+    public SphericalAxesSelector( ToggleButtonModel logToggler,
+                             ToggleButtonModel tangentErrorToggler,
+                             ErrorModeSelectionModel radialErrorModeModel ) {
         logToggler_ = logToggler;
         tangentErrorToggler_ = tangentErrorToggler;
         radialErrorModeModel_ = radialErrorModeModel;
@@ -91,14 +82,12 @@ public class SphericalPolarPointSelector extends PointSelector {
 
         /* Selector for longitude column. */
         phiSelector_ = new ColumnSelector( Tables.RA_INFO, false );
-        phiSelector_.addActionListener( actionForwarder_ );
         phiSelector_.setTable( null );
         phiSelector_.setEnabled( false );
         selectors[ 0 ] = phiSelector_;
 
         /* Selector for latitude column. */
         thetaSelector_ = new ColumnSelector( Tables.DEC_INFO, false );
-        thetaSelector_.addActionListener( actionForwarder_ );
         thetaSelector_.setTable( null );
         thetaSelector_.setEnabled( false );
         selectors[ 1 ] = thetaSelector_;
@@ -120,20 +109,19 @@ public class SphericalPolarPointSelector extends PointSelector {
 
         /* Place long/lat selectors alongside a container for a tangential
          * error column. */
-        tanerrContainer_ = Box.createHorizontalBox();
+        JComponent tanerrContainer = Box.createHorizontalBox();
         final Box tanerrBox = Box.createHorizontalBox();
         tanerrBox.add( Box.createVerticalGlue() );
-        tanerrBox.add( tanerrContainer_ );
+        tanerrBox.add( tanerrContainer );
         tanerrBox.add( Box.createVerticalGlue() );
 
         /* Selector for tangential errors. */
-        DefaultValueInfo sizeInfo = 
+        DefaultValueInfo sizeInfo =
             new DefaultValueInfo( "Angular Size", Number.class,
                                   "Angular size or error" );
         sizeInfo.setUnitString( "radians" );
         sizeInfo.setNullable( true );
         tanerrSelector_ = new ColumnSelector( sizeInfo, false );
-        tanerrSelector_.addActionListener( actionForwarder_ );
         tanerrSelector_.setTable( null );
         tanerrSelector_.setEnabled( false );
         ChangeListener tanerrListener = new ChangeListener() {
@@ -147,7 +135,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         };
         tangentErrorToggler_.addChangeListener( tanerrListener );
         tanerrListener.stateChanged( null );
-        
+
         /* Add long/lat business to main selector panel. */
         Box tanBox = Box.createHorizontalBox();
         tanBox.add( new ShrinkWrapper( tandatBox ) );
@@ -159,7 +147,6 @@ public class SphericalPolarPointSelector extends PointSelector {
         rSelector_ =
             new AxisDataSelector( "Radial", new String[] { "Log" },
                                   new ToggleButtonModel[] { logToggler } );
-        rSelector_.addActionListener( actionForwarder_ );
         rSelector_.setEnabled( false );
         colBox_.add( Box.createVerticalStrut( 5 ) );
         colBox_.add( rSelector_ );
@@ -176,27 +163,18 @@ public class SphericalPolarPointSelector extends PointSelector {
             axLabels[ i ].setPreferredSize( labelSize );
         }
 
-        /* Fix for changes to the error mode selections to update the
-         * legend icons and modify the state of the axis data selectors
-         * as appropriate. */
+        /* Fix for changes to the error mode selections to modify the 
+         * state of the axis data selectors as appropriate. */
         ActionListener radialErrorListener = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                updateAnnotator();
                 rSelector_.setErrorMode( radialErrorModeModel_.getMode() );
             }
         };
         radialErrorModeModel_.addActionListener( radialErrorListener );
         radialErrorListener.actionPerformed( null );
-        ActionListener tangentErrorListener = new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                updateAnnotator();
-            }
-        };
-        tangentErrorToggler_.addActionListener( tangentErrorListener );
-        tangentErrorListener.actionPerformed( null );
     }
 
-    protected JComponent getColumnSelectorPanel() {
+    public JComponent getColumnSelectorPanel() {
         return colBox_;
     }
 
@@ -205,13 +183,13 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     public boolean isReady() {
-        return getTable() != null
+        return tcModel_ != null
             && getPhi() != null
             && getTheta() != null;
     }
 
     public StarTable getData() {
-        return new SphericalPolarTable( getTable(),
+        return new SphericalPolarTable( tcModel_,
                                         getPhi(), getTheta(), getR() );
     }
 
@@ -221,19 +199,19 @@ public class SphericalPolarPointSelector extends PointSelector {
         ErrorMode radialMode = radialErrorModeModel_.getMode();
         if ( hasTanerr ) {
             ColumnData tData = tanerrSelector_.getColumnData();
-            colList.add( tData == null ? ZERO_COLUMN_DATA : tData );
+            colList.add( tData == null ? ConstantColumnData.ZERO : tData );
         }
         if ( radialMode != ErrorMode.NONE ) {
             JComboBox[] rErrorSelectors = rSelector_.getErrorSelectors();
             for ( int isel = 0; isel < rErrorSelectors.length; isel++ ) {
-                ColumnData rData = 
+                ColumnData rData =
                     (ColumnData) rErrorSelectors[ isel ].getSelectedItem();
-                colList.add( rData == null ? ZERO_COLUMN_DATA : rData );
+                colList.add( rData == null ? ConstantColumnData.ZERO : rData );
             }
         }
         ColumnData[] eCols =
             (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
-        return createColumnDataTable( getTable(), eCols );
+        return new ColumnDataTable( tcModel_, eCols );
     }
 
     public PointStore createPointStore( int npoint ) {
@@ -272,20 +250,18 @@ public class SphericalPolarPointSelector extends PointSelector {
         logToggler_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
 
-                /* For some reason the visible range isn't getting set from
+                /* For some reason I can't set the visible range from
                  * the value filled in the editor axis when the log toggle
                  * changes.  I can't work out why.  Until I manage to fix it,
                  * better to cear the editor bounds so they don't say the
                  * wrong thing. */
-                // ed.updateRanges();
-                // actionForwarder_.stateChanged( evt );
                 ed.clearBounds();
             }
         } );
-        
+
         rSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                ColumnData cdata = 
+                ColumnData cdata =
                     (ColumnData) rSelector_.getMainSelector().getSelectedItem();
                 ed.setAxis( cdata == null ? null : cdata.getColumnInfo() );
             }
@@ -293,7 +269,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         return new AxisEditor[] { ed };
     }
 
-    protected void configureSelectors( TopcatModel tcModel ) {
+    public void setTable( TopcatModel tcModel ) {
         if ( tcModel == null ) {
             phiSelector_.getModel().getColumnModel().setSelectedItem( null );
             phiSelector_.getModel().getConverterModel().setSelectedItem( null );
@@ -328,9 +304,45 @@ public class SphericalPolarPointSelector extends PointSelector {
         thetaSelector_.setEnabled( tcModel != null );
         tanerrSelector_.setEnabled( tcModel != null );
         rSelector_.setEnabled( tcModel != null );
+        tcModel_ = tcModel;
     }
 
-    protected void initialiseSelectors() {
+    public void initialiseSelectors() {
+    }
+
+    public void addActionListener( ActionListener listener ) {
+        thetaSelector_.addActionListener( listener );
+        phiSelector_.addActionListener( listener );
+        rSelector_.addActionListener( listener );
+        tanerrSelector_.addActionListener( listener );
+    }
+
+    public void removeActionListener( ActionListener listener ) {
+        thetaSelector_.removeActionListener( listener );
+        phiSelector_.removeActionListener( listener );
+        rSelector_.removeActionListener( listener );
+        tanerrSelector_.removeActionListener( listener );
+    }
+
+    /**
+     * Returns metadata describing the currently selected radial coordinate.
+     * If no radial coordinate is selected (all points on the surface of
+     * the sphere), <code>null</code> is returned.
+     *
+     * @return   radial column info
+     */
+    public ValueInfo getRadialInfo() {
+        ColumnData cdata =
+            (ColumnData) rSelector_.getMainSelector().getSelectedItem();
+        if ( cdata == null ) {
+            return null;
+        }
+        else if ( logToggler_.isSelected() ) {
+            return new LogColumnData( cdata ).getColumnInfo();
+        }
+        else {
+            return cdata.getColumnInfo();
+        }
     }
 
     /**
@@ -362,7 +374,7 @@ public class SphericalPolarPointSelector extends PointSelector {
         ColumnData cdata =
             (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
-            return UNIT_COLUMN_DATA;
+            return ConstantColumnData.ONE;
         }
         else if ( logToggler_.isSelected() ) {
             return new LogColumnData( cdata );
@@ -373,45 +385,11 @@ public class SphericalPolarPointSelector extends PointSelector {
     }
 
     /**
-     * Returns metadata describing the currently selected radial coordinate.
-     * If no radial coordinate is selected (all points on the surface of
-     * the sphere), <code>null</code> is returned.
-     *
-     * @return   radial column info
-     */
-    public ValueInfo getRadialInfo() {
-        ColumnData cdata =
-            (ColumnData) rSelector_.getMainSelector().getSelectedItem();
-        if ( cdata == null ) {
-            return null;
-        }
-        else if ( logToggler_.isSelected() ) {
-            return new LogColumnData( cdata ).getColumnInfo();
-        }
-        else {
-            return cdata.getColumnInfo();
-        }
-    }
-
-    /**
-     * Returns a ColumnData implementation which returns unity for every entry.
-     */
-    private static ColumnData createUnitColumnData() {
-        final Double one = new Double( 1.0 );
-        return new ColumnData( new DefaultValueInfo( "Unit", Double.class,
-                                                     "Unit value" ) ) {
-            public Object readValue( long irow ) {
-                return one;
-            }
-        };
-    }
-
-    /**
      * Attempts to locate a column from a given list which corresponds to
      * a tangent-plane error.
      *
      * @param  tcModel  table for which the errors are required
-     * @param  list of candidate ColumnData objects 
+     * @param  list of candidate ColumnData objects
      * @return  a ColumnData which probably represents tangent error, or null
      */
     private static ColumnData guessTanerrColumn( TopcatModel tcModel,
@@ -434,7 +412,7 @@ public class SphericalPolarPointSelector extends PointSelector {
     /**
      * Attempts to determine a parameter from a given table which corresponds
      * to tangent-plane error.
-     * 
+     *
      * @param  tcModel  table for which the errors are required
      * @return   a ColumnData which probably represents tangent error, or null
      */
@@ -463,7 +441,7 @@ public class SphericalPolarPointSelector extends PointSelector {
      * ad-hoc grubbing through UCDs, units etc.  A zero result means that
      * it doesn't look like a tangent plane error; higher results look
      * like progressively better bets.
-     * 
+     *
      * @param  info  metadata object describing value
      * @return  resemblance score (>=0)
      */
@@ -545,7 +523,7 @@ public class SphericalPolarPointSelector extends PointSelector {
      *
      * <p>Provides a non-trivial implementation of equals().
      *
-     * <p>The table is not random-access - it could be made so without 
+     * <p>The table is not random-access - it could be made so without
      * too much effort, but random access is not expected to be required.
      */
     private static class SphericalPolarTable extends AbstractStarTable {
@@ -602,7 +580,7 @@ public class SphericalPolarPointSelector extends PointSelector {
                         if ( oPhi instanceof Number &&
                              oTheta instanceof Number &&
                              oR instanceof Number ) {
-                            double r = ((Number) oR).doubleValue(); 
+                            double r = ((Number) oR).doubleValue();
                             if ( r > 0 ) {
                                 double phi = ((Number) oPhi).doubleValue();
                                 double theta = ((Number) oTheta).doubleValue();

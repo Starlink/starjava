@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,17 +10,15 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -51,28 +48,27 @@ import uk.ac.starlink.topcat.WeakTopcatListener;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Abstract component for choosing a table, a number of columns, 
- * and a selection of row subsets.  The details of the column selection
- * are left to concrete subclasses.
+ * Component for choosing a table, a number of columns and a selection of
+ * row subsets.  The details of the column selection are handled by 
+ * a consitituent {@link AxesSelector} object.
  *
  * @author   Mark Taylor
  * @since    28 Oct 2005
  */
-public abstract class PointSelector extends JPanel {
+public class PointSelector extends JPanel {
 
+    private final AxesSelector axesSelector_;
     private final JComboBox tableSelector_;
     private final JScrollPane subsetScroller_;
     private final JScrollPane entryScroller_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final SelectionForwarder selectionForwarder_;
-    private final ListSelectionListener listActioner_;
     private final List topcatListeners_;
-    private final JPanel colPanel_;
     private final Map subsetLabels_;
     private final TopcatListener tcListener_;
     private final TopcatListener weakTcListener_;
-    protected final ActionForwarder actionForwarder_;
-    private boolean initialised_;
+    private final ActionForwarder actionForwarder_;
+    private final ActionListener errorModeListener_;
     private MutableStyleSet styles_;
     private TopcatModel tcModel_;
     private ListSelectionModel subSelModel_;
@@ -80,13 +76,9 @@ public abstract class PointSelector extends JPanel {
     private StyleWindow styleWindow_;
     private String selectorLabel_;
 
-    /**
-     * Constructor.
-     *
-     * @param  styles  initial style set
-     */
-    public PointSelector( MutableStyleSet styles ) {
+    public PointSelector( AxesSelector axesSelector, MutableStyleSet styles ) {
         super( new BorderLayout() );
+        axesSelector_ = axesSelector;
         styles_ = styles;
 
         /* Set up a map of labels for the subsets controlled by this selector.
@@ -98,20 +90,28 @@ public abstract class PointSelector extends JPanel {
         /* Set up some listeners. */
         actionForwarder_ = new ActionForwarder();
         selectionForwarder_ = new SelectionForwarder();
-        listActioner_ = new ListSelectionListener() {
+        final ListSelectionListener listActioner = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 actionForwarder_
                .actionPerformed( new ActionEvent( this, 0, "Selection" ) );
             }
         };
+        errorModeListener_ = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( annotator_ != null ) {
+                    annotator_.updateStyles();
+                }
+            }
+        };
+        axesSelector_.addActionListener( actionForwarder_ );
         topcatListeners_ = new ArrayList();
         final JComponent controlBox = Box.createHorizontalBox();
         add( controlBox, BorderLayout.SOUTH );
 
         /* Set up a listener for TopcatEvents.  A reference is kept in this
-         * object, but the listener registered with any TopcatModels only 
-         * contains a weak reference to it.  This prevents the TopcatModel 
-         * keeping alive references to this PointSelector (and hence its 
+         * object, but the listener registered with any TopcatModels only
+         * contains a weak reference to it.  This prevents the TopcatModel
+         * keeping alive references to this PointSelector (and hence its
          * parent GraphicsWindow, which is typically expensive on memory)
          * after the GraphicsWindow disappears. */
         tcListener_ = new TopcatListener() {
@@ -139,7 +139,7 @@ public abstract class PointSelector extends JPanel {
                              * here by unselecting it then selecting it.
                              * This has the desired effect, but also means
                              * that the replot gets done twice.  It would be
-                             * more efficient to cause a replot directly 
+                             * more efficient to cause a replot directly
                              * somehow, but the required objects are not
                              * currently available from this class. */
                             subSelModel_.removeSelectionInterval( is, is );
@@ -157,21 +157,37 @@ public abstract class PointSelector extends JPanel {
         };
         weakTcListener_ = new WeakTopcatListener( tcListener_ );
 
-        /* Construct the box for input of axes etc, and insert it into a 
-         * scroll pane.  Fix it so that the preferred size takes account of
-         * scrollbars if they may be present.  You can achieve a similar
-         * effect by just setting scrollbar policies to *_SCROLLBAR_ALWAYS,
-         * but that leaves an empty scrollbar when it's not necessary,
-         * which is (IMHO) ugly. */
+        /* Construct the box for input of axes etc, and insert it into a
+         * somewhat customised scroll pane. */
         final Box entryBox = new Box( BoxLayout.Y_AXIS );
         entryScroller_ = new JScrollPane( entryBox ) {
+
+            /**
+             * Validate root is false. This means that the 
+             * scrollpane is allowed to fix its own size, based on the 
+             * preferred size of its contents, if there is enough space
+             * available.  This is the effect that we want to achieve here.
+             *
+             * @return  false
+             */
+            public boolean isValidateRoot() {
+                return false;
+            }
+
+            /**
+             * Fix it so that the preferred size takes account of scrollbars
+             * if they may be present.  You can achieve a similar effect
+             * by just setting scrollbar policies to *_SCROLLBAR_ALWAYS,
+             * but that leaves an empty scrollbar when it's not necessary,
+             * which is (IMHO) ugly.
+             */
             public Dimension getPreferredSize() {
                 Dimension size =
                     new Dimension( entryBox.getPreferredSize() );
                 Insets insets = getInsets();
                 size.width += insets.left + insets.right;
                 size.height += insets.top + insets.bottom;
-                if ( getVerticalScrollBarPolicy() 
+                if ( getVerticalScrollBarPolicy()
                      != VERTICAL_SCROLLBAR_NEVER ) {
                     size.width +=
                       + getVerticalScrollBar().getPreferredSize().width;
@@ -215,12 +231,12 @@ public abstract class PointSelector extends JPanel {
         tPanel.add( new ShrinkWrapper( tableSelector_ ) );
         tPanel.add( Box.createHorizontalGlue() );
         entryBox.add( tPanel );
- 
-        /* Place the panel which will hold the column selector boxes.
-         * This will be filled later by calling an abstract method. */
-        colPanel_ = new JPanel();
-        colPanel_.setLayout( new BoxLayout( colPanel_, BoxLayout.X_AXIS ) );
-        entryBox.add( colPanel_ );
+
+        /* Place the panel which will hold the column selector boxes. */
+        JComponent colPanel = new JPanel();
+        colPanel.setLayout( new BoxLayout( colPanel, BoxLayout.X_AXIS ) );
+        colPanel.add( axesSelector_.getColumnSelectorPanel() );
+        entryBox.add( colPanel );
         entryBox.add( Box.createVerticalGlue() );
 
         /* Make a container for the subset selector. */
@@ -249,7 +265,7 @@ public abstract class PointSelector extends JPanel {
             }
         };
         selectionForwarder_.add( subSelRecorder_ );
-        selectionForwarder_.add( listActioner_ );
+        selectionForwarder_.add( listActioner );
 
         /* Initialise the table, which may be necessary to initialise the
          * state properly via listeners. */
@@ -261,101 +277,23 @@ public abstract class PointSelector extends JPanel {
     }
 
     /**
-     * Returns the panel which contains column selectors and any other
-     * UI compoenents that the concrete subclass wants to place.
+     * Returns the AxesSelector used by this PointSelector.
      *
-     * @return   column selector panel
+     * @return  axes selector
      */
-    protected abstract JComponent getColumnSelectorPanel();
+    public AxesSelector getAxesSelector() {
+        return axesSelector_;
+    }
 
-    /**
-     * Returns the number of columns in the table that {@link #getData} will 
-     * return;
-     * 
-     * @return  dimensionality
-     */
-    public abstract int getNdim();
-
-    /**
+    /** 
      * Indicates whether this selector has enough state filled in to be
      * able to specify some point data.
-     *
+     * 
      * @return   true iff properly filled in
      */
-    public abstract boolean isReady();
-
-    /**
-     * Set up column selectors correctly for the given model.
-     * This will involve setting the column selector models appropriately.
-     * If the submitted table is null, then the selector models should be
-     * unselected.
-     *
-     * @param  tcModel   table for which selectors must be configured
-     */
-    protected abstract void configureSelectors( TopcatModel tcModel );
-
-    /**
-     * Hint to set up the values of the column selectors to a 
-     * sensible value.  An implementation which does nothing is legal.
-     */
-    protected abstract void initialiseSelectors();
-
-    /**
-     * Returns a StarTable which corresponds to the data in the columns
-     * selected by the current selections on this object.
-     *
-     * <p>Note: for performance reasons, it is <em>imperative</em> that
-     * two tables returned from this method must match according to the
-     * {@link java.lang.Object#equals} method if they are known to 
-     * contain the same cell data (i.e. if the state of this selector
-     * has not changed in the mean time).  Don't forget to do 
-     * <code>hashCode</code> too.
-     *
-     * @return   table containing the data from the current selection
-     */
-    public abstract StarTable getData();
-
-    /**
-     * Returns a StarTable which corresponds to the error data defined
-     * by the current selections.  The details of how the table columns 
-     * are laid out are down to the concrete subclass.
-     *
-     * <p>See the notes in {@link PointSelector#getData}
-     * about table equality - the same constraints apply.
-     *
-     * @return  error data table
-     */
-    public abstract StarTable getErrorData();
-
-    /**
-     * Constructs an array of AxisEditor objects suitable for modifying the
-     * axes which are defined by this PointSelector.  The number of
-     * them is often, but not necessarily, the same as the dimensionality
-     * of this selector.
-     *
-     * @return  array of new AxisEditors 
-     */
-    public abstract AxisEditor[] createAxisEditors();
-
-    /**
-     * Returns a PointStore suitable for storing coordinate and error
-     * information generated by the current state of the PointSelector.
-     * The store will have to store <code>npoint</code> points, and
-     * its {@link PointStore#storePoint} method will be called with 
-     * the result of acquiring rows from the tables got from this
-     * selector's {@link #getData} and {@link #getErrorData} methods.
-     *
-     * @param   npoint  number of points to store
-     * @return   new point store
-     */
-    public abstract PointStore createPointStore( int npoint );
-
-    /**
-     * Returns the error modes currently in force for this selector.
-     *
-     * @return   error mode array
-     */
-    public abstract ErrorMode[] getErrorModes();
+    public boolean isReady() {
+        return axesSelector_.isReady();
+    }
 
     /**
      * Determines whether the component containing the column selectors
@@ -379,18 +317,6 @@ public abstract class PointSelector extends JPanel {
         int policy = isScroll ? JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
                               : JScrollPane.VERTICAL_SCROLLBAR_NEVER;
         entryScroller_.setVerticalScrollBarPolicy( policy );
-    }
-
-    public void setVisible( boolean visible ) {
-        if ( visible ) {
-            revalidate();
-            repaint();
-        }
-        if ( ! initialised_ ) {
-            colPanel_.add( getColumnSelectorPanel() );
-            initialised_ = true;
-        }
-        super.setVisible( visible );
     }
 
     /**
@@ -432,7 +358,7 @@ public abstract class PointSelector extends JPanel {
     public String getLabel() {
         return selectorLabel_;
     }
-   
+
     /**
      * Returns the currently selected table.
      *
@@ -450,13 +376,16 @@ public abstract class PointSelector extends JPanel {
      *          starting values
      */
     public void setTable( TopcatModel tcModel, boolean init ) {
+
+        /* Set the table selector accordingly.  This will cause the 
+         * axes selector to be set as well. */
         tableSelector_.setSelectedItem( tcModel );
 
         /* Initialise the column selectors.  This isn't necesary, but it's
          * what the old plot window used to do so may confuse people less.
          * Possibly change this action in the future though. */
         if ( init ) {
-            initialiseSelectors();
+            axesSelector_.initialiseSelectors();
         }
     }
 
@@ -500,12 +429,12 @@ public abstract class PointSelector extends JPanel {
 
     /**
      * Returns a list of indices giving the selected subsets.
-     * This contains substantially the same information as in 
+     * This contains substantially the same information as in
      * {@link #getSubsetSelection}, but in a different form and with
      * the additional information of what order the selections were
      * made in.
      *
-     * @return  array of selected subset indices 
+     * @return  array of selected subset indices
      */
     public int[] getOrderedSubsetSelection() {
         return subSelRecorder_.getOrderedSelection();
@@ -524,7 +453,7 @@ public abstract class PointSelector extends JPanel {
     /**
      * Resets a single style.
      *
-     * @param  isub  subset index 
+     * @param  isub  subset index
      * @param  style new style
      * @param  label new subset name
      */
@@ -555,7 +484,7 @@ public abstract class PointSelector extends JPanel {
         if ( annotator_ != null ) {
             annotator_.resetStyles( styles_ );
 
-            /* Hide the style editor if it's visible so it doesn't display 
+            /* Hide the style editor if it's visible so it doesn't display
              * the wrong thing.  This is a bit lazy - probably ought to ensure
              * that it's displaying the right thing instead. */
             StyleWindow swin = getStyleWindow();
@@ -574,19 +503,18 @@ public abstract class PointSelector extends JPanel {
      */
     public Icon getStyleLegendIcon( Style style ) {
         return style instanceof MarkStyle
-             ? ((MarkStyle) style).getLegendIcon( getErrorModes() )
-             : style.getLegendIcon();
+            ? ((MarkStyle) style).getLegendIcon( axesSelector_.getErrorModes() )
+            : style.getLegendIcon();
     }
 
     /**
-     * Ensures that the buttons showing icons for each subset are displaying
-     * up to date images.  This may be necessary if something has happened
-     * to modify icon style.
+     * Returns a listener which should be informed every time the error
+     * mode changes.
+     *
+     * @return  listener
      */
-    public void updateAnnotator() {
-        if ( annotator_ != null ) {
-            annotator_.updateStyles();
-        }
+    public ActionListener getErrorModeListener() {
+        return errorModeListener_;
     }
 
     /**
@@ -611,7 +539,7 @@ public abstract class PointSelector extends JPanel {
 
     /**
      * Adds a ListSelectionListener which will be notified when the
-     * subset selection changes.  Note that the source of the 
+     * subset selection changes.  Note that the source of the
      * {@link javax.swing.event.ListSelectionEvent}s which are sent
      * will be this PointSelector.
      *
@@ -640,7 +568,7 @@ public abstract class PointSelector extends JPanel {
     public void addTopcatListener( TopcatListener listener ) {
         topcatListeners_.add( listener );
     }
-    
+
     /**
      * Removes a TopcatListener which was previously added.
      *
@@ -666,9 +594,9 @@ public abstract class PointSelector extends JPanel {
 
             /* Reset column selector models to prevent unhelpful events being
              * triggered while we're reconfiguring. */
-            configureSelectors( null );
+            axesSelector_.setTable( null );
         }
-        tcModel_ = tcModel; 
+        tcModel_ = tcModel;
         tcModel_.addTopcatListener( weakTcListener_ );
 
         /* Hide the style editor if visible, to avoid problems with it
@@ -710,7 +638,7 @@ public abstract class PointSelector extends JPanel {
         setDefaultSubsetSelection();
 
         /* Configure the column selectors. */
-        configureSelectors( tcModel );
+        axesSelector_.setTable( tcModel );
 
         /* Repaint. */
         revalidate();
@@ -777,86 +705,6 @@ public abstract class PointSelector extends JPanel {
     }
 
     /**
-     * Utility method to create an instance of a table column of indefinite
-     * length which contains zero in every row. 
-     * Any instance is <code>equal</code> to any other instance.
-     *
-     * @return   column containing zeros
-     */
-    public static ColumnData createZeroColumnData() {
-        final Number value = new Double( 0.0 );
-        return new ColumnData( new DefaultValueInfo( "Zero", Double.class,
-                                                     "Empty" ) ) {
-            public Object readValue( long irow ) {
-                return value;
-            }
-            public boolean equals( Object o ) {
-                return o != null && o.getClass().equals( this.getClass() );
-            }
-            public int hashCode() {
-                return getClass().hashCode();
-            }
-        };
-    }
-
-    /**
-     * Utility method to create a StarTable built from ColumnData objects.
-     * The returned table will implement the <code>equals</code>
-     * (and <code>hashCode</code>) methods in such a way as to
-     * recognise two tables with the same columns as the same table.
-     *
-     * @param   tcModel  topcat model
-     * @param   cols   array of columns
-     * @return   table
-     */
-    public static StarTable createColumnDataTable( TopcatModel tcModel,
-                                                   ColumnData[] cols ) {
-        return new ColumnDataTable( tcModel, cols );
-    }
-
-    /**
-     * Table class built up from ColumnData objects.  Implements equals().
-     */
-    private static class ColumnDataTable extends ColumnStarTable {
-
-        private final TopcatModel tcModel_;
-        private final ColumnData[] cols_;
-
-        /**
-         * Constructor.
-         *
-         * @param   tcModel  topcat model
-         * @param   cols   array of columns
-         */
-        ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
-            tcModel_ = tcModel;
-            cols_ = cols;
-            for ( int i = 0; i < cols.length; i++ ) {
-                addColumn( cols[ i ] );
-            }
-        }
-
-        public long getRowCount() {
-            return tcModel_.getDataModel().getRowCount();
-        }
-
-        public boolean equals( Object o ) {
-            if ( o instanceof ColumnDataTable ) {
-                ColumnDataTable other = (ColumnDataTable) o;
-                return this.tcModel_ == other.tcModel_
-                    && Arrays.equals( this.cols_, other.cols_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        public int hashCode() {
-            return tcModel_.hashCode() + Arrays.asList( cols_ ).hashCode();
-        }
-    }
-
-    /**
      * Defines how to draw the annotating buttons which accompany each
      * subset in the subset checkbox stack.
      */
@@ -897,11 +745,11 @@ public abstract class PointSelector extends JPanel {
         }
 
         /**
-         * For any style annotated by this object which has been 
-         * assigned a non-blank style, it's reset in accordance 
+         * For any style annotated by this object which has been
+         * assigned a non-blank style, it's reset in accordance
          * with a new StyleSet.
          *
-         * @param  styles   new styleset 
+         * @param  styles   new styleset
          */
         void resetStyles( StyleSet styles ) {
             for ( Iterator it = actions_.keySet().iterator(); it.hasNext(); ) {
@@ -913,10 +761,10 @@ public abstract class PointSelector extends JPanel {
 
         /**
          * Returns the action associated with the annotation button.
-         * This has an icon which displays the current style (if any 
+         * This has an icon which displays the current style (if any
          * has been assigned) and an action which allows the user to
          * change it.
-         * 
+         *
          * @param  index  index into the list of the subset
          * @return  action relating to entry <code>index</code>
          */
@@ -939,7 +787,7 @@ public abstract class PointSelector extends JPanel {
          * ListSelectionListener implementation.  This keeps track of which
          * items in the list have ever been selected.  The ones that have
          * get an annotation and the others don't.  The reason for this is
-         * that we don't want to use up all the styles on subsets which 
+         * that we don't want to use up all the styles on subsets which
          * never get plotted.
          */
         public void valueChanged( ListSelectionEvent evt ) {
@@ -979,11 +827,11 @@ public abstract class PointSelector extends JPanel {
          * before or not.
          *
          * @param  index  item index
-         * @return  true iff the item has ever had a style 
+         * @return  true iff the item has ever had a style
          */
         private boolean hasStyle( int index ) {
             Integer key = new Integer( index );
-            return actions_.containsKey( key ) 
+            return actions_.containsKey( key )
                 && ((Action) actions_.get( key )).getValue( Action.SMALL_ICON )
                    != blankIcon_;
         }
@@ -1003,7 +851,7 @@ public abstract class PointSelector extends JPanel {
     }
 
     /**
-     * ListSelectionListener implementation which forwards events to 
+     * ListSelectionListener implementation which forwards events to
      * client listeners.
      */
     private class SelectionForwarder implements ListSelectionListener {

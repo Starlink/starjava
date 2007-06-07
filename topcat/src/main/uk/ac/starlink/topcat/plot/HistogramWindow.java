@@ -70,7 +70,7 @@ public class HistogramWindow extends GraphicsWindow {
      * @param  parent  parent component (may be used for positioning)
      */
     public HistogramWindow( Component parent ) {
-        super( "Histogram", new String[] { "X" },
+        super( "Histogram", new String[] { "X" }, 0,
                new ErrorModeSelectionModel[ 0 ], parent );
 
         /* Create the histogram plot itself.  Being a histogram, there's
@@ -257,21 +257,16 @@ public class HistogramWindow extends GraphicsWindow {
 
     protected PointSelector createPointSelector() {
 
-        /* This bit just copied from the superclass. */
-        CartesianPointSelector.ToggleSet[] toggleSets =
-            new CartesianPointSelector.ToggleSet[] {
-                new CartesianPointSelector.ToggleSet( "Log", getLogModels() ),
-                new CartesianPointSelector.ToggleSet( "Flip", getFlipModels() ),
-            };
-
         /* The superclass implementation assumes that the number of
          * axes on the screen is the same as the number of dimensions of
          * the data being plotted - not true for a histogram (2 vs. 1,
          * respectively).  So we need to make sure the AxisEditor array
          * supplied by the PointSelector is 2 long - one for the data
          * axis and one for the counts axis (screen Y axis). */
-        return new CartesianPointSelector( getStyles(), new String[] { "X" },
-                                           toggleSets ) {
+        AxesSelector axsel =
+                new CartesianAxesSelector( new String[] { "X" }, getLogModels(),
+                                           getFlipModels(),
+                                           new ErrorModeSelectionModel[ 0 ] ) {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor countEd = new AxisEditor( "Count" );
                 countEd.setAxis( COUNT_INFO );
@@ -281,6 +276,7 @@ public class HistogramWindow extends GraphicsWindow {
                 };
             }
         };
+        return new PointSelector( axsel, getStyles() );
     }
 
     protected void doReplot( PlotState pstate, Points points ) {
@@ -419,8 +415,9 @@ public class HistogramWindow extends GraphicsWindow {
 
             double gap = ( xBounds[ 1 ] - xBounds[ 0 ] ) / DEFAULT_BINS;
             assert gap > 0.0;
-            Class clazz = getPointSelectors().getMainSelector().getData()
-                         .getColumnInfo( 0 ).getContentClass();
+            Class clazz = getPointSelectors().getMainSelector()
+                         .getAxesSelector().getData().getColumnInfo( 0 )
+                         .getContentClass();
             double bwLinear = Rounder.LINEAR.round( gap );
             if ( clazz == Byte.class ||
                  clazz == Short.class ||

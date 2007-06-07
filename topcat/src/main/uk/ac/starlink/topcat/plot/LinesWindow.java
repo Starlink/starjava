@@ -93,7 +93,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", AXIS_NAMES, createErrorModeModels( AXIS_NAMES ),
+        super( "Line Plot", AXIS_NAMES, 0, createErrorModeModels( AXIS_NAMES ),
                parent );
 
         /* Set some initial values. */
@@ -314,21 +314,23 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         boolean[] yFlipFlags = new boolean[ nsel ];
         List pselList = new ArrayList( nsel );
         for ( int isel = 0; isel < nsel; isel++ ) {
-            LinesPointSelector psel =
-                (LinesPointSelector) pointSelectors.getSelector( isel );
+            PointSelector psel = pointSelectors.getSelector( isel );
             pselList.add( psel );
+            LinesAxesSelector axsel =
+                (LinesAxesSelector) psel.getAxesSelector();
             Range yRange;
             if ( psel.isReady() ) {
                 AxisEditor yAxEd = axEds[ 1 + isel ];
-                ColumnInfo cinfo = psel.getData().getColumnInfo( 1 );
+                ColumnInfo cinfo =
+                    psel.getAxesSelector().getData().getColumnInfo( 1 );
                 yAxes[ isel ] = cinfo;
                 yConverters[ isel ] =
                     (ValueConverter)
                     cinfo.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
                                             ValueConverter.class );
                 yAxisLabels[ isel ] = yAxEd.getLabel();
-                yLogFlags[ isel ] = psel.getYLogModel().isSelected();
-                yFlipFlags[ isel ] = psel.getYFlipModel().isSelected();
+                yLogFlags[ isel ] = axsel.getYLogModel().isSelected();
+                yFlipFlags[ isel ] = axsel.getYFlipModel().isSelected();
                 yRange = new Range( yDataRanges_[ isel ] );
                 if ( yViewRangeMap_.containsKey( psel ) ) {
                     yRange.limit( (Range) yViewRangeMap_.get( psel ) );
@@ -383,31 +385,30 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                                    getFlipModels()[ 1 ].getDescription() );
         logModel.addActionListener( getReplotListener() );
         flipModel.addActionListener( getReplotListener() );
-        LinesPointSelector newSelector =
-            new LinesPointSelector( getStyles(), logModel, flipModel,
-                                    getErrorModeModels() );
+        LinesAxesSelector axsel =
+            new LinesAxesSelector( logModel, flipModel, getErrorModeModels() );
+        PointSelector newSelector = new PointSelector( axsel, getStyles() );
 
         /* Work out if there is a default X axis we should initialise the
          * new selector with.  We'll do this if all the existing valid
          * point selectors are using the same X axis. */
         PointSelectorSet pointSelectors = getPointSelectors();
-        CartesianPointSelector mainSel =
-            (CartesianPointSelector) pointSelectors.getMainSelector();
+        PointSelector mainSel = pointSelectors.getMainSelector();
         TopcatModel mainTable = null;
         Object mainXAxis = null;
         if ( mainSel != null && mainSel.isReady() ) {
             mainTable = mainSel.getTable();
-            mainXAxis = mainSel.getColumnSelector( 0 ).getSelectedItem();
+            mainXAxis = ((LinesAxesSelector) mainSel.getAxesSelector())
+                       .getColumnSelector( 0 ).getSelectedItem();
             for ( int i = 0; 
                   mainTable != null && mainXAxis != null
                                     && i < pointSelectors.getSelectorCount();
                   i++ ) {
-                CartesianPointSelector psel =
-                    (CartesianPointSelector) pointSelectors.getSelector( i );
+                PointSelector psel = pointSelectors.getSelector( i );
                 if ( psel.isReady() ) {
                     TopcatModel table = psel.getTable();
-                    Object xAxis =
-                        psel.getColumnSelector( 0 ).getSelectedItem();
+                    Object xAxis = ((LinesAxesSelector) psel.getAxesSelector())
+                                  .getColumnSelector( 0 ).getSelectedItem();
                     if ( ( table != null && ! table.equals( mainTable ) ) ||
                          ( xAxis != null && ! xAxis.equals( mainXAxis ) ) ) {
                         mainTable = null;
@@ -422,7 +423,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         if ( mainTable != null ) {
             newSelector.setTable( mainTable, false );
             if ( mainXAxis != null ) {
-                newSelector.getColumnSelector( 0 ).setSelectedItem( mainXAxis );
+                axsel.getColumnSelector( 0 ).setSelectedItem( mainXAxis );
             }
         }
 
@@ -583,7 +584,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
                 /* Set up the X axis editor. */
                 PointSelector mainSel = getPointSelectors().getMainSelector();
-                AxisEditor[] mainEds = mainSel.createAxisEditors();
+                AxisEditor[] mainEds =
+                    mainSel.getAxesSelector().createAxisEditors();
                 xAxEd_ = mainEds[ 0 ];
                 xAxEd_.addMaintainedRange( getViewRanges()[ 0 ] );
                 xAxEd_.addActionListener( getReplotListener() );
@@ -633,7 +635,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             for ( int isel = 0; isel < nsel; isel++ ) {
                 PointSelector psel = pointSelectors.getSelector( isel );
                 if ( ! yAxEdMap_.containsKey( psel ) ) {
-                    AxisEditor yAxEd = psel.createAxisEditors()[ 1 ];
+                    AxisEditor yAxEd =
+                        psel.getAxesSelector().createAxisEditors()[ 1 ];
                     yAxEd.setTitle( "Y Axis (" + psel.getLabel() + ")" ); 
                     yAxEd.addActionListener( getReplotListener() );
                     yAxEdMap_.put( psel, yAxEd );
@@ -820,38 +823,30 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     /**
-     * Custom point selector for LinesWindow.
+     * Custom axes selector for LinesWindow.
      * It features individual log and flip checkboxes for the Y axis;
      * these are supplied externally and may be different for each 
      * selector, unlike those in plot windows which share the same
      * log/flip flag arrays for each axis.
      */
-    private static class LinesPointSelector extends CartesianPointSelector {
+    private static class LinesAxesSelector extends CartesianAxesSelector {
         private final ToggleButtonModel yLogModel_;
         private final ToggleButtonModel yFlipModel_;
 
         /**
          * Constructor.
          *
-         * @param  styles      initial style set
          * @param  yLogModel   toggler for Y axis log scaling
          * @param  yFlipModel  toggler for Y axis inverted sense
          * @param  errorModeModels  selection models for error modes,
          *                          one per axis
          */
-        LinesPointSelector( MutableStyleSet styles,
-                            ToggleButtonModel yLogModel,
-                            ToggleButtonModel yFlipModel,
-                            ErrorModeSelectionModel[] errorModeModels ) {
-            super( styles, AXIS_NAMES,
-                   new CartesianPointSelector.ToggleSet[] {
-                       new CartesianPointSelector.ToggleSet(
-                           "Log", new ToggleButtonModel[] { null,
-                                                            yLogModel } ),
-                       new CartesianPointSelector.ToggleSet(
-                           "Flip", new ToggleButtonModel[] { null,
-                                                             yFlipModel } ),
-                   },
+        LinesAxesSelector( ToggleButtonModel yLogModel,
+                           ToggleButtonModel yFlipModel,
+                           ErrorModeSelectionModel[] errorModeModels ) {
+            super( AXIS_NAMES,
+                   new ToggleButtonModel[] { null, yLogModel, },
+                   new ToggleButtonModel[] { null, yFlipModel, },
                    errorModeModels );
             yLogModel_ = yLogModel;
             yFlipModel_ = yFlipModel;
@@ -875,8 +870,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             return yFlipModel_;
         }
 
-        protected void configureSelectors( TopcatModel tcModel ) {
-            super.configureSelectors( tcModel );
+        public void setTable( TopcatModel tcModel ) {
+            super.setTable( tcModel );
 
             /* Ensure that the magic 'index' column is included in the
              * X axis column selector. */
@@ -887,7 +882,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             }
         }
 
-        protected void initialiseSelectors() {
+        public void initialiseSelectors() {
 
             /* If we can find an epoch-type column, use that for the X axis,
              * otherwise just use the magic 'index' column. */

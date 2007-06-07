@@ -38,14 +38,12 @@ public class AxisWindow extends JDialog {
     /**
      * Constructor.
      *
-     * @param  parent   owner frame
-     * @param  editors   AxisEditor components to place
+     * @param  parent  owner frame
      */
-    public AxisWindow( Frame parent, AxisEditor[] editors ) {
+    public AxisWindow( Frame parent ) {
         super( parent );
         parent_ = parent;
         setTitle( "Axis Configuration" );
-        editors_ = editors;
         forwarder_ = new ActionForwarder();
 
         /* Configure and place main container. */
@@ -77,12 +75,6 @@ public class AxisWindow extends JDialog {
         toolBar.add( new HelpAction( "axisConfig", this ) );
         toolBar.addSeparator();
         getContentPane().add( toolBar, BorderLayout.NORTH );
-
-        /* Place editors. */
-        for ( int i = 0; i < editors.length; i++ ) {
-            edBox_.add( editors[ i ] );
-        }
-        pack();
     }
 
     /** 

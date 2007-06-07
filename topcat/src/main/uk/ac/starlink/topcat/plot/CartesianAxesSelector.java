@@ -9,69 +9,38 @@ import java.util.Set;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 
 /**
- * PointSelector concrete subclass which deals with the straightforward
+ * AxesSelector implementation which deals with the straightforward
  * case in which the returned data table consists of the columns selected
  * from the selector's table.
  *
  * @author   Mark Taylor
- * @since    23 Dec 2005
+ * @since    31 May 2007
  */
-public class CartesianPointSelector extends PointSelector {
+public class CartesianAxesSelector implements AxesSelector {
 
-    private final int ndim_;
     private final String[] axisNames_;
+    private final int ndim_;
     private final ErrorModeSelectionModel[] errorModeModels_;
     private final AxisDataSelector[] dataSelectors_;
     private final JComponent entryBox_;
-
-    /** A column data object which contains zeroes. */
-    private static final ColumnData ZERO_COLUMN_DATA = createZeroColumnData();
+    private TopcatModel tcModel_;
 
     /**
-     * Constructs a point selector with no error bar capability.
-     *
-     * @param   styles   initial style set
-     * @param   axisNames  labels for the columns to choose, one per axis
-     * @param   toggleSets toggle sets to associate with each axis;
-     *                     <code>toggleSets</code> itself or any of
-     *                     its elements may be null
+     * Constructor.
      */
-    public CartesianPointSelector( MutableStyleSet styles, String[] axisNames,
-                                   ToggleSet[] toggleSets ) {
-        this( styles, axisNames, toggleSets, new ErrorModeSelectionModel[ 0 ] );
-    }
-    
-    /**
-     * Constructs a point selector optionally with error bar capability.
-     *
-     * @param   styles   initial style set
-     * @param   axisNames  labels for the columns to choose, one per axis
-     * @param   toggleSets toggle sets to associate with each axis;
-     *                     <code>toggleSets</code> itself or any of
-     *                     its elements may be null
-     * @param   errorModeModels  selection models for error modes, one per axis
-     */
-    public CartesianPointSelector( MutableStyleSet styles, String[] axisNames,
-                                   ToggleSet[] toggleSets,
-                                   ErrorModeSelectionModel[] errorModeModels ) {
-        super( styles );
+    public CartesianAxesSelector( String[] axisNames,
+                                  ToggleButtonModel[] logModels,
+                                  ToggleButtonModel[] flipModels,
+                                  ErrorModeSelectionModel[] errorModeModels ) {
         axisNames_ = axisNames;
         errorModeModels_ = errorModeModels;
         ndim_ = axisNames.length;
-
-        /* Assemble names for toggle buttons. */
-        int ntog = toggleSets == null ? 0 : toggleSets.length;
-        String[] togNames = new String[ ntog ];
-        for ( int itog = 0; itog < ntog; itog++ ) {
-            togNames[ itog ] = toggleSets[ itog ].name_;
-        }
 
         /* Prepare the visual components. */
         entryBox_ = Box.createVerticalBox();
@@ -79,17 +48,15 @@ public class CartesianPointSelector extends PointSelector {
         for ( int idim = 0; idim < ndim_; idim++ ) {
 
             /* Prepare toggle buttons. */
-            ToggleButtonModel[] togModels = new ToggleButtonModel[ ntog ];
-            for ( int itog = 0; itog < ntog; itog++ ) {
-                ToggleSet togSet = toggleSets[ itog ];
-                togModels[ itog ] = togSet == null ? null
-                                                   : togSet.models_[ idim ];
-            }
+            String[] togNames = new String[] { "Log", "Flip", };
+            ToggleButtonModel[] togModels = new ToggleButtonModel[] {
+                logModels == null ? null : logModels[ idim ],
+                flipModels == null ? null : flipModels[ idim ],
+            };
 
             /* Create and add column selectors. */
             dataSelectors_[ idim ] =
                 new AxisDataSelector( axisNames[ idim ], togNames, togModels );
-            dataSelectors_[ idim ].addActionListener( actionForwarder_ ); 
             dataSelectors_[ idim ].setEnabled( false );
             entryBox_.add( Box.createVerticalStrut( 5 ) );
             entryBox_.add( dataSelectors_[ idim ] );
@@ -108,7 +75,6 @@ public class CartesianPointSelector extends PointSelector {
                 final int idim = id;
                 ActionListener listener = new ActionListener() {
                     public void actionPerformed( ActionEvent evt ) {
-                        updateAnnotator();
                         dataSelectors_[ idim ]
                             .setErrorMode( errorModeModels_[ idim ].getMode() );
                     }
@@ -124,7 +90,7 @@ public class CartesianPointSelector extends PointSelector {
      *
      * @return column selector panel
      */
-    protected JComponent getColumnSelectorPanel() {
+    public JComponent getColumnSelectorPanel() {
         return entryBox_;
     }
 
@@ -133,7 +99,7 @@ public class CartesianPointSelector extends PointSelector {
     }
 
     public boolean isReady() {
-        if ( getTable() == null ) {
+        if ( tcModel_ == null ) {
             return false;
         }
         ColumnData[] cols = getColumns();
@@ -146,13 +112,13 @@ public class CartesianPointSelector extends PointSelector {
     }
 
     public StarTable getData() {
-        return createColumnDataTable( getTable(), getColumns() );
+        return new ColumnDataTable( tcModel_, getColumns() );
     }
 
     /**
      * Returns a StarTable containing error information as selected in
      * this component.
-     * The columns from the active selectors (if any) of each AxisDataSelector 
+     * The columns from the active selectors (if any) of each AxisDataSelector
      * are packed one after another.  It is necessary to know the
      * <code>ErrorMode</code>s currently in force to make sense of this
      * information.
@@ -173,10 +139,10 @@ public class CartesianPointSelector extends PointSelector {
             (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
         for ( int icol = 0; icol < cols.length; icol++ ) {
             if ( cols[ icol ] == null ) {
-                cols[ icol ] = ZERO_COLUMN_DATA;
+                cols[ icol ] = ConstantColumnData.ZERO;
             }
         }
-        return createColumnDataTable( getTable(), cols );
+        return new ColumnDataTable( tcModel_, cols );
     }
 
     public ErrorMode[] getErrorModes() {
@@ -186,6 +152,16 @@ public class CartesianPointSelector extends PointSelector {
             modes[ ierr ] = errorModeModels_[ ierr ].getMode();
         }
         return modes;
+    }
+
+    /**
+     * Returns one of the axis selector boxes used by this selector.
+     *
+     * @param  icol  column index
+     * @return axis selector
+     */
+    public AxisDataSelector getDataSelector( int icol ) {
+        return dataSelectors_[ icol ];
     }
 
     /**
@@ -216,22 +192,17 @@ public class CartesianPointSelector extends PointSelector {
     }
 
     public PointStore createPointStore( int npoint ) {
-        return new CartesianPointStore( ndim_, getErrorModes(), npoint );
+        return new CartesianPointStore( getNdim(), getErrorModes(), npoint );
     }
 
-    protected void configureSelectors( TopcatModel tcModel ) {
+    public void setTable( TopcatModel tcModel ) {
         for ( int i = 0; i < ndim_; i++ ) {
             dataSelectors_[ i ].setTable( tcModel );
         }
+        tcModel_ = tcModel;
     }
 
-    /**
-     * Initialises the selectors to the first ndim suitable columns available.
-     * This is not particularly likely to be what the user is after, but
-     * it means that a plot rather than a blank screen will be seen as soon
-     * as the window is visible.
-     */
-    protected void initialiseSelectors() {
+    public void initialiseSelectors() {
         Set usedCols = new HashSet();
         usedCols.add( null );
 
@@ -262,29 +233,30 @@ public class CartesianPointSelector extends PointSelector {
         }
     }
 
+    public void addActionListener( ActionListener listener ) {
+        for ( int i = 0; i < dataSelectors_.length; i++ ) {
+            dataSelectors_[ i ].addActionListener( listener );
+        }
+    }
+
+    public void removeActionListener( ActionListener listener ) {
+        for ( int i = 0; i < dataSelectors_.length; i++ ) {
+            dataSelectors_[ i ].removeActionListener( listener );
+        }
+    }
+
     /**
      * Returns an array of the selected columns, one for each axis.
-     * 
+     *
      * @return  columns array
      */
     private ColumnData[] getColumns() {
         ColumnData[] cols = new ColumnData[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            cols[ i ] = (ColumnData) dataSelectors_[ i ].getMainSelector()
-                                                        .getSelectedItem();
+            ColumnData cdata = (ColumnData) dataSelectors_[ i ]
+                                           .getMainSelector().getSelectedItem();
+            cols[ i ] = cdata == null ? ConstantColumnData.NAN : cdata;
         }
         return cols;
-    }
-
-    /**     
-     * Encapsulates an array of toggle button models with an associated name.
-     */         
-    static class ToggleSet {
-        final String name_;
-        final ToggleButtonModel[] models_;
-        ToggleSet( String name, ToggleButtonModel[] models ) {
-            name_ = name;
-            models_ = (ToggleButtonModel[]) models.clone(); 
-        }       
     }
 }

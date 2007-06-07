@@ -111,9 +111,10 @@ public class SphereWindow extends Plot3DWindow {
 
     protected PlotState createPlotState() {
         SphericalPlotState state = new SphericalPlotState();
-        ValueInfo rInfo =
-            ((SphericalPolarPointSelector) getPointSelectors()
-                                          .getMainSelector()).getRadialInfo();
+        ValueInfo rInfo = 
+            ((SphericalAxesSelector) getPointSelectors().getMainSelector()
+                                                        .getAxesSelector())
+           .getRadialInfo();
         state.setRadialInfo( rInfo );
         if ( rInfo != null ) {
             state.setRadialLog( logToggler_.isSelected() );
@@ -122,9 +123,14 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     protected PointSelector createPointSelector() {
-        return new SphericalPolarPointSelector( getStyles(), logToggler_,
-                                                tangentErrorToggler_,
-                                                radialErrorModeModel_ );
+        AxesSelector axsel =
+            new SphericalAxesSelector( logToggler_, tangentErrorToggler_,
+                                       radialErrorModeModel_ );
+        PointSelector psel = new PointSelector( axsel, getStyles() );
+        ActionListener errorModeListener = psel.getErrorModeListener();
+        tangentErrorToggler_.addActionListener( errorModeListener );
+        radialErrorModeModel_.addActionListener( errorModeListener );
+        return psel;
     }
 
     protected StyleEditor createStyleEditor() {
@@ -147,9 +153,11 @@ public class SphereWindow extends Plot3DWindow {
         PointSelectorSet pointSelectors = getPointSelectors();
         boolean hasRadial = false;
         for ( int i = 0; i < pointSelectors.getSelectorCount(); i++ ) {
-            SphericalPolarPointSelector psel =
-                (SphericalPolarPointSelector) pointSelectors.getSelector( i );
-            hasRadial = hasRadial || ( psel.getRadialInfo() != null );
+            ValueInfo rInfo =
+                ((SphericalAxesSelector) pointSelectors.getSelector( i )
+                                                       .getAxesSelector())
+               .getRadialInfo();
+            hasRadial = hasRadial || ( rInfo != null );
         }
         if ( hasRadial ) {
             RowSubset[] sets = pointSelection.getSubsets();
