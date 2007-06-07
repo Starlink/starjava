@@ -55,6 +55,7 @@ public abstract class BasicTableLoadDialog extends JPanel
     private TableConsumer consumer_;
     private TableSupplier supplier_;
     private ComboBoxModel emptyModel_;
+    private LoadWorker worker_;
     
     /**
      * Constructor.
@@ -339,18 +340,23 @@ public abstract class BasicTableLoadDialog extends JPanel
         final StarTableFactory factory = factory_;
         final String format = formatModel_.getSelectedItem().toString();
         setBusy( true );
-        new LoadWorker( new DialogConsumer( dialog_ ),
-                        supplier.getTableID() ) {
+        worker_ = new LoadWorker( new DialogConsumer( dialog_ ),
+                                  supplier.getTableID() ) {
             protected StarTable attemptLoad() throws IOException {
                 return supplier.getTable( factory, format ); 
             }
-        }.invoke();
+        };
+        worker_.invoke();
     }
 
     /**
      * Invoked when the Cancel button is pressed. 
      */
     private void cancel() {
+        if ( worker_ != null ) {
+            worker_.interrupt();
+            worker_ = null;
+        }
         if ( dialog_ != null ) {
             dialog_.dispose();
         }
