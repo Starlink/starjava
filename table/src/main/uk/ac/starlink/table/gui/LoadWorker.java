@@ -32,7 +32,7 @@ import uk.ac.starlink.table.StarTable;
  */
 public abstract class LoadWorker {
 
-    private boolean done_;
+    private Thread thread_;
     private final TableConsumer eater_;
     private final String id_;
 
@@ -68,13 +68,11 @@ public abstract class LoadWorker {
      * It should be invoked from the event dispatch thread (and will execute
      * quickly).
      */
-    public void invoke() {
-        if ( done_ ) {
+    public synchronized void invoke() {
+        if ( thread_ != null ) {
             throw new IllegalStateException( "Already invoked!" );
         }
-        done_ = true;
-        eater_.loadStarted( id_ );
-        new Thread( "Table Loader (" + id_ + ")" ) {
+        thread_ = new Thread( "Table Loader (" + id_ + ")" ) {
             public void run() {
                 Throwable error = null;
                 StarTable table = null;
@@ -97,6 +95,21 @@ public abstract class LoadWorker {
                     }
                 } );
             }
-        }.start();
+        };
+        eater_.loadStarted( id_ );
+        thread_.start();
+    }
+
+    /**
+     * Interrupts the thread doing the work for this object if it is active.
+     *
+     * <p>Probably, this whole class ought to be a Thread subclass rather than
+     * doing it like this, but it's part of the STIL public interface so 
+     * I won't change it now.
+     */
+    public void interrupt() {
+        if ( thread_ != null && ! thread_.isInterrupted() ) {
+            thread_.interrupt();
+        }
     }
 }
