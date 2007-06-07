@@ -1,3 +1,5 @@
+package uk.ac.starlink.topcat.contrib;
+
 /*
  * CSVTableParser.java
  *
@@ -6,6 +8,7 @@
  * Copyright 2003-2004 German Astrophysical Virtual Observatory (GAVO)
  */
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Types;
@@ -58,8 +61,9 @@ import uk.ac.starlink.table.StarTable;
  * @author Gerard Lemson
  * @author Hans-Martin Adorf
  * @author Gerard Lemson
+ * @author Mark Taylor
  */
-public class CSVTableParser  {
+public class GavoCSVTableParser  {
     //~ Static fields/initializers ---------------------------------------------
 
     /** The default delimiter between table entries */
@@ -78,7 +82,7 @@ public class CSVTableParser  {
     /**
      * Creates a new instance of CSVTableParser
      */
-    public CSVTableParser() {
+    public GavoCSVTableParser() {
         this(DEFAULT_DELIMITER);
     }
 
@@ -87,7 +91,7 @@ public class CSVTableParser  {
      *
      * @param delimiter the character delimiter ('separator')
      */
-    public CSVTableParser(String delimiter) {
+    public GavoCSVTableParser(String delimiter) {
         setDelimiter(delimiter);
     }
 
@@ -166,6 +170,9 @@ public class CSVTableParser  {
           Object[] row = null;
           while((line = reader.readLine()) != null)
           {
+              if ( Thread.interrupted() ) {
+                  throw new InterruptedException();
+              }
               List cells_ = parseLine(line);
               
               String[] cells = (String[])cells_.toArray(new String[]{}); 
@@ -179,9 +186,9 @@ public class CSVTableParser  {
         else
         {
             StringBuffer sb = new StringBuffer();
-            while((line = reader.readLine()) != null)
+            while((line = reader.readLine()) != null && sb.length() < 8096)
               sb.append(line+"\n");
-            throw new IllegalArgumentException("Error\n"+sb.toString());
+            throw new IOException("Error\n"+sb.toString());
         }
         
         return starTable;
