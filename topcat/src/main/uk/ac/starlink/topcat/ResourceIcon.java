@@ -156,6 +156,7 @@ public class ResourceIcon implements Icon {
         REMOVE_TAB = makeIcon( "rtab3.gif" ),
         ADD_COLOURS = makeIcon( "acolour1.gif" ),
         REMOVE_COLOURS = makeIcon( "rcolour1.gif" ),
+        NORTH = makeIcon( "north2.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),

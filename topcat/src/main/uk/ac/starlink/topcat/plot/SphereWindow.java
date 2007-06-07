@@ -98,6 +98,11 @@ public class SphereWindow extends Plot3DWindow {
         errorMenu.add( tangentErrorToggler_.createMenuItem() );
         getJMenuBar().add( errorMenu );
 
+        /* Customise stay north action. */
+        getNorthModel().setDescription( "Select whether North pole is "
+                                      + "always vertical on the screen" );
+        getNorthModel().setSelected( true );
+
         /* Style Menu. */
         getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );
         getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );

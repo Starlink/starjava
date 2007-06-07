@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -36,6 +37,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private final Plot3D plot_;
     private final ToggleButtonModel fogModel_;
     private final ToggleButtonModel antialiasModel_;
+    private final ToggleButtonModel northModel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
@@ -151,11 +153,25 @@ public abstract class Plot3DWindow extends GraphicsWindow
         antialiasModel_.setSelected( false );
         antialiasModel_.addActionListener( getReplotListener() );
 
+        /* Model to keep the Y axis facing upwards. */
+        northModel_ = new ToggleButtonModel( "Stay Upright",
+                                             ResourceIcon.NORTH,
+                                             "Select whether the Z axis is "
+                                           + "always vertical on the screen" );
+        northModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                setRotation( rotation_ );
+                getReplotListener().actionPerformed( evt );
+            }
+        } );
+        northModel_.setSelected( false );
+
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( getRescaleAction() );
         plotMenu.add( reorientAction );
+        plotMenu.add( northModel_.createMenuItem() );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
@@ -181,6 +197,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( reorientAction );
+        getToolBar().add( northModel_.createToolbarButton() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
@@ -200,7 +217,14 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * @param   matrix  9-element array giving rotation of data space
      */
     public void setRotation( double[] matrix ) {
-        rotation_ = (double[]) matrix.clone();
+        double[] rot = (double[]) matrix.clone();
+        if ( northModel_.isSelected() ) {
+            double theta = Math.atan2( rot[ 2 ], rot[ 5 ] );
+            double[] correction = 
+                rotate( rot, new double[] { 0., 0., 1., }, theta );
+            rot = Matrices.mmMult( rot, correction );
+        }
+        rotation_ = rot;
     }
 
     protected JComponent getPlot() {
@@ -254,6 +278,16 @@ public abstract class Plot3DWindow extends GraphicsWindow
         plot_.setPoints( points );
         plot_.setState( (Plot3DState) state );
         plot_.repaint();
+    }
+
+    /**
+     * Returns the model which toggles whether the orientation of the plot
+     * always points up on the screen.
+     *
+     * @return  keep north action
+     */
+    public ToggleButtonModel getNorthModel() {
+        return northModel_;
     }
 
     /*
