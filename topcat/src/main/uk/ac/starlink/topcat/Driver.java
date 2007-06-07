@@ -63,7 +63,8 @@ public class Driver {
         SQLReadDialog.class.getName(),
         "uk.ac.starlink.vo.ConeSearchDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        // "uk.ac.starlink.vo.SiapTableLoadDialog",
+        "uk.ac.starlink.topcat.contrib.GavoTableLoadDialog",
+        "uk.ac.starlink.vo.SiapTableLoadDialog",
     };
 
     /**
@@ -240,7 +241,8 @@ public class Driver {
         String usage = 
               pre + " [-help] [-version] [-verbose] [-demo] [-disk]\n"
             + pad + " [-hub] [-[no]plastic] [-[no]soap] [-noserv]\n"
-            + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]\n"
+            + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]"
+                  + " [-gavo]\n"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -336,6 +338,11 @@ public class Driver {
             else if ( arg.equals( "-registry" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.RegistryTableLoadDialog" );
+            }
+            else if ( arg.equals( "-gavo" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.topcat.contrib."
+                              + "GavoTableLoadDialog" );
             }
             else if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 System.err.println( usage );
@@ -655,7 +662,8 @@ public class Driver {
            .append( p2 + "-sql       SQL query on relational database" )
            .append( p2 + "-cone      cone search dialogue" )
            .append( p2 + "-registry  VO registry query" )
-           .append( p2 + "-siap      Simple Image Access Protocol queries" );
+           .append( p2 + "-siap      Simple Image Access Protocol queries" )
+           .append( p2 + "-gavo      GAVO Millennium database query" );
 
         /* Java flags. */
         buf.append( p1 + "Useful Java flags:" )
