@@ -9932,6 +9932,8 @@ introduced since the last version:
     <!-- not yet documented -->
     <li>Error bars!</li>
     <li>Modified what happens when subsets get received from PLASTIC.</li>
+    <li>GAVO loader.</li>
+    <li>Stay Upright action (&IMG.NORTH;) in 3D plots.</li>
     </ul>
     </p></dd>
 
