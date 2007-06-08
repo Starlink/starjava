@@ -202,6 +202,38 @@ public class ASTJ
     }
 
     /**
+     * Return the index of a domain in a FrameSet.
+     */
+    public static int findDomain( FrameSet astRef, String domain )
+    {
+        if ( astRef == null || domain == null || "".equals( domain ) ) {
+            return -1;
+        }
+
+        int current = astRef.getCurrent();
+        int nframe = astRef.getNframe();
+        for ( int i = 1; i <= nframe; i++ ) {
+            astRef.setCurrent( i );
+            if ( domain.equalsIgnoreCase( astRef.getDomain() ) ) {
+                astRef.setCurrent( current );
+                return i;
+            }
+        }
+
+        //  No match return -1;
+        astRef.setCurrent( current );
+        return -1;
+    }
+
+    /**
+     * Return the index of a domain in the current FrameSet.
+     */
+    public int findDomain( String domain )
+    {
+        return findDomain( astRef, domain );
+    }
+
+    /**
      *  Create an AST frame and return a reference to it.
      *
      *  @param naxes  number of frame axes required.
@@ -467,13 +499,16 @@ public class ASTJ
      *               SpecFluxFrame, if a SpecFrame can also be derived.
      *  @param dist  Spectral coordinates should be shown as a
      *               distance (rather than coordinate).
+     *  @param dofind if true, then search for a SpecFrame using findFrame, if
+     *                the spectral axis of the current frame isn't a SpecFrame.
+     *
      *
      *  @return the new frameset for displaying a spectrum
      *
      *  @throws Exception if the attempt fails you may find out why
      */
     public FrameSet makeSpectral( int axis, int start, int end, String label,
-                                  String units, boolean dist )
+                                  String units, boolean dist, boolean dofind )
         throws AstException
     {
         if ( astRef == null ) {
@@ -580,7 +615,7 @@ public class ASTJ
 
         // Use selected axis from the current frame as the spectral axis.
         // This may be a SpecFrame, which adds units understanding.
-        Frame f1 = getSpectralAxisFrame( axis );
+        Frame f1 = getSpectralAxisFrame( axis, dofind );
         boolean haveSpecFrame = f1 instanceof SpecFrame;
 
         // If we have data units that can be understood (as some kind of flux
@@ -691,22 +726,26 @@ public class ASTJ
     }
 
     /**
-     * Extract a spectral axis from the current FrameSet. The return is a
-     * SpecFrame if any reason to create one can be deduced. If the selected
-     * axis of the current frame is a SpecFrame, then that is returned.
-     * Otherwise a search is made for a SpecFrame.  Next an attempt to create
-     * a SpecFrame is created using various heuristics (from sample code
-     * provided by David Berry, these use guesses from the available
-     * units). As a last resort the original Frame is returned, if this is
-     * supposed to be a SpecFrame then the user will need to set this
-     * manually.
+     * Extract a spectral axis from the current FrameSet.
      * <p>
+     * The return is a SpecFrame if any reason to create one can be deduced,
+     * unless dofind is false, in which case the axis is just extracted.
+     * <p>
+     * Otherwise, if the selected axis of the current frame is a SpecFrame,
+     * then that is returned, if not a search is made for a SpecFrame.
+     * <p>
+     * Next an attempt to create a SpecFrame is created using various
+     * heuristics (from sample code provided by David Berry, these use guesses
+     * from the available units). As a last resort the original Frame is
+     * returned, if this is supposed to be a SpecFrame then the user will need
+     * to set this manually.  
+     * <p> 
      * Finally if a SpecFrame is created then an attempt to attach this to the
      * current FrameSet will be made. This makes the SpecFrame available
      * immediately in future and correctly updates the FrameSet when it is
      * written out in any way.
      */
-    public Frame getSpectralAxisFrame( int axis )
+    public Frame getSpectralAxisFrame( int axis, boolean dofind )
     {
         SpecFrame result = new SpecFrame();
         if ( astRef == null ) {
@@ -716,8 +755,8 @@ public class ASTJ
         // Pick out the axis that should be a SpecFrame.
         Frame picked = pickAxis( axis );
 
-        // Nothing to do if this is a SpecFrame.
-        if ( picked instanceof SpecFrame ) {
+        // Nothing to do if this is a SpecFrame, or do find is false.
+        if ( picked instanceof SpecFrame || ! dofind ) {
             return picked;
         }
 
