@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     01-DEC-2006 (Peter W. Draper):
@@ -377,10 +378,10 @@ public class JACSynopsisFigure
         }
 
         //  Channel spacing. Work this out from AST, but report the value
-        //  in MHz, if IFCHANSP is present.
+        //  in MHz, if IFCHANSP is present, and we have a SpecFrame.
         prop = specData.getProperty( "IFCHANSP" );
         double inc;
-        if ( ! "".equals( prop ) ) {
+        if ( specAxis instanceof SpecFrame && ! "".equals( prop ) ) {
             inc = specData.channelSpacing( "System=FREQ,Unit=MHz" );
             b.append( "Channel spacing: " + inc + " (Mhz)\n" );
         }
@@ -419,7 +420,7 @@ public class JACSynopsisFigure
         }
 
         //  Estimated TSYS from variance, if possible.
-        if ( "JCMT".equals( telescope ) ) {
+        if ( specAxis instanceof SpecFrame && "JCMT".equals( telescope ) ) {
             prop = JACUtilities.calculateTSYS( specData );
             if ( ! "".equals( prop ) ) {
                 b.append( "TSYS (est): " + prop + " (K)\n" );
