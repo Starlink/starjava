@@ -54,6 +54,7 @@ public class SplatBrowserMain
              " [{-d,--dispax} axis_index]" +
              " [{-s,--selectax} axis_index]" +
              " [{-c,--clear}]" +
+             " [{-k,--keepcoords}]" +
              " [spectra1 spectra2 ...]"
             );
     }
@@ -70,6 +71,7 @@ public class SplatBrowserMain
         Integer dispersionAxis = null;
         Integer selectAxis = null;
         Boolean clearPrefs = Boolean.FALSE;
+        Boolean keepCoords = Boolean.FALSE;
         Boolean ignoreErrors = Boolean.FALSE;
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
 
@@ -84,6 +86,8 @@ public class SplatBrowserMain
                 parser.addIntegerOption( 's', "selectax" );
             CmdLineParser.Option clear =
                 parser.addBooleanOption( 'c', "clear" );
+            CmdLineParser.Option keep =
+                parser.addBooleanOption( 'k', "keepcoords" );
             CmdLineParser.Option ignore =
                 parser.addBooleanOption( 'i', "ignore" );
 
@@ -115,6 +119,12 @@ public class SplatBrowserMain
                 clearPrefs = Boolean.FALSE;
             }
 
+            //  Keep existing coordinates, even when non-spectral.
+            keepCoords = (Boolean) parser.getOptionValue( keep );
+            if ( keepCoords == null ) {
+                keepCoords = Boolean.FALSE;
+            }
+
             //  Ignore certain error conditions.
             ignoreErrors = (Boolean) parser.getOptionValue( ignore );
             if ( ignoreErrors == null ) {
@@ -138,6 +148,7 @@ public class SplatBrowserMain
         final String action = ndAction;
         final Integer dispax = dispersionAxis;
         final Integer selectax = selectAxis;
+        final boolean search = ( ! keepCoords.booleanValue() );
 
         //  Cause a load and/or guess of various properties that can
         //  be useful in locating resources etc.
@@ -151,7 +162,8 @@ public class SplatBrowserMain
                 public void run()
                 {
                     browser = new SplatBrowser( spectra, false, type,
-                                                action, dispax, selectax );
+                                                action, dispax, selectax,
+                                                search );
                     browser.setVisible( true );
                     if ( checkjniast ) {
                         if ( ! ASTJ.isAvailable() ) {

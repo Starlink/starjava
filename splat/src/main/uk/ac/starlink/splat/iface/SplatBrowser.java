@@ -359,7 +359,7 @@ public class SplatBrowser
      */
     public SplatBrowser()
     {
-        this( null, false, null, null, null, null );
+        this( null, false, null, null, null, null, true );
     }
 
     /**
@@ -368,7 +368,7 @@ public class SplatBrowser
      */
     public SplatBrowser( boolean embedded )
     {
-        this( null, embedded, null, null, null, null );
+        this( null, embedded, null, null, null, null, true );
     }
 
     /**
@@ -380,7 +380,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec )
     {
-        this( inspec, false, null, null, null, null );
+        this( inspec, false, null, null, null, null, true );
     }
 
     /**
@@ -393,7 +393,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec, boolean embedded )
     {
-        this( inspec, embedded, null, null, null, null );
+        this( inspec, embedded, null, null, null, null, true );
     }
 
     /**
@@ -414,10 +414,14 @@ public class SplatBrowser
      *  @param selectAxis the axis to step along during collapse/extract,
      *                    if any of the spectra are 3D. If null then an axis
      *                    will be selected automatically.
+     *  @param searchCoords if true then searches for suitable spectral
+     *                      coordinate systems will be made, otherwise
+     *                      the current system, of whatever type, will be
+     *                      used for each spectrum.
      */
     public SplatBrowser( String[] inspec, boolean embedded, String type,
                          String ndAction, Integer dispAxis,
-                         Integer selectAxis )
+                         Integer selectAxis, boolean searchCoords )
     {
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
         //  Don't know where to put this though.
@@ -459,6 +463,9 @@ public class SplatBrowser
         //  necessary.
         this.dispAxis = dispAxis;
         this.selectAxis = selectAxis;
+
+        //  Record preference for search for coordinate systems.
+        SpecData.setSearchForSpecFrames( searchCoords );
 
         //  Now add any command-line spectra. Do this after the interface is
         //  visible and in a separate thread from the GUI and event
