@@ -15,12 +15,17 @@ import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.Action;
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -39,12 +44,13 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     private int nquery = 0;
 
     private static final String MILL_URL =
-        "http://www.g-vo.org/Millennium?action=doQuery&SQL=";
+        "http://www.g-vo.org/Millennium";
     private static final String MYMILL_URL =
-        "http://www.g-vo.org/MyMillennium?action=doQuery&SQL=";
+        "http://www.g-vo.org/MyMillennium";
+    private static final String QUERY_TRAIL = "?action=doQuery&SQL=";
     private static final Database[] DATABASES = new Database[] {
-        new Database( MILL_URL, MILL_URL, false ),
-        new Database( MYMILL_URL, MYMILL_URL, true ),
+        new Database( MILL_URL, MILL_URL + QUERY_TRAIL, false ),
+        new Database( MYMILL_URL, MYMILL_URL + QUERY_TRAIL, true ),
     };
 
     private static final ValueInfo URL_INFO =
@@ -53,7 +59,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     private static final ValueInfo SQL_INFO =
         new DefaultValueInfo( "SQL", String.class,
                               "Text of SQL query" );
-    
+
     private final JComboBox urlField_;
     private final JTextField userField_;
     private final JPasswordField passField_;
@@ -76,7 +82,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
 
         /* Arrange them in a GUI container. */
         LabelledComponentStack stack = new LabelledComponentStack();
-        stack.addLine( "Query URL", urlField_ );
+        stack.addLine( "Base URL", urlField_ );
         stack.addLine( "User", userField_ );
         final JLabel userLabel =
             stack.getLabels()[ stack.getLabels().length - 1 ];
@@ -114,6 +120,27 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         setPreferredSize( new Dimension( 400, 300 ) );
     }
 
+    protected JDialog createDialog( java.awt.Component parent ) {
+        JDialog dialog = super.createDialog( parent );
+        JMenuBar mbar = new JMenuBar();
+        dialog.setJMenuBar( mbar );
+        JMenu sampleMenu = new JMenu( "SampleQueries" );
+        mbar.add( sampleMenu );
+        GavoSampleQuery[] queries = GavoSampleQuery.SAMPLES;
+        for ( int i = 0; i < queries.length; i++ ) {
+            GavoSampleQuery sample = queries[ i ];
+            final String sqlText = sample.getText();
+            Action act = new AbstractAction( sample.getName() ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    sqlField_.setText( sqlText );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION, sample.getDescription() );
+            sampleMenu.add( act );
+        }
+        return dialog;
+    }
+
 
     /**
      * Indicates whether this dialogue is available.  Should return false
@@ -129,7 +156,8 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
             return (Database) db;
         }
         else if ( db instanceof String && ((String) db).trim().length() > 0 ) {
-            return new Database( "database", (String) db, true );
+            String baseUrl = (String) db;
+            return new Database( baseUrl, baseUrl + QUERY_TRAIL,  true );
         }
         else {
             return null;
