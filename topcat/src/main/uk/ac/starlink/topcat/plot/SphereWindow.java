@@ -38,7 +38,7 @@ public class SphereWindow extends Plot3DWindow {
      */
     public SphereWindow( Component parent ) {
         super( "Spherical Plot",
-               new String[] { "Longitude", "Latitude", "Radius" }, parent, 
+               new String[] { "Longitude", "Latitude", "Radius" }, 0, parent, 
                new ErrorModeSelectionModel[ 0 ], new SphericalPlot3D() );
 
         /* Set up toggle button model for logarithmic radial axis. */

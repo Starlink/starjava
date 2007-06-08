@@ -57,15 +57,16 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * @param   viewName  name of the view window
      * @param   axisNames  array of labels by which each axis is known;
      *          the length of this array defines the dimensionality of the plot
+     * @param   naux  number of auxiliary axes
      * @param   parent   parent window - may be used for positioning
      * @param   errorModeModels   array of selecction models for error modes
      * @param   plot   the Plot3D object on which plotting is done
      */
-    public Plot3DWindow( String viewName, String[] axisNames,
+    public Plot3DWindow( String viewName, String[] axisNames, int naux,
                          Component parent,
                          ErrorModeSelectionModel[] errorModeModels,
                          Plot3D plot ) {
-        super( viewName, axisNames, 0, errorModeModels, parent );
+        super( viewName, axisNames, naux, errorModeModels, parent );
 
         /* Configure the plot to provide some callbacks when interesting
          * things happen. */
