@@ -20,25 +20,25 @@ public class DataColorTweaker implements ColorTweaker {
     /**
      * Constructor.
      *
-     * @param   state   describes the plot for which this object will be used
      * @param   ioff    offset into supplied coordinate arrays at which 
      *                  auxiliary data starts
+     * @param   shaders array of shaders, one for each aux axis
+     * @param   ranges  array of (low,high) range bounds, one for each aux axis
+     * @param   logFlags  array of logarithmic scaling flags,
+     *                    one for each aux axis
+     * @param   flipFlags  array of axis inversion flags,
+     *                     one for each aux axis
      */
-    public DataColorTweaker( PlotState state, int ioff ) {
+    public DataColorTweaker( int ioff, Shader[] shaders, double[][] ranges,
+                             boolean[] logFlags, boolean[] flipFlags ) {
         ioff_ = ioff;
-
-        /* Acquire information from PlotState about how colours will be
-         * adjusted. */
-        shaders_ = state.getShaders();
-        int ndim = shaders_.length;
-        knobs_ = new double[ ndim ];
-        scalers_ = new Scaler[ ndim ];
-        double[][] ranges = state.getRanges();
-        boolean[] logFlags = state.getLogFlags();
-        boolean[] flipFlags = state.getFlipFlags();
+        shaders_ = shaders;
 
         /* Create a scaler for each of the auxiliary axes.  These turn 
          * data coordinates into normalised coordinates (0..1). */
+        int ndim = shaders_.length;
+        knobs_ = new double[ ndim ];
+        scalers_ = new Scaler[ ndim ];
         int nd = 0;
         for ( int idim = 0; idim < ndim; idim++ ) {
             if ( shaders_[ idim ] != null ) {
@@ -116,6 +116,25 @@ public class DataColorTweaker implements ColorTweaker {
                  ? new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] )
                  : orig;
         }
+    }
+
+    /**
+     * Returns a new tweaker suitable for a given plot.  Iff no colour 
+     * tweaking will be performed (that is, if such an object would do no work)
+     * then null will be returned.
+     *
+     * @param   ioff    offset into supplied coordinate arrays at which 
+     *                  auxiliary data starts
+     * @param   state   describes the plot for which this object will be used
+     * @return  new tweaker, or null
+     */
+    public static DataColorTweaker createTweaker( int ioff, PlotState state ) {
+        Shader[] shaders = state.getShaders();
+        return shaders.length == 0
+             ? null
+             : new DataColorTweaker( ioff, shaders, state.getRanges(),
+                                     state.getLogFlags(),
+                                     state.getFlipFlags() );
     }
 
     /**
