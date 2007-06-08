@@ -533,6 +533,14 @@ public class SpecData
      */
     protected String apparentDataUnits = null;
 
+    /**
+     * Whether to search for a spectral coordinate frame when creating the
+     * plot FrameSet. If true then a SpecFrame anywhere in the original WCS
+     * will be used, or if possible a spectral coordinate system will be
+     * deduced from any labelling and units. If false a SpecFrame will only be
+     * used if it is in the current coordinate system.
+     */
+    protected boolean searchForSpecFrame = true;
 
     //  ==============
     //  Public methods
@@ -1534,6 +1542,25 @@ public class SpecData
         return useInAutoRanging;
     }
 
+    /**
+     * Set if a search should be made for a suitable spectral coordinate
+     * system when creating the plot frameset. Requires 
+     * {@link initialiseAst()} to be invoked before the change will be seen.
+     */
+    public void setSearchForSpecFrame( boolean searchForSpecFrame )
+    {
+        this.searchForSpecFrame = searchForSpecFrame;
+    }
+
+    /**
+     * Find out if a search will be made for a suitable spectral coordinate
+     * system when creating the plot frameset.
+     */
+    public boolean isSearchForSpecFrame()
+    {
+        return searchForSpecFrame;
+    }
+
 
     /**
      * Read the data from the spectrum into local arrays.  This also
@@ -1615,7 +1642,7 @@ public class SpecData
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
                                             getDataLabel(), getDataUnits(),
-                                            false );
+                                            false, searchForSpecFrame );
             }
             catch (AstException e) {
                 throw new SplatException( "Failed to find a valid spectral " +
