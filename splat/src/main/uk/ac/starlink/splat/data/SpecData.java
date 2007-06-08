@@ -534,13 +534,14 @@ public class SpecData
     protected String apparentDataUnits = null;
 
     /**
-     * Whether to search for a spectral coordinate frame when creating the
-     * plot FrameSet. If true then a SpecFrame anywhere in the original WCS
-     * will be used, or if possible a spectral coordinate system will be
-     * deduced from any labelling and units. If false a SpecFrame will only be
-     * used if it is in the current coordinate system.
+     * Whether to search for spectral coordinate frames when creating the plot
+     * FrameSets. If true then a SpecFrame anywhere in the original WCS of an
+     * instance will be used, or if possible a spectral coordinate system will
+     * be deduced from any labelling and units. If false SpecFrames will only
+     * be used it they are in the current coordinate system. Applies to the
+     * whole application.
      */
-    protected boolean searchForSpecFrame = true;
+    protected static boolean searchForSpecFrames = true;
 
     //  ==============
     //  Public methods
@@ -1543,22 +1544,23 @@ public class SpecData
     }
 
     /**
-     * Set if a search should be made for a suitable spectral coordinate
-     * system when creating the plot frameset. Requires 
-     * {@link initialiseAst()} to be invoked before the change will be seen.
+     * Set if searching should be done for suitable spectral coordinate
+     * systems when creating the plot framesets. If changed after the
+     * application starts it requires {@link initialiseAst()} to be invoked on
+     * all spectra before the change will be seen.
      */
-    public void setSearchForSpecFrame( boolean searchForSpecFrame )
+    public static void setSearchForSpecFrames( boolean searchForSpecFrames )
     {
-        this.searchForSpecFrame = searchForSpecFrame;
+        SpecData.searchForSpecFrames = searchForSpecFrames;
     }
 
     /**
-     * Find out if a search will be made for a suitable spectral coordinate
-     * system when creating the plot frameset.
+     * Find out if searching for a suitable spectral coordinate
+     * systems will be made when creating plot framesets.
      */
-    public boolean isSearchForSpecFrame()
+    public static boolean isSearchForSpecFrames()
     {
-        return searchForSpecFrame;
+        return SpecData.searchForSpecFrames;
     }
 
 
@@ -1642,7 +1644,7 @@ public class SpecData
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
                                             getDataLabel(), getDataUnits(),
-                                            false, searchForSpecFrame );
+                                            false, searchForSpecFrames );
             }
             catch (AstException e) {
                 throw new SplatException( "Failed to find a valid spectral " +
