@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -59,6 +61,9 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     private static final ValueInfo SQL_INFO =
         new DefaultValueInfo( "SQL", String.class,
                               "Text of SQL query" );
+
+    private static final Logger logger_ = 
+        Logger.getLogger( "uk.ac.starlink.topcat.contrib" );
 
     private final JComboBox urlField_;
     private final JTextField userField_;
@@ -216,9 +221,24 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                     uc.setRequestProperty ("Authorization",
                                            "Basic " + encoding);
                 }
+           
+                if ( uc instanceof HttpURLConnection ) {
+                    HttpURLConnection huc = (HttpURLConnection) uc;
+                    int code = huc.getResponseCode();
+                    if ( code == 401 ) {
+                        throw new ConnectException(
+                            "Authorisation failed\n" + 
+                            "Check username/password" );
+                    }
+                    else if ( code >= 400 ) {
+                        throw new ConnectException(
+                            "Connection failed:\n" + code + " " +
+                            huc.getResponseMessage() );
+                    }
+                    logger_.info( "URL response: " + code );
+                }
                 InputStream stream = uc.getInputStream();
-                Logger.getLogger( "uk.ac.starlink.topcat.contrib" )
-                      .info( "Content type = " + uc.getContentType() );
+                logger_.info( "Content type = " + uc.getContentType() );
                 StarTable table;
                 GavoCSVTableParser csvParser =
                     new GavoCSVTableParser( tabFact.getStoragePolicy() );
