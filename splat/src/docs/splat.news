@@ -34,6 +34,12 @@
    and plot units toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now
    be recognised as "erg/cm^2/s/Angstrom".
 
+   By default SPLAT searches input spectra for a spectral coordinate system.
+   This can lead to unexpected behaviour when attempting to display spectra
+   with non-spectral coordinates (by selecting the GRID or PIXEL frames
+   in an NDF), so a new command-line flag "--keepcoords" has been introduced
+   to inhibit the search for spectral coordinates.
+
    3.8-0
    =====
 
