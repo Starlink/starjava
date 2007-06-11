@@ -23,7 +23,6 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final int xoff_;
     private final int yoff_;
     private final float[] zbuf_;
-    private final byte[] sbuf_;
     private final int[] rgbBuf_;
     private final BitSet mask_;
     private final int[][] pixoffs_;
@@ -31,6 +30,7 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final MarkStyle[] styles_;
     private final Graphics graphics_;
     private final Rectangle clip_;
+    private final Paint paint_;
 
     /**
      * Constructs a new plot volume.
@@ -40,14 +40,17 @@ public class ZBufferPlotVolume extends PlotVolume {
      * @param   styles  array of marker styles which may be used to plot
      * @param   padFactor  minimum amount of space outside the unit cube
      *          in both dimensions - 1 means no extra space
+     * @param   fogginess  thickness of fog for depth shading
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
+     * @param   tweaker  colour adjuster for using auxiliary axis coords
      * @param   ws  workspace object 
      */
     public ZBufferPlotVolume( Component c, Graphics g, MarkStyle[] styles,
                               double padFactor, int[] padBorders,
-                              Workspace ws ) {
-        super( c, g, styles, padFactor, padBorders );
+                              double fogginess,
+                              DataColorTweaker tweaker, Workspace ws ) {
+        super( c, g, styles, padFactor, padBorders, fogginess );
         graphics_ = g;
         styles_ = (MarkStyle[]) styles.clone();
 
@@ -68,7 +71,6 @@ public class ZBufferPlotVolume extends PlotVolume {
          * various buffer objects we will require. */
         ws.init( xdim_, ydim_ );
         zbuf_ = ws.zbuf_;
-        sbuf_ = ws.sbuf_;
         rgbBuf_ = ws.rgbBuf_;
         mask_ = ws.mask_;
         image_ = ws.image_;
@@ -85,27 +87,34 @@ public class ZBufferPlotVolume extends PlotVolume {
         for ( int is = 0; is < nstyle; is++ ) {
             pixoffs_[ is ] = styles[ is ].getFlattenedPixelOffsets( xdim_ );
         }
+
+        /* Set up a suitable object for filling in the pixel values during
+         * the plotting operations. */
+        DataColorTweaker foggingTweaker = createFoggingTweaker( tweaker );
+        paint_ = foggingTweaker != null
+               ? (Paint) new TweakedPaint( styles, foggingTweaker )
+               : (Paint) new FixedPaint( styles );
     }
 
-    public void plot2d( int xp, int yp, double zd, int isi ) {
-        plot2d( xp, yp, zd, isi, true, 0, null, null, null );
+    public void plot2d( int xp, int yp, double zd, double[] coords, int is ) {
+        plot2d( xp, yp, zd, coords, is, true, 0, null, null, null );
     }
 
-    public void plot2d( int xp, int yp, double zd, int isi,
+    public void plot2d( int xp, int yp, double zd, double[] coords, int is,
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {
         float z = (float) zd;
-        byte is = (byte) isi;
         int xbase = xp - xoff_;
         int ybase = yp - yoff_;
         int base = xbase + xdim_ * ybase;
+        paint_.setColor( is, coords );
 
         /* Draw marker if required. */
         if ( showPoint ) {
             int[] pixoffs = pixoffs_[ is ];
             int npixoff = pixoffs.length;
             for ( int ioff = 0; ioff < npixoff; ioff++ ) {
-                hitPixel( base + pixoffs[ ioff ], z, is );
+                hitPixel( base + pixoffs[ ioff ], z );
             }
         }
 
@@ -116,26 +125,15 @@ public class ZBufferPlotVolume extends PlotVolume {
                .getPixels( clip_, xbase, ybase, xoffs, yoffs );
             for ( epixer.start(); epixer.next(); ) {
                 int pixoff = epixer.getX() + xdim_ * epixer.getY();
-                hitPixel( pixoff, z, is );
+                hitPixel( pixoff, z );
             }
         }
     }
 
     public void flush() {
         Graphics g = getGraphics();
-        Fogger fogger = getFogger();
 
-        /* Get basic RGB colours for each style. */
-        MarkStyle[] styles = getStyles();
-        int nstyle = styles.length;
-        int[] argbs = new int[ nstyle ];
-        for ( int is = 0; is < nstyle; is++ ) {
-            Color color = styles[ is ].getColor();
-            argbs[ is ] = styles[ is ].getColor().getRGB();
-        }
-
-        /* Fill a buffer of RGB values based on the Z and style index
-         * buffers. */
+        /* Work out the region of the plot which has been affected. */
         int xmin = xdim_;
         int xmax = 0;
         int ymin = ydim_;
@@ -148,9 +146,6 @@ public class ZBufferPlotVolume extends PlotVolume {
             xmax = Math.max( xmax, ix );
             ymin = Math.min( ymin, iy );
             ymax = Math.max( ymax, iy );
-            float z = zbuf_[ ipix ];
-            int is = (int) sbuf_[ ipix ];
-            rgbBuf_[ ipix ] = fogger.fogAt( z, argbs[ is ] );
         }
 
         /* Take the rectangle of the RGB buffer which was affected, 
@@ -167,14 +162,14 @@ public class ZBufferPlotVolume extends PlotVolume {
     }
        
     /**
-     * Deposit a point at a given index into the pixel buffer.
+     * Deposit a point at a given index into the pixel buffer using the
+     * current paint.
      * If it's behind an existing pixel there will be no effect.
      *
      * @param  ipix  pixel index
      * @param  z     Z buffer depth
-     * @param  is    style index
      */
-    private void hitPixel( int ipix, float z, byte is ) {
+    private void hitPixel( int ipix, float z ) {
 
         /* If the pixel isn't already filled with something nearer the
          * viewer than this... */
@@ -187,7 +182,108 @@ public class ZBufferPlotVolume extends PlotVolume {
             zbuf_[ ipix ] = z;
 
             /* Set the style buffer element to the current style index. */
-            sbuf_[ ipix ] = is;
+            rgbBuf_[ ipix ] = paint_.getRgb();
+        }
+    }
+
+    /**
+     * Defines the colour of pixels which will be drawn into the RGB buffer.
+     * The point of defining this class rather than just working out the
+     * RGB values for each (potentially) plotted point is so that 
+     * calculation of actual RGB colour values only has to be done when
+     * it is actually necessary.
+     */
+    private static abstract class Paint {
+
+        /**
+         * Sets the parameters which determine what colour pixels will be
+         * painted in.
+         *
+         * @param   iset  set index  
+         * @param   coords  the full coordinate array which may affect colouring
+         */
+        abstract void setColor( int iset, double[] coords );
+
+        /**
+         * The sRGB-encoded integer representing colour.
+         *
+         * @return  rgb colour value
+         */
+        abstract int getRgb();
+    }
+
+    /**
+     * Paint implementation where each indexed set corresponds to a single
+     * colour.
+     */
+    private static class FixedPaint extends Paint {
+        final int[] rgbs_;
+        int rgb_;
+
+        /**
+         * Constructor.
+         *
+         * @param  styles  array of per-set marker styles
+         */
+        public FixedPaint( MarkStyle[] styles ) {
+            int nstyle = styles.length;
+            rgbs_ = new int[ nstyle ];
+            for ( int is = 0; is < nstyle; is++ ) {
+                rgbs_[ is ] = styles[ is ].getColor().getRGB();
+            }
+        }
+
+        public void setColor( int iset, double[] coords ) {
+            rgb_ = rgbs_[ iset ];
+        }
+
+        public int getRgb() {
+            return rgb_;
+        }
+    }
+
+    /**
+     * Paint implementation where the colour of each set is influenced by a
+     * DataColorTweaker object.
+     */
+    private static class TweakedPaint extends Paint {
+        final Color[] colors_;
+        final DataColorTweaker tweaker_;
+        final int ncoord_;
+        final double[] coords_;
+        int iset_;
+        boolean rgbOk_;
+        int rgb_;
+
+        /**
+         * Constructor.
+         *
+         * @param  styles  array of per-set marker styles
+         * @param  tweaker  colour adjuster
+         */
+        public TweakedPaint( MarkStyle[] styles, DataColorTweaker tweaker ) {
+            int nstyle = styles.length;
+            colors_ = new Color[ nstyle ];
+            for ( int is = 0; is < nstyle; is++ ) {
+                colors_[ is ] = styles[ is ].getColor();
+            }
+            tweaker_ = tweaker;
+            ncoord_ = tweaker.getNcoord();
+            coords_ = new double[ ncoord_ ];
+        }
+
+        public void setColor( int iset, double[] coords ) {
+            rgbOk_ = false;
+            iset_ = iset;
+            System.arraycopy( coords, 0, coords_, 0, ncoord_ );
+        }
+
+        public int getRgb() {
+            if ( ! rgbOk_ ) {
+                tweaker_.setCoords( coords_ );
+                rgb_ = tweaker_.tweakColor( colors_[ iset_ ] ).getRGB();
+            }
+            return rgb_;
         }
     }
 
@@ -204,7 +300,6 @@ public class ZBufferPlotVolume extends PlotVolume {
         private int xdim_ = -1;
         private int ydim_ = -1;
         private float[] zbuf_;
-        private byte[] sbuf_;
         private int[] rgbBuf_;
         private BitSet mask_;
         private BufferedImage image_;
@@ -221,7 +316,6 @@ public class ZBufferPlotVolume extends PlotVolume {
             /* If we are already this shape, just clear the buffers. */
             if ( xdim == xdim_ && ydim == ydim_ ) {
                 Arrays.fill( zbuf_, 0f );
-                Arrays.fill( sbuf_, (byte) 0 );
                 Arrays.fill( rgbBuf_, 0 );
                 mask_.clear();
             }
@@ -232,7 +326,6 @@ public class ZBufferPlotVolume extends PlotVolume {
                 ydim_ = ydim;
                 int npix = xdim * ydim;
                 zbuf_ = new float[ npix ];
-                sbuf_ = new byte[ npix ];
                 rgbBuf_ = new int[ npix ];
                 mask_ = new BitSet( npix );
                 image_ = new BufferedImage( xdim, ydim,

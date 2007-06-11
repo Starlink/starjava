@@ -338,6 +338,13 @@ public abstract class Plot3D extends JPanel {
                         MarkStyle.hasErrors( (MarkStyle) styles[ is ], points );
         }
 
+        /* Get fogginess. */
+        double fog = state.getFogginess();
+
+        /* Work out how points will be shaded according to auxiliary axis
+         * coordinates. */
+        DataColorTweaker tweaker = ShaderTweaker.createTweaker( 3, state );
+
         /* Decide what rendering algorithm we're going to have to use, and
          * create a PlotVolume object accordingly. */
         PlotVolume vol;
@@ -346,20 +353,19 @@ public abstract class Plot3D extends JPanel {
                 logger_.warning( "Can't render transparency in PostScript" );
             }
             vol = new VectorSortPlotVolume( c, g, plotStyles, padFactor,
-                                            padBorders_ );
+                                            padBorders_, fog, tweaker );
         }
         else if ( allOpaque ) {
             vol = new ZBufferPlotVolume( c, g, plotStyles, padFactor,
-                                         padBorders_, getZBufferWorkspace() );
+                                         padBorders_, fog, tweaker,
+                                         getZBufferWorkspace() );
         }
         else {
             vol = new BitmapSortPlotVolume( c, g, plotStyles, padFactor,
-                                            padBorders_, anyErrors, -1.0, 2.0,
+                                            padBorders_, fog, anyErrors,
+                                            -1.0, 2.0, tweaker,
                                             getBitmapSortWorkspace() );
         }
-
-        /* Set its fog factor appropriately for depth rendering as requested. */
-        vol.getFogger().setFogginess( state_.getFogginess() );
 
         /* If we're zoomed on a spherical plot and the points are only
          * on the surface of the sphere, then we don't want to see the
@@ -473,7 +479,11 @@ public abstract class Plot3D extends JPanel {
         }
 
         /* Plot a teeny static dot in the middle of the data. */
-        vol.plot3d( new double[] { .5, .5, .5 }, iDotStyle );
+        double[] dot = new double[ points.getNdim() ];
+        centre[ 0 ] = 0.5;
+        centre[ 1 ] = 0.5;
+        centre[ 2 ] = 0.5;
+        vol.plot3d( dot, iDotStyle );
 
         /* Tell the volume that all the points are in for plotting.
          * This will do the painting on the graphics context if it hasn't
