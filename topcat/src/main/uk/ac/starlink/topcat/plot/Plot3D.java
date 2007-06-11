@@ -144,9 +144,7 @@ public abstract class Plot3D extends JPanel {
      * @param  g       graphics context
      * @param  padBorders  4-element array, filled on return
      * @return  pad factor (>=1)
-     * @see   PlotVolume#PlotVolume(java.awt.Component,java.awt.Graphics,
-     *                              uk.ac.starlink.topcat.plot.MarkStyle[],
-     *                              double,int[])
+     * @see   PlotVolume#PlotVolume
      */
     protected abstract double getPadding( Plot3DState state, Graphics g,
                                           int[] padBorders );

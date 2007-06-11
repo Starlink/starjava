@@ -137,10 +137,9 @@ public class GavoCSVTableParser  {
 
     /**
      * Return a List of tokens (Strings) from the specified line, delimited by
-     * the specified delimiter.<br>
+     * the specified delimiter.
      *
      * @param line a String with the line to parse
-     *
      * @return a List with the tokens
      */
     public List parseLine(String line) {
