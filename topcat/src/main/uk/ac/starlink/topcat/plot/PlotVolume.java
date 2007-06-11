@@ -41,9 +41,11 @@ public abstract class PlotVolume {
      *          in both dimensions - 1 means no extra space
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
+     * @param   fogginess  thickness of fog for depth shading
      */
     protected PlotVolume( Component c, Graphics g, MarkStyle[] styles, 
-                          double padFactor, int[] padBorders ) {
+                          double padFactor, int[] padBorders, 
+                          double fogginess ) {
         graphics_ = g;
         styles_ = (MarkStyle[]) styles.clone();
         int padLeft = padBorders[ 0 ];
@@ -58,6 +60,7 @@ public abstract class PlotVolume {
         xoff_ = 0 + (int) ( ( w - scale_ ) / 2. ) + padLeft;
         yoff_ = h - (int) ( ( h - scale_ ) / 2. ) + padTop;
         fogger_ = new Fogger( 1.0 );
+        fogger_.setFogginess( fogginess );
     }
 
     /**
@@ -192,11 +195,12 @@ public abstract class PlotVolume {
             }
 
             /* Hand off the actual plotting to the concrete subclass. */
-            plot2d( xp, yp, z, istyle, showPoint, nerr, xoffs, yoffs, zerrs );
+            plot2d( xp, yp, z, centre, istyle, showPoint,
+                    nerr, xoffs, yoffs, zerrs );
             return true;
         }
         else {
-            plot2d( xp, yp, z, istyle );
+            plot2d( xp, yp, z, centre, istyle );
             return true;
         }
     }
@@ -237,9 +241,12 @@ public abstract class PlotVolume {
      * @param  py  graphics space Y coordinate
      * @param  z   depth of point; a point with a greater <code>z</code>
      *             should obscure a point with a lesser one
+     * @param  coords  original coordinate array; as well as (redundant)
+     *                 x,y,z values it may contain auxiliary axis coordinates
      * @param  istyle  index of the style used to plot the point
      */
-    protected abstract void plot2d( int px, int py, double z, int istyle );
+    protected abstract void plot2d( int px, int py, double z, double[] coords,
+                                    int istyle );
 
     /**
      * Plots a marker and associated error values at a given point in 
@@ -257,6 +264,8 @@ public abstract class PlotVolume {
      * @param  px  graphics space X coordinate of the central point
      * @param  py  graphics space Y coordinate of the central point
      * @param  z   depth of point
+     * @param  coords  original coordinate array; as well as (redundant)
+     *                 x,y,z values it may contain auxiliary axis coordinates
      * @param  istyle  index of the style used to plot the point
      * @param  showPoint  whether the central point is to be plotted
      * @param  nerr  number of error points
@@ -267,8 +276,8 @@ public abstract class PlotVolume {
      * @param  zerrs   <code>nerr</code>-element array of depths for
      *                 error points
      */
-    protected abstract void plot2d( int px, int py, double z, int istyle,
-                                    boolean showPoint, int nerr, 
+    protected abstract void plot2d( int px, int py, double z, double[] coords,
+                                    int istyle, boolean showPoint, int nerr, 
                                     int[] xoffs, int[] yoffs, double[] zerrs );
 
     /**
@@ -284,5 +293,43 @@ public abstract class PlotVolume {
      */
     public Graphics getGraphics() {
         return graphics_;
+    }
+
+    public DataColorTweaker createFoggingTweaker( DataColorTweaker tweaker ) {
+        Fogger fogger = getFogger();
+        if ( fogger != null && fogger.getFogginess() > 0 ) {
+            return tweaker == null
+                 ? fogger.createTweaker( 2, 3 )
+                 : fogger.createTweaker( 2, tweaker );
+        }
+        else {
+            return tweaker;
+        }
+    }
+
+    /**
+     * Utility method to convert an RGBA float[] array into an integer.
+     *
+     * @param   rgba  float array
+     * @return   integer
+     */
+    public static int packRgba( float[] rgba ) {
+        return ( (int) ( rgba[ 0 ] * 255.9f ) & 0xff ) <<  0
+             | ( (int) ( rgba[ 1 ] * 255.9f ) & 0xff ) <<  8
+             | ( (int) ( rgba[ 2 ] * 255.9f ) & 0xff ) << 16
+             | ( (int) ( rgba[ 3 ] * 255.9f ) & 0xff ) << 24;
+    }
+
+    /**
+     * Utility method to convert an RGBA integer into a float[] array.
+     *
+     * @param  rgba  integer
+     * @param  buf   4-element float array to receive result
+     */
+    public static void unpackRgba( int rgba, float[] buf ) {
+        buf[ 0 ] = (float) ( ( rgba >>  0 ) & 0xff ) / 255f;
+        buf[ 1 ] = (float) ( ( rgba >>  8 ) & 0xff ) / 255f;
+        buf[ 2 ] = (float) ( ( rgba >> 16 ) & 0xff ) / 255f;
+        buf[ 3 ] = (float) ( ( rgba >> 24 ) & 0xff ) / 255f;
     }
 }
