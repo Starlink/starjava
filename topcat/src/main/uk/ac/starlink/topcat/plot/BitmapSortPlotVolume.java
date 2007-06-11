@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -33,6 +34,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
     private final float[][] rgbaBufs_;
     private final int[] rgbBuf_;
     private final BufferedImage image_;
+    private final DataColorTweaker tweaker_;
 
     /**
      * Constructor.
@@ -44,26 +46,20 @@ public class BitmapSortPlotVolume extends PlotVolume {
      *          in both dimensions - 1 means no extra space
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
+     * @param   fogginess  thickness of fog for depth shading
      * @param   hasErrors  must be true if any of the points to be plotted
      *          will contain errors
      * @param   zmin  a lower limit for z coordinates of plotted points
      * @param   zmax  an upper limit for z coordinates of plotted points
+     * @param   tweaker  colour adjuster for using auxiliary axis coords
      * @param   ws   workspace object
      */
     public BitmapSortPlotVolume( Component c, Graphics g, MarkStyle[] styles,
                                  double padFactor, int[] padBorders,
-                                 boolean hasErrors, double zmin, double zmax,
-                                 Workspace ws ) {
-        super( c, g, styles, padFactor, padBorders );
-
-        /* Construct an appropriate PointStore object.  If there are no 
-         * errors then all information for each object can be packed into
-         * a long, which is good for processing and memory efficiency.
-         * If errors are (may be) present there is too much information
-         * for that, and we need a more conventional way of storing points. */
-        pointStore_ = hasErrors
-                    ? (PointStore) new ObjectPointStore()
-                    : (PointStore) new PackedPointStore( zmin, zmax );
+                                 double fogginess, boolean hasErrors,
+                                 double zmin, double zmax,
+                                 DataColorTweaker tweaker, Workspace ws ) {
+        super( c, g, styles, padFactor, padBorders, fogginess );
 
         /* Work out the dimensions of the pixel grid that we're going
          * to need. */
@@ -100,16 +96,38 @@ public class BitmapSortPlotVolume extends PlotVolume {
             rgbas_[ is ] = style.getColor().getRGBComponents( null );
             rgbas_[ is ][ 3 ] = 1.0f / style.getOpaqueLimit();
         }
+
+        /* Work out if there are auxiliary dimensions which may change
+         * colouring of plotted points. */
+        tweaker_ = tweaker;
+        boolean hasAux = tweaker != null;
+
+        /* Construct an appropriate PointStore object.  If only the point
+         * positions need to be stored then all the information for each
+         * object can be packed into a long, which is good for processing
+         * and memory efficiency.  However if errors and/or auxiliary axes
+         * are (may be) present there is too much information for that, 
+         * and we need a more conventional way of storing points. */
+        if ( hasAux ) {
+            pointStore_ = new AuxObjectPointStore( rgbas_, tweaker );
+        }
+        else if ( hasErrors ) {
+            pointStore_ = new ObjectPointStore();
+        }
+        else {
+            pointStore_ = new PackedPointStore( zmin, zmax );
+        }
     }
 
-    public void plot2d( int px, int py, double z, int istyle ) {
-        pointStore_.addPoint( px, py, z, istyle );
+    public void plot2d( int px, int py, double z, double[] coords,
+                        int istyle ) {
+        pointStore_.addPoint( px, py, z, coords, istyle );
     }
 
-    public void plot2d( int px, int py, double z, int istyle, 
+    public void plot2d( int px, int py, double z, double[] coords, int istyle, 
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {
-        pointStore_.addPoint( px, py, z, istyle, showPoint, nerr,
+        pointStore_.addPoint( px, py, z, coords, istyle, showPoint, nerr,
                               xoffs, yoffs );
     }
 
@@ -199,9 +217,12 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * @param   px   X coordinate
          * @param   py   Y coordinate
          * @param   z    Z coordinate
+         * @param   coords  full coordinate array; first three elements are
+         *          data space x,y,z and may contain additional auxiliary coords
          * @param   istyle  index into styles array
          */
-        public abstract void addPoint( int px, int py, double z, int istyle );
+        public abstract void addPoint( int px, int py, double z,
+                                       double[] coords, int istyle );
 
         /**
          * Stores a point with associated errors.
@@ -209,6 +230,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * @param   px   X coordinate
          * @param   py   Y coordinate
          * @param   z    Z coordinate
+         * @param   coords  full coordinate array; first three elements are
+         *          data space x,y,z and may contain additional auxiliary coords
          * @param   istyle  index into styles array
          * @param   showPoint  whether to draw the marker as well
          * @param   nerr  number of error points
@@ -217,7 +240,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * @param   yoffs  <code>nerr</code>-element array of error point
          *                 Y offsets
          */
-        public abstract void addPoint( int px, int py, double z, int istyle,
+        public abstract void addPoint( int px, int py, double z,
+                                       double[] coords, int istyle,
                                        boolean showPoint, int nerr, 
                                        int[] xoffs, int[] yoffs );
 
@@ -234,16 +258,17 @@ public class BitmapSortPlotVolume extends PlotVolume {
      * Straightforward PointStore implementation based on an ArrayList.
      */
     private static class ObjectPointStore extends PointStore {
-        private List pointList_ = new ArrayList();
+        List pointList_ = new ArrayList();
 
-        public void addPoint( int px, int py, double z, int istyle ) {
+        public void addPoint( int px, int py, double z, double[] coords,
+                              int istyle ) {
             pointList_.add( new BitmapPoint3D( pointList_.size(), z,
                                                istyle, px, py ) );
         }
 
-        public void addPoint( int px, int py, double z, int istyle, 
-                              boolean showPoint, int nerr, int[] xoffs,
-                              int[] yoffs ) {
+        public void addPoint( int px, int py, double z, double[] coords,
+                              int istyle, boolean showPoint, int nerr,
+                              int[] xoffs, int[] yoffs ) {
             pointList_.add( new ErrorsBitmapPoint3D( pointList_.size(), z,
                                                      istyle, px, py, showPoint,
                                                      nerr, xoffs, yoffs ) );
@@ -255,6 +280,72 @@ public class BitmapSortPlotVolume extends PlotVolume {
             pointList_ = new ArrayList();
             Arrays.sort( points );
             return Arrays.asList( points ).iterator();
+        }
+    }
+
+    /**
+     * PointStore implementation which uses objects and takes account of
+     * coordinates on auxiliary axes.
+     */
+    private static class AuxObjectPointStore extends ObjectPointStore {
+
+        private final DataColorTweaker tweaker_;
+        private final float[][] rgbas_;
+        private final float[] buf_;
+
+        /**
+         * Constructor.
+         *
+         * @param   rgbas  per-styleset rgba colour arrays
+         * @param   colour tweaker which takes account of aux coordinates
+         */
+        public AuxObjectPointStore( float[][] rgbas,
+                                    DataColorTweaker tweaker ) {
+            tweaker_ = tweaker;
+            rgbas_ = rgbas;
+            buf_ = new float[ 4 ];
+        }
+
+        public void addPoint( int px, int py, double z, double[] coords,
+                              int istyle ) {
+            final int rgba = packRgba( getRgba( istyle, coords ) );
+            pointList_.add( new BitmapPoint3D( pointList_.size(), z,
+                                               istyle, px, py ) {
+                public float[] getRgba( BitmapSortPlotVolume vol ) {
+                    unpackRgba( rgba, buf_ );
+                    return buf_;
+                }
+            } );
+        }
+
+        public void addPoint( int px, int py, double z, double[] coords,
+                              int istyle, boolean showPoint, int nerr,
+                              int[] xoffs, int[] yoffs ) {
+            final int rgba = packRgba( getRgba( istyle, coords ) );
+            pointList_.add( new ErrorsBitmapPoint3D( pointList_.size(), z,
+                                                     istyle, px, py, showPoint,
+                                                     nerr, xoffs, yoffs ) {
+                public float[] getRgba( BitmapSortPlotVolume vol ) {
+                    unpackRgba( rgba, buf_ );
+                    return buf_;
+                }
+            } );
+        }
+
+        /**
+         * Returns the RGBA colour for a plotted point.
+         *
+         * @param   istyle  point style index
+         * @param   coords  full coordinate array
+         * @return  RGBA colour
+         */
+        private float[] getRgba( int istyle, double[] coords ) {
+            float[] rgba = rgbas_[ istyle ];
+            Color color =
+                new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+            tweaker_.setCoords( coords );
+            Color tcolor = tweaker_.tweakColor( color );
+            return tcolor.getRGBComponents( buf_ );
         }
     }
 
@@ -287,7 +378,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
          */
         private static final int TWO12 = 2 << 12;
 
-        public void addPoint( int px, int py, double z, int istyle ) {
+        public void addPoint( int px, int py, double z, double[] coords,
+                              int istyle ) {
             if ( z > zmin_ && z <= zmax_ && 
                  px >= 0 && px <= TWO12 &&
                  py >= 0 && py <= TWO12 ) {
@@ -295,9 +387,9 @@ public class BitmapSortPlotVolume extends PlotVolume {
             }
         }
 
-        public void addPoint( int px, int py, double z, int istyle,
-                              boolean showPoint, int nerr, int[] xoffs,
-                              int[] yoffs ) {
+        public void addPoint( int px, int py, double z, double[] coords,
+                              int istyle, boolean showPoint,
+                              int nerr, int[] xoffs, int[] yoffs ) {
             throw new UnsupportedOperationException();
         }
 
@@ -419,7 +511,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
          *
          * @param  iseq  sequence number
          * @param  z     Z coordinate
-         * @param  style  plotting style
+         * @param  istyle  plotting style
          * @param  px    X coordinate
          * @param  py    Y coordinate
          */
