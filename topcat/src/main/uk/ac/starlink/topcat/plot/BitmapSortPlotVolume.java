@@ -278,7 +278,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
             BitmapPoint3D[] points =
                 (BitmapPoint3D[]) pointList_.toArray( new BitmapPoint3D[ 0 ] );
             pointList_ = new ArrayList();
-            Arrays.sort( points );
+            Arrays.sort( points, Point3D.UP );
             return Arrays.asList( points ).iterator();
         }
     }
@@ -516,7 +516,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * @param  py    Y coordinate
          */
         public BitmapPoint3D( int iseq, double z, int istyle, int px, int py ) {
-            super( iseq, z, true );
+            super( iseq, z );
             istyle_ = istyle;
             px_ = px;
             py_ = py;

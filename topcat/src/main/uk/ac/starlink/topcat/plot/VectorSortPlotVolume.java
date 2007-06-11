@@ -100,7 +100,7 @@ public class VectorSortPlotVolume extends PlotVolume {
         VectorPoint3D[] points =
             (VectorPoint3D[]) pointList_.toArray( new VectorPoint3D[ 0 ] );
         pointList_ = new ArrayList();
-        Arrays.sort( points );
+        Arrays.sort( points, Point3D.DOWN );
         return points;
     }
 
@@ -164,7 +164,7 @@ public class VectorSortPlotVolume extends PlotVolume {
          */
         public VectorPoint3D( int iseq, double z, int px, int py,
                               int istyle, int rgb ) {
-            super( iseq, z, false );
+            super( iseq, z );
             px_ = px;
             py_ = py;
             isrgb_ = ( ( istyle & 0xff ) << 24 ) | rgb & 0xffffff;
