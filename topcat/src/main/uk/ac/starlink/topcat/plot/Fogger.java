@@ -201,4 +201,52 @@ public class Fogger {
                  | ( ( fogComponent( clarity, a, 3 ) & 0xff ) << 24 );
         }
     }
+
+    /**
+     * Constructs a DataColorTweaker corresponding to this fogger which 
+     * just takes care of fogging.
+     *
+     * @param   ifog  index in coordinate array of Z coordinate
+     * @param   ncoord  size of coordinate array
+     */
+    public DataColorTweaker createTweaker( final int ifog, final int ncoord ) {
+        return new DataColorTweaker() { 
+            private double z_;
+            public boolean setCoords( double[] coords ) {
+                z_ = coords[ ifog ];
+                return true;
+            }
+            public int getNcoord() {
+                return ncoord;
+            }
+            public Color tweakColor( Color color ) {
+                return fogAt( z_, color );
+            }
+        };
+    }
+
+    /**
+     * Constructs a DataColorTweaker based on an existing one which appends
+     * the affect of this fogger.
+     *
+     * @param   ifog   index in coordinate array of Z coordinate
+     * @param   base   color tweaker to be additionally fogged
+     */
+    public DataColorTweaker createTweaker( final int ifog,
+                                           final DataColorTweaker base ) {
+        return new DataColorTweaker() {
+            private double z_;
+            public boolean setCoords( double[] coords ) {
+                base.setCoords( coords );
+                z_ = coords[ ifog ];
+                return true;
+            }
+            public int getNcoord() {
+                return base.getNcoord();
+            }
+            public Color tweakColor( Color color ) {
+                return fogAt( z_, base.tweakColor( color ) );
+            }
+        };
+    }
 }
