@@ -2,13 +2,13 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -103,6 +103,16 @@ public class AugmentedAxesSelector implements AxesSelector {
     }
 
     /**
+     * Returns the selector that this one is augmenting (before the
+     * auxiliary axes are added to it).
+     *
+     * @return  base axes selector
+     */
+    public AxesSelector getBaseSelector() {
+        return baseSelector_;
+    }
+
+    /**
      * Sets the number of auxiliary axis selectors which are visible.
      * The initial value is zero.  Calling this method will make the 
      * first <code>nVis</code> axes visible.
@@ -167,34 +177,29 @@ public class AugmentedAxesSelector implements AxesSelector {
         }
         else {
 
-            /* To combine the base and aux selector data tables we split
-             * them into their constituent columns and reassemble them.
-             * The more straightforward route of using a 
-             * uk.ac.starlink.table.JoinStarTable is no good since that
-             * would not implement equals() properly.  This makes some
-             * assumptions about the implementations of component getData()
-             * methods (their return values need to be of certain types). */
+            /* The augmented table is just a join of the base and auxiliary
+             * data tables.  However we need to make sure that it implements
+             * equals properly, which JoinStarTable doesn't. */
             StarTable auxData = auxSelector_.getData();
-            if ( baseData instanceof ColumnStarTable && 
-                 auxData instanceof ColumnStarTable ) {
-                assert baseData instanceof ColumnDataTable;
-                assert auxData instanceof ColumnDataTable;
-                int nbase = baseData.getColumnCount();
-                ColumnData[] cols = new ColumnData[ nbase + nVisible_ ];
-                for ( int i = 0; i < nbase; i++ ) {
-                    cols[ i ] =
-                        ((ColumnStarTable) baseData).getColumnData( i );
+            return new JoinStarTable( new StarTable[] { baseData, auxData, } ) {
+                public boolean equals( Object o ) {
+                    if ( o instanceof JoinStarTable ) {
+                        JoinStarTable other = (JoinStarTable) o;
+                        return this.getTables().equals( other.getTables() );
+                    }
+                    else {
+                        return false;
+                    }
                 }
-                for ( int i = 0; i < nVisible_; i++ ) {
-                    cols[ i + nbase ] =
-                        ((ColumnStarTable) auxData).getColumnData( i );
+                public int hashCode() {
+                    int code = 9901;
+                    for ( Iterator it = getTables().iterator();
+                          it.hasNext(); ) {
+                        code = 23 * code + it.next().hashCode();
+                    }
+                    return code;
                 }
-                return new ColumnDataTable( tcModel_, cols );
-            }
-            else {
-                throw new UnsupportedOperationException(
-                              "Only works with ColumnDataTables" );
-            }
+            };
         }
     }
 
@@ -226,8 +231,7 @@ public class AugmentedAxesSelector implements AxesSelector {
                                                 npoint );
             }
             else {
-                // need to support general (spherical) case too
-                throw new UnsupportedOperationException();
+                return new AugmentedPointStore( baseStore, nVisible_ );
             }
         }
     }
@@ -250,5 +254,69 @@ public class AugmentedAxesSelector implements AxesSelector {
     public void removeActionListener( ActionListener listener ) {
         baseSelector_.removeActionListener( listener );
         auxSelector_.removeActionListener( listener );
+    }
+
+    /**
+     * PointStore implementation which augments a base point store with 
+     * some additional axes.  These additional axes have no error data.
+     */
+    private static class AugmentedPointStore implements PointStore {
+        final PointStore baseStore_;
+        final PointStore augStore_;
+        final int baseDim_;
+        final int augDim_;
+        final double[] point_;
+        final Object[] baseCoords_;
+        final Object[] augCoords_;
+        final Object[] augErrors_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base point store
+         * @parm  nExtra  number of additional auxiliary axes to support
+         */
+        AugmentedPointStore( PointStore base, int nExtra ) {
+            baseStore_ = base;
+            augStore_ = new CartesianPointStore( nExtra, new ErrorMode[ 0 ],
+                                                 base.getCount() );
+            baseDim_ = baseStore_.getNdim();
+            augDim_ = nExtra;
+            point_ = new double[ baseDim_ + augDim_ ];
+            baseCoords_ = new Object[ baseDim_ ];
+            augCoords_ = new Object[ augDim_ ];
+            augErrors_ = new Object[ 0 ];
+        }
+
+        public int getCount() {
+            return baseStore_.getCount();
+        }
+
+        public int getNdim() {
+            return baseDim_ + augDim_;
+        }
+
+        public int getNerror() {
+            return baseStore_.getNerror();
+        }
+
+        public double[] getPoint( int ipoint ) {
+            System.arraycopy( baseStore_.getPoint( ipoint ), 0, point_, 0,
+                              baseDim_ );
+            System.arraycopy( augStore_.getPoint( ipoint ), 0, point_, baseDim_,
+                              augDim_ );
+            return point_;
+        }
+
+        public double[][] getErrors( int ipoint ) {
+            return baseStore_.getErrors( ipoint );
+        }
+
+        public void storePoint( Object[] coordRow, Object[] errorRow ) {
+            System.arraycopy( coordRow, 0, baseCoords_, 0, baseDim_ );
+            System.arraycopy( coordRow, baseDim_, augCoords_, 0, augDim_ );
+            baseStore_.storePoint( baseCoords_, errorRow );
+            augStore_.storePoint( augCoords_, augErrors_ );
+        }
     }
 }
