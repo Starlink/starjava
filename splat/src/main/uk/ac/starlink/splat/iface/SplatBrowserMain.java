@@ -71,7 +71,7 @@ public class SplatBrowserMain
         Integer dispersionAxis = null;
         Integer selectAxis = null;
         Boolean clearPrefs = Boolean.FALSE;
-        Boolean keepCoords = Boolean.FALSE;
+        Boolean keepCoords = null;
         Boolean ignoreErrors = Boolean.FALSE;
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
 
@@ -121,9 +121,6 @@ public class SplatBrowserMain
 
             //  Keep existing coordinates, even when non-spectral.
             keepCoords = (Boolean) parser.getOptionValue( keep );
-            if ( keepCoords == null ) {
-                keepCoords = Boolean.FALSE;
-            }
 
             //  Ignore certain error conditions.
             ignoreErrors = (Boolean) parser.getOptionValue( ignore );
@@ -148,7 +145,14 @@ public class SplatBrowserMain
         final String action = ndAction;
         final Integer dispax = dispersionAxis;
         final Integer selectax = selectAxis;
-        final boolean search = ( ! keepCoords.booleanValue() );
+
+        if ( keepCoords != null ) {
+            //  This needs to become the application default, before any
+            //  spectra are loaded and SplatBrowser is realised.
+            boolean searchCoords = keepCoords.equals( Boolean.FALSE );
+            SplatBrowser.setPreference( "SplatBrowser_searchcoords",
+                                        searchCoords );
+        }
 
         //  Cause a load and/or guess of various properties that can
         //  be useful in locating resources etc.
@@ -162,8 +166,7 @@ public class SplatBrowserMain
                 public void run()
                 {
                     browser = new SplatBrowser( spectra, false, type,
-                                                action, dispax, selectax,
-                                                search );
+                                                action, dispax, selectax );
                     browser.setVisible( true );
                     if ( checkjniast ) {
                         if ( ! ASTJ.isAvailable() ) {
