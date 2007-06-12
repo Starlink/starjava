@@ -1200,7 +1200,6 @@ public class SplatBrowser
      */
     protected void setSearchCoords( boolean init )
     {
-        Utilities.printStackTrace();
         if ( init ) {
             //  Restore state of button from Preferences.
             boolean state = getPreference( "SplatBrowser_searchcoords", true );

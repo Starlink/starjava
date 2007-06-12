@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.8-2
+   =====
+
+   A new option has been added that stops SPLAT from attempting to 
+   locate a spectral coordinate system, when such a system is not
+   the default already (see Options->Find spectral coordinates).
+
    3.8-1
    =====
 
