@@ -122,13 +122,23 @@ public abstract class ScatterPlot extends SurfacePlot {
         MarkStyle[] activeStyles =
             (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );
         int[] pointCounts = new int[ 2 ];
+        DataColorTweaker tweaker = ShaderTweaker.createTweaker( 2, state );
+
+        /* Do the acutal plotting of points.  Different algorithms are 
+         * required according to the details of how it needs to be plotted. */
         if ( pixels ) {
-            plotPointsBitmap( g, points, activeSets, activeStyles, surface,
-                              pointCounts );
+            if ( tweaker == null ) {
+                plotPointsBitmap( g, points, activeSets, activeStyles, surface,
+                                  pointCounts );
+            }
+            else {
+                plotPointsTweakedBitmap( g, points, activeSets, activeStyles,
+                                         surface, tweaker, pointCounts );
+            }
         }
         else {
             plotPointsVector( g, points, activeSets, activeStyles, surface,
-                              pointCounts );
+                              tweaker, pointCounts );
         }
 
         /* Join the dots as required. */
@@ -295,20 +305,23 @@ public abstract class ScatterPlot extends SurfacePlot {
      * @param   sets   row subsets
      * @param   styles   array of MarkStyle objects corresponding to sets
      * @param   surface  plotting surface
+     * @param   tweaker   colour tweaker
      * @param   counts   if non-null, receives two values: number of points
      *                   included in visible subsets, and number of points
      *                   actually plotted (in range as well)
      */
     private static void plotPointsVector( Graphics2D g, Points points,
                                           RowSubset[] sets, MarkStyle[] styles, 
-                                          PlotSurface surface, int[] counts ) {
+                                          PlotSurface surface,
+                                          DataColorTweaker tweaker,
+                                          int[] counts ) {
         int np = points.getCount();
-        int nIncluded = 0;
-        int nVisible = 0;
         int nset = sets.length;
         int noff = points.getNerror();
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ];
+        BitSet includedMask = new BitSet();
+        BitSet visibleMask = new BitSet();
         for ( int is = 0; is < nset; is++ ) {
             RowSubset set = sets[ is ];
             MarkStyle style = styles[ is ];
@@ -320,24 +333,26 @@ public abstract class ScatterPlot extends SurfacePlot {
             int maxr2 = maxr * 2;
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( set.isIncluded( (long) ip ) ) {
-                    nIncluded++;
+                    includedMask.set( ip );
                     double[] coords = points.getPoint( ip );
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
                     Point point = surface.dataToGraphics( x, y, true );
-                    if ( point != null ) {
-                        nVisible++;
+                    if ( point != null && 
+                         ( tweaker == null || tweaker.setCoords( coords ) ) ) {
+                        visibleMask.set( ip );
                         int xp = point.x;
                         int yp = point.y;
                         if ( showMarks &&
                              g.hitClip( xp - maxr, yp - maxr, maxr2, maxr2 ) ) {
-                            style.drawMarker( g, xp, yp );
+                            style.drawMarker( g, xp, yp, tweaker );
                         }
                         if ( showErrors ) {
                             double[][] errors = points.getErrors( ip );
                             if ( transformErrors( point, coords, errors,
                                                   surface, xoffs, yoffs ) ) {
-                                style.drawErrors( g, xp, yp, xoffs, yoffs );
+                                style.drawErrors( g, xp, yp, xoffs, yoffs,
+                                                  tweaker );
                             }
                         }
                     }
@@ -345,8 +360,8 @@ public abstract class ScatterPlot extends SurfacePlot {
             }
         }
         if ( counts != null ) {
-            counts[ 0 ] = nIncluded;
-            counts[ 1 ] = nVisible;
+            counts[ 0 ] = includedMask.cardinality();
+            counts[ 1 ] = visibleMask.cardinality();
         }
     }
 
@@ -570,6 +585,201 @@ public abstract class ScatterPlot extends SurfacePlot {
         /* Finally paint the constructed image onto the graphics context. */
         im.setRGB( 0, 0, xdim, ydim, rgbBuf, 0, xdim );    
         g.drawImage( im, xoff, yoff, null );
+    }
+
+    /**
+     * Plots markers representing the data points using bitmap type graphics,
+     * adjusting colours for each point using a ColorTweaker object.
+     *
+     * @param   g   graphics context
+     * @param   points  data points object
+     * @param   sets   row subsets
+     * @param   styles   array of MarkStyle objects corresponding to sets
+     * @param   surface  plotting surface
+     * @param   tweaker  colour tweaker
+     * @param   counts   if non-null, receives two values: number of points
+     *                   included in visible subsets, and number of points
+     *                   actually plotted (in range as well)
+     */
+    private static void plotPointsTweakedBitmap( Graphics2D g, Points points,
+                                                 RowSubset[] sets,
+                                                 MarkStyle[] styles,
+                                                 PlotSurface surface,
+                                                 DataColorTweaker tweaker,
+                                                 int[] counts ) {
+
+        /* Work out padding round the edge of the raster we will be drawing on.
+         * This has to be big enough that we can draw markers on the edge
+         * of the visible part and not have them wrap round.  In this
+         * way we can avoid doing some of the edge checking. */
+        int nset = sets.length;
+        int maxr = 0;
+        for ( int is = 0; is < nset; is++ ) {
+            if ( ! styles[ is ].getHidePoints() ) {
+                maxr = Math.max( styles[ is ].getMaximumRadius(), maxr );
+            }
+        }
+        int pad = maxr * 2 + 1;
+
+        /* Work out the dimensions of the raster and what offsets we need
+         * to use to write to it. */
+        Rectangle clip = surface.getClip().getBounds();
+        int xdim = clip.width + 2 * pad;
+        int ydim = clip.height + 2 * pad;
+        int xoff = clip.x - pad;
+        int yoff = clip.y - pad;
+        int npix = xdim * ydim;
+
+        /* Set up the raster buffer. */
+        float[][] rgbaBuf = new float[ 4 ][ npix ];
+
+        /* Prepare a clip rectangle to act as bounds for the error renderer. */
+        Rectangle bufClip = new Rectangle( surface.getClip().getBounds() );
+        bufClip.x = pad;
+        bufClip.y = pad;
+
+        /* Plot the points from each subset in turn, starting with the ones
+         * latest in the sequence so that they will fill up the alpha 
+         * channel if there is not enough alpha to go round. */
+        int np = points.getCount();
+        BitSet includedMask = new BitSet();
+        BitSet visibleMask = new BitSet();
+        BitSet pixelMask = new BitSet();
+        int noff = points.getNerror();
+        int[] xoffs = new int[ noff ];
+        int[] yoffs = new int[ noff ]; 
+        float[] rgba = new float[ 4 ];
+        for ( int is = nset - 1; is >= 0; is-- ) {
+            RowSubset set = sets[ is ];
+            MarkStyle style = styles[ is ];
+            ErrorRenderer errorRenderer = style.getErrorRenderer();
+            boolean showMarks = ! style.getHidePoints();
+            boolean showErrors = style.hasErrors( style, points );
+            Pixellator markPixer = style.getPixelOffsets();
+            int[] pixoffs = style.getFlattenedPixelOffsets( xdim );
+            int npixoff = pixoffs.length;
+            float opacity = 1.0f / style.getOpaqueLimit();
+            Color baseColor = style.getColor();
+            assert showMarks || showErrors : "Why bother?";
+
+            /* Iterate over each point. */
+            for ( int ip = 0; ip < np; ip++ ) {
+                if ( set.isIncluded( (long) ip ) ) {
+                    includedMask.set( ip );
+                    double[] coords = points.getPoint( ip );
+                    double x = coords[ 0 ];
+                    double y = coords[ 1 ];
+                    Point point = surface.dataToGraphics( x, y, true );
+                    if ( point != null &&
+                         ( tweaker == null || tweaker.setCoords( coords ) ) ) {
+                        int xp = point.x;
+                        int yp = point.y;
+                        int xbase = xp - xoff;
+                        int ybase = yp - yoff;
+                        if ( xbase > maxr && xbase < xdim - maxr &&
+                             ybase > maxr && ybase < ydim - maxr ) {
+                            visibleMask.set( ip );
+                            tweaker.setCoords( coords );
+                            rgba = tweaker.tweakColor( baseColor )
+                                          .getRGBColorComponents( rgba );
+                            rgba[ 3 ] = opacity;
+                            int base = xbase + xdim * ybase;
+                            boolean done = false;
+                            if ( showErrors ) {
+                                double[][] errors = points.getErrors( ip );
+                                if ( transformErrors( point, coords, errors,
+                                                      surface, xoffs,
+                                                      yoffs ) ) {
+                                    Pixellator pixer;
+                                    Pixellator epixer =
+                                        errorRenderer
+                                       .getPixels( bufClip, xbase, ybase,
+                                                   xoffs, yoffs );
+                                    if ( showMarks ) {
+                                        Pixellator mpixer =
+                                            new TranslatedPixellator(
+                                                markPixer, xbase, ybase );
+                                        pixer = Drawing.combinePixellators(
+                                            new Pixellator[] {
+                                                mpixer, epixer,
+                                            }
+                                        );
+                                    }
+                                    else {
+                                        pixer = epixer;
+                                    }
+                                    for ( pixer.start(); pixer.next(); ) {
+                                        int ipix = pixer.getX()
+                                                 + pixer.getY() * xdim;
+                                        paintPixel( rgbaBuf, pixelMask,
+                                                    ipix, rgba );
+                                    }
+                                    done = true;
+                                }
+                            }
+                            if ( showMarks && ! done ) {
+                                for ( int ioff = 0; ioff < npixoff; ioff++ ) {
+                                    int ipix = base + pixoffs[ ioff ];
+                                    paintPixel( rgbaBuf, pixelMask,
+                                                ipix, rgba );
+                                }
+                                done = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /* Record information about the number of points seen. */
+        if ( counts != null ) {
+            counts[ 0 ] = includedMask.cardinality();
+            counts[ 1 ] = visibleMask.cardinality();
+        }
+
+        /* Prepare an image and copy the pixel data into it for those 
+         * pixels which have been touched. */
+        BufferedImage im =
+            new BufferedImage( xdim, ydim, BufferedImage.TYPE_INT_ARGB );
+        ColorModel colorModel = im.getColorModel();
+        assert colorModel.equals( ColorModel.getRGBdefault() );
+        assert ! colorModel.isAlphaPremultiplied();
+        int[] rgbBuf = new int[ xdim * ydim ];
+        Arrays.fill( rgbBuf, 0x00ffff0f );
+        for ( int ipix = pixelMask.nextSetBit( 0 ); ipix >= 0;
+              ipix = pixelMask.nextSetBit( ipix + 1 ) ) {
+            float weight = rgbaBuf[ 3 ][ ipix ];
+            rgba[ 0 ] = rgbaBuf[ 0 ][ ipix ] / weight;
+            rgba[ 1 ] = rgbaBuf[ 1 ][ ipix ] / weight;
+            rgba[ 2 ] = rgbaBuf[ 2 ][ ipix ] / weight;
+            rgba[ 3 ] = weight;
+            rgbBuf[ ipix ] = colorModel.getDataElement( rgba, 0 );
+        }
+
+        /* Finally paint the constructed image onto the graphics context. */
+        im.setRGB( 0, 0, xdim, ydim, rgbBuf, 0, xdim );
+        g.drawImage( im, xoff, yoff, null );
+    }
+
+    /**
+     * Colours a pixel in an array with optional transparency.
+     *
+     * @param   rgbaBuf  4-element array of npix-element arrays: (r,g,b,a)
+     * @param   mask   bit vector to be marked for pixels which are touched
+     * @param   ipix   index into buffer and mask
+     * @param   rgba   colour of pixel to be painted: (r,g,b,a)
+     */
+    private static void paintPixel( float[][] rgbaBuf, BitSet mask, int ipix,
+                                    float[] rgba ) {
+        float used = rgbaBuf[ 3 ][ ipix ];
+        if ( used < 1f ) {
+            mask.set( ipix );
+            float weight = Math.min( 1f - used, rgba[ 3 ] );
+            rgbaBuf[ 0 ][ ipix ] += weight * rgba[ 0 ];
+            rgbaBuf[ 1 ][ ipix ] += weight * rgba[ 1 ];
+            rgbaBuf[ 2 ][ ipix ] += weight * rgba[ 2 ];
+            rgbaBuf[ 3 ][ ipix ] += weight;
+        }
     }
 
     /**
@@ -813,6 +1023,7 @@ public abstract class ScatterPlot extends SurfacePlot {
 
             /* We need to replot the points. */
             else {
+                long start = System.currentTimeMillis();
 
                 /* Get an image to plot into.  Take care that this is an
                  * image which can take advantage of hardware acceleration
@@ -833,6 +1044,8 @@ public abstract class ScatterPlot extends SurfacePlot {
                 lastPoints_ = getPoints();
                 lastWidth_ = width;
                 lastHeight_ = height;
+                logger_.info( "Repaint scatter plot: "
+                            + ( System.currentTimeMillis() - start ) + "ms" );
             }
 
             /* Copy the image from the (new or old) cached buffer onto
@@ -949,5 +1162,4 @@ public abstract class ScatterPlot extends SurfacePlot {
             }
         }
     }
-
 }

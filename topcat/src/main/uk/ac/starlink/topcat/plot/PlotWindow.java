@@ -97,7 +97,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( Component parent ) {
-        super( "Scatter Plot", AXIS_NAMES, 0,
+        super( "Scatter Plot", AXIS_NAMES, 3,
                createErrorModeModels( AXIS_NAMES ), parent );
 
         /* Construct the plot component.  Provide an implementation of the
