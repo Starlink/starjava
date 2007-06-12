@@ -3450,12 +3450,13 @@ with the following RDBMSs and corresponding JDBC drivers:
 <dl>
 
 <dt><webref url="http://www.mysql.com/">MySQL</webref></dt>
-<dd><p>MySQL 3.23.55 on Linux has been tested with the
+<dd><p>MySQL has been tested on Linux with the
     <webref url="http://www.mysql.com/products/connector/j/"
-            >Connector/J</webref>
-    driver version 3.0.8 and seems to work, though tables with very many 
-    (hundreds of) columns cannot be written owing to SQL statement 
-    length restrictions.
+            >Connector/J</webref> driver and seems to work;
+    tested versions are server 3.23.55 with driver 3.0.8 and
+    server 4.1.20 with driver 5.0.4.
+    Sometimes tables with very many (hundreds of) columns cannot be 
+    written owing to SQL statement length restrictions.
     Note there is known to be a column metadata bug in version 3.0.6 of the
     driver which can cause a ClassCastException error when tables are written.
     </p></dd>
