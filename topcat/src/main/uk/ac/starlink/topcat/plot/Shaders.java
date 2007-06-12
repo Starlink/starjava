@@ -182,7 +182,7 @@ public class Shaders {
         final float[] rgba1 = color1.getRGBComponents( null );
         return new Shader() {
             public void adjustRgba( float[] rgba, float value ) {
-                for ( int i = 0; i < 4; i++ ) {
+                for ( int i = 0; i < 3; i++ ) {
                     float f0 = rgba0[ i ];
                     float f1 = rgba1[ i ];
                     rgba[ i ] = f0 + ( f1 - f0 ) * value;
