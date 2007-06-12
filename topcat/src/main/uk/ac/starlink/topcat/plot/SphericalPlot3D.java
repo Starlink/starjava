@@ -87,6 +87,22 @@ public class SphericalPlot3D extends Plot3D {
         return points;
     }
 
+    protected DataColorTweaker createColorTweaker( Plot3DState state ) {
+
+        /* Adjust the ranges corresponding to auxiliary axes - 
+         * calculateRanges() stores them after the single radial axis range
+         * but the colorTweaker wants to see them at the same offset as
+         * the auxiliary coordinates which is after axis 3.  This is a bit
+         * messy and results from the fact that the idea of the sequence of
+         * axis coordinates is confused in the spherical plot. */
+        Shader[] shaders = state.getShaders();
+        int naux = shaders.length;
+        double[][] ranges = new double[ 3 + naux ][];
+        System.arraycopy( state.getRanges(), 1, ranges, 3, naux );
+        return new ShaderTweaker( 3, shaders, ranges,
+                                  state.getLogFlags(), state.getFlipFlags() );
+    }
+
     protected boolean frontOnly( Plot3DState state ) {
         SphericalPlotState sstate = (SphericalPlotState) state;
         return sstate.getZoomScale() > 2
