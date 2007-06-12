@@ -387,7 +387,9 @@ public abstract class GraphicsWindow extends AuxWindow {
             ChangeListener auxVisListener = new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
                     if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
-                        int nvis = ndim_ + auxVisibleModel_.getValue();
+                        int nvis = axeds.length
+                                 + auxVisibleModel_.getValue()
+                                 - auxVisibleModel_.getMaximum();
                         AxisEditor[] eds = new AxisEditor[ nvis ];
                         System.arraycopy( axeds, 0, eds, 0, nvis );
                         axisWindow_.setEditors( eds );
@@ -716,6 +718,25 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Returns the total (maximum) number of auxiliary axes used by this
+     * window.
+     *
+     * @return  maximum number of aux axes
+     */
+    public int getAuxAxisCount() {
+        return naux_;
+    }
+
+    /**
+     * Returns the number of currently visible auxiliary axes for this window.
+     *
+     * @return  number of visible aux axes
+     */
+    public int getVisibleAuxAxisCount() {
+        return auxVisibleModel_.getValue();
+    }
+
+    /**
      * Returns the component containing the graphics output of this 
      * window.  This is the component which is exported or printed etc,
      * so should contain only the output data, not any user interface
@@ -754,6 +775,30 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* If there are auxiliary axes, construct a composite AxesSelector
          * which can keep track of them. */
+        axsel = addAuxAxes( axsel );
+
+        /* Create, configure and return the point selector. */
+        PointSelector psel = new PointSelector( axsel, getStyles() );
+        ActionListener errorModeListener = psel.getErrorModeListener();
+        for ( int i = 0; i < errorModeModels.length; i++ ) {
+            errorModeModels[ i ].addActionListener( errorModeListener );
+        }
+        return psel;
+    }
+
+    /**
+     * Adds auxiliary axes to a given AxesSelector as appropriate for this
+     * window.  The returned value may or may not be the same as the input 
+     * <code>axsel</code> object.
+     *
+     * <p>This method is called by <code>GraphicsWindow</code>'s implementation
+     * of {@link #createPointSelector}.
+     *
+     * @param   axsel  basic axes selector
+     * @return  axes selector containing additional auxiliary axes as
+     *          appropriate
+     */
+    protected AxesSelector addAuxAxes( AxesSelector axsel ) {
         if ( naux_ > 0 ) {
             ToggleButtonModel[] auxLogModels = new ToggleButtonModel[ naux_ ];
             ToggleButtonModel[] auxFlipModels = new ToggleButtonModel[ naux_ ];
@@ -770,16 +815,11 @@ public abstract class GraphicsWindow extends AuxWindow {
                 }
             } );
             augsel.setAuxVisible( auxVisibleModel_.getValue() );
-            axsel = augsel;
+            return augsel;
         }
-
-        /* Create, configure and return the point selector. */
-        PointSelector psel = new PointSelector( axsel, getStyles() );
-        ActionListener errorModeListener = psel.getErrorModeListener();
-        for ( int i = 0; i < errorModeModels.length; i++ ) {
-            errorModeModels[ i ].addActionListener( errorModeListener );
+        else {
+            return axsel;
         }
-        return psel;
     }
 
     /**
@@ -1180,7 +1220,12 @@ public abstract class GraphicsWindow extends AuxWindow {
                         for ( int ierr = 0; ierr < errs.length; ierr++ ) {
                             double[] err= errs[ ierr ];
                             if ( err != null ) {
-                                for ( int idim = 0; idim < ndim; idim++ ) {
+
+                                /* Note when adjusting ranges for errors we
+                                 * only examine the non-auxiliary dimensions
+                                 * (ndim_ not ndim) since aux axes don't have
+                                 * errors. */
+                                for ( int idim = 0; idim < ndim_; idim++ ) {
                                     ranges[ idim ].submit( err[ idim ] );
                                 }
                             }
