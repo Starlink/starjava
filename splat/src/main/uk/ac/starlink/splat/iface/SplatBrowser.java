@@ -336,11 +336,16 @@ public class SplatBrowser
     protected Integer selectAxis = null;
 
     /**
-     * Whether to purge extracted spectra with bad limits. Make's sure 
+     * Whether to purge extracted spectra with bad limits. Make's sure
      * the spectra can be displayed.
      */
     protected JCheckBoxMenuItem purgeBadDataLimitsItem = null;
     protected boolean purgeBadDataLimits = true;
+
+    /**
+     * Whether to search spectra for a spectral coordinate system.
+     */
+    protected JCheckBoxMenuItem searchCoordsItem = null;
 
     /**
      * Controls communication with the PLASTIC hub.
@@ -359,7 +364,7 @@ public class SplatBrowser
      */
     public SplatBrowser()
     {
-        this( null, false, null, null, null, null, true );
+        this( null, false, null, null, null, null );
     }
 
     /**
@@ -368,7 +373,7 @@ public class SplatBrowser
      */
     public SplatBrowser( boolean embedded )
     {
-        this( null, embedded, null, null, null, null, true );
+        this( null, embedded, null, null, null, null );
     }
 
     /**
@@ -380,7 +385,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec )
     {
-        this( inspec, false, null, null, null, null, true );
+        this( inspec, false, null, null, null, null );
     }
 
     /**
@@ -393,7 +398,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec, boolean embedded )
     {
-        this( inspec, embedded, null, null, null, null, true );
+        this( inspec, embedded, null, null, null, null );
     }
 
     /**
@@ -414,14 +419,10 @@ public class SplatBrowser
      *  @param selectAxis the axis to step along during collapse/extract,
      *                    if any of the spectra are 3D. If null then an axis
      *                    will be selected automatically.
-     *  @param searchCoords if true then searches for suitable spectral
-     *                      coordinate systems will be made, otherwise
-     *                      the current system, of whatever type, will be
-     *                      used for each spectrum.
      */
     public SplatBrowser( String[] inspec, boolean embedded, String type,
-                         String ndAction, Integer dispAxis,
-                         Integer selectAxis, boolean searchCoords )
+                         String ndAction, Integer dispAxis, 
+                         Integer selectAxis )
     {
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
         //  Don't know where to put this though.
@@ -463,9 +464,6 @@ public class SplatBrowser
         //  necessary.
         this.dispAxis = dispAxis;
         this.selectAxis = selectAxis;
-
-        //  Record preference for search for coordinate systems.
-        SpecData.setSearchForSpecFrames( searchCoords );
 
         //  Now add any command-line spectra. Do this after the interface is
         //  visible and in a separate thread from the GUI and event
@@ -525,6 +523,22 @@ public class SplatBrowser
     }
 
     /**
+     * Set the value of a class boolean preference.
+     */
+    public static void setPreference( String what, boolean value )
+    {
+        prefs.putBoolean( what, value );
+    }
+
+    /**
+     * Get the value of a class boolean preference.
+     */
+    public static boolean getPreference( String what, boolean defaultValue )
+    {
+        return prefs.getBoolean( what, defaultValue );
+    }
+
+    /**
      *  Initialise all visual components.
      */
     private void initComponents()
@@ -576,6 +590,9 @@ public class SplatBrowser
 
         //  Purge bad data limits spectra from 2/2D reprocessing.
         setPurgeBadDataLimits( true );
+
+        //  Searching for spectral coordinates.
+        setSearchCoords( true );
 
         //  Set up the control area.
         controlArea.setLayout( controlAreaLayout );
@@ -695,7 +712,7 @@ public class SplatBrowser
         //  Add action to re-open a list of spectra if possible.
         ImageIcon reOpenImage =
             new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
-        LocalAction reOpenAction  = 
+        LocalAction reOpenAction  =
             new LocalAction( LocalAction.REOPEN, "Re-Open", reOpenImage,
                              "Re-Open selected spectra", "control R" );
         fileMenu.add( reOpenAction ).setMnemonic( KeyEvent.VK_R );
@@ -918,7 +935,7 @@ public class SplatBrowser
         LocalAction fitsAction =
             new LocalAction( LocalAction.FITS_VIEWER,
                              "View FITS headers", fitsImage,
-                             "View the FITS header cards of the " + 
+                             "View the FITS header cards of the " +
                              "selected spectra");
         viewMenu.add( fitsAction );
         toolBar.add( fitsAction );
@@ -1002,6 +1019,13 @@ public class SplatBrowser
         optionsMenu.add( splitOrientation ).setMnemonic( KeyEvent.VK_O );
         splitOrientation.setToolTipText( "How to split the browser window" );
         splitOrientation.addItemListener( this );
+
+        //  Whether to search for spectral coordinate system, or not.
+        searchCoordsItem = new JCheckBoxMenuItem( "Find spectral coordinates" );
+        optionsMenu.add( searchCoordsItem );
+        searchCoordsItem.setToolTipText
+            ( "Search for spectral coordinates when necessary" );
+        searchCoordsItem.addItemListener( this );
     }
 
     /**
@@ -1014,7 +1038,7 @@ public class SplatBrowser
         menuBar.add( interopMenu );
 
         // Add server registration options.
-        JMenuItem plasticReg = 
+        JMenuItem plasticReg =
             interopMenu.add( plasticServer.getRegisterAction( true ) );
         plasticReg.setMnemonic( KeyEvent.VK_R );
         plasticReg.setAccelerator( KeyStroke.getKeyStroke( "control P" ) );
@@ -1090,7 +1114,7 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state = prefs.getBoolean("SplatBrowser_vsplit", true);
+            boolean state = getPreference( "SplatBrowser_vsplit", true );
             splitOrientation.setSelected( state );
         }
         boolean selected = splitOrientation.isSelected();
@@ -1102,7 +1126,7 @@ public class SplatBrowser
             splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
         }
         contentPane.revalidate();
-        prefs.putBoolean( "SplatBrowser_vsplit", selected );
+        setPreference( "SplatBrowser_vsplit", selected );
     }
 
     /**
@@ -1113,11 +1137,11 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state = prefs.getBoolean("SplatBrowser_colourize", true);
+            boolean state = getPreference( "SplatBrowser_colourize", true );
             colourAsLoadedItem.setSelected( state );
         }
         colourAsLoaded = colourAsLoadedItem.isSelected();
-        prefs.putBoolean( "SplatBrowser_colourize", colourAsLoaded );
+        setPreference( "SplatBrowser_colourize", colourAsLoaded );
     }
 
     /**
@@ -1128,12 +1152,12 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state = prefs.getBoolean( "SplatBrowser_showshortnames",
-                                              true );
+            boolean state = getPreference( "SplatBrowser_showshortnames",
+                                           true );
             showShortNamesItem.setSelected( state );
         }
         boolean state = showShortNamesItem.isSelected();
-        prefs.putBoolean( "SplatBrowser_showshortnames", state );
+        setPreference( "SplatBrowser_showshortnames", state );
         ((SpecListModel)specList.getModel()).setShowShortNames( state );
     }
 
@@ -1145,12 +1169,12 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state =
-                prefs.getBoolean( "SplatBrowser_showsimpleshortnames", false );
+            boolean state = getPreference( "SplatBrowser_showsimpleshortnames",
+                                           false );
             showSimpleShortNamesItem.setSelected( state );
         }
         boolean state = showSimpleShortNamesItem.isSelected();
-        prefs.putBoolean( "SplatBrowser_showsimpleshortnames", state );
+        setPreference( "SplatBrowser_showsimpleshortnames", state );
         ((SpecListModel)specList.getModel()).setShowSimpleShortNames( state );
     }
 
@@ -1162,14 +1186,31 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state =
-                prefs.getBoolean( "SplatBrowser_purgebaddatalimits", true );
+            boolean state = getPreference( "SplatBrowser_purgebaddatalimits",
+                                           true );
             purgeBadDataLimitsItem.setSelected( state );
         }
         purgeBadDataLimits = purgeBadDataLimitsItem.isSelected();
-        prefs.putBoolean( "SplatBrowser_purgebaddatalimits", 
-                          purgeBadDataLimits );
+        setPreference( "SplatBrowser_purgebaddatalimits", purgeBadDataLimits );
     }
+
+    /**
+     * Set whether each spectrum should be searched for a spectral coordinate
+     * system, if the default system is non-spectral.
+     */
+    protected void setSearchCoords( boolean init )
+    {
+        Utilities.printStackTrace();
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state = getPreference( "SplatBrowser_searchcoords", true );
+            searchCoordsItem.setSelected( state );
+        }
+        boolean state = searchCoordsItem.isSelected();
+        setPreference( "SplatBrowser_searchcoords", state );
+        SpecData.setSearchForSpecFrames( state );
+    }
+
 
     /**
      * Create the Operations menu and populate it with appropriate
@@ -1956,7 +1997,7 @@ public class SplatBrowser
         SpecData[] moreSpectra = null;
         try {
             moreSpectra = specDataFactory.reprocessTo1D
-                ( spectrum, ndAction, dispAxis, selectAxis, 
+                ( spectrum, ndAction, dispAxis, selectAxis,
                   purgeBadDataLimits );
         }
         catch (SplatException e) {
@@ -2481,7 +2522,7 @@ public class SplatBrowser
             //  Reposition the synopsis, after everything has settled.
             final PlotControl plotControl = plot.getPlot();
             SwingUtilities.invokeLater( new Runnable() {
-                    public void run() 
+                    public void run()
                     {
                         plotControl.positionSynopsisAnchor();
                         plotControl.updateSynopsis();
@@ -2923,8 +2964,8 @@ public class SplatBrowser
          * @param icon an icon for for the action (can be null,
          *             appears in all labels).
          * @param help the tooltip help for any labels (can be null).
-         * @param accel accelerator key description (string for 
-         *              {@link KeyStroke.getKeyStroke(String)} call). 
+         * @param accel accelerator key description (string for
+         *              {@link KeyStroke.getKeyStroke(String)} call).
          *              Accelerator invokes Action immediately.
          */
         public LocalAction( int type, String name, Icon icon, String help,
@@ -3112,6 +3153,9 @@ public class SplatBrowser
         }
         else if ( source.equals( purgeBadDataLimitsItem ) ) {
             setPurgeBadDataLimits( false );
+        }
+        else if ( source.equals( searchCoordsItem ) ) {
+            setSearchCoords( false );
         }
     }
 
