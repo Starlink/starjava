@@ -15,6 +15,7 @@ public class ShaderTweaker implements DataColorTweaker {
     private final Shader[] shaders_;
     private final Scaler[] scalers_;
     private final double[] knobs_;
+    private boolean hasEffect_;
 
     /**
      * Constructor.
@@ -40,6 +41,7 @@ public class ShaderTweaker implements DataColorTweaker {
         scalers_ = new Scaler[ ndim ];
         int nd = 0;
         for ( int idim = 0; idim < ndim; idim++ ) {
+            knobs_[ idim ] = Double.NaN;
             if ( shaders_[ idim ] != null ) {
                 int jdim = ioff + idim;
                 scalers_[ idim ] =
@@ -59,11 +61,16 @@ public class ShaderTweaker implements DataColorTweaker {
      * This implementation always returns true.
      */
     public boolean setCoords( double[] coords ) {
+        boolean hasEffect = false;
         for ( int idim = 0; idim < ndim_; idim++ ) {
             if ( shaders_[ idim ]  != null ) {
                 int jdim = ioff_ + idim;
                 double value = coords[ jdim ];
-                if ( ! Double.isNaN( value ) ) {
+                if ( Double.isNaN( value ) ) {
+                    knobs_[ idim ] = Double.NaN;
+                }
+                else {
+                    hasEffect = true;
                     Scaler scaler = scalers_[ idim ];
                     if ( scaler.inRange( value ) ) {
                         knobs_[ idim ] = scaler.scale( value );
@@ -76,52 +83,33 @@ public class ShaderTweaker implements DataColorTweaker {
                 }
             }
         }
+        hasEffect_ = hasEffect;
         return true;
     }
 
-    /**
-     * Adjusts in place a colour given as a float[] array as determined by
-     * the last call to {@link #setCoords}.
-     *
-     * @param  rgba  colour component array, modified in place
-     * @return  true if the array may have been adjusted
-     */
-    public boolean tweakRgba( float[] rgba ) {
-        boolean changed = false;
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            Shader shader = shaders_[ idim ];
-            if ( shader != null ) {
-                double knob = knobs_[ idim ];
-                if ( ! Double.isNaN( knob ) ) {
-                    shader.adjustRgba( rgba, (float) knob );
-                    changed = true;
+    public void tweakColor( float[] rgba ) {
+        if ( hasEffect_ ) {
+            for ( int idim = 0; idim < ndim_; idim++ ) {
+                Shader shader = shaders_[ idim ];
+                if ( shader != null ) {
+                    double knob = knobs_[ idim ];
+                    if ( ! Double.isNaN( knob ) ) {
+                        shader.adjustRgba( rgba, (float) knob );
+                    }
                 }
             }
         }
-        return changed;
     }
 
-    /**
-     * Adjusts a supplied colour as determined by the last call to
-     * {@link #setCoords}.
-     *
-     * @param  orig  original colour
-     * @return   tweaked colour
-     */
     public Color tweakColor( Color orig ) {
-        if ( ndim_ == 0 ) {
-            return orig;
+        if ( hasEffect_ ) {
+            float[] rgba = orig.getRGBComponents( null );
+            tweakColor( rgba );
+            return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         }
         else {
-            float[] rgba = orig.getRGBComponents( null );
-            return tweakRgba( rgba )
-                 ? new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] )
-                 : orig;
+            return orig;
         }
-    }
-
-    public void tweakColor( float[] rgba ) {
-        tweakRgba( rgba );
     }
 
     /**
