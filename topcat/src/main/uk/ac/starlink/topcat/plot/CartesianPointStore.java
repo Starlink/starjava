@@ -83,11 +83,11 @@ public class CartesianPointStore implements PointStore {
         long ioff = ipoint_ * (long) nword_;
         for ( int i = 0; i < ndim_; i++ ) {
             buf1_[ 0 ] = doubleValue( coordRow[ i ] );
-            valueStore_.put( ioff++, buf1_ );
+            valueStore_.put( ioff++, buf1_, 0, 1 );
         }
         for ( int i = 0; i < nerrWord_; i++ ) {
             buf1_[ 0 ] = doubleValue( errorRow[ i ] );
-            valueStore_.put( ioff++, buf1_ );
+            valueStore_.put( ioff++, buf1_, 0, 1 );
         }
         assert ioff == ( ipoint_ + 1 ) * (long) nword_;
         ipoint_++;
@@ -102,7 +102,7 @@ public class CartesianPointStore implements PointStore {
     }
 
     public double[] getPoint( int ipoint ) {
-        valueStore_.get( ipoint * (long) nword_, point_ );
+        valueStore_.get( ipoint * (long) nword_, point_, 0, ndim_ );
         return point_;
     }
 
@@ -111,7 +111,7 @@ public class CartesianPointStore implements PointStore {
     }
 
     public double[][] getErrors( int ipoint ) {
-        valueStore_.get( ipoint * (long) nword_, centre_ );
+        valueStore_.get( ipoint * (long) nword_, centre_, 0, ndim_ );
         long off = ipoint * nword_ + ndim_;
         int ierr = 0;
         for ( int ir = 0; ir < errorReaders_.length; ir++ ) {
@@ -301,7 +301,7 @@ public class CartesianPointStore implements PointStore {
          */
         public double[][] readErrors( double[] centre, ValueStore store,
                                       long off ) {
-            store.get( off, buf_ );
+            store.get( off, buf_, 0, wordCount_ );
             convertErrors( centre, buf_, pair_ );
             return pair_;
         }

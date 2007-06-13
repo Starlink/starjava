@@ -96,7 +96,7 @@ public class SphericalPolarPointStore implements PointStore {
         for ( int i = 0; i < 3; i++ ) {
             coordBuf_[ i ] = CartesianPointStore.doubleValue( coordRow[ i ] );
         }
-        valueStore_.put( ioff, coordBuf_ );
+        valueStore_.put( ioff, coordBuf_, 0, 3 );
         ioff += 3;
 
         /* Copy tangent error values. */
@@ -106,7 +106,7 @@ public class SphericalPolarPointStore implements PointStore {
                 tanBuf_[ i ] =
                     CartesianPointStore.doubleValue( errorRow[ ierr++ ] );
             }
-            valueStore_.put( ioff, tanBuf_ );
+            valueStore_.put( ioff, tanBuf_, 0, ntanWord_ );
             ioff += ntanWord_;
         }
 
@@ -129,7 +129,7 @@ public class SphericalPolarPointStore implements PointStore {
                     CartesianPointStore.doubleValue( errorRow[ ierr++ ] );
                 radBuf_[ i ] = delta > 0.0 ? ( r + delta ) * r1 : 1.0;
             }
-            valueStore_.put( ioff, radBuf_ );
+            valueStore_.put( ioff, radBuf_, 0, nradWord_ );
             ioff += nradWord_;
         }
     }
@@ -143,7 +143,7 @@ public class SphericalPolarPointStore implements PointStore {
     }
 
     public double[] getPoint( int ipoint ) {
-        valueStore_.get( ipoint * (long) nword_, point_ );
+        valueStore_.get( ipoint * (long) nword_, point_, 0, 3 );
         return point_;
     }
 
@@ -154,14 +154,14 @@ public class SphericalPolarPointStore implements PointStore {
     public double[][] getErrors( int ipoint ) {
         if ( nerror_ > 0 ) {
             long off = ipoint * (long) nword_;
-            valueStore_.get( off, centre_ );
+            valueStore_.get( off, centre_, 0, 3 );
             off += 3;
             if ( ntanWord_ > 0 ) {
-                valueStore_.get( off, tanBuf_ );
+                valueStore_.get( off, tanBuf_, 0, ntanWord_ );
                 off += ntanWord_;
             }
             if ( nradWord_ > 0 ) {
-                valueStore_.get( off, radBuf_ );
+                valueStore_.get( off, radBuf_, 0, nradWord_ );
                 off += nradWord_;
             }
             calcErrors( centre_, tanBuf_, radBuf_, errors_ );
