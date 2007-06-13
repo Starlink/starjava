@@ -27,7 +27,7 @@ public interface ColorTweaker {
      * Adjusts in place an array representing the sRGB components of a colour.
      * Each element is in the range 0..1 on both input and output.
      *
-     * @param  red, green, blue, alpha array
+     * @param  rgba  red, green, blue, alpha array
      */
     void tweakColor( float[] rgba );
 }
