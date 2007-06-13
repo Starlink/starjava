@@ -160,6 +160,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
     private static final Shader[] SHADERS = new Shader[] {
+        Shaders.NULL,
         Shaders.LUT_PASTEL,
         Shaders.LUT_RAINBOW,
         Shaders.LUT_STANDARD,
@@ -251,6 +252,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         for ( int i = 0; i < naux; i++ ) {
             ChangingComboBoxModel shaderModel =
                 new ChangingComboBoxModel( SHADERS );
+            shaderModel.setSelectedItem( SHADERS[ 1 ] );
             shaderModel.addChangeListener( replotListener_ );
             auxShaderModels_[ i ] = shaderModel;
         }

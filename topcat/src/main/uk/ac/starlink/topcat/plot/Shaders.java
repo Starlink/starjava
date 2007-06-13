@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
+import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.util.FloatList;
 
 /**
@@ -135,6 +136,15 @@ public class Shaders {
     /** ListCellRenderer suitable for a combo box containing Shaders. */
     public static final ListCellRenderer SHADER_RENDERER =
         new ShaderListCellRenderer();
+
+    /** Shader which does nothing. */
+    public static final Shader NULL = new Shader() {
+        public void adjustRgba( float[] rgba, float value ) {
+        }
+        public String toString() {
+            return "None";
+        }
+    };
 
     /** Shader which sets intensity. */
     public static final Shader FIX_INTENSITY = new Shader() {
@@ -582,14 +592,19 @@ public class Shaders {
 
         private static Icon getIcon( Shader shader ) {
             if ( ! iconMap_.containsKey( shader ) ) {
+                Icon icon;
+                if ( shader == NULL ) {
+                    icon = new EmptyIcon( 48, 16 );
+                }
+                else {
 
-                /* It looks a bit expensive redrawing these icons each time
-                 * since each pixel is a separate rectangle, so possibly 
-                 * the icon ought to be cached in an image or something ...
-                 * doesn't seem to cause any noticeable load though. */
-                Icon icon =
-                    new ShaderIcon2( shader, LUT_PASTEL, false, Color.BLACK,
-                                     48, 16, 4, 1 );
+                    /* It looks a bit expensive redrawing these icons each time
+                     * since each pixel is a separate rectangle, so possibly 
+                     * the icon ought to be cached in an image or something ...
+                     * doesn't seem to cause any noticeable load though. */
+                    icon = new ShaderIcon2( shader, LUT_STANDARD, false, 
+                                            Color.BLACK, 48, 16, 4, 1 );
+                }
                 iconMap_.put( shader, icon );
             }
             return (Icon) iconMap_.get( shader );
