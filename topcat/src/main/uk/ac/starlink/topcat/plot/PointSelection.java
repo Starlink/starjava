@@ -164,11 +164,13 @@ public class PointSelection {
                     }
                     pointStore.storePoint( datRow, errRow );
                     ipoint++;
-                    if ( ipoint % step == 0 && progress != null ) {
-                        progress.setValue( ipoint );
-                    }
-                    if ( Thread.interrupted() ) {
-                        throw new InterruptedException();
+                    if ( ipoint % step == 0 ) {
+                        if ( progress != null ) {
+                            progress.setValue( ipoint );
+                        }
+                        if ( Thread.interrupted() ) {
+                            throw new InterruptedException();
+                        }
                     }
                 }
                 assert ( errSeq == null ) || ( ! errSeq.next() );
