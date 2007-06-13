@@ -579,6 +579,49 @@ public class Shaders {
     }
 
     /**
+     * Constructs an icon which represents a shader in one dimension.
+     * A horizontal or vertical bar is drawn
+     * which gives the full range of colours produced by the shader as
+     * operating on a given base colour.
+     *
+     * @param  shader   shader
+     * @param  horizontal   true for a horizontal bar, false for vertical
+     * @param  baseColor   the base colour modified by the shader
+     * @param  width    total width of the icon
+     * @param  height   total height of the icon
+     * @param  xpad     internal padding in the X direction
+     * @param  ypad     internal padding in the Y direction
+     * @return  icon
+     */
+    public static Icon create1dIcon( Shader shader, boolean horizontal,
+                                     Color baseColor, int width, int height,
+                                     int xpad, int ypad ) {
+        return new ShaderIcon1( shader, horizontal, baseColor, width, height,
+                                xpad, ypad );
+    }
+
+    /**
+     * Constructs an icon which represents two shaders in two dimensions.
+     *
+     * @param  xShader  shader for X direction
+     * @param  yShader  shader for Y direction
+     * @param  xFirst   true if X shader is to be applied first
+     * @param  baseColor  base colour for the shaders to work on 
+     * @param  width    total width of the icon
+     * @param  height   total height of the icon
+     * @param  xpad     internal padding in the X direction
+     * @param  ypad     internal padding in the Y direction
+     * @return icon
+     */
+    public static Icon create2dIcon( Shader xShader, Shader yShader,
+                                     boolean xFirst, Color baseColor,
+                                     int width, int height,
+                                     int xpad, int ypad ) {
+        return new ShaderIcon2( xShader, yShader, xFirst, baseColor,
+                                width, height, xpad, ypad );
+    }
+
+    /**
      * Icon representing a Shader in one dimension.  
      * A horizontal or vertical bar is drawn
      * which gives the full range of colours produced by the shader as
@@ -605,8 +648,8 @@ public class Shaders {
          * @param  xpad     internal padding in the X direction
          * @param  ypad     internal padding in the Y direction
          */
-        ShaderIcon1( Shader shader, boolean horizontal, Color baseColor,
-                     int width, int height, int xpad, int ypad ) {
+        public ShaderIcon1( Shader shader, boolean horizontal, Color baseColor,
+                            int width, int height, int xpad, int ypad ) {
             shader_ = shader;
             horizontal_ = horizontal;
             width_ = width;
@@ -663,7 +706,7 @@ public class Shaders {
 
 
     /**
-     * Icon representing a Shader operating in two dimensions.
+     * Icon representing two Shaders in two dimensions.
      */
     private static class ShaderIcon2 implements Icon {
 
@@ -688,9 +731,9 @@ public class Shaders {
          * @param  xpad     internal padding in the X direction
          * @param  ypad     internal padding in the Y direction
          */
-        ShaderIcon2( Shader xShader, Shader yShader, boolean xFirst, 
-                     Color baseColor, int width, int height,
-                     int xpad, int ypad ) {
+        public ShaderIcon2( Shader xShader, Shader yShader, boolean xFirst, 
+                            Color baseColor, int width, int height,
+                            int xpad, int ypad ) {
             xShader_ = xShader;
             yShader_ = yShader;
             xFirst_ = xFirst;
