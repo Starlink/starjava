@@ -333,7 +333,7 @@ public class Shaders {
         public void adjustRgba( float[] rgba, float value ) {
             float[] lut = getRgbLut();
             int nsamp = lut.length / 3;
-            int is3 = 3 * Math.round( value * ( nsamp - 1 ) );
+            int is3 = 3 * ( (int) ( value * ( nsamp - 1 ) + 0.5f ) );
             rgba[ 0 ] = lut[ is3 + 0 ];
             rgba[ 1 ] = lut[ is3 + 1 ];
             rgba[ 2 ] = lut[ is3 + 2 ];
