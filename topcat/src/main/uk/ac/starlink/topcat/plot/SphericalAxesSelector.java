@@ -150,7 +150,7 @@ public class SphericalAxesSelector implements AxesSelector {
         rSelector_.setEnabled( false );
         colBox_.add( Box.createVerticalStrut( 5 ) );
         colBox_.add( rSelector_ );
-        colBox_.add( Box.createVerticalGlue() );
+        colBox_.add( Box.createVerticalStrut( 5 ) );
 
         /* Align axis labels. */
         Dimension labelSize = new Dimension( 0, 0 );
