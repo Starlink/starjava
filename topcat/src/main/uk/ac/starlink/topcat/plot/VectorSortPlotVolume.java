@@ -21,9 +21,10 @@ public class VectorSortPlotVolume extends PlotVolume {
     private List pointList_;
     private int iseq_;
     private final int[] rgbs_;
-    private final Color[] colors_;
+    private final float[][] frgbs_;
     private final MarkStyle[] styles_;
     private final FixColorTweaker fixer_;
+    private final float[] frgba_;
 
     /**
      * Constructor.
@@ -45,12 +46,14 @@ public class VectorSortPlotVolume extends PlotVolume {
         pointList_ = new ArrayList();
         tweaker_ = createFoggingTweaker( tweaker );
         int nstyle = styles.length;
+        frgba_ = new float[ 4 ];
         styles_ = styles;
         rgbs_ = new int[ nstyle ];
-        colors_ = new Color[ nstyle ];
+        frgbs_ = new float[ nstyle][];
         for ( int is = 0; is < nstyle; is++ ) {
-            colors_[ is ] = styles[ is ].getColor();
-            rgbs_[ is ] = colors_[ is ].getRGB();
+            Color color = styles[ is ].getColor();
+            rgbs_[ is ] = color.getRGB();
+            frgbs_[ is ] = color.getRGBComponents( null );
         }
         fixer_ = new FixColorTweaker();
     }
@@ -117,8 +120,18 @@ public class VectorSortPlotVolume extends PlotVolume {
             return rgbs_[ istyle ];
         }
         else {
+            float[] frgba = frgbs_[ istyle ];
+            frgba_[ 0 ] = frgba[ 0 ];
+            frgba_[ 1 ] = frgba[ 1 ];
+            frgba_[ 2 ] = frgba[ 2 ];
+            frgba_[ 3 ] = frgba[ 3 ];
             tweaker_.setCoords( coords );
-            return tweaker_.tweakColor( colors_[ istyle ] ).getRGB();
+            tweaker_.tweakColor( frgba_ );
+            float r = frgba_[ 0 ];
+            float b = frgba_[ 2 ];
+            frgba_[ 2 ] = r;
+            frgba_[ 0 ] = b;
+            return packRgba( frgba_ );
         }
     }
 
@@ -127,7 +140,13 @@ public class VectorSortPlotVolume extends PlotVolume {
      * which always returns a given colour.
      */
     private static class FixColorTweaker implements ColorTweaker {
+        private static final float BYTE_SCALE = 1f / 255.99f;
+        private int rgb_;
         private Color color_;
+        private boolean fok_;
+        private float fr_;
+        private float fg_;
+        private float fb_;
 
         /**
          * Sets the colour which this object tweaks to.
@@ -135,11 +154,28 @@ public class VectorSortPlotVolume extends PlotVolume {
          * @param  rgb  integer representation of target colour
          */
         void setRgb( int rgb ) {
-            color_ = new Color( rgb );
+            rgb_ = rgb;
+            color_ = null;
+            fok_ = false;
         }
 
         public Color tweakColor( Color color ) {
+            if ( color_ == null ) {
+                color_ = new Color( rgb_ );
+            }
             return color_;
+        }
+
+        public void tweakColor( float[] rgba ) {
+            if ( ! fok_ ) {
+                fr_ = (float) ( ( rgb_ & 0xff0000 ) >> 16 ) * BYTE_SCALE;
+                fg_ = (float) ( ( rgb_ & 0x00ff00 ) >> 8 ) * BYTE_SCALE;
+                fb_ = (float) ( ( rgb_ & 0x0000ff ) >> 0 ) * BYTE_SCALE;
+                fok_ = true;
+            }
+            rgba[ 0 ] = fr_;
+            rgba[ 1 ] = fg_;
+            rgba[ 2 ] = fb_;
         }
     }
 

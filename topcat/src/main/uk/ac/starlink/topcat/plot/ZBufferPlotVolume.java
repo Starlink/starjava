@@ -247,7 +247,8 @@ public class ZBufferPlotVolume extends PlotVolume {
      * DataColorTweaker object.
      */
     private static class TweakedPaint extends Paint {
-        final Color[] colors_;
+        final float[][] frgbs_;
+        final float[] frgb_;
         final DataColorTweaker tweaker_;
         final int ncoord_;
         final double[] coords_;
@@ -263,9 +264,10 @@ public class ZBufferPlotVolume extends PlotVolume {
          */
         public TweakedPaint( MarkStyle[] styles, DataColorTweaker tweaker ) {
             int nstyle = styles.length;
-            colors_ = new Color[ nstyle ];
+            frgb_ = new float[ 4 ];
+            frgbs_ = new float[ nstyle ][];
             for ( int is = 0; is < nstyle; is++ ) {
-                colors_[ is ] = styles[ is ].getColor();
+                frgbs_[ is ] = styles[ is ].getColor().getRGBComponents( null );
             }
             tweaker_ = tweaker;
             ncoord_ = tweaker.getNcoord();
@@ -280,8 +282,18 @@ public class ZBufferPlotVolume extends PlotVolume {
 
         public int getRgb() {
             if ( ! rgbOk_ ) {
+                float[] frgb = frgbs_[ iset_ ];
+                frgb_[ 0 ] = frgb[ 0 ];
+                frgb_[ 1 ] = frgb[ 1 ];
+                frgb_[ 2 ] = frgb[ 2 ];
+                frgb_[ 3 ] = frgb[ 3 ];
                 tweaker_.setCoords( coords_ );
-                rgb_ = tweaker_.tweakColor( colors_[ iset_ ] ).getRGB();
+                tweaker_.tweakColor( frgb_ );
+                float r = frgb_[ 0 ];
+                float b = frgb_[ 2 ];
+                frgb_[ 2 ] = r;
+                frgb_[ 0 ] = b;
+                rgb_ = packRgba( frgb_ );
             }
             return rgb_;
         }

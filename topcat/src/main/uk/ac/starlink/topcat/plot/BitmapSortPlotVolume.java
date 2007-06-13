@@ -341,11 +341,13 @@ public class BitmapSortPlotVolume extends PlotVolume {
          */
         private float[] getRgba( int istyle, double[] coords ) {
             float[] rgba = rgbas_[ istyle ];
-            Color color =
-                new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+            buf_[ 0 ] = rgba[ 0 ];
+            buf_[ 1 ] = rgba[ 1 ];
+            buf_[ 2 ] = rgba[ 2 ];
+            buf_[ 3 ] = rgba[ 3 ];
             tweaker_.setCoords( coords );
-            Color tcolor = tweaker_.tweakColor( color );
-            return tcolor.getRGBComponents( buf_ );
+            tweaker_.tweakColor( buf_ );
+            return buf_;
         }
     }
 

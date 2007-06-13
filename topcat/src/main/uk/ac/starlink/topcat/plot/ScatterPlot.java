@@ -659,7 +659,7 @@ public abstract class ScatterPlot extends SurfacePlot {
             int[] pixoffs = style.getFlattenedPixelOffsets( xdim );
             int npixoff = pixoffs.length;
             float opacity = 1.0f / style.getOpaqueLimit();
-            Color baseColor = style.getColor();
+            float[] baseRgba = style.getColor().getRGBComponents( null );
             assert showMarks || showErrors : "Why bother?";
 
             /* Iterate over each point. */
@@ -679,9 +679,12 @@ public abstract class ScatterPlot extends SurfacePlot {
                         if ( xbase > maxr && xbase < xdim - maxr &&
                              ybase > maxr && ybase < ydim - maxr ) {
                             visibleMask.set( ip );
+                            rgba[ 0 ] = baseRgba[ 0 ];
+                            rgba[ 1 ] = baseRgba[ 1 ];
+                            rgba[ 2 ] = baseRgba[ 2 ];
+                            rgba[ 3 ] = baseRgba[ 3 ];
                             tweaker.setCoords( coords );
-                            rgba = tweaker.tweakColor( baseColor )
-                                          .getRGBColorComponents( rgba );
+                            tweaker.tweakColor( rgba );
                             rgba[ 3 ] = opacity;
                             int base = xbase + xdim * ybase;
                             boolean done = false;
