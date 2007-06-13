@@ -683,7 +683,6 @@ public abstract class ScatterPlot extends SurfacePlot {
                             rgba[ 1 ] = baseRgba[ 1 ];
                             rgba[ 2 ] = baseRgba[ 2 ];
                             rgba[ 3 ] = baseRgba[ 3 ];
-                            tweaker.setCoords( coords );
                             tweaker.tweakColor( rgba );
                             rgba[ 3 ] = opacity;
                             int base = xbase + xdim * ybase;
