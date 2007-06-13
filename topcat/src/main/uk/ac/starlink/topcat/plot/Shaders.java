@@ -53,6 +53,15 @@ public class Shaders {
     public static final Shader SCALE_BLUE =
         new ScaleComponentShader( "Scale Blue", 2 );
 
+    /** Fixes Y in YUV colour space. */
+    public static final Shader FIX_Y = new FixYuvShader( "Fix Y", 0 );
+
+    /** Fixes U in YUV colour space. */
+    public static final Shader FIX_U = new FixYuvShader( "Fix U", 1 );
+
+    /** Fixes V in YUV colour space. */
+    public static final Shader FIX_V = new FixYuvShader( "Fix V", 2 );
+
     /** Interpolates between red (0) and blue (1). */
     public static final Shader RBSCALE =
         createInterpolationShader( "Red-Blue", Color.RED, Color.BLUE );
@@ -284,6 +293,175 @@ public class Shaders {
 
         public String toString() {
             return name_;
+        }
+    }
+
+    /**
+     * Shader implementation which fixes one component of the YUV colour
+     * space at its parameter's value.
+     */
+    private static class FixYuvShader extends FixColorSpaceComponentShader {
+ 
+        /**
+         * Constructor.
+         *
+         * @param  name   name
+         * @param  icomp   modified component index
+         */
+        FixYuvShader( String name, int icomp ) {
+            super( name, icomp );
+        }
+
+        protected void toSpace( float[] rgb ) {
+            float r = rgb[ 0 ];
+            float g = rgb[ 1 ];
+            float b = rgb[ 2 ];
+            float y = 0.299f * r + 0.587f * g + 0.114f * b;
+            float u = 0.436f * ( b - y ) / ( 1f - 0.114f );
+            float v = 0.615f * ( r - y ) / ( 1f - 0.299f );
+            float su = 0.5f * ( u / 0.436f ) + 0.5f;
+            float sv = 0.5f * ( v / 0.615f ) + 0.5f;
+            rgb[ 0 ] = enforceBounds( y );
+            rgb[ 1 ] = enforceBounds( su );
+            rgb[ 2 ] = enforceBounds( sv );
+        }
+
+        protected void fromSpace( float[] yuv ) {
+            float y = yuv[ 0 ];
+            float su = yuv[ 1 ];
+            float sv = yuv[ 2 ];
+            float u = ( ( su * 2f ) - 1f ) * 0.436f;
+            float v = ( ( sv * 2f ) - 1f ) * 0.615f;
+            float r = y + 1.13983f * v;
+            float g = y - 0.39466f * u - 0.58060f * v;
+            float b = y + 2.03211f * u;
+            yuv[ 0 ] = enforceBounds( r );
+            yuv[ 1 ] = enforceBounds( g );
+            yuv[ 2 ] = enforceBounds( b );
+        }
+    }
+
+    /**
+     * Shader implementation which fixes one component of the YPbPr colour
+     * space at its parameter's value.
+     */
+    private static class FixYPbPrShader extends FixColorSpaceComponentShader {
+
+        private static final float[] T;
+        private static final float[] F;
+        static {
+            double[] toRgb = new double[] {  .299,      .587,    .114, 
+                                            -.168736, -.331264,  .5,
+                                             .5,      -.418688, -.081312, };
+            double[] fromRgb = Matrices.invert( toRgb );
+            T = new float[ 9 ];
+            F = new float[ 9 ];
+            for ( int i = 0; i < 9; i++ ) {
+                T[ i ] = (float) toRgb[ i ];
+                F[ i ] = (float) fromRgb[ i ];
+            }
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param  name   name
+         * @param  icomp   modified component index
+         */
+        FixYPbPrShader( String name, int icomp ) {
+            super( name, icomp );
+        }
+
+        protected void toSpace( float[] rgb ) {
+            float r = rgb[ 0 ];
+            float g = rgb[ 1 ];
+            float b = rgb[ 2 ];
+            float y  = r * T[ 0 ] + g * T[ 1 ] + b * T[ 2 ];
+            float pb = r * T[ 3 ] + g * T[ 4 ] + b * T[ 5 ];
+            float pr = r * T[ 6 ] + g * T[ 7 ] + b * T[ 8 ];
+            rgb[ 0 ] = enforceBounds( y );
+            rgb[ 1 ] = enforceBounds( pb + 0.5f );
+            rgb[ 2 ] = enforceBounds( pr + 0.5f );
+        }
+
+        protected void fromSpace( float[] yPbPr ) {
+            float y =  yPbPr[ 0 ];
+            float pb = yPbPr[ 1 ] - 0.5f;
+            float pr = yPbPr[ 2 ] - 0.5f;
+            float r = y * F[ 0 ] + pb * F[ 1 ] + pr * F[ 2 ];
+            float g = y * F[ 3 ] + pb * F[ 4 ] + pr * F[ 5 ];
+            float b = y * F[ 6 ] + pb * F[ 7 ] + pr * F[ 8 ];
+            yPbPr[ 0 ] = enforceBounds( r );
+            yPbPr[ 1 ] = enforceBounds( g );
+            yPbPr[ 2 ] = enforceBounds( b );
+        }
+    }
+
+    /**
+     * Abstract Shader implementation for fixing components in foreign
+     * (non-RGB) colour spaces.
+     */
+    private static abstract class FixColorSpaceComponentShader 
+                                  implements Shader {
+
+        private final String name_;
+        private final int icomp_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name   name
+         * @param  icomp   modified component index
+         */
+        FixColorSpaceComponentShader( String name, int icomp ) {
+            name_ = name;
+            icomp_ = icomp;
+        }
+
+        /**
+         * Converts RGB array to foreign colour space.
+         *
+         * @param  rgb  colour component array; on entry and exit all elements
+         *         must be in the range 0..1
+         */
+        protected abstract void toSpace( float[] rgb );
+
+        /**
+         * Converts foreign colour space array to RGB.
+         *
+         * @param  abc  colour component array; on entry and exit all elements
+         *         must be in the range 0..1
+         */
+        protected abstract void fromSpace( float[] abc );
+
+        public void adjustRgba( float[] rgba, float value ) {
+            toSpace( rgba );
+            rgba[ icomp_ ] = value;
+            fromSpace( rgba );
+        }
+
+        public String toString() {
+            return name_;
+        }
+    }
+
+    /**
+     * Forces a value to be within the range 0..1.
+     *
+     * @param   f  input value
+     * @return  f if it's in range, otherwise 0 or 1
+     */
+    private static final float enforceBounds( float f ) {
+        if ( f >= 0f ) {
+            if ( f <= 1f ) {
+                return f;
+            }
+            else {
+                return 1f;
+            }
+        }
+        else {
+            return 0f;
         }
     }
 
