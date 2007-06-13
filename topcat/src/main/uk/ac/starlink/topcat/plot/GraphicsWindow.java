@@ -161,8 +161,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
     private static final Shader[] SHADERS = new Shader[] {
         Shaders.NULL,
-        Shaders.LUT_PASTEL,
         Shaders.LUT_RAINBOW,
+        Shaders.LUT_PASTEL,
         Shaders.LUT_STANDARD,
         Shaders.LUT_HEAT,
         Shaders.LUT_COLOR,
