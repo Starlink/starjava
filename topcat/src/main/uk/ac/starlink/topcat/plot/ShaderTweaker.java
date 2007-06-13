@@ -120,6 +120,10 @@ public class ShaderTweaker implements DataColorTweaker {
         }
     }
 
+    public void tweakColor( float[] rgba ) {
+        tweakRgba( rgba );
+    }
+
     /**
      * Returns a new tweaker suitable for a given plot.  Iff no colour 
      * tweaking will be performed (that is, if such an object would do no work)

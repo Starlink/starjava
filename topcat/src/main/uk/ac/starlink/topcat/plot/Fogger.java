@@ -222,6 +222,9 @@ public class Fogger {
             public Color tweakColor( Color color ) {
                 return fogAt( z_, color );
             }
+            public void tweakColor( float[] rgba ) {
+                fogAt( z_, rgba );
+            }
         };
     }
 
@@ -245,7 +248,19 @@ public class Fogger {
                 return base.getNcoord();
             }
             public Color tweakColor( Color color ) {
-                return fogAt( z_, base.tweakColor( color ) );
+                if ( getClarityAt( z_ ) == 1f ) {
+                    return base.tweakColor( color );
+                }
+                else {
+                    float[] rgba = color.getRGBComponents( null );
+                    tweakColor( rgba );
+                    return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
+                                      rgba[ 3 ] );
+                }
+            }
+            public void tweakColor( float[] rgba ) {
+                base.tweakColor( rgba );
+                fogAt( z_, rgba );
             }
         };
     }
