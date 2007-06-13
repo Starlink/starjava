@@ -30,6 +30,7 @@ public abstract class PlotVolume {
     private final Fogger fogger_;
     private final int width_;
     private final int height_;
+    private static final float BYTE_SCALE = 255.99f;
 
     /**
      * Constructor.
@@ -314,10 +315,10 @@ public abstract class PlotVolume {
      * @return   integer
      */
     public static int packRgba( float[] rgba ) {
-        return ( (int) ( rgba[ 0 ] * 255.9f ) & 0xff ) <<  0
-             | ( (int) ( rgba[ 1 ] * 255.9f ) & 0xff ) <<  8
-             | ( (int) ( rgba[ 2 ] * 255.9f ) & 0xff ) << 16
-             | ( (int) ( rgba[ 3 ] * 255.9f ) & 0xff ) << 24;
+        return ( (int) ( rgba[ 0 ] * BYTE_SCALE ) & 0xff ) <<  0
+             | ( (int) ( rgba[ 1 ] * BYTE_SCALE ) & 0xff ) <<  8
+             | ( (int) ( rgba[ 2 ] * BYTE_SCALE ) & 0xff ) << 16
+             | ( (int) ( rgba[ 3 ] * BYTE_SCALE ) & 0xff ) << 24;
     }
 
     /**
