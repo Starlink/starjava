@@ -40,20 +40,18 @@ public class ArrayPrimitiveStore implements ValueStore {
         return size_;
     }
 
-    public void put( long index, Object array ) {
+    public void put( long index, Object array, int ioff, int count ) {
         if ( index < Integer.MAX_VALUE ) {
-            System.arraycopy( array, 0, data_, (int) index,
-                              Array.getLength( array ) );
+            System.arraycopy( array, ioff, data_, (int) index, count );
         }
         else {
             throw new IllegalArgumentException( "Out of range" );
         }
     }
 
-    public void get( long index, Object array ) {
+    public void get( long index, Object array, int ioff, int count ) {
         if ( index < Integer.MAX_VALUE ) {
-            System.arraycopy( data_, (int) index, array, 0, 
-                              Array.getLength( array ) );
+            System.arraycopy( data_, (int) index, array, ioff, count );
         }
         else {
             throw new IllegalArgumentException( "Out of range" );

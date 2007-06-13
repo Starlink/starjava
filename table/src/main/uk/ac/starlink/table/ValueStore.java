@@ -26,14 +26,16 @@ public interface ValueStore {
     /**
      * Stores a vector of values in this object.
      * <code>array</code> must be an array of values matching 
-     * <code>getType</code>.  The first element of <code>array</code>
-     * is stored at index <code>index</code>, the second at 
+     * <code>getType</code>.  Element <code>ioff</code> of <code>array</code>
+     * is stored at index <code>index</code>, elemnt <code>ioff+1</code> at
      * <code>index+1</code>, etc.
      *
-     * @param  index  starting offset
+     * @param  index  starting offset to write to
      * @param  array  array of values to store
+     * @param  ioff   offset into array from which the first value is taken
+     * @param  count  number of values to transfer
      */
-    void put( long index, Object array );
+    void put( long index, Object array, int ioff, int count );
 
     /**
      * Retrieves a vector of values from this object.
@@ -43,7 +45,9 @@ public interface ValueStore {
      * <code>index</code>, the second from <code>index+1</code>, etc.
      *
      * @param   index  starting offset
-     * @param   array   array to accept data
+     * @param   array  array to accept data
+     * @param   ioff   offset into array to which the first value is copied
+     * @parm    count  number of values to transfer
      */
-    void get( long index, Object array );
+    void get( long index, Object array, int ioff, int count );
 }
