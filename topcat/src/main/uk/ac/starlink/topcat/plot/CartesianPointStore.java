@@ -26,6 +26,7 @@ public class CartesianPointStore implements PointStore {
     private final int ndim_;
     private final ErrorReader[] errorReaders_;
     private final int nword_;
+    private final long lnword_;
     private final int nerrWord_;
     private final double[] point_;
     private final double[] centre_;
@@ -66,6 +67,7 @@ public class CartesianPointStore implements PointStore {
         /* Work out the total number of words (doubles in this case) which
          * are used for each row of data. */
         nword_ = ndim_ + nerrWord;
+        lnword_ = (long) nword_;
 
         /* Prepare buffers. */
         buf1_ = new double[ 1 ];
@@ -80,7 +82,7 @@ public class CartesianPointStore implements PointStore {
     }
 
     public void storePoint( Object[] coordRow, Object[] errorRow ) {
-        long ioff = ipoint_ * (long) nword_;
+        long ioff = ipoint_ * lnword_;
         for ( int i = 0; i < ndim_; i++ ) {
             buf1_[ 0 ] = doubleValue( coordRow[ i ] );
             valueStore_.put( ioff++, buf1_, 0, 1 );
@@ -89,7 +91,7 @@ public class CartesianPointStore implements PointStore {
             buf1_[ 0 ] = doubleValue( errorRow[ i ] );
             valueStore_.put( ioff++, buf1_, 0, 1 );
         }
-        assert ioff == ( ipoint_ + 1 ) * (long) nword_;
+        assert ioff == ( ipoint_ + 1 ) * lnword_;
         ipoint_++;
     }
 
@@ -102,7 +104,7 @@ public class CartesianPointStore implements PointStore {
     }
 
     public double[] getPoint( int ipoint ) {
-        valueStore_.get( ipoint * (long) nword_, point_, 0, ndim_ );
+        valueStore_.get( ipoint * lnword_, point_, 0, ndim_ );
         return point_;
     }
 
@@ -111,7 +113,7 @@ public class CartesianPointStore implements PointStore {
     }
 
     public double[][] getErrors( int ipoint ) {
-        valueStore_.get( ipoint * (long) nword_, centre_, 0, ndim_ );
+        valueStore_.get( ipoint * lnword_, centre_, 0, ndim_ );
         long off = ipoint * nword_ + ndim_;
         int ierr = 0;
         for ( int ir = 0; ir < errorReaders_.length; ir++ ) {
