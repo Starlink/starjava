@@ -58,6 +58,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import org.jibble.epsgraphics.EpsGraphics2D;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -133,6 +134,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final BoundedRangeModel noProgress_;
     private final BoundedRangeModel auxVisibleModel_;
     private final ComboBoxModel[] auxShaderModels_;
+    private final AuxLegend[] auxLegends_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -274,6 +276,29 @@ public abstract class GraphicsWindow extends AuxWindow {
         JComponent pselBox = new JPanel( new BorderLayout() );
         pselBox.add( pointSelectors_, BorderLayout.CENTER );
         getControlPanel().add( new SizeWrapper( pselBox ) );
+
+        /* Set up a container for auxiliary axis legends. */
+        auxLegends_ = new AuxLegend[ naux_ ];
+        if ( naux_ > 0 ) {
+            for ( int i = 0; i < naux_; i++ ) {
+                auxLegends_[ i ] = new AuxLegend( 16, 24 );
+            }
+            final JComponent auxLegendBox = Box.createVerticalBox();
+            getMainArea().add( auxLegendBox, BorderLayout.SOUTH );
+            ChangeListener auxVisListener = new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
+                        auxLegendBox.removeAll();
+                        int nvis = auxVisibleModel_.getValue();
+                        for ( int i = 0; i < nvis; i++ ) {
+                            auxLegendBox.add( auxLegends_[ i ] );
+                        }
+                    }
+                }
+            };
+            auxVisListener.stateChanged( null );
+            auxVisibleModel_.addChangeListener( auxVisListener );
+        }
 
         /* Set up and populate a toolbar for controls relating specifically
          * to the point selectors. */
@@ -582,8 +607,8 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param  modeModels error mode models
      */
     private void updateErrorRendererMenu( JMenu errorMenu, int nfixed,
-                                          ErrorRenderer[] renderers,
-                                          ErrorModeSelectionModel[] modeModels ) {
+                                 ErrorRenderer[] renderers,
+                                 ErrorModeSelectionModel[] modeModels ) {
 
         /* Delete any of the menu items which we added last time. */
         while ( errorMenu.getItemCount() > nfixed ) {
@@ -907,6 +932,10 @@ public abstract class GraphicsWindow extends AuxWindow {
             return state;
         }
 
+        /* Set the number of main (geometric) dimensions.  This may need to
+         * be adjusted by subclasses which define these differently. */
+        state.setMainNdim( ndim_ );
+
         /* Set per-axis characteristics. */
         StarTable mainData =
             pointSelectors_.getMainSelector().getAxesSelector().getData();
@@ -930,25 +959,36 @@ public abstract class GraphicsWindow extends AuxWindow {
         state.setLogFlags( logFlags );
         state.setFlipFlags( flipFlags );
 
-        /* Set array of shader objects.  Exclude high-numbered ones which 
-         * have no associated data (because no columns are chosen for 
-         * them in any of the PointSelectors), since these will have no
-         * effect on the plot other than maybe slowing it down. */
-        int nShader = 0;
+        /* Set array of shader objects.  Shaders which have no associated
+         * data are filled in as nulls, since they have no effect on the 
+         * plot.  The array is truncated so that the final element is 
+         * non-null. */
+        BitSet activeShaders = new BitSet();
         int nvis = auxVisibleModel_.getValue();
         if ( nvis > 0 ) {
             int nsel = pointSelectors_.getSelectorCount();
-            for ( int isel = 0; isel < nsel; isel++ ) {
-                AugmentedAxesSelector sel =
-                    (AugmentedAxesSelector) pointSelectors_.getSelector( isel )
-                                                           .getAxesSelector();
-                nShader = Math.max( nShader, sel.getFilledAuxColumnCount() );
+            for ( int ivis = 0; ivis < nvis; ivis++ ) {
+                boolean isActive = false;
+                for ( int isel = 0; isel < nsel && ! isActive; isel++ ) {
+                    CartesianAxesSelector auxSel = 
+                        ((AugmentedAxesSelector)
+                         pointSelectors_.getSelector( isel ).getAxesSelector())
+                       .getAuxSelector();
+                    ColumnData auxCol =
+                        (ColumnData) auxSel.getColumnSelector( ivis )
+                                           .getSelectedItem();
+                    isActive = isActive || ( auxCol != null );
+                }
+                activeShaders.set( ivis, isActive );
             }
         }
+        int nShader = activeShaders.length();
         assert nShader <= nvis;
         Shader[] shaders = new Shader[ nShader ];
         for ( int i = 0; i < nShader; i++ ) {
-            shaders[ i ] = (Shader) auxShaderModels_[ i ].getSelectedItem();
+            if ( activeShaders.get( i ) ) {
+                shaders[ i ] = (Shader) auxShaderModels_[ i ].getSelectedItem();
+            }
         }
         state.setShaders( shaders );
 
@@ -1105,6 +1145,12 @@ public abstract class GraphicsWindow extends AuxWindow {
          * objects).  getPlotState() itself ought to be cheap, so this 
          * assertion should not take much time. */
         assert state.equals( getPlotState() ) : state.compare( getPlotState() );
+
+        /* Update auxiliary axes. */
+        int nvis = getVisibleAuxAxisCount();
+        for ( int i = 0; i < nvis; i++ ) {
+            auxLegends_[ i ].configure( state, i );
+        }
 
         /* Only if the plot will differ from last time we did it, do we
          * do the actual drawing.  This can be true in one of two ways:
