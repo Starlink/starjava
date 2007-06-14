@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
 public class PlotState {
 
     private boolean valid_;
+    private int mainNdim_;
     private SimpleValueInfo[] axes_;
     private ValueConverter[] converters_;
     private boolean[] logFlags_;
@@ -50,6 +51,24 @@ public class PlotState {
      */
     public boolean getValid() {
         return valid_;
+    }
+
+    /**
+     * Sets the number of non-auxiliary axes represented by this state.
+     *
+     * @param   mainNdim  number of normal axes
+     */
+    public void setMainNdim( int mainNdim ) {
+        mainNdim_ = mainNdim;
+    }
+
+    /**
+     * Returns the number of non-auxiliary axes represented by this state.
+     *
+     * @return  number of normal axes
+     */
+    public int getMainNdim() {
+        return mainNdim_;
     }
 
     /**
@@ -256,6 +275,7 @@ public class PlotState {
         }
         PlotState other = (PlotState) otherObject;
         return valid_ == other.valid_
+            && mainNdim_ == other.mainNdim_
             && grid_ == other.grid_
             && antialias_ == other.antialias_
             && Arrays.equals( axes_, other.axes_ )
@@ -282,6 +302,7 @@ public class PlotState {
     String compare( PlotState o ) {
         StringBuffer sbuf = new StringBuffer( "Mismatches:" );
         sbuf.append( valid_ == o.valid_ ? "" : " valid" );
+        sbuf.append( mainNdim_ == o.mainNdim_ ? "" : " mainNdim" );
         sbuf.append( grid_ == o.grid_ ? "" : " grid" );
         sbuf.append( antialias_ == o.antialias_ ? "" : " antialias" );
         sbuf.append( Arrays.equals( axes_, o.axes_ ) ? "" : " axes" );
@@ -303,6 +324,7 @@ public class PlotState {
     public int hashCode() {
         int code = 555;
         code = 23 * code + ( valid_ ? 99 : 999 );
+        code = 23 * code + mainNdim_;
         code = 23 * code + ( grid_ ? 11 : 17 );
         code = 23 * code + ( antialias_ ? 109 : 901 );
         for ( int i = 0; i < axes_.length; i++ ) {
