@@ -353,7 +353,7 @@ public class AxisLabeller {
             return new Rectangle( x - h / 2, y - w, h, w );
         }
         boolean isDown() {
-            return true;
+            return false;
         }
     };
 
