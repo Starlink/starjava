@@ -41,7 +41,6 @@ public abstract class Plot3D extends JPanel {
     private double zmax_;
     private Callbacks callbacker_ ;
     private final JComponent plotArea_;
-    private final Legend legend_;
     private final CentreZoomRegion centreZoom_;
     protected double[] loBounds_;
     protected double[] hiBounds_;
@@ -67,8 +66,6 @@ public abstract class Plot3D extends JPanel {
         plotArea_.setBorder( BorderFactory
                             .createLineBorder( Color.DARK_GRAY ) );
         add( plotArea_, BorderLayout.CENTER );
-        legend_ = new Legend();
-        add( legend_, BorderLayout.EAST );
         setOpaque( false );
         annotations_ = new Annotations();
 
@@ -219,17 +216,6 @@ public abstract class Plot3D extends JPanel {
         lastVol_ = null;
         lastTrans_ = null;
         PointSelection psel = state.getPointSelection();
-        if ( psel == null ) {
-            legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
-        }
-        else {
-            RowSubset[] rsets = psel.getSubsets();
-            String[] labels = new String[ rsets.length ];
-            for ( int i = 0; i < rsets.length; i++ ) {
-                labels[ i ] = rsets[ i ].getName();
-            }
-            legend_.setStyles( psel.getStyles(), labels );
-        }
 
         /* Adjust internal state according to requested ranges. */
         if ( state.getValid() ) {
@@ -268,7 +254,7 @@ public abstract class Plot3D extends JPanel {
     }
 
     /**
-     * Returns the bounds of the actual plotting area (excluding legend etc).
+     * Returns the bounds of the actual plotting area.
      *
      * @return  plot area bounds
      */
