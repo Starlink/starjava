@@ -37,7 +37,6 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
             configure( state_ );
         }
         else {
-            clearLegends();
             setXLabel( "" );
             setYLabel( "" );
             setXLog( false );
@@ -208,34 +207,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     }
 
     /**
-     * Ensures that the points are plotted in a consistent way.
-     * Since data point plotting is taken care of by PlotSurface 
-     * itself, this overridden method is in practice only used
-     * by the legend-drawing routine.
-     */
-    protected void _drawPoint( Graphics g, int dataset,
-                               long xpos, long ypos, boolean clip ) {
-        Icon icon = psel_.getStyles()[ dataset ].getLegendIcon();
-        icon.paintIcon( getComponent(), g,
-                        (int) xpos - icon.getIconWidth() / 2,
-                        (int) ypos - icon.getIconHeight() / 2 );
-    }
-
-    /**
      * Configures this plot box from a PlotState object.
      *
      * @param   state  state for configuration
      */
     private void configure( PlotState state ) {
         PointSelection psel = state.getPointSelection();
-
-        /* Legend. */
-        clearLegends();
-        RowSubset[] rsets = psel.getSubsets();
-        int nrset = rsets.length;
-        for ( int iset = 0; iset < nrset; iset++ ) {
-            addLegend( iset, rsets[ iset ].getName() );
-        }
 
         /* Axes. */
         setXLabel( state.getAxisLabels()[ 0 ] );
