@@ -2592,6 +2592,12 @@ class PlotBox extends JPanel implements Printable {
      */
     private int _drawLegend(Graphics graphics, int urx, int ury) {
 
+        // TOPCAT change: Legend drawing is no longer required, and 
+        // legend box width (the return value of this method) must be zero.
+        if ( true ) {
+            return 0;
+        }
+
         // FIXME: consolidate all these for efficiency
         Font previousFont = graphics == null ? null : graphics.getFont();
         if (graphics != null) {
