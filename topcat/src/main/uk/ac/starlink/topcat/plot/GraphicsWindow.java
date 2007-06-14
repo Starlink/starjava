@@ -281,10 +281,10 @@ public abstract class GraphicsWindow extends AuxWindow {
         auxLegends_ = new AuxLegend[ naux_ ];
         if ( naux_ > 0 ) {
             for ( int i = 0; i < naux_; i++ ) {
-                auxLegends_[ i ] = new AuxLegend( true, 16, 24 );
+                auxLegends_[ i ] = new AuxLegend( false, 16, 24 );
             }
-            final JComponent auxLegendBox = Box.createVerticalBox();
-            getMainArea().add( auxLegendBox, BorderLayout.SOUTH );
+            final JComponent auxLegendBox = Box.createHorizontalBox();
+            getMainArea().add( auxLegendBox, BorderLayout.EAST );
             ChangeListener auxVisListener = new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
                     if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
