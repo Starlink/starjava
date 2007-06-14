@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 
@@ -58,7 +60,7 @@ public class AuxLegend extends JComponent {
                 new AxisLabeller( label, lo, hi, 200, logFlag, flipFlag, 
                                   getGraphics().getFontMetrics(),
                                   horizontal_ ? AxisLabeller.X
-                                              : AxisLabeller.Y,
+                                              : AxisLabeller.ANTI_Y,
                                   6, lengthPad_, lengthPad_ );
         }
         else {
@@ -109,24 +111,36 @@ public class AuxLegend extends JComponent {
             int txtDepth = labeller_.getAnnotationHeight();
             int iconDepth =
                 ( horizontal_ ? ( getHeight() - insets.top - insets.bottom )
-                              : ( getHeight() - insets.left - insets.right ) )
+                              : ( getWidth() - insets.left - insets.right ) )
                 - txtDepth;
             int xIcon = insets.left + ( horizontal_ ? lengthPad_ : 0 );
             int yIcon = insets.top + ( horizontal_ ? 0 : lengthPad_ );
             int xpix = horizontal_ ? labeller_.getNpix() : iconDepth;
             int ypix = horizontal_ ? iconDepth : labeller_.getNpix();
+            int xLabel = xIcon + ( horizontal_ ? 0 : xpix );
+            int yLabel = yIcon + ( horizontal_ ? ypix : 0 );
+
+            /* Draw the numerical annotations. */
+            Graphics2D g2 = (Graphics2D) g;
+            AffineTransform transform = g2.getTransform();
+            if ( horizontal_ ) {
+                g2.translate( xLabel, yLabel );
+                labeller_.annotateAxis( g );
+            }
+            else {
+                g2.translate( xLabel, yLabel );
+                g2.rotate( Math.PI / 2 );
+                labeller_.annotateAxis( g2 );
+            }
+            g2.setTransform( transform );
 
             /* Draw the colour bar itself. */
             Icon icon = Shaders.create1dIcon( shader_, horizontal_, Color.RED,
                                               xpix, ypix, 0, 0 );
             icon.paintIcon( this, g, xIcon, yIcon );
 
-            /* Draw the numerical annotations. */
-            int xLabel = xIcon + ( horizontal_ ? 0 : xpix );
-            int yLabel = yIcon + ( horizontal_ ? ypix : 0 );
-            g.translate( xLabel, yLabel );
-            labeller_.annotateAxis( g );
-            g.translate( - xLabel, - yLabel );
+            /* Draw a surrounding rectangle. */
+            g.drawRect( xIcon, yIcon, xpix, ypix );
         }
     }
 
