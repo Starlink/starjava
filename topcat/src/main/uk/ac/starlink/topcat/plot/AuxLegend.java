@@ -20,7 +20,8 @@ public class AuxLegend extends JComponent {
 
     private final boolean horizontal_;
     private final int iconDepth_;
-    private final int lengthPad_;
+    private final int preLength_;
+    private final int postLength_;
     private Shader shader_;
     private int prefDepth_;
     private AxisLabeller labeller_;
@@ -29,14 +30,18 @@ public class AuxLegend extends JComponent {
     /**
      * Constructor.
      *
+     * @param   horizontal  true for a bar that runs horizontally,
+     *                      false for a bar that runs vertically
      * @param   iconDepth  preferred transverse size of the legend colour band
-     * @param   lengthPad   number of pixels at each end of the legend
-     *          colour band to serve as padding
+     * @param   preLength   number of padding pixels blank before the bar run
+     * @param   postLength  number of padding pixels blank after the bar run
      */
-    public AuxLegend( boolean horizontal, int iconDepth, int lengthPad ) {
+    public AuxLegend( boolean horizontal, int iconDepth,
+                      int preLength, int postLength ) {
         horizontal_ = horizontal;
         iconDepth_ = iconDepth;
-        lengthPad_ = lengthPad;
+        preLength_ = preLength;
+        postLength_ = postLength;
     }
 
     /**
@@ -58,10 +63,10 @@ public class AuxLegend extends JComponent {
             String label = state.getAxisLabels()[ idim ];
             labeller_ =
                 new AxisLabeller( label, lo, hi, 200, logFlag, flipFlag, 
-                                  getGraphics().getFontMetrics(),
+                                  getFontMetrics( getFont() ),
                                   horizontal_ ? AxisLabeller.X
                                               : AxisLabeller.ANTI_Y,
-                                  6, lengthPad_, lengthPad_ );
+                                  6, preLength_, postLength_ );
         }
         else {
             labeller_ = null;
@@ -79,13 +84,15 @@ public class AuxLegend extends JComponent {
     private void fitToSize() {
         if ( labeller_ != null ) {
             Insets insets = getInsets();
-            int npix =
-                horizontal_ ? ( getWidth() - insets.left - insets.right )
-                            : ( getHeight() - insets.top - insets.bottom )
-                - lengthPad_ * 2;
+            int xadd = insets.left + insets.right;
+            int yadd = insets.top + insets.bottom;
+            int npix = ( horizontal_ ? ( getWidth() - xadd )
+                                     : ( getHeight() - yadd ) )
+                     - preLength_ - postLength_;
                    
             labeller_.setNpix( npix );
-            prefDepth_ = iconDepth_ + labeller_.getAnnotationHeight();
+            prefDepth_ = iconDepth_ + labeller_.getAnnotationHeight()
+                       + ( horizontal_ ? yadd : xadd );
         }
         else {
             prefDepth_ = 0;
@@ -113,8 +120,8 @@ public class AuxLegend extends JComponent {
                 ( horizontal_ ? ( getHeight() - insets.top - insets.bottom )
                               : ( getWidth() - insets.left - insets.right ) )
                 - txtDepth;
-            int xIcon = insets.left + ( horizontal_ ? lengthPad_ : 0 );
-            int yIcon = insets.top + ( horizontal_ ? 0 : lengthPad_ );
+            int xIcon = insets.left + ( horizontal_ ? preLength_ : 0 );
+            int yIcon = insets.top + ( horizontal_ ? 0 : preLength_ );
             int xpix = horizontal_ ? labeller_.getNpix() : iconDepth;
             int ypix = horizontal_ ? iconDepth : labeller_.getNpix();
             int xLabel = xIcon + ( horizontal_ ? 0 : xpix );
@@ -140,7 +147,7 @@ public class AuxLegend extends JComponent {
             icon.paintIcon( this, g, xIcon, yIcon );
 
             /* Draw a surrounding rectangle. */
-            g.drawRect( xIcon, yIcon, xpix, ypix );
+            g.drawRect( xIcon, yIcon, xpix - 1, ypix - 1 );
         }
     }
 
