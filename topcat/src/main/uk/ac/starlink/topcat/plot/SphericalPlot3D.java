@@ -240,7 +240,7 @@ public class SphericalPlot3D extends Plot3D {
                               log ? Math.exp( 0.0 ) : 0.0,
                               log ? Math.exp( rad ) : rad,
                               xp1 - xp0, log, false, g2.getFontMetrics(),
-                              AxisLabeller.X, 6 )
+                              AxisLabeller.X, 6, xp1 - xp0, SPHERE_PAD )
                .annotateAxis( g2 );
         }
     }

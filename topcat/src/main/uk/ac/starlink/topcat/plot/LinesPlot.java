@@ -38,6 +38,7 @@ public abstract class LinesPlot extends JComponent {
     private int[] sequence_;
     private Rectangle plotRegion_;
     private int[][] work_;
+    private final int axPad_ = 16;
 
     /**
      * Constructor.
@@ -123,7 +124,7 @@ public abstract class LinesPlot extends JComponent {
                               xRange[ 0 ], xRange[ 1 ], approxWidth,
                               state.getLogFlags()[ 0 ],
                               state.getFlipFlags()[ 0 ], fm, AxisLabeller.X,
-                              10 )
+                              10, axPad_, axPad_ )
            .getAnnotationHeight();
 
         /* Work out the available height for each plotted graph. */
@@ -149,7 +150,7 @@ public abstract class LinesPlot extends JComponent {
                 new AxisLabeller( state.getYAxisLabels()[ igraph ], ylo, yhi,
                                   yInc,
                                   yLogFlags[ igraph ], yFlipFlags[ igraph ],
-                                  fm, AxisLabeller.Y, 6 );
+                                  fm, AxisLabeller.Y, 6, axPad_, axPad_ );
             int left = yAxes[ igraph ].getAnnotationHeight();
             border.left = Math.max( border.left,
                                     yAxes[ igraph ].getAnnotationHeight() );
@@ -164,7 +165,8 @@ public abstract class LinesPlot extends JComponent {
                                                xRange[ 0 ], xRange[ 1 ], xInc,
                                                state.getLogFlags()[ 0 ],
                                                state.getFlipFlags()[ 0 ],
-                                               fm, AxisLabeller.X, 10 );
+                                               fm, AxisLabeller.X, 10,
+                                               axPad_, axPad_ );
 
         /* Position each graph and draw the axes. */
         zoomer_.getRegions().clear();

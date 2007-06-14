@@ -326,7 +326,7 @@ public class CartesianPlot3D extends Plot3D {
                           loBounds_[ iaxis ], hiBounds_[ iaxis ], sx,
                           logFlags[ iaxis ],
                           ( ! forward ) ^ state.getFlipFlags()[ iaxis ],
-                          g2.getFontMetrics(), AxisLabeller.X, 4 )
+                          g2.getFontMetrics(), AxisLabeller.X, 4, 24, 24 )
            .annotateAxis( g2 );
     }
 }
