@@ -307,11 +307,10 @@ public class AxisLabeller {
             g.drawString( label, x - fm.stringWidth( label ) / 2,
                                  y + fm.getHeight() );
         }
-        Rectangle getBounds( FontMetrics fm, int x, int y,
-                                      String label ) {
+        Rectangle getBounds( FontMetrics fm, int x, int y, String label ) {
             int w = fm.stringWidth( label );
             int h = fm.getHeight();
-            return new Rectangle( x - w / 2, y + h, w, h );
+            return new Rectangle( x - w / 2, y, w, h );
         }
         boolean isDown() {
             return true;
@@ -331,10 +330,30 @@ public class AxisLabeller {
         Rectangle getBounds( FontMetrics fm, int x, int y, String label ) {
             int w = fm.stringWidth( label + "0" );
             int h = fm.getHeight();
-            return new Rectangle( x - h, y + w, h, w );
+            return new Rectangle( x - h / 2, - y - w, h, w );
         }
         boolean isDown() {
             return false;
+        }
+    };
+
+    /** Tick style suitable for right-hand-side Y axis labels. */
+    public static final TickStyle ANTI_Y = new TickStyle() {
+        void drawString( Graphics g, FontMetrics fm, int x, int y,
+                         String label ) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.translate( x, y );
+            g2.rotate( - Math.PI * 0.5 );
+            g2.drawString( label, fm.charWidth( '0' ) / 2,
+                           fm.getAscent() / 2 );
+        }
+        Rectangle getBounds( FontMetrics fm, int x, int y, String label ) {
+            int w = fm.stringWidth( label ) + fm.charWidth( '0' ) / 2;
+            int h = fm.getHeight();
+            return new Rectangle( x - h / 2, y - w, h, w );
+        }
+        boolean isDown() {
+            return true;
         }
     };
 
