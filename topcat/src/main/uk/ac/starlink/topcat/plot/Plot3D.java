@@ -488,9 +488,9 @@ public abstract class Plot3D extends JPanel {
 
         /* Plot a teeny static dot in the middle of the data. */
         double[] dot = new double[ points.getNdim() ];
-        centre[ 0 ] = 0.5;
-        centre[ 1 ] = 0.5;
-        centre[ 2 ] = 0.5;
+        dot[ 0 ] = 0.5;
+        dot[ 1 ] = 0.5;
+        dot[ 2 ] = 0.5;
         vol.plot3d( dot, iDotStyle );
 
         /* Tell the volume that all the points are in for plotting.
