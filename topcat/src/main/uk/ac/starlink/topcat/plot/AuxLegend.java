@@ -16,23 +16,25 @@ import javax.swing.JComponent;
  */
 public class AuxLegend extends JComponent {
 
-    private final int iconHeight_;
-    private final int widthPad_;
+    private final boolean horizontal_;
+    private final int iconDepth_;
+    private final int lengthPad_;
     private Shader shader_;
-    private int prefHeight_;
+    private int prefDepth_;
     private AxisLabeller labeller_;
     private int lastWidth_;
 
     /**
      * Constructor.
      *
-     * @param   iconHeight  preferred transverse size of the legend colour band
-     * @param   widthPad   number of pixels at each end of the legend
+     * @param   iconDepth  preferred transverse size of the legend colour band
+     * @param   lengthPad   number of pixels at each end of the legend
      *          colour band to serve as padding
      */
-    public AuxLegend( int iconHeight, int widthPad ) {
-        iconHeight_ = iconHeight;
-        widthPad_ = widthPad;
+    public AuxLegend( boolean horizontal, int iconDepth, int lengthPad ) {
+        horizontal_ = horizontal;
+        iconDepth_ = iconDepth;
+        lengthPad_ = lengthPad;
     }
 
     /**
@@ -55,7 +57,9 @@ public class AuxLegend extends JComponent {
             labeller_ =
                 new AxisLabeller( label, lo, hi, 200, logFlag, flipFlag, 
                                   getGraphics().getFontMetrics(),
-                                  AxisLabeller.X, 6, widthPad_, widthPad_ );
+                                  horizontal_ ? AxisLabeller.X
+                                              : AxisLabeller.Y,
+                                  6, lengthPad_, lengthPad_ );
         }
         else {
             labeller_ = null;
@@ -73,12 +77,16 @@ public class AuxLegend extends JComponent {
     private void fitToSize() {
         if ( labeller_ != null ) {
             Insets insets = getInsets();
-            labeller_.setNpix( getWidth() - insets.left - insets.right 
-                                          - widthPad_ * 2 );
-            prefHeight_ = iconHeight_ + labeller_.getAnnotationHeight();
+            int npix =
+                horizontal_ ? ( getWidth() - insets.left - insets.right )
+                            : ( getHeight() - insets.top - insets.bottom )
+                - lengthPad_ * 2;
+                   
+            labeller_.setNpix( npix );
+            prefDepth_ = iconDepth_ + labeller_.getAnnotationHeight();
         }
         else {
-            prefHeight_ = 0;
+            prefDepth_ = 0;
         }
     }
 
@@ -98,35 +106,53 @@ public class AuxLegend extends JComponent {
 
             /* Work out geometry. */
             Insets insets = getInsets();
-            int txtHeight = labeller_.getAnnotationHeight();
-            int xoff = insets.left + widthPad_;
-            int yoff = insets.top;
-            int xdim = labeller_.getNpix();
-            int ydim = getHeight() - insets.top - insets.bottom - txtHeight;
+            int txtDepth = labeller_.getAnnotationHeight();
+            int iconDepth =
+                ( horizontal_ ? ( getHeight() - insets.top - insets.bottom )
+                              : ( getHeight() - insets.left - insets.right ) )
+                - txtDepth;
+            int xIcon = insets.left + ( horizontal_ ? lengthPad_ : 0 );
+            int yIcon = insets.top + ( horizontal_ ? 0 : lengthPad_ );
+            int xpix = horizontal_ ? labeller_.getNpix() : iconDepth;
+            int ypix = horizontal_ ? iconDepth : labeller_.getNpix();
 
             /* Draw the colour bar itself. */
-            Icon icon = Shaders.create1dIcon( shader_, true, Color.RED,
-                                              xdim, ydim, 0, 0 );
-            icon.paintIcon( this, g, xoff, yoff );
+            Icon icon = Shaders.create1dIcon( shader_, horizontal_, Color.RED,
+                                              xpix, ypix, 0, 0 );
+            icon.paintIcon( this, g, xIcon, yIcon );
 
             /* Draw the numerical annotations. */
-            yoff += ydim;
-            g.translate( xoff, yoff );
+            int xLabel = xIcon + ( horizontal_ ? 0 : xpix );
+            int yLabel = yIcon + ( horizontal_ ? ypix : 0 );
+            g.translate( xLabel, yLabel );
             labeller_.annotateAxis( g );
-            g.translate( - xoff, - yoff );
+            g.translate( - xLabel, - yLabel );
         }
     }
 
     public Dimension getPreferredSize() {
-        return new Dimension( 200, prefHeight_ );
+        return getSize( 200 );
     }
 
     public Dimension getMaximumSize() {
-        return new Dimension( Integer.MAX_VALUE, prefHeight_ );
+        return getSize( Integer.MAX_VALUE );
     }
 
     public Dimension getMinimumSize() {
-        return new Dimension( 20 + getInsets().left + getInsets().right,
-                              prefHeight_ );
+        Insets insets = getInsets();
+        return getSize( 32 + ( horizontal_ ? insets.left + insets.right
+                                           : insets.top + insets.bottom ) );
+    }
+
+    /**
+     * Returns a dimension fixed along the preferred depth of this component
+     * with a length as specified.
+     *
+     * @param   length  length
+     * @return  dimension
+     */
+    private Dimension getSize( int length ) {
+        return horizontal_ ? new Dimension( length, prefDepth_ )
+                           : new Dimension( prefDepth_, length );
     }
 }
