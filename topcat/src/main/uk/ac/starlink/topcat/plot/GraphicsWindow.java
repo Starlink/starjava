@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -134,6 +135,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final BoundedRangeModel noProgress_;
     private final BoundedRangeModel auxVisibleModel_;
     private final ComboBoxModel[] auxShaderModels_;
+    private final Legend legend_;
     private final AuxLegend[] auxLegends_;
 
     private StyleSet styleSet_;
@@ -277,14 +279,27 @@ public abstract class GraphicsWindow extends AuxWindow {
         pselBox.add( pointSelectors_, BorderLayout.CENTER );
         getControlPanel().add( new SizeWrapper( pselBox ) );
 
+        /* Construct and place a legend box. */
+        JComponent legendBox = Box.createVerticalBox();
+        legend_ = new Legend();
+        legend_.setBorder( BorderFactory.createCompoundBorder(
+                              BorderFactory.createLineBorder( Color.BLACK ),
+                              BorderFactory.createEmptyBorder( 0, 5, 5, 5 ) ) );
+        legendBox.add( legend_ );
+        getMainArea().add( legendBox, BorderLayout.EAST );
+
         /* Set up a container for auxiliary axis legends. */
         auxLegends_ = new AuxLegend[ naux_ ];
         if ( naux_ > 0 ) {
             for ( int i = 0; i < naux_; i++ ) {
-                auxLegends_[ i ] = new AuxLegend( false, 16, 24 );
+                AuxLegend auxLegend = new AuxLegend( false, 16, 16, 0 );
+                auxLegends_[ i ] = auxLegend;
+                int xpad = i > 0 ? 10 : 0;
+                auxLegend.setBorder( BorderFactory
+                                    .createEmptyBorder( 0, xpad, 0, 0 ) );
             }
             final JComponent auxLegendBox = Box.createHorizontalBox();
-            getMainArea().add( auxLegendBox, BorderLayout.EAST );
+            legendBox.add( auxLegendBox );
             ChangeListener auxVisListener = new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
                     if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
@@ -293,6 +308,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                         for ( int i = 0; i < nvis; i++ ) {
                             auxLegendBox.add( auxLegends_[ i ] );
                         }
+                        auxLegendBox.add( Box.createHorizontalGlue() );
                     }
                 }
             };
@@ -1146,12 +1162,6 @@ public abstract class GraphicsWindow extends AuxWindow {
          * assertion should not take much time. */
         assert state.equals( getPlotState() ) : state.compare( getPlotState() );
 
-        /* Update auxiliary axes. */
-        int nvis = getVisibleAuxAxisCount();
-        for ( int i = 0; i < nvis; i++ ) {
-            auxLegends_[ i ].configure( state, i );
-        }
-
         /* Only if the plot will differ from last time we did it, do we
          * do the actual drawing.  This can be true in one of two ways:
          * either the PlotState differs (as the result of the controls
@@ -1159,6 +1169,27 @@ public abstract class GraphicsWindow extends AuxWindow {
          * (the asynchronous data read might have completed since last
          * time). */
         if ( ! state.equals( lastState_ ) || points_ != lastPoints_ ) {
+
+            /* Update plot style legend. */
+            PointSelection psel = state.getPointSelection();
+            if ( psel == null ) {
+                legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
+            }
+            else {
+                RowSubset[] rsets = psel.getSubsets();
+                String[] labels = new String[ rsets.length ];
+                for ( int i = 0; i < rsets.length; i++ ) {
+                    labels[ i ] = rsets[ i ].getName();
+                }
+                legend_.setStyles( psel.getStyles(), labels );
+            }
+
+            /* Update legends for auxiliary axes. */
+            int nvis = getVisibleAuxAxisCount();
+            for ( int i = 0; i < nvis; i++ ) {
+                auxLegends_[ i ].configure( state, i );
+            }
+
             doReplot( state, points_ );
             logger_.info( "Replot " + ++nPlot_ );
             lastState_ = state;
