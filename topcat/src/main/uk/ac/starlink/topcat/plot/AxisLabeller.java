@@ -16,12 +16,15 @@ public class AxisLabeller {
     private double lo_;
     private double hi_;
     private int npix_;
+    private int loPad_;
+    private int hiPad_;
     private boolean log_;
     private boolean flip_;
     private TickLabel[] tickLabels_;
     private String axisLabel_;
     private FontMetrics fm_;
     private TickStyle tickStyle_;
+    private int reqTick_;
     private int maxHeight_;
     private boolean drawText_ = true;
 
@@ -41,10 +44,13 @@ public class AxisLabeller {
      * @param   reqTick  suggested number of tick marks on the axis;
      *          the actual number may be greater or smaller according to
      *          axis length, font size etc
+     * @param   loPad  number of pixels below 0 available for drawing on
+     * @param   hiPad  number of pixels above npix available for drawing on
      */
     public AxisLabeller( String axisLabel, double lo, double hi, int npix,
                          boolean log, boolean flip, FontMetrics fm,
-                         TickStyle tickStyle, int reqTick ) {
+                         TickStyle tickStyle, int reqTick, 
+                         int loPad, int hiPad ) {
         axisLabel_ = axisLabel;
         lo_ = lo;
         hi_ = hi;
@@ -53,15 +59,27 @@ public class AxisLabeller {
         flip_ = flip;
         fm_ = fm;
         tickStyle_ = tickStyle;
+        reqTick_ = reqTick;
+        loPad_ = loPad;
+        hiPad_ = hiPad;
+        configure();
+    }
+
+    /**
+     * Ensures that internal state is consistent.  Should be called after
+     * some characteristics change.
+     */
+    private void configure() {
 
         /* Set up actual tick marks and their positions.  Start out with
          * the requested number, but if this makes the axis too crowded
          * reduce the number and start again. */
         TickLabel[] labels = null;
         int maxh = 0;
-        for ( int mTick = reqTick; labels == null && mTick > 0; mTick-- ) {
-            AxisLabels axer = log ? AxisLabels.labelLogAxis( lo, hi, mTick )
-                                  : AxisLabels.labelLinearAxis( lo, hi, mTick );
+        for ( int mTick = reqTick_; labels == null && mTick > 0; mTick-- ) {
+            AxisLabels axer = log_
+                            ? AxisLabels.labelLogAxis( lo_, hi_, mTick )
+                            : AxisLabels.labelLinearAxis( lo_, hi_, mTick );
             int nTick = axer.getCount();
             labels = new TickLabel[ nTick ];
             Rectangle lastBounds = null;
@@ -71,7 +89,7 @@ public class AxisLabeller {
                 labels[ iTick ] = new TickLabel( pos, text );
 
                 /* Check it's not too close to the last label. */
-                Rectangle bounds = tickStyle.getBounds( fm, pos, 0, text );
+                Rectangle bounds = tickStyle_.getBounds( fm_, pos, 0, text );
                 maxh = Math.max( maxh, bounds.height );
                 if ( iTick > 0 ) {
                     Rectangle r1 =
@@ -110,6 +128,27 @@ public class AxisLabeller {
     }
 
     /**
+     * Returns the number of pixels along this axis.
+     *
+     * @return   npix
+     */
+    public int getNpix() {
+        return npix_;
+    }
+
+    /**
+     * Sets the number of pixels along this axis.
+     *
+     * @param  npix  axis length in pixels
+     */
+    public void setNpix( int npix ) {
+        if ( npix != npix_ ) {
+            npix_ = npix;
+            configure();
+        }
+    }
+
+    /**
      * Draw the axis labels on a given graphics context.
      * The axis will be drawn along the horizontal direction of the context,
      * starting at the origin.
@@ -135,7 +174,8 @@ public class AxisLabeller {
             g.drawLine( tpos, -2, tpos, +2 );
             if ( drawText_ ) {
                 Rectangle bounds = tickStyle_.getBounds( fm_, tpos, 0, ttext );
-                if ( bounds.x > 0 && bounds.x + bounds.width < npix_ ) {
+                if ( bounds.x > 0 - loPad_ &&
+                     bounds.x + bounds.width < npix_ + hiPad_ ) {
                     tickStyle_.drawString( g, fm_, tpos, 0, ttext );
                 }
             }
@@ -219,6 +259,12 @@ public class AxisLabeller {
      * Defines tick mark annotation styles.
      */
     public static abstract class TickStyle {
+
+        /**
+         * Private sole constructor.
+         */
+        private TickStyle() {
+        }
 
         /**
          * Annotates a tickmark at a given point with a given text label.
