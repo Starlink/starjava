@@ -26,6 +26,7 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -289,12 +290,29 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Set up a container for auxiliary axis legends. */
         auxLegends_ = new AuxLegend[ naux_ ];
         if ( naux_ > 0 ) {
-            for ( int i = 0; i < naux_; i++ ) {
+            for ( int iaux = 0; iaux < naux_; iaux++ ) {
+
+                /* Construct an auxililary axis legend. */
                 AuxLegend auxLegend = new AuxLegend( false, 16 );
-                auxLegends_[ i ] = auxLegend;
-                int xpad = i > 0 ? 10 : 0;
+                auxLegends_[ iaux ] = auxLegend;
+                int xpad = iaux > 0 ? 10 : 0;
                 auxLegend.setBorder( BorderFactory
                                     .createEmptyBorder( 0, xpad, 0, 0 ) );
+
+                /* Configure it for zooming. */
+                final int idim = iaux + getMainRangeCount();
+                ZoomRegion zoomRegion = auxLegend.new ZoomRegion() {
+                    protected void dataZoomed( double lo, double hi ) {
+                        getAxisWindow().getEditors()[ idim ].clearBounds();
+                        getViewRanges()[ idim ]
+                            .setBounds( new double[] { lo, hi } );
+                        replot();
+                    }
+                };
+                Zoomer zoomer = new Zoomer();
+                zoomer.setRegions( Collections.singletonList( zoomRegion ) );
+                auxLegend.addMouseListener( zoomer );
+                auxLegend.addMouseMotionListener( zoomer );
             }
             final JComponent auxLegendBox = Box.createHorizontalBox();
             legendBox.add( auxLegendBox );
@@ -431,9 +449,8 @@ public abstract class GraphicsWindow extends AuxWindow {
             ChangeListener auxVisListener = new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
                     if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
-                        int nvis = axeds.length
-                                 + auxVisibleModel_.getValue()
-                                 - auxVisibleModel_.getMaximum();
+                        int nvis = getMainRangeCount()
+                                 + auxVisibleModel_.getValue();
                         AxisEditor[] eds = new AxisEditor[ nvis ];
                         System.arraycopy( axeds, 0, eds, 0, nvis );
                         axisWindow_.setEditors( eds );
@@ -473,6 +490,14 @@ public abstract class GraphicsWindow extends AuxWindow {
         setStyles( getDefaultStyles( (int) Math.min( npoint,
                                                      Integer.MAX_VALUE ) ) );
         mainSel.setStyles( getStyles() );
+    }
+
+    /**
+     * Returns the number of axes whose ranges can be reset excluding any
+     * auxiliary axes.
+     */
+    public int getMainRangeCount() {
+        return ndim_;
     }
 
     /**
@@ -960,7 +985,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Set the number of main (geometric) dimensions.  This may need to
          * be adjusted by subclasses which define these differently. */
-        state.setMainNdim( ndim_ );
+        state.setMainNdim( getMainRangeCount() );
 
         /* Set per-axis characteristics. */
         StarTable mainData =
