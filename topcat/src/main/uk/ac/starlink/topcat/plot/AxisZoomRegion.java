@@ -23,18 +23,28 @@ public abstract class AxisZoomRegion extends ZoomRegion {
     private static final int BOX = 32;
 
     /**
-     * Constructs a new axis zoom region.
+     * Constructs a new axis zoom region with no target and display regions.
+     *
+     * @param  isX  true for X axis zooming, false for Y axis zooming
+     */
+    public AxisZoomRegion( boolean isX ) {
+        isX_ = isX;
+        setCursor( Cursor.getPredefinedCursor( isX ? Cursor.W_RESIZE_CURSOR
+                                                   : Cursor.N_RESIZE_CURSOR ) );
+    }
+
+    /**
+     * Constructs a new axis zoom region with defined target and 
+     * display regions.
      *
      * @param  isX  true for X axis zooming, false for Y axis zooming
      * @param  target   target region (region in which cursor is dragged)
      * @param  display  display region (region in which zoom box is shown)
      */
     public AxisZoomRegion( boolean isX, Rectangle target, Rectangle display ) {
-        isX_ = isX;
+        this( isX );
         setTarget( target );
         setDisplay( display );
-        setCursor( Cursor.getPredefinedCursor( isX ? Cursor.W_RESIZE_CURSOR
-                                                   : Cursor.N_RESIZE_CURSOR ) );
     }
 
     public ZoomDrag createDrag( Component comp, Point start ) {
@@ -46,6 +56,7 @@ public abstract class AxisZoomRegion extends ZoomRegion {
      */
     private class AxisDrag implements ZoomDrag {
         final Point start_;
+        final Point origin_;
         final Graphics g_;
         Point last_;
         Boolean sense_;   // true for zoom in, false for zoom out
@@ -60,6 +71,7 @@ public abstract class AxisZoomRegion extends ZoomRegion {
         AxisDrag( Component comp, Point start ) {
             g_ = comp.getGraphics();
             start_ = start;
+            origin_ = comp.getLocation();
             g_.setXORMode( Color.YELLOW );
         }
 
@@ -134,6 +146,7 @@ public abstract class AxisZoomRegion extends ZoomRegion {
             int[] range = v0 <= v1 ? new int[] { v0, v1 }
                                    : new int[] { v1, v0 };
             Rectangle rect = new Rectangle( getDisplay() );
+            rect.translate( - origin_.x, - origin_.y );
             if ( isX_ ) {
                 rect.x = range[ 0 ];
                 rect.width = range[ 1 ] - range[ 0 ];
