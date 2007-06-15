@@ -52,6 +52,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -282,9 +283,6 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Construct and place a legend box. */
         JComponent legendBox = Box.createVerticalBox();
         legend_ = new Legend();
-        legend_.setBorder( BorderFactory.createCompoundBorder(
-                              BorderFactory.createLineBorder( Color.BLACK ),
-                              BorderFactory.createEmptyBorder( 0, 5, 5, 5 ) ) );
         legendBox.add( legend_ );
         getMainArea().add( legendBox, BorderLayout.EAST );
 
@@ -292,7 +290,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         auxLegends_ = new AuxLegend[ naux_ ];
         if ( naux_ > 0 ) {
             for ( int i = 0; i < naux_; i++ ) {
-                AuxLegend auxLegend = new AuxLegend( false, 16, 16, 0 );
+                AuxLegend auxLegend = new AuxLegend( false, 16 );
                 auxLegends_[ i ] = auxLegend;
                 int xpad = i > 0 ? 10 : 0;
                 auxLegend.setBorder( BorderFactory
@@ -793,6 +791,18 @@ public abstract class GraphicsWindow extends AuxWindow {
     protected abstract JComponent getPlot();
 
     /**
+     * Returns the bounds of the actual plot.  This may be used for visual 
+     * alignment of some items in the window.  It is permissible to return
+     * just the bounds of the plot component itself, but alignment of other
+     * components (legends) may look better if the bounds of the actual 
+     * plotting region (for instance, excluding external axis labels) is 
+     * returned.
+     *
+     * @return  plot region bounds
+     */
+    public abstract Rectangle getPlotBounds();
+
+    /**
      * Performs an actual plot.  Concrete subclasses should implement this
      * to paint the component according to the given <code>state</code>
      * and <code>points</code>.  
@@ -1170,30 +1180,62 @@ public abstract class GraphicsWindow extends AuxWindow {
          * time). */
         if ( ! state.equals( lastState_ ) || points_ != lastPoints_ ) {
 
-            /* Update plot style legend. */
-            PointSelection psel = state.getPointSelection();
-            if ( psel == null ) {
-                legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
-            }
-            else {
-                RowSubset[] rsets = psel.getSubsets();
-                String[] labels = new String[ rsets.length ];
-                for ( int i = 0; i < rsets.length; i++ ) {
-                    labels[ i ] = rsets[ i ].getName();
-                }
-                legend_.setStyles( psel.getStyles(), labels );
-            }
+            /* Make sure that the legend displays are up to date. */
+            configureLegends( state );
 
-            /* Update legends for auxiliary axes. */
-            int nvis = getVisibleAuxAxisCount();
-            for ( int i = 0; i < nvis; i++ ) {
-                auxLegends_[ i ].configure( state, i );
-            }
-
+            /* Do the actual painting. */
             doReplot( state, points_ );
+
+            /* Log and store state for future use. */
             logger_.info( "Replot " + ++nPlot_ );
             lastState_ = state;
             lastPoints_ = points_;
+        }
+    }
+
+    /**
+     * Ensures that legends are configured and aligned correctly for a
+     * given plot state.
+     *
+     * @param  state  plot state
+     */
+    private void configureLegends( PlotState state ) {
+
+        /* Work out the space available above and below the actual plot
+         * region within the plot component. */
+        Rectangle plotContainer = getMainArea().getBounds();
+        Rectangle plotRegion = getPlotBounds();
+        int topgap = plotRegion.y;
+        int botgap = plotContainer.height - plotRegion.height - topgap;
+
+        /* Set the border on the legend so that its top edge aligns with
+         * the top edge of the plot region. */
+        Border border = BorderFactory.createEmptyBorder( topgap, 0, 10, 0 );
+        border = BorderFactory.createCompoundBorder( border,
+                    BorderFactory.createLineBorder( Color.BLACK ) );
+        border = BorderFactory.createCompoundBorder( border,
+                    BorderFactory.createEmptyBorder( 5, 5, 5, 10 ) );
+        legend_.setBorder( border );
+
+        /* Update plot style legend contents. */
+        PointSelection psel = state.getPointSelection();
+        if ( psel == null ) {
+            legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
+        }
+        else {
+            RowSubset[] rsets = psel.getSubsets();
+            String[] labels = new String[ rsets.length ];
+            for ( int i = 0; i < rsets.length; i++ ) {
+                labels[ i ] = rsets[ i ].getName();
+            }
+            legend_.setStyles( psel.getStyles(), labels );
+        }
+
+        /* Update legends for auxiliary axes. */
+        int nvis = getVisibleAuxAxisCount();
+        for ( int i = 0; i < nvis; i++ ) {
+            auxLegends_[ i ].setLengthPadding( topgap, botgap );
+            auxLegends_[ i ].configure( state, i );
         }
     }
 
