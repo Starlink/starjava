@@ -126,10 +126,12 @@ public class SphereWindow extends Plot3DWindow {
         return state;
     }
 
+    public int getMainRangeCount() {
+        return 1;
+    }
+
     public PlotState getPlotState() {
         PlotState state = super.getPlotState();
-        int mainNdim = 1;
-        state.setMainNdim( mainNdim );
 
         /* Modify ranges.  This is required because of confusion about what
          * axes mean between GraphicsWindow and SphereWindow. */
@@ -139,6 +141,7 @@ public class SphereWindow extends Plot3DWindow {
             Range[] viewRanges = getViewRanges();
             Range[] dataRanges = getDataRanges();
             boolean[] logFlags = state.getLogFlags();
+            int mainNdim = getMainRangeCount();
             for ( int i = 0; i < naux; i++ ) {
                 Range range = new Range( dataRanges[ mainNdim + i ] );
                 range.limit( viewRanges[ mainNdim + i ] );
