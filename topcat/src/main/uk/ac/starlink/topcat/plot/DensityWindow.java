@@ -372,6 +372,14 @@ public class DensityWindow extends GraphicsWindow {
         plot_.repaint();
     }
 
+    public Rectangle getPlotBounds() {
+        Rectangle bounds =
+            new Rectangle( plot_.getSurface().getClip().getBounds() );
+        bounds.y--;
+        bounds.height += 2;
+        return bounds;
+    }
+
     public StyleSet getDefaultStyles( int npoint ) {
         return new StyleSet() {
             public String getName() {

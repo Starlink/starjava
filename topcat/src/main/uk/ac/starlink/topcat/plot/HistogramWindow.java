@@ -6,6 +6,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -384,6 +385,14 @@ public class HistogramWindow extends GraphicsWindow {
         double[] xBounds = xRange.getFiniteBounds( xlog );
         calculateMaxCount( pointSelection, points, xBounds, true );
         return new Range[] { xRange };
+    }
+
+    public Rectangle getPlotBounds() {
+        Rectangle bounds =
+            new Rectangle( plot_.getSurface().getClip().getBounds() );
+        bounds.y--;
+        bounds.height += 2;
+        return bounds;
     }
 
     /**

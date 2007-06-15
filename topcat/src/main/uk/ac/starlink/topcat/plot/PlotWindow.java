@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -263,6 +264,14 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( true, true, ERROR_RENDERERS,
                                     getErrorModeModels() );
+    }
+
+    public Rectangle getPlotBounds() {
+        Rectangle bounds =
+            new Rectangle( plot_.getSurface().getClip().getBounds() );
+        bounds.y--;
+        bounds.height += 2;
+        return bounds;
     }
 
     /*
