@@ -50,6 +50,7 @@ public abstract class XYZoomRegion extends ZoomRegion {
 
         final Graphics g_;
         final Point start_;
+        final Point origin_;
         Boolean sense_;   // true for zoom in, false for zoom out
         Point last_;
 
@@ -62,6 +63,7 @@ public abstract class XYZoomRegion extends ZoomRegion {
         XyDrag( Component comp, Point start ) {
             g_ = comp.getGraphics();
             start_ = start;
+            origin_ = comp.getLocation();
             g_.setXORMode( Color.YELLOW );
         }
 
@@ -92,7 +94,8 @@ public abstract class XYZoomRegion extends ZoomRegion {
 
         public double[][] boundsAt( Point end ) {
             if ( sense_ != null ) {
-                Rectangle zone = getDisplay();
+                Rectangle zone = new Rectangle( getDisplay() );
+                zone.translate( - origin_.x, -origin_.y );
                 xorRegion( start_, last_ );
                 if ( sense_.booleanValue() ) {
                     double x0 = ( start_.x - zone.x ) / (double) zone.width;

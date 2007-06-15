@@ -64,8 +64,11 @@ public abstract class CentreZoomRegion extends ZoomRegion {
             g_ = comp.getGraphics();
             start_ = start;
             g_.setXORMode( Color.YELLOW );
-            target_ = getTarget();
-            display_ = getDisplay();
+            Point origin = comp.getLocation();
+            target_ = new Rectangle( getTarget() );
+            display_ = new Rectangle( getDisplay() );
+            target_.translate( - origin.x, - origin.y );
+            display_.translate( - origin.x, - origin.y );
             centre_ = new Point( display_.x + display_.width / 2,
                                  display_.y + display_.height / 2 );
             aspect_ = (double) display_.height / (double) display_.width;
