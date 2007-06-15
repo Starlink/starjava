@@ -73,7 +73,7 @@ public class AuxLegend extends JComponent {
             hi_ = state.getRanges()[ idim ][ 1 ];
             String label = state.getAxisLabels()[ idim ];
             labeller_ =
-                new AxisLabeller( label, lo_, hi_, 200, logFlag_, flipFlag_, 
+                new AxisLabeller( label, lo_, hi_, 200, logFlag_, ! flipFlag_, 
                                   getFontMetrics( getFont() ),
                                   horizontal_ ? AxisLabeller.X
                                               : AxisLabeller.ANTI_Y,
@@ -153,7 +153,8 @@ public class AuxLegend extends JComponent {
             g2.setTransform( transform );
 
             /* Draw the colour bar itself. */
-            Icon icon = Shaders.create1dIcon( shader_, horizontal_, Color.RED,
+            Icon icon = Shaders.create1dIcon( Shaders.invert( shader_ ),
+                                              horizontal_, Color.RED,
                                               xpix, ypix, 0, 0 );
             icon.paintIcon( this, g, xIcon, yIcon );
 
