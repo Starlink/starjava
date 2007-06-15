@@ -28,6 +28,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         setColor( false );
         _setPadding( 0.0 );
         _expThreshold = 3;
+        _topPadding = 5;
     }
 
     public void setState( PlotState state ) {
