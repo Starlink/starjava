@@ -70,7 +70,7 @@ public class Zoomer extends MouseInputAdapter {
         if ( evt.getButton() == MouseEvent.BUTTON1 && drag_ == null ) {
             for ( Iterator it = regionList_.iterator(); it.hasNext(); ) {
                 ZoomRegion region = (ZoomRegion) it.next();
-                Point point = evt.getPoint();
+                Point point = getPoint( evt );
                 if ( region.getTarget() != null &&
                      region.getTarget().contains( point ) ) {
                     drag_ = region.createDrag( (Component) evt.getSource(),
@@ -88,13 +88,13 @@ public class Zoomer extends MouseInputAdapter {
 
     public void mouseDragged( MouseEvent evt ) {
         if ( drag_ != null ) {
-            drag_.dragTo( evt.getPoint() );
+            drag_.dragTo( getPoint( evt ) );
         }
     }
 
     public void mouseReleased( MouseEvent evt ) {
         if ( drag_ != null ) {
-            double[][] zoomBounds = drag_.boundsAt( evt.getPoint() );
+            double[][] zoomBounds = drag_.boundsAt( getPoint( evt ) );
             if ( zoomBounds != null ) {
                 dragRegion_.zoomed( zoomBounds );
             }
@@ -102,6 +102,20 @@ public class Zoomer extends MouseInputAdapter {
             dragRegion_ = null;
         }
         configureCursor( evt );
+    }
+
+    /**
+     * Returns the point at which a mouse event originated relative to
+     * the component in which it was seen.
+     *
+     * @param   evt   event
+     * @return   relative position
+     */
+    private Point getPoint( MouseEvent evt ) {
+        Point point = new Point( evt.getPoint() );
+        Point offset = ((Component) evt.getSource()).getLocation();
+        point.translate( offset.x, offset.y );
+        return point;
     }
 
     /**
@@ -115,7 +129,7 @@ public class Zoomer extends MouseInputAdapter {
                                   ? cursorComponent_
                                   : (Component) evt.getSource();
         if ( cursorComponent != null ) {
-            Point p = evt.getPoint();
+            Point p = getPoint( evt );
             for ( Iterator it = regionList_.iterator(); it.hasNext(); ) {
                 ZoomRegion region = (ZoomRegion) it.next();
                 if ( region.getTarget().contains( p ) ) {
