@@ -579,6 +579,23 @@ public class Shaders {
     }
 
     /**
+     * Returns a shader which runs in the opposite direction to a given one.
+     *
+     * @param  shader  base shader
+     * @return  inverted version
+     */
+    public static Shader invert( final Shader shader ) {
+        return new Shader() {
+            public void adjustRgba( float[] rgba, float value ) {
+                shader.adjustRgba( rgba, 1f - value );
+            }
+            public String toString() {
+                return "-" + shader.toString();
+            }
+        };
+    }
+
+    /**
      * Constructs an icon which represents a shader in one dimension.
      * A horizontal or vertical bar is drawn
      * which gives the full range of colours produced by the shader as
