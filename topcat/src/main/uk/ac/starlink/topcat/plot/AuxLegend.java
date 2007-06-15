@@ -20,8 +20,8 @@ public class AuxLegend extends JComponent {
 
     private final boolean horizontal_;
     private final int iconDepth_;
-    private final int preLength_;
-    private final int postLength_;
+    private int preLength_;
+    private int postLength_;
     private Shader shader_;
     private int prefDepth_;
     private AxisLabeller labeller_;
@@ -33,13 +33,20 @@ public class AuxLegend extends JComponent {
      * @param   horizontal  true for a bar that runs horizontally,
      *                      false for a bar that runs vertically
      * @param   iconDepth  preferred transverse size of the legend colour band
+     */
+    public AuxLegend( boolean horizontal, int iconDepth ) {
+        horizontal_ = horizontal;
+        iconDepth_ = iconDepth;
+    }
+
+    /**
+     * Configures the amount of padding left before and after the bar 
+     * which can be used to carry half-labels etc.
+     * 
      * @param   preLength   number of padding pixels blank before the bar run
      * @param   postLength  number of padding pixels blank after the bar run
      */
-    public AuxLegend( boolean horizontal, int iconDepth,
-                      int preLength, int postLength ) {
-        horizontal_ = horizontal;
-        iconDepth_ = iconDepth;
+    public void setLengthPadding( int preLength, int postLength ) {
         preLength_ = preLength;
         postLength_ = postLength;
     }
@@ -147,7 +154,7 @@ public class AuxLegend extends JComponent {
             icon.paintIcon( this, g, xIcon, yIcon );
 
             /* Draw a surrounding rectangle. */
-            g.drawRect( xIcon, yIcon, xpix - 1, ypix - 1 );
+            g.drawRect( xIcon, yIcon, xpix, ypix - 1 );
         }
     }
 
