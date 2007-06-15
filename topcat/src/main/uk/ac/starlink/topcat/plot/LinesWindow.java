@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
@@ -117,6 +118,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             }
         };
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
+        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
 
         /* Add it to the display. */
         getMainArea().add( plot_, BorderLayout.CENTER );
@@ -542,6 +544,11 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             ranges[ igraph + 1 ] = yRanges[ igraph ];
         }
         return ranges;
+    }
+
+    public Rectangle getPlotBounds() {
+        Rectangle bounds = plot_.getPlotRegion();
+        return bounds == null ? getMainArea().getBounds() : bounds;
     }
 
     /*
