@@ -1674,6 +1674,9 @@ class PlotBox extends JPanel implements Printable {
         if (_title != null || _yExp != 0) {
             titley = titlefontheight + _topPadding;
         }
+        else {
+            titley = _topPadding;
+        }
 
         // Number of vertical tick marks depends on the height of the font
         // for labeling ticks and the height of the window.
