@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -25,7 +26,10 @@ public class AuxLegend extends JComponent {
     private Shader shader_;
     private int prefDepth_;
     private AxisLabeller labeller_;
-    private int lastWidth_;
+    private boolean logFlag_;
+    private boolean flipFlag_;
+    private double lo_;
+    private double hi_;
 
     /**
      * Constructor.
@@ -58,18 +62,18 @@ public class AuxLegend extends JComponent {
      * @param   iaux   index of auxiliary axis to use
      */
     public void configure( PlotState state, int iaux ) {
-        shader_ = state.getShaders().length > iaux
+        shader_ = state.getValid() && state.getShaders().length > iaux
                ? state.getShaders()[ iaux ]
                : null;
         if ( shader_ != null ) {
             int idim = state.getMainNdim() + iaux;
-            boolean logFlag = state.getLogFlags()[ idim ];
-            boolean flipFlag = state.getFlipFlags()[ idim ];
-            double lo = state.getRanges()[ idim ][ 0 ];
-            double hi = state.getRanges()[ idim ][ 1 ];
+            logFlag_ = state.getLogFlags()[ idim ];
+            flipFlag_ = state.getFlipFlags()[ idim ];
+            lo_ = state.getRanges()[ idim ][ 0 ];
+            hi_ = state.getRanges()[ idim ][ 1 ];
             String label = state.getAxisLabels()[ idim ];
             labeller_ =
-                new AxisLabeller( label, lo, hi, 200, logFlag, flipFlag, 
+                new AxisLabeller( label, lo_, hi_, 200, logFlag_, flipFlag_, 
                                   getFontMetrics( getFont() ),
                                   horizontal_ ? AxisLabeller.X
                                               : AxisLabeller.ANTI_Y,
@@ -182,5 +186,78 @@ public class AuxLegend extends JComponent {
     private Dimension getSize( int length ) {
         return horizontal_ ? new Dimension( length, prefDepth_ )
                            : new Dimension( prefDepth_, length );
+    }
+
+    /**
+     * Converts a fractional value (where zero corresponds to current 
+     * lower bound and 1 corresponds to current upper bound) into
+     * a corresponding data value.
+     *
+     * @param  frac  input fractional value
+     * @return   corresponding data value
+     */
+    private double fractionToData( double frac ) {
+        double f = flipFlag_ ? 1.0 - frac : frac;
+        return logFlag_
+             ? Math.exp( f * Math.log( hi_ / lo_ ) ) * lo_
+             : f * ( hi_ - lo_ ) + lo_;
+    }
+
+    /**
+     * ZoomRegion implementation suitable for use with this legend.
+     */
+    public abstract class ZoomRegion extends AxisZoomRegion {
+
+        /**
+         * Constructor.
+         */
+        public ZoomRegion() {
+            super( horizontal_ );
+        }
+
+        /**
+         * Called when a zoom has taken place.
+         *
+         * @param  lo  new requested lower data bound
+         * @param  hi  new requested upper data bound
+         */
+        protected abstract void dataZoomed( double lo, double hi );
+
+        public Rectangle getDisplay() {
+            Rectangle bounds = new Rectangle( getBounds() );
+            Insets insets = getInsets();
+            bounds.x += insets.left;
+            bounds.y += insets.top;
+            bounds.width -= insets.left + insets.right;
+            bounds.height -= insets.top + insets.bottom;
+            return bounds;
+        }
+
+        public Rectangle getTarget() {
+            Rectangle bounds = getDisplay();
+            if ( horizontal_ ) {
+                bounds.x += preLength_;
+                bounds.width -= preLength_ + postLength_;
+            }
+            else {
+                bounds.y += preLength_;
+                bounds.height -= preLength_ + postLength_;
+            }
+            return bounds;
+        }
+
+        public void setDisplay( Rectangle display ) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setTarget( Rectangle target ) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void zoomed( double[][] bounds ) {
+            double lo = fractionToData( bounds[ 0 ][ flipFlag_ ? 1 : 0 ] );
+            double hi = fractionToData( bounds[ 0 ][ flipFlag_ ? 0 : 1 ] );
+            dataZoomed( lo, hi );
+        }
     }
 }
