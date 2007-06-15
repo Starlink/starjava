@@ -174,8 +174,8 @@ public class AxisLabeller {
             g.drawLine( tpos, -2, tpos, +2 );
             if ( drawText_ ) {
                 Rectangle bounds = tickStyle_.getBounds( fm_, tpos, 0, ttext );
-                if ( bounds.x > 0 - loPad_ &&
-                     bounds.x + bounds.width < npix_ + hiPad_ ) {
+                if ( bounds.x >= 0 - loPad_ &&
+                     bounds.x + bounds.width <= npix_ + hiPad_ ) {
                     tickStyle_.drawString( g, fm_, tpos, 0, ttext );
                 }
             }
