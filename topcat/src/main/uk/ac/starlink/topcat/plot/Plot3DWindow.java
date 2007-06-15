@@ -13,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -72,6 +73,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         /* Configure the plot to provide some callbacks when interesting
          * things happen. */
         plot_ = plot;
+        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 0, 10, 10 ) );
         plot_.setCallbacks( new Plot3D.Callbacks() {
             public void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
