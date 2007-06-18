@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
+import javax.swing.Icon;
+
 /**
  * Defines an object which can modify an sRGB colour as defined by a scalar
  * parameter.
@@ -22,4 +24,33 @@ public interface Shader {
      * @param  value  adjustment parameter in the range 0..1
      */
     void adjustRgba( float[] rgba, float value );
+
+    /**
+     * Indicates whether the shading performed by this shader is dependent
+     * on the input colour or not.
+     *
+     * @return  true if {@link #adjustRgba} depends on the input colour
+     */
+    boolean isAbsolute();
+
+    /**
+     * Returns a name for this shader.
+     *
+     * @return  short human-readable label
+     */
+    String getName();
+
+    /**
+     * Returns an icon which displays this shader in action.
+     *
+     * @param  horizontal  true for shading running horizontally,
+     *                     false for vertically
+     * @param  width  total icon width in pixels
+     * @param  height total icon height in pixels
+     * @param  xpad   internal padding in the X direction
+     * @param  ypad   internal padding in the Y direction
+     * @return  icon
+     */
+    Icon createIcon( boolean horizontal, int width, int height,
+                     int xpad, int ypad );
 }
