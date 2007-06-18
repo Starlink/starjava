@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -29,38 +31,49 @@ import uk.ac.starlink.util.FloatList;
  */
 public class Shaders {
 
+    private static final Color DARK_GREEN = new Color( 0, 160, 0 );
+
     /** Fixes red level at parameter value. */
     public static final Shader FIX_RED =
-        new FixComponentShader( "Fix Red", 0 );
+        new FixRGBComponentShader( "RGB Red", 0 );
 
     /** Fixes green level at parameter value. */
     public static final Shader FIX_GREEN =
-        new FixComponentShader( "Fix Green", 1 );
+        new FixRGBComponentShader( "RGB Green", 1 );
 
     /** Fixes blue level at parameter value. */
     public static final Shader FIX_BLUE =
-        new FixComponentShader( "Fix Blue", 2 );
+        new FixRGBComponentShader( "RGB Blue", 2 );
 
     /** Scales red level by parameter value. */
     public static final Shader SCALE_RED = 
-        new ScaleComponentShader( "Scale Red", 0 );
+        new ScaleRGBComponentShader( "Scale Red", 0 );
 
     /** Scales green level by parameter value. */
     public static final Shader SCALE_GREEN =
-        new ScaleComponentShader( "Scale Green", 1 );
+        new ScaleRGBComponentShader( "Scale Green", 1 );
 
     /** Scales blue level by parameter value. */
     public static final Shader SCALE_BLUE =
-        new ScaleComponentShader( "Scale Blue", 2 );
+        new ScaleRGBComponentShader( "Scale Blue", 2 );
 
     /** Fixes Y in YUV colour space. */
-    public static final Shader FIX_Y = new FixYuvShader( "Fix Y", 0 );
+    public static final Shader FIX_Y = new FixYuvShader( "YUV Y", 0 );
 
     /** Fixes U in YUV colour space. */
-    public static final Shader FIX_U = new FixYuvShader( "Fix U", 1 );
+    public static final Shader FIX_U = new FixYuvShader( "YUV U", 1 );
 
     /** Fixes V in YUV colour space. */
-    public static final Shader FIX_V = new FixYuvShader( "Fix V", 2 );
+    public static final Shader FIX_V = new FixYuvShader( "YUV V", 2 );
+
+    /** Fixes H in HSV colour space. */
+    public static final Shader HSV_H = new FixHsvShader( "HSV H", 0 );
+ 
+    /** Fixes S in HSV colour space. */
+    public static final Shader HSV_S = new FixHsvShader( "HSV S", 1 );
+
+    /** Fixes V in HSV colour space. */
+    public static final Shader HSV_V = new FixHsvShader( "HSV V", 2 );
 
     /** Interpolates between red (0) and blue (1). */
     public static final Shader RBSCALE =
@@ -146,17 +159,118 @@ public class Shaders {
     public static final ListCellRenderer SHADER_RENDERER =
         new ShaderListCellRenderer();
 
-    /** Shader which does nothing. */
-    public static final Shader NULL = new Shader() {
-        public void adjustRgba( float[] rgba, float value ) {
+    /** Base directory for locating binary colour map lookup table resources. */
+    private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+
+    /**
+     * Basic abstract partial shader implementation.
+     */
+    private static abstract class BasicShader implements Shader {
+
+        private final String name_;
+        private final Color baseColor_;
+
+        /**
+         * Constructs an absolute shader (one with no dependence on original
+         * colour).
+         *
+         * @param   name  shader name
+         */
+        BasicShader( String name ) {
+            this( name, null );
         }
+
+        /**
+         * Constructs a non-absolute shader.  The supplied 
+         * <code>baseColor</code> is the one which is used for constructing
+         * an icon.
+         *
+         * @param  name  shader name
+         * @param   baseColor  base colour for constructing icon
+         */
+        BasicShader( String name, Color baseColor ) {
+            name_ = name;
+            baseColor_ = baseColor;
+        }
+
+        public String getName() {
+            return name_;
+        }
+
+        public Icon createIcon( boolean horizontal, int width, int height,
+                                int xpad, int ypad ) {
+            return create1dIcon( this, horizontal,
+                                 baseColor_ == null ? Color.BLACK : baseColor_,
+                                 width, height, xpad, ypad );
+        }
+
+        public boolean isAbsolute() {
+            return baseColor_ == null;
+        }
+
         public String toString() {
-            return "None";
+            return "Shader: " + name_;
+        }
+    }
+
+    /**
+     * Abstract Shader implementation for fixing components in foreign
+     * (non-RGB) colour spaces.
+     */
+    private static abstract class FixColorSpaceComponentShader 
+                                  extends BasicShader {
+
+        private final int icomp_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name   name
+         * @param  baseColor  base colour for generating icon
+         * @param  icomp   modified component index
+         */
+        FixColorSpaceComponentShader( String name, Color baseColor,
+                                      int icomp ) {
+            super( name, baseColor );
+            icomp_ = icomp;
+        }
+
+        /**
+         * Converts RGB array to foreign colour space.
+         *
+         * @param  rgb  colour component array; on entry and exit all elements
+         *         must be in the range 0..1
+         */
+        protected abstract void toSpace( float[] rgb );
+
+        /**
+         * Converts foreign colour space array to RGB.
+         *
+         * @param  abc  colour component array; on entry and exit all elements
+         *         must be in the range 0..1
+         */
+        protected abstract void fromSpace( float[] abc );
+
+        public void adjustRgba( float[] rgba, float value ) {
+            toSpace( rgba );
+            rgba[ icomp_ ] = value;
+            fromSpace( rgba );
+        }
+    }
+
+    /** Shader which does nothing. */
+    public static final Shader NULL =
+            new BasicShader( "None", new Color( 1, 1, 1, 0 ) ) {
+        public void adjustRgba( float[] rgba, float value ) {
         }
     };
 
     /** Shader which sets intensity. */
-    public static final Shader FIX_INTENSITY = new Shader() {
+    public static final Shader FIX_INTENSITY =
+            new BasicShader( "Intensity", Color.BLUE ) {
         public void adjustRgba( float[] rgba, float value ) {
             float max = Math.max( rgba[ 0 ], Math.max( rgba[ 1 ], rgba[ 2 ] ) );
             float m1 = 1f / max;
@@ -164,28 +278,17 @@ public class Shaders {
                 rgba[ i ] = 1f - value * ( 1f - rgba[ i ] * m1 );
             }
         }
-        public String toString() {
-            return "Fix Intensity";
-        }
     };
 
     /** Shader which scales intensity. */
-    public static final Shader SCALE_INTENSITY = new Shader() {
+    public static final Shader SCALE_INTENSITY =
+            new BasicShader( "Scale Intensity", Color.BLUE ) {
         public void adjustRgba( float[] rgba, float value ) {
             for ( int i = 0; i < 3; i++ ) {
                 rgba[ i ] = 1f - value * ( 1f - rgba[ i ] );
             }
         }
-        public String toString() {
-            return "Scale Intensity";
-        }
     };
-
-    /** Base directory for locating binary colour map lookup table resources. */
-    private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
-
-    private final static Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
     /**
      * Constructs a shader which interpolates smoothly between two colours.
@@ -199,16 +302,13 @@ public class Shaders {
                                                     Color color1 ) {
         final float[] rgba0 = color0.getRGBComponents( null );
         final float[] rgba1 = color1.getRGBComponents( null );
-        return new Shader() {
+        return new BasicShader( name ) {
             public void adjustRgba( float[] rgba, float value ) {
                 for ( int i = 0; i < 3; i++ ) {
                     float f0 = rgba0[ i ];
                     float f1 = rgba1[ i ];
                     rgba[ i ] = f0 + ( f1 - f0 ) * value;
                 }
-            }
-            public String toString() {
-                return name;
             }
         };
     }
@@ -223,57 +323,21 @@ public class Shaders {
      */
     public static Shader createFixedShader( final String name, Color color ) {
         final float[] fixedRgba = color.getRGBComponents( new float[ 4 ] );
-        return new Shader() {
+        return new BasicShader( name ) {
             public void adjustRgba( float[] rgba, float value ) {
                 for ( int i = 0; i < 4; i++ ) {
                     rgba[ i ] = fixedRgba[ i ];
                 }
             }
-            public String toString() {
-                return name;
-            }
         };
-    }
-
-    /**
-     * Reads an array of float values stored (as from a DataOutput) at a URL.
-     * Each input value must be in the range 0..1 or an IOException is thrown.
-     *
-     * @param  loc  location of data
-     * @return   array of floats each in range 0..1
-     * @throws  IOException if there is trouble reading or any values are
-     *          out of range
-     */
-    private static float[] readFloatArray( URL loc ) throws IOException {
-        DataInputStream in =
-            new DataInputStream( new BufferedInputStream( loc.openStream() ) );
-        FloatList flist = new FloatList();
-        try {
-            while ( true ) {
-                float value = in.readFloat();
-                if ( value >= 0f && value <= 1f ) {
-                    flist.add( value );
-                }
-                else {
-                    throw new IOException( "RGB values out of range" );
-                }
-            }
-        }
-        catch ( EOFException e ) {
-            return flist.toFloatArray();
-        }
-        finally {
-            in.close();
-        }
     }
 
     /**
      * Shader implementation which fixes one component of the sRGB array
      * at its parameter's value.
      */
-    private static class FixComponentShader implements Shader {
+    private static class FixRGBComponentShader extends BasicShader {
 
-        private final String name_;
         private final int icomp_;
 
         /**
@@ -282,17 +346,13 @@ public class Shaders {
          * @param  name   name
          * @param  icomp   modified component index
          */
-        FixComponentShader( String name, int icomp ) {
-            name_ = name;
+        FixRGBComponentShader( String name, int icomp ) {
+            super( name, Color.BLACK );
             icomp_ = icomp;
         }
         
         public void adjustRgba( float[] rgba, float value ) {
             rgba[ icomp_ ] = value;
-        }
-
-        public String toString() {
-            return name_;
         }
     }
 
@@ -309,7 +369,7 @@ public class Shaders {
          * @param  icomp   modified component index
          */
         FixYuvShader( String name, int icomp ) {
-            super( name, icomp );
+            super( name, DARK_GREEN, icomp );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -369,7 +429,7 @@ public class Shaders {
          * @param  icomp   modified component index
          */
         FixYPbPrShader( String name, int icomp ) {
-            super( name, icomp );
+            super( name, DARK_GREEN, icomp );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -398,14 +458,10 @@ public class Shaders {
     }
 
     /**
-     * Abstract Shader implementation for fixing components in foreign
-     * (non-RGB) colour spaces.
+     * Shader implementation which fixes one component of the HSV colour
+     * space at its parameter's value.
      */
-    private static abstract class FixColorSpaceComponentShader 
-                                  implements Shader {
-
-        private final String name_;
-        private final int icomp_;
+    private static class FixHsvShader extends FixColorSpaceComponentShader {
 
         /**
          * Constructor.
@@ -413,35 +469,111 @@ public class Shaders {
          * @param  name   name
          * @param  icomp   modified component index
          */
-        FixColorSpaceComponentShader( String name, int icomp ) {
-            name_ = name;
-            icomp_ = icomp;
+        FixHsvShader( String name, int icomp ) {
+            super( name, Color.RED, icomp );
         }
 
-        /**
-         * Converts RGB array to foreign colour space.
-         *
-         * @param  rgb  colour component array; on entry and exit all elements
-         *         must be in the range 0..1
-         */
-        protected abstract void toSpace( float[] rgb );
-
-        /**
-         * Converts foreign colour space array to RGB.
-         *
-         * @param  abc  colour component array; on entry and exit all elements
-         *         must be in the range 0..1
-         */
-        protected abstract void fromSpace( float[] abc );
-
-        public void adjustRgba( float[] rgba, float value ) {
-            toSpace( rgba );
-            rgba[ icomp_ ] = value;
-            fromSpace( rgba );
+        protected void toSpace( float[] rgb ) {
+            float r = rgb[ 0 ];
+            float g = rgb[ 1 ];
+            float b = rgb[ 2 ];
+            float max = Math.max( r, Math.max( g, b ) );
+            float min = Math.min( r, Math.min( g, b ) );
+            float v = max;
+            float s = max > 0 ? 1f - min / max : 0;
+            float h;
+            float diff = max - min;
+            if ( diff == 0 ) {
+                h = 0f;
+            }
+            else if ( r == max ) {
+                h = ( 60f * ( g - b ) / diff ) + 0f;
+            }
+            else if ( g == max ) {
+                h = ( 60f * ( b - r ) / diff ) + 120f;
+            }
+            else if ( b == max ) {
+                h = ( 60f * ( r - g ) / diff ) + 240f;
+            }
+            else {
+                assert false;
+                h = 0f;
+            }
+            if ( h < 0f ) {
+                h += 360f;
+            }
+            float sh = h / 360f;
+            rgb[ 0 ] = sh;
+            rgb[ 1 ] = s;
+            rgb[ 2 ] = v;
         }
 
-        public String toString() {
-            return name_;
+        protected void fromSpace( float[] hsv ) {
+            float sh = hsv[ 0 ];
+            float s = hsv[ 1 ];
+            float v = hsv[ 2 ];
+            float h6 = sh * 6f;
+            int ih = (int) h6;
+            float f = h6 - ih;
+            float p = v * ( 1 - s );
+            float q = v * ( 1 - f * s );
+            float t = v * ( 1 - ( 1 - f ) * s );
+            final float r;
+            final float g;
+            final float b;
+            switch ( ih ) {
+                case 0:
+                    r = v; g = t; b = p; break;
+                case 1:
+                    r = q; g = v; b = p; break;
+                case 2:
+                    r = p; g = v; b = t; break;
+                case 3:
+                    r = p; g = q; b = v; break;
+                case 4:
+                    r = t; g = p; b = v; break;
+                case 5:
+                case 6:
+                    r = v; g = p; b = q; break;
+                default:
+                    r = 0; g = 0; b = 0; assert false : ih;
+            }
+            hsv[ 0 ] = r;
+            hsv[ 1 ] = g;
+            hsv[ 2 ] = b;
+        }
+
+    }
+
+    /**
+     * Reads an array of float values stored (as from a DataOutput) at a URL.
+     * Each input value must be in the range 0..1 or an IOException is thrown.
+     *
+     * @param  loc  location of data
+     * @return   array of floats each in range 0..1
+     * @throws  IOException if there is trouble reading or any values are
+     *          out of range
+     */
+    private static float[] readFloatArray( URL loc ) throws IOException {
+        DataInputStream in =
+            new DataInputStream( new BufferedInputStream( loc.openStream() ) );
+        FloatList flist = new FloatList();
+        try {
+            while ( true ) {
+                float value = in.readFloat();
+                if ( value >= 0f && value <= 1f ) {
+                    flist.add( value );
+                }
+                else {
+                    throw new IOException( "RGB values out of range" );
+                }
+            }
+        }
+        catch ( EOFException e ) {
+            return flist.toFloatArray();
+        }
+        finally {
+            in.close();
         }
     }
 
@@ -469,9 +601,8 @@ public class Shaders {
      * Shader implementation which scales one component of the sRGB array
      * by its parameter's value.
      */
-    private static class ScaleComponentShader implements Shader {
+    private static class ScaleRGBComponentShader extends BasicShader {
 
-        private final String name_;
         private final int icomp_;
 
         /**
@@ -480,26 +611,20 @@ public class Shaders {
          * @param  name   name
          * @param   icomp  modified component index
          */
-        ScaleComponentShader( String name, int icomp ) {
-            name_ = name;
+        ScaleRGBComponentShader( String name, int icomp ) {
+            super( name, Color.GRAY );
             icomp_ = icomp;
         }
  
         public void adjustRgba( float[] rgba, float value ) {
             rgba[ icomp_ ] *= value;
         }
-
-        public String toString() {
-            return name_;
-        }
     }
 
     /**
      * Abstract superclass of lookup table-based shader.
      */
-    private static abstract class LutShader implements Shader {
-
-        private final String name_;
+    private static abstract class LutShader extends BasicShader {
 
         /**
          * Constructor.
@@ -507,7 +632,7 @@ public class Shaders {
          * @param  name  shader name
          */
         LutShader( String name ) {
-            name_ = name;
+            super( name );
         }
 
         /**
@@ -525,10 +650,6 @@ public class Shaders {
             rgba[ 0 ] = lut[ is3 + 0 ];
             rgba[ 1 ] = lut[ is3 + 1 ];
             rgba[ 2 ] = lut[ is3 + 2 ];
-        }
-
-        public String toString() {
-            return name_;
         }
     }
 
@@ -589,8 +710,34 @@ public class Shaders {
             public void adjustRgba( float[] rgba, float value ) {
                 shader.adjustRgba( rgba, 1f - value );
             }
-            public String toString() {
-                return "-" + shader.toString();
+            public boolean isAbsolute() {
+                return shader.isAbsolute();
+            }
+            public String getName() {
+                return "-" + shader.getName();
+            }
+            public Icon createIcon( final boolean horizontal, final int width,
+                                    final int height, int xpad, int ypad ) {
+                final Icon icon =
+                    shader.createIcon( horizontal, width, height, xpad, ypad );
+                return new Icon() {
+                    public int getIconWidth() {
+                        return icon.getIconWidth();
+                    }
+                    public int getIconHeight() {
+                        return icon.getIconHeight();
+                    }
+                    public void paintIcon( Component c, Graphics g,
+                                           int x, int y ) {
+                        Graphics2D g2 = (Graphics2D) g;
+                        AffineTransform trans = g2.getTransform();
+                        g2.translate( x + width / 2, y + height / 2 );
+                        g2.scale( horizontal ? -1 : +1,
+                                  horizontal ? +1 : -1 );
+                        icon.paintIcon( c, g2, -width / 2, -height / 2 );
+                        g2.setTransform( trans );
+                    }
+                };
             }
         };
     }
@@ -610,9 +757,9 @@ public class Shaders {
      * @param  ypad     internal padding in the Y direction
      * @return  icon
      */
-    public static Icon create1dIcon( Shader shader, boolean horizontal,
-                                     Color baseColor, int width, int height,
-                                     int xpad, int ypad ) {
+    private static Icon create1dIcon( Shader shader, boolean horizontal,
+                                      Color baseColor, int width, int height,
+                                      int xpad, int ypad ) {
         return new ShaderIcon1( shader, horizontal, baseColor, width, height,
                                 xpad, ypad );
     }
@@ -822,7 +969,7 @@ public class Shaders {
             if ( comp instanceof JLabel && value instanceof Shader ) {
                 JLabel label = (JLabel) comp;
                 Shader shader = (Shader) value;
-                label.setText( shader.toString() );
+                label.setText( shader.getName() );
                 label.setIcon( getIcon( shader ) );
             }
             return comp;
@@ -830,20 +977,7 @@ public class Shaders {
 
         private static Icon getIcon( Shader shader ) {
             if ( ! iconMap_.containsKey( shader ) ) {
-                Icon icon;
-                if ( shader == NULL ) {
-                    icon = new EmptyIcon( 48, 16 );
-                }
-                else {
-
-                    /* It looks a bit expensive redrawing these icons each time
-                     * since each pixel is a separate rectangle, so possibly 
-                     * the icon ought to be cached in an image or something ...
-                     * doesn't seem to cause any noticeable load though. */
-                    icon = new ShaderIcon2( shader, LUT_STANDARD, false, 
-                                            Color.BLACK, 48, 16, 4, 1 );
-                }
-                iconMap_.put( shader, icon );
+                iconMap_.put( shader, shader.createIcon( true, 48, 16, 4, 1 ) );
             }
             return (Icon) iconMap_.get( shader );
         }
