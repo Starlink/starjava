@@ -124,10 +124,27 @@ public class ShaderTweaker implements DataColorTweaker {
      */
     public static ShaderTweaker createTweaker( int ioff, PlotState state ) {
         Shader[] shaders = state.getShaders();
-        return shaders.length == 0
-             ? null
-             : new ShaderTweaker( ioff, shaders, state.getRanges(),
-                                  state.getLogFlags(), state.getFlipFlags() );
+        int naux = shaders.length;
+        if ( naux == 0 ) {
+            return null;
+        }
+        else {
+            int nd = state.getMainNdim();
+            double[][] ranges;
+            if ( ioff == nd ) {
+                ranges = state.getRanges();
+            }
+
+            /* If necessary adjust for the case in which there is a different
+             * number of geometrical axes than non-auxiliary axes. */
+            else {
+                ranges = new double[ ioff + naux ][];
+                System.arraycopy( state.getRanges(), nd, ranges, ioff, naux );
+            }
+            return new ShaderTweaker( ioff, shaders, ranges,
+                                      state.getLogFlags(),
+                                      state.getFlipFlags() );
+        }
     }
 
     /**

@@ -147,16 +147,6 @@ public abstract class Plot3D extends JPanel {
                                           int[] padBorders );
 
     /**
-     * Returns a ColorTweaker object to be used for colouring points
-     * according to auxiliary axis values.  This does not currently 
-     * include the effects of fogging, which is treated separately.
-     *
-     * @param   state  plot state
-     * @return   color adjuster
-     */
-    protected abstract DataColorTweaker createColorTweaker( Plot3DState state );
-
-    /**
      * Indicates whether only the front part of the plot should be plotted.
      *
      * @param   state  plot state
@@ -336,8 +326,9 @@ public abstract class Plot3D extends JPanel {
         double fog = state.getFogginess();
 
         /* Work out how points will be shaded according to auxiliary axis
-         * coordinates. */
-        DataColorTweaker tweaker = createColorTweaker( state );
+         * coordinates.  This does not include the effect of fogging,
+         * which will be handled separately. */
+        DataColorTweaker tweaker = ShaderTweaker.createTweaker( 3, state );
 
         /* Decide what rendering algorithm we're going to have to use, and
          * create a PlotVolume object accordingly. */

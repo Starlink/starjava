@@ -62,10 +62,6 @@ public class CartesianPlot3D extends Plot3D {
         return Math.sqrt( 3. );
     }
 
-    protected DataColorTweaker createColorTweaker( Plot3DState state ) {
-        return ShaderTweaker.createTweaker( 3, state );
-    }
-
     protected boolean frontOnly( Plot3DState state ) {
         return false;
     }
