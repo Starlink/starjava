@@ -197,7 +197,7 @@ public class AuxLegend extends JComponent {
      * @return   corresponding data value
      */
     private double fractionToData( double frac ) {
-        double f = flipFlag_ ? 1.0 - frac : frac;
+        double f = ( flipFlag_ ^ ( ! horizontal_ ) ) ? 1.0 - frac : frac;
         return logFlag_
              ? Math.exp( f * Math.log( hi_ / lo_ ) ) * lo_
              : f * ( hi_ - lo_ ) + lo_;
@@ -255,8 +255,9 @@ public class AuxLegend extends JComponent {
         }
 
         public void zoomed( double[][] bounds ) {
-            double lo = fractionToData( bounds[ 0 ][ flipFlag_ ? 1 : 0 ] );
-            double hi = fractionToData( bounds[ 0 ][ flipFlag_ ? 0 : 1 ] );
+            boolean invert = flipFlag_ ^ ( ! horizontal_ );
+            double lo = fractionToData( bounds[ 0 ][ invert ? 1 : 0 ] );
+            double hi = fractionToData( bounds[ 0 ][ invert ? 0 : 1 ] );
             dataZoomed( lo, hi );
         }
     }
