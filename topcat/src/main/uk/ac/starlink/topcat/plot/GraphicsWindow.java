@@ -168,6 +168,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private static final Shader[] SHADERS = new Shader[] {
         Shaders.NULL,
         Shaders.LUT_RAINBOW,
+        Shaders.TRANSPARENCY,
         Shaders.LUT_PASTEL,
         Shaders.LUT_STANDARD,
         Shaders.LUT_HEAT,

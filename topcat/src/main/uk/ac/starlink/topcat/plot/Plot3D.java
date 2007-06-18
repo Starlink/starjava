@@ -313,6 +313,11 @@ public abstract class Plot3D extends JPanel {
         for ( int is = 0; is < nset && allOpaque; is++ ) {
             allOpaque = allOpaque && plotStyles[ is ].getOpaqueLimit() == 1;
         }
+        Shader[] shaders = state.getShaders();
+        for ( int iaux = 0; iaux < shaders.length; iaux++ ) {
+            Shader shader = shaders[ iaux ];
+            allOpaque = allOpaque && ! Shaders.isTransparent( shaders[ iaux ] );
+        }
 
         /* See if there are any error bars to be plotted.  If not, we can
          * use more efficient rendering machinery. */

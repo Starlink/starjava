@@ -658,7 +658,7 @@ public abstract class ScatterPlot extends SurfacePlot {
             Pixellator markPixer = style.getPixelOffsets();
             int[] pixoffs = style.getFlattenedPixelOffsets( xdim );
             int npixoff = pixoffs.length;
-            float opacity = 1.0f / style.getOpaqueLimit();
+            float alpha = 1.0f / style.getOpaqueLimit();
             float[] baseRgba = style.getColor().getRGBComponents( null );
             assert showMarks || showErrors : "Why bother?";
 
@@ -684,7 +684,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                             rgba[ 2 ] = baseRgba[ 2 ];
                             rgba[ 3 ] = baseRgba[ 3 ];
                             tweaker.tweakColor( rgba );
-                            rgba[ 3 ] = opacity;
+                            rgba[ 3 ] *= alpha;
                             int base = xbase + xdim * ybase;
                             boolean done = false;
                             if ( showErrors ) {
@@ -751,9 +751,10 @@ public abstract class ScatterPlot extends SurfacePlot {
         for ( int ipix = pixelMask.nextSetBit( 0 ); ipix >= 0;
               ipix = pixelMask.nextSetBit( ipix + 1 ) ) {
             float weight = rgbaBuf[ 3 ][ ipix ];
-            rgba[ 0 ] = rgbaBuf[ 0 ][ ipix ] / weight;
-            rgba[ 1 ] = rgbaBuf[ 1 ][ ipix ] / weight;
-            rgba[ 2 ] = rgbaBuf[ 2 ][ ipix ] / weight;
+            float w1 = 1.0f / weight;
+            rgba[ 0 ] = rgbaBuf[ 0 ][ ipix ] * w1;
+            rgba[ 1 ] = rgbaBuf[ 1 ][ ipix ] * w1;
+            rgba[ 2 ] = rgbaBuf[ 2 ][ ipix ] * w1;
             rgba[ 3 ] = weight;
             rgbBuf[ ipix ] = colorModel.getDataElement( rgba, 0 );
         }
@@ -1081,6 +1082,12 @@ public abstract class ScatterPlot extends SurfacePlot {
                 Style[] styles = getPointSelection().getStyles();
                 for ( int is = 0; is < styles.length; is++ ) {
                     if ( ((MarkStyle) styles[ is ]).getOpaqueLimit() != 1 ) {
+                        hasTransparent = true;
+                    }
+                }
+                Shader[] shaders = getState().getShaders();
+                for ( int iaux = 0; iaux < shaders.length; iaux++ ) {
+                    if ( Shaders.isTransparent( shaders[ iaux ] ) ) {
                         hasTransparent = true;
                     }
                 }

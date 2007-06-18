@@ -268,6 +268,16 @@ public class Shaders {
         }
     };
 
+    /** Scales alpha channel by parameter value. */
+    public static final Shader TRANSPARENCY =
+            new BasicShader( "Transparency", Color.BLACK ) {
+        public void adjustRgba( float[] rgba, float value ) {
+
+            /* Squaring seems to adjust the range better. */
+            rgba[ 3 ] *= value * value;
+        }
+    };
+
     /** Shader which sets intensity. */
     public static final Shader FIX_INTENSITY =
             new BasicShader( "Intensity", Color.BLUE ) {
@@ -783,6 +793,32 @@ public class Shaders {
                                      int xpad, int ypad ) {
         return new ShaderIcon2( xShader, yShader, xFirst, baseColor,
                                 width, height, xpad, ypad );
+    }
+
+    /**
+     * Indicates whether the given shader object is capable of introducing
+     * transparency into a colour (modifying rgba[3] from 1 to a lower value).
+     *
+     * @param  shader  shader to test
+     * @return  true if shader adjusts transparency or is null
+     */
+    public static boolean isTransparent( Shader shader ) {
+        if ( shader == null ) {
+            return false;
+        }
+
+        /* Currently just tries a couple of colours.  Not foolproof, but 
+         * likely to work for sensible shaders. */
+        float[] rgba = new float[] { 1.0f, 0.1f, 0.6f, 1.0f,};
+        shader.adjustRgba( rgba, 0.8f );
+        if ( rgba[ 3 ] != 1.0f ) {
+            return true;
+        }
+        shader.adjustRgba( rgba, 0.2f );
+        if ( rgba[ 3 ] != 1.0f ) {
+            return true;
+        }
+        return false;
     }
 
     /**
