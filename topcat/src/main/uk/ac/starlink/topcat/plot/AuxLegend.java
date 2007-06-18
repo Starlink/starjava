@@ -153,10 +153,9 @@ public class AuxLegend extends JComponent {
             g2.setTransform( transform );
 
             /* Draw the colour bar itself. */
-            Icon icon = Shaders.create1dIcon( Shaders.invert( shader_ ),
-                                              horizontal_, Color.RED,
-                                              xpix, ypix, 0, 0 );
-            icon.paintIcon( this, g, xIcon, yIcon );
+            Shaders.invert( shader_ )
+                   .createIcon( horizontal_, xpix, ypix, 0, 0 )
+                   .paintIcon( this, g, xIcon, yIcon );
 
             /* Draw a surrounding rectangle. */
             g.drawRect( xIcon, yIcon, xpix, ypix - 1 );
