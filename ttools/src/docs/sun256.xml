@@ -4303,6 +4303,8 @@ but my thanks are especially due to the following:
         (such as GNU <code>gcj</code>).</li>
     <li>Add locale-specific <code>formatDecimalLocal()</code> functions
         in class <ref id="uk.ac.starlink.ttools.func.Formats"/>.</li>
+    <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
+        functions in class <ref id="uk.ac.starlink.ttools.func.Fluxes"/>.</li>
     </ul>
     </p></dd>
 
