@@ -4301,10 +4301,11 @@ but my thanks are especially due to the following:
         Think I've done the same for SQL Server, but this is not tested.</li>
     <li>Improve error reporting in the presence of a deficient JVM
         (such as GNU <code>gcj</code>).</li>
-    <li>Add locale-specific <code>formatDecimalLocal()</code> functions
-        in class <ref id="uk.ac.starlink.ttools.func.Formats"/>.</li>
+    <li>Add locale-specific <code>formatDecimalLocal</code> functions in 
+        class <ref id="uk.ac.starlink.ttools.func.Formats">Formats</ref>.</li>
     <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
-        functions in class <ref id="uk.ac.starlink.ttools.func.Fluxes"/>.</li>
+        functions in class 
+        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref>.</li>
     </ul>
     </p></dd>
 
