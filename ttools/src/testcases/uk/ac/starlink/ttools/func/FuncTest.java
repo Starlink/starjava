@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Locale;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -193,6 +194,17 @@ public class FuncTest extends TestCase {
         assertEquals( "99.000", Formats.formatDecimal( 99, "#.000" ) );
         assertEquals( "+3.14",
                       Formats.formatDecimal( Math.PI, "+0.##;-0.##" ) );
+        Locale locale = Locale.getDefault();
+        Locale.setDefault( Locale.ENGLISH );
+        Formats.reset();
+        assertEquals( "99.000", Formats.formatDecimalLocal( 99, 3 ) );
+        assertEquals( "99.000", Formats.formatDecimalLocal( 99, "#.000" ) );
+        Locale.setDefault( Locale.FRENCH );
+        Formats.reset();
+        assertEquals( "99,000", Formats.formatDecimalLocal( 99, 3 ) );
+        assertEquals( "99,000", Formats.formatDecimalLocal( 99, "#.000" ) );
+        Locale.setDefault( locale );
+        Formats.reset();
     }
  
     public void testMaths() {
