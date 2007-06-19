@@ -293,9 +293,11 @@ public abstract class MemberDoclet {
             outExamples( examples );
         }
         outItem( "Signature", 
-                 "<tt>" + rtype.toString() + " " 
+                 "<tt>" + rtype.toString().replaceAll( "java\\.lang\\.", "" )
+                        + " " 
                         + method.name()
-                        + method.signature() + "</tt>" );
+                        + method.signature().replaceAll( "java\\.lang\\.", "" )
+                        + "</tt>" );
         endMember();
     }
 
