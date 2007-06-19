@@ -430,6 +430,19 @@
       <fileset dir="${src.docs}" includes="figures/*"/>
     </copy>
 
+    <!-- Construct HTML documentation for the JEL-accessible classes.
+     !   This is built using Javadoc, and is available from the MethodWindow
+     !   method browser. -->
+    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
+             docletpathref="classpath"
+             failonerror="true"
+             public="true"
+             destdir="${build.classes}"
+             sourcepath="${java.dir}:${ttools.java}"
+             packagenames="uk.ac.starlink.topcat.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
     <!-- Version string. -->
     <echo file="${build.classes}/uk/ac/starlink/topcat/version-string"
           message="${version}"/>
@@ -1259,19 +1272,6 @@
              public="true"
              additionalparam="-act -headonly -o ${build.docs}/activation-classes-javadocs.xml"
              sourcepath="${java.dir}"
-             packagenames="uk.ac.starlink.topcat.func"
-             classpathref="classpath"
-             source="${source.version}"/>
-
-    <!-- Construct HTML documentation for the JEL-accessible classes.
-     !   This is built using Javadoc, and is available from the MethodWindow
-     !   method browser. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
-             docletpathref="classpath"
-             failonerror="true"
-             public="true"
-             destdir="${build.classes}"
-             sourcepath="${java.dir}:${ttools.java}"
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
