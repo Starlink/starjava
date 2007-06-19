@@ -58,6 +58,30 @@ public class Fluxes {
     }
 
     /**
+     * Converts luminosity to flux given a luminosity distance.
+     * <p>F=lumin/(4 x Pi x dist<sup>2</sup>)
+     *
+     * @param   lumin  luminosity
+     * @param   dist   luminosity distance
+     * @return  equivalent flux
+     */
+    public static double luminosityToFlux( double lumin, double dist ) {
+        return 0.25 * lumin /  Math.PI / ( dist * dist );
+    }
+
+    /**
+     * Converts flux to luminosity given a luminosity distance.
+     * <p>lumin=dist<sup>2</sup>/(4 x Pi x flux)
+     *
+     * @param   flux   flux
+     * @param   dist   luminosity distance
+     * @return  equivalent luminosity
+     */
+    public static double fluxToLuminosity( double flux, double dist ) {
+        return 0.25 * dist * dist / Math.PI / flux;
+    }
+
+    /**
      * Approximate offset between Johnson and AB magnitudes in V band.
      * V<sub>J</sub>~=V<sub>AB</sub>+<code>JOHNSON_AB_V</code>.
      */
