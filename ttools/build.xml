@@ -430,6 +430,18 @@
       <include name="**/*.java"/>
     </javac>
 
+    <!-- Construct HTML documentation for JEL-accessible classes. -->
+    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
+             docletpathref="classpath"
+             failonerror="true"
+             public="true"
+             additionalparam="-headings"
+             destdir="${build.classes}"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.ttools.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
@@ -1028,18 +1040,6 @@
              failonerror="true"
              public="true"
              additionalparam="-o ${build.docs}/jel-javadocs.xml"
-             sourcepath="${java.dir}"
-             packagenames="uk.ac.starlink.ttools.func"
-             classpathref="classpath"
-             source="${source.version}"/>
-
-    <!-- Construct HTML documentation for JEL-accessible classes. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
-             docletpathref="classpath"
-             failonerror="true"
-             public="true"
-             additionalparam="-headings"
-             destdir="${build.classes}"
              sourcepath="${java.dir}"
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
