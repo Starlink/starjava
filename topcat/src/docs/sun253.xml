@@ -9929,6 +9929,11 @@ introduced since the last version:
     <li>Improved deduplication of column names when joining tables.</li>
     <li>3D plots now plot symbols for all subsets not just one,
         as for 2D plots.</li>
+    <li>Add locale-specific <code>formatDecimalLocal()</code> functions in
+        class <ref id="uk.ac.starlink.ttools.func.Formats">Formats</ref>.</li>
+    <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
+        functions in class 
+        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref>.</li>
 
     <!-- not yet documented -->
     <li>Error bars!</li>
