@@ -11,6 +11,7 @@ public class HistogramPlotState extends PlotState {
     private double binWidth_;
     private boolean zeroMid_;
     private boolean cumulative_;
+    private boolean weighted_;
 
     /**
      * Sets the bin width for the histogram.
@@ -77,12 +78,31 @@ public class HistogramPlotState extends PlotState {
         return cumulative_;
     }
 
+    /**
+     * Sets whether non-unit weighting is (maybe) in force for this state.
+     *
+     * @param  weighted  whether weights are used
+     */
+    public void setWeighted( boolean weighted ) {
+        weighted_ = weighted;
+    }
+
+    /**
+     * Determines whether non-unit weighting is (maybe) in force for this state.
+     *
+     * @return  whether weights are used
+     */
+    public boolean getWeighted() {
+        return weighted_;
+    }
+
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof HistogramPlotState ) {
             HistogramPlotState other = (HistogramPlotState) o;
             return binWidth_ == other.binWidth_
                 && zeroMid_ == other.zeroMid_
-                && cumulative_ == other.cumulative_;
+                && cumulative_ == other.cumulative_
+                && weighted_ == other.weighted_;
         }
         else {
             return false;
@@ -93,7 +113,8 @@ public class HistogramPlotState extends PlotState {
         int code = super.hashCode();
         code = 23 * code + Float.floatToIntBits( (float) binWidth_ );
         code = 23 * code + ( zeroMid_ ? 1 : 3 );
-        code = 23 * code + ( cumulative_ ? 1 : 3 );
+        code = 23 * code + ( cumulative_ ? 1 : 5 );
+        code = 23 * code + ( weighted_ ? 1 : 7 );
         return code;
     }
 }
