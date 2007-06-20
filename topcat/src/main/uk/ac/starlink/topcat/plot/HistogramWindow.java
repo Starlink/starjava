@@ -20,9 +20,11 @@ import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.Action;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.IteratorRowSequence;
@@ -48,13 +50,14 @@ public class HistogramWindow extends GraphicsWindow {
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
     private final ToggleButtonModel cumulativeModel_;
+    private final ToggleButtonModel weightModel_;
     private final JCheckBox offsetSelector_;
     private final RoundingSpinner binSizer_;
     private final RoundingSpinner.RoundingSpinnerModel linearBinModel_;
     private final RoundingSpinner.RoundingSpinnerModel logBinModel_;
 
-    private int autoYMax_;
-    private int autoYMaxCumulative_;
+    private double autoYMax_;
+    private double autoYMaxCumulative_;
     private double autoLinearBinWidth_;
     private double autoLogBinWidth_;
 
@@ -64,6 +67,9 @@ public class HistogramWindow extends GraphicsWindow {
     private final static ValueInfo COUNT_INFO = 
         new DefaultValueInfo( "Count", Integer.class,
                               "Number of values in bin" );
+    private final static ValueInfo WEIGHT_INFO =
+        new DefaultValueInfo( "Weighted count", Double.class,
+                              "Weighted sum of values in bin" );
 
     /**
      * Constructs a new histogram window.
@@ -129,6 +135,12 @@ public class HistogramWindow extends GraphicsWindow {
                                    "Plot cumulative bars rather than counts" );
         cumulativeModel_.addActionListener( getReplotListener() );
 
+        /* Model for allowing weighting of the histogram. */
+        weightModel_ =
+            new ToggleButtonModel( "Weighted Counts", ResourceIcon.DO_WHAT,
+                                   "Allow weighting of histogram counts" );
+        weightModel_.addActionListener( getReplotListener() );
+
         /* Actions for saving or exporting the binned data as a table. */
         TableSource binSrc = new TableSource() {
             public StarTable getStarTable() {
@@ -171,6 +183,7 @@ public class HistogramWindow extends GraphicsWindow {
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( cumulativeModel_.createMenuItem() );
+        plotMenu.add( weightModel_.createMenuItem() );
         plotMenu.add( rescaleActionXY );
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
@@ -230,6 +243,7 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
+        getToolBar().add( weightModel_.createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( fromVisibleAction );
@@ -258,26 +272,70 @@ public class HistogramWindow extends GraphicsWindow {
 
     protected PointSelector createPointSelector() {
 
-        /* The superclass implementation assumes that the number of
-         * axes on the screen is the same as the number of dimensions of
-         * the data being plotted - not true for a histogram (2 vs. 1,
-         * respectively).  So we need to make sure the AxisEditor array
-         * supplied by the PointSelector is 2 long - one for the data
-         * axis and one for the counts axis (screen Y axis). */
+        /* Action which resets the axis window Y axis editor when weighting
+         * status may have changed. */
+        final ActionListener weightAction = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                AxisWindow axwin = getAxisWindow();
+                final AxisEditor yaxed = axwin == null
+                                       ? null
+                                       : axwin.getEditors()[ 1 ];
+                if ( yaxed != null ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            ValueInfo axinfo = HistogramWindow.this.hasWeights()
+                                             ? WEIGHT_INFO
+                                             : COUNT_INFO;
+                            yaxed.setAxis( axinfo );
+                        }
+                    } );
+                }
+            }
+        };
+        weightModel_.addActionListener( weightAction );
+
+        /* Basic selector for X axis. */
         AxesSelector axsel =
-                new CartesianAxesSelector( new String[] { "X" }, getLogModels(),
-                                           getFlipModels(),
-                                           new ErrorModeSelectionModel[ 0 ] ) {
+            new CartesianAxesSelector( new String[] { "X" }, getLogModels(),
+                                       getFlipModels(),
+                                       new ErrorModeSelectionModel[ 0 ] );
+
+        /* Add the possibility of weighting it. */
+        final WeightedAxesSelector waxsel = new WeightedAxesSelector( axsel ) {
+
+            /* The superclass implementation assumes that the number of
+             * axes on the screen is the same as the number of dimensions of
+             * the data being plotted - not true for a histogram (2 vs. 1,
+             * respectively).  So we need to make sure the AxisEditor array
+             * supplied by the PointSelector is 2 long - one for the data
+             * axis and one for the counts axis (screen Y axis). */
             public AxisEditor[] createAxisEditors() {
-                AxisEditor countEd = new AxisEditor( "Count" );
-                countEd.setAxis( COUNT_INFO );
+                AxisEditor yaxed = new AxisEditor( "Y" );
+                ValueInfo axinfo = HistogramWindow.this.hasWeights()
+                                 ? WEIGHT_INFO
+                                 : COUNT_INFO;
+                yaxed.setAxis( axinfo );
                 return new AxisEditor[] {
                     super.createAxisEditors()[ 0 ],
-                    countEd,
+                    yaxed,
                 };
             }
         };
-        return new PointSelector( axsel, getStyles() );
+        waxsel.enableWeights( weightModel_.isSelected() );
+        waxsel.getWeightSelector().addActionListener( weightAction );
+        weightModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                waxsel.enableWeights( weightModel_.isSelected() );
+            }
+        } );
+        weightAction.actionPerformed( null );
+
+        /* Construct and return a suitable point selector. */
+        return new PointSelector( waxsel, getStyles() );
+    }
+
+    public int getMainRangeCount() {
+        return 1;
     }
 
     protected void doReplot( PlotState pstate, Points points ) {
@@ -338,10 +396,6 @@ public class HistogramWindow extends GraphicsWindow {
              * purely 1-d attributes, since the histogram data model 1-d plot.
              * However the plot itself is on a 2-d plotting surface, 
              * so modify some of the state to contain axis information here. */
-            state.setAxes( new ValueInfo[] {
-                state.getAxes()[ 0 ],
-                COUNT_INFO
-            } );
             state.setLogFlags( new boolean[] {
                 state.getLogFlags()[ 0 ],
                 yLogModel_.isSelected(),
@@ -366,6 +420,9 @@ public class HistogramWindow extends GraphicsWindow {
                 state.getRanges()[ 0 ],
                 yRange.getFiniteBounds( yLogModel_.isSelected() )
             } );
+
+            /* See if there is any weighting on the Y axis. */
+            state.setWeighted( hasWeights() );
         }
 
         /* Configure some actions to be enabled/disabled according to 
@@ -376,6 +433,23 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Return the state. */
         return state;
+    }
+
+    /**
+     * Indicates whether any of the active point selectors have non-trivial
+     * weighting axes.
+     *
+     * @return  true  if some weighting may be in force
+     */
+    private boolean hasWeights() {
+        PointSelectorSet psels = getPointSelectors();
+        for ( int ip = 0; ip < psels.getSelectorCount(); ip++ ) {
+            if ( ((WeightedAxesSelector)
+                  psels.getSelector( ip ).getAxesSelector()).hasWeights() ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Range[] calculateRanges( PointSelection pointSelection,
@@ -457,38 +531,39 @@ public class HistogramWindow extends GraphicsWindow {
             long lp = (long) ip;
             double[] coords = points.getPoint( ip );
             double x = coords[ 0 ];
+            double w = coords[ 1 ];
             if ( x >= xlo && x <= xhi ) {
                 for ( int is = 0; is < nset; is++ ) {
                     setFlags[ is ] = rsets[ is ].isIncluded( lp );
                 }
-                binned.submitDatum( x, setFlags );
+                binned.submitDatum( x, w, setFlags );
             }
         }
 
         /* Find the highest bin count. */
-        int[] ymaxes = new int[ nset ];
-        int[] ytots = new int[ nset ];
+        double[] ymaxes = new double[ nset ];
+        double[] ytots = new double[ nset ];
         for ( Iterator binIt = binned.getBinIterator( false );
               binIt.hasNext(); ) {
             BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
             for ( int is = 0; is < nset; is++ ) {
-                int n = bin.getCount( is );
-                ytots[ is ] += n;
-                ymaxes[ is ] = Math.max( ymaxes[ is ], n );
+                double s = bin.getWeightedCount( is );
+                ytots[ is ] += s;
+                ymaxes[ is ] = Math.max( ymaxes[ is ], s );
             }
         }
-        int yMax = 0;
-        int yMaxTot = 0;
+        double yMax = 0;
+        double yMaxTot = 0;
         for ( int is = 0; is < nset; is++ ) {
             yMax = Math.max( yMax, ymaxes[ is ] );
             yMaxTot = Math.max( yMaxTot, ytots[ is ] );
         }
 
         /* Store results for later calculations. */
-        autoYMax_ = yMax + (int) ( yMax * getPadRatio() );
+        autoYMax_ = yMax * ( 1 + getPadRatio() );
         autoLinearBinWidth_ = bwLinear;
         autoLogBinWidth_ = bwLog;
-        autoYMaxCumulative_ = yMaxTot + (int) ( yMaxTot * getPadRatio() );
+        autoYMaxCumulative_ = yMaxTot * ( 1 + getPadRatio() );
     }
 
     /**
@@ -516,6 +591,10 @@ public class HistogramWindow extends GraphicsWindow {
         /* Get the binned data object from the last plotted histogram. */
         final BinnedData binData = plot_.getBinnedData();
 
+        /* Is it a weighted sum or a simple count? */
+        HistogramPlotState state = (HistogramPlotState) plot_.getState();
+        final boolean weighted = state.getWeighted();
+
         /* Get the list of set IDs which describes which table/subset pairs
          * each of the sets in the binned data represents. */
         SetId[] setIds = getPointSelectors().getPointSelection().getSetIds();
@@ -537,17 +616,32 @@ public class HistogramWindow extends GraphicsWindow {
         SetNamer namer = createSetNamer( setIds );
         for ( int is = 0; is < nset; is++ ) {
             SetId setId = setIds[ is ];
+            ColumnInfo weightInfo = getWeightInfo( setId );
             TopcatModel tcModel = setId.getPointSelector().getTable();
             StringBuffer descrip = new StringBuffer();
-            descrip.append( "Bin count for row subset " )
-                   .append( ((RowSubset)
-                             tcModel.getSubsets().get( setId.getSetIndex() ))
-                           .getName() )
-                   .append( " in table " )
+            descrip.append( "Count " );
+            if ( weightInfo != null ) {
+                descrip.append( "weighted by " )
+                       .append( weightInfo.getName() )
+                       .append( " " );
+            }
+            RowSubset rset =
+                (RowSubset) tcModel.getSubsets().get( setId.getSetIndex() );
+            if ( rset != RowSubset.ALL ) {
+                descrip.append( "for row subset " )
+                       .append( rset.getName() )
+                       .append( ' ' );
+            }
+            descrip.append( "in table " )
                    .append( tcModel.getLabel() );
-            infos[ icol++ ] =
-                new ColumnInfo( namer.getName( setId ), Integer.class,
+            ColumnInfo colInfo =
+                new ColumnInfo( namer.getName( setId ), 
+                                weighted ? Double.class : Integer.class,
                                 descrip.toString() );
+            if ( weightInfo != null ) {
+                colInfo.setUnitString( weightInfo.getUnitString() );
+            }
+            infos[ icol++ ] = colInfo;
         }
         assert icol == infos.length;
 
@@ -576,7 +670,11 @@ public class HistogramWindow extends GraphicsWindow {
                         row[ icol++ ] = new Double( bin.getLowBound() );
                         row[ icol++ ] = new Double( bin.getHighBound() );
                         for ( int iset = 0; iset < nset; iset++ ) {
-                            row[ icol++ ] = new Integer( bin.getCount( iset ) );
+                            double sum = bin.getWeightedCount( iset );
+                            assert weighted || ( sum == (int) sum ) : sum;
+                            row[ icol++ ] =
+                                weighted ? (Number) new Double( sum )
+                                         : (Number) new Integer( (int) sum );
                         }
                         return row;
                     }
@@ -592,12 +690,35 @@ public class HistogramWindow extends GraphicsWindow {
     }
 
     /**
+     * Returns the column metadata associated with the weighting axis,
+     * if there is weighting.  If no weighting is used, null is returned.
+     *
+     * @param  setId  set identifier
+     * @return  non-trivial weighting column metadata, or null
+     */
+    private static final ColumnInfo getWeightInfo( SetId setId ) {
+        AxesSelector axsel = setId.getPointSelector().getAxesSelector();
+        if ( axsel instanceof WeightedAxesSelector ) {
+            WeightedAxesSelector waxsel = (WeightedAxesSelector) axsel;
+            return waxsel.hasWeights()
+                ?  ((ColumnData) waxsel.getWeightSelector().getSelectedItem())
+                                       .getColumnInfo()
+                : null;
+        }
+        else {
+            assert false;
+            return null;
+        }
+    }
+
+    /**
      * Returns an object which can provide sensible labels for elements of
      * a set of SetId objects.  Depending on what similarities/differences
      * these have, the choice about how to label them best (compactly)
      * will be different.
      *
      * @param  setIds  array of objects which needs to be distinguished
+     * @param  base   stem of name
      * @return  suitable setId namer object
      */
     private SetNamer createSetNamer( SetId[] setIds ) {
@@ -607,7 +728,7 @@ public class HistogramWindow extends GraphicsWindow {
         if ( nset == 1 ) {
             return new SetNamer() {
                 String getName( SetId setId ) {
-                    return "COUNT";
+                    return getBaseName( setId );
                 }
             };
         }
@@ -639,13 +760,16 @@ public class HistogramWindow extends GraphicsWindow {
                         sbuf.append( tcModel.getID() );
                     }
                     if ( useTable && useSet ) {
-                        sbuf.append( "_" );
+                        sbuf.append( '_' );
                     }
                     if ( useSet ) {
                         RowSubset rset = (RowSubset)
                             tcModel.getSubsets().get( setId.getSetIndex() );
                         sbuf.append( rset.getName() );
                     }
+                    ColumnInfo weightInfo = getWeightInfo( setId );
+                    sbuf.append( '_' )
+                        .append( getBaseName( setId ) );
                     return sbuf.toString();
                 }
             };
@@ -664,6 +788,19 @@ public class HistogramWindow extends GraphicsWindow {
          * @param  compact human-readable name
          */
         abstract String getName( SetId setId );
+
+        /**
+         * Returns the basic name (unmodified by set/table identifier) for
+         * the counts column of a given dataset.
+         *
+         * @param   setId  dataset identifier
+         * @return   basic count column name
+         */
+        String getBaseName( SetId setId ) {
+            ColumnInfo weightInfo = getWeightInfo( setId );
+            return weightInfo == null ? "COUNT"
+                                      : "SUM_" + weightInfo.getName();
+        }
     }
 
     /**
