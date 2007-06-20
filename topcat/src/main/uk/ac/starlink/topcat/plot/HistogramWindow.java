@@ -137,7 +137,7 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Model for allowing weighting of the histogram. */
         weightModel_ =
-            new ToggleButtonModel( "Weighted Counts", ResourceIcon.DO_WHAT,
+            new ToggleButtonModel( "Weighted Counts", ResourceIcon.WEIGHT,
                                    "Allow weighting of histogram counts" );
         weightModel_.addActionListener( getReplotListener() );
 
