@@ -438,7 +438,7 @@
              failonerror="true"
              public="true"
              destdir="${build.classes}"
-             sourcepath="${java.dir}:${ttools.java}"
+             sourcepath="${java.dir}"
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
