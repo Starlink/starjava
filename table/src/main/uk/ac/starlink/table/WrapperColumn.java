@@ -34,4 +34,13 @@ public class WrapperColumn extends ColumnData {
     public boolean isWritable() {
         return base.isWritable();
     }
+
+    /**
+     * Returns the column on which this one is based.
+     *
+     * @return  wrapped column
+     */
+    public ColumnData getBaseColumn() {
+        return base;
+    }
 }
