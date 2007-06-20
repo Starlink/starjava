@@ -9940,6 +9940,7 @@ introduced since the last version:
     <li>Modified what happens when subsets get received from PLASTIC.</li>
     <li>GAVO loader.</li>
     <li>Stay Upright action (&IMG.NORTH;) in 3D plots.</li>
+    <li>Weighting in histogram.</li>
     </ul>
     </p></dd>
 
