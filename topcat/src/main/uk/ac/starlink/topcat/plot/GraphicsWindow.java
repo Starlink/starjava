@@ -1005,8 +1005,12 @@ public abstract class GraphicsWindow extends AuxWindow {
                 (ValueConverter)
                 cinfo.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
                                         ValueConverter.class );
-            flipFlags[ i ] = flipModels_[ i ].isSelected();
-            logFlags[ i ] = logModels_[ i ].isSelected();
+            if ( flipModels_.length > i ) {
+                flipFlags[ i ] = flipModels_[ i ].isSelected();
+            }
+            if ( logModels_.length > i ) {
+                logFlags[ i ] = logModels_[ i ].isSelected();
+            }
         }
         state.setAxes( axinfos );
         state.setConverters( converters );
