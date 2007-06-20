@@ -12,15 +12,17 @@ public interface BinnedData {
 
     /**
      * Submits a value for inclusion in this BinnedData object.
-     * As well as the value itself, a mask of boolean flags is given
+     * As well as the value itself and a weight, a mask of boolean 
+     * flags is given
      * that indicates which subsets are considered to contain the
      * submitted value.
      * 
      * @param  value  value for inclusion
+     * @param  weight  weighting
      * @param  setFlags  array of flags, one for each subset;
      *         true for inclusion, false for exclusion
      */
-    void submitDatum( double value, boolean[] setFlags );
+    void submitDatum( double value, double weight, boolean[] setFlags );
 
     /**
      * Returns an iterator over the bins managed by this object.
@@ -58,11 +60,13 @@ public interface BinnedData {
         double getHighBound();
 
         /**
-         * Returns the number of data in this bin for a given subset.
+         * Returns the weighted sum of data in this bin for a given subset.
+         * If weights have all been unity, this is equivalent to the number
+         * of items in the bin.
          *
          * @param  iset  subset index
-         * @return   occupancy count for <code>iset</code> in this bin
+         * @return   weighted occupancy count for <code>iset</code> in this bin
          */
-        int getCount( int iset );
+        double getWeightedCount( int iset );
     }
 }

@@ -39,7 +39,7 @@ public class MapBinnedData implements BinnedData {
         map_ = new TreeMap();
     }
 
-    public void submitDatum( double value, boolean[] setFlags ) {
+    public void submitDatum( double value, double weight, boolean[] setFlags ) {
 
         /* If it's a NaN, this implementation will end up binning it with
          * zeros, so just ignore it.  You could do something sensible 
@@ -47,21 +47,21 @@ public class MapBinnedData implements BinnedData {
          * Java 1.4.1 JIT bug (?) which seems to have had something to 
          * do with NaN processing, so be very careful if you try to
          * implement that. */
-        if ( Double.isNaN( value ) ) {
+        if ( Double.isNaN( value ) || Double.isNaN( weight ) || weight == 0 ) {
             return;
         }
 
         /* Normal value, go ahead. */
         Object key = mapper_.getKey( value );
         if ( key != null ) {
-            int[] counts = (int[]) map_.get( key );
+            double[] counts = (double[]) map_.get( key );
             if ( counts == null ) {
-                counts = new int[ nset_ ];
+                counts = new double[ nset_ ];
                 map_.put( key, counts );
             }
             for ( int is = 0; is < nset_; is++ ) {
                 if ( setFlags[ is ] ) {
-                    counts[ is ]++;
+                    counts[ is ] += weight;
                 }
             }
         }
@@ -73,15 +73,15 @@ public class MapBinnedData implements BinnedData {
                                                     map_.lastKey() )
                              : map_.keySet().iterator();
         return new Iterator() {
-            final int[] EMPTY_COUNTS = new int[ nset_ ];
+            final double[] EMPTY_SUMS = new double[ nset_ ];
             public boolean hasNext() {
                 return keyIt.hasNext();
             }
             public Object next() {
                 Object key = keyIt.next();
-                final int[] counts = map_.containsKey( key )
-                                   ? (int[]) map_.get( key )
-                                   : EMPTY_COUNTS; 
+                final double[] sums = map_.containsKey( key )
+                                    ? (double[]) map_.get( key )
+                                    : EMPTY_SUMS; 
                 final double[] bounds = mapper_.getBounds( key );
                 return new Bin() {
                     public double getLowBound() {
@@ -90,8 +90,8 @@ public class MapBinnedData implements BinnedData {
                     public double getHighBound() {
                         return bounds[ 1 ];
                     }
-                    public int getCount( int iset ) {
-                        return counts[ iset ];
+                    public double getWeightedCount( int iset ) {
+                        return sums[ iset ];
                     }
                 };
             }
