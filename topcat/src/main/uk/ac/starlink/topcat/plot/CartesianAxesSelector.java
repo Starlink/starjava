@@ -50,8 +50,12 @@ public class CartesianAxesSelector implements AxesSelector {
             /* Prepare toggle buttons. */
             String[] togNames = new String[] { "Log", "Flip", };
             ToggleButtonModel[] togModels = new ToggleButtonModel[] {
-                logModels == null ? null : logModels[ idim ],
-                flipModels == null ? null : flipModels[ idim ],
+                ( logModels != null && logModels.length > idim )
+                      ? logModels[ idim ]
+                      : null,
+                ( flipModels != null && flipModels.length > idim )
+                      ? flipModels[ idim ]
+                      : null,
             };
 
             /* Create and add column selectors. */
@@ -63,10 +67,7 @@ public class CartesianAxesSelector implements AxesSelector {
         }
 
         /* Place the visual components. */
-        int pad = ndim_ == 1 ? dataSelectors_[ 0 ].getPreferredSize().height
-                             : 5;
-        entryBox_.add( Box.createVerticalStrut( pad ) );
-        entryBox_.add( Box.createVerticalGlue() );
+        entryBox_.add( Box.createVerticalStrut( 5 ) );
 
         /* Fix for changes to the error mode selections to modify the
          * state of the axis data selectors. */
@@ -200,6 +201,16 @@ public class CartesianAxesSelector implements AxesSelector {
             dataSelectors_[ i ].setTable( tcModel );
         }
         tcModel_ = tcModel;
+    }
+
+    /**
+     * Returns the TopcatModel for which this selector is currently selecting
+     * axes.
+     *
+     * @return  table
+     */
+    public TopcatModel getTable() {
+        return tcModel_;
     }
 
     public void initialiseSelectors() {
