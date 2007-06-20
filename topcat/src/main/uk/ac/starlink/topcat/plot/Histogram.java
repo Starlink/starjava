@@ -108,11 +108,11 @@ public abstract class Histogram extends SurfacePlot {
 
                 /* Get the bin and its value. */
                 BinnedData.Bin bin = (BinnedData.Bin) it.next();
-                int count = bin.getCount( iset );
-                double dcount = cumulative ? (double) ( total + count )
-                                           : (double) count;
-                total += count;
-                if ( dcount <= 0 ) {
+                double sum = bin.getWeightedCount( iset );
+                double tsum = cumulative ? total + sum
+                                         : sum;
+                total += sum;
+                if ( tsum <= 0 ) {
                     continue;
                 }
 
@@ -124,7 +124,7 @@ public abstract class Histogram extends SurfacePlot {
                                                    dylo, false ).x;
                 int ixhi = surface.dataToGraphics( xflip ? dxlo : dxhi,
                                                    dylo, false ).x;
-                int iyhi = surface.dataToGraphics( dxmid, dcount, false ).y;
+                int iyhi = surface.dataToGraphics( dxmid, tsum, false ).y;
 
                 /* Draw the trailing edge of the last bar if necessary. */
                 if ( lastIxLead != ( xflip ? ixhi : ixlo ) ) {
@@ -239,11 +239,12 @@ public abstract class Histogram extends SurfacePlot {
             long lp = (long) ip;
             double[] coords = points.getPoint( ip );
             double x = coords[ 0 ];
+            double w = coords[ 1 ];
             if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
                 for ( int is = 0; is < nset; is++ ) {
                     setFlags[ is ] = rsets[ is ].isIncluded( lp );
                 }
-                binned.submitDatum( x, setFlags );
+                binned.submitDatum( x, w, setFlags );
             }
         }
         return binned;
