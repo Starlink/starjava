@@ -47,7 +47,7 @@ public interface ValueStore {
      * @param   index  starting offset
      * @param   array  array to accept data
      * @param   ioff   offset into array to which the first value is copied
-     * @parm    count  number of values to transfer
+     * @param   count  number of values to transfer
      */
     void get( long index, Object array, int ioff, int count );
 }
