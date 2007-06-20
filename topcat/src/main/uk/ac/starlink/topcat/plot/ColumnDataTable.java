@@ -16,7 +16,6 @@ import uk.ac.starlink.topcat.TopcatModel;
 public class ColumnDataTable extends ColumnStarTable {
 
     private final TopcatModel tcModel_;
-    private final ColumnData[] cols_;
 
     /**
      * Constructor.
@@ -26,7 +25,6 @@ public class ColumnDataTable extends ColumnStarTable {
      */
     public ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
         tcModel_ = tcModel;
-        cols_ = cols;
         for ( int i = 0; i < cols.length; i++ ) {
             addColumn( cols[ i ] );
         }
@@ -48,8 +46,20 @@ public class ColumnDataTable extends ColumnStarTable {
     public boolean equals( Object o ) {
         if ( o instanceof ColumnDataTable ) {
             ColumnDataTable other = (ColumnDataTable) o;
-            return this.tcModel_ == other.tcModel_
-                && Arrays.equals( this.cols_, other.cols_ );
+            if ( this.tcModel_ != other.tcModel_ ) {
+                return false;
+            }
+            int ncol = this.getColumnCount();
+            if ( other.getColumnCount() != ncol ) {
+                return false;
+            }
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                if ( ! this.getColumnData( icol )
+                      .equals( other.getColumnData( icol ) ) ) {
+                    return false;
+                }
+            }
+            return true;
         }
         else {
             return false;
@@ -58,8 +68,9 @@ public class ColumnDataTable extends ColumnStarTable {
     
     public int hashCode() {
         int code = tcModel_.hashCode();
-        for ( int i = 0; i < cols_.length; i++ ) {
-            code = 23 * code + cols_[ i ].hashCode();
+        int ncol = getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            code = 23 * code + getColumnData( icol ).hashCode();
         }
         return code;
     }
