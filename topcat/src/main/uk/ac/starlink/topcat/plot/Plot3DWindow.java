@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -442,8 +443,19 @@ public abstract class Plot3DWindow extends GraphicsWindow
         public void mouseClicked( MouseEvent evt ) {
             int butt = evt.getButton();
             if ( butt == MouseEvent.BUTTON1 ) {
+
+                /* Get the position in plot coordinates. */
+                JComponent comp = (JComponent) evt.getComponent();
+                assert comp == plot_;
+                Insets insets = comp.getInsets();
+                Point point = evt.getPoint();
+                point.translate( - insets.left, - insets.top );
+
+                /* Get the closest plotted point to this. */
                 int ip = plot_.getPlottedPointIterator()
-                              .getClosestPoint( evt.getPoint(), 4 );
+                              .getClosestPoint( point, 4 );
+
+                /* Highlight if there is one. */
                 if ( ip >= 0 ) {
                     PointSelection psel = plot_.getState().getPointSelection();
                     psel.getPointTable( ip )
