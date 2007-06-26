@@ -86,6 +86,7 @@ public class AugmentedAxesSelector implements AxesSelector {
                 box.add( new ShrinkWrapper( shaderSelector ) );
                 box.add( Box.createHorizontalStrut( 5 ) );
                 box.add( new ComboBoxBumper( shaderSelector ) );
+                box.add( Box.createHorizontalGlue() );
                 selector.add( box );
             }
         }
