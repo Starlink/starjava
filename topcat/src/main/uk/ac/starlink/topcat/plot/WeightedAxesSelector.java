@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
@@ -47,7 +48,7 @@ public class WeightedAxesSelector implements AxesSelector {
         selectorPanel_ = Box.createVerticalBox();
         selectorPanel_.add( baseSelector_.getColumnSelectorPanel() );
         selectorContainer_ = Box.createHorizontalBox();
-        selectorContainer_.add( Box.createVerticalStrut( 60 ) );
+        selectorContainer_.add( Box.createRigidArea( new Dimension( 0, 60 ) ) );
         selectorContainer_.add( selectorPanel_ );
     }
 
