@@ -38,6 +38,9 @@ public class TableColumnChooser
     /** Patterns for the column containing the data errors */
     private static ArrayList errorPatterns = null;
 
+    /** Patterns for the column containing the line identifier labels */
+    private static ArrayList labelPatterns = null;
+
     /** Flags used for any pattern matching */
     private static final int flags = Pattern.CASE_INSENSITIVE;
 
@@ -65,6 +68,11 @@ public class TableColumnChooser
         addErrorPattern( "error.*" );
         addErrorPattern( "sigma.*" );
         addErrorPattern( "stddev.*" );
+
+        labelPatterns = new ArrayList();
+        addLabelPattern( "identifiers.*" );
+        addLabelPattern( "label.*" );
+        addLabelPattern( "name.*" );
    }
 
     /**
@@ -89,7 +97,12 @@ public class TableColumnChooser
         //  First check column infos for the IVOA spectral data model utype.
         int column = matchUtype( infos, "data.spectralaxis.value" );
         if ( column == -1 ) {
-            column = match( coordPatterns, names );
+
+            // SLAP utype.
+            column = matchUtype( infos, "line.wavelength" );
+            if ( column == -1 ) {
+                column = match( coordPatterns, names );
+            }
         }
         return column;
     }
@@ -129,6 +142,22 @@ public class TableColumnChooser
                     column = match( errorPatterns, names );
                 }
             }
+        }
+        return column;
+    }
+
+    /**
+     * Return the index of the line identifier labels column.
+     * Matches either the spectral line data model utypes? 
+     * or the current set of patterns.
+     * Returns -1 if no match is located.
+     */
+    public int getLabelMatch( ColumnInfo[] infos, String[] names )
+    {
+        //  First check column infos for the IVOA spectral data model utypes.
+        int column = matchUtype( infos, "Line.title" );
+        if ( column == -1 ) {
+            column = match( labelPatterns, names );
         }
         return column;
     }
@@ -210,5 +239,17 @@ public class TableColumnChooser
     public void addErrorPattern( String pattern, int index ) 
     {
         errorPatterns.add( index, Pattern.compile( pattern, flags ) );
+    }
+
+    /** Add a new regular expression pattern for matching labels.*/
+    public void addLabelPattern( String pattern ) 
+    {
+        labelPatterns.add( Pattern.compile( pattern, flags ) );
+    }
+
+    /** Insert a new regular expression pattern for matching labels.*/
+    public void addLabelPattern( String pattern, int index ) 
+    {
+        labelPatterns.add( index, Pattern.compile( pattern, flags ) );
     }
 }
