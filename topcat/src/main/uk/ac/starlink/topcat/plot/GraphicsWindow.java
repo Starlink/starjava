@@ -425,7 +425,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * Perform initialisation which can't be done in the constructor
      * (typically because it calls potentially overridden methods).
      */
-    private void init() {
+    protected void init() {
 
         /* Add a starter point selector. */
         PointSelector mainSel = createPointSelector();
