@@ -76,12 +76,16 @@ public class Shaders {
     public static final Shader HSV_V = new FixHsvShader( "HSV V", 2 );
 
     /** Interpolates between red (0) and blue (1). */
-    public static final Shader RBSCALE =
+    public static final Shader RED_BLUE =
         createInterpolationShader( "Red-Blue", Color.RED, Color.BLUE );
 
     /** Interpolates between white (0) and black (1). */
-    public static final Shader GREYSCALE =
+    public static final Shader WHITE_BLACK =
         createInterpolationShader( "Greyscale", Color.WHITE, Color.BLACK );
+
+    /** Interpolates between black (0) and white (1). */
+    public static final Shader BLACK_WHITE =
+        createInterpolationShader( "Greyscale", Color.BLACK, Color.WHITE );
 
     /** Shader based on lookup table Aips0. */
     public static final Shader LUT_AIPS0;
