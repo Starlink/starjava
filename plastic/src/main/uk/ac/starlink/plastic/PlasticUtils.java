@@ -108,7 +108,8 @@ public class PlasticUtils {
      * @return  URL for communicating with the current hub via XML-RPC
      */
     public static URL getXmlRpcUrl() throws IOException {
-        return new URL( getPlasticProperty( "plastic.xmlrpc.url" ) );
+        return new URL( getPlasticProperty( PlasticHubListener
+                                           .PLASTIC_XMLRPC_URL_KEY ) );
     }
 
     /**
@@ -275,9 +276,10 @@ public class PlasticUtils {
                                .initCause( e );
         }
 
-        URL serverUrl = new URL( "http://"
-                               + InetAddress.getLocalHost().getHostName()
-                               + ":" + port + "/" );
+        URL serverUrl =
+            new URL( "http://"
+                   + InetAddress.getLocalHost().getCanonicalHostName()
+                   + ":" + port + "/" );
         XmlRpcHandler handler = new XmlRpcHandler() {
             public Object execute( String method, Vector params ) 
                     throws URISyntaxException {

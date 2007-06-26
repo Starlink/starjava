@@ -142,9 +142,10 @@ public class ServerSet {
             throw new RemoteException( "Can't start XML-RPC server", e );
         }
         xmlrpcServer_ = xrServer;
-        xmlrpcUrl_ = new URL( "http://" +
-                              InetAddress.getLocalHost().getHostName() +
-                              ":" + xrPort + "/" );
+        xmlrpcUrl_ =
+            new URL( "http://" +
+                     InetAddress.getLocalHost().getCanonicalHostName() +
+                     ":" + xrPort + "/" );
 
         /* Write the config file if requested to. */
         if ( configFile != null ) {
