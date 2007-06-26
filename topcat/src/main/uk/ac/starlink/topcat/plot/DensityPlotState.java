@@ -13,6 +13,8 @@ public class DensityPlotState extends PlotState {
     private double loCut_;
     private double hiCut_;
     private int pixSize_;
+    private boolean weighted_;
+    private Shader indexedShader_;
 
     /**
      * Sets whether the plot will be coloured.
@@ -110,6 +112,44 @@ public class DensityPlotState extends PlotState {
         return hiCut_;
     }
 
+    /**
+     * Sets whether non-unit weighting is (maybe) in force for this state.
+     *
+     * @param  weighted  whether weights are used
+     */
+    public void setWeighted( boolean weighted ) {
+        weighted_ = weighted;
+    }
+
+    /**
+     * Determines whether non-unit weighting is (maybe) in force for this state.
+     *
+     * @return  whether weights are used
+     */
+    public boolean getWeighted() {
+        return weighted_;
+    }
+
+    /**
+     * Sets the shader object to be used for shading pixels in 
+     * indexed (non-RGB) mode.
+     *
+     * @param  indexedShader  shader
+     */
+    public void setIndexedShader( Shader indexedShader ) {
+        indexedShader_ = indexedShader;
+    }
+
+    /**
+     * Returns the shader to be used for shading pixels in 
+     * indexed (non-RGB) mode.
+     *
+     * @return  shader
+     */
+    public Shader getIndexedShader() {
+        return indexedShader_;
+    }
+
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof DensityPlotState ) {
             DensityPlotState other = (DensityPlotState) o;
@@ -117,7 +157,9 @@ public class DensityPlotState extends PlotState {
                 && zLog_ == other.zLog_
                 && loCut_ == other.loCut_
                 && hiCut_ == other.hiCut_
-                && pixSize_ == other.pixSize_;
+                && pixSize_ == other.pixSize_
+                && weighted_ == other.weighted_
+                && indexedShader_ == other.indexedShader_;
         }
         else {
             return false;
@@ -126,11 +168,15 @@ public class DensityPlotState extends PlotState {
 
     public int hashCode() {
         int code = super.hashCode();
-        code = 23 * code + ( rgb_ ? 1 : 0 );
-        code = 23 * code + ( zLog_ ? 1 : 0 );
+        code = 23 * code + ( rgb_ ? 3 : 0 );
+        code = 23 * code + ( zLog_ ? 5 : 0 );
         code = 23 * code + Float.floatToIntBits( (float) loCut_ );
         code = 23 * code + Float.floatToIntBits( (float) hiCut_ );
         code = 23 * code + pixSize_;
+        code = 23 * code + ( weighted_ ? 7 : 0 );
+        code = 23 * code + ( indexedShader_ == null
+                                 ? 0
+                                 : indexedShader_.hashCode() );
         return code;
     }
 }

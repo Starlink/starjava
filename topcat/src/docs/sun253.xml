@@ -9941,6 +9941,8 @@ introduced since the last version:
     <li>GAVO loader.</li>
     <li>Stay Upright action (&IMG.NORTH;) in 3D plots.</li>
     <li>Weighting in histogram.</li>
+    <li>Weighting in density map.</li>
+    <li>Indexed colour map selection in density map.</li>
     </ul>
     </p></dd>
 

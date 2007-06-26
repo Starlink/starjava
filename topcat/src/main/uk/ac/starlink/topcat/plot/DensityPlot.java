@@ -39,8 +39,9 @@ public abstract class DensityPlot extends SurfacePlot {
     private BufferedImage image_;
     private Rectangle lastPlotZone_;
     private DensityPlotState lastState_;
-    private int[] loCuts_;
-    private int[] hiCuts_;
+    private double[] loCuts_;
+    private double[] hiCuts_;
+    private DensityStyle[] styles_;
 
     /**
      * Constructor.
@@ -82,8 +83,9 @@ public abstract class DensityPlot extends SurfacePlot {
         Rectangle plotZone = getSurface().getClip().getBounds();
         DensityPlotState state = (DensityPlotState) getState();
         g2 = (Graphics2D) g2.create();
-        final int[] loCuts;
-        final int[] hiCuts;
+        final double[] loCuts;
+        final double[] hiCuts;
+        final DensityStyle[] styles;
         if ( state != null && state.getValid() ) {
             int psize = state.getPixelSize();
             BufferedImage im = getImage( plotZone, state );
@@ -96,6 +98,7 @@ public abstract class DensityPlot extends SurfacePlot {
             g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
             loCuts = loCuts_;
             hiCuts = hiCuts_;
+            styles = styles_;
         }
         else {
             g2.setColor( Color.BLACK );
@@ -103,10 +106,11 @@ public abstract class DensityPlot extends SurfacePlot {
                          plotZone.width, plotZone.height );
             loCuts = null;
             hiCuts = null;
+            styles = null;
         }
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                reportCuts( loCuts, hiCuts );
+                reportCuts( loCuts, hiCuts, styles );
             }
         } );
     }
@@ -116,12 +120,17 @@ public abstract class DensityPlot extends SurfacePlot {
      * This method is called following a repaint with information gleaned
      * from the painting step.  It is intended as a hook for clients
      * which want to know that information in a way which is up to date.
+     * The parameters are per-channel arrays - note that the number of 
+     * channels may not be the same as the number of styles in the plot state
+     * (although it will be related to it).
      * The default implementation does nothing.
      *
-     * @param  loCuts  lower bounds for cut levels in pixel counts, per channel
-     * @param  hiCuts  upper bounds for cut levesl in pixel counts, per channel
+     * @param  loCuts  lower bounds for cut levels in pixel sums, per channel
+     * @param  hiCuts  upper bounds for cut levesl in pixel sums, per channel
+     * @param  styles  plot style per channel
      */
-    protected void reportCuts( int[] loCuts, int[] hiCuts ) {
+    protected void reportCuts( double[] loCuts, double[] hiCuts,
+                               DensityStyle[] styles ) {
     }
         
     /**
@@ -143,6 +152,7 @@ public abstract class DensityPlot extends SurfacePlot {
         if ( image_ == null ||
              ! plotZone.equals( lastPlotZone_ ) ||
              ! state.equals( lastState_ ) ) {
+            boolean weighted = state.getWeighted();
 
             /* Work out some dimensions. */
             int xsize = plotZone.width;
@@ -176,8 +186,6 @@ public abstract class DensityPlot extends SurfacePlot {
              * which will provide the image. */
             int[] rgb = new int[ npix ];
             Arrays.fill( rgb, 0xff000000 );
-            int[] loCuts = new int[ grids.length ];
-            int[] hiCuts = new int[ grids.length ];
             List cutList = new ArrayList();
             if ( styles.length > 0 ) {
                 for ( int is = 0; is < grids.length; is++ ) {
@@ -185,12 +193,12 @@ public abstract class DensityPlot extends SurfacePlot {
                     BinGrid grid = grids[ is ];
                     assert ( grid == null ) == ( style == null );
                     if ( grid != null ) {
-                        int lo = grid.getCut( loCut );
-                        int hi = grid.getCut( hiCut );
-                        if ( lo == 1 ) {
+                        double lo = grid.getCut( loCut );
+                        double hi = grid.getCut( hiCut );
+                        if ( lo == 1 && ! weighted ) {
                             lo = 0;
                         }
-                        cutList.add( new int[] { lo, hi } );
+                        cutList.add( new double[] { lo, hi } );
                         byte[] data = grid.getBytes( lo, hi, state.getLogZ() );
                         for ( int ipix = 0; ipix < npix; ipix++ ) {
                             rgb[ ipix ] =
@@ -199,12 +207,14 @@ public abstract class DensityPlot extends SurfacePlot {
                     }
                 }
             }
-            loCuts_ = new int[ cutList.size() ];
-            hiCuts_ = new int[ cutList.size() ];
+            loCuts_ = new double[ cutList.size() ];
+            hiCuts_ = new double[ cutList.size() ];
+            styles_ = new DensityStyle[ cutList.size() ];
             for ( int i = 0; i < cutList.size(); i++ ) {
-                int[] cuts = (int[]) cutList.get( i );
+                double[] cuts = (double[]) cutList.get( i );
                 loCuts_[ i ] = cuts[ 0 ];
                 hiCuts_[ i ] = cuts[ 1 ];
+                styles_[ i ] = (DensityStyle) styles[ i ];
             }
 
             /* Create an image contaning the pixels we've prepared. */
@@ -253,8 +263,8 @@ public abstract class DensityPlot extends SurfacePlot {
                 rgbStyles[ iseen ] = style;
             }
             else {
-                int[] c1 = grids[ is ].getCounts();
-                int[] c0 = rgbGrids[ iseen ].getCounts();
+                double[] c1 = grids[ is ].getSums();
+                double[] c0 = rgbGrids[ iseen ].getSums();
                 int npix = c0.length;
                 assert npix == c1.length;
                 for ( int i = 0; i < npix; i++ ) {
@@ -426,7 +436,7 @@ public abstract class DensityPlot extends SurfacePlot {
                             for ( int is = 0; is < nset; is++ ) {
                                 if ( setFlags[ is ] ) {
                                     grids[ sumAll ? 0 : is ]
-                                        .submitDatum( ix, iy );
+                                        .submitDatum( ix, iy, coords[ 2 ] );
                                 }
                             }
                         }

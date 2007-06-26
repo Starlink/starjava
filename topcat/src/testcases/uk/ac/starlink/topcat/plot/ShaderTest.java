@@ -32,6 +32,13 @@ public class ShaderTest extends TestCase {
         }
     }
 
+    public void testDensity() {
+        Shader[] shaders = DensityWindow.INDEXED_SHADERS;
+        for ( int i = 0; i < shaders.length; i++ ) {
+            assertTrue( shaders[ i ].isAbsolute() );
+        }
+    }
+
     private void assertIsRgb( float[] rgb ) {
         boolean same = true;
         for ( int i = 0; i < 3; i++ ) {

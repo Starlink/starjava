@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -54,7 +56,9 @@ import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Graphics window which displays a density plot, that is a 2-dimensional
@@ -72,6 +76,7 @@ public class DensityWindow extends GraphicsWindow {
     private final CountsLabel plotStatus_;
     private final ToggleButtonModel rgbModel_;
     private final ToggleButtonModel zLogModel_;
+    private final ToggleButtonModel weightModel_;
     private final CutChooser cutter_;
     private final JLabel cutLabel_;
     private final PixelSizeAction pixIncAction_;
@@ -79,6 +84,7 @@ public class DensityWindow extends GraphicsWindow {
     private final Action fitsAction_;
     private final DensityStyle[] styles_;
     private final List rgbRepaintList_;
+    private final ComboBoxModel shaderModel_;
     private int pixelSize_ = 1;
 
     private static FileFilter fitsFilter_ =
@@ -86,6 +92,16 @@ public class DensityWindow extends GraphicsWindow {
     private static FileFilter jpegFilter_ =
         new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
     private static final String[] AXIS_NAMES = new String[] { "X", "Y" };
+    static final Shader[] INDEXED_SHADERS = new Shader[] {
+        Shaders.LUT_HEAT,
+        Shaders.LUT_LIGHT,
+        Shaders.LUT_PASTEL,
+        Shaders.BLACK_WHITE,
+        Shaders.LUT_RAINBOW,
+        Shaders.RED_BLUE,
+        Shaders.LUT_STAIRCASE,
+        Shaders.LUT_MANYCOL,
+    };
 
     /**
      * Constructs a new DensityWindow.
@@ -127,15 +143,25 @@ public class DensityWindow extends GraphicsWindow {
             protected void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
             }
-            protected void reportCuts( int[] loCuts, int[] hiCuts ) {
+            protected void reportCuts( double[] loCuts, double[] hiCuts,
+                                       DensityStyle[] styles ) {
                 StringBuffer sbuf = new StringBuffer();
+                boolean weighted = 
+                    ((DensityPlotState) getState()).getWeighted();
                 for ( int i = 0; loCuts != null && i < loCuts.length; i++ ) {
                     if ( i > 0 ) {
                         sbuf.append( ";  " );
                     }
-                    sbuf.append( loCuts[ i ] )
-                        .append( " \u2014 " )
-                        .append( hiCuts[ i ] );
+                    if ( weighted ) {
+                        sbuf.append( (float) loCuts[ i ] )
+                            .append( " \u2014 " )
+                            .append( (float) hiCuts[ i ] );
+                    }
+                    else {
+                        sbuf.append( (int) loCuts[ i ] )
+                            .append( " \u2014 " )
+                            .append( (int) hiCuts[ i ] );
+                    }
                 }
                 cutLabel_.setText( sbuf.toString() );
             }
@@ -166,21 +192,33 @@ public class DensityWindow extends GraphicsWindow {
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
         getStatusBox().add( posStatus );
 
-        /* Action for rgb/greyscale toggle. */
-        rgbModel_ = new ToggleButtonModel( "Colour", ResourceIcon.COLOR,
-                                           "Select red/green/blue or " +
-                                           "greyscale rendering" );
-        rgbModel_.setSelected( true );
-        rgbModel_.addActionListener( getReplotListener() );
-        rgbRepaintList_ = new ArrayList();
-        rgbModel_.addActionListener( new ActionListener() {
+        /* Listener which repaints legends when their icons might have
+         * changed. */
+        ActionListener legendPainter = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 for ( Iterator it = rgbRepaintList_.iterator();
                       it.hasNext(); ) {
                     ((JComponent) it.next()).repaint();
                 }
             }
-        } );
+        };
+
+        /* Action for rgb/greyscale toggle. */
+        rgbModel_ = new ToggleButtonModel( "RGB", ResourceIcon.COLOR,
+                                           "Select red/green/blue or " +
+                                           "indexed rendering" );
+        rgbModel_.setSelected( true );
+        rgbModel_.addActionListener( getReplotListener() );
+        rgbRepaintList_ = new ArrayList();
+        rgbModel_.addActionListener( legendPainter );
+
+        /* Model for the shader which controls the indexed (non-RGB) 
+         * colour map. */
+        shaderModel_ = new ChangingComboBoxModel( INDEXED_SHADERS );
+        ((ChangingComboBoxModel) shaderModel_)
+                                .addChangeListener( getReplotListener() );
+        ((ChangingComboBoxModel) shaderModel_)
+                                .addActionListener( legendPainter );
 
         /* Action for linear/log scale for colour map. */
         zLogModel_ = new ToggleButtonModel( "Log Intensity",
@@ -189,6 +227,12 @@ public class DensityWindow extends GraphicsWindow {
                                             "counts" );
         zLogModel_.setSelected( false );
         zLogModel_.addActionListener( getReplotListener() );
+
+        /* Action for weighting of histogram values. */
+        weightModel_ =
+            new ToggleButtonModel( "Weighted Counts", ResourceIcon.WEIGHT,
+                                   "Allow weighting of histogram counts" );
+        weightModel_.addActionListener( getReplotListener() );
 
         /* Actions for altering pixel size. */
         pixIncAction_ =
@@ -244,7 +288,7 @@ public class DensityWindow extends GraphicsWindow {
         cutter_.setLowValue( 0.1 );
         cutter_.setHighValue( 0.9 );
         cutter_.addChangeListener( getReplotListener() );
-        cutLabel_ = new JLabel();
+        cutLabel_ = new JLabel( "0 \u2014 0" );
         JComponent cutBox = Box.createVerticalBox();
         cutBox.setBorder( makeTitledBorder( "Cut Percentile Levels" ) );
         JComponent clbox = Box.createHorizontalBox();
@@ -253,11 +297,37 @@ public class DensityWindow extends GraphicsWindow {
         clbox.add( Box.createHorizontalGlue() );
         cutBox.add( cutter_ );
         cutBox.add( clbox ); 
-        getMainArea().add( cutBox, BorderLayout.SOUTH );
+
+        /* Indexed colourmap selector. */
+        JComponent shBox = Box.createHorizontalBox();
+        final JComboBox shaderSelector = new JComboBox( shaderModel_ );
+        shaderSelector.setRenderer( Shaders.SHADER_RENDERER );
+        shBox.add( Box.createHorizontalStrut( 5 ) );
+        shBox.add( new ShrinkWrapper( shaderSelector ) );
+        shBox.add( Box.createHorizontalStrut( 5 ) );
+        shBox.add( new ComboBoxBumper( shaderSelector ) );
+        shBox.add( Box.createHorizontalStrut( 5 ) );
+        JComponent shaderBox = Box.createVerticalBox();
+        shaderBox.add( shBox );
+        shaderBox.add( Box.createVerticalGlue() );
+        shaderBox.setBorder( makeTitledBorder( "Indexed Colours" ) );
+        rgbModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                shaderSelector.setEnabled( ! rgbModel_.isSelected() );
+            }
+        } );
+        shaderSelector.setEnabled( ! rgbModel_.isSelected() );
+
+        /* Place controls. */
+        JComponent controlBox = Box.createHorizontalBox();
+        controlBox.add( cutBox );
+        controlBox.add( shaderBox );
+        getMainArea().add( controlBox, BorderLayout.SOUTH );
 
         /* General plot operation menu. */
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
+        plotMenu.add( weightModel_.createMenuItem() );
         plotMenu.add( getRescaleAction() );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
@@ -310,6 +380,7 @@ public class DensityWindow extends GraphicsWindow {
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( weightModel_.createToolbarButton() );
         getToolBar().add( zLogModel_.createToolbarButton() );
         getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
@@ -326,6 +397,13 @@ public class DensityWindow extends GraphicsWindow {
         replot();
     }
 
+    protected void init() {
+        super.init();
+        AxisWindow axwin = getAxisWindow();
+        AxisEditor[] axes = axwin.getEditors();
+        axwin.setEditors( new AxisEditor[] { axes[ 0 ], axes[ 1 ], } );
+    }
+
     protected JComponent getPlot() {
         return plot_;
     }
@@ -337,9 +415,48 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     protected PointSelector createPointSelector() {
-        PointSelector psel = super.createPointSelector();
+
+        AxesSelector axsel =
+            new CartesianAxesSelector( AXIS_NAMES, getLogModels(),
+                                       getFlipModels(),
+                                       new ErrorModeSelectionModel[ 0 ] );
+        final WeightedAxesSelector waxsel = new WeightedAxesSelector( axsel ) {
+            public AxisEditor[] createAxisEditors() {
+                AxisEditor[] xyeds = super.createAxisEditors();
+                AxisEditor zed = new AxisEditor( "Colour" );
+                return new AxisEditor[] { xyeds[ 0 ], xyeds[ 1 ], zed, };
+            }
+        };
+        waxsel.enableWeights( weightModel_.isSelected() );
+        weightModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                waxsel.enableWeights( weightModel_.isSelected() );
+            }
+        } );
+        PointSelector psel = new PointSelector( waxsel, getStyles() );
         rgbRepaintList_.add( psel );
         return psel;
+    }
+
+    /**
+     * Indicates whether any of the active point selectors have non-trivial
+     * weighting axes.
+     *
+     * @return  true  if some weighting may be in force
+     */
+    private boolean hasWeights() {
+        PointSelectorSet psels = getPointSelectors();
+        for ( int ip = 0; ip < psels.getSelectorCount(); ip++ ) {
+            if ( ((WeightedAxesSelector)
+                  psels.getSelector( ip ).getAxesSelector()).hasWeights() ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getMainRangeCount() {
+        return 2;
     }
 
     protected PlotState createPlotState() {
@@ -354,6 +471,10 @@ public class DensityWindow extends GraphicsWindow {
         state.setLoCut( cutter_.getLowValue() );
         state.setHiCut( cutter_.getHighValue() );
         state.setPixelSize( pixelSize_ );
+        state.setWeighted( hasWeights() );
+        state.setIndexedShader( rgbModel_.isSelected()
+                              ? null
+                              : (Shader) shaderModel_.getSelectedItem() );
         pixIncAction_.configureEnabledness();
         pixDecAction_.configureEnabledness();
         return state;
@@ -454,25 +575,40 @@ public class DensityWindow extends GraphicsWindow {
         final DataOutputStream out = new DataOutputStream( ostrm );
 
         BinGrid[] grids = plot_.getBinnedData();
+        DensityPlotState state = (DensityPlotState) plot_.getState();
+        boolean weighted = state.getWeighted();
         int ngrid = grids.length;
 
         /* Set up an object that can write the data of this grid using
          * an appropriate datatype. */
-        int max = 0;
+        double min = + Double.MAX_VALUE;
+        double max = - Double.MAX_VALUE;
         for ( int i = 0; i < ngrid; i++ ) {
-            max = Math.max( max, grids[ i ].getMaxCount() );
+            max = Math.max( max, grids[ i ].getMaxSum() );
+            min = Math.min( min, grids[ i ].getMinSum() );
         }
         int bitpix;
-        abstract class IntWriter {
-            abstract void writeInt( int value ) throws IOException;
+        abstract class NumWriter {
+            abstract void writeNum( double value ) throws IOException;
             abstract int size();
         };
-        IntWriter intWriter;
-        if ( max < Math.pow( 2, 7 ) ) {
+        NumWriter numWriter;
+        if ( weighted ) {
+            bitpix = BasicHDU.BITPIX_DOUBLE;
+            numWriter = new NumWriter() {
+                void writeNum( double value ) throws IOException {
+                    out.writeDouble( value );
+                }
+                int size() {
+                    return 8;
+                }
+            };
+        }
+        else if ( max < Math.pow( 2, 7 ) ) {
             bitpix = BasicHDU.BITPIX_BYTE;
-            intWriter = new IntWriter() {
-                void writeInt( int value ) throws IOException {
-                    out.writeByte( value );
+            numWriter = new NumWriter() {
+                void writeNum( double value ) throws IOException {
+                    out.writeByte( (int) value );
                 }
                 int size() {
                     return 1;
@@ -481,9 +617,9 @@ public class DensityWindow extends GraphicsWindow {
         }
         else if ( max < Math.pow( 2, 15 ) ) {
             bitpix = BasicHDU.BITPIX_SHORT;
-            intWriter = new IntWriter() {
-                void writeInt( int value ) throws IOException {
-                    out.writeShort( value );
+            numWriter = new NumWriter() {
+                void writeNum( double value ) throws IOException {
+                    out.writeShort( (int) value );
                 }
                 int size() {
                     return 2;
@@ -492,9 +628,9 @@ public class DensityWindow extends GraphicsWindow {
         }
         else {
             bitpix = BasicHDU.BITPIX_INT;
-            intWriter = new IntWriter() {
-                void writeInt( int value ) throws IOException {
-                    out.writeInt( value );
+            numWriter = new NumWriter() {
+                void writeNum( double value ) throws IOException {
+                    out.writeInt( (int) value );
                 }
                 int size() {
                     return 4;
@@ -511,7 +647,6 @@ public class DensityWindow extends GraphicsWindow {
             assert grids[ i ].getSizeX() == nx;
             assert grids[ i ].getSizeY() == ny;
         }
-        DensityPlotState state = (DensityPlotState) plot_.getState();
         int psize = state.getPixelSize();
         ValueInfo[] axes = state.getAxes();
 
@@ -556,9 +691,14 @@ public class DensityWindow extends GraphicsWindow {
             hdr.addValue( "CTYPE3", "RGB",
                           "Separate histograms stored in different planes" );
         }
-        hdr.addValue( "BUNIT", "COUNTS", "Number of points per pixel (bin)" );
-        hdr.addValue( "DATAMIN", 0.0, "Minimum value" );
-        hdr.addValue( "DATAMAX", (double) max, "Maximum value" );
+        if ( ! weighted ) {
+            hdr.addValue( "BUNIT", "COUNTS",
+                          "Number of points per pixel (bin)" );
+        }
+        if ( max >= min ) {
+            hdr.addValue( "DATAMIN", min, "Minimum value" );
+            hdr.addValue( "DATAMAX", max, "Maximum value" );
+        }
 
         /* For -CAR projections, it's essential that the CRVALn values are
          * at zero, and the CRPIXn ones are set to whatever makes the
@@ -601,17 +741,17 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Write the data. */
         for ( int i = 0; i < ngrid; i++ ) {
-            int[] data = grids[ i ].getCounts();
+            double[] data = grids[ i ].getSums();
             for ( int iy = 0; iy < ny; iy++ ) {
                 int yoff = ( ny - 1 - iy ) * nx;
                 for ( int ix = 0; ix < nx; ix++ ) {
-                    intWriter.writeInt( data[ yoff + ix ] );
+                    numWriter.writeNum( data[ yoff + ix ] );
                 }
             }
         }
 
         /* Write padding to an integral number of FITS block sizes. */
-        int nbyte = nx * ny * ngrid * intWriter.size();
+        int nbyte = nx * ny * ngrid * numWriter.size();
         int over = nbyte % FitsConstants.FITS_BLOCK;
         if ( over > 0 ) {
             out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
@@ -663,6 +803,9 @@ public class DensityWindow extends GraphicsWindow {
         }
         protected boolean isRGB() {
             return rgbModel_.isSelected();
+        }
+        public Shader getShader() {
+            return (Shader) shaderModel_.getSelectedItem();
         }
     }
 

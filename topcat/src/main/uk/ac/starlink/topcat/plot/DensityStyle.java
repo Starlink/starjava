@@ -14,6 +14,8 @@ import javax.swing.Icon;
 public abstract class DensityStyle implements Style, Icon {
 
     private final Channel channel_;
+    private final float[] rgba_;
+    private Shader shader_;
 
     private static final int ICON_WIDTH = 24;
     private static final int ICON_HEIGHT = 8;
@@ -34,6 +36,29 @@ public abstract class DensityStyle implements Style, Icon {
      */
     DensityStyle( Channel channel ) {
         channel_ = channel;
+        rgba_ = new float[ 4 ];
+        shader_ = Shaders.BLACK_WHITE;
+    }
+
+    /**
+     * Sets the shader to use in indexed (non-RGB) mode.
+     * This should be an absolute shader.
+     *
+     * @param  shader  shader
+     */
+    public void setShader( Shader shader ) {
+        assert shader_.isAbsolute();
+        shader_ = shader;
+    }
+
+    /**
+     * Returns the shader to use in indexed (non-RGB) mode.
+     * This should be an absolute shader.
+     *
+     * @return  shader
+     */
+    public Shader getShader() {
+        return shader_;
     }
 
     /**
@@ -51,9 +76,11 @@ public abstract class DensityStyle implements Style, Icon {
             return ( 0x000000ff & level ) << channel_.shift_;
         }
         else {
-            int lev = 0x000000ff & level;
-            assert lev >= 0 && lev < 256;
-            return lev | ( lev << 8 ) | ( lev << 16 );
+            getShader().adjustRgba( rgba_, (float) ( 0xff & level ) / 255f );
+            return ( (int) ( rgba_[ 2 ] * 255.9f ) & 0xff ) << 0
+                 | ( (int) ( rgba_[ 1 ] * 255.9f ) & 0xff ) << 8
+                 | ( (int) ( rgba_[ 0 ] * 255.9f ) & 0xff ) << 16
+                 | ( (int) ( rgba_[ 3 ] * 255.9f ) & 0xff ) << 24;
         }
     }
 
