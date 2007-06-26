@@ -79,7 +79,7 @@ public class Shaders {
     public static final Shader RBSCALE =
         createInterpolationShader( "Red-Blue", Color.RED, Color.BLUE );
 
-    /** Interpolates between black (0) and white (1). */
+    /** Interpolates between white (0) and black (1). */
     public static final Shader GREYSCALE =
         createInterpolationShader( "Greyscale", Color.WHITE, Color.BLACK );
 
