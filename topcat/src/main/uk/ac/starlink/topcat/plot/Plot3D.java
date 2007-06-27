@@ -978,8 +978,13 @@ public abstract class Plot3D extends JPanel {
                 double[] coords = points.getPoint( activePoints_[ i ] );
                 if ( logize( coords, logFlags ) ) {
                     trans.transform( coords );
-                    cursorStyle_.drawMarker( g, vol.projectX( coords[ 0 ] ),
-                                                vol.projectY( coords[ 1 ] ) );
+                    if ( ! Double.isNaN( coords[ 0 ] ) &&
+                         ! Double.isNaN( coords[ 1 ] ) &&
+                         ! Double.isNaN( coords[ 2 ] ) ) {
+                        cursorStyle_.drawMarker( g,
+                                                 vol.projectX( coords[ 0 ] ),
+                                                 vol.projectY( coords[ 1 ] ) );
+                    }
                 }
             }
         }
