@@ -9943,6 +9943,7 @@ introduced since the last version:
     <li>Weighting in histogram.</li>
     <li>Weighting in density map.</li>
     <li>Indexed colour map selection in density map.</li>
+    <li>JPEG and PNG plot export available from all graphics windows.</li>
     </ul>
     </p></dd>
 
