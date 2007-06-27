@@ -160,10 +160,12 @@ public abstract class GraphicsWindow extends AuxWindow {
     private int nRead_;
 
     private static JFileChooser exportSaver_;
-    private static FileFilter psFilter_ =
+    private static final FileFilter psFilter_ =
         new SuffixFileFilter( new String[] { ".ps", ".eps", } );
-    private static FileFilter gifFilter_ =
+    private static final FileFilter gifFilter_ =
         new SuffixFileFilter( new String[] { ".gif" } );
+    private static final FileFilter jpegFilter_ =
+        new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
     private static final Shader[] SHADERS = new Shader[] {
@@ -378,12 +380,15 @@ public abstract class GraphicsWindow extends AuxWindow {
                 exportEPS( out );
             }
         };
+        Action jpegAction =
+            new ImageIOExportAction( "JPEG", jpegFilter_, ResourceIcon.JPEG );
         getToolBar().add( epsAction );
         getToolBar().add( gifAction );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( epsAction );
         exportMenu_.add( gifAction );
+        exportMenu_.add( jpegAction );
         getJMenuBar().add( exportMenu_ );
 
         /* Other actions. */
@@ -1525,6 +1530,8 @@ public abstract class GraphicsWindow extends AuxWindow {
          * instead.  This is necessary since the GIF encoder we're using
          * here just gives up if there are too many. */
         if ( colors.size() > 254 ) {
+            logger_.warning( "GIF export colour map filled up - "
+                           + "JPEG might do a better job" );
 
             /* Create an image with a suitable colour model. */
             IndexColorModel gifColorModel = getGifColorModel();
@@ -1755,8 +1762,9 @@ public abstract class GraphicsWindow extends AuxWindow {
         private final boolean ok_;
         private final String formatName_;
 
-        public ImageIOExportAction( String formatName, FileFilter filter ) {
-            super( formatName, ResourceIcon.IMAGE,
+        public ImageIOExportAction( String formatName, FileFilter filter,
+                                    Icon icon ) {
+            super( formatName, icon == null ? ResourceIcon.IMAGE : icon,
                    "Save plot as a " + formatName + " file", filter );
             ok_ = ImageIO.getImageWritersByFormatName( formatName ).hasNext();
             formatName_ = formatName;
@@ -1768,11 +1776,28 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         public void exportTo( OutputStream out ) throws IOException {
             JComponent plot = plotArea_;
+
+            /* Create an image buffer on which to paint. */
             int w = plot.getWidth();
             int h = plot.getHeight();
             BufferedImage image = 
                 new BufferedImage( w, h, BufferedImage.TYPE_INT_RGB );
-            plot.paint( image.getGraphics() );
+            Graphics2D g2 = image.createGraphics();
+
+            /* Clear the background to transparent white.  Failing to do this
+             * leaves all kinds of junk in the background. */
+            Color color = g2.getColor();
+            Composite compos = g2.getComposite();
+            g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
+            g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
+            g2.fillRect( 0, 0, w, h );
+            g2.setColor( color );
+            g2.setComposite( compos );
+
+            /* Paint the graphics to the buffer. */
+            plot.print( g2 );
+
+            /* Export. */
             boolean done = ImageIO.write( image, formatName_, out );
             out.flush();
             if ( ! done ) {
