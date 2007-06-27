@@ -160,12 +160,6 @@ public abstract class GraphicsWindow extends AuxWindow {
     private int nRead_;
 
     private static JFileChooser exportSaver_;
-    private static final FileFilter psFilter_ =
-        new SuffixFileFilter( new String[] { ".ps", ".eps", } );
-    private static final FileFilter gifFilter_ =
-        new SuffixFileFilter( new String[] { ".gif" } );
-    private static final FileFilter jpegFilter_ =
-        new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
     private static final Shader[] SHADERS = new Shader[] {
@@ -368,27 +362,37 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Actions for exporting the plot. */
         Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
                                              "Save plot as a GIF file",
-                                             gifFilter_ ) {
+                                             new String[] { ".gif", } ) {
             public void exportTo( OutputStream out ) throws IOException {
                 exportGif( out );
             }
         };
         Action epsAction = new ExportAction( "EPS", ResourceIcon.PRINT,
                                              "Export to Encapsulated " +
-                                             "Postscript file", psFilter_ ) {
+                                             "Postscript file",
+                                             new String[] { ".ps", ".eps", } ) {
             public void exportTo( OutputStream out ) throws IOException {
                 exportEPS( out );
             }
         };
-        Action jpegAction =
-            new ImageIOExportAction( "JPEG", jpegFilter_, ResourceIcon.JPEG );
+        ImageIOExportAction jpegAction =
+            new ImageIOExportAction( "JPEG", new String[] { ".jpg", ".jpeg", },
+                                     false, ResourceIcon.JPEG );
+        ImageIOExportAction pngAction =
+            new ImageIOExportAction( "PNG", new String[] { ".png", },
+                                     true, null );
         getToolBar().add( epsAction );
         getToolBar().add( gifAction );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( epsAction );
         exportMenu_.add( gifAction );
-        exportMenu_.add( jpegAction );
+        if ( jpegAction.isImplemented() ) {
+            exportMenu_.add( jpegAction );
+        }
+        if ( pngAction.isImplemented() ) {
+            exportMenu_.add( pngAction );
+        }
         getJMenuBar().add( exportMenu_ );
 
         /* Other actions. */
@@ -1531,7 +1535,7 @@ public abstract class GraphicsWindow extends AuxWindow {
          * here just gives up if there are too many. */
         if ( colors.size() > 254 ) {
             logger_.warning( "GIF export colour map filled up - "
-                           + "JPEG might do a better job" );
+                           + "JPEG or PNG might do a better job" );
 
             /* Create an image with a suitable colour model. */
             IndexColorModel gifColorModel = getGifColorModel();
@@ -1693,7 +1697,20 @@ public abstract class GraphicsWindow extends AuxWindow {
         final FileFilter filter_;
 
         /**
-         * Constructs an export action.
+         * Constructs an export action given a list of file extensions.
+         * 
+         * @param   formatName  short name for format
+         * @param   icon   icon for action
+         * @param   descrip  description for action
+         * @param   extensions  array of standard file extensions for format
+         */
+        ExportAction( String formatName, Icon icon, String desc,
+                      String[] extensions ) {
+            this( formatName, icon, desc, new SuffixFileFilter( extensions ) );
+        }
+
+        /**
+         * Constructs an export action given a file filter.
          * 
          * @param   formatName  short name for format
          * @param   icon   icon for action
@@ -1757,17 +1774,32 @@ public abstract class GraphicsWindow extends AuxWindow {
     /**
      * ExportAction which uses the java ImageIO framework to do the export.
      */
-    protected class ImageIOExportAction extends ExportAction {
+    private class ImageIOExportAction extends ExportAction {
 
         private final boolean ok_;
         private final String formatName_;
+        private final int imageType_;
 
-        public ImageIOExportAction( String formatName, FileFilter filter,
-                                    Icon icon ) {
+        /**
+         * Constructor.
+         *
+         * @param  format name, as recognised by ImageIO
+         * @param  extensions  array of suitable filename extensions
+         * @param  transparent  whether to attempt a transparent background
+         * @param  icon   icon for action, or null for default
+         */
+        public ImageIOExportAction( String formatName, String[] extensions,
+                                    boolean transparent, Icon icon ) {
             super( formatName, icon == null ? ResourceIcon.IMAGE : icon,
-                   "Save plot as a " + formatName + " file", filter );
+                   "Save plot as a " + formatName + " file", extensions );
             ok_ = ImageIO.getImageWritersByFormatName( formatName ).hasNext();
             formatName_ = formatName;
+            imageType_ = transparent ? BufferedImage.TYPE_INT_ARGB
+                                     : BufferedImage.TYPE_INT_RGB;
+        }
+
+        public boolean isImplemented() {
+            return ok_;
         }
 
         public boolean isEnabled() {
@@ -1780,8 +1812,7 @@ public abstract class GraphicsWindow extends AuxWindow {
             /* Create an image buffer on which to paint. */
             int w = plot.getWidth();
             int h = plot.getHeight();
-            BufferedImage image = 
-                new BufferedImage( w, h, BufferedImage.TYPE_INT_RGB );
+            BufferedImage image = new BufferedImage( w, h, imageType_ );
             Graphics2D g2 = image.createGraphics();
 
             /* Clear the background to transparent white.  Failing to do this
