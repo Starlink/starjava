@@ -71,6 +71,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class DensityWindow extends GraphicsWindow {
 
     private final DensityPlot plot_;
+    private final JComponent plotPanel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final CountsLabel plotStatus_;
@@ -166,7 +167,8 @@ public class DensityWindow extends GraphicsWindow {
                 cutLabel_.setText( sbuf.toString() );
             }
         };
-        JPanel plotPanel = new JPanel();
+        plotPanel_ = new JPanel();
+        plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
                 addNewSubsets( plot_.getContainedMask( blob ) );
@@ -175,10 +177,9 @@ public class DensityWindow extends GraphicsWindow {
         blobPanel_.setColors( new Color( 0x80a0a0a0, true ),
                               new Color( 0xc0a0a0a0, true ) );
         blobAction_ = blobPanel_.getBlobAction();
-        plotPanel.setLayout( new OverlayLayout( plotPanel ) );
-        plotPanel.add( blobPanel_ );
-        plotPanel.add( plot_ );
-        getMainArea().add( plotPanel, BorderLayout.CENTER );
+        plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
+        plotPanel_.add( blobPanel_ );
+        plotPanel_.add( plot_ );
 
         /* Construct and add a status line. */
         plotStatus_ = new CountsLabel( new String[] {
@@ -405,7 +406,7 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     protected JComponent getPlot() {
-        return plot_;
+        return plotPanel_;
     }
 
     protected StyleEditor createStyleEditor() {

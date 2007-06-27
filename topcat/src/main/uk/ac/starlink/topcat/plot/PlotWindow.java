@@ -52,6 +52,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
     private final ScatterPlot plot_;
+    private final JComponent plotPanel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
@@ -130,7 +131,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Construct and populate the plot panel with the plot itself
          * and a transparent layer for doodling blobs on. */
-        JPanel plotPanel = new JPanel();
+        plotPanel_ = new JPanel();
+        plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
                 addNewSubsets( plot_.getPlottedPointIterator()
@@ -138,10 +140,10 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
-        plotPanel.setLayout( new OverlayLayout( plotPanel ) );
-        plotPanel.add( blobPanel_ );
-        plotPanel.add( plot_ );
-        plotPanel.setPreferredSize( new Dimension( 500, 400 ) );
+        plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
+        plotPanel_.add( blobPanel_ );
+        plotPanel_.add( plot_ );
+        plotPanel_.setPreferredSize( new Dimension( 500, 400 ) );
 
         /* Listen for point-clicking events on the plot. */
         /* I have to reach right in to find the plot surface component to
@@ -155,10 +157,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
-
-        /* Arrange the components in the top level window. */
-        JPanel mainArea = getMainArea();
-        mainArea.add( plotPanel, BorderLayout.CENTER );
 
         /* Add status lines for displaying the number of points plotted 
          * and the pointer position. */
@@ -241,7 +239,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected JComponent getPlot() {
-        return plot_;
+        return plotPanel_;
     }
 
     protected void doReplot( PlotState state, Points points ) {

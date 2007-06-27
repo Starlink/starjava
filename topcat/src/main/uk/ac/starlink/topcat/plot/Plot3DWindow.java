@@ -38,6 +38,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                                    implements TopcatListener {
 
     private final Plot3D plot_;
+    private final JComponent plotPanel_;
     private final ToggleButtonModel fogModel_;
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel northModel_;
@@ -87,7 +88,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */
-        JPanel plotPanel = new JPanel();
+        plotPanel_ = new JPanel();
+        plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
                 addNewSubsets( plot_.getPlottedPointIterator()
@@ -95,10 +97,9 @@ public abstract class Plot3DWindow extends GraphicsWindow
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
-        plotPanel.setLayout( new OverlayLayout( plotPanel ) );
-        plotPanel.add( blobPanel_ );
-        plotPanel.add( plot_ );
-        getMainArea().add( plotPanel, BorderLayout.CENTER );
+        plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
+        plotPanel_.add( blobPanel_ );
+        plotPanel_.add( plot_ );
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -233,7 +234,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
     }
 
     protected JComponent getPlot() {
-        return plot_;
+        return plotPanel_;
     }
 
     protected PlotState createPlotState() {

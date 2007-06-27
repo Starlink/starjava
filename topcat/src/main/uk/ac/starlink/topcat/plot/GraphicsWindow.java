@@ -137,6 +137,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final BoundedRangeModel noProgress_;
     private final BoundedRangeModel auxVisibleModel_;
     private final ComboBoxModel[] auxShaderModels_;
+    private final JComponent plotArea_;
     private final Legend legend_;
     private final AuxLegend[] auxLegends_;
 
@@ -284,11 +285,18 @@ public abstract class GraphicsWindow extends AuxWindow {
         pselBox.add( pointSelectors_, BorderLayout.CENTER );
         getControlPanel().add( new SizeWrapper( pselBox ) );
 
-        /* Construct and place a legend box. */
+        /* Construct the component which will form the actual plot graphics.
+         * This is what will be drawn if the plot is printed/exported to
+         * some external graphical format.  It will consist of the 
+         * plotting area itself, as drawn by the window subclass, 
+         * and the legend. */
+        plotArea_ = new JPanel( new BorderLayout() );
+        plotArea_.setOpaque( false );
         JComponent legendBox = Box.createVerticalBox();
         legend_ = new Legend();
         legendBox.add( legend_ );
-        getMainArea().add( legendBox, BorderLayout.EAST );
+        plotArea_.add( legendBox, BorderLayout.EAST );
+        getMainArea().add( plotArea_, BorderLayout.CENTER );
 
         /* Set up a container for auxiliary axis legends. */
         auxLegends_ = new AuxLegend[ naux_ ];
@@ -426,6 +434,9 @@ public abstract class GraphicsWindow extends AuxWindow {
      * (typically because it calls potentially overridden methods).
      */
     protected void init() {
+
+        /* Insert the plot component itself into the plotting component. */
+        plotArea_.add( getPlot(), BorderLayout.CENTER );
 
         /* Add a starter point selector. */
         PointSelector mainSel = createPointSelector();
@@ -810,9 +821,10 @@ public abstract class GraphicsWindow extends AuxWindow {
 
     /**
      * Returns the component containing the graphics output of this 
-     * window.  This is the component which is exported or printed etc,
-     * so should contain only the output data, not any user interface
-     * decoration.
+     * window.  This is the component which is exported or printed etc
+     * alongside the legend which is managed by GraphicsWindow.
+     * It should therefore contain only the output data, not any user 
+     * interface decoration.
      *
      * @return   plot component
      */
@@ -1426,7 +1438,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Scale to a pixel size which makes the bounding box sit sensibly
          * on an A4 or letter page.  EpsGraphics2D default scale is 72dpi. */
-        JComponent plot = getPlot();
+        JComponent plot = plotArea_;
         Rectangle bounds = plot.getBounds();
         double padfrac = 0.05;
         double xdpi = bounds.width / 6.0;
@@ -1484,7 +1496,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private void exportGif( OutputStream ostrm ) throws IOException {
 
         /* Get the component which will be plotted and its dimensions. */
-        JComponent plot = getPlot();
+        JComponent plot = plotArea_;
         int w = plot.getWidth();
         int h = plot.getHeight();
 
@@ -1755,7 +1767,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
 
         public void exportTo( OutputStream out ) throws IOException {
-            JComponent plot = getPlot();
+            JComponent plot = plotArea_;
             int w = plot.getWidth();
             int h = plot.getHeight();
             BufferedImage image = 

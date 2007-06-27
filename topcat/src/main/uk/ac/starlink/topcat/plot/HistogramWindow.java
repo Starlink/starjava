@@ -106,9 +106,6 @@ public class HistogramWindow extends GraphicsWindow {
             }
         };
 
-        /* Place the histogram plot. */
-        getMainArea().add( plot_, BorderLayout.CENTER );
-
         /* Actions for rescaling the axes. */
         Action rescaleActionXY =
             new RescaleAction( "Rescale", ResourceIcon.RESIZE,

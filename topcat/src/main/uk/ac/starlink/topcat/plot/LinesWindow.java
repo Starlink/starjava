@@ -120,9 +120,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         plot_.setPreferredSize( new Dimension( 400, 400 ) );
         plot_.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
 
-        /* Add it to the display. */
-        getMainArea().add( plot_, BorderLayout.CENTER );
-        
         /* The axis window has to be kept up to date with the point selectors,
          * since the number of axis editor components it contains is the
          * same as the number of point selectors. */
