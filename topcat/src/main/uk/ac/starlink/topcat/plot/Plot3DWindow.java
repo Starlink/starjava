@@ -71,11 +71,18 @@ public abstract class Plot3DWindow extends GraphicsWindow
                          ErrorModeSelectionModel[] errorModeModels,
                          Plot3D plot ) {
         super( viewName, axisNames, naux, errorModeModels, parent );
+        plot_ = plot;
+
+        /* Set a suitable border on the plot.  The left part of this is
+         * where the central zoom target live.  There's a zoom target
+         * on the right as well (since this is where it was in 
+         * previous versions) but it's very thin - this is mainly padding
+         * between the plot and the legend region.  The top and bottom 
+         * parts sometimes serve as overspills for auxiliary axis text. */
+        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 32, 10, 10 ) );
 
         /* Configure the plot to provide some callbacks when interesting
          * things happen. */
-        plot_ = plot;
-        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 0, 10, 10 ) );
         plot_.setCallbacks( new Plot3D.Callbacks() {
             public void reportCounts( int nPoint, int nInc, int nVis ) {
                 plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
