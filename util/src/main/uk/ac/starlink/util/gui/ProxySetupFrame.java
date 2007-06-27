@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Particle Physics and Astronomy Research Council
  *
  *  History:
  *     13-JUN-2001 (Peter W. Draper):
