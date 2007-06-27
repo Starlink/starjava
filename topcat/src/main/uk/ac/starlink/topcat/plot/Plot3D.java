@@ -41,7 +41,7 @@ public abstract class Plot3D extends JPanel {
     private double zmax_;
     private Callbacks callbacker_ ;
     private final JComponent plotArea_;
-    private final CentreZoomRegion centreZoom_;
+    private final boolean canZoom_;
     protected double[] loBounds_;
     protected double[] hiBounds_;
     protected double[] loBoundsG_;
@@ -59,6 +59,7 @@ public abstract class Plot3D extends JPanel {
      */
     public Plot3D( boolean zoom ) {
         super( new BorderLayout() );
+        canZoom_ = zoom;
         plotArea_ = new Plot3DDataPanel();
         plotArea_.setBackground( Color.white );
         plotArea_.setOpaque( true );
@@ -77,41 +78,15 @@ public abstract class Plot3D extends JPanel {
 
         /* Set up a zoom region if required. */
         if ( zoom ) {
-            centreZoom_ = new CentreZoomRegion( false ) {
-                public Rectangle getDisplay() {
-                    Rectangle display = new Rectangle( getPlotBounds() );
-                    display.x += padBorders_[ 0 ];
-                    display.y += padBorders_[ 3 ];
-                    display.width -= padBorders_[ 0 ] + padBorders_[ 1 ];
-                    display.height -= padBorders_[ 2 ] + padBorders_[ 3 ];
-                    return display;
-                }
-                public Rectangle getTarget() {
-                    Rectangle display = plotArea_.getBounds();
-                    Rectangle bounds = Plot3D.this.getBounds();
-                    int x = display.x + display.width;
-                    int width = bounds.width - x;
-                    int y = display.y;
-                    int height = display.height;
-                    return new Rectangle( x, y, width, height );
-                }
-                public void zoomed( double[][] bounds ) {
-                    callbacker_.requestZoom( state_.getZoomScale()
-                                             / bounds[ 0 ][ 0 ] );
-                }
-            };
             Zoomer zoomer = new Zoomer() {
                 public void mousePressed( java.awt.event.MouseEvent evt ) {
                     super.mousePressed( evt );
                 }
             };
-            zoomer.setRegions( Collections.singletonList( centreZoom_ ) );
+            zoomer.setRegions( Arrays.asList( getZoomRegions() ) );
             zoomer.setCursorComponent( this );
             this.addMouseListener( zoomer );
             this.addMouseMotionListener( zoomer );
-        }
-        else {
-            centreZoom_ = null;
         }
     }
 
@@ -279,7 +254,7 @@ public abstract class Plot3D extends JPanel {
      * @return  true iff zooming is permitted
      */
     public boolean canZoom() {
-        return centreZoom_ != null;
+        return canZoom_;
     }
 
     /**
@@ -772,6 +747,81 @@ public abstract class Plot3D extends JPanel {
             ierr++;
         }
         return hasError;
+    }
+
+    /**
+     * Returns an array of zoom region objects for use with this plot.
+     * 
+     * @return  zoom region array
+     */
+    private ZoomRegion[] getZoomRegions() {
+        return new ZoomRegion[] {
+
+            /* Left hand side of plot. */
+            new ZoomRegion3D( false ) {
+                protected Rectangle getTarget( Rectangle display,
+                                               Rectangle bounds ) {
+                    int x = display.x + display.width;
+                    int width = bounds.width - x;
+                    int y = display.y;
+                    int height = display.height;
+                    return new Rectangle( x, y, width, height );
+                }
+            },
+
+            /* Right hand side of plot. */
+            new ZoomRegion3D( false ) {
+                protected Rectangle getTarget( Rectangle display,
+                                               Rectangle bounds ) {
+                    return new Rectangle( 0, display.y,
+                                          display.x, display.height );
+                }
+            },
+        };
+    }
+
+    /**
+     * Zoom Region abstract superclass which handles central zooming of
+     * this plot.  Different concrete subclasses will have different
+     * target regions.
+     */
+    private abstract class ZoomRegion3D extends CentreZoomRegion {
+
+        /**
+         * Constructor.
+         *
+         * @param   isX  true for horizontal target, false for vertical
+         */
+        ZoomRegion3D( boolean isX ) {
+            super( isX );
+        }
+
+        /**
+         * Defines the target region given the component and plot regions.
+         *
+         * @param   display  bounds of the plot region
+         * @param   bounds   bounds of the entire component
+         */
+        protected abstract Rectangle getTarget( Rectangle display,
+                                                Rectangle bounds );
+
+        public Rectangle getDisplay() {
+            Rectangle display = new Rectangle( getPlotBounds() );
+            display.x += padBorders_[ 0 ];
+            display.y += padBorders_[ 3 ];
+            display.width -= padBorders_[ 0 ] + padBorders_[ 1 ];
+            display.height -= padBorders_[ 2 ] + padBorders_[ 3 ];
+                return display;
+        }
+
+        public Rectangle getTarget() {
+            return getTarget( plotArea_.getBounds(), Plot3D.this.getBounds() );
+        }
+
+        public void zoomed( double[][] bounds ) {
+            callbacker_.requestZoom( state_.getZoomScale() / bounds[ 0 ][ 0 ] );
+        }
+
     }
 
     /**
