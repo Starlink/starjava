@@ -158,7 +158,7 @@ public class AuxLegend extends JComponent {
                    .paintIcon( this, g, xIcon, yIcon );
 
             /* Draw a surrounding rectangle. */
-            g.drawRect( xIcon, yIcon, xpix, ypix - 1 );
+            g.drawRect( xIcon, yIcon, xpix, ypix );
         }
     }
 
