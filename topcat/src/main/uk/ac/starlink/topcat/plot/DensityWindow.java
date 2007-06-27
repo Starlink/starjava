@@ -90,8 +90,6 @@ public class DensityWindow extends GraphicsWindow {
 
     private static FileFilter fitsFilter_ =
         new SuffixFileFilter( new String[] { ".fits", ".fit", ".fts", } );
-    private static FileFilter jpegFilter_ =
-        new SuffixFileFilter( new String[] { ".jpeg", ".jpg", } );
     private static final String[] AXIS_NAMES = new String[] { "X", "Y" };
     static final Shader[] INDEXED_SHADERS = new Shader[] {
         Shaders.LUT_HEAT,
@@ -260,9 +258,6 @@ public class DensityWindow extends GraphicsWindow {
             }
         };
 
-        /* Action for exporting image as JPEG. */
-        Action jpegAction = new ImageIOExportAction( "JPEG", jpegFilter_ );
-
         /* PLASTIC transmitter for transmitting image as FITS. */
         PlasticTransmitter imageTransmitter =
                 new TopcatTransmitter( ControlWindow.getInstance()
@@ -279,7 +274,6 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Update export menu. */
         getExportMenu().add( fitsAction_ );
-        getExportMenu().add( jpegAction );
         getExportMenu().addSeparator();
         getExportMenu().add( imageTransmitter.getBroadcastAction() );
         getExportMenu().add( imageTransmitter.createSendMenu() );
