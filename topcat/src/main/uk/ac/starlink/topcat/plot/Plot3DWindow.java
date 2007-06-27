@@ -13,6 +13,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -99,8 +101,14 @@ public abstract class Plot3DWindow extends GraphicsWindow
         plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
+                Insets insets = plot_.getInsets();
+                AffineTransform trans =
+                    AffineTransform.getTranslateInstance( -insets.left,
+                                                          -insets.top );
+                Shape transBlob =
+                    new Area( blob ).createTransformedArea( trans );
                 addNewSubsets( plot_.getPlottedPointIterator()
-                                    .getContainedPoints( blob ) );
+                                    .getContainedPoints( transBlob ) );
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
