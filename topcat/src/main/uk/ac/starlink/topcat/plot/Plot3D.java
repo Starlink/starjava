@@ -156,6 +156,14 @@ public abstract class Plot3D extends JPanel {
     protected abstract boolean frontOnly( Plot3DState state );
 
     /**
+     * Returns an array of 3 flags which indicate whether logarithmic scaling
+     * is in force on the X, Y and Z axes respectively.
+     *
+     * @return  3-element array of Cartesian axis log scaling flags
+     */
+    protected abstract boolean[] get3DLogFlags();
+
+    /**
      * Draws grid lines which contain all the known points.
      * According to the value of the <code>front</code> parameter,
      * either the lines which are behind all the data points,
@@ -407,7 +415,7 @@ public abstract class Plot3D extends JPanel {
         int np = points.getCount();
         int nInclude = 0;
         int nVisible = 0;
-        boolean[] logFlags = getState().getLogFlags();
+        boolean[] logFlags = get3DLogFlags();
         boolean[] showMarkPoints = new boolean[ nset ];
         boolean[] showMarkErrors = new boolean[ nset ];
         double[] centre = new double[ 3 ];
@@ -552,7 +560,7 @@ public abstract class Plot3D extends JPanel {
         final Transformer3D trans = lastTrans_;
         final Points points = getPoints();
         if ( vol != null && trans != null && points != null ) {
-            final boolean[] logFlags = getState().getLogFlags();
+            final boolean[] logFlags = get3DLogFlags();
             final int np = points.getCount();
             final RowSubset[] sets = getPointSelection().getSubsets();
             final int nset = sets.length;
@@ -965,7 +973,7 @@ public abstract class Plot3D extends JPanel {
             }
 
             /* Draw markers for any active points. */
-            boolean[] logFlags = getState().getLogFlags();
+            boolean[] logFlags = get3DLogFlags();
             for ( int i = 0; i < activePoints_.length; i++ ) {
                 double[] coords = points.getPoint( activePoints_[ i ] );
                 if ( logize( coords, logFlags ) ) {

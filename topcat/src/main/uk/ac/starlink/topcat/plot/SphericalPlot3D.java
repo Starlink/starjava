@@ -93,6 +93,10 @@ public class SphericalPlot3D extends Plot3D {
             && sstate.getRadialInfo() == null;
     }
 
+    protected boolean[] get3DLogFlags() {
+        return new boolean[ 3 ];
+    }
+
     protected void plotAxes( Plot3DState state, Graphics g, Transformer3D trans,
                              PlotVolume vol, boolean front ) {
 

@@ -66,6 +66,10 @@ public class CartesianPlot3D extends Plot3D {
         return false;
     }
 
+    protected boolean[] get3DLogFlags() {
+        return getState().getLogFlags();
+    }
+
     protected void plotAxes( Plot3DState state, Graphics g, Transformer3D trans,
                              PlotVolume vol, boolean front ) {
         Color col = g.getColor();

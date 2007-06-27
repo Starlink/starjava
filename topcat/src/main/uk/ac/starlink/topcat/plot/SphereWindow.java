@@ -114,6 +114,10 @@ public class SphereWindow extends Plot3DWindow {
         addHelp( "SphereWindow" );
     }
 
+    public int getMainRangeCount() {
+        return 1;
+    }
+
     protected PlotState createPlotState() {
         SphericalPlotState state = new SphericalPlotState();
         ValueInfo rInfo =
@@ -124,10 +128,6 @@ public class SphereWindow extends Plot3DWindow {
             state.setRadialLog( logToggler_.isSelected() );
         }
         return state;
-    }
-
-    public int getMainRangeCount() {
-        return 1;
     }
 
     public PlotState getPlotState() {
@@ -141,12 +141,15 @@ public class SphereWindow extends Plot3DWindow {
             Range[] viewRanges = getViewRanges();
             Range[] dataRanges = getDataRanges();
             boolean[] logFlags = state.getLogFlags();
+            boolean[] flipFlags = state.getFlipFlags();
             int mainNdim = getMainRangeCount();
             for ( int i = 0; i < naux; i++ ) {
+                logFlags[ mainNdim + i ] = logFlags[ 3 + i ];
+                flipFlags[ mainNdim + i ] = flipFlags[ 3 + i ];
                 Range range = new Range( dataRanges[ mainNdim + i ] );
                 range.limit( viewRanges[ mainNdim + i ] );
                 bounds[ mainNdim + i ] = 
-                    range.getFiniteBounds( logFlags[ 3 + i ] );
+                    range.getFiniteBounds( logFlags[ mainNdim + i ] );
             }
         }
         return state;
