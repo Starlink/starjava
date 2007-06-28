@@ -38,7 +38,7 @@ public class HelpAction extends AbstractAction {
         helpID_ = helpID;
         parent_ = parent;
         putValue( NAME, helpID == null ? "Help" : "Help for window" );
-        putValue( SMALL_ICON, helpID == null ? ResourceIcon.BLANK
+        putValue( SMALL_ICON, helpID == null ? ResourceIcon.MANUAL
                                              : ResourceIcon.HELP );
         putValue( SHORT_DESCRIPTION,
                   helpID == null
