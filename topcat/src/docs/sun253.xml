@@ -9944,6 +9944,11 @@ introduced since the last version:
     <li>Weighting in density map.</li>
     <li>Indexed colour map selection in density map.</li>
     <li>JPEG and PNG plot export available from all graphics windows.</li>
+    <li>Plotting windows rearranged somewhat: 
+        the data selection panel below the plot now has its own toolbar
+        and there is a new <label>Split Window</label> (&IMG.SPLIT;) button
+        which enables that panel to be resized.</li>
+    <li>Toolbar buttons rearranged/rationalised in plot windows.</li>
     </ul>
     </p></dd>
 
