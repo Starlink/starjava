@@ -430,6 +430,16 @@
       <fileset dir="${src.docs}" includes="figures/*"/>
     </copy>
 
+    <!-- Write some required GIFs to the images directory programatically. -->
+    <java classname="uk.ac.starlink.topcat.ResourceIcon"
+          failonerror="yes"
+          dir="${build.classes}/uk/ac/starlink/topcat/images/"
+          fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <classpath refid="classpath"/>
+      <arg value="-writegifs"/>
+    </java>
+
     <!-- Construct HTML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and is available from the MethodWindow
      !   method browser. -->
@@ -1220,7 +1230,7 @@
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" 
                includes="${user.doc}.xml figures/* multishot.gif"/>
-      <fileset dir="${src.dir}/resources/uk/ac/starlink/topcat/"
+      <fileset dir="${build.classes}/uk/ac/starlink/topcat/"
                includes="images/*"/>
       <fileset dir="${xdoc.etc}"
                includes="docs.dtd"/>
