@@ -1,12 +1,21 @@
 package uk.ac.starlink.topcat;
 
+import Acme.JPM.Encoders.GifEncoder;
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,7 +34,9 @@ import java.util.Map;
 import javax.help.HelpSet;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
+import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
@@ -41,6 +52,8 @@ import javax.swing.plaf.metal.MetalCheckBoxIcon;
  * @author   Mark Taylor (Starlink)
  */
 public class ResourceIcon implements Icon {
+
+    private static Component dummyComponent_;
 
     /** Location of image resource files relative to this class. */
     public static final String PREFIX = "images/";
@@ -160,10 +173,10 @@ public class ResourceIcon implements Icon {
         WEIGHT = makeIcon( "weight6.gif" ),
         JPEG = makeIcon( "jpeg1.gif" ),
         SPLIT = makeIcon( "split4.gif" ),
-
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
+        MANUAL = makeIcon( "book1.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
@@ -183,18 +196,20 @@ public class ResourceIcon implements Icon {
         CONSTANT_NODE = makeIcon( "c_leaf.gif" ),
 
         /* Dummy terminator. */
-        dummy = DO_WHAT;
+        dummy1 = DO_WHAT;
 
-    public static final Icon BLANK = new Icon() {
-        public int getIconHeight() {
-            return 24;
-        }
-        public int getIconWidth() {
-            return 24;
-        }
-        public void paintIcon( Component c, Graphics g, int x, int y ) {
-        }
-    };
+    /* Hand-painted icons. */
+    public static final Icon
+
+        ERROR_X = new ErrorModeSelectionModel( 0, "X" )
+                 .createOnOffButton().getIcon(),
+        ERROR_Y = new ErrorModeSelectionModel( 1, "Y" )
+                 .createOnOffButton().getIcon(),
+        ERROR_Z = new ErrorModeSelectionModel( 2, "Z" )
+                 .createOnOffButton().getIcon(),
+
+        /* Dummy terminator. */
+        dummy2 = DO_WHAT;
 
     private String location;
     private Icon baseIcon;
@@ -287,6 +302,18 @@ public class ResourceIcon implements Icon {
      */
     private static Icon dummyIcon() {
         return new MetalCheckBoxIcon();
+    }
+
+    /**
+     * Provides an empty component.
+     *
+     * @return   lazily constructed component
+     */
+    private static Component getDummyComponent() {
+        if ( dummyComponent_ == null ) {
+            dummyComponent_ = new JPanel();
+        }
+        return dummyComponent_;
     }
 
     /**
@@ -397,21 +424,52 @@ public class ResourceIcon implements Icon {
                 catch ( IllegalAccessException e ) {
                     throw new AssertionError( e );
                 }
-                ResourceIcon ricon;
+                ResourceIcon ricon = null;
                 if ( icon instanceof ResourceIcon ) {
                     ricon = (ResourceIcon) icon;
                 }
                 else if ( icon instanceof ResourceImageIcon ) {
                     ricon = ((ResourceImageIcon) icon).getResourceIcon();
                 }
-                else if ( icon == BLANK ) {
-                    ricon = null;
-                }
-                else {
-                    throw new AssertionError();
-                }
                 if ( ricon != null ) {
                     nameMap.put( name, ricon );
+                }
+            }
+        }
+        return nameMap;
+    }
+
+    /**
+     * Returns a map of Icon object which are <em>not</em> ResourceIcons
+     * but which are declared as public static final members of this class.
+     * These are therefore ones which have been painted by hand and do not
+     * have obvious backing Images.
+     * Each (key,value) entry of the map is given by the (name,Icon) pair.
+     *
+     * @return  member name => member value mapping for all static
+     *          Icon objects defined by this class
+     */
+    private static Map getDiyIconMap() {
+        Map nameMap = new HashMap();
+        Field[] fields = ResourceIcon.class.getDeclaredFields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            Field field = fields[ i ];
+            int mods = field.getModifiers();
+            String name = field.getName();
+            if ( Icon.class.isAssignableFrom( field.getType() ) &&
+                 Modifier.isPublic( mods ) &&
+                 Modifier.isStatic( mods ) &&
+                 Modifier.isFinal( mods ) &&
+                 name.equals( name.toUpperCase() ) ) {
+                Icon icon;
+                try {
+                    icon = (Icon) field.get( null );
+                }
+                catch ( IllegalAccessException e ) {
+                    throw new AssertionError();
+                }
+                if ( ! ( icon instanceof ResourceImageIcon ) ) {
+                    nameMap.put( name, icon );
                 }
             }
         }
@@ -464,9 +522,58 @@ public class ResourceIcon implements Icon {
     }
 
     /**
+     * Returns an image got by drawing an Icon.
+     *
+     * @param  icon 
+     * @return  image
+     */
+    private static BufferedImage createImage( Icon icon ) {
+        int w = icon.getIconWidth();
+        int h = icon.getIconHeight();
+
+        /* Create an image to draw on. */
+        BufferedImage image =
+            new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB );
+        Graphics2D g2 = image.createGraphics();
+
+        /* Clear it to transparent white. */
+        Color color = g2.getColor();
+        Composite compos = g2.getComposite();
+        g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
+        g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
+        g2.fillRect( 0, 0, w, h );
+        g2.setColor( color );
+        g2.setComposite( compos );
+
+        /* Paint the icon. */
+        icon.paintIcon( getDummyComponent(), g2, 0, 0 );
+
+        /* Tidy up and return the image. */
+        g2.dispose();
+        return image;
+    }
+
+    /**
+     * Writes an icon as a GIF to a given filename.
+     *
+     * @param   icon  icon to draw
+     * @param   file  destination file
+     */
+    private static void writeGif( Icon icon, File file ) throws IOException {
+        OutputStream out = new FileOutputStream( file );
+        try {
+            out = new BufferedOutputStream( out );
+            new GifEncoder( createImage( icon ), out ).encode();
+        }
+        finally {
+            out.close();
+        }
+    }
+
+    /**
      * Invokes the {@link #writeHelpMapXML} method to standard output.
      */
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws IOException {
         String mode = args.length == 1 ? args[ 0 ] : null;
         if ( "-map".equals( mode ) ) {
             writeHelpMapXML( System.out, "../" );
@@ -488,9 +595,23 @@ public class ResourceIcon implements Icon {
                 ResourceIcon icon = (ResourceIcon) iconMap.get( name );
                 System.out.println( t1 + name + t2 + icon.location + t3 );
             }
+            Map diyMap = getDiyIconMap();
+            for ( Iterator it = diyMap.keySet().iterator(); it.hasNext(); ) {
+                String name = (String) it.next();
+                System.out.println( t1 + name + t2 + name + ".gif" + t3 );
+            }
+        }
+        else if ( "-writegifs".equals( mode ) ) {
+            Map diyMap = getDiyIconMap();
+            for ( Iterator it = diyMap.keySet().iterator(); it.hasNext(); ) {
+                String name = (String) it.next();
+                Icon icon = (Icon) diyMap.get( name );
+                writeGif( icon, new File( name + ".gif" ) );
+            }
         }
         else {
-            String usage = "Usage: ResourceIcon [-map|-files|-entities]";
+            String usage =
+                "Usage: ResourceIcon [-map|-files|-entities|-writegifs]";
             System.err.println( usage );
             System.exit( 1 );
         }
