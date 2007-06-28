@@ -217,7 +217,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         /* Toggle for determining whether counts are performed automatically
          * when they are needed for display and not yet known. */
         autoCountModel =
-            new ToggleButtonModel( "Autocount", ResourceIcon.RECOUNT,
+            new ToggleButtonModel( "Autocount rows", ResourceIcon.RECOUNT,
                                    "Count subset size automatically" );
         autoCountModel.setSelected( true );
  
