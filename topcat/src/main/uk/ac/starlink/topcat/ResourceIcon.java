@@ -159,6 +159,7 @@ public class ResourceIcon implements Icon {
         NORTH = makeIcon( "north2.gif" ),
         WEIGHT = makeIcon( "weight6.gif" ),
         JPEG = makeIcon( "jpeg1.gif" ),
+        SPLIT = makeIcon( "split4.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),
