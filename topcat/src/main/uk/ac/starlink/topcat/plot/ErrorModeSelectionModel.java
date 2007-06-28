@@ -135,7 +135,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
     /**
      * Returns a normal button which toggles the mode between no error bars
      * and symmetrical error bars.  This does not allow full control
-     * (not all modes are avaiable).
+     * (not all modes are available).
      *
      * @return  button for toggling error bar status
      */
