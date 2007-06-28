@@ -124,7 +124,7 @@ public class DensityWindow extends GraphicsWindow {
         final PlotSurface surface = new PtPlotSurface();
         ((PtPlotSurface) surface)._tickLength = 0;
 
-        /* Grid looks a bit messy, so set it off by default. */
+        /* Grid looks a bit messy, so turn it off. */
         getGridModel().setSelected( false );
 
         /* Construct and populate the plot panel with the 2d histogram
@@ -325,7 +325,6 @@ public class DensityWindow extends GraphicsWindow {
         plotMenu.add( weightModel_.createMenuItem() );
         plotMenu.add( getRescaleAction() );
         plotMenu.add( getAxisEditAction() );
-        plotMenu.add( getGridModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -371,13 +370,11 @@ public class DensityWindow extends GraphicsWindow {
         getJMenuBar().add( interopMenu );
 
         /* Add actions to the toolbar. */
+        getPointSelectorToolBar().addSeparator();
+        getPointSelectorToolBar().add( weightModel_.createToolbarButton() );
         getToolBar().add( fitsAction_ );
         getToolBar().add( getRescaleAction() );
-        getToolBar().add( getAxisEditAction() );
-        getToolBar().add( getGridModel().createToolbarButton() );
-        getToolBar().add( weightModel_.createToolbarButton() );
         getToolBar().add( zLogModel_.createToolbarButton() );
-        getToolBar().add( getReplotAction() );
         getToolBar().add( rgbModel_.createToolbarButton() );
         getToolBar().add( pixIncAction_ );
         getToolBar().add( pixDecAction_ );

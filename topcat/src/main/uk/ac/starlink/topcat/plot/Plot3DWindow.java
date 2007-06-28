@@ -216,12 +216,10 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
         /* Add actions to the toolbar. */
         getToolBar().add( getRescaleAction() );
-        getToolBar().add( getAxisEditAction() );
         getToolBar().add( reorientAction );
         getToolBar().add( northModel_.createToolbarButton() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( fogModel_.createToolbarButton() );
-        getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         if ( plot_.canZoom() ) {
             getToolBar().add( fromVisibleAction_ );

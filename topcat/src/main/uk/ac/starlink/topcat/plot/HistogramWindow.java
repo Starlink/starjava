@@ -234,15 +234,14 @@ public class HistogramWindow extends GraphicsWindow {
         getJMenuBar().add( styleMenu );
 
         /* Add actions to the toolbar. */
+        getPointSelectorToolBar().addSeparator();
+        getPointSelectorToolBar().add( weightModel_.createToolbarButton() );
         getToolBar().add( rescaleActionXY );
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
-        getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
-        getToolBar().add( weightModel_.createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
-        getToolBar().add( getReplotAction() );
         getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
 

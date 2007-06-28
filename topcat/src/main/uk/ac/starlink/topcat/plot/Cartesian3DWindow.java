@@ -23,9 +23,10 @@ public class Cartesian3DWindow extends Plot3DWindow {
         super( "3D", AXIS_NAMES, 3, parent, createErrorModeModels( AXIS_NAMES ),
                new CartesianPlot3D() );
 
+        getPointSelectorToolBar().addSeparator();
         for ( int ierr = 0; ierr < 3; ierr++ ) {
-            getToolBar().add( getErrorModeModels()[ ierr ]
-                                                 .createOnOffToolbarButton() );
+            getPointSelectorToolBar().add( getErrorModeModels()[ ierr ]
+                                          .createOnOffToolbarButton() );
         }
         getJMenuBar().add( createErrorModeMenu() );
         getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );

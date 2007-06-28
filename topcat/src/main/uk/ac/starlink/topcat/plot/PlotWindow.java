@@ -219,14 +219,13 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Add actions to the toolbar. */
+        getPointSelectorToolBar().addSeparator();
+        getPointSelectorToolBar().add( getErrorModeModels()[ 0 ]
+                                      .createOnOffToolbarButton() );
+        getPointSelectorToolBar().add( getErrorModeModels()[ 1 ]
+                                      .createOnOffToolbarButton() );
         getToolBar().add( getRescaleAction() );
-        getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
-        getToolBar().add( getErrorModeModels()[ 0 ]
-                                             .createOnOffToolbarButton() );
-        getToolBar().add( getErrorModeModels()[ 1 ]
-                                             .createOnOffToolbarButton() );
-        getToolBar().add( getReplotAction() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
         getToolBar().addSeparator();

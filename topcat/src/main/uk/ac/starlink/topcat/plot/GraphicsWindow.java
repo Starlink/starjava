@@ -6,6 +6,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -50,8 +51,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -138,8 +143,10 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final BoundedRangeModel auxVisibleModel_;
     private final ComboBoxModel[] auxShaderModels_;
     private final JComponent plotArea_;
+    private final JComponent controlArea_;
     private final Legend legend_;
     private final AuxLegend[] auxLegends_;
+    private final JToolBar pselToolbar_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -275,11 +282,10 @@ public abstract class GraphicsWindow extends AuxWindow {
                 return GraphicsWindow.this.createStyleEditor();
             }
         };
-        getControlPanel().setLayout( new BoxLayout( getControlPanel(),
-                                                    BoxLayout.Y_AXIS ) );
         JComponent pselBox = new JPanel( new BorderLayout() );
         pselBox.add( pointSelectors_, BorderLayout.CENTER );
-        getControlPanel().add( new SizeWrapper( pselBox ) );
+        controlArea_ = new ScrollableBox();
+        controlArea_.add( new SizeWrapper( pselBox ) );
 
         /* Construct the component which will form the actual plot graphics.
          * This is what will be drawn if the plot is printed/exported to
@@ -292,7 +298,6 @@ public abstract class GraphicsWindow extends AuxWindow {
         legend_ = new Legend();
         legendBox.add( legend_ );
         plotArea_.add( legendBox, BorderLayout.EAST );
-        getMainArea().add( plotArea_, BorderLayout.CENTER );
 
         /* Set up a container for auxiliary axis legends. */
         auxLegends_ = new AuxLegend[ naux_ ];
@@ -341,19 +346,32 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Set up and populate a toolbar for controls relating specifically
          * to the point selectors. */
-        JToolBar pselToolbar = new JToolBar( JToolBar.VERTICAL );
-        pselToolbar.setFloatable( false );
-        pselBox.add( pselToolbar, BorderLayout.WEST );
-        pselToolbar.add( pointSelectors_.getAddSelectorAction() );
-        pselToolbar.add( pointSelectors_.getRemoveSelectorAction() );
+        pselToolbar_ = new JToolBar( JToolBar.HORIZONTAL );
+        pselToolbar_.setFloatable( false );
+        pselBox.add( pselToolbar_, BorderLayout.NORTH );
+        pselToolbar_.add( pointSelectors_.getAddSelectorAction() );
+        pselToolbar_.add( pointSelectors_.getRemoveSelectorAction() );
         if ( naux_ > 0 ) {
-            pselToolbar.addSeparator();
-            pselToolbar.add( incAuxAction_ );
-            pselToolbar.add( decAuxAction_ );
+            pselToolbar_.addSeparator();
+            pselToolbar_.add( incAuxAction_ );
+            pselToolbar_.add( decAuxAction_ );
         }
 
         /* Ensure that changes to the point selection trigger a replot. */
         pointSelectors_.addActionListener( replotListener_ );
+
+        /* Action to reconfigure main component placement (in a split window
+         * or not). */
+        final ToggleButtonModel splitModel =
+            new ToggleButtonModel( "Split Window", ResourceIcon.SPLIT,
+                                   "Make the data control panel at the bottom "
+                                 + "of this window resizable" );
+        splitModel.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                placeMainComponents( splitModel.isSelected() );
+            }
+        } );
+        getFileMenu().insert( splitModel.createMenuItem(), 1 );
 
         /* Add a progress bar. */
         progBar_ = placeProgressBar();
@@ -381,8 +399,6 @@ public abstract class GraphicsWindow extends AuxWindow {
         ImageIOExportAction pngAction =
             new ImageIOExportAction( "PNG", new String[] { ".png", },
                                      true, null );
-        getToolBar().add( epsAction );
-        getToolBar().add( gifAction );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( epsAction );
@@ -414,6 +430,42 @@ public abstract class GraphicsWindow extends AuxWindow {
         axisEditAction_ = new GraphicsAction( "Configure Axes",
                                               ResourceIcon.AXIS_EDIT,
                                               "Set axis labels and ranges" );
+
+        /* Set up standard toolbar buttons. */
+        getToolBar().add( splitModel.createToolbarButton() );
+        getToolBar().add( replotAction_ );
+        getToolBar().add( axisEditAction_ );
+        getToolBar().add( epsAction );
+        getToolBar().add( gifAction );
+    }
+
+    /**
+     * Arranges the plot and control panels in the main area of this window.
+     * According to the argument, they will either be inserted into a 
+     * JSplitPane or just placed in a JPanel with a BorderLayout.
+     *
+     * @param  split  true to use a split pane
+     */
+    private void placeMainComponents( boolean split ) {
+        JComponent mainArea = getMainArea();
+        mainArea.removeAll();
+        if ( split ) {
+            JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+            splitter.setTopComponent( plotArea_ );
+            splitter.setOneTouchExpandable( true );
+            splitter.setBottomComponent(
+                new JScrollPane( controlArea_,
+                                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER ) );
+            splitter.setResizeWeight( 1.0 );
+            splitter.setDividerLocation( plotArea_.getHeight() );
+            mainArea.add( splitter, BorderLayout.CENTER );
+        }
+        else {
+            mainArea.add( plotArea_, BorderLayout.CENTER );
+            mainArea.add( controlArea_, BorderLayout.SOUTH );
+        }
+        mainArea.revalidate();
     }
 
     public void setVisible( boolean visible ) {
@@ -443,6 +495,9 @@ public abstract class GraphicsWindow extends AuxWindow {
      * (typically because it calls potentially overridden methods).
      */
     protected void init() {
+
+        /* Place the plot area and control panel. */
+        placeMainComponents( false );
 
         /* Insert the plot component itself into the plotting component. */
         plotArea_.add( getPlot(), BorderLayout.CENTER );
@@ -554,6 +609,16 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     public double getPadRatio() {
         return padRatio_;
+    }
+
+    /**
+     * Returns the toolbar used for controls specific to the PointSelector
+     * component.
+     *
+     * @return  point selector toolbar
+     */
+    public JToolBar getPointSelectorToolBar() {
+        return pselToolbar_;
     }
 
     /**
@@ -803,8 +868,10 @@ public abstract class GraphicsWindow extends AuxWindow {
     public Box getStatusBox() {
         if ( statusBox_ == null ) {
             statusBox_ = Box.createHorizontalBox();
-            getControlPanel().add( Box.createVerticalStrut( 5 ) );
-            getControlPanel().add( statusBox_ );
+            JComponent panel = getControlPanel();
+            panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
+            panel.add( Box.createVerticalStrut( 5 ) );
+            panel.add( statusBox_ );
         }
         return statusBox_;
     }
@@ -1256,10 +1323,10 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Work out the space available above and below the actual plot
          * region within the plot component. */
-        Rectangle plotContainer = getMainArea().getBounds();
+        Rectangle containerRegion = plotArea_.getBounds();
         Rectangle plotRegion = getPlotBounds();
         int topgap = plotRegion.y;
-        int botgap = plotContainer.height - plotRegion.height - topgap;
+        int botgap = containerRegion.height - plotRegion.height - topgap;
 
         /* Set the border on the legend so that its top edge aligns with
          * the top edge of the plot region. */
@@ -2006,4 +2073,40 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
     }
 
+    /**
+     * JComponent which implements the Scrollable interface in a fashion
+     * which makes it suitable for holding the controls of this window.
+     * The main important points are the tracksViewportHeight/Width methods,
+     * which indicate that the component should squash/stretch itself
+     * sideways if necessary, but should keep its proper vertical height.
+     */
+    private static class ScrollableBox extends Box implements Scrollable {
+        ScrollableBox() {
+            super( BoxLayout.Y_AXIS );
+        }
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+        public Dimension getMaximumSize() {
+            return getPreferredSize();
+        }
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+        public int getScrollableBlockIncrement( Rectangle visibleRect,
+                                                int orientation,
+                                                int direction ) {
+            return orientation == SwingConstants.VERTICAL
+                 ? visibleRect.height
+                 : visibleRect.width;
+        }
+        public int getScrollableUnitIncrement( Rectangle visibleRect,
+                                               int orientation,
+                                               int direction ) {
+            return 24;
+        }
+    }
 }

@@ -256,20 +256,19 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Populate toolbar. */
+        getPointSelectorToolBar().addSeparator();
+        getPointSelectorToolBar().add( getErrorModeModels()[ 0 ]
+                                      .createOnOffToolbarButton() );
+        getPointSelectorToolBar().add( getErrorModeModels()[ 1 ]
+                                      .createOnOffToolbarButton() );
         getToolBar().add( rescaleActionXY );
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
-        getToolBar().add( getAxisEditAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( zeroLineModel_.createToolbarButton() );
-        getToolBar().add( getErrorModeModels()[ 0 ]
-                                             .createOnOffToolbarButton() );
-        getToolBar().add( getErrorModeModels()[ 1 ]
-                                             .createOnOffToolbarButton() );
-        getToolBar().add( getReplotAction() );
+        getToolBar().add( vlineModel_.createToolbarButton() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
         getToolBar().add( fromXRangeAction );
-        getToolBar().add( vlineModel_.createToolbarButton() );
         getToolBar().addSeparator();
 
         /* Add standard help actions. */

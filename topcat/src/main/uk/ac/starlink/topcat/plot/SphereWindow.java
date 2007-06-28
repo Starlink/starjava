@@ -108,8 +108,11 @@ public class SphereWindow extends Plot3DWindow {
         getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Add toolbar buttons. */
-        getToolBar().add( tangentErrorToggler_.createToolbarButton() );
-        getToolBar().add( radialErrorModeModel_.createOnOffToolbarButton() );
+        getPointSelectorToolBar().addSeparator();
+        getPointSelectorToolBar().add( tangentErrorToggler_
+                                      .createToolbarButton() );
+        getPointSelectorToolBar().add( radialErrorModeModel_
+                                      .createOnOffToolbarButton() );
         getToolBar().addSeparator();
         addHelp( "SphereWindow" );
     }
