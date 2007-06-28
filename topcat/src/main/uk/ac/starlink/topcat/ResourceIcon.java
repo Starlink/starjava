@@ -36,7 +36,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
+import uk.ac.starlink.topcat.plot.ErrorMode;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
+import uk.ac.starlink.topcat.plot.SphereWindow;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
@@ -196,20 +198,7 @@ public class ResourceIcon implements Icon {
         CONSTANT_NODE = makeIcon( "c_leaf.gif" ),
 
         /* Dummy terminator. */
-        dummy1 = DO_WHAT;
-
-    /* Hand-painted icons. */
-    public static final Icon
-
-        ERROR_X = new ErrorModeSelectionModel( 0, "X" )
-                 .createOnOffButton().getIcon(),
-        ERROR_Y = new ErrorModeSelectionModel( 1, "Y" )
-                 .createOnOffButton().getIcon(),
-        ERROR_Z = new ErrorModeSelectionModel( 2, "Z" )
-                 .createOnOffButton().getIcon(),
-
-        /* Dummy terminator. */
-        dummy2 = DO_WHAT;
+        dummy = DO_WHAT;
 
     private String location;
     private Icon baseIcon;
@@ -440,39 +429,30 @@ public class ResourceIcon implements Icon {
     }
 
     /**
-     * Returns a map of Icon object which are <em>not</em> ResourceIcons
-     * but which are declared as public static final members of this class.
-     * These are therefore ones which have been painted by hand and do not
-     * have obvious backing Images.
+     * Returns a map of Icon objects which are <em>not</em> ResourceIcons.
      * Each (key,value) entry of the map is given by the (name,Icon) pair.
      *
-     * @return  member name => member value mapping for all static
-     *          Icon objects defined by this class
+     * @return  member name => member value mapping for hand-drawn icons
      */
     private static Map getDiyIconMap() {
         Map nameMap = new HashMap();
-        Field[] fields = ResourceIcon.class.getDeclaredFields();
-        for ( int i = 0; i < fields.length; i++ ) {
-            Field field = fields[ i ];
-            int mods = field.getModifiers();
-            String name = field.getName();
-            if ( Icon.class.isAssignableFrom( field.getType() ) &&
-                 Modifier.isPublic( mods ) &&
-                 Modifier.isStatic( mods ) &&
-                 Modifier.isFinal( mods ) &&
-                 name.equals( name.toUpperCase() ) ) {
-                Icon icon;
-                try {
-                    icon = (Icon) field.get( null );
-                }
-                catch ( IllegalAccessException e ) {
-                    throw new AssertionError();
-                }
-                if ( ! ( icon instanceof ResourceImageIcon ) ) {
-                    nameMap.put( name, icon );
-                }
-            }
-        }
+        ErrorModeSelectionModel errX = new ErrorModeSelectionModel( 0, "X" );
+        ErrorModeSelectionModel errY = new ErrorModeSelectionModel( 1, "Y" );
+        ErrorModeSelectionModel errZ = new ErrorModeSelectionModel( 2, "Z" );
+        nameMap.put( "ERROR_X", errX.createOnOffButton().getIcon() );
+        nameMap.put( "ERROR_Y", errY.createOnOffButton().getIcon() );
+        nameMap.put( "ERROR_Z", errZ.createOnOffButton().getIcon() );
+        nameMap.put( "ERROR_TANGENT", SphereWindow.createTangentErrorIcon() );
+        nameMap.put( "ERROR_NONE",
+                     errY.getIcon( ErrorMode.NONE, 24, 24, 1, 1 ) );
+        nameMap.put( "ERROR_SYMMETRIC",
+                     errY.getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
+        nameMap.put( "ERROR_LOWER",
+                     errY.getIcon( ErrorMode.LOWER, 24, 24, 1, 1 ) );
+        nameMap.put( "ERROR_UPPER",
+                     errY.getIcon( ErrorMode.UPPER, 24, 24, 1, 1 ) );
+        nameMap.put( "ERROR_BOTH",
+                     errY.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
         return nameMap;
     }
 
