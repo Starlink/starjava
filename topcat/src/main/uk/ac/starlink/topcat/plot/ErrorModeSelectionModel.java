@@ -229,8 +229,8 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
      * @param   ypad  internal vertical padding of icon
      * @return   icon
      */
-    private Icon getIcon( ErrorMode mode, int width, int height,
-                          int xpad, int ypad ) {
+    public Icon getIcon( ErrorMode mode, int width, int height,
+                         int xpad, int ypad ) {
         ErrorMode[] modes = new ErrorMode[ iaxis_ + 1 ];
         for ( int i = 0; i < modes.length; i++ ) {
             modes[ i ] = i == iaxis_ ? mode : ErrorMode.NONE;
