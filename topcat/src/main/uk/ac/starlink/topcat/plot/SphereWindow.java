@@ -276,7 +276,7 @@ public class SphereWindow extends Plot3DWindow {
      *
      * @return   error icon
      */
-    private static Icon createTangentErrorIcon() {
+    public static Icon createTangentErrorIcon() {
         ErrorMode[] modes = new ErrorMode[] {
             ErrorMode.SYMMETRIC, ErrorMode.SYMMETRIC,
         };
