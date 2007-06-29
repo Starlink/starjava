@@ -1009,7 +1009,11 @@ public class Shaders {
             if ( comp instanceof JLabel && value instanceof Shader ) {
                 JLabel label = (JLabel) comp;
                 Shader shader = (Shader) value;
-                label.setText( shader.getName() );
+                String text = shader.getName();
+                if ( ! shader.isAbsolute() ) {
+                    text = "* " + text ;
+                }
+                label.setText( text );
                 label.setIcon( getIcon( shader ) );
             }
             return comp;
