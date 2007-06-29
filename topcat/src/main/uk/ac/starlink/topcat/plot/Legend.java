@@ -16,8 +16,9 @@ import javax.swing.JComponent;
  */
 public class Legend extends JComponent {
 
+    private ErrorModeSelectionModel[] errorModeModels_;
+    private Style[] styles_;
     private String[] labels_;
-    private Icon[] icons_;
     private int iconWidth_;
     private int lineHeight_;
     private int prefWidth_;
@@ -31,8 +32,19 @@ public class Legend extends JComponent {
      */
     public Legend() {
         setOpaque( false );
-        icons_ = new Icon[ 0 ];
+        styles_ = new Style[ 0 ];
         labels_ = new String[ 0 ];
+        errorModeModels_ = new ErrorModeSelectionModel[ 0 ];
+    }
+
+    /**
+     * Configures this legend to use a given set of error mode models.
+     * These can affect how marker style icons are drawn.
+     *
+     * @param  errorModels   new error mode models
+     */
+    public void setErrorModeModels( ErrorModeSelectionModel[] errorModels ) {
+        errorModeModels_ = errorModels;
     }
 
     /**
@@ -49,12 +61,8 @@ public class Legend extends JComponent {
         if ( labels.length != nstyle ) {
             throw new IllegalArgumentException();
         }
-        labels_ = new String[ nstyle ];
-        icons_ = new Icon[ nstyle ];
-        for ( int is = 0; is < nstyle; is++ ) {
-            icons_[ is ] = styles[ is ].getLegendIcon();
-            labels_[ is ] = labels[ is ];
-        }
+        labels_ = (String[]) labels.clone();
+        styles_ = (Style[]) styles.clone();
 
         /* Ensure active if there is more than one item to display. */
         if ( nstyle > 1 ) {
@@ -69,9 +77,11 @@ public class Legend extends JComponent {
         int width = 0;
         FontMetrics fm = getFontMetrics( getFont() );
         lineHeight_ = (int) ( 1.2 * Math.max( fm.getHeight(), iymax ) );
+        ErrorMode[] errorModes = getErrorModes();
         for ( int is = 0; is < nstyle; is++ ) {
-            ixmax = Math.max( ixmax, icons_[ is ].getIconWidth() );
-            iymax = Math.max( iymax, icons_[ is ].getIconHeight() );
+            Icon icon = getIcon( styles_[ is ], errorModes );
+            ixmax = Math.max( ixmax, icon.getIconWidth() );
+            iymax = Math.max( iymax, icon.getIconHeight() );
             sxmax = Math.max( sxmax, fm.stringWidth( labels[ is ] ) + 1 );
             height += lineHeight_;
         }
@@ -119,12 +129,13 @@ public class Legend extends JComponent {
         Insets insets = getInsets();
         FontMetrics fm = g.getFontMetrics();
         if ( active_ ) {
+            ErrorMode[] errorModes = getErrorModes();
             int xoff = insets.left;
             int ys = lineHeight_ / 2 + fm.getHeight() / 2;
             int xs = xoff + iconWidth_ + IL_PAD;
             for ( int is = 0; is < nstyle; is++ ) {
                 int yoff = insets.top + lineHeight_ * is;
-                Icon icon = icons_[ is ];
+                Icon icon = getIcon( styles_[ is ], errorModes );
                 int yi = yoff + ( lineHeight_ - icon.getIconHeight() ) / 2;
                 int xi = xoff + ( iconWidth_ - icon.getIconWidth() ) / 2;
                 icon.paintIcon( this, g, xi, yi );
@@ -144,5 +155,31 @@ public class Legend extends JComponent {
 
     public Dimension getMinimumSize() {
         return getPreferredSize();
+    }
+
+    /**
+     * Returns the icon to be drawn for a given style.
+     *
+     * @param   style   style to represent
+     * @param   errorModes  error modes currently in force
+     */
+    private Icon getIcon( Style style, ErrorMode[] errorModes ) {
+        return style instanceof MarkStyle
+             ? ((MarkStyle) style).getLegendIcon( errorModes )
+             : style.getLegendIcon();
+    }
+
+    /** 
+     * Returns the list of currently selected error modes.
+     *
+     * @return  error modes
+     */
+    private ErrorMode[] getErrorModes() {
+        int nerr = errorModeModels_.length;
+        ErrorMode[] modes = new ErrorMode[ nerr ];
+        for ( int ierr = 0; ierr < nerr; ierr++ ) {
+            modes[ ierr ] = errorModeModels_[ ierr ].getMode();
+        }
+        return modes;
     }
 }

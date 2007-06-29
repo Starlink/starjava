@@ -573,6 +573,9 @@ public abstract class GraphicsWindow extends AuxWindow {
         setStyles( getDefaultStyles( (int) Math.min( npoint,
                                                      Integer.MAX_VALUE ) ) );
         mainSel.setStyles( getStyles() );
+
+        /* Configure legend. */
+        legend_.setErrorModeModels( getErrorModeModels() );
     }
 
     /**
