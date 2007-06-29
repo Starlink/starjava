@@ -103,7 +103,7 @@ public class VectorSortPlotVolume extends PlotVolume {
         VectorPoint3D[] points =
             (VectorPoint3D[]) pointList_.toArray( new VectorPoint3D[ 0 ] );
         pointList_ = new ArrayList();
-        Arrays.sort( points, Point3D.DOWN );
+        Arrays.sort( points, Point3D.getComparator( false, true ) );
         return points;
     }
 

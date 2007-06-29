@@ -278,7 +278,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
             BitmapPoint3D[] points =
                 (BitmapPoint3D[]) pointList_.toArray( new BitmapPoint3D[ 0 ] );
             pointList_ = new ArrayList();
-            Arrays.sort( points, Point3D.UP );
+            Arrays.sort( points, Point3D.getComparator( true, false ) );
             return Arrays.asList( points ).iterator();
         }
     }
@@ -434,7 +434,10 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * Packs information about a point into a long integer.
          * The packing results (to a good approximation) in values which
          * represent a smaller z coordinate having a lower numeric value,
-         * since z is stored at the most significant end.
+         * since z is stored at the most significant end.  After that,
+         * the style index is a tie-breaker, highest first.  After that,
+         * the Y and X coordinates are used, though these aren't likely
+         * to be very useful.
          *   
          * @param  xp  graphics x coordinate
          * @param  yp  graphics y coordinate
@@ -447,8 +450,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
             assert zint >= 0 && zint <= Integer.MAX_VALUE;
             assert xp >= 0 && xp < TWO12;
             assert yp >= 0 && yp < TWO12;
-            return zint << 32 
-                 | (long) ( xp << 20 | yp << 8 | ( is & 0xff ) );
+            long mis = 0xff - is;
+            return (long) zint << 32 | mis << 24 | xp << 12 | yp << 0;
         }       
 
         /**     
@@ -465,13 +468,25 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
 
         /**
+         * Unpacks style index value from packed long integer.
+         *
+         * @param   val  value produced by <code>pack</code>
+         * @return  style index
+         */
+        private int unpackStyleIndex( long val ) {
+            int mis = (int) ( ( val >> 24 ) & 0xff );
+            assert mis >= 0;
+            return 0xff - mis;
+        }
+
+        /**
          * Unpacks x coordinate value from packed long integer.
          *
          * @param   val  value produced by <code>pack</code>
          * @return   x coordinate
          */
         private int unpackX( long val ) {
-            int xp = ( ((int) val) >> 20 ) & 0xfff;
+            int xp = ( ((int) val) >> 12 ) & 0xfff;
             assert xp >= 0 && xp < TWO12;
             return xp;
         }
@@ -483,19 +498,9 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * @return   y coordinate
          */
         private int unpackY( long val ) {
-            int yp = ( ((int) val) >> 8 ) & 0xfff;
+            int yp = ( ((int) val) >> 0 ) & 0xfff;
             assert yp >= 0 && yp < TWO12;
             return yp;
-        }
-
-        /**
-         * Unpacks style index value from packed long integer.
-         *
-         * @param   val  value produced by <code>pack</code>
-         * @return  style index
-         */
-        private int unpackStyleIndex( long val ) {
-            return ((int) val) & 0xff;
         }
     }
 
