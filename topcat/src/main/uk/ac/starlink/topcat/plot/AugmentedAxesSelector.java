@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.Iterator;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -9,7 +10,10 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperRowSequence;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -163,34 +167,35 @@ public class AugmentedAxesSelector implements AxesSelector {
 
     public StarTable getData() {
         StarTable baseData = baseSelector_.getData();
+
+        /* If there are no auxiliary columns, the base table can be used
+         * on its own. */
         if ( nVisible_ == 0 ) {
             return baseData;
         }
-        else {
 
-            /* The augmented table is just a join of the base and auxiliary
-             * data tables.  However we need to make sure that it implements
-             * equals properly, which JoinStarTable doesn't. */
+        /* If there are auxiliary columns, join the base table and the
+         * auxiliary table together.  Some additional work is done here too:
+         * we mark any auxiliary columns with data (i.e. with a non-blank
+         * column selection) as 'required' when constructing the output table.
+         * The effect of this is that if the value in any of those columns
+         * is blank, the rest of the values in that row will be set blank
+         * as well.  This prevents points corresponding to rows with bad
+         * values for defined auxiliary axes from being plotted.
+         * This slight use of subterfuge is necessary because otherwise the
+         * resulting Points object can't distinguish between a point with
+         * no column assigned to an auxiliary axis (that should be plotted)
+         * and a point with a column assigned but a blank value (that should
+         * not be plotted). */
+        else {
             StarTable auxData = auxSelector_.getData();
-            return new JoinStarTable( new StarTable[] { baseData, auxData, } ) {
-                public boolean equals( Object o ) {
-                    if ( o instanceof JoinStarTable ) {
-                        JoinStarTable other = (JoinStarTable) o;
-                        return this.getTables().equals( other.getTables() );
-                    }
-                    else {
-                        return false;
-                    }
-                }
-                public int hashCode() {
-                    int code = 9901;
-                    for ( Iterator it = getTables().iterator();
-                          it.hasNext(); ) {
-                        code = 23 * code + it.next().hashCode();
-                    }
-                    return code;
-                }
-            };
+            boolean[] reqAuxCols = new boolean[ naux_ ];
+            for ( int iaux = 0; iaux < naux_; iaux++ ) {
+                reqAuxCols[ iaux ] =
+                    auxSelector_.getColumnSelector( iaux ).getSelectedItem()
+                    != null;
+            }
+            return new AugmentedDataTable( baseData, auxData, reqAuxCols );
         }
     }
 
@@ -245,6 +250,148 @@ public class AugmentedAxesSelector implements AxesSelector {
     public void removeActionListener( ActionListener listener ) {
         baseSelector_.removeActionListener( listener );
         auxSelector_.removeActionListener( listener );
+    }
+
+    /**
+     * StarTable implementation which provides the data from this AxesSelector.
+     * The main job it does is to stick the tables from the base columns
+     * and the auxiliary columns side by side.  However, it also 
+     * blanks out the base columns (replaces the values with nulls) in cases
+     * where one of the required auxiliary columns is blank.
+     * It implements equals and hashCode correctly, as is required for
+     * tables returned by AxesSelectors.
+     */
+    private static class AugmentedDataTable extends WrapperStarTable {
+        private final StarTable baseTable_;
+        private final StarTable auxTable_;
+        private final int[] icolReqs_;
+        private final int nbase_;
+        private final int nreq_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseTable  data table for base values
+         * @param  auxTable   data table for auxiliary values
+         * @param  reqAuxCols  naux-element array of flags for auxiliary 
+         *         columns which are required to be present in data rows -
+         *         if any of these is null the base values will be nulled 
+         *         as well
+         */
+        public AugmentedDataTable( StarTable baseTable, StarTable auxTable,
+                                   boolean[] reqAuxCols ) {
+            super( new JoinStarTable( new StarTable[] { baseTable,
+                                                        auxTable } ) );
+            baseTable_ = baseTable;
+            auxTable_ = auxTable;
+            nbase_ = baseTable.getColumnCount();
+
+            /* Prepare a lookup table of column indices which are required
+             * to be non-null. */
+            int[] reqs = new int[ reqAuxCols.length ];
+            int jaux = 0;
+            for ( int iaux = 0; iaux < reqAuxCols.length; iaux++ ) {
+                if ( reqAuxCols[ iaux ] ) {
+                    reqs[ jaux++ ] = nbase_ + iaux;
+                }
+            }
+            nreq_ = jaux;
+            icolReqs_ = new int[ nreq_ ];
+            System.arraycopy( reqs, 0, icolReqs_, 0, nreq_ );
+        }
+
+        public Object[] getRow( long irow ) throws IOException {
+            Object[] row = super.getRow( irow );
+            boolean ok = true;
+            for ( int ireq = 0; ok && ireq < nreq_; ireq++ ) {
+                int ic = icolReqs_[ ireq ];
+                ok = ok && notBlank( row[ ic ] );
+            }
+            if ( ! ok ) {
+                for ( int ic = 0; ic < nbase_; ic++ ) {
+                    row[ ic ] = null;
+                }
+            }
+            return row;
+        }
+
+        public Object getCell( long irow, int icol ) throws IOException {
+            if ( icol < nbase_ ) {
+                boolean ok = true;
+                for ( int ireq = 0; ok && ireq < nreq_; ireq++ ) {
+                    int ic = icolReqs_[ ireq ];
+                    ok = ok && notBlank( super.getCell( irow, ic ) );
+                }
+                return ok ? super.getCell( irow, icol ) : null;
+            }
+            else {
+                return super.getCell( irow, icol );
+            }
+        }
+
+        public RowSequence getRowSequence() throws IOException {
+            return new WrapperRowSequence( super.getRowSequence() ) {
+
+                public Object[] getRow() throws IOException {
+                    Object[] row = super.getRow();
+                    boolean ok = true;
+                    for ( int ireq = 0; ok && ireq < nreq_; ireq++ ) {
+                        int ic = icolReqs_[ ireq ];
+                        ok = ok && notBlank( row[ ic ] );
+                    }
+                    if ( ! ok ) {
+                        for ( int ic = 0; ic < nbase_; ic++ ) {
+                            row[ ic ] = null;
+                        }
+                    }
+                    return row;
+                }
+
+                public Object getCell( int icol ) throws IOException {
+                    if ( icol < nbase_ ) {
+                        boolean ok = true;
+                        for ( int ireq = 0; ok && ireq < nreq_; ireq++ ) {
+                            int ic = icolReqs_[ ireq ];
+                            ok = ok && notBlank( super.getCell( ic ) );
+                        }
+                        return ok ? super.getCell( icol ) : null;
+                    }
+                    else {
+                        return super.getCell( icol );
+                    }
+                }
+            };
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof AugmentedDataTable ) {
+                AugmentedDataTable other = (AugmentedDataTable) o;
+                return other.baseTable_.equals( this.baseTable_ )
+                    && other.auxTable_.equals( this.auxTable_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 5501;
+            code = 23 * code + baseTable_.hashCode();
+            code = 23 * code + auxTable_.hashCode();
+            return code;
+        }
+
+        /**
+         * Determines whether the content of a cell represents a valid
+         * number or not.
+         *
+         * @param  value  cell contents
+         * @return  true if the value is a valid number
+         */
+        private boolean notBlank( Object value ) {
+            return value instanceof Number
+                && ! Double.isNaN( ((Number) value).doubleValue() );
+        }
     }
 
     /**
