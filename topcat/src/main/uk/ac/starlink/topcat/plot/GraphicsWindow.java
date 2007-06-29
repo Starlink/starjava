@@ -147,6 +147,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final Legend legend_;
     private final AuxLegend[] auxLegends_;
     private final JToolBar pselToolbar_;
+    private final JComponent extrasPanel_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -285,6 +286,10 @@ public abstract class GraphicsWindow extends AuxWindow {
         JComponent pselBox = new JPanel( new BorderLayout() );
         pselBox.add( pointSelectors_, BorderLayout.CENTER );
         controlArea_ = new ScrollableBox();
+        extrasPanel_ = new JPanel();
+        extrasPanel_.setLayout( new BoxLayout( extrasPanel_,
+                                               BoxLayout.Y_AXIS ) );
+        controlArea_.add( extrasPanel_ );
         controlArea_.add( new SizeWrapper( pselBox ) );
 
         /* Construct the component which will form the actual plot graphics.
@@ -568,6 +573,16 @@ public abstract class GraphicsWindow extends AuxWindow {
         setStyles( getDefaultStyles( (int) Math.min( npoint,
                                                      Integer.MAX_VALUE ) ) );
         mainSel.setStyles( getStyles() );
+    }
+
+    /**
+     * Returns a panel into which additional window-specific control 
+     * components can be added.  By default it is empty.
+     *
+     * @return  extra control panel
+     */
+    public JComponent getExtrasPanel() {
+        return extrasPanel_;
     }
 
     /**
