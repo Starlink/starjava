@@ -317,7 +317,7 @@ public class DensityWindow extends GraphicsWindow {
         JComponent controlBox = Box.createHorizontalBox();
         controlBox.add( cutBox );
         controlBox.add( shaderBox );
-        getMainArea().add( controlBox, BorderLayout.SOUTH );
+        getExtrasPanel().add( controlBox );
 
         /* General plot operation menu. */
         JMenu plotMenu = new JMenu( "Plot" );

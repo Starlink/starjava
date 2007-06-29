@@ -174,7 +174,7 @@ public class HistogramWindow extends GraphicsWindow {
         binBox.add( new JLabel( "Width: " ) );
         binBox.add( binSizer_ );
         binBox.setBorder( makeTitledBorder( "Bin Placement" ) );
-        getMainArea().add( binBox, java.awt.BorderLayout.SOUTH );
+        getExtrasPanel().add( binBox );
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
