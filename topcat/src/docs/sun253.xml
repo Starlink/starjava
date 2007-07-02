@@ -67,6 +67,8 @@
   <!ENTITY FIG.BarStyleEditor '&figs;BarStyleEditor.gif'>
   <!ENTITY FIG.DensityStyleEditor '&figs;DensityStyleEditor.gif'>
   <!ENTITY FIG.LinesStyleEditor '&figs;LinesStyleEditor.gif'>
+  <!ENTITY FIG.Cartesian3DWindow_aux '&figs;Cartesian3DWindow_aux.gif'>
+  <!ENTITY FIG.PlotWindow_err '&figs;PlotWindow_err.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -4611,6 +4613,11 @@ on them as usual.
 </dl>
 </p>
 
+<p>Note that it is currently not easy to view parameter values which are
+quite long, or which are on multiple lines.  This is a deficiency in 
+TOPCAT and may be improved in a future version.
+</p>
+
 </subsubsect>
 
 
@@ -4987,9 +4994,16 @@ can be edited by double-clicking on them in the normal way.
 </dl>
 </p>
 
-<p>The following additional menu item is available:
+<p>The following additional menu items are available:
 <dl>
-<dt>&IMG.RECOUNT; Count subset size automatically</dt>
+<dt>&IMG.SEND; Send subset to ...</dt>
+<dd><p>As for the <label>Broadcast Subset</label> item above, but sends
+    the subset to only a single selected application.  A submenu will
+    give a list of all the currently registered applications which can
+    make sense of a subset.  If there are none, this item will be disabled.
+    </p></dd>
+
+<dt>&IMG.RECOUNT; Autocount rows</dt>
 <dd><p>Normally, the <label>Size</label> and <label>Fraction</label>
     columns of the displayed table (see above) are filled in as soon 
     as a new subset is defined.  However for very large tables this could
@@ -5209,9 +5223,9 @@ in the first subsection below; the specific windows themselves
 are described in the subsequent subsections.
 </p>
 
-<p>These visualisation windows are
-fairly sophisticated, and the plots can exported to GIF or EPS files
-for later presentation (see <ref id="exportGraphics"/>).
+<p>These visualisation windows are fairly sophisticated, and the plots 
+can exported to vector (EPS) or image (GIF, JPEG, PNG) files for 
+later presentation (see <ref id="exportGraphics"/>).
 However, at least at present, TOPCAT does
 not claim to be a full end-to-end system for generating publication
 quality graphics, and hence lacks facilities for detailed configuration of
@@ -5241,7 +5255,7 @@ except for very large tables it is usually pretty fast.
 toolbar button in the <ref id="ControlWindow">Control Window</ref>.
 If one of the tables in the list is selected at the time (the Current Table)
 the new plot window will initially be displayed showing data from 
-some of its columns (usually the first few numeric columns) 
+some of its columns (generally the first few numeric columns) 
 by way of illustration.  You will usually want to change the controls
 so it displays the quantities you are interested in.
 </p>
@@ -5266,7 +5280,7 @@ window.  Here is dataset selector for the 2d scatter plot:
 </p>
 
 <figure>
-<caption><px>Dataset selector from 2d scatter plot window</px></caption>
+<caption><px>Default dataset selector from 2d scatter plot window</px></caption>
 <figureimage src="&FIG.PointSelector;"/>
 </figure>
 
@@ -5287,7 +5301,8 @@ window.  Here is dataset selector for the 2d scatter plot:
     However, if you prefer you can type in an expression to use here.
     This may be more convenient if there's a very long list of columns.
     However, what you type in doesn't have to be a column name, it can
-    be an algebraic expression based on columns in the table.
+    be an algebraic expression based on columns in the table, or even
+    a constant.
     In the example, the X axis is a straight column name, and the Y axis
     is an expression.  The expression language syntax is explained in
     <ref id="jel"/>.
@@ -5295,11 +5310,15 @@ window.  Here is dataset selector for the 2d scatter plot:
     <p>The <label>Log</label> checkbox for each axis is used to 
     select whether the scale should be logarithmic or linear.
     </p>
-    <p>The <label>Flip</label> checbox for each axis is used to select
+    <p>The <label>Flip</label> checkbox for each axis is used to select
     whether the axis values increase in the conventional direction
     (left to right, bottom to top) or its opposite.
     </p>
-    </dd>
+    <p>Some of the buttons in the toolbar shown will modify what is 
+    visible in this panel, for instance inserting new selectors
+    to allow selection of error values.  All the selectors work in the
+    same way however.
+    </p></dd>
 
 <dt>Row Subsets panel</dt>
 <dd><p>This defines which row subsets for will be plotted in this window,
@@ -5323,10 +5342,11 @@ window.  Here is dataset selector for the 2d scatter plot:
     few gives big ones).  However, you have a lot of freedom to configure
     how they appear.  If you click the button with the symbol on it
     a dialogue will pop up which allows you to select colour, shape, 
-    transparency and so on, as well as things like whether fitted lines
-    will be plotted for that subset.  The options available differ 
-    according to the kind of plot, and are described along with the 
-    different graphics windows in the following subsections.
+    transparency and so on, as well as error bar style if appropriate
+    and things like whether fitted lines will be plotted for that subset.
+    The options available differ according to the kind of plot, 
+    and are described along with the different graphics windows 
+    in the following subsections.
     The style window stays visible until you dismiss it, but if you
     click on another of the buttons in the Row Subsets panel its contents
     will change to allow you to select values for the corresponding
@@ -5337,6 +5357,18 @@ window.  Here is dataset selector for the 2d scatter plot:
     or black open shapes.  If you select one of these it will overwrite
     the existing style selections, but they can be edited individually
     afterwards.
+    </p></dd>
+
+<dt>Dataset Tool Bar</dt>
+<dd><p>The toolbar shown above the data panel in the figure 
+    contains buttons which affect the dataset selector itself.  
+    The first two buttons add and remove dataset <label>Tabs</label> 
+    (see below) and are present for all plots.
+    The other items configure optional selectors appearing in the
+    <label>Data Panel</label> - the ones shown here are concerned with
+    <ref id="auxAxes" plaintextref="yes">Auxiliary Axes</ref> and
+    <ref id="errorBars" plaintextref="yes">Error Bars</ref>,
+    but different ones are present for the different types of plot.
     </p></dd>
 
 <dt>Tabs</dt>
@@ -5352,13 +5384,35 @@ window.  Here is dataset selector for the 2d scatter plot:
     one dataset may be plotting V magnitude against ellipticity and another
     plotting B magnitude against ellipticity).
     </p>
-    <p>The + and - buttons at the left allow you to insert a new tab or
-    remove an existing one respectively.  You cannot remove the Main tab
-    (which is why the - button is disabled in the figure).
+    <p>The <label>Add Dataset</label> (&IMG.ADD_TAB;)
+    and <label>Remove Dataset</label> (&IMG.REMOVE_TAB;) 
+    buttons in the toolbar add a new tab or remove the selected one
+    one respectively.  
+    Initially only the Main tab is present, and this one cannot be removed.
     </p></dd>
 
 </dl>
 </p>
+
+<p>Sometimes (high-dimensional plots, auxiliary axes, error bars) 
+a lot of information needs to be entered into the data panel,
+and the bottom part of the window can get quite large.
+Normally, the plot in the upper part of the window shrinks to accommodate it.
+You can of course resize the window to gain more space, but if your
+screen is small you may still end up with an uncomfortably small plot.
+If this happens, you can use the following button from the main toolbar:
+<dl>
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>When this toggle button is on, the dataset selector can be resized
+    by dragging the bar between it and the plot itself up or down.
+    If there is insufficient space for all the components in the selector,
+    a scrollbar will appear.  When it is off (the default),
+    the full height of the selector will be visible, and the plot will
+    shrink to accommodate it.
+    </p></dd>
+</dl>
+</p>
+
 
 </subsubsubsect>
 
@@ -5390,6 +5444,17 @@ configuring axis range:
     A box is drawn as you drag so you can see what you're doing.
     </p></dd>
 
+<dt>Centre Zoom</dt>
+<dd><p>The <ref id="Cartesian3DWindow">3d</ref> and
+    <ref id="SphereWindow">spherical</ref> plots allow you to zoom in
+    on the central part of the window.  The 'active region' for
+    dragging is to the left or right of the plot (the region on the right
+    is rather thin, and does not include the width used by the legend).
+    When the pointer is in these regions, the mouse cursor symbol changes
+    to indicate that zooming can be done.
+    Drag down to zoom in and up to zoom out.
+    </p></dd>
+
 <dt>Axis Zoom</dt>
 <dd><p>In some of the windows
     (<ref id="PlotWindow">2d scatter plot</ref>,
@@ -5406,19 +5471,18 @@ configuring axis range:
     to zoom in and right-to-left or down-to-up to zoom out.
     </p></dd>
 
-<dt>Centre Zoom</dt>
-<dd><p>The <ref id="SphereWindow">spherical plot</ref> allows you to zoom
-    in on the central part of the window.  The 'active region' for
-    dragging is to the right of the plot, where the legend is shown.
-    When the pointer is in this region, the mouse cursor symbol changes
-    to indicate that zooming can be done.
-    Drag down to zoom in and up to zoom out.
+<dt>Auxiliary (Colour) Axis Zoom</dt>
+<dd><p>When <ref id="auxAxes">Auxilary Axes</ref> are in use, you can
+    zoom in and out of them by dragging up and down on the colour bar
+    to the right of the plot, in the same way as for a normal Axis 
+    Zoom above.
     </p></dd>
 
 <dt>&IMG.RESIZE; Rescale</dt>
 <dd><p>If you find you're zoomed to a region you don't want to be in,
     you can use the Rescale toolbar button to return to the default 
-    scale (full coverage).
+    scale (full coverage).  Note this affects any auxiliary axes
+    as well as the spatial ones.
     Some windows may have per-axis rescale buttons too 
     (&IMG.RESIZE_X;, &IMG.RESIZE_Y;).
     </p></dd>
@@ -5460,6 +5524,173 @@ reset in some other way (e.g. by zooming).
 </p>
 
 </subsubsubsect>
+
+
+<subsubsubsect id="errorBars">
+<subhead><title>Error Bars</title></subhead>
+
+<p>TOPCAT provides quite flexible graphical representation of
+symmetric or asymmetric errors in 1, 2 and 3 dimensions.
+The plots with error bar support are the
+<ref id="PlotWindow">2D</ref>, <ref id="Cartesian3DWindow">3D</ref> and
+<ref id="SphereWindow">spherical</ref> scatter plots and the
+<ref id="LinesWindow">stacked lines plot</ref>.
+</p>
+
+<p>By default, error bar drawing is switched off.  The simplest way
+to activate it is to use the relevant error bar button(s) 
+in the data selector tool bar (the one below the plot).
+For the Cartesian (2D, 3D, lines) plots, some or all of 
+the following buttons are present:
+<dl>
+<dt>&IMG.ERROR_X; X symmetric errors</dt>
+<dt>&IMG.ERROR_Y; Y symmetric errors</dt>
+<dt>&IMG.ERROR_Z; Z symmetric errors</dt>
+</dl>
+Any combination of them can be active at once.
+Clicking one of these buttons toggles symmetric error bar drawing 
+in that axis on or off.  When it is on, an additional column selector
+will appear to the right of the main column selector for the axis
+in question.  If you fill this in with a column name or expression
+which gives the error for that axis, then the error bars will be
+plotted.  For instance, here is a 2D plot in which Y errors are being used:
+</p>
+
+<figure>
+<caption><px>Plot window with symmetric Y errors</px></caption>
+<figureimage src="&FIG.PlotWindow_err;"/>
+</figure>
+
+<p>You can see that with the error column selector, the panel 
+has become too wide for the window so a scrollbar has appeared at the 
+bottom - you can scroll this left and right or enlarge the window 
+to see the parts that you need to.
+</p>
+
+<p>For the <ref id="SphereWindow">spherical plot</ref> 
+the following error toggle buttons are present:
+<dl>
+<dt>&IMG.ERROR_TANGENT; tangential isotropic errors</dt>
+<dt>&IMG.ERROR_Z; radial symmetric errors</dt>
+</dl>
+These work in a similar way, except that the tangential one adds a 
+single column selector, with an associated unit selector, 
+near the latitude and longitude selectors to determine
+the isotropic angular size of error small circles.
+</p>
+
+<p>If you want to use <label>asymmetric</label> 
+or one-sided errors, use the options in the <label>Errors</label> menu
+instead of the toolbar buttons.  For instance the options for
+X axis error bars in the 2D scatter plot are:
+<dl>
+<dt>&IMG.ERROR_NONE; None</dt>
+<dt>&IMG.ERROR_SYMMETRIC; Symmetric</dt>
+<dt>&IMG.ERROR_LOWER; Lower Only</dt>
+<dt>&IMG.ERROR_UPPER; Upper Only</dt>
+<dt>&IMG.ERROR_BOTH; Lower &amp; Upper</dt>
+</dl>
+These give you different column selector boxes, but work in much
+the same way as the symmetric ones.
+</p>
+
+<p>There are many options for the plotting style of one, two and three
+dimensional error bars, including capped and uncapped bars, crosshairs, 
+ellipses and rectangles.  
+This plotting style is controlled from the plot window's
+<label>Style Editor</label> window (see e.g. <ref id="MarkStyleEditor"/>),
+which can be viewed by clicking on the marker icon in the Row Subsets
+panel at the bottom right of the window.  The available error bar 
+styles will depend on which axes currently have axes; if none do, then
+the error bar selector will be disabled.
+</p>
+
+</subsubsubsect>
+
+
+<subsubsubsect id="auxAxes">
+<subhead><title>Auxiliary Axes</title></subhead>
+
+<p>TOPCAT can plot data in one, two or three spatial dimensions,
+but sometimes the the data which you need to 
+visualise is of higher dimensionality.  For this purpose, 
+some of the plotting windows (2D and 3D scatter plots) allow you
+to control the colouring of plotted points according to 
+values from one or more additional columns (or calculated expressions),
+which gives you more visual information about the data you are examining.
+</p>
+
+<p>To use this facility, click the <label>Add auxiliary axis</label>
+(&IMG.ADD_COLOURS;) button in the dataset toolbar (below the plot area
+in a plot window).
+A new axis selector will appear below the existing spatial ones,
+labelled <label>Aux 1 Axis</label>.  It has log and flip checkboxes 
+like the spatial axes, and to the right (you may need to widen the
+window or use the scrollbar at the bottom to see it) is a selector depicting a 
+number of colourmaps to choose from - the default one resembling a 
+rainbow is usually quite suitable, but you can pick others.
+If you enter a column name or expression into the selector, each 
+plotted point will be coloured according to the value of that quantity
+in the corresponding row of data.  If that quantity is null for a row,
+the corresponding point will not be plotted. 
+A scale on the right of the plot indicates how the colour map 
+corresponds to numeric values.
+To remove the auxiliary axis and go back to normally-coloured points,
+simply click the <label>Remove auxiliary axis</label> (&IMG.REMOVE_COLOURS;)
+button.
+</p>
+
+<figure>
+<caption><px>3D plot of simulation data showing X, Y, Z spatial position
+         with the auxiliary axis indicating timestep.</px></caption>
+<figureimage src="&FIG.Cartesian3DWindow_aux;"/>
+</figure>
+
+<p>There are two types of colour maps you can choose from: 
+<label>colour fixing</label> and <label>colour modifying</label>.
+The fixing ones are easiest to understand: the original colour of
+the point is ignored, and it is coloured according to the relevant
+value on the selected auxiliary axis.
+The colour modifying maps take the original colour and affect it
+somehow, for instance by changing its transparency or its blue
+component.  These are marked with an asterisk ("*") in the
+colour map selector.  They can be used to convey more information but
+are often harder to interpret visually - for one thing the shading of
+the colour bar in the legend will not correspond exactly to the colours
+of the plotted points.
+</p>
+
+<p>By using modifying colour maps it is possible to perform plots with
+more than one auxiliary axis - typically the first one will be a 
+fixing map and subsequent ones will be modifying.  So the first
+auxiliary axis could have the (fixing) Rainbow map, and the second could
+have the (modifying) Transparency map.  The colour alterations are
+applied in order.  It is possible, but pointless, to have multiple
+fixing maps applied to the same points - the last-numbered one will
+determine the colour and earlier ones will be ignored.
+Multiple aux axes can be obtained by clicking the 
+<label>Add auxiliary axis</label> button more than once.
+When combining several maps some thought has to be given to which 
+ones to use - some good combinations are the three RGB ones or
+the three YUV ones.
+</p>
+
+<p>It is easy to generate attractive screenshots using auxiliary axes.
+Making visual sense of the results is a different matter.
+One visualisation expert tried to dissuade their introduction in TOPCAT
+on the grounds that the graphics they produce are too hard for 
+humans to interpret - I hope that these plots can assist with some 
+analysis, but it is a somewhat experimental feature which may or 
+may not end up being widely useful.
+The maximum number of auxiliary axes which can
+be used together is currently three.  This could be raised on request,
+but if you feel you can generate an intelligible plot using more than 
+this then you're considerably smarter than me.
+</p>
+
+
+</subsubsubsect>
+
 
 <subsubsubsect id="plotSubsets">
 <subhead><title>Defining Subsets by Region</title></subhead>
@@ -5538,17 +5769,28 @@ using the <label>Row Subsets</label> box at the bottom of the Plot Window.
 <subsubsubsect id="exportGraphics">
 <subhead><title>Exporting Graphics</title></subhead>
 
-<p>All the graphics windows have the following export options:
+<p>All the graphics windows have the following export options in the toolbar:
 <dl>
-<dt>&IMG.IMAGE; Export as GIF</dt>
 <dt>&IMG.PRINT; Export as Encapsulated PostScript</dt>
+<dt>&IMG.IMAGE; Export as GIF</dt>
+</dl>
+and additionally, the <label>Export</label> menu will probably contain:
+<dl>
+<dt>&IMG.JPEG; Export as JPEG</dt>
+<dt>&IMG.IMAGE; Export as PNG</dt>
 </dl>
 These can be used to export the currently visible plot to an external 
 graphics format for later use.
 </p>
 
-<p>Exporting to GIF is pretty straightforward - what you see is what
-you get.
+<p>Exporting to the pixel-based formats (GIF, JPEG, PNG) is fairly
+straightforward: each pixel on the screen appears as one pixel
+in the output file.  PNG is the most capable, but it is not supported
+by all image viewers.  GIF works well in most cases, but if there are
+more than 255 colours some of the colour resolution will be lost.  
+JPEG can preserve a wide range of colours, but does not support 
+transparency and is lossy, so close inspection of image features 
+will reveal blurring.
 </p>
 
 <p>When exporting to Encapsulated PostScript (EPS) there are a few
@@ -5631,6 +5873,28 @@ and if it's unchecked then zero is on a bin boundary.
 <p>The following buttons are available on the toolbar:
 <dl>
 
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>Allows the dataset selector to be resized by dragging a separator 
+    between it and the plot area.  Good for small screens.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
+
 <dt>&IMG.PRINT; Export as EPS</dt>
 <dd><p>Pops up a dialogue which will write the current plot as an EPS file.
     </p></dd>
@@ -5662,11 +5926,6 @@ and if it's unchecked then zero is on a bin boundary.
     The horizontal axis scaling is not changed.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
-    </p></dd>
-
 <dt>&IMG.GRID_ON; Grid</dt>
 <dd><p>Toggles whether a grid is drawn over the plotting surface or not.
     </p></dd>
@@ -5684,18 +5943,6 @@ and if it's unchecked then zero is on a bin boundary.
 <dd><p>Toggles whether the Y axis is scaled logarithmically or not.
     </p></dd>
 
-<dt>&IMG.REDO; Replot</dt>
-<dd><p>Redraws the current plot.  It is usually not necessary to
-    use this button, since if you change any of the plot characteristics
-    with the controls in this window the plot will be redrawn
-    automatically.  However if you have changed the data, e.g. by
-    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
-    the plot is not automatically redrawn (since this is potentially an
-    expensive operation and you may not require it).
-    Clicking this button redraws the plot taking account of any changes
-    to the table data.
-    </p></dd>
-
 <dt>&IMG.RANGE_SUBSET; Subset From Visible</dt>
 <dd><p>Defines a new <label>Row Subset</label> consisting of only the
     data in the bars which are visible in the current plot.
@@ -5704,8 +5951,30 @@ and if it's unchecked then zero is on a bin boundary.
 </dl>
 </p>
 
-<p>The <label>Export</label> menu also contains the following options 
-specific to the histogram:
+<p>The <label>Dataset Toolbar</label> contains the following option:
+<dl>
+<dt>&IMG.WEIGHT; Weight Counts</dt>
+<dd><p>If this toggle button is on, an additional <label>Weight Axis</label>
+    selector appears below the <label>X Axis</label> selector.
+    If this is filled in with a column name or expression, then instead of
+    simply accumulating the number of points per bin, the Y axis will
+    show the sum over the weighting quantity for points in each bin.
+    Not having a weight axis is equivalent to filling in its value with
+    the quantity 1.
+    Note that with weighting, the figure drawn is no longer technically
+    a histogram.
+    </p>
+    <p>When weighted, bars can be of negative height.  An anomaly of the
+    plot as currently implemented is that the Y axis never descends below
+    zero, so any such bars are currently invisible.  
+    This may be amended in a future release
+    (contact this author to vote for such an amendment).
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Export</label> menu also contains additional image export
+options and the following options specific to the histogram:
 <dl>
 
 <dt>&IMG.SAVE; Save as Table</dt>
@@ -8886,11 +9155,12 @@ comments (apologies for any missed out):
 <li>Richard McMahon (IoA)</li>
 <li>Anita Richards (Jodrell Bank)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
-<li>Danny Boxhoorn (Kapteyn, Groningen)</li>
+<li>Gerard Lemson (MPE Garching)</li>
+<li>James Price (Bristol)</li>
 <li>Aaron Robotham (Bristol)</li>
+<li>Danny Boxhoorn (Kapteyn, Groningen)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
-<li>James Price (Bristol)</li>
 <li>Haggis Harris (Bath)</li>
 </ul>
 </p>
@@ -9902,16 +10172,28 @@ introduced since the last version:
     <li>Row Subset names can now be re-used.  If you need to enter a new
         subset name, you can select from the list of existing ones as an
         alternative to typing a new one in.</li>
-    <li>Subset sizes are now counted automatically by default in SubsetWindow.
-        New checkbox added in menu to switch off/on this behaviour.</li>
-    <li>Can now calculate quantiles (median, quartiles, .001, .01, .99 and .999)
-        in the <ref id="StatsWindow">Statistics Window</ref>.</li>
-    <li>Add new Save and Import actions to
+    <li>Subset sizes are now counted automatically by default in the
+        <ref id="SubsetWindow">Subset Window</ref>.
+        A new <label>Autocount rows</label> (&IMG.RECOUNT;) 
+        toggle is added to the <label>Subsets</label> menu to 
+        switch off/on this behaviour.</li>
+    <li>Quantiles quantiles (median, quartiles, .001, .01, .99 and .999)
+        can now be calculated in the 
         <ref id="StatsWindow">Statistics Window</ref>.</li>
-    <li>Add new Save and Import actions to
-        <ref id="HistogramWindow">Histogram Window</ref>.</li>
+    <li>New <label>Save</label> and <label>Import</label> actions are added 
+        to the <ref id="StatsWindow">Statistics Window</ref> which allow the
+        calculated statistics to be treated as a new table.</li>
+    <li>New <label>Save</label> and <label>Import</label> actions are added to
+        <ref id="HistogramWindow">Histogram Window</ref>
+        which allow the binned counts to be treated as a new table.</li>
     <li>Cartesian 3D plot now permits zooming towards centre 
-        (though not panning).</li>
+        (though not panning), in the same way as the Spherical plot.</li>
+    <li>Toolbar buttons have been reordered and rearranged in some plot windows.
+        The <ref id="PointSelector">Dataset Selector</ref> panel now has
+        its own toolbar for relevant actions.
+        A <label>Split Window</label> (&IMG.SPLIT;) button has been introduced
+        in plot windows to allow the control panel part to be shrunk under
+        user control.</li>
 
     <!-- Bugfixes and minor changes -->
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
@@ -9936,7 +10218,6 @@ introduced since the last version:
 
     <!-- not yet documented -->
     <li>Error bars!</li>
-    <li>Higher-dimensional visualisation!</li>
     <li>Modified what happens when subsets get received from PLASTIC.</li>
     <li>GAVO loader.</li>
     <li>Stay Upright action (&IMG.NORTH;) in 3D plots.</li>
