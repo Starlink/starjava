@@ -16,9 +16,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -545,6 +547,35 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     public Rectangle getPlotBounds() {
         Rectangle bounds = plot_.getPlotRegion();
         return bounds == null ? getMainArea().getBounds() : bounds;
+    }
+
+    protected void configureLegends( PlotState state ) {
+
+        /* Work out original state of legend visibility. */
+        ToggleButtonModel legendModel = getLegendModel();
+        boolean isVis = legendModel.isSelected();
+
+        /* Call superclass implementation. */
+        super.configureLegends( state );
+
+        /* Determine whether any of the plotted graphs contain more than one
+         * dataset. */
+        boolean hasMultiples = false;
+        SetId[] setIds = state.getPointSelection().getSetIds();
+        Set pselSet = new HashSet();
+        for ( int i = 0; ! hasMultiples && i < setIds.length; i++ ) {
+            PointSelector psel = setIds[ i ].getPointSelector();
+            if ( pselSet.contains( psel ) ) {
+                hasMultiples = true;
+            }
+            else {
+                pselSet.add( psel );
+            }
+        }
+
+        /* Set legend visibility on only if it was on already or if there
+         * are multiple datasets for any of the graphs. */
+        legendModel.setSelected( isVis || hasMultiples );
     }
 
     /*
