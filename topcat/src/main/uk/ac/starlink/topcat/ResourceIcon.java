@@ -444,15 +444,15 @@ public class ResourceIcon implements Icon {
         nameMap.put( "ERROR_Z", errZ.createOnOffButton().getIcon() );
         nameMap.put( "ERROR_TANGENT", SphereWindow.createTangentErrorIcon() );
         nameMap.put( "ERROR_NONE",
-                     errY.getIcon( ErrorMode.NONE, 24, 24, 1, 1 ) );
+                     errX.getIcon( ErrorMode.NONE, 24, 24, 1, 1 ) );
         nameMap.put( "ERROR_SYMMETRIC",
-                     errY.getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
+                     errX.getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
         nameMap.put( "ERROR_LOWER",
-                     errY.getIcon( ErrorMode.LOWER, 24, 24, 1, 1 ) );
+                     errX.getIcon( ErrorMode.LOWER, 24, 24, 1, 1 ) );
         nameMap.put( "ERROR_UPPER",
-                     errY.getIcon( ErrorMode.UPPER, 24, 24, 1, 1 ) );
+                     errX.getIcon( ErrorMode.UPPER, 24, 24, 1, 1 ) );
         nameMap.put( "ERROR_BOTH",
-                     errY.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
+                     errX.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
         return nameMap;
     }
 
