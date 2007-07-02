@@ -5553,7 +5553,15 @@ in that axis on or off.  When it is on, an additional column selector
 will appear to the right of the main column selector for the axis
 in question.  If you fill this in with a column name or expression
 which gives the error for that axis, then the error bars will be
-plotted.  For instance, here is a 2D plot in which Y errors are being used:
+plotted.
+TOPCAT may make a guess based on column names and UCDs about which 
+columns provide error values for which other columns, so the error
+selector may get filled in automatically.  However, in most cases you
+will need to provide the error values yourself, and occasionally you
+may need to correct TOPCAT's guesses.
+</p>
+
+<p>Here is a 2D plot in which Y errors are being used:
 </p>
 
 <figure>
@@ -5603,6 +5611,8 @@ which can be viewed by clicking on the marker icon in the Row Subsets
 panel at the bottom right of the window.  The available error bar 
 styles will depend on which axes currently have axes; if none do, then
 the error bar selector will be disabled.
+You can also use the <label>Errors</label> menu to change the error 
+style for all the visible datasets at once.
 </p>
 
 </subsubsubsect>
@@ -5856,7 +5866,8 @@ button in the <ref id="ControlWindow">Control Window</ref>'s toolbar.
 <ref id="PointSelector" plaintextref="yes">dataset selector</ref>
 at the bottom of the window.
 You can configure the axes, including <strong>zooming</strong> in and out,
-with the mouse or manually as described in <ref id="axisConfig"/>.
+with the mouse (drag on the plot or the axes) 
+or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>The <label>Bin Placement</label> box below the main plot controls
@@ -5951,8 +5962,13 @@ and if it's unchecked then zero is on a bin boundary.
 </dl>
 </p>
 
-<p>The <label>Dataset Toolbar</label> contains the following option:
+<p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
+
+<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dd><p>See <ref id="PointSelector"/>.
+    </p></dd>
+
 <dt>&IMG.WEIGHT; Weight Counts</dt>
 <dd><p>If this toggle button is on, an additional <label>Weight Axis</label>
     selector appears below the <label>X Axis</label> selector.
@@ -6110,7 +6126,8 @@ Select the quantities to plot and the plotting symbols with the
 <ref id="PointSelector" plaintextref="yes">dataset selector</ref>
 at the bottom.
 You can configure the axes, including <strong>zooming</strong> in and out,
-with the mouse or manually as described in <ref id="axisConfig"/>.
+with the mouse (drag on the plot or the axes) 
+or manually as described in <ref id="axisConfig"/>.
 </p>
 
 <p>Clicking on any of the plotted points will <label>activate</label> it - 
@@ -6119,6 +6136,28 @@ see <ref id="activation"/>.
 
 <p>The following buttons are available on the toolbar:
 <dl>
+
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>Allows the dataset selector to be resized by dragging a separator 
+    between it and the plot area.  Good for small screens.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to 
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
 <dd><p>Pops up a dialogue which will write the current plot as an EPS file.
@@ -6146,25 +6185,8 @@ see <ref id="activation"/>.
     because of changes in the subset selection or from zooming in or out.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
-    </p></dd>
-
 <dt>&IMG.GRID_ON; Grid</dt>
 <dd><p>Toggles whether a grid is drawn over the plotting surface or not.
-    </p></dd>
-
-<dt>&IMG.REDO; Replot</dt>
-<dd><p>Redraws the current plot.  It is usually not necessary to 
-    use this button, since if you change any of the plot characteristics
-    with the controls in this window the plot will be redrawn
-    automatically.  However if you have changed the data, e.g. by
-    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
-    the plot is not automatically redrawn (since this is potentially an
-    expensive operation and you may not require it).
-    Clicking this button redraws the plot taking account of any changes
-    to the table data.
     </p></dd>
 
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
@@ -6179,6 +6201,24 @@ see <ref id="activation"/>.
     consisting of only the points which
     are currently visible on the plotting surface.
     See <ref id="plotSubsets"/> for more explanation.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The <label>Dataset Toolbar</label> contains the following options:
+<dl>
+
+<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dd><p>See <ref id="PointSelector"/>.
+    </p></dd>
+
+<dt>&IMG.ADD_COLOURS;/&IMG.REMOVE_COLOURS; Add/Remove auxiliary axis</dt>
+<dd><p>See <ref id="auxAxes"/>.
+    </p></dd>
+
+<dt>&IMG.ERROR_X;/&IMG.ERROR_Y; Toggle X/Y error bars</dt>
+<dd><p>See <ref id="errorBars"/>.
     </p></dd>
 
 </dl>
@@ -6260,9 +6300,17 @@ each data point will appear:
     on top of each other from those where there are only a few.
     </p></dd>
 
+<dt>Error Bars</dt>
+<dd><p>If <ref id="errorBars">error bars</ref> are active for this plot,
+    allows you to select the way they will appear.  The options which
+    can be selected here will depend on whether X, Y or both errors are
+    in use.
+    </p></dd>
+
 <dt>Hide Markers</dt>
-<dd><p>This check box is only enabled if a line is being plotted; it allows
-    the markers to be invisible, so that only the line is seen.
+<dd><p>This check box is only enabled if a line and/or error bars 
+    are being plotted; it allows the markers to be invisible, 
+    so that only the line/error bars are seen.
     </p></dd>
 
 </dl>
