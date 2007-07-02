@@ -148,6 +148,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final AuxLegend[] auxLegends_;
     private final JToolBar pselToolbar_;
     private final JComponent extrasPanel_;
+    private final ToggleButtonModel legendModel_;
 
     private StyleSet styleSet_;
     private BitSet usedStyles_;
@@ -274,6 +275,20 @@ public abstract class GraphicsWindow extends AuxWindow {
             auxShaderModels_[ i ] = shaderModel;
         }
 
+        /* Create a legend object. */
+        legend_ = new Legend();
+
+        /* Model for whether the legend is visible or not. */
+        legendModel_ =
+            new ToggleButtonModel( "Show Legend", ResourceIcon.DO_WHAT,
+                                   "Display legend at right of plot" );
+        legendModel_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                legend_.setActive( legendModel_.isSelected() );
+            }
+        } );
+        legend_.setActive( legendModel_.isSelected() );
+
         /* Set up point selector component. */
         pointSelectors_ = new PointSelectorSet() {
             protected PointSelector createSelector() {
@@ -300,7 +315,6 @@ public abstract class GraphicsWindow extends AuxWindow {
         plotArea_ = new JPanel( new BorderLayout() );
         plotArea_.setOpaque( false );
         JComponent legendBox = Box.createVerticalBox();
-        legend_ = new Legend();
         legendBox.add( legend_ );
         plotArea_.add( legendBox, BorderLayout.EAST );
 
@@ -870,6 +884,15 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Returns the model which indicates whether the legend is visible or not.
+     *
+     * @return  legend visibility model
+     */
+    public ToggleButtonModel getLegendModel() {
+        return legendModel_;
+    }
+
+    /**
      * Returns the most recently read Points object.
      *
      * @return  points object
@@ -1337,7 +1360,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      *
      * @param  state  plot state
      */
-    private void configureLegends( PlotState state ) {
+    protected void configureLegends( PlotState state ) {
 
         /* Work out the space available above and below the actual plot
          * region within the plot component. */
@@ -1366,7 +1389,11 @@ public abstract class GraphicsWindow extends AuxWindow {
             for ( int i = 0; i < rsets.length; i++ ) {
                 labels[ i ] = rsets[ i ].getName();
             }
-            legend_.setStyles( psel.getStyles(), labels );
+            Style[] styles = psel.getStyles();
+            legend_.setStyles( styles, labels );
+            if ( styles.length > 1 ) {
+                legendModel_.setSelected( true );
+            }
         }
 
         /* Update legends for auxiliary axes. */
