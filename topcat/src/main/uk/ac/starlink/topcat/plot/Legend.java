@@ -64,11 +64,6 @@ public class Legend extends JComponent {
         labels_ = (String[]) labels.clone();
         styles_ = (Style[]) styles.clone();
 
-        /* Ensure active if there is more than one item to display. */
-        if ( nstyle > 1 ) {
-            setActive( true );
-        }
-
         /* Calculate geometry. */
         int ixmax = 0;
         int iymax = 0;
