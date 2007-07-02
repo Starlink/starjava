@@ -280,7 +280,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Model for whether the legend is visible or not. */
         legendModel_ =
-            new ToggleButtonModel( "Show Legend", ResourceIcon.DO_WHAT,
+            new ToggleButtonModel( "Show Legend", ResourceIcon.LEGEND,
                                    "Display legend at right of plot" );
         legendModel_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
