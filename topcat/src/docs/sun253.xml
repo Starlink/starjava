@@ -92,7 +92,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>5 October 2006</docdate>
+<docdate>4 July 2007</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -6303,7 +6303,7 @@ each data point will appear:
 <dt>Error Bars</dt>
 <dd><p>If <ref id="errorBars">error bars</ref> are active for this plot,
     allows you to select the way they will appear.  The options which
-    can be selected here will depend on whether X, Y or both errors are
+    can be selected here will depend on whether X and/or Y errors are
     in use.
     </p></dd>
 
@@ -6378,6 +6378,8 @@ the window will disappear and any changes you made will be discarded.
 <label>Marker Style</label> menu in the plot window.
 Here you can select a standard group of styles (e.g. all open 2-pixel 
 markers with different colours and shapes) for the plotted sets.
+Similarly, error styles can be changed all at once using the 
+<label>Errors</label> menu.
 </p>
 
 </subsubsubsect>
@@ -6415,8 +6417,7 @@ values using the selectors in the usual way.
 
 <p>To add a new graph with a different Y axis, use the
 <label>Add Dataset</label> (&IMG.ADD;) button in the 
-<ref id="PointSelector">dataset selectors</ref> panel at the bottom
-of the window.
+<label>Dataset Toolbar</label> at the bottom of the window.
 This has a slightly different effect from what it does in the other
 plot windows, in that it inserts a new plotting region with its own 
 Y axis at the top of the plot on which the specified data is drawn, 
@@ -6451,6 +6452,29 @@ see <ref id="activation"/>.
 <p>The following buttons are available on the toolbar:
 <dl>
 
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>Allows the dataset selector to be resized by dragging a separator 
+    between it and the plot area.  Good for small screens.
+    </p></dd>
+
+<dt>&IMG.REDO;</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to 
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of the range
+    and label for the X axis and each of the Y axes - 
+    see <ref id="axisConfig"/>. 
+    </p></dd>
+
 <dt>&IMG.PRINT; Export as EPS</dt>
 <dd><p>Pops up a dialogue which will write the current plot as an EPS file.
     </p></dd>
@@ -6479,12 +6503,6 @@ see <ref id="activation"/>.
     values within the currently visible X range.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of the range
-    and label for the X axis and each of the Y axes - 
-    see <ref id="axisConfig"/>. 
-    </p></dd>
-
 <dt>&IMG.GRID_ON; Full Grid</dt>
 <dd><p>Toggles whether X and Y grid lines are drawn over the plots or not.
     If this is selected, the single y=0 grid line (see next item)
@@ -6497,16 +6515,10 @@ see <ref id="activation"/>.
     will automatically be deselected.
     </p></dd>
 
-<dt>&IMG.REDO;</dt>
-<dd><p>Redraws the current plot.  It is usually not necessary to 
-    use this button, since if you change any of the plot characteristics
-    with the controls in this window the plot will be redrawn
-    automatically.  However if you have changed the data, e.g. by
-    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
-    the plot is not automatically redrawn (since this is potentially an
-    expensive operation and you may not require it).
-    Clicking this button redraws the plot taking account of any changes
-    to the table data.
+<dt>&IMG.Y_CURSOR; Show Vertical Crosshair</dt>
+<dd><p>Toggles whether a vertical line follows the mouse when it is
+    positioned over the plot.  This can be useful to compare features
+    in different graphs at the same X coordinate position.
     </p></dd>
 
 <dt>&IMG.ANTIALIAS; Antialias</dt>
@@ -6524,10 +6536,20 @@ see <ref id="activation"/>.
     outside the current ranges of the Y axes.
     </p></dd>
 
-<dt>&IMG.Y_CURSOR; Show Vertical Crosshair</dt>
-<dd><p>Toggles whether a vertical line follows the mouse when it is
-    positioned over the plot.  This can be useful to compare features
-    in different graphs at the same X coordinate position.
+</dl>
+</p>
+
+<p>The <label>Dataset Toolbar</label> contains the following options:
+<dl>
+
+<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dd><p>Adds/removes a dataset for plotting, which both adds/removes a 
+    tab from the dataset selector and adds/removes a plot in the currently
+    visible stack in the plotting area.  See above for more explanation.
+    </p></dd>
+
+<dt>&IMG.ERROR_X;/&IMG.ERROR_Y; Toggle X/Y error bars</dt>
+<dd><p>See <ref id="errorBars"/>.
     </p></dd>
 
 </dl>
@@ -6566,6 +6588,13 @@ each data point will appear:
 <dt>Line/Markers</dt>
 <dd><p>Select from the radio buttons whether you want just lines between
     the data points, or markers at each point, or both.
+    </p></dd>
+
+<dt>Error Bars</dt>
+<dd><p>If <ref id="errorBars">error bars</ref> are active for this plot,
+    allows you to select the way they will appear.  The options which
+    can be selected here will depend on whether X and/or Y erors are
+    in use.
     </p></dd>
 </dl>
 </p>
@@ -6611,6 +6640,8 @@ the window will disappear and any changes you made will be discarded.
 <label>Line Style</label> menu in the stacked lines plot window.
 Here you can select a standard group of styles 
 (e.g. dashed lines, coloured lines) for the plotted sets.
+Similarly, error styles can be changed all at once using the 
+<label>Errors</label> menu.
 </p>
 
 </subsubsubsect>
