@@ -401,7 +401,7 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     protected StyleEditor createStyleEditor() {
-        final StyleEditor editor = new DensityStyleEditor( styles_ );
+        final StyleEditor editor = new DensityStyleEditor( styles_, rgbModel_ );
         rgbRepaintList_.add( editor );
         return editor;
     }
@@ -502,6 +502,13 @@ public class DensityWindow extends GraphicsWindow {
                 return styles_[ index % styles_.length ];
             }
         };
+    }
+
+    protected void configureLegends( PlotState state ) {
+        super.configureLegends( state );
+        if ( ! rgbModel_.isSelected() ) {
+            getLegendModel().setSelected( false );
+        }
     }
 
     /**

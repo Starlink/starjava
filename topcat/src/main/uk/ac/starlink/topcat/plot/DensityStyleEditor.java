@@ -3,7 +3,10 @@ package uk.ac.starlink.topcat.plot;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -23,8 +26,11 @@ public class DensityStyleEditor extends StyleEditor {
      * <code>styles</code> array.
      *
      * @param   styles  available styles
+     * @param   rgbModel  toggler selected for RGB mode and unselected for
+     *                    indexed mode
      */
-    public DensityStyleEditor( DensityStyle[] styles ) {
+    public DensityStyleEditor( DensityStyle[] styles,
+                               final ToggleButtonModel rgbModel ) {
 
         Box colorBox = Box.createHorizontalBox();
         styleSelector_ = new RenderingComboBox( styles ) {
@@ -33,7 +39,8 @@ public class DensityStyleEditor extends StyleEditor {
             };
         };
         styleSelector_.addActionListener( this );
-        colorBox.add( new JLabel( "Channel: " ) );
+        final JLabel chanLabel = new JLabel( "Channel: " );
+        colorBox.add( chanLabel );
         colorBox.add( new ShrinkWrapper( styleSelector_ ) );
         colorBox.add( Box.createHorizontalStrut( 5 ) );
         colorBox.add( Box.createHorizontalGlue() );
@@ -41,6 +48,16 @@ public class DensityStyleEditor extends StyleEditor {
 
         add( colorBox );
         add( Box.createHorizontalStrut( 300 ) );
+
+        ChangeListener rgbListener = new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                boolean isRgb = rgbModel.isSelected();
+                chanLabel.setEnabled( isRgb );
+                styleSelector_.setEnabled( isRgb );
+            }
+        };
+        rgbModel.addChangeListener( rgbListener );
+        rgbListener.stateChanged( null );
     }
 
     public void setStyle( Style style ) {
