@@ -229,7 +229,7 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Action for weighting of histogram values. */
         weightModel_ =
-            new ToggleButtonModel( "Weighted Counts", ResourceIcon.WEIGHT,
+            new ToggleButtonModel( "Weight Counts", ResourceIcon.WEIGHT,
                                    "Allow weighting of histogram counts" );
         weightModel_.addActionListener( getReplotListener() );
 
