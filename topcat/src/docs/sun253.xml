@@ -5549,7 +5549,7 @@ the following buttons are present:
 </dl>
 Any combination of them can be active at once.
 Clicking one of these buttons toggles symmetric error bar drawing 
-in that axis on or off.  When it is on, an additional column selector
+for that axis on or off.  When it is on, an additional column selector
 will appear to the right of the main column selector for the axis
 in question.  If you fill this in with a column name or expression
 which gives the error for that axis, then the error bars will be
@@ -6225,8 +6225,9 @@ see <ref id="activation"/>.
 </p>
 
 <p>You have considerable freedom to configure how the points are
-plotted including symbol shapes, colours, transparency and whether
-fitted or joined are plotted; this is described in the following
+plotted including the shape, colour and transparency of symbols,
+the type of lines which join them if any, and the representation of
+error bars if active.  These options are described in the following
 subsection.
 </p>
 
@@ -6771,7 +6772,7 @@ see <ref id="activation"/>.
     </p></dd>
 
 <dt>&IMG.GRID_ON; Grid</dt>
-<dd><p>Toggles whether the axis lines are drawn or not.
+<dd><p>Toggles whether the cubic frame bounding the plot is drawn or not.
     </p></dd>
 
 <dt>&IMG.FOG; Fog</dt>
@@ -6828,7 +6829,8 @@ see <ref id="activation"/>.
 </p>
 
 <p>You have considerable freedom to configure how the points are plotted
-including symbol shapes, colours and transparency; this is described
+including the shape, colour and transparency of symbols and the
+representation of error bars if used.  These options are described
 in the following subsection.
 </p>
 
@@ -6972,9 +6974,140 @@ sphere, at a distance from the centre given by the value of the radial
 coordinate.
 </p>
 
-<p>Rotation, zooming, subset creation, fogging, marker customisation and 
-toolbar actions are all as for the Cartesian 3D plot window - 
-see <ref id="Cartesian3DWindow"/>.
+<p>The following buttons are available on the toolbar:
+<dl>
+
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>Allows the dataset selector to be resized by dragging a separator 
+    between it and the plot area.  Good for small screens.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.  The only configurable
+    axis range is the upper limit of the radial axis.
+    </p></dd>
+
+<dt>&IMG.PRINT; Export as EPS</dt>
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+    In general this is a faithful and high quality rendering of what
+    is displayed in the plot window.  However, if plotting is being done
+    using the transparent markers, it won't come out right since
+    transparency cannot be represented in PostScript; the markers will
+    be rendered as if they were opaque.
+    Currently, if there are many points being plotted, this can result
+    in a rather large output file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size
+    of the output GIF.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes of the current plot so that it contains all
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection.
+    </p></dd>
+
+<dt>&IMG.XYZ; Reorient</dt>
+<dd><p>Reorients the axes of the current plot to their default position.
+    This can be useful if you've lost track of where you've rotated
+    the plot to with the mouse.  This also resets the zoom level to 
+    normal if you've changed it.
+    </p></dd>
+
+<dt>&IMG.NORTH; Stay Upright</dt>
+<dd><p>Toggle button which when selected ensures that the north pole 
+    (latitude = +90 degrees) is oriented vertically on the screen at all times.
+    By default this is on.
+    </p></dd>
+
+<dt>&IMG.GRID_ON; Grid</dt>
+<dd><p>Toggles whether the spherical wire frame bounding the plot 
+    is drawn or not.
+    </p></dd>
+
+<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dd><p>Allows you to draw a region on the screen defining a new
+    <ref id="subsets">Row Subset</ref>.  When you have finished
+    drawing it, click this button again to indicate you're done.
+    The subset will include points at all depths in the viewing direction
+    which fall in the region you have drawn.
+    See <ref id="plotSubsets"/> for more details.
+    </p></dd>
+
+<dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
+<dd><p>Defines a new <label>Row Subset</label>
+    consisting of only the points which
+    are currently visible on the plotting surface.
+    See <ref id="plotSubsets"/> for more explanation.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The following additional item is available as a menu item only:
+<dl>
+<dt>&IMG.ANTIALIAS; Antialias</dt>
+<dd><p>Toggles whether the axes and their annotations are drawn antialiased.
+    Antialiased lines are smoother and generally look more pleasing, 
+    especially for text at a sharp angle, but it can slow the rendering 
+    down a bit.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Dataset Toolbar</label> contains the following options:
+<dl>
+
+<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dd><p>See <ref id="PointSelector"/>.
+    </p></dd>
+
+<dt>&IMG.ADD_COLOURS;/&IMG.REMOVE_COLOURS; Add/Remove auxiliary axis</dt>
+<dd><p>See <ref id="auxAxes"/>.
+    </p></dd>
+
+<dt>&IMG.ERROR_TANGENT; Toggle tangential error bars</dt>
+<dd><p>When activated, an additional column selector appears in the 
+    dataset panel to the right of the Longitude and Latitude selectors,
+    along with its own unit selector.  You can fill this in with an
+    isotropic error value representing the radius of a small circle
+    associated with the selected points, in units of arcsec, arcmin, 
+    degrees or radians.  This will cause 2-d error bars to be plotted.
+    You can configure their appearance (e.g. crosshairs, ellipses, 
+    rectangles, ...) using the 
+    <ref id="MarkStyleEditorNoLines">style editor</ref> in the usual way.
+    See <ref id="errorBars"/> for more information.
+    </p></dd>
+
+<dt>&IMG.ERROR_Z; Toggle radial error bars</dt>
+<dd><p>Switches radial error bars on and off.  See <ref id="errorBars"/>.
+    </p></dd>
+</dl>
+</p>
+
+<p>You have considerable freedom to configure how points are plotted
+including the shape, colour and transparency of symbols and the representation
+of errors if used.  This works exactly as for the 
+<ref id="Cartesian3DWindow">Cartesian 3D plot</ref> as described in
+<ref id="MarkStyleEditorNoLines"/>.
 </p>
 
 
