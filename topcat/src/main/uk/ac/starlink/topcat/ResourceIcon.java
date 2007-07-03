@@ -503,6 +503,26 @@ public class ResourceIcon implements Icon {
     }
 
     /**
+     * Returns an ImageIcon based on a given Icon object.  If the supplied
+     * <code>icon</code> is already an ImageIcon, it is returned.  Otherwise,
+     * it is painted to an Image and an ImageIcon is constructed from that.
+     * The reason this is useful is that some Swing components will only
+     * grey out disabled icons if they are ImageIcon subclasses (which is
+     * naughty).
+     *
+     * @param  icon  input icon
+     * @return   image icon
+     */
+    public static ImageIcon toImageIcon( Icon icon ) {
+        if ( icon instanceof ImageIcon ) {
+            return (ImageIcon) icon;
+        }
+        else {
+            return new ImageIcon( createImage( icon ) );
+        }
+    }
+
+    /**
      * Returns an image got by drawing an Icon.
      *
      * @param  icon 
