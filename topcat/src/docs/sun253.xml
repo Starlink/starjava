@@ -5977,7 +5977,7 @@ and if it's unchecked then zero is on a bin boundary.
     show the sum over the weighting quantity for points in each bin.
     Not having a weight axis is equivalent to filling in its value with
     the quantity 1.
-    Note that with weighting, the figure drawn is no longer technically
+    Note that with weighting, the figure drawn is no longer strictly speaking
     a histogram.
     </p>
     <p>When weighted, bars can be of negative height.  An anomaly of the
@@ -7129,10 +7129,6 @@ points in the data set which fall within its bounds.
 Another way to think of this is as a histogram on a 2-dimensional
 grid, rather than a 1-dimensional one as in the 
 <ref id="HistogramWindow">Histogram Window</ref>.
-If multiple datasets are being plotted, pixel colours can either
-be at a single brightness level derived from total number of points,
-or a combination of up to three independent (red, green, blue) 
-colour channels from different datasets.
 </p>
 
 <p>Density maps are suitable when you have a very large number of points
@@ -7145,68 +7141,77 @@ the result as a FITS image, which can then be processed or viewed
 using image-specific software such as GAIA or Aladin.
 </p>
 
-<p>You can configure the axes, including <strong>zooming</strong> in and out,
-with the mouse or manually as described in <ref id="axisConfig"/>.
+<p>This window can be operated in two modes:
+<dl>
+<dt>Indexed Mode</dt>
+<dd><p>Each pixel represents a single scalar value, corresponding to a 
+    count or sum as indicated by the selected dataset(s).  If multiple
+    datasets are being plotted at once, the values from each will be
+    summed to give the result at each point.  The mapping from numeric
+    value to pixel colour at each point on the plot is determined by
+    the colour map selected in the <label>Indexed Colours</label> 
+    selector below the plot.  In this case the style editor colour selectors
+    have no effect and are disabled.
+    </p></dd>
+
+<dt>RGB Mode</dt>
+<dd><p>Each pixel has up to three independent contributions, its 
+    intensity in Red, Green and Blue channels.  These can come from
+    different datasets, as configured in the 
+    <ref id="DensityStyleEditor">style editor</ref>.  If more than one
+    dataset is assigned the same colour, the contributions are summed
+    for that channel. 
+    In this case the Indexed Colours colour map selector has no effect
+    and is disabled.
+    </p></dd>
+</dl>
+Switch between the modes using the <label>RGB</label> (&IMG.COLOR;) button.
 </p>
 
-<p>The <label>Cut Percentile Levels</label> panel below the plot controls
-how the number of counts in each pixel maps to a brightness.
-There are two sliders, one for the lower bound and one for the upper bound.
-They are labelled (logarithmically) with percentile values.
-If the upper one is set to 90, it means that any pixel above the 90th
-percentile of the pixels in the image in terms of count level will be
-shown with maximum brightness, and similarly for the lower one.
-These values apply independently to each colour channel if more than
-one is in use.
-Immediately below the sliders, the pixel values which correspond to 
-minimum (black) and maximum brightness are displayed for each channel.
-If the image is not fairly completely covered, this control doesn't
-give you as much freedom as you might like - the user interface may
-be improved in future releases.
+<p>You can configure the axes, including <strong>zooming</strong> in and out,
+with the mouse (drag on the plot or the axes) 
+or manually as described in <ref id="axisConfig"/>.
 </p>
+
+<p>Two controls specific to this window are shown below the plot itself:
+<dl>
+
+<dt>Cut Percentile Levels</dt>
+<dd><p>This controls how the number of counts in each pixel maps 
+    to a brightness.  
+    There are two sliders, one for the lower bound and one for the upper bound.
+    They are labelled (logarithmically) with percentile values.
+    If the upper one is set to 90, it means that any pixel above the 90th
+    percentile of the pixels in the image in terms of count level will be
+    shown with maximum brightness, and similarly for the lower one.
+    These values apply independently to each colour channel if more than
+    one is in use.
+    Immediately below the sliders, the pixel values which correspond to 
+    minimum and maximum brightness are displayed.  In indexed mode there is
+    one range, and in RGB mode there may be up to three.
+    If the image is not fairly completely covered, this control doesn't
+    give you as much freedom as you might like - the user interface may
+    be improved in future releases.
+    </p></dd>
+
+<dt>Indexed Colours</dt>
+<dd><p>When in indexed (non-RGB) mode only, this allows you to select 
+    a colour map which determines how pixel values (counts or sums per bin) 
+    are turned into colours on the screen.  The lowest value corresponds to
+    the colour at the left side of the icon and the highst value to the right
+    side.  In RGB mode this is disabled.
+    </p></dd>
+
+</dl>
+</p>
+
 
 <p>The following buttons are available on the toolbar:
 <dl>
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
-    </p></dd>
 
-<dt>&IMG.IMAGE; Export as GIF</dt>
-<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
-    The output file is just the same as the plotted image that you see.
-    Resize the plotting window before the export to control the size
-    of the output GIF.
-    </p></dd>
-
-<dt>&IMG.FITS; Export as FITS</dt>
-<dd><p>Pops up a dialogue which will output the plotted map as a FITS array.
-    If only one channel is visible (either one colour channel or monochrome
-    mode) then the output FITS file will be a 2d array with dimensions the
-    same as the displayed image.  If there are multiple RGB channels then
-    the output array will be 3d with the third dimension having an extent
-    of 2 or 3, depending on the number of colour channels visible.
-    In either case the FITS file will have a single (primary) HDU.
-    Basic coordinate system information, as well as DATAMIN and DATAMAX cards,
-    will be written to the header.
-    The output array will have some integer type; its length (BITPIX) 
-    will depend on the maximum value of any of the pixels.
-    </p></dd>
-
-<dt>&IMG.RESIZE; Rescale</dt>
-<dd><p>Rescales the axes of the current plot so that it contains all
-    the data points in the currently selected subsets.
-    By default the plot will be scaled like this, but it it may have changed
-    because of changes in the subset selection or from zooming in or out.
-    </p></dd>
-
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
-    </p></dd>
-
-<dt>&IMG.COLOR_LOG; Log Intensity</dt>
-<dd><p>Toggles between linear and logarithmic mapping for colour intensity
-    as a function of number of counts.
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>Allows the dataset selector to be resized by dragging a separator 
+    between it and the plot area.  Good for small screens.
     </p></dd>
 
 <dt>&IMG.REDO; Replot</dt>
@@ -7221,15 +7226,50 @@ be improved in future releases.
     to the table data.
     </p></dd>
 
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
+
+<dt>&IMG.PRINT; Export as EPS</dt>
+<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
+    The output file is just the same as the plotted image that you see.
+    Resize the plotting window before the export to control the size
+    of the output GIF.
+    </p></dd>
+
+<dt>&IMG.FITS; Export as FITS</dt>
+<dd><p>Pops up a dialogue which will output the plotted map as a FITS array.
+    If only one channel is visible (either one colour channel or indexed
+    mode) then the output FITS file will be a 2d array with dimensions the
+    same as the displayed image.  If there are multiple RGB channels then
+    the output array will be 3d with the third dimension having an extent
+    of 2 or 3, depending on the number of colour channels visible.
+    In either case the FITS file will have a single (primary) HDU.
+    Basic coordinate system information, as well as DATAMIN and DATAMAX cards,
+    will be written to the header.
+    The type of the output array will be double precision for weighted 
+    values, or some integer type of sufficient length for unweighted ones.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes of the current plot so that it contains all
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection or from zooming in or out.
+    </p></dd>
+
+<dt>&IMG.COLOR_LOG; Log Intensity</dt>
+<dd><p>Toggles between linear and logarithmic mapping for colour intensity
+    as a function of number of counts.
+    </p></dd>
+
 <dt>&IMG.COLOR; Colour</dt>
-<dd><p>Toggles between one-channel (monochrome) and three-channel (RGB)
-    images.  When the display is monochrome, the brightness of every 
-    pixel depends on the number of counts that fall in its bounds summed
-    from every plotted dataset, and the display runs from black (low cut)
-    to white (high cut) via shades of grey.
-    For RGB, each dataset is assigned one of the colours red, green or blue,
-    and the brightness of each colour is individually determined by the
-    number of counts from datasets assigned that colour.
+<dd><p>Toggles between indexed and RGB modes (see the explanation above).
     </p></dd>
 
 <dt>&IMG.ROUGH; Bigger Pixels</dt>
@@ -7258,14 +7298,36 @@ be improved in future releases.
 </dl>
 </p>
 
-<p>The <label>Export</label> provides a number of ways to export the
+<p>The <label>Dataset Toolbar</label> contains the following options:
+<dl>
+
+<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dd><p>See <ref id="PointSelector"/>.
+    </p></dd>
+
+<dt>&IMG.WEIGHT; Weight Counts</dt>
+<dd><p>If this toggle button is on, an additional <label>Weight Axis</label>
+    selector appears below the <label>X Axis</label> selector.
+    If this is filled in with a column name or expression, then instead of
+    simply accumulating the number of points per bin, each pixel will
+    represent the sum over the weighting quantity for points in each bin.
+    Not having a weight axis is equivalent to filling in its value with
+    the quantity 1.
+    Note that with weighting, the figure drawn is no longer strictly speaking
+    a histogram or density map.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The <label>Export</label> menu provides a number of ways to export the
 displayed image for external viewing or analysis.
 As well as options to export as GIF, JPEG, EPS and FITS,
 there is also the option to transmit the FITS image to one or
 all applications listening using the PLASTIC tool interoperability 
 protocol which will receive images.
 In this way you can transmit the image directly to PLASTIC-aware
-image manipulation tools such as Aladin.
+image manipulation tools such as GAIA or Aladin.
 See <ref id="interop"/> for more information about PLASTIC.
 </p>
 
@@ -7276,12 +7338,12 @@ explained in the following subsection.
 <subsubsubsect id="DensityStyleEditor">
 <subhead><title>Density Style Editor</title></subhead>
 
-<p>When you are doing a three-channel (RGB) density plot, each dataset
+<p>For a density map in RGB mode, each dataset
 is assigned a colour channel to which it contributes.  A representation
 of this is displayed in a button to the right of its name in the dataset
 selector panel at the bottom of the density map window.
 If you click this button the following dialogue will pop up which
-enables you to change the colour channel
+enables you to change the colour channel.
 </p>
 
 <figure>
@@ -7297,9 +7359,8 @@ part of the main dataset, the name of the dataset's tab.
 
 <p>The <label>Channel</label> selector allows you to select either 
 the Red, Green or Blue channel for this dataset to contribute to.
-Note that if plotting is in monochrome mode, this setting won't 
-have any material effect on the appearance of the plot;
-also, the legend icons will appear monochrome in this case.
+Note that this is only enabled in RGB mode; in indexed mode
+it has no effect and is disabled.
 </p>
 
 </subsubsubsect>
