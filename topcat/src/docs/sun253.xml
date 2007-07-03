@@ -6680,9 +6680,6 @@ By default the points are rendered as though the 3D space is filled
 with a 'fog', so that more distant points appear more washed out - 
 this provides a visual cue which can help to distinguish the depth
 of plotted points.  However, you can turn this off if you want.
-You can't zoom in and out of the plot using the mouse, but you can use the 
-<ref id="axisConfig" plaintextref="yes">Axis Configuration Dialogue</ref>
-to set axis ranges (and labels) manually.
 If there are many points, then you may find that they're not all plotted
 while a drag-to-rotate gesture is in progress.  This is done to cut down on 
 rendering time so that GUI response stays fast.  When the drag is
@@ -6693,8 +6690,8 @@ come back again.
 <p><label>Zooming</label> is also possible.  You can zoom in around the
 centre of the plot so that the viewing window only covers the middle.
 This resembles the <label>Axis Zoom</label> in some of the 2-d plots,
-but in this case the active region is to the right of the plot where
-the legends appear.  Drag the mouse down to zoom in or up to zoom
+but in this case the active region is the space to the left of the 
+plot.  Drag the mouse down to zoom in or up to zoom
 out on this part of the window.  Currently it is only possible
 to zoom in/out around the centre of the plot.
 When zoomed you can use the 
@@ -6710,6 +6707,28 @@ see <ref id="activation"/>.
 
 <p>The following buttons are available on the toolbar:
 <dl>
+
+<dt>&IMG.SPLIT; Split Window</dt>
+<dd><p>Allows the dataset selector to be resized by dragging a separator 
+    between it and the plot area.  Good for small screens.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    the plot is not automatically redrawn (since this is potentially an
+    expensive operation and you may not require it).
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
+    and labels - see <ref id="axisConfig"/>.
+    </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
 <dd><p>Pops up a dialogue which will write the current plot as an EPS file.
@@ -6743,6 +6762,14 @@ see <ref id="activation"/>.
     normal if you've changed it.
     </p></dd>
 
+<dt>&IMG.NORTH; Stay Upright</dt>
+<dd><p>Toggle button which when selected ensures that the Z axis is 
+    oriented vertically on the screen at all times.
+    By default this is off which means you can drag the axes round to
+    any orientation, but it can be convenient to switch it on to keep
+    the plot pointing in a sensible direction.
+    </p></dd>
+
 <dt>&IMG.GRID_ON; Grid</dt>
 <dd><p>Toggles whether the axis lines are drawn or not.
     </p></dd>
@@ -6753,18 +6780,6 @@ see <ref id="activation"/>.
     than near ones.
     </p></dd>
 
-<dt>&IMG.REDO; Replot</dt>
-<dd><p>Redraws the current plot.  It is usually not necessary to
-    use this button, since if you change any of the plot characteristics
-    with the controls in this window the plot will be redrawn
-    automatically.  However if you have changed the data, e.g. by
-    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
-    the plot is not automatically redrawn (since this is potentially an
-    expensive operation and you may not require it).
-    Clicking this button redraws the plot taking account of any changes
-    to the table data.
-    </p></dd>
-
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
 <dd><p>Allows you to draw a region on the screen defining a new
     <ref id="subsets">Row Subset</ref>.  When you have finished
@@ -6772,6 +6787,13 @@ see <ref id="activation"/>.
     The subset will include points at all depths in the viewing direction
     which fall in the region you have drawn.
     See <ref id="plotSubsets"/> for more details.
+    </p></dd>
+
+<dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
+<dd><p>Defines a new <label>Row Subset</label>
+    consisting of only the points which
+    are currently visible on the plotting surface.
+    See <ref id="plotSubsets"/> for more explanation.
     </p></dd>
 </dl>
 </p>
@@ -6784,6 +6806,24 @@ see <ref id="activation"/>.
     especially for text at a sharp angle, but it can slow the rendering 
     down a bit.
     </p></dd>
+</dl>
+</p>
+
+<p>The <label>Dataset Toolbar</label> contains the following options:
+<dl>
+
+<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dd><p>See <ref id="PointSelector"/>.
+    </p></dd>
+
+<dt>&IMG.ADD_COLOURS;/&IMG.REMOVE_COLOURS; Add/Remove auxiliary axis</dt>
+<dd><p>See <ref id="auxAxes"/>.
+    </p></dd>
+
+<dt>&IMG.ERROR_X;/&IMG.ERROR_Y;/&IMG.ERROR_Z; Toggle X/Y/Y error bars</dt>
+<dd><p>See <ref id="errorBars"/>.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -6862,6 +6902,19 @@ each data point will appear:
     If a finite transparency is set, you may find it useful to turn off
     fogging (see above).
     </p></dd>
+
+<dt>Error Bars</dt>
+<dd><p>If <ref id="errorBars">error bars</ref> are active for this plot,
+    allows you to select the way they will appear.  The options which
+    can be selected here will depend on whether X, Y and/or Z errors are
+    in use.
+    </p></dd>
+
+<dt>Hide Markers</dt>
+<dd><p>This check box is only enabled if error bars 
+    are being plotted; it allows the markers to be invisible, 
+    so that only the error bars are seen.
+    </p></dd>
 </dl>
 </p>
 
@@ -6875,6 +6928,8 @@ the window will disappear and any changes you made will be discarded.
 <label>Marker Style</label> menu in the plot window.
 Here you can select a standard group of styles (e.g. all open 2-pixel 
 markers with different colours and shapes) for the plotted sets.
+Similarly, error styles can be changed all at once using the 
+<label>Errors</label> menu.
 </p>
 
 </subsubsubsect>
