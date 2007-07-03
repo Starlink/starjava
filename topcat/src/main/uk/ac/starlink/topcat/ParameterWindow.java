@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -157,7 +158,28 @@ public class ParameterWindow extends AuxWindow
                 return isEditableParameter( irow );
             }
             public void setValue( int irow, Object value ) {
-                getParam( irow ).setValue( value );
+                DescribedValue param = getParam( irow );
+                try {
+                    if ( value == null ) {
+                        param.setValue( null );
+                    }
+                    else if ( value instanceof String ) {
+                        param.setValueFromString( (String) value );
+                    }
+                    else if ( param.getInfo().getContentClass()
+                                   .isAssignableFrom( value.getClass() ) ) {
+                        param.setValue( value );
+                    }
+                    else {
+                        param.setValueFromString( value.toString() );
+                    }
+                }
+                catch ( RuntimeException e ) {
+                    Object msg = "Invalid value \"" + value + "\"";
+                    JOptionPane.showMessageDialog( ParameterWindow.this, msg,
+                                                   "Invalid Parameter Value",
+                                                   JOptionPane.ERROR_MESSAGE );
+                }
             }
         } );
 
