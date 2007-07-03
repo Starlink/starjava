@@ -5202,7 +5202,7 @@ the subset will correspond to the current row subset.
 </dl>
 </p>
 
-<p>For a large table the calculations may take a short while.  While they are
+<p>For a large table the calculations may take a little while.  While they are
 being performed you can interact with the window as normal,
 but a progress bar is shown at the bottom of the window.
 If you initiate a new calculation (by pushing the Recalculate button or
@@ -5260,7 +5260,7 @@ by way of illustration.  You will usually want to change the controls
 so it displays the quantities you are interested in.
 </p>
 
-<p>The following subsections describes some of the features which 
+<p>The following subsections describe some of the features which 
 work the same for most or all of the graphics windows.
 </p>
 
@@ -5727,9 +5727,10 @@ you can set the axis ranges (either manually or by zooming with the
 mouse - see <ref id="axisConfig"/>) 
 so that only the points you want to identify are visible,
 and then click the 
-<label>New Subset From Visible</label> 
-(&IMG.VISIBLE_SUBSET;, &IMG.RANGE_SUBSET; or &IMG.XRANGE_SUBSET;) 
-toolbar button.  This defines a subset consisting of all the 
+<label>New Subset From Visible</label> toolbar button
+(the icon is &IMG.VISIBLE_SUBSET;, &IMG.RANGE_SUBSET; or &IMG.XRANGE_SUBSET; 
+depending on the plot type).
+This defines a subset consisting of all the 
 points that are visible on the current plot.
 This is only useful if the group you are interested in
 corresponds to a rectangular region in the plotting space.
@@ -5765,8 +5766,9 @@ you're in it.  Here's what the plot looks like while you're drawing:
 <p>In either case, when you have indicated that you want to define a 
 new row subset, a dialogue box will pop up to ask you its name.
 As described in <ref id="subsetDef"/>, it's a good idea to use a
-name which you haven't used before, and which is just composed
-of letters, numbers and underscores.
+name which is just composed of letters, numbers and underscores.
+You can optionally select a subset name which has been used before
+from the list, which will overwrite the former contents of that subset.
 When you enter a name and hit the <label>OK</label> button, 
 the new subset will be created and the points in it will be 
 shown straight away on the plot using a new symbol.  
@@ -10489,7 +10491,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next release</dt>
+<dt>Version 3.0</dt>
 <dd><p>
     <ul>
     <!-- documented already -->
@@ -10543,21 +10545,12 @@ introduced since the last version:
         class <ref id="Formats">Formats</ref>.</li>
     <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
         functions in class <ref id="Fluxes">Fluxes</ref>.</li>
+    <li>Fixed bug which prevented non-string parameter values from
+        being reassigned.</li>
 
     <!-- not yet documented -->
-    <li>Error bars!</li>
     <li>Modified what happens when subsets get received from PLASTIC.</li>
     <li>GAVO loader.</li>
-    <li>Stay Upright action (&IMG.NORTH;) in 3D plots.</li>
-    <li>Weighting in histogram.</li>
-    <li>Weighting in density map.</li>
-    <li>Indexed colour map selection in density map.</li>
-    <li>JPEG and PNG plot export available from all graphics windows.</li>
-    <li>Plotting windows rearranged somewhat: 
-        the data selection panel below the plot now has its own toolbar
-        and there is a new <label>Split Window</label> (&IMG.SPLIT;) button
-        which enables that panel to be resized.</li>
-    <li>Toolbar buttons rearranged/rationalised in plot windows.</li>
     </ul>
     </p></dd>
 
