@@ -5631,7 +5631,7 @@ which gives you more visual information about the data you are examining.
 </p>
 
 <p>To use this facility, click the <label>Add auxiliary axis</label>
-(&IMG.ADD_COLOURS;) button in the dataset toolbar (below the plot area
+(&IMG.ADD_COLORS;) button in the dataset toolbar (below the plot area
 in a plot window).
 A new axis selector will appear below the existing spatial ones,
 labelled <label>Aux 1 Axis</label>.  It has log and flip checkboxes 
@@ -5646,7 +5646,7 @@ the corresponding point will not be plotted.
 A scale on the right of the plot indicates how the colour map 
 corresponds to numeric values.
 To remove the auxiliary axis and go back to normally-coloured points,
-simply click the <label>Remove auxiliary axis</label> (&IMG.REMOVE_COLOURS;)
+simply click the <label>Remove auxiliary axis</label> (&IMG.REMOVE_COLORS;)
 button.
 </p>
 
@@ -6213,7 +6213,7 @@ see <ref id="activation"/>.
 <dd><p>See <ref id="PointSelector"/>.
     </p></dd>
 
-<dt>&IMG.ADD_COLOURS;/&IMG.REMOVE_COLOURS; Add/Remove auxiliary axis</dt>
+<dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
 <dd><p>See <ref id="auxAxes"/>.
     </p></dd>
 
@@ -6817,7 +6817,7 @@ see <ref id="activation"/>.
 <dd><p>See <ref id="PointSelector"/>.
     </p></dd>
 
-<dt>&IMG.ADD_COLOURS;/&IMG.REMOVE_COLOURS; Add/Remove auxiliary axis</dt>
+<dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
 <dd><p>See <ref id="auxAxes"/>.
     </p></dd>
 
@@ -7080,7 +7080,7 @@ coordinate.
 <dd><p>See <ref id="PointSelector"/>.
     </p></dd>
 
-<dt>&IMG.ADD_COLOURS;/&IMG.REMOVE_COLOURS; Add/Remove auxiliary axis</dt>
+<dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
 <dd><p>See <ref id="auxAxes"/>.
     </p></dd>
 
