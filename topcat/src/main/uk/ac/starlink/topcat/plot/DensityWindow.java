@@ -108,7 +108,7 @@ public class DensityWindow extends GraphicsWindow {
      * @param   parent   parent component (may be used for positioning)
      */
     public DensityWindow( Component parent ) {
-        super( "Density Plot", AXIS_NAMES, 0, new ErrorModeSelectionModel[ 0 ],
+        super( "Density Map", AXIS_NAMES, 0, new ErrorModeSelectionModel[ 0 ],
                parent );
 
         /* There's only one style set it makes sense to use for this window.
