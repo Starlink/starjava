@@ -93,7 +93,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>4 July 2007</docdate>
+<docdate>6 July 2007</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -10580,44 +10580,100 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.0</dt>
-<dd><p>
-    <ul>
-    <!-- documented already -->
-    <li>Table parameters can be referenced in expressions using
-        <code>&param.prefix;</code> notation (<ref id="jelParams"/>).</li>
-    <li>Columns and parameters can be referenced in expressions using
-        <code>&ucd.prefix;</code> notation (<ref id="jelCols"/>).</li>
-    <li>Row Subset names can now be re-used.  If you need to enter a new
-        subset name, you can select from the list of existing ones as an
-        alternative to typing a new one in.</li>
-    <li>Subset sizes are now counted automatically by default in the
-        <ref id="SubsetWindow">Subset Window</ref>.
-        A new <label>Autocount rows</label> (&IMG.RECOUNT;) 
-        toggle is added to the <label>Subsets</label> menu to 
-        switch off/on this behaviour.</li>
-    <li>Quantiles quantiles (median, quartiles, .001, .01, .99 and .999)
-        can now be calculated in the 
-        <ref id="StatsWindow">Statistics Window</ref>.</li>
-    <li>New <label>Save</label> and <label>Import</label> actions are added 
-        to the <ref id="StatsWindow">Statistics Window</ref> which allow the
-        calculated statistics to be treated as a new table.</li>
-    <li>New <label>Save</label> and <label>Import</label> actions are added to
-        <ref id="HistogramWindow">Histogram Window</ref>
-        which allow the binned counts to be treated as a new table.</li>
-    <li>Cartesian 3D plot now permits zooming towards centre 
-        (though not panning), in the same way as the Spherical plot.</li>
-    <li>Toolbar buttons have been reordered and rearranged in some plot windows.
-        The <ref id="PointSelector">Dataset Selector</ref> panel now has
-        its own toolbar for relevant actions.
-        A <label>Split Window</label> (&IMG.SPLIT;) button has been introduced
-        in plot windows to allow the control panel part to be shrunk under
-        user control.</li>
-    <li>There is now a load dialogue for access to the GAVO Millennium 
-        run database services (<ref id="GavoTableLoadDialog"/>).</li>
-    <li>Modified what happens when subsets get received from PLASTIC.</li>
+<dt>Version 3.0 (6 July 2007)</dt>
+<dd><p>This release includes major visualisation improvements and some changes
+    to the plotting user interface:
+    <dl>
+    <dt>Error bars</dt>
+    <dd><p>Comprehensive plotting of symmetric and asymmetric error bars 
+        (and crosshairs, and boxes, and ellipses, ...) in 1, 2 and 3
+        dimensional plots is now provided -- see <ref id="errorBars"/>.
+        </p></dd>
+    <dt>Auxiliary (colour) axes</dt>
+    <dd><p>It is now possible to modify the colour of plotted points 
+        according to values in one or more axes additional to the 
+        spatial ones -- see <ref id="auxAxes"/>.
+        </p></dd>
+    <dt>Histogram Weighting</dt>
+    <dd><p>The <ref id="HistogramWindow">Histogram</ref> and
+        <ref id="DensityWindow">Density Map</ref> windows now have the
+        option of weighting the quantity represented, so that
+        the binned values are sums rather than just counts.
+        </p></dd>
+    <dt>Density Map Colour Scale</dt>
+    <dd><p>When the density map is in indexed (non-RGB) mode you can now
+        select from various colour maps to represent bin occupancy.
+        This makes level differences easier to see.
+        </p></dd>
+    <dt>Plot window rearrangement</dt>
+    <dd><p>Buttons which affect data selection are now arranged in their
+        own toolbar below the plot (<ref id="PointSelector"/>).  
+        The size of the plot control area can be manually resized to 
+        give more room for the plot itself by using the
+        <label>Split Window</label> (&IMG.SPLIT;) button, 
+        which is useful on small screens.
+        </p></dd>
+    <dt>Expression language enhancements</dt>
+    <dd><p>Table parameters can now be referenced in expressions using
+        <code>&param.prefix;</code> notation (<ref id="jelParams"/>),
+        and both columns and parameters can be referenced by UCD using
+        <code>&ucd.prefix;</code> notation (<ref id="jelCols"/>).
+        </p></dd>
+    <dt>Statistics &amp; Histogram result re-use</dt>
+    <dd><p>The <ref id="StatsWindow">Statistics</ref> and 
+        <ref id="HistogramWindow">Histogram</ref> windows now both provide 
+        <label>Save</label> and <label>Import</label> actions,
+        which take the data presented in the window and allow it to be
+        saved to a file or imported directly into TOPCAT as a new table.
+        </p></dd>
+    <dt>Cartesian 3D zoom</dt>
+    <dd><p>It is now possible to zoom the 
+        <ref id="Cartesian3DWindow">3D Plot</ref> towards the centre in the
+        same way as the <ref id="SphereWindow">Spherical Plot</ref>.
+        </p></dd>
+    <dt>GAVO Millennium simulation database load dialogue</dt>
+    <dd><p>You can now directly query the 
+        <webref url="http://www.g-vo.org/Millennium"
+                >GAVO Millennium database</webref> service 
+        (<ref id="GavoTableLoadDialog"/>).  Thanks to Gerard Lemson of GAVO
+        for contributing code for this.
+        </p></dd>
+    <dt>Row subset improvements</dt>
+    <dd><p>Row Subset names can now be re-used, and when you are asked to
+        select a new subset name you are allowed to choose one from the
+        list of existing ones.  When a row selection is received from another 
+        application via PLASTIC the subset name (the name of the sending 
+        application) is re-used in this way.  This helps to keep the 
+        number of subsets under control.
+        </p>
+        <p>Receving a row subset from PLASTIC in this way, and certain other
+        actions, now cause the subset to be shown straight away 
+        (and updated if necessary) on any existing plots, which makes
+        this kind of PLASTIC interaction more responsive.
+        </p>
+        <p>The size of each subset, and also the corresponding percentage of
+        the table it represents, is now calculated automatically and 
+        displayed in the <ref id="SubsetWindow">Subset Window</ref>.
+        The old behaviour of only calculating sizes on request can be
+        reinstated using the <label>Autocount rows</label> (&IMG.RECOUNT;)
+        menu item if required.
+        </p></dd>
+    <dt>Fix Vertical in 3D plots</dt>
+    <dd><p>A <label>Stay Upright</label> (&IMG.NORTH;) button is provided
+        in the <ref id="Cartesian3DWindow">Cartesian</ref> and 
+        <ref id="SphereWindow">spherical</ref> 3D plots which allow 
+        you to keep the Z axis/north pole vertical during rotations.
+        </p></dd>
+    <dt>Quantile calculation</dt>
+    <dd><p>The <ref id="StatsWindow">Statistics Window</ref> can now 
+        calculate quantiles (median, quartiles, .001, .01, .99 and .999)
+        on request.
+        </p></dd>
+    </dl>
+    </p>
 
-    <!-- Bugfixes and minor changes -->
+    <p>There are also a number of minor changes and bugfixes:
+    <ul>
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
         cards - write them as numeric not string values.</li>
     <li>Worked around a Mac OSX Java bug which caused table display to
@@ -10639,7 +10695,7 @@ introduced since the last version:
         functions in class <ref id="Fluxes">Fluxes</ref>.</li>
     <li>Fixed bug which prevented non-string parameter values from
         being reassigned.</li>
-
+    <li>JPEG and PNG plot export available from all graphics windows.</li>
     </ul>
     </p></dd>
 
