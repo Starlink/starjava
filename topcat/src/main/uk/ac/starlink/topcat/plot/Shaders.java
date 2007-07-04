@@ -305,6 +305,36 @@ public class Shaders {
         }
     };
 
+    /** Shader which fixes hue. */
+    public static final Shader FIX_HUE = new BasicShader( "Hue" ) {
+        public void adjustRgba( float[] rgba, float value ) {
+            float h = value * 359.99f;
+            float h6 = h / 60f;
+            int hi = (int) h6;
+            float f = h6 - hi;
+            float s = 1f;
+            float v = 1f;
+            float p = v * ( 1f - s );
+            float q = v * ( 1f - f * s );
+            float t = v * ( 1f - ( 1f - f ) * s );
+            float r;
+            float g;
+            float b;
+            switch ( hi ) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+                default: r = 0; g = 0; b = 0;
+            }
+            rgba[ 0 ] = r;
+            rgba[ 1 ] = g;
+            rgba[ 2 ] = b;
+        }
+    };
+
     /**
      * Constructs a shader which interpolates smoothly between two colours.
      *
