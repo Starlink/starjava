@@ -75,7 +75,9 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
      * pluggable load dialogue mechanism.
      */
     public GavoTableLoadDialog() {
-        super( "GAVO query", "Queries GAVO database" );
+        super( "GAVO Millennium Run Query",
+               "Uses the GAVO service to query the " +
+               "Millennium Simulation Database" );
 
         /* Set up fields for user interaction. */
         urlField_ = new JComboBox(DATABASES);
