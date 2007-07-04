@@ -3136,7 +3136,7 @@ The load dialogue flags are:
 
 <dt>-gavo</dt>
 <dd><p>GAVO database query dialogue (<ref id="GavoTableLoadDialog"/>).
-    Allows queries to the <webref url="www.g-vo.org">GAVO</webref>
+    Allows queries to the <webref url="http://www.g-vo.org">GAVO</webref>
     (German Astrophysical Virtual Observatory) database services.
     At time of writing, the most generally useful of these are queries to
     the Virgo Millennium run database.
