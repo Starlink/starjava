@@ -93,7 +93,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>6 July 2007</docdate>
+<docdate>5 July 2007</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -222,7 +222,10 @@ read in its HTML form than on paper.
 <webref url="http://www.starlink.ac.uk/topcat/" plaintextref="yes"
         >TOPCAT web page</webref>.
 It was initially developed within the now-terminated
-<webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
+<webref url="http://www.starlink.ac.uk/">Starlink</webref> project,
+and has subsequently been supported by PPARC grant PP/D002486/1,
+<webref url="http://eurovotech.org/">VOTech</webref> and
+<webref url="http://www.astrogrid.org/">AstroGrid</webref>.
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
@@ -318,7 +321,7 @@ but if you subsequently save the table the changes will be reflected
 in the table that you save.
 </p>
 
-<p>An notable point to bear in mind concerns memory.
+<p>A notable point to bear in mind concerns memory.
 TOPCAT is fairly efficient in use of memory, but in some cases when 
 dealing with large tables you might see an OutOfMemoryError.
 It is usually possible to work round this by using either or both
@@ -437,7 +440,7 @@ or as a result of some other actions.
 of rows from which to calculate in the
 <ref id="StatsWindow">Statistics Window</ref>
 and marking groups of rows to plot using different markers in the
-<ref id="PlotWindow">Plot Window</ref>.
+various <ref id="GraphicsWindow">plotting windows</ref>.
 </p>
 
 <subsubsect id="subsetDef">
@@ -2479,7 +2482,7 @@ be incomprehensible to non-specialists.
     as described in <ref id="jvmProperties"/>
     <em>or</em> during a run using the 
     <ref id="MethodWindow">Available Function Window</ref>'s
-   I<label>Add Class</label> (&IMG.ADD;) button</li>
+    <label>Add Class</label> (&IMG.ADD;) button</li>
 </ol>
 </p>
 
@@ -5236,7 +5239,7 @@ the superceded calculation will be stopped.
 <p>TOPCAT has a number of windows for performing data visualisation of
 various kinds.  These share various characteristics which are described
 in the first subsection below; the specific windows themselves 
-are described in the subsequent subsections.
+are described in the later subsections.
 </p>
 
 <p>These visualisation windows are fairly sophisticated, and the plots 
@@ -5315,7 +5318,9 @@ window.  Here is dataset selector for the 2d scatter plot:
     If you click the little left and right arrows to the right of the 
     selector it will cycle through all the columns in the table.
     However, if you prefer you can type in an expression to use here.
-    This may be more convenient if there's a very long list of columns.
+    This may be more convenient if there's a very long list of columns
+    (another way to deal with this is to hide most of the columns using
+    the <ref id="ColumnInfoWindow">Column Window</ref>).
     However, what you type in doesn't have to be a column name, it can
     be an algebraic expression based on columns in the table, or even
     a constant.
@@ -5389,21 +5394,21 @@ window.  Here is dataset selector for the 2d scatter plot:
 
 <dt>Tabs</dt>
 <dd><p>The example shows two tabs: <label>Main</label> and <label>A</label>;
-    the Main one is currently visible.  You can select a tab by clicking
+    the currently visible one is A.  You can select a tab by clicking
     on its name.  In each tab you select a table and a set of 
     columns/expressions, and if they are all filled in it will 
     contribute points (or bars, or whatever) to the plot.
     The Main dataset determines the initial values
     for the axis labels, but the data comes equally from all of them.
-    The numerical values of the coordinates are the same for all the
-    datasets, though their meanings might be different (for instance
+    The numerical values of the coordinates are treated the same for all the
+    datasets, but their meanings might be different, for instance
     one dataset may be plotting V magnitude against ellipticity and another
-    plotting B magnitude against ellipticity).
+    plotting B magnitude against ellipticity.
     </p>
     <p>The <label>Add Dataset</label> (&IMG.ADD_TAB;)
     and <label>Remove Dataset</label> (&IMG.REMOVE_TAB;) 
     buttons in the toolbar add a new tab or remove the selected one
-    one respectively.  
+    respectively.  
     Initially only the Main tab is present, and this one cannot be removed.
     </p></dd>
 
@@ -5573,15 +5578,16 @@ plotted.
 TOPCAT may make a guess based on column names and UCDs about which 
 columns provide error values for which other columns, so the error
 selector may get filled in automatically.  However, in most cases you
-will need to provide the error values yourself, and occasionally you
-may need to correct TOPCAT's guesses.
+will need to provide the error values by selecting a column yourself, 
+and occasionally you may need to correct TOPCAT's guesses.
 </p>
 
-<p>Here is a 2D plot in which Y errors are being used:
+<p>Here is a 2D plot in which symmetric X and asymmetric Y 
+errors are being used:
 </p>
 
 <figure>
-<caption><px>Plot window with symmetric Y errors</px></caption>
+<caption><px>Plot window with symmetric X and asymmetric Y errors</px></caption>
 <figureimage src="&FIG.PlotWindow_err;"/>
 </figure>
 
@@ -5597,7 +5603,8 @@ the following error toggle buttons are present:
 <dt>&IMG.ERROR_TANGENT; tangential isotropic errors</dt>
 <dt>&IMG.ERROR_Z; radial symmetric errors</dt>
 </dl>
-These work in a similar way, except that the tangential one adds a 
+These work in a similar way to the Cartesian erors above, 
+except that the tangential one adds a 
 single column selector, with an associated unit selector, 
 near the latitude and longitude selectors to determine
 the isotropic angular size of error small circles.
@@ -5625,9 +5632,9 @@ This plotting style is controlled from the plot window's
 <label>Style Editor</label> window (see e.g. <ref id="MarkStyleEditor"/>),
 which can be viewed by clicking on the marker icon in the Row Subsets
 panel at the bottom right of the window.  The available error bar 
-styles will depend on which axes currently have axes; if none do, then
+styles will depend on which axes currently have errors; if none do, then
 the error bar selector will be disabled.
-You can also use the <label>Errors</label> menu to change the error 
+You can also use the <label>Error Style</label> menu to change the error 
 style for all the visible datasets at once.
 </p>
 
@@ -5675,7 +5682,8 @@ button.
 <p>There are two types of colour maps you can choose from: 
 <label>colour fixing</label> and <label>colour modifying</label>.
 The fixing ones are easiest to understand: the original colour of
-the point is ignored, and it is coloured according to the relevant
+the point (as drawn in the legend) is ignored, 
+and it is coloured according to the relevant
 value on the selected auxiliary axis.
 The colour modifying maps take the original colour and affect it
 somehow, for instance by changing its transparency or its blue
@@ -5693,7 +5701,7 @@ auxiliary axis could have the (fixing) Rainbow map, and the second could
 have the (modifying) Transparency map.  The colour alterations are
 applied in order.  It is possible, but pointless, to have multiple
 fixing maps applied to the same points - the last-numbered one will
-determine the colour and earlier ones will be ignored.
+determine the colour and earlier ones will get ignored.
 Multiple aux axes can be obtained by clicking the 
 <label>Add auxiliary axis</label> button more than once.
 When combining several maps some thought has to be given to which 
@@ -5709,7 +5717,7 @@ humans to interpret - I hope that these plots can assist with some
 analysis, but it is a somewhat experimental feature which may or 
 may not end up being widely useful.
 The maximum number of auxiliary axes which can
-be used together is currently three.  This could be raised on request,
+be used together is currently three.  This could be increased on request,
 but if you feel you can generate an intelligible plot using more than 
 this then you're considerably smarter than me.
 </p>
@@ -5722,7 +5730,7 @@ this then you're considerably smarter than me.
 <subhead><title>Defining Subsets by Region</title></subhead>
 
 <p>When quantities are plotted in one of the graphics windows it becomes
-easy to see groupings of the data which may not otherwise be apparent;
+easy to see groupings of the data which might not otherwise be apparent;
 a cluster of (X,Y) points representing a group of rows may correspond
 to a physically meaningful grouping of objects which you would like
 to treat separately elsewhere in the program, for instance
@@ -5821,8 +5829,8 @@ transparency and is lossy, so close inspection of image features
 will reveal blurring.
 </p>
 
-<p>When exporting to Encapsulated PostScript (EPS) there are a few
-things to consider:
+<p>When exporting to Encapsulated PostScript (EPS), which is a vector
+graphics format, there are a few things to consider:
 <dl>
 <dt>Positional Quantisation</dt>
 <dd><p>The output file will render text, lines and
@@ -6002,21 +6010,21 @@ and if it's unchecked then zero is on a bin boundary.
     plot as currently implemented is that the Y axis never descends below
     zero, so any such bars are currently invisible.  
     This may be amended in a future release
-    (contact this author to vote for such an amendment).
+    (contact the author to vote for such an amendment).
     </p></dd>
 </dl>
 </p>
 
-<p>The <label>Export</label> menu also contains additional image export
+<p>The <label>Export</label> menu contains additional image export
 options and the following options specific to the histogram:
 <dl>
 
 <dt>&IMG.SAVE; Save as Table</dt>
-<dd><p>The bin counts corresponding to the currently plotted histogram
+<dd><p>The bin counts/sums corresponding to the currently plotted histogram
     will be written to disk in tabular form.  The first two columns give
     the lower and upper bounds of each bin, and the subsequent columns
     give the occupancies of each bin for each plotted data set.
-    If only one row subset is plotted, there will only be three columns.
+    If only one dataset is plotted, there will only be three columns.
     </p></dd>
 
 <dt>&IMG.IMPORT; Import as Table</dt>
@@ -6398,7 +6406,7 @@ the window will disappear and any changes you made will be discarded.
 Here you can select a standard group of styles (e.g. all open 2-pixel 
 markers with different colours and shapes) for the plotted sets.
 Similarly, error styles can be changed all at once using the 
-<label>Errors</label> menu.
+<label>Error Style</label> menu.
 </p>
 
 </subsubsubsect>
@@ -6435,7 +6443,7 @@ values using the selectors in the usual way.
 </p>
 
 <p>To add a new graph with a different Y axis, use the
-<label>Add Dataset</label> (&IMG.ADD;) button in the 
+<label>Add Dataset</label> (&IMG.ADD_TAB;) button in the 
 <label>Dataset Toolbar</label> at the bottom of the window.
 This has a slightly different effect from what it does in the other
 plot windows, in that it inserts a new plotting region with its own 
@@ -6446,7 +6454,7 @@ Thus all the datasets appear in their own graphs with their own Y axes
 (though if you have multiple row subsets plotted for the same 
 dataset they will appear on the same part of the plot as usual).
 To remove one of the graphs, select its tab and use the
-<label>Remove Dataset</label> (&IMG.SUBTRACT;) button as usual.
+<label>Remove Dataset</label> (&IMG.REMOVE_TAB;) button as usual.
 </p>
 
 <p><label>Zooming</label> can only be done on one axis at a time
@@ -6660,7 +6668,7 @@ the window will disappear and any changes you made will be discarded.
 Here you can select a standard group of styles 
 (e.g. dashed lines, coloured lines) for the plotted sets.
 Similarly, error styles can be changed all at once using the 
-<label>Errors</label> menu.
+<label>Error Style</label> menu.
 </p>
 
 </subsubsubsect>
@@ -6949,7 +6957,7 @@ the window will disappear and any changes you made will be discarded.
 Here you can select a standard group of styles (e.g. all open 2-pixel 
 markers with different colours and shapes) for the plotted sets.
 Similarly, error styles can be changed all at once using the 
-<label>Errors</label> menu.
+<label>Error Style</label> menu.
 </p>
 
 </subsubsubsect>
@@ -6987,7 +6995,7 @@ If only these two are filled in, then the points will be plotted on
 the surface of the unit sphere - this is suitable if you just want to
 inspect the positions of a set of objects in the sky.
 You can optionally fill in the <label>Radius</label> selector as well.
-If you do this, then points will be plotted on the interior of the
+If you do this, then points will be plotted in the interior of the
 sphere, at a distance from the centre given by the value of the radial
 coordinate.
 </p>
@@ -7136,7 +7144,7 @@ of errors if used.  This works exactly as for the
 <subhead><title>Density Map</title></subhead>
 
 <figure>
-<caption><px>Density map window</px></caption>
+<caption><px>Density map window in RGB mode</px></caption>
 <figureimage src="&FIG.DensityWindow;"/>
 </figure>
 
@@ -7147,6 +7155,8 @@ points in the data set which fall within its bounds.
 Another way to think of this is as a histogram on a 2-dimensional
 grid, rather than a 1-dimensional one as in the 
 <ref id="HistogramWindow">Histogram Window</ref>.
+You can optionally weight these binned counts with another value 
+from the table.
 </p>
 
 <p>Density maps are suitable when you have a very large number of points
@@ -7216,7 +7226,7 @@ or manually as described in <ref id="axisConfig"/>.
 <dd><p>When in indexed (non-RGB) mode only, this allows you to select 
     a colour map which determines how pixel values (counts or sums per bin) 
     are turned into colours on the screen.  The lowest value corresponds to
-    the colour at the left side of the icon and the highst value to the right
+    the colour at the left side of the icon and the highest value to the right
     side.  In RGB mode this is disabled.
     </p></dd>
 
@@ -9486,12 +9496,11 @@ are welcomed.
     </p></dd>
 
 <dt><webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref></dt>
-<dd><p>The STIL Tool Set, which provides some command-line tools based
-    on STIL.  The intention is that this should be a non-graphical
-    counterpart to TOPCAT, providing many of the same facilities
-    (matching, row selection, format conversion etc) but in a 
-    form which can be incorporated into scripts, web services, etc.
-    The current release only contains a few of these features however.
+<dd><p>The STIL Tool Set, which provides some command-line table manipulation
+    and analysis tools based on STIL.  This is a non-graphical 
+    counterpart to TOPCAT, providing many of the same facilities 
+    (matching, row selection, format conversion etc) but in a form 
+    which can be incorporated into scripts, web services, etc.
     </p></dd>
 </dl>
 </p>
@@ -9509,11 +9518,11 @@ for the latest news and releases.
 (1980-2005, R.I.P.).  From July 2005 until June 2006, it was supported
 by grant PP/D002486/1 from the UK's 
 Particle Physics and Astronomy Research Council.
-Its author is funded from July 2006 until (at least) December 2007 by the
+Maintenance and development has been funded from July 2006 until 
+December 2007 by the
 European <webref url="http://eurovotech.org/">VOTech project</webref> 
 within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
-and it is expected that support and development of the software will
-continue over that time.
+and directly from AstroGrid funding beyond that.
 </p>
 
 <p>Inspiration for many of TOPCAT's features has been taken from the
@@ -10580,7 +10589,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.0 (6 July 2007)</dt>
+<dt>Version 3.0 (5 July 2007)</dt>
 <dd><p>This release includes major visualisation improvements and some changes
     to the plotting user interface:
     <dl>
@@ -10669,34 +10678,35 @@ introduced since the last version:
         calculate quantiles (median, quartiles, .001, .01, .99 and .999)
         on request.
         </p></dd>
-    </dl>
-    </p>
-
-    <p>There are also a number of minor changes and bugfixes:
+    <dt>Minor changes and bugfixes</dt>
+    <dd><p>
     <ul>
-    <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
-        cards - write them as numeric not string values.</li>
-    <li>Worked around a Mac OSX Java bug which caused table display to
-        go funny when columns were deleted.</li>
+    <li>JPEG and PNG now plot export available from all graphics windows.</li>
     <li>Dramatic performance improvement for transparent pixel plotting in 
         3D plots on some platforms.</li>
-    <li>Improve error message for broken CSV files.</li>
+    <li>Added locale-specific <code>formatDecimalLocal()</code> functions in
+        class <ref id="Formats">Formats</ref>.</li>
+    <li>Added <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
+        functions in class <ref id="Fluxes">Fluxes</ref>.</li>
+    <li>Improved deduplication of column names when joining tables.</li>
     <li>3D plots now correctly report number of visible points.</li>
+    <li>Improved error message for broken CSV files.</li>
+    <li>Improved error reporting in the presence of a deficient JVM
+        (such as GNU <code>gcj</code>).</li>
+    <li>Worked around a Mac OSX Java bug which caused table display to
+        go funny when columns were deleted.</li>
+    <li>Fixed error in output of FITS table <code>TNULL</code><m>n</m> header
+        cards - write them as numeric not string values.</li>
     <li>Fixed a number of bugs in responding to PLASTIC messages
         (threading, failure to respond).</li>
-    <li>Improve error reporting in the presence of a deficient JVM
-        (such as GNU <code>gcj</code>).</li>
-    <li>Improved deduplication of column names when joining tables.</li>
     <li>3D plots now plot symbols for all subsets not just one,
         as for 2D plots.</li>
-    <li>Add locale-specific <code>formatDecimalLocal()</code> functions in
-        class <ref id="Formats">Formats</ref>.</li>
-    <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
-        functions in class <ref id="Fluxes">Fluxes</ref>.</li>
     <li>Fixed bug which prevented non-string parameter values from
         being reassigned.</li>
-    <li>JPEG and PNG plot export available from all graphics windows.</li>
     </ul>
+    </p></dd>
+    </dl>
+
     </p></dd>
 
 </dl>
