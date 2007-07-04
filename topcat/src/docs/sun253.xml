@@ -33,6 +33,7 @@
   <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
   <!ENTITY FIG.SQLReadDialog '&figs;SQLReadDialog.gif'>
   <!ENTITY FIG.ConeSearchDialog '&figs;ConeSearchDialog.gif'>
+  <!ENTITY FIG.GavoTableLoadDialog '&figs;GavoTableLoadDialog.gif'>
   <!ENTITY FIG.SaveQueryWindow '&figs;SaveQueryWindow.gif'>
   <!ENTITY FIG.FilestoreTableSaveDialog '&figs;FilestoreTableSaveDialog.gif'>
   <!ENTITY FIG.SQLWriteDialog '&figs;SQLWriteDialog.gif'>
@@ -2844,7 +2845,7 @@ unless you are a tool developer you can probably ignore these.
 
 <dl>
 <dt>Load Table</dt>
-<dd><p>Loads a table broadcast by another application.
+<dd><p>Loads a table sent by another application.
     It is added to the list of tables in the
     <ref id="ControlWindow">Control Window</ref>.
     </p>
@@ -2853,15 +2854,22 @@ unless you are a tool developer you can probably ignore these.
     </p></dd>
 
 <dt>New Subset</dt>
-<dd><p>If TOPCAT already has loaded the table identified by the request,
-    it will select the received <ref id="subsets">Row Subset</ref>
-    as the currently selected one.  This has the effect of 
-    setting it as the only displayed subset in any open plot windows,
-    as well as changing the current state of the 
-    <ref id="apparent" plaintextref="yes">Apparent Table</ref>.
-    Unless the received subset is exactly the same as one already defined
-    for that table, a new subset with a name like "plastic-1" will be
-    added to the table's list of subsets for this purpose.
+<dd><p>Loads a row selection sent from another application.
+    If an external application is looking at the same table as one that
+    TOPCAT has loaded, it can send a row selection.
+    In this case, TOPCAT will add that selection as a new 
+    <ref id="subsets">Row Subset</ref> for the table.
+    The name of the received subset will be that of the sending application,
+    for instance "Aladin". 
+    If a subset of that name already exists (which is probably because 
+    the same application has sent a row selection previously) 
+    then its content will be overwritten by the new selection.
+    In either case, receiving the message causes plots displaying 
+    data from the table in question to show the points from the 
+    new subset.
+    </p>
+    <p><em>Note: this behaviour differs from the behaviour in TOPCAT versions
+    prior to v3.0.</em>
     </p>
     <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
@@ -3122,6 +3130,14 @@ The load dialogue flags are:
 <dd><p>Cone search dialogue (<ref id="ConeSearchDialog"/>),
     used for obtaining catalogues of sources in a region of the sky
     from remote data servers (not available with topcat-lite).</p></dd>
+
+<dt>-gavo</dt>
+<dd><p>GAVO database query dialogue (<ref id="GavoTableLoadDialog"/>).
+    Allows queries to the <webref url="www.g-vo.org">GAVO</webref>
+    (German Astrophysical Virtual Observatory) database services.
+    At time of writing, the most generally useful of these are queries to
+    the Virgo Millennium run database.
+    </p></dd>
 
 <dt>-registry</dt>
 <dd><p>Registry query dialogue <em>(experimental)</em>,
@@ -7758,6 +7774,79 @@ and will not be available if you have the topcat-lite configuration.
 
 </subsubsect>
 
+<subsubsect id="GavoTableLoadDialog">
+<subhead><title>GAVO Millennium Database Query</title></subhead>
+
+<figure>
+<caption><px>GAVO load dialogue with an example query on the milli-Millennium
+         database</px></caption>
+<figureimage src="&FIG.GavoTableLoadDialog;"/>
+</figure>
+
+<p>This dialogue permits direct queries to the services provided by
+<webref url="http://www.g-vo.org/">GAVO</webref>,
+the German Astrophysical Virtual Observatory.
+The main databases of general interest available through these services
+are the <label>Millennium Simulation</label> results,
+documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
+</p>
+
+<p>To make a query, fill in the fields as required:
+<dl>
+<dt>Base URL</dt>
+<dd><p>This determines the database to be queried.  The following options
+    are available:
+    <dl>
+    <dt>Milli-Millennium (<code>http://www.g-vo.org/MyMillennium</code>)</dt>
+    <dd><p>Public simulation results database, containing a fraction of the
+        full simulation results.  
+        No username or password is required (the User and Password
+        boxes will be disabled).
+        </p></dd>
+    <dt>Millennium (<code>http://www.g-vo.org/Millennium</code>)</dt>
+    <dd><p>Full, protected simulation results database.  
+        The username and password must be filled in for these queries.
+        Registration is by application to GAVO.
+        </p></dd>
+    <dt>Other</dt>
+    <dd><p>Other GAVO-provided services can be accessed from this dialogue
+        by entering the relevant base URL here -- users of these services
+        will know what they are.  They may or may not require a username and
+        password.
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>User</dt>
+<dt>Password</dt>
+<dd><p>Registration information if required
+    (dependent on base URL as above).
+    </p></dd>
+
+<dt>SQL Query</dt>
+<dd><p>The text of an SQL query on the database in question.
+    </p></dd>
+
+</dl>
+Then click the <label>OK</label> button, and the query will execute and
+load the results into TOPCAT.  Clicking <label>Cancel</label> while it
+is in progress will stop it running.
+</p>
+
+<p>The <label>SampleQueries</label> menu provides some examples of
+queries on the Milli-Millennium database (these have been copied from 
+the <webref url="http://www.g-vo.org/Millennium/">GAVO query page</webref>).
+If you select one of these the <label>SQL Query</label> panel will be
+filled in accordingly.
+</p>
+
+<p>Much more documentation, including tutorials and descriptions of the 
+database schemas, is available on the GAVO website, at
+<webref url="http://www.g-vo.org/Millennium/Help"/>.
+</p>
+
+</subsubsect>
+
 
 <subsubsect id="demoData">
 <subhead><title>Example Tables</title></subhead>
@@ -10524,6 +10613,9 @@ introduced since the last version:
         A <label>Split Window</label> (&IMG.SPLIT;) button has been introduced
         in plot windows to allow the control panel part to be shrunk under
         user control.</li>
+    <li>There is now a load dialogue for access to the GAVO Millennium 
+        run database services (<ref id="GavoTableLoadDialog"/>).</li>
+    <li>Modified what happens when subsets get received from PLASTIC.</li>
 
     <!-- Bugfixes and minor changes -->
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
@@ -10548,9 +10640,6 @@ introduced since the last version:
     <li>Fixed bug which prevented non-string parameter values from
         being reassigned.</li>
 
-    <!-- not yet documented -->
-    <li>Modified what happens when subsets get received from PLASTIC.</li>
-    <li>GAVO loader.</li>
     </ul>
     </p></dd>
 
