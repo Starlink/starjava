@@ -77,11 +77,14 @@ public class MarkStyleEditor extends StyleEditor {
      * @param   withTransparency  whether to show a control for selecting
      *          marker opacity
      * @param   errorRenderers  array of error renderers to choose from
+     * @param   defaultRenderer  default error renderer to use if no other
+     *          is known
      * @param   errorModeModels  array of error mode selectors,
      *          one per dimension of the error bars
      */
     public MarkStyleEditor( boolean withLines, boolean withTransparency,
                             ErrorRenderer[] errorRenderers,
+                            ErrorRenderer defaultRenderer,
                             ErrorModeSelectionModel[] errorModeModels ) {
         super();
         statMap_ = new HashMap();
@@ -121,7 +124,8 @@ public class MarkStyleEditor extends StyleEditor {
 
         /* Error renderer selector. */
         errorModeModels_ = errorModeModels;
-        errorSelector_ = createErrorSelector( errorRenderers, errorModeModels );
+        errorSelector_ = createErrorSelector( errorRenderers, defaultRenderer,
+                                              errorModeModels );
         for ( int idim = 0; idim < errorModeModels_.length; idim++ ) {
             errorModeModels_[ idim ].addActionListener( this );
         }
@@ -442,14 +446,18 @@ public class MarkStyleEditor extends StyleEditor {
      *
      * @param    errorRenderers  full list of renderers to select from
      *           (may be subsetted according to current ErrorMode selections)
+     * @param   defaultRenderer  default error renderer to use if no other
+     *          is known
      * @param    errorModeModels error mode selection models, one per axis
      * @return   new error renderer combo box
      */
     public static JComboBox createErrorSelector(
             ErrorRenderer[] errorRenderers,
+            ErrorRenderer defaultRenderer,
             ErrorModeSelectionModel[] errorModeModels ) {
         ComboBoxModel model =
-            new ErrorRendererComboBoxModel( errorRenderers, errorModeModels );
+            new ErrorRendererComboBoxModel( errorRenderers, defaultRenderer,
+                                            errorModeModels );
         ListCellRenderer renderer =
             new ErrorRendererRenderer( errorModeModels );
         JComboBox errorSelector = new JComboBox( model );
@@ -521,6 +529,7 @@ public class MarkStyleEditor extends StyleEditor {
                                                                ActionListener {
 
         private final ErrorRenderer[] allRenderers_;
+        private final ErrorRenderer defaultRenderer_;
         private final ErrorModeSelectionModel[] modeModels_;
         private List activeRendererList_;
         private ErrorRenderer selected_;;
@@ -529,13 +538,18 @@ public class MarkStyleEditor extends StyleEditor {
          * Constructor.
          *
          * @param   renderers  list of all the renderers that may be used
+         * @param   defaultRenderer  default error renderer to use if no other
+         *          is known
          * @param   modeModels  selection models for the ErrorMode values
          *          in force
          */
         ErrorRendererComboBoxModel( ErrorRenderer[] renderers,
+                                    ErrorRenderer defaultRenderer,
                                     ErrorModeSelectionModel[] modeModels ) {
             allRenderers_ = renderers;
+            defaultRenderer_ = defaultRenderer;
             modeModels_ = modeModels;
+            selected_ = defaultRenderer;
             updateState();
 
             /* Listen out for changes in the ErrorMode selectors, since they
@@ -598,12 +612,9 @@ public class MarkStyleEditor extends StyleEditor {
             }
 
             /* If the current selection does not exist in the new list,
-             * pick one that does.  This is picked more or less at random,
-             * but typically item 1 will be the first non-blank renderer. */
+             * use the default one. */
             if ( ! rendererList.contains( selected_ ) ) {
-                selected_ = rendererList.size() > 1
-                          ? (ErrorRenderer) rendererList.get( 1 )
-                          : ErrorRenderer.DEFAULT;
+                selected_ = defaultRenderer_;
             }
 
             /* Install the new list into this model and inform listeners. */

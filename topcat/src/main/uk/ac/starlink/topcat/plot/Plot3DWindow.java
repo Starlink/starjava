@@ -52,6 +52,20 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private boolean isRotating_;
     private double zoom_ = 1.0;
 
+    private static final StyleSet[] STYLE_SETS = getStandardMarkStyleSets();
+    private static final StyleSet MARKERS1 = STYLE_SETS[ 0 ];
+    private static final StyleSet MARKERS2 = STYLE_SETS[ 1 ];
+    private static final StyleSet MARKERS3 = STYLE_SETS[ 2 ];
+    private static final StyleSet MARKERS4 = STYLE_SETS[ 3 ];
+    private static final StyleSet MARKERS5 = STYLE_SETS[ 4 ];
+    static {
+        assert MARKERS1.getName().equals( "Pixels" );
+        assert MARKERS2.getName().equals( "Dots" );
+        assert MARKERS3.getName().equals( "Spots" );
+        assert MARKERS4.getName().startsWith( "Small" );
+        assert MARKERS5.getName().startsWith( "Medium" );
+    }
+
     private static final double[] INITIAL_ROTATION = 
         rotateXY( rotateXY( new double[] { 1, 0, 0, 0, 1, 0, 0, 0, -1 },
                             0.5, 0.5 * Math.PI ),
@@ -277,22 +291,22 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
     public StyleSet getDefaultStyles( int npoint ) {
         if ( npoint > 20000 ) {
-            return PlotWindow.STYLE_SETS[ 0 ];
+            return MARKERS1;
         }
         else if ( npoint > 2000 ) {
-            return PlotWindow.STYLE_SETS[ 1 ];
+            return MARKERS2;
         }
         else if ( npoint > 200 ) {
-            return PlotWindow.STYLE_SETS[ 2 ];
+            return MARKERS3;
         }
         else if ( npoint > 20 ) {
-            return PlotWindow.STYLE_SETS[ 3 ];
+            return MARKERS4;
         }
         else if ( npoint >= 1 ) {
-            return PlotWindow.STYLE_SETS[ 4 ];
+            return MARKERS5;
         }
         else {
-            return PlotWindow.STYLE_SETS[ 1 ];
+            return MARKERS2;
         }
     }
 

@@ -37,9 +37,12 @@ public class LinesStyleEditor extends StyleEditor {
      *
      * @param  errorRenderers  list of error renderers to be available from
      *         this style editor
+     * @param   defaultRenderer  default error renderer to use if no other
+     *          is known
      * @param  errorModeModels  error mode selection models
      */
     public LinesStyleEditor( ErrorRenderer[] errorRenderers,
+                             ErrorRenderer defaultRenderer,
                              ErrorModeSelectionModel[] errorModeModels ) {
         super();
         errorModeModels_ = errorModeModels;
@@ -73,6 +76,7 @@ public class LinesStyleEditor extends StyleEditor {
         /* Error style selector. */
         errorSelector_ =
             MarkStyleEditor.createErrorSelector( errorRenderers,
+                                                 defaultRenderer,
                                                  errorModeModels );
         errorSelector_.addActionListener( this );
         for ( int idim = 0; idim < errorModeModels.length; idim++ ) {

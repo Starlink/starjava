@@ -104,7 +104,8 @@ public class SphereWindow extends Plot3DWindow {
         getNorthModel().setSelected( true );
 
         /* Style Menu. */
-        getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );
+        getJMenuBar()
+            .add( createMarkerStyleMenu( getStandardMarkStyleSets() ) );
         getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
 
         /* Add toolbar buttons. */
@@ -172,6 +173,7 @@ public class SphereWindow extends Plot3DWindow {
 
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( false, true, ERROR_RENDERERS,
+                                    ErrorRenderer.DEFAULT,
                                     errorModeModels3d_ );
     }
 

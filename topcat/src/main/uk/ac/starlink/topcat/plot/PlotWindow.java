@@ -58,37 +58,23 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final Action fromVisibleAction_;
     private final CountsLabel plotStatus_;
 
-    private static final StyleSet MARKERS1;
-    private static final StyleSet MARKERS2;
-    private static final StyleSet MARKERS3;
-    private static final StyleSet MARKERS4;
-    private static final StyleSet MARKERS5;
-    static final StyleSet[] STYLE_SETS = new StyleSet[] {
-        MARKERS1 =
-        MarkStyles.points( "Pixels" ),
-        MARKERS2 =
-        MarkStyles.spots( "Dots", 1 ),
-        MARKERS3 =
-        MarkStyles.spots( "Spots", 2 ),
-        MARKERS4 =
-        MarkStyles.filledShapes( "Small Coloured Shapes", 3, null ),
-        MARKERS5 =
-        MarkStyles.filledShapes( "Medium Coloured Shapes", 4, null ),
-        MarkStyles.filledShapes( "Large Coloured Shapes", 5, null ),
-        MarkStyles.filledShapes( "Small Black Shapes", 3, Color.black ),
-        MarkStyles.filledShapes( "Medium Black Shapes", 4, Color.black ),
-        MarkStyles.filledShapes( "Large Black Shapes", 5, Color.black ),
-        MarkStyles.openShapes( "Small Coloured Outlines", 3, null ),
-        MarkStyles.openShapes( "Medium Coloured Outlines", 4, null ),
-        MarkStyles.openShapes( "Large Coloured Outlines", 5, null ),
-        MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
-        MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
-        MarkStyles.openShapes( "Large Black Outlines", 5, Color.black ),
-        MarkStyles.faded( "Faint Transparent Pixels", MARKERS1, 20 ),
-        MarkStyles.faded( "Faint Transparent Dots", MARKERS2, 20 ),
-        MarkStyles.faded( "Medium Transparent Pixels", MARKERS1, 5 ),
-        MarkStyles.faded( "Medium Transparent Dots", MARKERS2, 5 ),
-    };
+    private static final ErrorRenderer DEFAULT_ERROR_RENDERER =
+        ErrorRenderer.EXAMPLE;
+    private static final StyleSet[] STYLE_SETS =
+        fixDefaultErrorRenderers( DEFAULT_ERROR_RENDERER,
+                                  getStandardMarkStyleSets() );
+    private static final StyleSet MARKERS1 = STYLE_SETS[ 0 ];
+    private static final StyleSet MARKERS2 = STYLE_SETS[ 1 ];
+    private static final StyleSet MARKERS3 = STYLE_SETS[ 2 ];
+    private static final StyleSet MARKERS4 = STYLE_SETS[ 3 ];
+    private static final StyleSet MARKERS5 = STYLE_SETS[ 4 ];
+    static {
+        assert MARKERS1.getName().equals( "Pixels" );
+        assert MARKERS2.getName().equals( "Dots" );
+        assert MARKERS3.getName().equals( "Spots" );
+        assert MARKERS4.getName().startsWith( "Small" );
+        assert MARKERS5.getName().startsWith( "Medium" );
+    }
     private static final String[] AXIS_NAMES = new String[] { "X", "Y", };
     private static final ErrorRenderer[] ERROR_RENDERERS = 
         ErrorRenderer.getOptions2d();
@@ -260,6 +246,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( true, true, ERROR_RENDERERS,
+                                    DEFAULT_ERROR_RENDERER,
                                     getErrorModeModels() );
     }
 

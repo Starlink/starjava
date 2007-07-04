@@ -29,7 +29,8 @@ public class Cartesian3DWindow extends Plot3DWindow {
                                           .createOnOffToolbarButton() );
         }
         getJMenuBar().add( createErrorModeMenu() );
-        getJMenuBar().add( createMarkerStyleMenu( PlotWindow.STYLE_SETS ) );
+        getJMenuBar()
+            .add( createMarkerStyleMenu( getStandardMarkStyleSets() ) );
         getJMenuBar().add( createErrorRendererMenu( ERROR_RENDERERS ) );
         getToolBar().addSeparator();
 
@@ -38,6 +39,7 @@ public class Cartesian3DWindow extends Plot3DWindow {
 
     protected StyleEditor createStyleEditor() {
         return new MarkStyleEditor( false, true, ERROR_RENDERERS,
+                                    ErrorRenderer.DEFAULT,
                                     getErrorModeModels() );
     }
 }

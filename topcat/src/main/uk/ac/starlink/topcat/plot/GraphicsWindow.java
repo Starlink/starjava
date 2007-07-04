@@ -192,6 +192,31 @@ public abstract class GraphicsWindow extends AuxWindow {
         Shaders.FIX_U,
         Shaders.FIX_V,
     };
+    private static final StyleSet MARKERS1;
+    private static final StyleSet MARKERS2;
+    private static final StyleSet[] MARK_STYLE_SETS = new StyleSet[] {
+        MARKERS1 =
+        MarkStyles.points( "Pixels" ),
+        MARKERS2 =
+        MarkStyles.spots( "Dots", 1 ),
+        MarkStyles.spots( "Spots", 2 ),
+        MarkStyles.filledShapes( "Small Coloured Shapes", 3, null ),
+        MarkStyles.filledShapes( "Medium Coloured Shapes", 4, null ),
+        MarkStyles.filledShapes( "Large Coloured Shapes", 5, null ),
+        MarkStyles.filledShapes( "Small Black Shapes", 3, Color.black ),
+        MarkStyles.filledShapes( "Medium Black Shapes", 4, Color.black ),
+        MarkStyles.filledShapes( "Large Black Shapes", 5, Color.black ),
+        MarkStyles.openShapes( "Small Coloured Outlines", 3, null ),
+        MarkStyles.openShapes( "Medium Coloured Outlines", 4, null ),
+        MarkStyles.openShapes( "Large Coloured Outlines", 5, null ),
+        MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
+        MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
+        MarkStyles.openShapes( "Large Black Outlines", 5, Color.black ),
+        MarkStyles.faded( "Faint Transparent Pixels", MARKERS1, 20 ),
+        MarkStyles.faded( "Faint Transparent Dots", MARKERS2, 20 ),
+        MarkStyles.faded( "Medium Transparent Pixels", MARKERS1, 5 ),
+        MarkStyles.faded( "Medium Transparent Dots", MARKERS2, 5 ),
+    };
 
     /**
      * Constructor.  A number of main axes are defined by the 
@@ -1799,6 +1824,33 @@ public abstract class GraphicsWindow extends AuxWindow {
                 new ErrorModeSelectionModel( ierr, axisNames[ ierr ] );
         }
         return errorModeModels;
+    }
+
+    /**
+     * Returns an array of StyleSets which dispense {@link MarkStyle} objects,
+     * suitable for general purpose scatter plots.
+     *
+     * @return   styleset library
+     */
+    public static StyleSet[] getStandardMarkStyleSets() {
+        return (StyleSet[]) MARK_STYLE_SETS.clone();
+    }
+
+    /**
+     * Utility method to adjust an array of style sets so that all its 
+     * members use a given error renderer by default.
+     *
+     * @param   erend  desired default error renderer
+     * @param   input style set array
+     * @return  output array of modified style sets
+     */
+    public static StyleSet[] fixDefaultErrorRenderers( ErrorRenderer erend,
+                                                       StyleSet[] styleSets ) {
+        styleSets = (StyleSet[]) styleSets.clone();
+        for ( int i = 0; i < styleSets.length; i++ ) {
+            styleSets[ i ] = new ErrorMarkStyleSet( styleSets[ i ], erend );
+        }
+        return styleSets;
     }
 
     /**

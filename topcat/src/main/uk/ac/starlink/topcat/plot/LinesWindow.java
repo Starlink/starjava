@@ -71,13 +71,14 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         COLORS[ 0 ] = Color.BLACK;
         System.arraycopy( Styles.COLORS, 0, COLORS, 1, Styles.COLORS.length );
     }
-    private static final StyleSet LINES;
-    private static final StyleSet POINTS;
-    private static final StyleSet[] STYLE_SETS = new StyleSet[] {
-        LINES = MarkStyles.lines( "Black/Coloured Lines", COLORS ),
+    private static final ErrorRenderer DEFAULT_ERROR_RENDERER =
+        ErrorRenderer.EXAMPLE;
+    private static final StyleSet[] STYLE_SETS =
+            fixDefaultErrorRenderers( DEFAULT_ERROR_RENDERER, new StyleSet[] {
+        MarkStyles.lines( "Black/Coloured Lines", COLORS ),
         MarkStyles.lines( "Lines" ),
         MarkStyles.dashedLines( "Dashed Lines" ),
-        POINTS = MarkStyles.points( "Black/Coloured Points", COLORS ),
+        MarkStyles.points( "Black/Coloured Points", COLORS ),
         MarkStyles.points( "Points" ),
         MarkStyles.spots( "Dots", 1 ),
         MarkStyles.spots( "Spots", 2 ),
@@ -85,7 +86,13 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         MarkStyles.openShapes( "Medium Coloured Outlines", 4, null ),
         MarkStyles.openShapes( "Small Black Outlines", 3, Color.black ),
         MarkStyles.openShapes( "Medium Black Outlines", 4, Color.black ),
-    };
+    } );
+    private static final StyleSet LINES = STYLE_SETS[ 0 ];
+    private static final StyleSet POINTS = STYLE_SETS[ 3 ];
+    static {
+        assert LINES.getName().equals( "Black/Coloured Lines" );
+        assert POINTS.getName().equals( "Black/Coloured Points" );
+    }
     private static final ErrorRenderer[] ERROR_RENDERERS =
         ErrorRenderer.getOptions2d();
     private static final String[] AXIS_NAMES = new String[] { "X", "Y", };
@@ -432,7 +439,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected StyleEditor createStyleEditor() {
-        return new LinesStyleEditor( ERROR_RENDERERS, getErrorModeModels() );
+        return new LinesStyleEditor( ERROR_RENDERERS, DEFAULT_ERROR_RENDERER,
+                                     getErrorModeModels() );
     }
 
     public void setStyles( StyleSet styles ) {
