@@ -4306,6 +4306,8 @@ but my thanks are especially due to the following:
     <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
         functions in class 
         <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref>.</li>
+    <li>Fix bug which was causing NullPointerExceptions 
+        in the <code>transpose</code> filter.</li>
     </ul>
     </p></dd>
 

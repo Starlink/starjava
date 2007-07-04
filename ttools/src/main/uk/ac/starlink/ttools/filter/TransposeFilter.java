@@ -155,8 +155,9 @@ public class TransposeFilter extends BasicFilter {
             }
             else {
                 Object baseCell = base_.getCell( icol - 1, iBaseCol );
-                return decoders_[ icol - 1 ]
-                      .decode( asString( baseCell ) );
+                return Tables.isBlank( baseCell) 
+                     ? null
+                     : decoders_[ icol - 1 ].decode( asString( baseCell ) );
             }
         }
 
