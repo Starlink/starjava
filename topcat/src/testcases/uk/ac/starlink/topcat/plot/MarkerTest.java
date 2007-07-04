@@ -29,7 +29,7 @@ public class MarkerTest extends TestCase {
 
     public void testProfiles() {
         checkProfiles( PROFILES );
-        checkProfiles( PlotWindow.STYLE_SETS );
+        checkProfiles( GraphicsWindow.getStandardMarkStyleSets() );
     }
 
     public void checkProfiles( StyleSet[] profiles ) {
