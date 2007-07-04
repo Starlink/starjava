@@ -179,6 +179,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         Shaders.LUT_STANDARD,
         Shaders.LUT_HEAT,
         Shaders.LUT_COLOR,
+        Shaders.FIX_HUE,
         Shaders.WHITE_BLACK,
         Shaders.RED_BLUE,
         Shaders.FIX_INTENSITY,
