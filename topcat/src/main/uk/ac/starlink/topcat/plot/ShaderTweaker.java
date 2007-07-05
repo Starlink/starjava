@@ -58,7 +58,8 @@ public class ShaderTweaker implements DataColorTweaker {
     }
 
     /**
-     * This implementation always returns true.
+     * This implementation returns true unless the scaler results in a NaN
+     * for any of the coordinates.
      */
     public boolean setCoords( double[] coords ) {
         boolean hasEffect = false;
@@ -72,13 +73,16 @@ public class ShaderTweaker implements DataColorTweaker {
                 else {
                     hasEffect = true;
                     Scaler scaler = scalers_[ idim ];
+                    double sval = scaler.scale( value );
                     if ( scaler.inRange( value ) ) {
-                        knobs_[ idim ] = scaler.scale( value );
-                        assert knobs_[ idim ] >= 0.0 && knobs_[ idim ] <= 1.0;
+                        knobs_[ idim ] = sval;
+                        assert sval >= 0.0 && sval <= 1.0;
+                    }
+                    else if ( Double.isNaN( sval ) ) {
+                        return false;
                     }
                     else {
-                        knobs_[ idim ] =
-                            scaler.scale( value ) > 1.0 ? 1.0 : 0.0;
+                        knobs_[ idim ] = sval > 1.0 ? 1.0 : 0.0;
                     }
                 }
             }
