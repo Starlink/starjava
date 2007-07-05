@@ -213,8 +213,14 @@ public class Fogger {
         return new DataColorTweaker() { 
             private double z_;
             public boolean setCoords( double[] coords ) {
-                z_ = coords[ ifog ];
-                return true;
+                double z = coords[ ifog ];
+                if ( Double.isNaN( z ) ) {
+                    return false;
+                }
+                else {
+                    z_ = z;
+                    return true;
+                }
             }
             public int getNcoord() {
                 return ncoord;
@@ -240,9 +246,19 @@ public class Fogger {
         return new DataColorTweaker() {
             private double z_;
             public boolean setCoords( double[] coords ) {
-                base.setCoords( coords );
-                z_ = coords[ ifog ];
-                return true;
+                if ( base.setCoords( coords ) ) {
+                    double z = coords[ ifog ];
+                    if ( Double.isNaN( z ) ) {
+                        return false;
+                    }
+                    else {
+                        z_ = z;
+                        return true;
+                    }
+                }
+                else {
+                    return false;
+                }
             }
             public int getNcoord() {
                 return base.getNcoord();
