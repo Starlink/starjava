@@ -414,8 +414,10 @@ public abstract class DensityPlot extends SurfacePlot {
                     double[] coords = points.getPoint( ip );
                     if ( ! Double.isNaN( coords[ 0 ] ) &&
                          ! Double.isNaN( coords[ 1 ] ) &&
+                         ! Double.isNaN( coords[ 2 ] ) &&
                          ! Double.isInfinite( coords[ 0 ] ) &&
                          ! Double.isInfinite( coords[ 1 ] ) &&
+                         ! Double.isInfinite( coords[ 2 ] ) &&
                          ! ( xlog && coords[ 0 ] <= 0.0 ) &&
                          ! ( ylog && coords[ 1 ] <= 0.0 ) ) {
                         nInclude++;
