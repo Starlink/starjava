@@ -1842,7 +1842,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * members use a given error renderer by default.
      *
      * @param   erend  desired default error renderer
-     * @param   stylesets  input style set array
+     * @param   styleSets  input style set array
      * @return  output array of modified style sets
      */
     public static StyleSet[] fixDefaultErrorRenderers( ErrorRenderer erend,
