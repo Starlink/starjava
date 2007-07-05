@@ -25,6 +25,7 @@ public interface DataColorTweaker extends ColorTweaker {
      * called following a successful (true) call of this method.
      *
      * @param  coords   full coordinate array
+     * @return  true iff this object has been set to a usable state
      */
     abstract boolean setCoords( double[] coords );
 
