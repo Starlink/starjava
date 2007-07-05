@@ -308,28 +308,35 @@ public class BitmapSortPlotVolume extends PlotVolume {
 
         public void addPoint( int px, int py, double z, double[] coords,
                               int istyle ) {
-            final int rgba = packRgba( getRgba( istyle, coords ) );
-            pointList_.add( new BitmapPoint3D( pointList_.size(), z,
-                                               istyle, px, py ) {
-                public float[] getRgba( BitmapSortPlotVolume vol ) {
-                    unpackRgba( rgba, buf_ );
-                    return buf_;
-                }
-            } );
+            float[] rgbaBuf = getRgba( istyle, coords );
+            if ( rgbaBuf != null ) {
+                final int rgba = packRgba( rgbaBuf );
+                pointList_.add( new BitmapPoint3D( pointList_.size(), z,
+                                                   istyle, px, py ) {
+                    public float[] getRgba( BitmapSortPlotVolume vol ) {
+                        unpackRgba( rgba, buf_ );
+                        return buf_;
+                    }
+                } );
+            }
         }
 
         public void addPoint( int px, int py, double z, double[] coords,
                               int istyle, boolean showPoint, int nerr,
                               int[] xoffs, int[] yoffs ) {
-            final int rgba = packRgba( getRgba( istyle, coords ) );
-            pointList_.add( new ErrorsBitmapPoint3D( pointList_.size(), z,
-                                                     istyle, px, py, showPoint,
-                                                     nerr, xoffs, yoffs ) {
-                public float[] getRgba( BitmapSortPlotVolume vol ) {
-                    unpackRgba( rgba, buf_ );
-                    return buf_;
-                }
-            } );
+            float[] rgbaBuf = getRgba( istyle, coords );
+            if ( rgbaBuf != null ) {
+                final int rgba = packRgba( rgbaBuf );
+                pointList_.add( new ErrorsBitmapPoint3D( pointList_.size(), z,
+                                                         istyle, px, py,
+                                                         showPoint, nerr,
+                                                         xoffs, yoffs ) {
+                    public float[] getRgba( BitmapSortPlotVolume vol ) {
+                        unpackRgba( rgba, buf_ );
+                        return buf_;
+                    }
+                } );
+            }
         }
 
         /**
@@ -337,17 +344,21 @@ public class BitmapSortPlotVolume extends PlotVolume {
          *
          * @param   istyle  point style index
          * @param   coords  full coordinate array
-         * @return  RGBA colour
+         * @return  RGBA colour, or null if the coords are invalid
          */
         private float[] getRgba( int istyle, double[] coords ) {
-            float[] rgba = rgbas_[ istyle ];
-            buf_[ 0 ] = rgba[ 0 ];
-            buf_[ 1 ] = rgba[ 1 ];
-            buf_[ 2 ] = rgba[ 2 ];
-            buf_[ 3 ] = rgba[ 3 ];
-            tweaker_.setCoords( coords );
-            tweaker_.tweakColor( buf_ );
-            return buf_;
+            if ( tweaker_.setCoords( coords ) ) {
+                float[] rgba = rgbas_[ istyle ];
+                buf_[ 0 ] = rgba[ 0 ];
+                buf_[ 1 ] = rgba[ 1 ];
+                buf_[ 2 ] = rgba[ 2 ];
+                buf_[ 3 ] = rgba[ 3 ];
+                tweaker_.tweakColor( buf_ );
+                return buf_;
+            }
+            else {
+                return null;
+            }
         }
     }
 

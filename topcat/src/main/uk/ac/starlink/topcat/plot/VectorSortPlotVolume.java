@@ -27,6 +27,13 @@ public class VectorSortPlotVolume extends PlotVolume {
     private final float[] frgba_;
 
     /**
+     * Packed RGBA value representing no colour.  This is used as a flag,
+     * but must also be a valid packed colour which has no effect when
+     * plotting.  Anything with alpha == 0 would do.
+     */
+    private static final int NO_RGBA = 0;
+
+    /**
      * Constructor.
      *
      * @param   c  component
@@ -60,16 +67,21 @@ public class VectorSortPlotVolume extends PlotVolume {
 
     public void plot2d( int px, int py, double z, double[] coords,
                         int istyle ) {
-        addPoint( new VectorPoint3D( iseq_++, z, px, py, istyle,
-                                     getRgb( istyle, coords ) ) );
+        int rgb = getRgb( istyle, coords );
+        if ( rgb != NO_RGBA ) {
+            addPoint( new VectorPoint3D( iseq_++, z, px, py, istyle, rgb ) );
+        }
     }
 
     public void plot2d( int px, int py, double z, double[] coords, int istyle,
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {
-        addPoint( new ErrorsVectorPoint3D( iseq_++, z, px, py, istyle,
-                                           getRgb( istyle, coords ), showPoint,
-                                           nerr, xoffs, yoffs ) );
+        int rgb = getRgb( istyle, coords );
+        if ( rgb != NO_RGBA ) {
+            addPoint( new ErrorsVectorPoint3D( iseq_++, z, px, py, istyle, rgb,
+                                               showPoint, nerr,
+                                               xoffs, yoffs ) );
+        }
     }
 
     public void flush() {
@@ -125,13 +137,17 @@ public class VectorSortPlotVolume extends PlotVolume {
             frgba_[ 1 ] = frgba[ 1 ];
             frgba_[ 2 ] = frgba[ 2 ];
             frgba_[ 3 ] = frgba[ 3 ];
-            tweaker_.setCoords( coords );
-            tweaker_.tweakColor( frgba_ );
-            float r = frgba_[ 0 ];
-            float b = frgba_[ 2 ];
-            frgba_[ 2 ] = r;
-            frgba_[ 0 ] = b;
-            return packRgba( frgba_ );
+            if ( tweaker_.setCoords( coords ) ) {
+                tweaker_.tweakColor( frgba_ );
+                float r = frgba_[ 0 ];
+                float b = frgba_[ 2 ];
+                frgba_[ 2 ] = r;
+                frgba_[ 0 ] = b;
+                return packRgba( frgba_ );
+            }
+            else {
+                return NO_RGBA;
+            }
         }
     }
 

@@ -33,6 +33,13 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final Paint paint_;
 
     /**
+     * Packed RGBA value representing no colour.  This is used as a flag,
+     * but must also be a valid packed colour which has no effect when
+     * plotting.  Anything with alpha == 0 would do.
+     */
+    private static final int NO_RGBA = 0;
+
+    /**
      * Constructs a new plot volume.
      *
      * @param   c  component on which points will be plotted
@@ -175,14 +182,19 @@ public class ZBufferPlotVolume extends PlotVolume {
          * viewer than this... */
         if ( z <= zbuf_[ ipix ] ) {
 
-            /* Record that we've touched this pixel. */
-            mask_.set( ipix );
+            /* Get the colour and check it's valid. */
+            int rgb = paint_.getRgb();
+            if ( rgb != NO_RGBA ) {
 
-            /* Set the Z buffer element to the current z position. */
-            zbuf_[ ipix ] = z;
+                /* Record that we've touched this pixel. */
+                mask_.set( ipix );
 
-            /* Set the style buffer element to the current style index. */
-            rgbBuf_[ ipix ] = paint_.getRgb();
+                /* Set the Z buffer element to the current z position. */
+                zbuf_[ ipix ] = z;
+
+                /* Set the style buffer element to the current style index. */
+                rgbBuf_[ ipix ] = rgb;
+            }
         }
     }
 
@@ -207,7 +219,7 @@ public class ZBufferPlotVolume extends PlotVolume {
         /**
          * The sRGB-encoded integer representing colour.
          *
-         * @return  rgb colour value
+         * @return  rgb colour value, or NO_RGBA for an invalid colour
          */
         abstract int getRgb();
     }
@@ -287,13 +299,17 @@ public class ZBufferPlotVolume extends PlotVolume {
                 frgb_[ 1 ] = frgb[ 1 ];
                 frgb_[ 2 ] = frgb[ 2 ];
                 frgb_[ 3 ] = frgb[ 3 ];
-                tweaker_.setCoords( coords_ );
-                tweaker_.tweakColor( frgb_ );
-                float r = frgb_[ 0 ];
-                float b = frgb_[ 2 ];
-                frgb_[ 2 ] = r;
-                frgb_[ 0 ] = b;
-                rgb_ = packRgba( frgb_ );
+                if ( tweaker_.setCoords( coords_ ) ) {
+                    tweaker_.tweakColor( frgb_ );
+                    float r = frgb_[ 0 ];
+                    float b = frgb_[ 2 ];
+                    frgb_[ 2 ] = r;
+                    frgb_[ 0 ] = b;
+                    rgb_ = packRgba( frgb_ );
+                }
+                else {
+                    rgb_ = NO_RGBA;
+                }
             }
             return rgb_;
         }
