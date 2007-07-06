@@ -1238,9 +1238,13 @@
 
     <!-- Write a file containing entity definitions for all the image files
      !   that might be referenced in the user document (this file is 
-     !   referenced from within the user document as an external entity). -->
+     !   referenced from within the user document as an external entity).
+     !   This JVM needs to be forked in order for the command to run
+     !   properly on MacOS X (10.4.9), for reasons I don't really 
+     !   understand. -->
     <java classname="uk.ac.starlink.topcat.ResourceIcon" 
           output="${build.docs}/image.defs"
+          fork="true"
           failonerror="yes">
       <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
