@@ -82,10 +82,11 @@ public abstract class DensityPlot extends SurfacePlot {
     private void drawData( Graphics2D g2 ) {
         Rectangle plotZone = getSurface().getClip().getBounds();
         DensityPlotState state = (DensityPlotState) getState();
-        g2 = (Graphics2D) g2.create();
         final double[] loCuts;
         final double[] hiCuts;
         final DensityStyle[] styles;
+        Shape clip = g2.getClip();
+        Color color = g2.getColor();
         if ( state != null && state.getValid() ) {
             int psize = state.getPixelSize();
             BufferedImage im = getImage( plotZone, state );
@@ -95,7 +96,24 @@ public abstract class DensityPlot extends SurfacePlot {
                                        AffineTransformOp
                                       .TYPE_NEAREST_NEIGHBOR );
             g2.setClip( plotZone );
-            g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
+            try {
+                g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
+            }
+
+            /* Even small images can apparently use up a lot of memory 
+             * if the pixel size multiplier is large on MacOS X 10.4.9.
+             * Don't know any particular reason this should be the case,
+             * but something to do with OSX AWT implementation probably.
+             * Try to indicate where the trouble might lie by writing a
+             * message on the plot surface. */
+            catch ( OutOfMemoryError e ) {
+                String msg = "Out of memory";
+                if ( psize > 4 ) {
+                    msg += " (Mac OSX inefficiency?)";
+                    msg += " - try smaller pixels";
+                }
+                g2.drawString( msg, 100, 100 );
+            }
             loCuts = loCuts_;
             hiCuts = hiCuts_;
             styles = styles_;
@@ -108,6 +126,8 @@ public abstract class DensityPlot extends SurfacePlot {
             hiCuts = null;
             styles = null;
         }
+        g2.setClip( clip );
+        g2.setColor( color );
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 reportCuts( loCuts, hiCuts, styles );
