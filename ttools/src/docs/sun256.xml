@@ -76,7 +76,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>5 October 2006</docdate>
+<docdate>6 July 2007</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -3853,11 +3853,11 @@ without which it would not have been written.
 From July 2005 until June 2006, it was supported
 by grant PP/D002486/1 from the UK's 
 Particle Physics and Astronomy Research Council.  
-Its author is funded from July 2006 until (at least) December 2007 by the
-European <webref url="http://eurovotech.org/">VOTech project</webref> 
+Maintenance and development has been funded from July 2006 until
+December 2007 by the
+European <webref url="http://eurovotech.org/">VOTech project</webref>
 within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
-and it is expected that support and development of the software will
-continue over that time.
+and directly from AstroGrid funding beyond that.
 </p>
 
 <p>Apart from the excellent Java 2 Standard Edition itself,
@@ -4279,7 +4279,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next release</dt>
+<dt>Version 1.3-2 (6 July 2007)</dt>
 <dd><p>
     <ul>
     <li>Added optional <code>table</code> parameter to 
@@ -4291,7 +4291,6 @@ but my thanks are especially due to the following:
         <code>&ucd.prefix;</code> notation 
         in expressions (<ref id="jel-colref"/>)
         and as column identifiers (<ref id="col-id"/>).</li>
-
     <li>Improved deduplication of column names when joining tables.</li>
     <li>Fix error in output of FITS table <code>TNULL</code><m>n</m> header
         cards - write them as numeric not string values.</li>
