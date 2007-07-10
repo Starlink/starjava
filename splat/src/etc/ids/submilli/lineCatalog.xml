@@ -580,7 +580,13 @@ the end of the transition name - it makes the display nicer.
   </species>
   <species name = "CN, v = 0, 1">
     <transition name="2 0 2 1  - 1 0 2 1 " frequency="226287.4265"/>
+    <transition name="2 0 2 2  - 1 0 2 2 " frequency="226314.5400"/>
+    <transition name="2 0 2 3  - 1 0 1 2 " frequency="226659.5750"/>
+    <transition name="2 0 3 4  - 1 0 2 3 " frequency="226874.7450"/>
     <transition name="3 0 3 2  - 2 0 3 2 " frequency="339446.777"/>
+    <transition name="3 0 3 4  - 2 0 3 4 " frequency="339516.7450"/>
+    <transition name="3 0 3 4  - 2 0 2 3 " frequency="340031.5440"/>
+    <transition name="3 0 4 4  - 2 0 3 3 " frequency="340247.7700"/>
     <transition name="4 0 4 3  - 3 0 4 3 " frequency="452589.7255"/>
     <transition name="5 0 5 4  - 4 0 5 4 " frequency="565713.3526"/>
     <transition name="6 0 6 5  - 5 0 6 5 " frequency="678813.5261"/>
@@ -1097,7 +1103,7 @@ the end of the transition name - it makes the display nicer.
   </species>
   <species name = "DCN">
     <transition name="3  - 2 " frequency="217238.6307"/>
-    <transition name="4  - 3 " frequency="362046.4842"/>
+    <transition name="5  - 4 " frequency="362046.4842"/>
   </species>
   <species name = "H2D+">
     <transition name="1 1 0 0   -  1 1 1 0 " frequency="372421.34"/>
@@ -1125,5 +1131,8 @@ the end of the transition name - it makes the display nicer.
    <species name = "HN-13-C">
     <transition name="3  - 2 " frequency="261263.3101"/>
     <transition name="4  - 3 " frequency="348340.2695"/>
+  </species>
+  <species name = "N2D+">
+    <transition name="3  - 2 " frequency="231321.6650"/>
   </species>
 </LineCatalog>
