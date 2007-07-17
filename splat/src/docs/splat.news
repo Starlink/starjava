@@ -3,9 +3,12 @@
    3.8-2
    =====
 
-   A new option has been added that stops SPLAT from attempting to 
-   locate a spectral coordinate system, when such a system is not
-   the default already (see Options->Find spectral coordinates).
+   By default SPLAT searches input spectra for a spectral coordinate system.
+   This can lead to unexpected behaviour when attempting to display spectra
+   with non-spectral coordinates (by selecting the GRID or PIXEL frames
+   in an NDF), so a new command-line flag "--keepcoords" has been introduced
+   to inhibit the search for spectral coordinates, and a UI preference
+   Options->Find spectral coordinates.
 
    3.8-1
    =====
@@ -41,16 +44,10 @@
    and plot units toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now
    be recognised as "erg/cm^2/s/Angstrom".
 
-   By default SPLAT searches input spectra for a spectral coordinate system.
-   This can lead to unexpected behaviour when attempting to display spectra
-   with non-spectral coordinates (by selecting the GRID or PIXEL frames
-   in an NDF), so a new command-line flag "--keepcoords" has been introduced
-   to inhibit the search for spectral coordinates.
-
    3.8-0
    =====
 
-   Added controls to the statistics toolbox so that the TSYS related 
+   Controls have been added to the statistics toolbox so that the TSYS related 
    parameters can be set and inspected.
 
    3.7-2
@@ -66,9 +63,9 @@
    3.7-0
    =====
 
-   Added experimental support for the SSAP version 1 protocol. Added
-   new band qualifiers (upper and lower spectral range in meters)
-   and control of the file format. Older SSAP queries should still
+   Experimental support for the SSAP version 1 protocol has been added.
+   This includes new band qualifiers (upper and lower spectral range in
+   meters) and control of the file format. Older SSAP queries should still
    work.
 
    3.6-9
