@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.table.WrapperStarTable;
 
 /**
@@ -18,7 +19,7 @@ import uk.ac.starlink.table.WrapperStarTable;
  * can only return a RowSequence once.  This violates the normal rules
  * of the StarTable interface.  Any calls beyond the first to
  * <tt>getStarTable().getRowSequence()</tt> will throw a
- * {@link StreamRereadException}.
+ * {@link uk.ac.starlink.table.UnrepeatableSequenceException}.
  *
  * <p>This serves almost the same purpose as a 
  * {@link uk.ac.starlink.table.RowStore}, but does not quite implement
@@ -81,7 +82,8 @@ public class StreamRowStore implements TableSink, RowSequence {
             public RowSequence getRowSequence() throws IOException {
                 synchronized ( StreamRowStore.this ) {
                     if ( rseq_ == null ) {
-                        throw new StreamRereadException();
+                        throw new UnrepeatableSequenceException(
+                                      "Can't re-read data from stream");
                     }
                     else if ( error_ != null ) {
                         throw error_;
@@ -124,7 +126,7 @@ public class StreamRowStore implements TableSink, RowSequence {
      * the same rows which are being written to this sink.
      * The <tt>getRowSequence</tt> method can only be called once;
      * any subsequent attempts to call it will result in a
-     * {@link StreamRereadException}.
+     * {@link UnrepeatableSequenceException}.
      * This method will block until {@link #acceptMetadata} has been called.
      *
      * @return   one-shot streaming sequential table

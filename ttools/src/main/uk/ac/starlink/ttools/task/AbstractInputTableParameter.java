@@ -7,6 +7,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
@@ -14,7 +15,6 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.StreamRereadException;
 import uk.ac.starlink.ttools.StreamRowStore;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.util.DataSource;
@@ -192,7 +192,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
                 try {
                     return super.getRowSequence();
                 }
-                catch ( StreamRereadException e ) {
+                catch ( UnrepeatableSequenceException e ) {
                     InputStream in =
                         new BufferedInputStream( datsrc.getInputStream() );
                     StarTable t2;

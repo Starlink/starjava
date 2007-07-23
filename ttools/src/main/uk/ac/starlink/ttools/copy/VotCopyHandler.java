@@ -23,7 +23,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.ttools.StreamRereadException;
+import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.ttools.StreamRowStore;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
@@ -74,7 +74,8 @@ public class VotCopyHandler
      * but may not be possible under some circumstances, e.g. for FITS
      * output when the number of rows is not known in advance.  
      * If a streamed copy is attempted when it's not possible,
-     * it will fail with a {@link uk.ac.starlink.ttools.StreamRereadException}
+     * it will fail with a 
+     * {@link uk.ac.starlink.table.UnrepeatableSequenceException}
      * (wrapped in a SAXException).
      *
      * @param  strict  whether to effect strict interpretation of the
@@ -445,7 +446,7 @@ public class VotCopyHandler
              * other end of the stream), rethrow it here. */
             if ( error_ != null ) {
                 String msg;
-                if ( error_ instanceof StreamRereadException ) {
+                if ( error_ instanceof UnrepeatableSequenceException ) {
                     msg = "Can't stream, " +
                           "table requires multiple reads for metadata - " +
                           "try with caching";
