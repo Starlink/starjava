@@ -62,6 +62,10 @@ public class SequentialResultSetStarTable extends AbstractStarTable {
     }
 
     /**
+     * The first time it is called, returns an iterator over the rows of the
+     * result set.  
+     * Subsequent calls will throw an {@link UnrepeatableSequenceException}.
+     *
      * @throws   UnrepeatableSequenceException  if called more than once
      */
     public synchronized RowSequence getRowSequence()
