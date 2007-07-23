@@ -4,12 +4,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,6 +16,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.WrapperRowSequence;
 
 /**
  * A StarTable implementation based on the results of an SQL query 
@@ -26,11 +24,18 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class JDBCStarTable extends AbstractStarTable {
 
-    private int ncol;
-    private ColumnInfo[] colinfo;
-    private final Connector connx;
-    private final String sql;
+    private ColumnInfo[] colInfos_;
+    private final Connector connx_;
+    private final String sql_;
 
+    /**
+     * Holds a random access ResultSet if this object provides random access.
+     * The contents of this variable (null or otherwise) is used as the
+     * flag to indicate whether this object provides random access or not.
+     */
+    private StarResultSet randomSet_;
+
+    /* Ad-hoc regular expressions to identify different JDBC drivers. */
     private static final Pattern POSTGRESQL_DRIVER_REGEX =
         Pattern.compile( ".*PostgreSQL.*", Pattern.CASE_INSENSITIVE );
     private static final Pattern MYSQL_DRIVER_REGEX =
@@ -38,26 +43,12 @@ public class JDBCStarTable extends AbstractStarTable {
     private static final Pattern SQLSERVER_DRIVER_REGEX =
         Pattern.compile( ".*SQL.?Server.*", Pattern.CASE_INSENSITIVE );
 
-    /**
-     * Holds a TYPE_SCROLL ResultSet if this object provides random access.
-     * The contents of this variable (null or otherwise) is used as the
-     * flag to indicate whether this object provides random access or not.
-     */
-    private ResultSet randomResultSet;
-
-    private static Logger logger =
-        Logger.getLogger( "uk.ac.starlink.table.jdbc" );
-
-    /* Auxiliary metadata. */
-    private final static ValueInfo labelInfo =
-        new DefaultValueInfo( "Label", String.class );
-    private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        labelInfo,
-    } );
-
     /* Parameters. */
-    private final static ValueInfo sqlInfo =
+    private final static ValueInfo SQL_INFO =
         new DefaultValueInfo( "SQL", String.class, "SQL query text" );
+
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     /**
      * Constructs a StarTable representing the data returned by an
@@ -69,8 +60,7 @@ public class JDBCStarTable extends AbstractStarTable {
      */
     public JDBCStarTable( Connector connx, String sql ) throws SQLException {
         this( connx, sql, false );
-        List params = getParameters();
-        params.add( new DescribedValue( sqlInfo, sql ) );
+        getParameters().add( new DescribedValue( SQL_INFO, sql ) );
     }
 
     /**
@@ -90,8 +80,8 @@ public class JDBCStarTable extends AbstractStarTable {
      */
     public JDBCStarTable( Connector connx, String sql, boolean isRandom ) 
             throws SQLException {
-        this.connx = connx;
-        this.sql = sql;
+        connx_ = connx;
+        sql_ = sql;
         Connection conn = connx.getConnection();
         setName( conn.getMetaData().getURL() + '#' + sql );
 
@@ -101,14 +91,13 @@ public class JDBCStarTable extends AbstractStarTable {
             Statement stmt = 
                 conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
                                       ResultSet.CONCUR_READ_ONLY );
-            randomResultSet = makeRandomResultSet( conn, sql );
+            randomSet_ = new StarResultSet( makeRandomResultSet( conn, sql ) );
         }
 
         /* Get a resultset to determine necessary metadata.  If we already
          * have a random one use that, otherwise just knock up a quickie one. */
-        ResultSetMetaData rsmeta;
         if ( isRandom ) {
-            rsmeta = randomResultSet.getMetaData();
+            colInfos_ = randomSet_.getColumnInfos();
         }
         else {
 
@@ -119,94 +108,26 @@ public class JDBCStarTable extends AbstractStarTable {
             Statement stmt = createStreamingStatement( conn );
             stmt.setMaxRows( 1 );
             ResultSet rset = stmt.executeQuery( sql );
-            rsmeta = rset.getMetaData();
+            colInfos_ = new StarResultSet( rset ).getColumnInfos();
             rset.close();
-        }
-
-        /* Extract and store column metadata. */
-        ncol = rsmeta.getColumnCount();
-        colinfo = new ColumnInfo[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
-
-            /* SQL columns are based at 1 not 0. */
-            int jcol = icol + 1;
-
-            /* Set up the name and metadata for this column. */
-            String name = rsmeta.getColumnName( jcol );
-            colinfo[ icol ] = new ColumnInfo( name );
-            ColumnInfo col = colinfo[ icol ];
-
-            /* Find out what class objects will have.  If the class hasn't
-             * been loaded yet, just call it an Object (could try obtaining
-             * an object from that column and using its class, but then it
-             * might be null...). */
-            try {
-                Class ccls = this.getClass()
-                            .forName( rsmeta.getColumnClassName( jcol ) );
-                col.setContentClass( ccls );
-            }
-            catch ( ClassNotFoundException e ) {
-                col.setContentClass( Object.class );
-            }
-            if ( rsmeta.isNullable( jcol ) ==
-                 ResultSetMetaData.columnNoNulls ) {
-                col.setNullable( false );
-            }
-            List auxdata = col.getAuxData();
-            String label = rsmeta.getColumnLabel( jcol );
-            if ( label != null &&
-                 label.trim().length() > 0 &&
-                 ! label.equalsIgnoreCase( name ) ) {
-                auxdata.add( new DescribedValue( labelInfo, label.trim() ) );
-            }
-        }
-
-        /* Wind up the connection if it is no longer needed. */
-        if ( randomResultSet == null ) {
-            conn.close();
         }
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return colinfo[ icol ];
+        return colInfos_[ icol ];
     }
 
     public List getColumnAuxDataInfos() {
-        return auxDataInfos;
+        return StarResultSet.getColumnAuxDataInfos();
     }
 
     public int getColumnCount() {
-        return ncol;
+        return colInfos_.length;
     }
 
     public long getRowCount() {
-
-        /* If we have random access, get the number of rows by going to the
-         * end and finding what row number it is.  This may not be cheap,
-         * but random access tables are obliged to know how many rows
-         * they have.  Unfortunately this is capable of throwing an 
-         * SQLException, but this method is not declared to throw anything,
-         * so deal with it best we can. */
-        if ( randomResultSet != null ) {
-            try {
-                int lastRow;
-                synchronized ( randomResultSet ) {
-                    randomResultSet.afterLast();
-                    randomResultSet.previous();
-                    lastRow = randomResultSet.getRow();
-                }
-                return (long) lastRow;
-            }
-            catch ( SQLException e ) {
-                logger.warning( "Failed to get length of table: " + e );
-                return 0L;
-            }
-        }
-
-        /* Otherwise, we don't know. */
-        else {
-            return -1L;
-        }
+        return randomSet_ == null ? -1L
+                                  : randomSet_.getRowCount();
     }
 
     /**
@@ -215,60 +136,50 @@ public class JDBCStarTable extends AbstractStarTable {
      * Calling this method multiple times is harmless.
      */
     public void setRandom() throws SQLException {
-        if ( randomResultSet == null ) {
-            randomResultSet = makeRandomResultSet( connx.getConnection(), sql );
-            checkConsistent( randomResultSet );
+        if ( randomSet_ == null ) {
+            randomSet_ =
+                new StarResultSet( makeRandomResultSet( connx_.getConnection(),
+                                                        sql_ ) );
+            checkConsistent( randomSet_ );
         }
     }
 
     public boolean isRandom() {
-        return randomResultSet != null;
+        return randomSet_ != null;
     }
 
     public Object getCell( long lrow, int icol ) throws IOException {
-        if ( randomResultSet == null ) {
+        if ( randomSet_ == null ) {
             throw new UnsupportedOperationException( "No random access" );
         }
-        try {
-            synchronized ( randomResultSet ) {
-                randomResultSet.absolute( checkedLongToInt( lrow ) + 1 );
-                return getPackagedCell( randomResultSet, icol );
+        else {
+            synchronized ( randomSet_ ) {
+                randomSet_.setRowIndex( lrow );
+                return randomSet_.getCell( icol );
             }
-        }
-        catch ( SQLException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
         }
     }
 
     public Object[] getRow( long lrow ) throws IOException {
-        if ( randomResultSet == null ) {
+        if ( randomSet_ == null ) {
             throw new UnsupportedOperationException( "No random access" );
         }
-        try {
-            Object[] row = new Object[ ncol ];
-            synchronized ( randomResultSet ) {
-                randomResultSet.absolute( checkedLongToInt( lrow ) + 1 );
-                for ( int i = 0; i < ncol; i++ ) {
-                    row[ i ] = getPackagedCell( randomResultSet, i );
-                }
+        else {
+            synchronized ( randomSet_ ) {
+                randomSet_.setRowIndex( lrow );
+                return randomSet_.getRow();
             }
-            return row;
-        }
-        catch ( SQLException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
         }
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final ResultSet rset;
+        final StarResultSet srset;
         Connection conn = null;
         try {
-            conn = connx.getConnection();
+            conn = connx_.getConnection();
             Statement stmt = createStreamingStatement( conn );
-            rset = stmt.executeQuery( sql );
-            checkConsistent( rset );
+            srset = new StarResultSet( stmt.executeQuery( sql_ ) );
+            checkConsistent( srset );
         }
         catch ( SQLException e ) {
             if ( conn != null ) {
@@ -297,55 +208,10 @@ public class JDBCStarTable extends AbstractStarTable {
         }
         assert conn != null;
         final Connection connection = conn;
-        return new RowSequence() {
-
-            public boolean next() throws IOException {
-                try {
-                    return rset.next();
-                }
-                catch ( SQLException e ) {
-                     throw (IOException) new IOException( e.getMessage() )
-                                        .initCause( e );
-                }
-            }
-             
-            public Object getCell( int icol ) throws IOException {
-                try {
-                    if ( rset.isBeforeFirst() ) {
-                        throw new NoSuchElementException( "No current row" );
-                    }
-                    else {
-                        return getPackagedCell( rset, icol );
-                    }
-                }
-                catch ( SQLException e ) {
-                    throw (IOException) new IOException( e.getMessage() )
-                                       .initCause( e );
-                }
-            }
-
-            public Object[] getRow() throws IOException {
-                try {
-                    if ( rset.isBeforeFirst() ) {
-                        throw new NoSuchElementException( "No current row" );
-                    }
-                    else {
-                        Object[] row = new Object[ ncol ];
-                        for ( int i = 0; i < ncol; i++ ) {
-                            row[ i ] = getPackagedCell( rset, i );
-                        }
-                        return row;
-                    }
-                }
-                catch ( SQLException e ) {
-                    throw (IOException) new IOException( e.getMessage() )
-                                       .initCause( e );
-                }
-            }
-
+        return new WrapperRowSequence( srset.createRowSequence() ) {
             public void close() throws IOException {
                 try {
-                    rset.close();
+                    super.close();
                     if ( ! connection.getAutoCommit() ) {
                         connection.commit();
                     }
@@ -356,7 +222,6 @@ public class JDBCStarTable extends AbstractStarTable {
                                        .initCause( e );
                 }
             }
-
         };
     }
 
@@ -366,7 +231,7 @@ public class JDBCStarTable extends AbstractStarTable {
      * @return  a JDBC Connection object
      */
     public Connection getConnection() throws SQLException {
-        return connx.getConnection();
+        return connx_.getConnection();
     }
 
     /**
@@ -375,30 +240,7 @@ public class JDBCStarTable extends AbstractStarTable {
      * @return   the SQL query text
      */
     public String getSql() {
-        return sql;
-    }
-
-    /**
-     * Returns the object at a given column in the current row of a ResultSet,
-     * in a form suitable for use as the content of a StarTable cell.
-     *
-     * @param  rset  the result set
-     * @param  icol  the column to use (first column is 0)
-     * @return the   cell value in an exportable form
-     */
-    private Object getPackagedCell( ResultSet rset, int icol )
-            throws SQLException {
-        Object base = rset.getObject( icol + 1 );
-        Class colclass = getColumnInfo( icol ).getContentClass();
-        if ( base instanceof byte[] && 
-             ! colclass.equals( byte[].class ) ) {
-            return new String( (byte[]) base );
-        }
-        else if ( base instanceof char[] && 
-                 ! colclass.equals( char[].class ) ) {
-            return new String( (char[]) base );
-        }
-        return base;
+        return sql_;
     }
 
     /**
@@ -421,12 +263,12 @@ public class JDBCStarTable extends AbstractStarTable {
      * was modified in certain ways (e.g. a column added) between
      * execution of the SQL query.
      *
-     * @param  rset  a new ResultSet to check for consistency with this object
+     * @param  srset  a new StarResultSet to check for 
+     *                consistency with this object
      * @throws IllegalStateException  in case of inconsistency
      */
-    private void checkConsistent( ResultSet rset ) throws SQLException {
-        ResultSetMetaData rsmeta1 = rset.getMetaData();
-        if ( rsmeta1.getColumnCount() != ncol ) {
+    private void checkConsistent( StarResultSet srset ) throws SQLException {
+        if ( srset.getColumnInfos().length != colInfos_.length ) {
             throw new IllegalStateException( 
                 "ResultSet column count has changed" );
         }
@@ -459,7 +301,7 @@ public class JDBCStarTable extends AbstractStarTable {
          * http://jdbc.postgresql.org/documentation/81/query.html
          *    #query-with-cursor */
         if ( POSTGRESQL_DRIVER_REGEX.matcher( driver ).matches() ) {
-            logger.info( "Fixing PostgreSQL driver to stream results" );
+            logger_.info( "Fixing PostgreSQL driver to stream results" );
             conn.setAutoCommit( false );
             Statement stmt = conn.createStatement();
             stmt.setFetchSize( 1024 );
@@ -470,7 +312,7 @@ public class JDBCStarTable extends AbstractStarTable {
          * http://dev.mysql.com/doc/refman/5.0/en/
          *    connector-j-reference-implementation-notes.html */
         else if ( MYSQL_DRIVER_REGEX.matcher( driver ).matches() ) {
-            logger.info( "Fixing MySQL driver to stream results" );
+            logger_.info( "Fixing MySQL driver to stream results" );
             Statement stmt = conn.createStatement( ResultSet.TYPE_FORWARD_ONLY,
                                                    ResultSet.CONCUR_READ_ONLY );
             stmt.setFetchSize(Integer.MIN_VALUE);
@@ -481,7 +323,7 @@ public class JDBCStarTable extends AbstractStarTable {
          *    http://msdn2.microsoft.com/en-us/library/ms378405.aspx 
          * (untested). */
         else if ( SQLSERVER_DRIVER_REGEX.matcher( driver ).matches() ) {
-            logger.info( "Fixing SQL Server driver to stream results" );
+            logger_.info( "Fixing SQL Server driver to stream results" );
             try {
                 int cursorType =
                     Class.forName( "com.microsoft.sqlserver.jdbc."
@@ -493,14 +335,14 @@ public class JDBCStarTable extends AbstractStarTable {
                                              ResultSet.CONCUR_READ_ONLY );
             }
             catch ( Throwable e ) {
-                logger.warning( "SQL Server tweaking failed: " + e );
+                logger_.warning( "SQL Server tweaking failed: " + e );
                 return conn.createStatement();
             }
         }
 
         /* Other. */
         else {
-            logger.info( "No special steps to stream results - "
+            logger_.info( "No special steps to stream results - "
                        + "may run out of memory for large ResultSet?" );
             return conn.createStatement();
         }
