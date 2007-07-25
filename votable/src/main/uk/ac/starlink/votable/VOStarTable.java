@@ -66,9 +66,7 @@ public class VOStarTable extends AbstractStarTable {
         "UCD", String.class, "Table UCD" );
 
     /** ValueInfo for VOTable <tt>utype</tt> attribute. */
-    public final static ValueInfo UTYPE_INFO = new DefaultValueInfo(
-        "utype", String.class, 
-        "Usage-specific type (ties value to an external data model)" );
+    public final static ValueInfo UTYPE_INFO = Tables.UTYPE_INFO;
 
     /** ValueInfo for VOTable <tt>width</tt> attribute. */
     public final static ValueInfo WIDTH_INFO = new DefaultValueInfo(
@@ -200,7 +198,7 @@ public class VOStarTable extends AbstractStarTable {
 
                 if ( field.hasAttribute( "utype" ) ) {
                     String utype = field.getAttribute( "utype" );
-                    auxdata.add( new DescribedValue( UTYPE_INFO, utype ) );
+                    Tables.setUtype( cinfo, utype );
                 }
 
                 VOElement[] links = field.getChildrenByName( "LINK" );

@@ -102,9 +102,7 @@ abstract class Encoder {
             }
 
             /* UType attribute. */
-            String utype =
-                (String) cinfo.getAuxDatumValue( VOStarTable.UTYPE_INFO,
-                                                 String.class );
+            String utype = Tables.getUtype( cinfo );
             if ( utype != null && utype.trim().length() > 0 ) {
                 attMap.put( "utype", utype.trim() );
             }
