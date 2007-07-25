@@ -16,6 +16,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RandomStarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -176,6 +177,12 @@ public class FitsStarTable extends RandomStarTable {
             String tucd = cards.getStringValue( "TUCD" + jcol );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
+            }
+
+            /* Utype (non-standard). */
+            String tutype = cards.getStringValue( "TUTYP" + jcol );
+            if ( tutype != null ) {
+                Tables.setUtype( cinfo, tutype );
             }
 
             /* Implementation specifics. */

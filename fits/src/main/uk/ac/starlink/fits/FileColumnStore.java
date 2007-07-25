@@ -20,6 +20,7 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.BufferedDataOutputStream;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -202,6 +203,18 @@ abstract class FileColumnStore implements ColumnStore {
         if ( ucd != null && ucd.trim().length() > 0 && ucd.length() < 68 ) {
             try {
                 hdr.addValue( "TUCD" + icol, ucd, null );
+            }
+            catch ( HeaderCardException e ) {
+                // never mind.
+            }
+        }
+
+        /* Utype. */
+        String utype = Tables.getUtype( info_ );
+        if ( utype != null && utype.trim().length() > 0
+                           && utype.length() < 68 ) {
+            try {
+                hdr.addValue( "TUTYP" + icol, utype, null );
             }
             catch ( HeaderCardException e ) {
                 // never mind.

@@ -335,6 +335,18 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                         // never mind.
                     }
                 }
+
+                /* Utype (non-standard). */
+                String utype = Tables.getUtype( colinfo );
+                if ( utype != null && utype.trim().length() > 0
+                                   && utype.trim().length() < 68 ) {
+                    try {
+                        hdr.addValue( "TUTYP" + jcol, utype, null );
+                    }
+                    catch ( HeaderCardException e ) {
+                        // never mind.
+                    }
+                }
             }
         }
         return hdr;

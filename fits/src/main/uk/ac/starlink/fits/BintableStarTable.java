@@ -340,6 +340,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 cinfo.setUCD( tucd );
             }
 
+            /* Utype (non-standard). */
+            String tutype = hdr.getStringValue( "TUTYP" + jcol );
+            if ( tutype != null ) {
+                Tables.setUtype( cinfo, tutype );
+            }
+
             /* Construct a data reader for this column. */
             Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJKAEDCMP])(.*)" )
                                     .matcher( tform );

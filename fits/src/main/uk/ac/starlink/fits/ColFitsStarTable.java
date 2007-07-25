@@ -143,6 +143,10 @@ public class ColFitsStarTable extends ColumnStarTable {
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
+            String tutype = hdr.getStringValue( "TUTYP" + jcol );
+            if ( tutype != null ) {
+                Tables.setUtype( cinfo, tutype );
+            }
             infos[ icol ] = cinfo;
         }
         nrow_ = nrow;
