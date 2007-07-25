@@ -34,6 +34,14 @@ public class Tables {
                               "Integer value which represents a null" );
 
     /**
+     * ValueInfo for utype attribute.
+     */
+    public final static ValueInfo UTYPE_INFO =
+        new DefaultValueInfo( "utype", String.class,
+                              "Usage-specific type"
+                            + " (ties value to an external data model)" );
+
+    /**
      * ValueInfo representing Right Ascension. 
      * The units are radians and it is non-nullable.
      */
@@ -380,6 +388,52 @@ public class Tables {
             labels.add( sbuf.toString() );
         }
         return (String[]) labels.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Returns the Utype associated with a given metadata item.
+     *
+     * <p>Currently, if <code>info</code> is a 
+     * {@link uk.ac.starlink.table.ColumnInfo} then its aux data list will
+     * be searched for an item matching {@link #UTYPE_INFO} (string-valued
+     * with name "utype"), while null will be returned for any other 
+     * <code>ValueInfo</code> instances.
+     * In future however the ValueInfo interface may have a utype attribute
+     * associated with it, at which point this method will defer to that.
+     *
+     * @param  info  metadata item
+     * @return   utype string, or null if none is available
+     * @see   #setUtype
+     */
+    public static String getUtype( ValueInfo info ) {
+        if ( info instanceof ColumnInfo ) {
+            return (String) getValue( ((ColumnInfo) info).getAuxData(),
+                                      UTYPE_INFO );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Tries to set the Utype for a given metadata item.
+     * Currently, if <code>info</code> is a
+     * {@link uk.ac.starlink.table.ColumnInfo} then its aux data list
+     * will be augmented with a new item with info {@link #UTYPE_INFO}
+     * (name "utype"), and there will be no effect for any other
+     * <code>ValueInfo</code> instances.
+     * In future however the ValueInfo interface may have a utype attribute
+     * associated with it, at which point this method will defer to that.
+     *
+     * @param  info  metadata item
+     * @param  utype  new utype value
+     * @see   #getUtype
+     */
+    public static void setUtype( ValueInfo info, String utype ) {
+        if ( info instanceof ColumnInfo ) {
+            ((ColumnInfo) info).setAuxDatum( new DescribedValue( UTYPE_INFO,
+                                                                 utype ) );
+        }
     }
 
     /**
