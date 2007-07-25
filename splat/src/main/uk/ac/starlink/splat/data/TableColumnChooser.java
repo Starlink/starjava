@@ -11,6 +11,7 @@ package uk.ac.starlink.splat.data;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ColumnInfo;
 
 /**
@@ -171,8 +172,7 @@ public class TableColumnChooser
     {
         String utype;
         for( int k = 0; k < infos.length; k++ ) {
-            utype = (String) 
-                infos[k].getAuxDatumValueByName( "utype", String.class );
+            utype = Tables.getUtype( infos[k] );
             if ( utype != null ) {
                 utype = utype.toLowerCase();
                 if ( utype.endsWith( modelUtype ) ) {
