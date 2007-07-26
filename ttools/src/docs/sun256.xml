@@ -4310,6 +4310,15 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>CEA description of <code>tmatch2</code> <code>params</code>
+        parameter now has <code>minoccurs=0</code>, since that can be true
+        for exact matches.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
