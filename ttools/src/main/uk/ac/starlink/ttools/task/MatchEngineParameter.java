@@ -69,6 +69,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "values which contain a space can be 'quoted' or \"quoted\".",
             "</p>",
         } );
+        paramsParam_.setNullPermitted( true );
         paramsParam_.setUsage( "<match-params>" );
     }
 
@@ -149,6 +150,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         /* If there are, enquire about the values to use via the 
          * params parameter. */
         else {
+            paramsParam_.setNullPermitted( false );
             StringBuffer sbuf = new StringBuffer( "Match parameters (" );
             for ( int i = 0; i < nParam; i++ ) {
                 if ( i > 0 ) {
