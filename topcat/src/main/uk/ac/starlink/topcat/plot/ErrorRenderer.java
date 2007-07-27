@@ -9,6 +9,7 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -40,21 +41,21 @@ public abstract class ErrorRenderer {
 
     /** General purpose error renderer. */
     public static final ErrorRenderer DEFAULT =
-        new CappedLine( "Lines", true, 0 );
+        new CappedLine( "Lines", true, null );
 
     /** Error renderer suitable for use in user controls. */
     public static final ErrorRenderer EXAMPLE =
-         new CappedLine( "Lines", true, 3 );
+        new CappedLine( "Lines", true, new BarCapper( 3 ) );
 
     /** Error renderer suitable for displaying 2D tangential errors. */
     public static final ErrorRenderer TANGENT =
-         new OpenEllipse( "Ellipse", true );
+        new OpenEllipse( "Ellipse", true );
 
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, 3 ),
-        new CappedLine( "Caps", false, 3 ),
+        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
         new OpenEllipse( "Ellipse", false ),
         new OpenEllipse( "Crosshair Ellipse", true ),
         new OpenRectangle( "Rectangle", false ),
@@ -66,8 +67,8 @@ public abstract class ErrorRenderer {
     private static final ErrorRenderer[] OPTIONS_3D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, 3 ),
-        new CappedLine( "Caps", false, 3 ),
+        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
         new OpenCuboid( "Cuboid" ),
         new MultiPlaneRenderer( new OpenEllipse( "Ellipse", false ) ),
         new MultiPlaneRenderer( new OpenEllipse( "Crosshair Ellipse", true ) ),
@@ -84,7 +85,7 @@ public abstract class ErrorRenderer {
         // Generic
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, 3 ),
+        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
 
         // 2D (tangent only)
         new OpenEllipse( "Ellipse", false ),
@@ -105,29 +106,35 @@ public abstract class ErrorRenderer {
         },
         new TangentRadialRenderer( "Ellipse",
                                    new OpenEllipse( "Ellipse", false ),
-                                   new CappedLine( "Capped Lines", true, 0 ) ),
+                                   new CappedLine( "Capped Lines", true,
+                                                   null ) ),
         new TangentRadialRenderer( "Crosshair Ellipse",
                                    new OpenEllipse( "Ellipse", true ),
-                                   new CappedLine( "Capped Lines", true, 0 ) ),
+                                   new CappedLine( "Capped Lines", true,
+                                                   null ) ),
         new TangentRadialRenderer( "Filled Ellipse",
                                    new FilledEllipse( "Ellipse" ),
-                                   new CappedLine( "Capped Lines", true, 0 ) ),
+                                   new CappedLine( "Capped Lines", true,
+                                                   null ) ),
         new TangentRadialRenderer( "Capped Ellipse",
                                    new OpenEllipse( "Ellipse", false ),
-                                   new CappedLine( "Capped Lines", true, 3 ) ),
+                                   new CappedLine( "Capped Lines", true,
+                                                   new BarCapper( 3 ) ) ),
         new TangentRadialRenderer( "Capped Crosshair Ellipse",
                                    new OpenEllipse( "Ellipse", true ),
-                                   new CappedLine( "Capped Lines", true, 3 ) ),
+                                   new CappedLine( "Capped Lines", true,
+                                                   new BarCapper( 3 ) ) ),
         new TangentRadialRenderer( "Capped Filled Ellipse",
                                    new FilledEllipse( "Ellipse" ),
-                                   new CappedLine( "Capped Lines", true, 3 ) ),
+                                   new CappedLine( "Capped Lines", true,
+                                                   new BarCapper( 3 ) ) ),
     } );
 
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, 3 ),
-        new CappedLine( "Caps", false, 3 ),
+        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
     };
 
     private static final Stroke CAP_ROUND =
@@ -552,13 +559,17 @@ public abstract class ErrorRenderer {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
-            Graphics2D g2 = (Graphics2D) g.create();
+            Graphics2D g2 = (Graphics2D) g;
+            Object aaHint =
+                g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  RenderingHints.VALUE_ANTIALIAS_ON );
+            Shape clip = g2.getClip();
             g2.setClip( x, y, width_, height_ );
             renderer_.drawErrors( g2, x + width_ / 2, y + height_ / 2,
                                   xoffs_, yoffs_ );
-            g2.dispose();
+            g2.setClip( clip );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aaHint );
         }
 
         /**
@@ -583,7 +594,7 @@ public abstract class ErrorRenderer {
     private static class CappedLine extends ErrorRenderer {
 
         private final boolean lines_;
-        private final int capsize_;
+        private final Capper capper_;
         private final Icon legend_;
 
         /**
@@ -591,13 +602,12 @@ public abstract class ErrorRenderer {
          *
          * @param  name   renderer name
          * @param  lines   true iff you want error lines drawn
-         * @param  capsize  the number of pixels in each direction the
-         *                  cap should extend; zero means no cap
+         * @param  capper  if non-null causes caps to be drawn at end of lines
          */
-        CappedLine( String name, boolean lines, int capsize ) {
+        CappedLine( String name, boolean lines, Capper capper ) {
             super( name );
             lines_ = lines;
-            capsize_ = capsize;
+            capper_ = capper;
             legend_ = new ErrorRendererIcon( this, 2 );
         }
 
@@ -622,7 +632,7 @@ public abstract class ErrorRenderer {
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
             drawErrors( g, x, y, xoffs, yoffs, g.getClipBounds(), 
-                        lines_, capsize_, false );
+                        lines_, capper_, false );
         }
 
         /**
@@ -635,18 +645,18 @@ public abstract class ErrorRenderer {
          * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
          * @param  clip   bounds of output
          * @param  lines  whether to draw lines
-         * @param  capsize  size of capping lines (0 for none)
+         * @param  capper   cap drawing object, if any
          * @param  willCover  true if the ends of the radial lines will 
          *                    subsequently be covered by more drawing 
          *                    (affects line capping)
          */
         public static void drawErrors( Graphics g, int x, int y,
                                        int[] xoffs, int[] yoffs, Rectangle clip,
-                                       boolean lines, int capsize,
+                                       boolean lines, Capper capper,
                                        boolean willCover ) {
             Graphics2D g2 = (Graphics2D) g;
             Stroke oldStroke = g2.getStroke();
-            g2.setStroke( capsize > 0 || willCover ? CAP_BUTT : CAP_ROUND );
+            g2.setStroke( capper != null || willCover ? CAP_BUTT : CAP_ROUND );
             int xmax = clip.width + 1;
             int ymax = clip.height + 1;
             int np = xoffs.length;
@@ -696,17 +706,15 @@ public abstract class ErrorRenderer {
                     }
 
                     /* Draw cap if required. */
-                    if ( capsize > 0 && ! clipped ) {
+                    if ( capper != null && ! clipped ) {
                         g2.setStroke( CAP_ROUND );
 
                         /* For rectilinear offsets, draw the cap manually. */
                         if ( xoff == 0 ) {
-                            g.drawLine( x - capsize, y + yoff,
-                                        x + capsize, y + yoff );
+                            capper.drawCapY( g2, x, y, yoff );
                         }
                         else if ( yoff == 0 ) {
-                            g.drawLine( x + xoff, y - capsize,
-                                        x + xoff, y + capsize );
+                            capper.drawCapX( g2, x, y, xoff );
                         }
 
                         /* For more general offsets, transform the graphics
@@ -721,7 +729,7 @@ public abstract class ErrorRenderer {
                             g2.rotate( Math.atan2( yoff, xoff ) );
                             double l2 = xoff * xoff + yoff * yoff;
                             int leng = (int) Math.round( Math.sqrt( l2 ) );
-                            g2.drawLine( leng, - capsize, leng, capsize );
+                            capper.drawCapX( g2, 0, 0, leng );
                             g2.setTransform( oldTransform );
                         }
                     }
@@ -741,25 +749,8 @@ public abstract class ErrorRenderer {
                     if ( lines_ ) {
                         drawing.drawLine( x, y, x + xoff, y + yoff );
                     }
-                    if ( capsize_ > 0 ) {
-                        if ( xoff == 0 ) {
-                            drawing.drawLine( x - capsize_, y + yoff,
-                                              x + capsize_, y + yoff );
-                        }
-                        else if ( yoff == 0 ) {
-                            drawing.drawLine( x + xoff, y - capsize_,
-                                              x + xoff, y + capsize_ );
-                        }
-                        else {
-                            int x0 = x + xoff;
-                            int y0 = y + yoff;
-                            double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
-                            double capfact = capsize_ / r1;
-                            int x1 = (int) Math.round( - capfact * yoff );
-                            int y1 = (int) Math.round( + capfact * xoff );
-                            drawing.drawLine( x0 - x1, y0 - y1,
-                                              x0 + x1, y0 + y1 );
-                        }
+                    if ( capper_ != null ) {
+                        capper_.drawCap( drawing, x, y, xoff, yoff );
                     }
                 }
             }
@@ -771,42 +762,143 @@ public abstract class ErrorRenderer {
             int xmax = 0;
             int ymin = 0;
             int ymax = 0;
-            boolean empty = true;
             int np = xoffs.length;
+            boolean empty = true;
+            Rectangle box = new Rectangle();
             for ( int ip = 0; ip < np; ip++ ) {
                 int xoff = xoffs[ ip ];
                 int yoff = yoffs[ ip ];
                 if ( xoff != 0 || yoff != 0 ) {
                     empty = false;
-                    if ( xoff == 0 ) {
-                        xmin = Math.min( xmin, - capsize_ );
-                        xmax = Math.max( xmax, + capsize_ );
-                        ymin = Math.min( ymin, yoff );
-                        ymax = Math.max( ymax, yoff );
-                    }
-                    else if ( yoff == 0 ) {
-                        xmin = Math.min( xmin, xoff );
-                        xmax = Math.max( xmax, xoff );
-                        ymin = Math.min( ymin, - capsize_ );
-                        ymax = Math.max( ymax, + capsize_ );
-                    }
-                    else {
-                        xmin = Math.min( xmin, xoff - capsize_ );
-                        xmax = Math.max( xmax, xoff + capsize_ );
-                        ymin = Math.min( ymin, yoff - capsize_ );
-                        ymax = Math.max( ymax, yoff + capsize_ );
+                    box.add( xoff, yoff );
+                    if ( capper_ != null ) {
+                        capper_.extendBounds( box, xoff, yoff );
                     }
                 }
             }
-            if ( empty ) {
-                return new Rectangle( x, y, 0, 0 );
-            }
-            else {
-                Rectangle box = new Rectangle( x + xmin, y + ymin,
-                                               xmax - xmin, ymax - ymin );
+            if ( ! empty ) {
                 box.width++;
                 box.height++;
-                return box;
+            }
+            box.x = x;
+            box.y = y;
+            return box;
+        }
+    }
+
+    /**
+     * Defines how caps are drawn on the end of error bars.
+     */
+    private static abstract class Capper {
+
+        /**
+         * Draws a cap on a horizontal error bar in a graphics context.
+         *
+         * @param   g  graphics context
+         * @param   x  X position of data point
+         * @param   y  Y position of data point
+         * @param   xoff  X offset of the end of the error bar
+         */
+        public abstract void drawCapX( Graphics g, int x, int y, int xoff );
+
+        /**
+         * Draws a cap on a vertical error bar in a graphics context.
+         *
+         * @param   g  graphics context
+         * @param   x  X position of data point
+         * @param   y  Y position of data point
+         * @param   yoff  Y offset of the end of the error bar
+         */
+        public abstract void drawCapY( Graphics g, int x, int y, int yoff );
+
+        /**
+         * Draws a cap on an error bar in a pixel-mapped drawing.
+         *
+         * @param  drawing  pixel map
+         * @param  x  X position of data point
+         * @param  y  Y position of data point
+         * @param  xoff  X offset of the end of the error bar
+         * @param  yoff  Y offset of the end of the error bar
+         */
+        public abstract void drawCap( Drawing drawing,
+                                      int x, int y, int xoff, int yoff );
+
+        /**
+         * Notes the bounds of the caps of an error bar.
+         * The supplied <code>bounds</code> rectangle is extended to include
+         * any drawing associated with capping the given error offset 
+         * (the data point is assumed to be at the origin).
+         *
+         * @param   bounds  bounds rectangle, to be increased in size
+         *          as necessary
+         * @param   xoff  X offset of the end of the error bar (from origin)
+         * @param   yoff  Y offset of the end of the error bar (from origin)
+         */
+        public abstract void extendBounds( Rectangle bounds,
+                                           int xoff, int yoff );
+    }
+
+    /**
+     * Capper implementation which simply draws a perpendicular bar.
+     */
+    private static class BarCapper extends Capper {
+
+        private final int capsize_;
+
+        /**
+         * Constructor.
+         *
+         * @param   capsize  number of pixels in each direction that 
+         *          bar is drawn
+         */
+        public BarCapper( int capsize ) {
+            capsize_ = capsize;
+        }
+
+        public void drawCapX( Graphics g, int x, int y, int xoff ) {
+            g.drawLine( x + xoff, y - capsize_, x + xoff, y + capsize_ );
+        }
+
+        public void drawCapY( Graphics g, int x, int y, int yoff ) {
+            g.drawLine( x - capsize_, y + yoff, x + capsize_, y + yoff );
+        }
+
+        public void drawCap( Drawing drawing,
+                             int x, int y, int xoff, int yoff ) {
+            if ( xoff == 0 ) {
+                drawing.drawLine( x - capsize_, y + yoff,
+                                  x + capsize_, y + yoff );
+            }
+            else if ( yoff == 0 ) {
+                drawing.drawLine( x + xoff, y - capsize_,
+                                  x + xoff, y + capsize_ );
+            }
+            else {
+                int x0 = x + xoff;
+                int y0 = y + yoff;
+                double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
+                double capfact = capsize_ / r1;
+                int x1 = (int) Math.round( - capfact * yoff );
+                int y1 = (int) Math.round( + capfact * xoff );
+                drawing.drawLine( x0 - x1, y0 - y1,
+                                  x0 + x1, y0 + y1 );
+            }
+        }
+
+        public void extendBounds( Rectangle bounds, int xoff, int yoff ) {
+            if ( xoff == 0 ) {
+                bounds.add( - capsize_, yoff );
+                bounds.add( + capsize_, yoff );
+            }
+            else if ( yoff == 0 ) {
+                bounds.add( xoff, - capsize_ );
+                bounds.add( xoff, + capsize_ );
+            }
+            else {
+                bounds.add( xoff - capsize_, yoff - capsize_ );
+                bounds.add( xoff - capsize_, yoff + capsize_ );
+                bounds.add( xoff + capsize_, yoff - capsize_ );
+                bounds.add( xoff + capsize_, yoff + capsize_ );
             }
         }
     }
@@ -953,7 +1045,7 @@ public abstract class ErrorRenderer {
 
             /* Draw crosshair if required. */
             if ( withLines_ ) {
-                CappedLine.drawErrors( g, x, y, xoffs, yoffs, clip, true, 0,
+                CappedLine.drawErrors( g, x, y, xoffs, yoffs, clip, true, null,
                                        true );
             }
         }
