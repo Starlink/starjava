@@ -10709,6 +10709,15 @@ introduced since the last version:
 
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Added error bars capped by arrows.</li>
+    <li>Fixed bug which caused error bars in legend to draw in the wrong colour
+        in EPS output.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
