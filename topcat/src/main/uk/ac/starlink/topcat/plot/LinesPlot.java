@@ -612,10 +612,12 @@ public abstract class LinesPlot extends JComponent {
              * Null if no lines are to be drawn. */
             if ( hasLines_ ) {
                 lineGraphics_ = g.create();
-                style.configureForLine( lineGraphics_, BasicStroke.CAP_BUTT,
-                                        BasicStroke.JOIN_ROUND );
+                lineGraphics_.setColor( style.getColor() );
                 if ( lineGraphics_ instanceof Graphics2D ) {
-                    ((Graphics2D) lineGraphics_).setRenderingHint(
+                    Graphics2D lg2 = (Graphics2D) lineGraphics_;
+                    lg2.setStroke( style.getStroke( BasicStroke.CAP_BUTT,
+                                                    BasicStroke.JOIN_ROUND ) );
+                    lg2.setRenderingHint(
                         RenderingHints.KEY_ANTIALIASING,
                         antialiasLines ? RenderingHints.VALUE_ANTIALIAS_ON
                                        : RenderingHints.VALUE_ANTIALIAS_OFF );

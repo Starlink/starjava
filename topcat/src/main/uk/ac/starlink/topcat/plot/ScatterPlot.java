@@ -12,6 +12,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.util.ArrayList;
@@ -147,8 +148,10 @@ public abstract class ScatterPlot extends SurfacePlot {
             if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
                 RowSubset set = sets[ is ];
                 Graphics2D lineGraphics = (Graphics2D) g.create();
-                style.configureForLine( lineGraphics, BasicStroke.CAP_BUTT,
-                                        BasicStroke.JOIN_MITER );
+                lineGraphics.setColor( style.getColor() );
+                lineGraphics.setStroke( style
+                                       .getStroke( BasicStroke.CAP_BUTT,
+                                                   BasicStroke.JOIN_MITER ) );
                 int lastxp = 0;
                 int lastyp = 0;
                 boolean notFirst = false;
@@ -206,11 +209,16 @@ public abstract class ScatterPlot extends SurfacePlot {
                 }
 
                 /* Draw regression line. */
-                Graphics2D g2 = (Graphics2D) g.create();
+                Graphics2D g2 = (Graphics2D) g;
+                Object aaHint =
+                    g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
                 g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                      RenderingHints.VALUE_ANTIALIAS_ON );
-                style.configureForLine( g2, BasicStroke.CAP_BUTT,
-                                        BasicStroke.JOIN_MITER );
+                Color color = g2.getColor();
+                g2.setColor( style.getColor() );
+                Stroke stroke = g2.getStroke();
+                g2.setStroke( style.getStroke( BasicStroke.CAP_BUTT,
+                                               BasicStroke.JOIN_MITER ) );
                 double[] ends = stats.linearRegressionLine();
                 if ( ends != null ) {
                     Point p1 = surface.dataToGraphics( ends[ 0 ], ends[ 1 ],
@@ -221,6 +229,9 @@ public abstract class ScatterPlot extends SurfacePlot {
                         g2.drawLine( p1.x, p1.y, p2.x, p2.y );
                     }
                 }
+                g2.setStroke( stroke );
+                g2.setColor( color );
+                g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aaHint );
             }
         }
 
