@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Graphics;
 import java.awt.Shape;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.jibble.epsgraphics.EpsGraphics2D;
@@ -21,12 +22,28 @@ import org.jibble.epsgraphics.EpsGraphics2D;
  */
 public class FixedEpsGraphics2D extends EpsGraphics2D {
 
+    /**
+     * Constructor with bounds.
+     *
+     * @param  title  title
+     * @param  out  output stream - must be closed to complete plotting
+     * @param  xmin  lower X bound for bounding box
+     * @param  ymin  lower Y bound for bounding box
+     * @param  xmax  upper X bound for bounding box
+     * @param  ymax  upper Y bound for bounding box
+     */
     public FixedEpsGraphics2D( String title, OutputStream out,
                                int xmin, int ymin, int xmax, int ymax )
             throws IOException {
-        super( title, out, xmin, xmax, ymin, ymax );
+        super( title, new TerminatedOutputStream( out ),
+               xmin, ymin, xmax, ymax );
     }
 
+    /**
+     * Clone constructor.
+     *
+     * @param  g2  instance to copy
+     */
     public FixedEpsGraphics2D( EpsGraphics2D g2 ) {
         super( g2 );
     }
@@ -42,5 +59,29 @@ public class FixedEpsGraphics2D extends EpsGraphics2D {
 
     public Graphics create() {
         return new FixedEpsGraphics2D( this );
+    }
+
+   
+    /**
+     * Output stream which appends a newline character after it is closed.
+     * This is required for EPS output so that some printers show the page
+     * at the end of the input.  EpsGraphics2D does not append such a 
+     * newline character.
+     */
+    private static class TerminatedOutputStream extends FilterOutputStream {
+
+        /**
+         * Constructor.
+         *
+         * @param  out  base output stream
+         */
+        public TerminatedOutputStream( OutputStream out ) {
+            super( out );
+        }
+
+        public void close() throws IOException {
+            write( '\n' );
+            super.close();
+        }
     }
 }
