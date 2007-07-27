@@ -159,7 +159,6 @@ public abstract class SurfacePlot extends JComponent implements Printable {
         if ( pageIndex == 0 ) {
 
             /* Get a graphics object scaled for this component to print on. */
-            Graphics2D g2 = (Graphics2D) g.create();
             int gap = 70;  // points
             double pageWidth = pf.getImageableWidth() - 2.0 * gap;
             double pageHeight = pf.getImageableHeight() - 2.0 * gap;
@@ -175,11 +174,16 @@ public abstract class SurfacePlot extends JComponent implements Printable {
             else {
                 xscale = yscale;
             }
+            Graphics2D g2 = (Graphics2D) g;
             g2.translate( xinset, yinset );
             g2.scale( xscale, yscale );
 
             /* Draw the plot. */
             print( g2 );
+
+            /* Restore. */
+            g2.scale( 1.0 / xscale, 1.0 / yscale );
+            g2.translate( - xinset, - yinset );
             return PAGE_EXISTS;
         }
         else {
