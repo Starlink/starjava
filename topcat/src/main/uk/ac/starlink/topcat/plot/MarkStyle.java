@@ -59,6 +59,10 @@ public abstract class MarkStyle extends DefaultStyle {
 
     private static final int LEGEND_ICON_WIDTH = 20;
     private static final int LEGEND_ICON_HEIGHT = 12;
+    private static final RenderingHints.Key AA_KEY =
+        RenderingHints.KEY_ANTIALIASING;
+    private static final Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+  
 
     static {
         pixHints_ = new RenderingHints( null );
@@ -315,22 +319,6 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
-     * Configures the given graphics context ready to do line drawing with
-     * a given stroke cap and join policy.
-     *
-     * @param   g  graphics context - will be altered
-     * @param   cap  one of {@link java.awt.BasicStroke}'s CAP_* constants
-     * @param   join one of {@link java.awt.BasicStroke}'s JOIN_* constants
-     */
-    public void configureForLine( Graphics g, int cap, int join ) {
-        g.setColor( getColor() );
-        if ( g instanceof Graphics2D ) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setStroke( getStroke( cap, join ) );
-        }
-    }
-
-    /**
      * Draws a legend icon for this style without error rendering.
      *
      * @return   legend icon
@@ -363,38 +351,41 @@ public abstract class MarkStyle extends DefaultStyle {
                 return LEGEND_ICON_WIDTH;
             }
             public void paintIcon( Component c, Graphics g, int x, int y ) {
+                Graphics2D g2 = (Graphics2D) g;
                 boolean hide = getHidePoints();
                 if ( getLine() != null ) {
-                    Graphics g1 = createLegendContext( g );
-                    configureForLine( g1, BasicStroke.CAP_BUTT,
-                                          BasicStroke.JOIN_MITER );
+                    Object aaHint = g2.getRenderingHint( AA_KEY );
+                    g2.setRenderingHint( AA_KEY, AA_ON );
+                    Stroke stroke = g2.getStroke();
+                    g2.setStroke( getStroke( BasicStroke.CAP_BUTT,
+                                             BasicStroke.JOIN_MITER ) );
+                    Color color = g2.getColor();
+                    g2.setColor( getColor() );
                     int ypos = y + LEGEND_ICON_HEIGHT / 2;
-                    g1.drawLine( x, ypos, x + LEGEND_ICON_WIDTH, ypos );
-                    g1.dispose();
+                    g2.drawLine( x, ypos, x + LEGEND_ICON_WIDTH, ypos );
+                    g2.setColor( color );
+                    g2.setStroke( stroke );
+                    g2.setRenderingHint( AA_KEY, aaHint );
                 }
                 if ( errorIcon != null ) {
-                    Graphics g1 = createLegendContext( g );
-                    g1.setColor( getColor() );
-                    errorIcon.paintIcon( c, g1, x, y );
-                    g1.dispose();
+                    Object aaHint = g2.getRenderingHint( AA_KEY );
+                    g2.setRenderingHint( AA_KEY, AA_ON );
+                    Color color = g2.getColor();
+                    g2.setColor( getColor() );
+                    errorIcon.paintIcon( c, g2, x, y );
+                    g2.setColor( color );
+                    g2.setRenderingHint( AA_KEY, aaHint );
                 }
                 if ( ! hide ) {
-                    Graphics g1 = g.create();
-                    g1.setColor( getColor() );
-                    g1.translate( x + LEGEND_ICON_WIDTH / 2,
-                                  y + LEGEND_ICON_HEIGHT / 2 );
-                    drawLegendShape( g1 );
-                    g1.dispose();
+                    Color color = g2.getColor();
+                    g2.setColor( getColor() );
+                    int xoff = x + LEGEND_ICON_WIDTH / 2;
+                    int yoff = y + LEGEND_ICON_HEIGHT / 2;
+                    g2.translate( xoff, yoff );
+                    drawLegendShape( g2 );
+                    g2.translate( -xoff, -yoff );
+                    g2.setColor( color );
                 }
-            }
-            private Graphics createLegendContext( Graphics g ) {
-                Graphics g1 = g.create();
-                if ( g1 instanceof Graphics2D ) {
-                    ((Graphics2D) g1)
-                   .setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                      RenderingHints.VALUE_ANTIALIAS_ON );
-                }
-                return g1;
             }
         };
     }
