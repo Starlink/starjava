@@ -23,7 +23,6 @@ import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.BitSet;
@@ -1605,21 +1604,10 @@ public abstract class GraphicsWindow extends AuxWindow {
         int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) ) + pad;
         int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) ) + pad;
 
-        /* Provide an output stream which appends a final carriage return.
-         * This is a hack around the fact that EpsGraphics2D omits doesn't
-         * do this, which prevents the resulting EPS file from printing out
-         * when sent to some printers. */
-        ostrm = new FilterOutputStream( ostrm ) {
-            public void close() throws IOException {
-                write( '\n' );
-                super.close();
-            }
-        };
-
         /* Construct a graphics object which will write postscript
          * down this stream. */
-        EpsGraphics2D g2 =
-            new EpsGraphics2D( getTitle(), ostrm, xlo, ylo, xhi, yhi );
+        EpsGraphics2D g2 = 
+            new FixedEpsGraphics2D( getTitle(), ostrm, xlo, ylo, xhi, yhi );
         g2.scale( scale, scale );
 
         /* Do the drawing. */
