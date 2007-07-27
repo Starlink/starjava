@@ -56,6 +56,7 @@ public abstract class ErrorRenderer {
         DEFAULT,
         new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
         new CappedLine( "Caps", false, new BarCapper( 3 ) ),
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
         new OpenEllipse( "Ellipse", false ),
         new OpenEllipse( "Crosshair Ellipse", true ),
         new OpenRectangle( "Rectangle", false ),
@@ -69,6 +70,7 @@ public abstract class ErrorRenderer {
         DEFAULT,
         new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
         new CappedLine( "Caps", false, new BarCapper( 3 ) ),
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
         new OpenCuboid( "Cuboid" ),
         new MultiPlaneRenderer( new OpenEllipse( "Ellipse", false ) ),
         new MultiPlaneRenderer( new OpenEllipse( "Crosshair Ellipse", true ) ),
@@ -86,6 +88,7 @@ public abstract class ErrorRenderer {
         NONE,
         DEFAULT,
         new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
 
         // 2D (tangent only)
         new OpenEllipse( "Ellipse", false ),
@@ -135,6 +138,7 @@ public abstract class ErrorRenderer {
         DEFAULT,
         new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
         new CappedLine( "Caps", false, new BarCapper( 3 ) ),
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
     private static final Stroke CAP_ROUND =
@@ -828,6 +832,7 @@ public abstract class ErrorRenderer {
          * The supplied <code>bounds</code> rectangle is extended to include
          * any drawing associated with capping the given error offset 
          * (the data point is assumed to be at the origin).
+         * It is permissible to extend the bounds too far.
          *
          * @param   bounds  bounds rectangle, to be increased in size
          *          as necessary
@@ -882,6 +887,99 @@ public abstract class ErrorRenderer {
                 int y1 = (int) Math.round( + capfact * xoff );
                 drawing.drawLine( x0 - x1, y0 - y1,
                                   x0 + x1, y0 + y1 );
+            }
+        }
+
+        public void extendBounds( Rectangle bounds, int xoff, int yoff ) {
+            if ( xoff == 0 ) {
+                bounds.add( - capsize_, yoff );
+                bounds.add( + capsize_, yoff );
+            }
+            else if ( yoff == 0 ) {
+                bounds.add( xoff, - capsize_ );
+                bounds.add( xoff, + capsize_ );
+            }
+            else {
+                bounds.add( xoff - capsize_, yoff - capsize_ );
+                bounds.add( xoff - capsize_, yoff + capsize_ );
+                bounds.add( xoff + capsize_, yoff - capsize_ );
+                bounds.add( xoff + capsize_, yoff + capsize_ );
+            }
+        }
+    }
+
+    /**
+     * Capper implementation which draws an outward-pointing open arrow.
+     */
+    private static class ArrowCapper extends Capper {
+
+        private final int capsize_;
+        private final int[] xs_;
+        private final int[] ys_;
+
+        /**
+         * Constructor.
+         *
+         * @param   capsize  number of pixels in each direction
+         */
+        ArrowCapper( int capsize ) {
+            capsize_ = capsize;
+            xs_ = new int[ 3 ];
+            ys_ = new int[ 3 ];
+        }
+
+        public void drawCapX( Graphics g, int x, int y, int xoff ) {
+            int sign = xoff > 0 ? +1 : -1;
+            int size = Math.min( capsize_, sign * xoff );
+            int xstart = x + xoff - sign * size;
+            xs_[ 0 ] = xstart;
+            ys_[ 0 ] = y - size;
+            xs_[ 1 ] = x + xoff;
+            ys_[ 1 ] = y;
+            xs_[ 2 ] = xstart;
+            ys_[ 2 ] = y + size;
+            g.drawPolyline( xs_, ys_, 3 );
+        }
+
+        public void drawCapY( Graphics g, int x, int y, int yoff ) {
+            int sign = yoff > 0 ? +1 : -1;
+            int size = Math.min( capsize_, sign * yoff );
+            int ystart = y + yoff - sign * size;
+            xs_[ 0 ] = x - size;
+            ys_[ 0 ] = ystart;
+            xs_[ 1 ] = x;
+            ys_[ 1 ] = y + yoff;
+            xs_[ 2 ] = x + size;
+            ys_[ 2 ] = ystart;
+            g.drawPolyline( xs_, ys_, 3 );
+        }
+
+        public void drawCap( Drawing drawing,
+                             int x, int y, int xoff, int yoff ) {
+            if ( xoff == 0 ) {
+                int sign = yoff > 0 ? +1 : -1;
+                int size = Math.min( capsize_, sign * yoff );
+                int ystart = y + yoff - sign * size;
+                drawing.drawLine( x, y + yoff, x - size, ystart );
+                drawing.drawLine( x, y + yoff, x + size, ystart );
+            }
+            else if ( yoff == 0 ) {
+                int sign = xoff > 0 ? +1 : -1;
+                int size = Math.min( capsize_, sign * xoff );
+                int xstart = x + xoff - sign * size;
+                drawing.drawLine( x + xoff, y, xstart, y - size );
+                drawing.drawLine( x + xoff, y, xstart, y + size );
+            }
+            else {
+                double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
+                double size = Math.min( capsize_, r1 );
+                double capfact = size / r1;
+                int ax = xoff + (int) Math.round( capfact * ( - xoff + yoff ) );
+                int ay = yoff + (int) Math.round( capfact * ( - xoff - yoff ) );
+                int bx = xoff + (int) Math.round( capfact * ( - xoff - yoff ) );
+                int by = yoff + (int) Math.round( capfact * ( + xoff - yoff ) );
+                drawing.drawLine( x + xoff, y + yoff, x + ax, y + ay );
+                drawing.drawLine( x + xoff, y + yoff, x + bx, y + by );
             }
         }
 
