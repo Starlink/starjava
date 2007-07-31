@@ -28,9 +28,9 @@ Copyright \copyright\ 2007 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.29}
+\newcommand{\stardocnumber}    {243.30}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {12 June 2007}
+\newcommand{\stardocdate}      {21 July 2007}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.8-2}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -3668,6 +3668,47 @@ components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
 
 \section{Changes}
+
+\subsection{3.8-2}
+
+By default SPLAT searches input spectra for a spectral coordinate system.
+This can lead to unexpected behaviour when attempting to display spectra with
+non-spectral coordinates (by selecting the GRID or PIXEL frames in an NDF), so
+a new command-line flag "--keepcoords" has been introduced to inhibit the
+search for spectral coordinates, and a UI preference Options->Find spectral
+coordinates.
+
+\subsection{3.8-1}
+
+Generated spectra how inherit some of the properties of the parent spectrum
+(line and plotting style).  Rebinned spectra are now displayed with a
+histogram style.
+
+The alignment of sidebands is now not done by default.
+
+An Interop menu has been added to the SSAP query results controls.  This
+allows a table to be transmitted to other applications for further analysis.
+
+The plot spectrum synopsis now includes the number of channels (points in the
+spectrum).
+
+When changing the DSB sideband the labels now include which sideband is the
+observed and which the image.
+
+The readout of the spectral coordinate in a plot should now always have
+sufficient precision so that adjacent values can be distinguished.
+
+Problems displaying spectra sent from GAIA when the plot synopsis is enabled
+(which came out at the wrong size and with the synopsis misplaced) should be
+resolved.
+
+The synopsis should now be placed at the top-left hand corner of the axis for
+all plot aspect ratios.
+
+Data units which dimensionally match one of the preset flux values will now be
+identified and shown as the preset value in the data units and plot units
+toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now be recognised as
+"erg/cm^2/s/Angstrom".
 
 \subsection{3.8-0}
 
