@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import org.jibble.epsgraphics.EpsGraphics2D;
 
 /**
- * Graphics2D implementation which can write to Encapsulated PostScript
+ * Graphics2D implementation which can write to Encapsulated PostScript.
  *
  * <p>This is a very slight modification of 
  * <code>org.jibble.epsgraphics.EpsGraphics2D</code>
