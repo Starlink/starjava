@@ -156,6 +156,9 @@ public class LineRenderer
         String text = getText();
         setText( " " );
         super.paintComponent( g );
+        if ( text == null ) {
+            text = " ";
+        }
         setText( text );
 
         java.awt.Graphics2D g2D = (java.awt.Graphics2D) g;
