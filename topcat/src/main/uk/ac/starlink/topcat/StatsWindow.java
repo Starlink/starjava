@@ -124,7 +124,7 @@ public class StatsWindow extends AuxWindow {
             }
         }
 
-        /* Watch the column model to see whether any quantile rows are
+        /* Watch the column model to see whether any quantile columns are
          * introduced.  If they are, a recalculation may be required,
          * since (because of the expense) quantiles are not calculated
          * unless explicitly asked for. */
