@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2003-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     11-APR-2003 (Peter W. Draper):
@@ -21,7 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
+
+import org.mortbay.util.QuotedStringTokenizer;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -48,11 +50,11 @@ import uk.ac.starlink.splat.util.Utilities;
  * first line with #BEGIN and ends on the line #END. The attributes are simple
  * comment lines in between of the form "# name value".
  *  <p>
- * Whitespace separators are the space character, the tab character,
- * the newline character, the carriage-return character, and the
- * form-feed character. Any comments in the file must start in the
- * first column and be indicated by the characters "!", "#" or "*".
- * Blank lines are also permitted.
+ * Whitespace separators are the space character and the tab character.
+ * Any comments in the file must start in the first column and be indicated by
+ * the characters "!", "#" or "*". Blank lines are also permitted. Strings can
+ * be quoted using single or double quotes, so can have whitespace characters
+ * embedded.
  *  <p>
  * Since the actual storage for text files is memory resident this
  * class extends MEMSpecDataImpl, providing the ability to
@@ -139,6 +141,12 @@ public class LineIDTXTSpecDataImpl
 // Implementation specific methods and variables.
 //
     /**
+     * Default delimeters for tokenization.
+     */
+    public static final String DELIMS = " \t";
+
+    
+    /**
      * Map of any attributes read from file.
      */
     protected Map attributes = null;
@@ -187,7 +195,8 @@ public class LineIDTXTSpecDataImpl
         //  Get a BufferedReader to read the file line-by-line. Note
         //  we are avoiding using StreamTokenizer directly, and doing
         //  our own parsing, as this doesn't deal with floating point
-        //  values very well.
+        //  values very well. Later, we also use QuotedStringTokenizer
+        //  so that we can have labels in double and single quotes.
         FileInputStream f = null;
         BufferedReader r = null;
         try {
@@ -207,7 +216,7 @@ public class LineIDTXTSpecDataImpl
         int nlines = 0;
         int nwords = 0;
         String raw;
-        StringTokenizer st;
+        QuotedStringTokenizer st;
         try {
             while ( ( raw = r.readLine() ) != null ) {
 
@@ -218,7 +227,7 @@ public class LineIDTXTSpecDataImpl
                 } else {
 
                     // Read at least 1 word from line and no more than 3.
-                    st = new StringTokenizer( raw );
+                    st = new QuotedStringTokenizer( raw, DELIMS );
                     count = Math.min( st.countTokens(), 3 );
                     nwords = Math.max( count, nwords );
                     nlines++;
@@ -255,7 +264,7 @@ public class LineIDTXTSpecDataImpl
                 }
                 else {
                     // Should be nwords per line.
-                    st = new StringTokenizer( raw );
+                    st = new QuotedStringTokenizer( raw, DELIMS );
                     token = st.nextToken();
                     coords[nlines] = Float.parseFloat( token );
                     if ( needLabels ) {
@@ -328,7 +337,7 @@ public class LineIDTXTSpecDataImpl
     protected int readHeaders( BufferedReader r )
     {
         int nhead = 0;
-        StringTokenizer st = null;
+        QuotedStringTokenizer st = null;
         String raw = null;
         try {
             //  Allow for rewind of one line.
@@ -354,7 +363,7 @@ public class LineIDTXTSpecDataImpl
                          || raw.charAt(0) == '*' ) {
                         continue;
                     }
-                    st = new StringTokenizer( raw );
+                    st = new QuotedStringTokenizer( raw, DELIMS );
                     st.nextToken(); // Skip comment
                     attributes.put( st.nextToken(), st.nextToken() );
                     nhead++;
@@ -424,7 +433,7 @@ public class LineIDTXTSpecDataImpl
     /**
      * Write a header section to a BufferedWriter.
      */
-    protected void writeHeaders( BufferedWriter r ) 
+    protected void writeHeaders( BufferedWriter r )
     {
         try {
             r.write( "#BEGIN\n" );

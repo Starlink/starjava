@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
@@ -124,7 +125,7 @@ public class TXTSpecDataImpl
     /**
      * Reference to the file.
      */
-    File file = null;
+    protected File file = null;
 
     /**
      * Map of any attributes read from file.

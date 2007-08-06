@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     19-JAN-2006 (Peter W. Draper):
@@ -20,7 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
+
+import org.mortbay.util.QuotedStringTokenizer;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -39,11 +41,12 @@ import uk.ac.starlink.splat.util.Utilities;
  * basis.
  * <p>
  * Text file lines are assumed to be plain and contain either one, two, three
- * or more whitespace separated columns. If one column is present then that is
- * assumed to be the wavelength, and empty associations and labels are used,
- * if two columns are present then these are the wavelength and an association
- * spectrum, if three or more then the second column is the label (in the sense
- * of the superclass) and the third the association.
+ * or more whitespace separated, possibly quoted columns. If one column is
+ * present then that is assumed to be the wavelength, and empty associations
+ * and labels are used, if two columns are present then these are the
+ * wavelength and an association spectrum, if three or more then the second
+ * column is the label (in the sense of the superclass) and the third the
+ * association.
  * <P.
  * An optional feature is support for a header section that defines
  * useful elements, such as the AST attributes of the coordinates, any known
@@ -51,11 +54,10 @@ import uk.ac.starlink.splat.util.Utilities;
  * first line with #BEGIN and ends on the line #END. The attributes are simple
  * comment lines in between of the form "# name value".
  *  <p>
- * Whitespace separators are the space character, the tab character,
- * the newline character, the carriage-return character, and the
- * form-feed character. Any comments in the file must start in the
- * first column and be indicated by the characters "!", "#" or "*".
- * Blank lines are also permitted.
+ * Whitespace separators are the space character and the tab character.
+ * Any comments in the file must start in the first column and be indicated by
+ * the characters "!", "#" or "*". Blank lines are also permitted. Quoted
+ * filenames can use single or double quotes.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -92,13 +94,13 @@ public class AssociatedLineIDTXTSpecDataImpl
     }
 
     /**
-     * Create an object by reading values from an existing 
-     * AssociatedLineIDSpecData object. The text file is associated 
+     * Create an object by reading values from an existing
+     * AssociatedLineIDSpecData object. The text file is associated
      * (so can be a save target), but not opened.
      *
      * @param fileName the name of the text file.
      */
-    public AssociatedLineIDTXTSpecDataImpl( String fileName, 
+    public AssociatedLineIDTXTSpecDataImpl( String fileName,
                                             AssociatedLineIDSpecData source )
         throws SplatException
     {
@@ -228,7 +230,8 @@ public class AssociatedLineIDTXTSpecDataImpl
         //  Get a BufferedReader to read the file line-by-line. Note we are
         //  avoiding using StreamTokenizer directly, and doing our own
         //  parsing, as this doesn't deal with floating point values very
-        //  well. 
+        //  well. Later, switch to QuotedStringTokenizer to handle quoted
+        //  strings too.
         FileInputStream f = null;
         BufferedReader r = null;
         try {
@@ -249,7 +252,7 @@ public class AssociatedLineIDTXTSpecDataImpl
         int nlines = 0;
         int nwords = 0;
         String raw;
-        StringTokenizer st;
+        QuotedStringTokenizer st;
         try {
             while ( ( raw = r.readLine() ) != null ) {
 
@@ -291,17 +294,17 @@ public class AssociatedLineIDTXTSpecDataImpl
                 }
                 else {
                     // Line of data.
-                    st = new StringTokenizer( raw );
+                    st = new QuotedStringTokenizer( raw, DELIMS );
                     count = st.countTokens();
                     maxCount = Math.max( count, maxCount );
                     token = st.nextToken();
                     coords[nlines] = Float.parseFloat( token );
                     data[nlines] = SpecData.BAD;
-                    
+
                     //  Line has either label+association or just
                     //  association. Missing associations are left null,
                     //  missing labels are set to the coordinate.
-                    
+
                     if ( count >= 3 ) {
                         labels[nlines] = st.nextToken();
                         associations[nlines] = st.nextToken();
@@ -387,7 +390,7 @@ public class AssociatedLineIDTXTSpecDataImpl
                     r.write( labels[i] + " " );
                 }
                 if ( associations[i] != null ) {
-                    r.write( associations[i] ); 
+                    r.write( associations[i] );
                 }
                 r.write( "\n" );
             }
