@@ -1,5 +1,14 @@
 1 Starlink SPLAT news.
 
+   3.8-3
+   =====
+
+   Standard IR spectral lines from UKIRT have been added to the built-in
+   line identifiers (thanks to Andy Adamson).
+
+   Line identifier labels in text files can now be quoted using single
+   or double quotes.
+
    3.8-2
    =====
 
