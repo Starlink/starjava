@@ -15,7 +15,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.StreamRowStore;
+import uk.ac.starlink.table.StreamRowStore;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.util.DataSource;
 
