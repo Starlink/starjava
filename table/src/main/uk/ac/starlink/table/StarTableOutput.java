@@ -254,6 +254,60 @@ public class StarTableOutput {
     }
 
     /**
+     * Returns a sink which allows you to write data to an output table.
+     * Note that this will only work if the <code>handler</code> can write
+     * the table using a single pass of the data.  If it requires multiple
+     * passes, a <code>UnrepeatableSequenceException</code> will be thrown.
+     *
+     * @param  out       raw output stream
+     * @param  handler   output handler
+     * @return  sink whose data will be written to a new table
+     * @throws  UnrepeatableSequenceException  if the output handler requires
+     *          more than one pass of the data
+     */
+    public TableSink createOutputSink( final OutputStream out,
+                                       final StarTableWriter handler ) {
+        return new StreamTableSink() {
+            protected void scanTable( StarTable table ) throws IOException {
+                writeStarTable( table, out, handler );
+            }
+        };
+    }
+
+    /**
+     * Returns a sink which allows you to write data to an output table.
+     * Note that this will only work if the <code>handler</code> can write
+     * the table using a single pass of the data.  If it requires multiple
+     * passes, a <code>UnrepeatableSequenceException</code> will be thrown.
+     *
+     * @param  location the location at which to write the new table.
+     *         This may be a filename or URL, including a <tt>jdbc:</tt>
+     *         protocol if suitable JDBC drivers are installed
+     * @param  format   a string which indicates in some way what format
+     *         should be used for output.  This may be the class name of
+     *         a <tt>StarTableWriter</tt> object (which may or may not be
+     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a string which matches the format name of one of the registered
+     *         <tt>StarTableWriter</tt>s (first match is used,
+     *         case-insensitive, starting substrings OK)
+     *         or <tt>null</tt> or {@link #AUTO_HANDLER}
+     *         to indicate that a handler should be
+     *         selected based on the value of <tt>location</tt>.
+     *         Ignored for <tt>jdbc:</tt>-protocol locations
+     * @return  sink whose data will be written to a new table
+     * @throws  UnrepeatableSequenceException  if the output handler requires
+     *          more than one pass of the data
+     */
+    public TableSink createOutputSink( final String location,
+                                       final String format ) {
+        return new StreamTableSink() {
+            protected void scanTable( StarTable table ) throws IOException {
+                writeStarTable( table, location, format );
+            };
+        };
+    }
+
+    /**
      * Returns an output stream which points to a given location.
      * Typically <tt>location</tt> is a filename and a corresponding
      * <tt>FileOutputStream</tt> is returned, but there may be other
