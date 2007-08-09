@@ -20,7 +20,7 @@ import java.io.OutputStream;
  */
 public abstract class StreamTableSink implements TableSink {
 
-    private StreamRowStore rowStore_;
+    private RowPipe rowPipe_;
     private Thread writerThread_;
     private Throwable writerError_;
 
@@ -38,12 +38,12 @@ public abstract class StreamTableSink implements TableSink {
      */
     protected abstract void scanTable( StarTable table ) throws IOException;
 
-    public void acceptMetadata( StarTable meta ) {
-        rowStore_ = new StreamRowStore();
-        rowStore_.acceptMetadata( meta );
+    public void acceptMetadata( StarTable meta ) throws TableFormatException {
+        rowPipe_ = new OnceRowPipe();
+        rowPipe_.acceptMetadata( meta );
         final StarTable outTable;
         try {
-            outTable = rowStore_.waitForStarTable();
+            outTable = rowPipe_.waitForStarTable();
         }
         catch ( IOException e ) {
             throw new AssertionError( e );
@@ -62,11 +62,11 @@ public abstract class StreamTableSink implements TableSink {
     }
 
     public void acceptRow( Object[] row ) throws IOException {
-        rowStore_.acceptRow( row );
+        rowPipe_.acceptRow( row );
     }
 
     public void endRows() throws IOException {
-        rowStore_.endRows();
+        rowPipe_.endRows();
         try {
             writerThread_.join();
         }

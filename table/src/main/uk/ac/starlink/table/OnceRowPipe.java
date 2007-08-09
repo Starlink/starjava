@@ -4,35 +4,25 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 /**
- * TableSink implementation whose returned table reads from a stream.
- * The iterator got from <tt>getStarTable().getRowSequence()</tt>
- * will return the rows fed to this object's <tt>acceptRow</tt> method.
- * Some of the methods block, and the reading and writing have to be 
- * done in different threads.
- *
- * <p>The returned table is unusual in that (for obvious reasons) it
- * can only return a RowSequence once.  This violates the normal rules
- * of the StarTable interface.  Any calls beyond the first to
- * <tt>getStarTable().getRowSequence()</tt> will throw a
- * {@link uk.ac.starlink.table.UnrepeatableSequenceException}.
- *
- * <p>This serves almost the same purpose as a 
- * {@link uk.ac.starlink.table.RowStore}, but does not quite implement
- * that interface.  Instead of RowStore's 
- * {@link uk.ac.starlink.table.RowStore#getStarTable} method, it provides a
- * {@link #waitForStarTable} method.  This blocks until the metadata
- * has been supplied, and also throws an IOException.
+ * Streaming <code>RowPipe</code> implementation which provides a one-shot
+ * table.  
+ * The returned table is unusual in that it
+ * can only return a <code>RowSequence</code> once.
+ * This violates the normal rules of the <code>StarTable</code> interface.
+ * Any calls beyond the first to <tt>waitForStarTable().getRowSequence()</tt> 
+ * will throw a {@link uk.ac.starlink.table.UnrepeatableSequenceException}.
  *
  * @author   Mark Taylor (Starlink)
  * @since    10 Feb 2005
  */
-public class StreamRowStore implements TableSink, RowSequence {
+public class OnceRowPipe implements RowPipe, RowSequence {
 
     private final LinkedList rowQueue_;
     private final int queueSize_;
     private StarTable table_;
     private Object[] seqRow_;
     private boolean seqClosed_;
+    private boolean seqEnded_;
     private IOException error_;
 
     private static final Object[] END_ROWS = new Object[ 0 ];
@@ -40,7 +30,7 @@ public class StreamRowStore implements TableSink, RowSequence {
     /**
      * Constructs a new streaming row store with a default buffer size.
      */
-    public StreamRowStore() {
+    public OnceRowPipe() {
         this( 1024 );
     }
 
@@ -50,19 +40,11 @@ public class StreamRowStore implements TableSink, RowSequence {
      * @param  queueSize  the maximum number of rows buffered between 
      *         write and read before <tt>acceptRow</tt> will block
      */
-    public StreamRowStore( int queueSize ) {
+    public OnceRowPipe( int queueSize ) {
         queueSize_ = queueSize;
         rowQueue_ = new LinkedList();
     }
 
-    /**
-     * Registers an exception which has taken place in supplying the
-     * data to this row store.  This error will be stored and re-thrown
-     * from the <tt>next</tt> method of the row sequence next time it
-     * is called.
-     *
-     * @param  error  stored exception
-     */
     public synchronized void setError( IOException error ) {
         error_ = error;
         notifyAll();
@@ -70,12 +52,12 @@ public class StreamRowStore implements TableSink, RowSequence {
 
     public synchronized void acceptMetadata( StarTable meta ) {
         table_ = new WrapperStarTable( meta ) {
-            RowSequence rseq_ = StreamRowStore.this;
+            RowSequence rseq_ = OnceRowPipe.this;
             public boolean isRandom() {
                 return false;
             }
             public RowSequence getRowSequence() throws IOException {
-                synchronized ( StreamRowStore.this ) {
+                synchronized ( OnceRowPipe.this ) {
                     if ( rseq_ == null ) {
                         throw new UnrepeatableSequenceException(
                                       "Can't re-read data from stream");
@@ -149,6 +131,10 @@ public class StreamRowStore implements TableSink, RowSequence {
         if ( error_ != null ) {
             throw error_;
         }
+        else if ( seqEnded_ ) {
+            notifyAll();
+            return false;
+        }
         try {
             while ( rowQueue_.size() == 0 ) {
                 wait();
@@ -159,8 +145,12 @@ public class StreamRowStore implements TableSink, RowSequence {
                                .initCause( e );
         }
         seqRow_ = (Object[]) rowQueue_.removeFirst();
+        if ( seqRow_ == END_ROWS ) {
+            seqEnded_ = true;
+        }
+       
         notifyAll();
-        return seqRow_ != END_ROWS;
+        return ! seqEnded_;
     }
 
     public synchronized Object[] getRow() {
@@ -174,5 +164,4 @@ public class StreamRowStore implements TableSink, RowSequence {
     public synchronized void close() {
         seqClosed_ = true;
     }
-
 }
