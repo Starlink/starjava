@@ -20,10 +20,10 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.StreamRowStore;
 import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
@@ -397,12 +397,12 @@ public class VotCopyHandler
     private class StreamTableHandler implements TableHandler {
 
         private Thread streamThread_;
-        private StreamRowStore streamStore_;
+        private OnceRowPipe streamStore_;
         private IOException error_;
 
         public void startTable( final StarTable meta ) throws SAXException {
             assert streamThread_ == null;
-            streamStore_ = new StreamRowStore();
+            streamStore_ = new OnceRowPipe();
             streamThread_ = new Thread( "Table Streamer" ) {
                 public void run() {
                     try {

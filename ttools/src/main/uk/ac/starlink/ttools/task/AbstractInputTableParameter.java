@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.task;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -15,7 +16,6 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.table.StreamRowStore;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.util.DataSource;
 
@@ -145,7 +145,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
         }
         final TableBuilder tbuilder = tfact.getTableBuilder( inFmt );
         assert tbuilder != null;
-        final StreamRowStore streamStore = new StreamRowStore( 1024 );
+        final OnceRowPipe streamStore = new OnceRowPipe( 1024 );
         Thread streamer = new Thread( "Table Streamer" ) {
             public void run() {
                 try {
