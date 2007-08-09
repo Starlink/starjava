@@ -465,6 +465,9 @@ the end of the transition name - it makes the display nicer.
     <transition name="28 3 25  - 28 3 26 " frequency="336140.0951"/>
     <transition name="5 1 5  - 4 1 4 " frequency="351768.6577"/>
     <transition name="5 0 5  - 4 0 4 " frequency="362736.0480"/>
+    <transition name="5 2 3  - 4 2 3 " frequency="363945.8940"/>
+    <transition name="5 3 3  - 4 3 2 " frequency="364275.1410"/>
+    <transition name="5 3 2  - 4 3 1 " frequency="364288.8840"/>
     <transition name="12 1 11  - 12 1 12 " frequency="372986.3487"/>
     <transition name="5 1 4  - 4 1 3 " frequency="375893.2314"/>
     <transition name="20 2 18  - 20 2 19 " frequency="383592.196"/>
@@ -1134,5 +1137,14 @@ the end of the transition name - it makes the display nicer.
   </species>
   <species name = "N2D+">
     <transition name="3  - 2 " frequency="231321.6650"/>
+  </species>
+  
+  <species name = "SO2">
+	  <transition name="15 4 12  - 15 3 13 " frequency="357241.1900"/>
+	  <transition name="11 4 8  - 11 3 9 " frequency="357387.5700"/>
+	  <transition name="8 4 4  - 8 3 5 " frequency="357581.4483"/>
+	  <transition name="9 4 6  - 9 3 7 " frequency="357671.7800"/>
+	  <transition name="7 4 4  - 7 3 5 " frequency="357892.4420"/>
+	  <transition name="6 4 2  - 6 3 3 " frequency="357925.9600"/>
   </species>
 </LineCatalog>
