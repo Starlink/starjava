@@ -107,6 +107,15 @@ class StarResultSet {
     }
 
     /**
+     * Returns the result set on which this table is based.
+     *
+     * @return  result set
+     */
+    public ResultSet getResultSet() {
+        return rset_;
+    }
+
+    /**
      * Returns the array of column metadata objects corresponding to the
      * columns in this result set.
      *

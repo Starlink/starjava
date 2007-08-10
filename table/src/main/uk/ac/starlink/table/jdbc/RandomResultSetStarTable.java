@@ -47,6 +47,15 @@ public class RandomResultSetStarTable extends RandomStarTable {
         srset_ = srset;
     }
 
+    /**
+     * Returns the result set on which this table is built.
+     *
+     * @return  result set
+     */
+    public ResultSet getResultSet() {
+        return srset_.getResultSet();
+    }
+
     public int getColumnCount() {
         return srset_.getColumnInfos().length;
     }
