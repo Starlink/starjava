@@ -171,9 +171,15 @@ public class PlotConfiguration
         // an axis).
         AbstractPlotControlsModel.setListening( false );
 
-        // In this mode we never tickAll so switch that off.
+        // In this mode we need to tickAll on the second pass to get
+        // ticks on the right-hand.
         boolean tickAll = astTicks.getTickAll();
-        astTicks.setTickAll( false );
+        if ( passone ) {
+            astTicks.setTickAll( false );
+        } 
+        else {
+            astTicks.setTickAll( true );
+        }
 
         //  Gather state of things we might change.
         boolean titleShown = astTitle.getShown();
