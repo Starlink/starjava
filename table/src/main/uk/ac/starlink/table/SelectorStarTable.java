@@ -29,7 +29,8 @@ public abstract class SelectorStarTable extends WrapperStarTable {
      * @param  baseSeq  row sequence of the base table
      * @return  true iff the current row of <tt>baseSeq</tt> is to be included
      */
-    public abstract boolean isIncluded( RowSequence baseSeq );
+    public abstract boolean isIncluded( RowSequence baseSeq )
+            throws IOException;
 
     /**
      * Returns false.
