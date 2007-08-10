@@ -383,7 +383,7 @@ public class JACSynopsisFigure
         double inc;
         if ( specAxis instanceof SpecFrame && ! "".equals( prop ) ) {
             inc = specData.channelSpacing( "System=FREQ,Unit=MHz" );
-            b.append( "Channel spacing: " + inc + " (Mhz)\n" );
+            b.append( "Channel spacing: " + inc + " (MHz)\n" );
         }
         else {
             inc = specData.channelSpacing( "" );
