@@ -94,6 +94,9 @@ public class OnceRowPipe implements RowPipe, RowSequence {
 
     public synchronized void endRows() {
         rowQueue_.addLast( END_ROWS );
+        if ( table_ == null ) {
+            setError( new IOException( "No data in table" ) );
+        }
         notifyAll();
     }
 
@@ -112,7 +115,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
      */
     public synchronized StarTable waitForStarTable() throws IOException {
         try {
-            while ( table_ == null && error_ == null) {
+            while ( table_ == null && error_ == null ) {
                 wait();
             }
         }
