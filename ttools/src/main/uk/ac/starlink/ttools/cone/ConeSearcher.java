@@ -14,9 +14,6 @@ public interface ConeSearcher {
     /**
      * Returns a table consisting of all the objects within a given search
      * radius of a specified point on the sky.
-     * The position given should preferably be in the ICRS coordinate
-     * system, but it may be that certain services are unable to supply this
-     * in which case we have to have what there is.
      * For every non-empty table returned, the columns should be the same.
      *
      * @param  ra  right ascension in degrees of search region centre

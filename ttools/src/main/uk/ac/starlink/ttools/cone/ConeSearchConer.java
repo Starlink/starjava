@@ -57,6 +57,10 @@ public class ConeSearchConer implements Coner {
         } );
     }
 
+    public String getSkySystem() {
+        return "ICRS";
+    }
+
     public Parameter[] getParameters() {
         return new Parameter[] {
             urlParam_,

@@ -65,13 +65,25 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         super( purpose, new ChoiceMode(), true, true );
         coner_ = coner;
         List paramList = new ArrayList();
+        String system = coner.getSkySystem();
+        String sysParen;
+        String inSys;
+        if ( system == null || system.length() == 0 ) {
+            sysParen = "";
+            inSys = "";
+        }
+        else {
+            sysParen = " (" + system + ")";
+            inSys = " in the " + system + " coordinate system";
+        }
     
         raParam_ = new Parameter( "ra" );
         raParam_.setUsage( "<expr>" );
-        raParam_.setPrompt( "Right Ascension expression in degrees (J2000)" );
+        raParam_.setPrompt( "Right Ascension expression in degrees"
+                          + sysParen );
         raParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the right ascension in degrees",
-            "in the J2000 coordinate system",
+            "<p>Expression which evaluates to the right ascension in degrees"
+            + inSys,
             "for the request at each row of the input table.",
             "This will usually be the name or ID of a column in the",
             "input table, or a function involving one.",
@@ -81,10 +93,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         decParam_ = new Parameter( "dec" );
         decParam_.setUsage( "<expr>" );
-        decParam_.setPrompt( "Declination expression in degrees (J2000)" );
+        decParam_.setPrompt( "Declination expression in degrees"
+                           + sysParen );
         decParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the declination in degrees",
-            "in the J2000 coordinate system",
+            "<p>Expression which evaluates to the declination in degrees"
+            + inSys,
             "for the request at each row of the input table.",
             "This will usually be the name or ID of a column in the",
             "input table, or a function involving one.",
@@ -278,6 +291,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             boolean started = false;
 
             /* Loop over rows of the input table. */
+            int irow = 0;
             while ( jelReader_.next() ) {
 
                 /* Perform the cone search for this row. */
@@ -320,7 +334,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                 }
 
                 /* Log number of rows successfully appended. */
-                logger_.info( "Got " + nr
+                logger_.info( "Row " + irow++ + ": got " + nr
                             + ( ( nr == 1 ) ? " row" : " rows" ) );
             }
         }
@@ -422,6 +436,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                 throws IOException {
 
             /* Perform the cone search itself. */
+            logger_.info( "Cone: ra=" + ra0 + "; dec=" + dec0 + "; sr=" + sr );
             StarTable result = coneSearcher_.performSearch( ra0, dec0, sr );
 
             /* Work out the columns which represent RA and Dec in the result. */
