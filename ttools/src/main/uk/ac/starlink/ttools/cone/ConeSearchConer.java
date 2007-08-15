@@ -57,6 +57,10 @@ public class ConeSearchConer implements Coner {
         } );
     }
 
+    /**
+     * Returns "ICRS", which is the system defined to be used by the
+     * Cone Search specification.
+     */
     public String getSkySystem() {
         return "ICRS";
     }
