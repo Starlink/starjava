@@ -13,6 +13,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.task.ConnectionParameter;
 
@@ -44,15 +45,9 @@ public class JdbcConer implements Coner {
                               : ( sys + " " );
 
         connParam_ = new ConnectionParameter( "db" );
-        connParam_.setPrompt( "JDBC-type URL for database connection" );
-        connParam_.setDescription( new String[] {
-            "<p>URL which defines the connection to the database.",
-            "The format of this is database- and driver-dependent, but may",
-            "look something like <code>jdbc:mysql://localhost/dbname</code>.",
-            "</p>",
-        } );
 
         dbtableParam_ = new Parameter( "dbtable" );
+        dbtableParam_.setUsage( "<table-name>" );
         dbtableParam_.setPrompt( "Name of table in database" );
         dbtableParam_.setDescription( new String[] {
             "<p>The name of the table in the SQL database which provides",
@@ -61,6 +56,7 @@ public class JdbcConer implements Coner {
         } );
 
         dbraParam_ = new Parameter( "dbra" );
+        dbraParam_.setUsage( "<sql-col>" );
         dbraParam_.setPrompt( "Name of right ascension column in database" );
         dbraParam_.setDescription( new String[] {
             "<p>The name of a column in the SQL database table",
@@ -70,6 +66,7 @@ public class JdbcConer implements Coner {
         } );
 
         dbdecParam_ = new Parameter( "dbdec" );
+        dbdecParam_.setUsage( "<sql-col>" );
         dbdecParam_.setPrompt( "Name of declination column in database" );
         dbdecParam_.setDescription( new String[] {
             "<p>The name of a column in the SQL database table",
@@ -79,6 +76,7 @@ public class JdbcConer implements Coner {
         } );
 
         colsParam_ = new Parameter( "selectcols" );
+        colsParam_.setUsage( "<sql-cols>" );
         colsParam_.setPrompt( "Database columns to select" );
         colsParam_.setDescription( new String[] {
             "<p>An SQL expression for the list of columns to be selected",
@@ -89,12 +87,15 @@ public class JdbcConer implements Coner {
         colsParam_.setDefault( "*" );
 
         whereParam_ = new Parameter( "where" );
+        whereParam_.setUsage( "<sql-condition>" );
         whereParam_.setPrompt( "Additional WHERE restriction on selection" );
         whereParam_.setNullPermitted( true );
         whereParam_.setDescription( new String[] {
             "<p>An SQL expression further limiting the rows to be selected",
             "from the database.  This will be combined with the constraints",
             "on position implied by the cone search centres and radii.",
+            "The value of this parameter should just be a condition,",
+            "it should not contain the <code>WHERE</code> keyword.",
             "A null value indicates no additional criteria.",
             "</p>",
         } );
@@ -128,6 +129,12 @@ public class JdbcConer implements Coner {
         String decCol = dbdecParam_.stringValue( env );
         String cols = colsParam_.stringValue( env );
         String where = whereParam_.stringValue( env );
+        if ( where != null &&
+             where.toLowerCase().trim().startsWith( "where" ) ) {
+            String msg = "Omit <code>WHERE</code> keyword from "
+                       + "<code>" + whereParam_.getName() + "</code> parameter";
+            throw new ParameterValueException( whereParam_, msg );
+        }
         return new JdbcSearcher( connection, table, raCol, decCol,
                                  cols, where, bestOnly );
     }
