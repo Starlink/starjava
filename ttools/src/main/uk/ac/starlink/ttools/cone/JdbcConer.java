@@ -16,6 +16,13 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.task.ConnectionParameter;
 
+/**
+ * Coner implementation which works by performing SELECT statements over a
+ * JDBC database connection.
+ *
+ * @author   Mark Taylor
+ * @since    15 Aug 2007
+ */
 public class JdbcConer implements Coner {
 
     private final ConnectionParameter connParam_;
@@ -28,7 +35,14 @@ public class JdbcConer implements Coner {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
+    /**
+     * Constructor.
+     */
     public JdbcConer() {
+        String sys = getSkySystem();
+        sys = ( sys == null ) ? ""
+                              : ( sys + " " );
+
         connParam_ = new ConnectionParameter( "db" );
         connParam_.setPrompt( "JDBC-type URL for database connection" );
         connParam_.setDescription( new String[] {
@@ -51,7 +65,7 @@ public class JdbcConer implements Coner {
         dbraParam_.setDescription( new String[] {
             "<p>The name of a column in the SQL database table",
             "<code>" + dbtableParam_.getName() + "</code>",
-            "which gives the J2000 right ascension in degrees.",
+            "which gives the " + sys + "right ascension in degrees.",
             "</p>",
         } );
 
@@ -60,7 +74,7 @@ public class JdbcConer implements Coner {
         dbdecParam_.setDescription( new String[] {
             "<p>The name of a column in the SQL database table",
             "<code>" + dbtableParam_.getName() + "</code>",
-            "which gives the J2000 declination in degrees.",
+            "which gives the " + sys + "declination in degrees.",
             "</p>",
         } );
 
@@ -84,6 +98,14 @@ public class JdbcConer implements Coner {
             "A null value indicates no additional criteria.",
             "</p>",
         } );
+    }
+
+    /**
+     * Returns the empty string.  No particular coordinate system is
+     * mandated by this object.
+     */
+    public String getSkySystem() {
+        return "";
     }
 
     public Parameter[] getParameters() {
@@ -110,20 +132,39 @@ public class JdbcConer implements Coner {
                                  cols, where, bestOnly );
     }
 
+    /**
+     * ConeSearcher implementation using SQL.
+     */
     private static class JdbcSearcher implements ConeSearcher {
 
-        private final PreparedStatement stmt_;
         private final String raCol_;
         private final String decCol_;
+        private PreparedStatement middleStatement_;
+        private PreparedStatement equinoxStatement_;
 
+        /**
+         * Constructor.
+         *
+         * @param  connection   live connection to database
+         * @param  tableName  name of a table in the database to search
+         * @param  raCol  name of table column containing right ascension
+         *                in degrees
+         * @param  decCol name of table column containing declination
+         *                in degrees
+         * @param  cols   list of column names for the SELECT statement
+         * @param  where  additional WHERE clause constraints
+         * @param  bestOnly  true iff only the closest match is required (hint)
+         */
         JdbcSearcher( Connection connection, String tableName,
                       String raCol, String decCol,
                       String cols, String where, boolean bestOnly )
                 throws TaskException {
             raCol_ = raCol;
             decCol_ = decCol;
-            StringBuffer sbuf = new StringBuffer();
-            sbuf.append( "SELECT" )
+
+            /* Write the common parts of the SQL SELECT statement. */
+            String preRa = new StringBuffer() 
+                .append( "SELECT" )
                 .append( ' ' )
                 .append( cols )
                 .append( ' ' )
@@ -133,18 +174,37 @@ public class JdbcConer implements Coner {
                 .append( ' ' )
                 .append( "WHERE" )
                 .append( ' ' )
-                .append( "( " + raCol + " - ? < ? )" )   // ra, maxDeltaRa
+                .append( "( " )
+                .toString();
+            StringBuffer postRaBuf = new StringBuffer()
+                .append( " )" )
                 .append( " AND " )
-                .append( "( ? - " + raCol + " < ? )" )   // ra, maxDeltaRa
-                .append( " AND " )
-                .append( "( " + decCol + " - ? < ? )" )  // dec, sr
-                .append( " AND " )
-                .append( "( ? - " + decCol + " < ? )" )  // dec, sr
+                .append( "( " + decCol + " BETWEEN ? AND ? )" ) // minDec,maxDec
                 ;
-            String sql = sbuf.toString();
-            logger_.info( sql );
+            if ( where != null && where.trim().length() > 0 ) {
+                postRaBuf.append( " AND " )
+                         .append( "( " + where + " )" );
+            }
+            String postRa = postRaBuf.toString();
+
+            /* Prepare two different variants of the SELECT statement. 
+             * In most cases a simple BETWEEN will work fine for 
+             * filtering on right ascension.  However, in the case that
+             * the region straddles the vernal equinox (RA=0/RA=360 line)
+             * we need to exclude the range between the values instead. */
+            String middleSelectSql =
+                preRa + raCol + " BETWEEN ? AND ?" + postRa;
+            String equinoxSelectSql =
+                preRa + raCol + " < ? OR " + raCol + " > ?" + postRa;
+
+            /* Pre-compile the SQL for later use. */
             try {
-                stmt_ = connection.prepareStatement( sql );
+                logger_.info( middleSelectSql );
+                middleStatement_ =
+                    connection.prepareStatement( middleSelectSql );
+                logger_.info( equinoxSelectSql );
+                equinoxStatement_ =
+                    connection.prepareStatement( equinoxSelectSql );
             }
             catch ( SQLException e ) {
                 throw new TaskException( "Error preparing SQL statement: "
@@ -154,27 +214,45 @@ public class JdbcConer implements Coner {
 
         public StarTable performSearch( double ra, double dec, double sr )
                 throws IOException {
-            double maxDeltaRa;
-            double maxDec = Math.max( Math.abs( dec + sr ),
-                                      Math.abs( dec - sr ) );
-  // is this geometry correct?  I'm mostly just guessing.
-  // it doesn't cover RA wraparound for sure.
-            if ( maxDec >= Math.PI / 2 ) {
-                maxDeltaRa = 360;
+
+            /* Work out the bounds of a rectangular RA, Dec box within which
+             * any records in the requested cone must fall.  Note that this
+             * is a superset of the desired result (it makes the SELECT
+             * statement much simpler and, more importantly, optimisable) -
+             * that is permitted by the performSearch contract. */
+            /* I'm almost sure that the spherical geometry is correct here. */
+            double minDec = Math.max( dec - sr, -90 );
+            double maxDec = Math.min( dec + sr, +90 );
+            double cosDec =
+                Math.cos( Math.toRadians( Math.max( Math.abs( minDec ),
+                                                    Math.abs( maxDec ) ) ) );
+            double deltaRa = sr / cosDec;
+            double minRa = ra - deltaRa;
+            double maxRa = ra + deltaRa;
+
+            /* Configure a precompiled statement accordingly.  Note that
+             * this will be done differently according to whether the
+             * RA range straddles the vernal equinox (RA=0 line) or not. */
+            PreparedStatement stmt;
+            if ( minRa > 0 && maxRa < 360 ) {
+                stmt = middleStatement_;
+                logger_.info( "ra BETWEEN " + minRa + " AND " + maxRa );
             }
             else {
-                maxDeltaRa = sr / Math.cos( maxDec );
+                stmt = equinoxStatement_;
+                double min = maxRa % 360.;
+                double max = ( minRa + 360 ) % 360.;
+                minRa = min;
+                maxRa = max;
+                logger_.info( "ra NOT BETWEEN " + minRa + " AND " + maxRa );
             }
+            logger_.info( "dec BETWEEN " + minDec + " AND " + maxDec );
             try {
-                stmt_.clearParameters();
-                stmt_.setDouble( 1, ra );
-                stmt_.setDouble( 2, maxDeltaRa );
-                stmt_.setDouble( 3, ra );
-                stmt_.setDouble( 4, maxDeltaRa );
-                stmt_.setDouble( 5, dec );
-                stmt_.setDouble( 6, sr );
-                stmt_.setDouble( 7, dec );
-                stmt_.setDouble( 8, sr );
+                stmt.clearParameters();
+                stmt.setDouble( 1, minRa );
+                stmt.setDouble( 2, maxRa );
+                stmt.setDouble( 3, minDec );
+                stmt.setDouble( 4, maxDec );
             }
             catch ( SQLException e ) {
                 throw (IOException)
@@ -182,9 +260,11 @@ public class JdbcConer implements Coner {
                                      + e.getMessage() )
                      .initCause( e );
             }
+
+            /* Execute the statement and turn it into a StarTable. */
             ResultSet rset;
             try {
-                rset = stmt_.executeQuery();
+                rset = stmt.executeQuery();
             }
             catch ( SQLException e ) {
                 throw (IOException)
@@ -207,7 +287,7 @@ public class JdbcConer implements Coner {
             try {
                 return ((SequentialResultSetStarTable) result)
                       .getResultSet()
-                      .findColumn( raCol_ );
+                      .findColumn( raCol_ ) - 1;
             }
             catch ( SQLException e ) {
                 return -1;
@@ -218,7 +298,7 @@ public class JdbcConer implements Coner {
             try {
                 return ((SequentialResultSetStarTable) result)
                       .getResultSet()
-                      .findColumn( decCol_ );
+                      .findColumn( decCol_ ) - 1;
             }
             catch ( SQLException e ) {
                 return -1;
