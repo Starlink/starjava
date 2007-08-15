@@ -2,6 +2,8 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import uk.ac.starlink.table.StarTable;
@@ -16,6 +18,8 @@ import uk.ac.starlink.ttools.TableConsumer;
  * Environment which allows use of ttools tasks from an in-memory context.
  * Input StarTables can be set as values of parameters and output ones
  * can be extracted.
+ *
+ * @author   Mark Taylor
  */
 public class MapEnvironment implements TableEnvironment {
 
@@ -121,7 +125,7 @@ public class MapEnvironment implements TableEnvironment {
      * an output table which has not been otherwise disposed of, you
      * can get it from here.
      *
-     * @param  name of a TableConsumerParameter
+     * @param  paramName   name of a TableConsumerParameter
      * @return   output table stored under <code>name</code>
      */
     public StarTable getOutputTable( String paramName ) {
@@ -153,6 +157,16 @@ public class MapEnvironment implements TableEnvironment {
                   value instanceof StarTable ) {
             ((InputTableParameter) param)
                                   .setValueFromTable( (StarTable) value );
+        }
+        else if ( param instanceof ConnectionParameter &&
+                  value instanceof Connection ) {
+            try {
+                ((ConnectionParameter) param)
+               .setValueFromConnection( (Connection) value );
+            }
+            catch ( SQLException e ) {
+                throw new TaskException( e.getMessage(), e );
+            }
         }
         else if ( param instanceof InputTablesParameter &&
                   value instanceof StarTable[] ) {
