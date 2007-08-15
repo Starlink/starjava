@@ -29,6 +29,7 @@ public class ParameterTest extends TestCase {
         "serviceurl", "ra", "dec", "sr",
         "query",
         "cache", "href",
+        "db", "dbtable", "dbra", "dbdec",
     } ) );
 
     public ParameterTest( String name ) {

@@ -20,6 +20,18 @@ public interface Coner {
     Parameter[] getParameters();
 
     /**
+     * Returns the name of the coordinate system used by this Coner.
+     * Spatial matching is done using Right Ascension and Declination
+     * in degrees but the exact coordinate system is up to this object.
+     * This method should return a string such as "ICRS" which specifies
+     * the ecliptic system in use.  It may return the empty string if
+     * no assumption is made.
+     *
+     * @return  ecliptic coordinate system name
+     */
+    String getSkySystem();
+
+    /**
      * Returns a searcher object which can perform the actual cone searches
      * as configured by this object's parameters.
      * If the <code>bestOnly</code> flag is set, then only the best match
