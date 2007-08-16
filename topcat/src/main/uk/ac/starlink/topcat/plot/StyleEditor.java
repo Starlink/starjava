@@ -7,6 +7,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,6 +35,7 @@ public abstract class StyleEditor extends JPanel
 
     private final JLabel legendLabel_;
     private final JTextField labelField_;
+    private final JCheckBox labelHider_;
     private final ActionForwarder actionForwarder_;
     private boolean initialised_;
     private SetId setId_;
@@ -52,12 +54,16 @@ public abstract class StyleEditor extends JPanel
         legendLabel_ = new JLabel();
         labelField_ = new JTextField();
         labelField_.addActionListener( this );
+        labelHider_ = new JCheckBox( "Hide Legend" );
+        labelHider_.addActionListener( this );
         JComponent legendBox = Box.createHorizontalBox();
         legendBox.add( new JLabel( "Icon: " ) );
         legendBox.add( legendLabel_ );
         legendBox.add( Box.createHorizontalStrut( 10 ) );
         legendBox.add( new JLabel( "Label: " ) );
         legendBox.add( labelField_ );
+        legendBox.add( Box.createHorizontalStrut( 10 ) );
+        legendBox.add( labelHider_ );
         legendBox.add( Box.createHorizontalGlue() );
         legendBox.setBorder( AuxWindow.makeTitledBorder( "Legend" ) );
         add( legendBox );
@@ -123,7 +129,8 @@ public abstract class StyleEditor extends JPanel
      * @return   label
      */
     public String getLabel() {
-        return labelField_.getText();
+        return labelHider_.isSelected() ? ""
+                                        : labelField_.getText();
     }
 
     /**
@@ -198,6 +205,7 @@ public abstract class StyleEditor extends JPanel
      */
     protected void refreshState() {
         legendLabel_.setIcon( getLegendIcon() );
+        labelField_.setEnabled( ! labelHider_.isSelected() );
         repaint();
     }
 
