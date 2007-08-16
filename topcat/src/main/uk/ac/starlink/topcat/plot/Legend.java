@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -23,7 +24,6 @@ public class Legend extends JComponent {
     private int lineHeight_;
     private int prefWidth_;
     private int prefHeight_;
-    private boolean active_;
 
     private final static int IL_PAD = 8;
 
@@ -70,7 +70,11 @@ public class Legend extends JComponent {
         int sxmax = 0;
         int height = 0;
         int width = 0;
-        FontMetrics fm = getFontMetrics( getFont() );
+        Font font = getFont();
+        if ( font == null ) {
+            return;
+        }
+        FontMetrics fm = getFontMetrics( font );
         lineHeight_ = (int) ( 1.2 * Math.max( fm.getHeight(), iymax ) );
         ErrorMode[] errorModes = getErrorModes();
         for ( int is = 0; is < nstyle; is++ ) {
@@ -99,14 +103,14 @@ public class Legend extends JComponent {
     }
 
     /**
-     * Determines whether this component will have non-zero size and 
-     * visible display.  The default state is inactive until the first
-     * time that more than one legend item is requested.
-     *
-     * @param   active  active flag
+     * Resets the width to the minimum necessary for this component.
+     * Otherwise, the width is so arranged that it never shrinks, only grows
+     * as longer legend text elements are added - that behaviour reduces
+     * ugly resizing in TOPCAT.
      */
-    public void setActive( boolean active ) {
-        active_ = active;
+    public void resetWidth() {
+        prefWidth_ = 0;
+        setStyles( styles_, labels_ );
     }
 
     protected void paintComponent( Graphics g ) {
@@ -123,25 +127,22 @@ public class Legend extends JComponent {
         int nstyle = labels_.length;
         Insets insets = getInsets();
         FontMetrics fm = g.getFontMetrics();
-        if ( active_ ) {
-            ErrorMode[] errorModes = getErrorModes();
-            int xoff = insets.left;
-            int ys = lineHeight_ / 2 + fm.getHeight() / 2;
-            int xs = xoff + iconWidth_ + IL_PAD;
-            for ( int is = 0; is < nstyle; is++ ) {
-                int yoff = insets.top + lineHeight_ * is;
-                Icon icon = getIcon( styles_[ is ], errorModes );
-                int yi = yoff + ( lineHeight_ - icon.getIconHeight() ) / 2;
-                int xi = xoff + ( iconWidth_ - icon.getIconWidth() ) / 2;
-                icon.paintIcon( this, g, xi, yi );
-                g.drawString( labels_[ is ], xs, ys + yoff );
-            }
+        ErrorMode[] errorModes = getErrorModes();
+        int xoff = insets.left;
+        int ys = lineHeight_ / 2 + fm.getHeight() / 2;
+        int xs = xoff + iconWidth_ + IL_PAD;
+        for ( int is = 0; is < nstyle; is++ ) {
+            int yoff = insets.top + lineHeight_ * is;
+            Icon icon = getIcon( styles_[ is ], errorModes );
+            int yi = yoff + ( lineHeight_ - icon.getIconHeight() ) / 2;
+            int xi = xoff + ( iconWidth_ - icon.getIconWidth() ) / 2;
+            icon.paintIcon( this, g, xi, yi );
+            g.drawString( labels_[ is ], xs, ys + yoff );
         }
     }
 
     public Dimension getPreferredSize() {
-        return active_ ? new Dimension( prefWidth_, prefHeight_ )
-                       : new Dimension( 0, 0 );
+        return new Dimension( prefWidth_, prefHeight_ );
     }
 
     public Dimension getMaximumSize() {
