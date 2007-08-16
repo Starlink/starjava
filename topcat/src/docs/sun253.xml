@@ -10718,6 +10718,15 @@ introduced since the last version:
     </ul>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Added <label>Show Legend</label> (&IMG.LEGEND;) toggle button to
+        plot windows.</li>
+    <li>Legend items with no associated label are not now displayed.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
