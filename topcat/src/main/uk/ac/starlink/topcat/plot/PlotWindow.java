@@ -164,6 +164,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( getRescaleAction() );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
+        plotMenu.add( getLegendModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -212,6 +213,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                       .createOnOffToolbarButton() );
         getToolBar().add( getRescaleAction() );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( blobAction_ );
         getToolBar().add( fromVisibleAction_ );
         getToolBar().addSeparator();

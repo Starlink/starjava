@@ -209,6 +209,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         plotMenu.add( northModel_.createMenuItem() );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
+        plotMenu.add( getLegendModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -233,6 +234,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         getToolBar().add( reorientAction );
         getToolBar().add( northModel_.createToolbarButton() );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( blobAction_ );
         if ( plot_.canZoom() ) {

@@ -186,6 +186,7 @@ public class HistogramWindow extends GraphicsWindow {
         plotMenu.add( rescaleActionY );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
+        plotMenu.add( getLegendModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -240,6 +241,7 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
         getToolBar().add( fromVisibleAction );

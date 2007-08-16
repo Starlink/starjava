@@ -325,6 +325,7 @@ public class DensityWindow extends GraphicsWindow {
         plotMenu.add( weightModel_.createMenuItem() );
         plotMenu.add( getRescaleAction() );
         plotMenu.add( getAxisEditAction() );
+        plotMenu.add( getLegendModel().createMenuItem() );
         plotMenu.add( getReplotAction() );
         getJMenuBar().add( plotMenu );
 
@@ -376,6 +377,7 @@ public class DensityWindow extends GraphicsWindow {
         getToolBar().add( getRescaleAction() );
         getToolBar().add( zLogModel_.createToolbarButton() );
         getToolBar().add( rgbModel_.createToolbarButton() );
+        getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( pixIncAction_ );
         getToolBar().add( pixDecAction_ );
         getToolBar().add( blobAction_ );
@@ -504,11 +506,9 @@ public class DensityWindow extends GraphicsWindow {
         };
     }
 
-    protected void configureLegends( PlotState state ) {
-        super.configureLegends( state );
-        if ( ! rgbModel_.isSelected() ) {
-            getLegendModel().setSelected( false );
-        }
+    protected boolean isLegendInteresting( PlotState state ) {
+        return super.isLegendInteresting( state )
+            && ((DensityPlotState) state).getRgb();
     }
 
     /**

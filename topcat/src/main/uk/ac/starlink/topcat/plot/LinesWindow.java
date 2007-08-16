@@ -222,6 +222,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         plotMenu.add( rescaleActionY );
         plotMenu.add( getAxisEditAction() );
         plotMenu.add( getGridModel().createMenuItem() );
+        plotMenu.add( getLegendModel().createMenuItem() );
         plotMenu.add( zeroLineModel_.createMenuItem() );
         plotMenu.add( getReplotAction() );
         plotMenu.add( vlineModel_.createMenuItem() );
@@ -274,6 +275,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getToolBar().add( rescaleActionX );
         getToolBar().add( rescaleActionY );
         getToolBar().add( getGridModel().createToolbarButton() );
+        getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( zeroLineModel_.createToolbarButton() );
         getToolBar().add( vlineModel_.createToolbarButton() );
         getToolBar().add( antialiasModel_.createToolbarButton() );
@@ -557,14 +559,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         return bounds == null ? getMainArea().getBounds() : bounds;
     }
 
-    protected void configureLegends( PlotState state ) {
-
-        /* Work out original state of legend visibility. */
-        ToggleButtonModel legendModel = getLegendModel();
-        boolean isVis = legendModel.isSelected();
-
-        /* Call superclass implementation. */
-        super.configureLegends( state );
+    protected boolean isLegendInteresting( PlotState state ) {
 
         /* Determine whether any of the plotted graphs contain more than one
          * dataset. */
@@ -580,10 +575,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 pselSet.add( psel );
             }
         }
-
-        /* Set legend visibility on only if it was on already or if there
-         * are multiple datasets for any of the graphs. */
-        legendModel.setSelected( isVis || hasMultiples );
+        return hasMultiples;
     }
 
     /*
