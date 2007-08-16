@@ -1461,8 +1461,21 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @return  true iff the legend would show non-trivial information
      */
     protected boolean isLegendInteresting( PlotState state ) {
+
+        /* If there is more than one labelled subset for display, the legend
+         * conveys some useful information. */
         PointSelection psel = state.getPointSelection();
-        return psel != null && psel.getStyles().length > 1;
+        int nLabel = 0;
+        if ( psel != null ) {
+            RowSubset[] rsets = psel.getSubsets();
+            for ( int is = 0; is < rsets.length; is++ ) {
+                String label = rsets[ is ].getName();
+                if ( label != null && label.length() > 0 ) {
+                    nLabel++;
+                }
+            }
+        }
+        return nLabel > 1;
     }
 
     /**

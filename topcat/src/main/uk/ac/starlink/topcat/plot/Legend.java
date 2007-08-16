@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 
@@ -17,9 +19,8 @@ import javax.swing.JComponent;
  */
 public class Legend extends JComponent {
 
+    private LabelledStyle[] labelledStyles_;
     private ErrorModeSelectionModel[] errorModeModels_;
-    private Style[] styles_;
-    private String[] labels_;
     private int iconWidth_;
     private int lineHeight_;
     private int prefWidth_;
@@ -32,8 +33,7 @@ public class Legend extends JComponent {
      */
     public Legend() {
         setOpaque( false );
-        styles_ = new Style[ 0 ];
-        labels_ = new String[ 0 ];
+        labelledStyles_ = new LabelledStyle[ 0 ];
         errorModeModels_ = new ErrorModeSelectionModel[ 0 ];
     }
 
@@ -50,19 +50,39 @@ public class Legend extends JComponent {
     /**
      * Sets the plot styles and their associated text labels.
      * The two arrays must have the same length.
+     * Only styles with labels which are not blank will be shown.
      *
      * @param   styles   style array
      * @param   labels   label array
      */
     public void setStyles( Style[] styles, String[] labels ) {
 
-        /* Validate and store state. */
-        int nstyle = styles.length;
-        if ( labels.length != nstyle ) {
+        /* Validate and store state.  Any style with a blank associated
+         * label is ignored. */
+        if ( labels.length != styles.length ) {
             throw new IllegalArgumentException();
         }
-        labels_ = (String[]) labels.clone();
-        styles_ = (Style[]) styles.clone();
+        List lsList = new ArrayList();
+        for ( int i = 0; i < styles.length; i++ ) {
+            Style style = styles[ i ];
+            String label = labels[ i ];
+            if ( label != null && label.trim().length() > 0 ) {
+                lsList.add( new LabelledStyle( style, label ) );
+            }
+        }
+        setStyles( (LabelledStyle[]) lsList.toArray( new LabelledStyle[ 0 ] ) );
+    }
+
+    /**
+     * Sets the labelled plot styles.  
+     * No additional validation is performed; all elements of 
+     * <code>labelledStyles</code> will be displayed.
+     *
+     * @param  labelledStyles  labelled style object array for display
+     */
+    private void setStyles( LabelledStyle[] labelledStyles ) {
+        labelledStyles_ = (LabelledStyle[]) labelledStyles.clone();
+        int nstyle = labelledStyles.length;
 
         /* Calculate geometry. */
         int ixmax = 0;
@@ -78,10 +98,11 @@ public class Legend extends JComponent {
         lineHeight_ = (int) ( 1.2 * Math.max( fm.getHeight(), iymax ) );
         ErrorMode[] errorModes = getErrorModes();
         for ( int is = 0; is < nstyle; is++ ) {
-            Icon icon = getIcon( styles_[ is ], errorModes );
+            LabelledStyle ls = labelledStyles[ is ];
+            Icon icon = getIcon( ls.getStyle(), errorModes );
             ixmax = Math.max( ixmax, icon.getIconWidth() );
             iymax = Math.max( iymax, icon.getIconHeight() );
-            sxmax = Math.max( sxmax, fm.stringWidth( labels[ is ] ) + 1 );
+            sxmax = Math.max( sxmax, fm.stringWidth( ls.getLabel() ) + 1 );
             height += lineHeight_;
         }
         iconWidth_ = ixmax;
@@ -110,7 +131,7 @@ public class Legend extends JComponent {
      */
     public void resetWidth() {
         prefWidth_ = 0;
-        setStyles( styles_, labels_ );
+        setStyles( labelledStyles_ );
     }
 
     protected void paintComponent( Graphics g ) {
@@ -124,7 +145,7 @@ public class Legend extends JComponent {
         }
 
         /* Draw icons and labels. */
-        int nstyle = labels_.length;
+        int nstyle = labelledStyles_.length;
         Insets insets = getInsets();
         FontMetrics fm = g.getFontMetrics();
         ErrorMode[] errorModes = getErrorModes();
@@ -132,12 +153,13 @@ public class Legend extends JComponent {
         int ys = lineHeight_ / 2 + fm.getHeight() / 2;
         int xs = xoff + iconWidth_ + IL_PAD;
         for ( int is = 0; is < nstyle; is++ ) {
+            LabelledStyle ls = labelledStyles_[ is ];
             int yoff = insets.top + lineHeight_ * is;
-            Icon icon = getIcon( styles_[ is ], errorModes );
+            Icon icon = getIcon( ls.getStyle(), errorModes );
             int yi = yoff + ( lineHeight_ - icon.getIconHeight() ) / 2;
             int xi = xoff + ( iconWidth_ - icon.getIconWidth() ) / 2;
             icon.paintIcon( this, g, xi, yi );
-            g.drawString( labels_[ is ], xs, ys + yoff );
+            g.drawString( ls.getLabel(), xs, ys + yoff );
         }
     }
 
@@ -177,5 +199,43 @@ public class Legend extends JComponent {
             modes[ ierr ] = errorModeModels_[ ierr ].getMode();
         }
         return modes;
+    }
+
+    /**
+     * Struct-type utility class which aggregates a plot style and its
+     * associated label.
+     */
+    private static class LabelledStyle {
+        private final Style style_;
+        private final String label_;
+
+        /**
+         * Constructor.
+         *
+         * @param  style  plot style
+         * @param  label  style label
+         */
+        LabelledStyle( Style style, String label ) {
+            style_ = style;
+            label_ = label;
+        }
+
+        /**
+         * Returns the style.
+         *
+         * @return  style
+         */
+        Style getStyle() {
+            return style_;
+        }
+
+        /**
+         * Returns the label.
+         *
+         * @return  label
+         */
+        String getLabel() {
+            return label_;
+        }
     }
 }
