@@ -179,7 +179,7 @@ public class ResourceIcon implements Icon {
         BACKWARD = makeIcon( "Back24.gif" ),
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
         MANUAL = makeIcon( "book1.gif" ),
-        LEGEND = makeIcon( "legend2.gif" ),
+        LEGEND = makeIcon( "legend3.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
