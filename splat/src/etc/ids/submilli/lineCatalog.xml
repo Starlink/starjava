@@ -654,6 +654,7 @@ the end of the transition name - it makes the display nicer.
     <transition name="11 10  - 10 10 " frequency="336553.3459"/>
     <transition name="3 3  - 2 3 " frequency="339341.459"/>
     <transition name="8 7  - 7 6 " frequency="340714.155"/>
+    <transition name="8 8  - 7 7 " frequency="344310.6120"/>
     <transition name="4 4  - 3 4 " frequency="373344.2892"/>
     <transition name="12 11  - 11 11 " frequency="378064.6926"/>
     <transition name="9 8  - 8 7 " frequency="384527.0956"/>
