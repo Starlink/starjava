@@ -168,6 +168,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private PointsReader pointsReader_;
     private int nPlot_;
     private int nRead_;
+    private boolean legendEverVisible_;
 
     private static JFileChooser exportSaver_;
     private static final Logger logger_ =
@@ -309,10 +310,10 @@ public abstract class GraphicsWindow extends AuxWindow {
         legendModel_ =
             new ToggleButtonModel( "Show Legend", ResourceIcon.LEGEND,
                                    "Display legend at right of plot" );
-        legendModel_.setSelected( true );
         legendModel_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 boolean selected = legendModel_.isSelected();
+                legendEverVisible_ = legendEverVisible_ || selected;
                 boolean contained = Arrays.asList( legendBox_.getComponents() )
                                    .contains( legend_ );
                 if ( selected && ! contained ) {
@@ -359,7 +360,6 @@ public abstract class GraphicsWindow extends AuxWindow {
         plotArea_ = new JPanel( new BorderLayout() );
         plotArea_.setOpaque( false );
         legendBox_ = Box.createVerticalBox();
-        legendBox_.add( legend_ );
         plotArea_.add( legendBox_, BorderLayout.EAST );
 
         /* Set up a container for auxiliary axis legends. */
@@ -1404,7 +1404,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      *
      * @param  state  plot state
      */
-    protected void configureLegends( PlotState state ) {
+    private void configureLegends( PlotState state ) {
 
         /* Work out the space available above and below the actual plot
          * region within the plot component. */
@@ -1435,8 +1435,14 @@ public abstract class GraphicsWindow extends AuxWindow {
             }
             Style[] styles = psel.getStyles();
             legend_.setStyles( styles, labels );
-            if ( styles.length > 1 ) {
+
+            /* If the legend has never been seen before and is worth looking
+             * at, display it.  If it has ever been seen before then do 
+             * nothing, since either it is still visible, or it's hidden 
+             * at the user's explicit request. */
+            if ( ! legendEverVisible_ && isLegendInteresting( state ) ) {
                 legendModel_.setSelected( true );
+                assert legendEverVisible_;
             }
         }
 
@@ -1446,6 +1452,17 @@ public abstract class GraphicsWindow extends AuxWindow {
             auxLegends_[ i ].setLengthPadding( topgap, botgap );
             auxLegends_[ i ].configure( state, i );
         }
+    }
+
+    /**
+     * Indicates whether the legend is worth showing for a given plot state.
+     *
+     * @param   state  plot state
+     * @return  true iff the legend would show non-trivial information
+     */
+    protected boolean isLegendInteresting( PlotState state ) {
+        PointSelection psel = state.getPointSelection();
+        return psel != null && psel.getStyles().length > 1;
     }
 
     /**
