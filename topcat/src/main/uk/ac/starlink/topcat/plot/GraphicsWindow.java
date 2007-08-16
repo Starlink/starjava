@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
@@ -147,6 +148,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final AuxLegend[] auxLegends_;
     private final JToolBar pselToolbar_;
     private final JComponent extrasPanel_;
+    private final JComponent legendBox_;
     private final ToggleButtonModel legendModel_;
 
     private StyleSet styleSet_;
@@ -307,12 +309,29 @@ public abstract class GraphicsWindow extends AuxWindow {
         legendModel_ =
             new ToggleButtonModel( "Show Legend", ResourceIcon.LEGEND,
                                    "Display legend at right of plot" );
+        legendModel_.setSelected( true );
         legendModel_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                legend_.setActive( legendModel_.isSelected() );
+                boolean selected = legendModel_.isSelected();
+                boolean contained = Arrays.asList( legendBox_.getComponents() )
+                                   .contains( legend_ );
+                if ( selected && ! contained ) {
+                    legendBox_.add( legend_, 0 );
+                    legend_.resetWidth();
+                    plotArea_.revalidate();
+                    legend_.repaint();
+                }
+                else if ( ! selected && contained ) {
+                    legendBox_.remove( legend_ );
+                    plotArea_.revalidate();
+                    legend_.repaint();
+                }
+                else {
+                    assert selected == contained;
+                }
             }
         } );
-        legend_.setActive( legendModel_.isSelected() );
+        legendModel_.addActionListener( replotListener_ );
 
         /* Set up point selector component. */
         pointSelectors_ = new PointSelectorSet() {
@@ -339,9 +358,9 @@ public abstract class GraphicsWindow extends AuxWindow {
          * and the legend. */
         plotArea_ = new JPanel( new BorderLayout() );
         plotArea_.setOpaque( false );
-        JComponent legendBox = Box.createVerticalBox();
-        legendBox.add( legend_ );
-        plotArea_.add( legendBox, BorderLayout.EAST );
+        legendBox_ = Box.createVerticalBox();
+        legendBox_.add( legend_ );
+        plotArea_.add( legendBox_, BorderLayout.EAST );
 
         /* Set up a container for auxiliary axis legends. */
         auxLegends_ = new AuxLegend[ naux_ ];
@@ -371,7 +390,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 auxLegend.addMouseMotionListener( zoomer );
             }
             final JComponent auxLegendBox = Box.createHorizontalBox();
-            legendBox.add( auxLegendBox );
+            legendBox_.add( auxLegendBox );
             ChangeListener auxVisListener = new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
                     if ( ! auxVisibleModel_.getValueIsAdjusting() ) {
