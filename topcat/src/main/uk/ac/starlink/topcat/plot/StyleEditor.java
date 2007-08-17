@@ -41,6 +41,7 @@ public abstract class StyleEditor extends JPanel
     private SetId setId_;
     private Style initialStyle_;
     private String initialLabel_;
+    private boolean initialHideLegend_;
 
     /**
      * Constructor.
@@ -82,7 +83,7 @@ public abstract class StyleEditor extends JPanel
      * display of this component.
      */
     protected void init() {
-        setState( null, "" );
+        setState( null, "", false );
     }
 
     /**
@@ -91,11 +92,15 @@ public abstract class StyleEditor extends JPanel
      * @param   style  style 
      * @param   label  textual label to use in legends annotating the
      *          style being edited
+     * @param   hideLegend  whether this style is to be excluded from
+     *          plot legends
      */
-    public void setState( Style style, String label ) {
+    public void setState( Style style, String label, boolean hideLegend ) {
         initialStyle_ = style;
         initialLabel_ = label;
+        initialHideLegend_ = hideLegend;
         labelField_.setText( label );
+        labelHider_.setSelected( hideLegend );
         setStyle( style );
         refreshState();
     }
@@ -129,8 +134,16 @@ public abstract class StyleEditor extends JPanel
      * @return   label
      */
     public String getLabel() {
-        return labelHider_.isSelected() ? ""
-                                        : labelField_.getText();
+        return labelField_.getText();
+    }
+
+    /**
+     * Returns whether the Hide Legend check box is currently selected.
+     *
+     * @return   true iff legend will be hidden for this style
+     */
+    public boolean getHideLegend() {
+        return labelHider_.isSelected();
     }
 
     /**
@@ -158,7 +171,7 @@ public abstract class StyleEditor extends JPanel
      * Undoes any changes done since {@link #setState} was called.
      */
     public void cancelChanges() {
-        setState( initialStyle_, initialLabel_ );
+        setState( initialStyle_, initialLabel_, initialHideLegend_ );
     }
 
     /**

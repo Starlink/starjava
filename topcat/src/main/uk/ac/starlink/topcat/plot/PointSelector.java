@@ -64,7 +64,7 @@ public class PointSelector extends JPanel {
     private final OrderedSelectionRecorder subSelRecorder_;
     private final SelectionForwarder selectionForwarder_;
     private final List topcatListeners_;
-    private final Map subsetLabels_;
+    private final Map subsetFluffs_;
     private final TopcatListener tcListener_;
     private final TopcatListener weakTcListener_;
     private final ActionForwarder actionForwarder_;
@@ -83,9 +83,10 @@ public class PointSelector extends JPanel {
 
         /* Set up a map of labels for the subsets controlled by this selector.
          * Its keys are Integers (giving the subset index) and its values
-         * are label strings.  A default label is used for subsets with
+         * are SubsetFluff objects giving relevant information about the
+         * labelling of styles.  A default label is used for subsets with
          * no entry. */
-        subsetLabels_ = new HashMap();
+        subsetFluffs_ = new HashMap();
 
         /* Set up some listeners. */
         actionForwarder_ = new ActionForwarder();
@@ -456,10 +457,14 @@ public class PointSelector extends JPanel {
      * @param  isub  subset index
      * @param  style new style
      * @param  label new subset name
+     * @param  hidden  true iff the representation of this style is to be
+     *         excluded from plot legends
      */
-    private void resetStyle( int isub, Style style, String label ) {
+    private void resetStyle( int isub, Style style, String label,
+                             boolean hidden ) {
         styles_.setStyle( isub, style );
-        subsetLabels_.put( new Integer( isub ), label );
+        subsetFluffs_.put( new Integer( isub ),
+                           new SubsetFluff( label, hidden ) );
         annotator_.setStyleIcon( isub, style );
         actionForwarder_
             .actionPerformed( new ActionEvent( this, 0, "Style change" ) );
@@ -659,11 +664,13 @@ public class PointSelector extends JPanel {
         styler.setTarget( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 if ( annotator_ == annotator ) {
-                    resetStyle( index, editor.getStyle(), editor.getLabel() );
+                    resetStyle( index, editor.getStyle(), editor.getLabel(),
+                                editor.getHideLegend() );
                 }
             }
         } );
-        editor.setState( getStyle( index ), getSubsetLabel( index ) );
+        editor.setState( getStyle( index ), getSubsetLabel( index ),
+                         getSubsetHidden( index ) );
         editor.setSetId( new SetId( this, index ) );
         styler.show();
     }
@@ -675,8 +682,10 @@ public class PointSelector extends JPanel {
      * @param   isub  subset index
      * @return  subset label
      */
-    public String getSubsetLabel( int isub ) {
-        String label = (String) subsetLabels_.get( new Integer( isub ) );
+    private String getSubsetLabel( int isub ) {
+        SubsetFluff fluff =
+            (SubsetFluff) subsetFluffs_.get( new Integer( isub ) );
+        String label = fluff == null ? null : fluff.label_;
         if ( label == null ) {
             label = ((RowSubset) getTable().getSubsets().get( isub )).getName();
             if ( selectorLabel_ != null ) {
@@ -684,6 +693,33 @@ public class PointSelector extends JPanel {
             }
         }
         return label;
+    }
+
+    /**
+     * Returns the subset label to be used for annotating one of the subsets
+     * controlled by this selector in a plot legend.  If the return value
+     * is the empty string then the subset should be excluded from the legend.
+     *
+     * @param   isub  subset index
+     * @return  label, or null for hidden
+     */
+    public String getSubsetDisplayLabel( int isub ) {
+        return getSubsetHidden( isub )
+             ? ""
+             : getSubsetLabel( isub );
+    }
+
+    /**
+     * Indicates whether one of the subsets controlled by this selector
+     * should be excluded from the plot legend.
+     *
+     * @param   isub  subset index
+     * @return   true to hide the subset
+     */
+    private boolean getSubsetHidden( int isub ) {
+        SubsetFluff fluff =
+            (SubsetFluff) subsetFluffs_.get( new Integer( isub ) );
+        return fluff != null && fluff.hidden_;
     }
 
     /**
@@ -702,6 +738,27 @@ public class PointSelector extends JPanel {
             }
         }
         subSelModel_.setValueIsAdjusting( false );
+    }
+
+    /**
+     * Struct-type utility class which aggregates a subset name and a flag
+     * indicating whether it should be hidden from the plot legend.
+     */
+    private static class SubsetFluff {
+
+        final String label_;
+        final boolean hidden_;
+
+        /**
+         * Constructor.
+         *
+         * @param  label   subset label
+         * @param  hidden   true to hide label
+         */
+        SubsetFluff( String label, boolean hidden ) {
+            label_ = label;
+            hidden_ = hidden;
+        }
     }
 
     /**

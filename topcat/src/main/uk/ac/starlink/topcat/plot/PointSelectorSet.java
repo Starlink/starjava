@@ -187,7 +187,7 @@ public abstract class PointSelectorSet extends JPanel {
             int isel = subsetPointers[ iset ][ 0 ];
             int itset = subsetPointers[ iset ][ 1 ];
             PointSelector psel = activeSelectors[ isel ];
-            setLabels[ iset ] = psel.getSubsetLabel( itset );
+            setLabels[ iset ] = psel.getSubsetDisplayLabel( itset );
         }
 
         /* Construct and return a PointSelection object encapsulating
