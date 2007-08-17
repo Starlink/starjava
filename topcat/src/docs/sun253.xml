@@ -5967,6 +5967,12 @@ and if it's unchecked then zero is on a bin boundary.
 <dd><p>Toggles whether a grid is drawn over the plotting surface or not.
     </p></dd>
 
+<dt>&IMG.LEGEND; Show Legend</dt>
+<dd><p>Toggles whether a legend showing how each data set is represented
+    is visible to the right of the plot.  Initially the legend is shown
+    only if more than one data set is being shown at once.
+    </p></dd>
+
 <dt>&IMG.CUMULATIVE; Cumulative Plot</dt>
 <dd><p>Toggles whether the histogram should be normal or cumulative.
     Normally the height of each bar is determined by counting the
@@ -6055,8 +6061,10 @@ dialogue will pop up which enables you to change the appearance.
 <figureimage src="&FIG.BarStyleEditor;"/>
 </figure>
 
-<p>The <label>Legend</label> box defines how the marker will be displayed
-in the legend which appears alongside the plot:
+<p>The <label>Legend</label> box defines how the selected set will 
+be identified in the legend which appears alongside the plot 
+(though the legend will only be visible if <label>Show Legend</label> 
+(&IMG.LEGEND;) is on):
 <dl>
 <dt>Icon</dt>
 <dd><p>Displays the icon which will be shown to identify the points in
@@ -6069,6 +6077,11 @@ in the legend which appears alongside the plot:
     By default this is derived from the Row Subset's name and, if it's
     not part of the main dataset, the name of the dataset's tab.
     You can type in a new value to change what is written in the legend.
+    </p></dd>
+
+<dt>Hide Legend</dt>
+<dd><p>If this checkbox is selected, then no entry for the selected set
+    will appear in the legend.
     </p></dd>
 </dl>
 </p>
@@ -6215,6 +6228,12 @@ see <ref id="activation"/>.
 <dd><p>Toggles whether a grid is drawn over the plotting surface or not.
     </p></dd>
 
+<dt>&IMG.LEGEND; Show Legend</dt>
+<dd><p>Toggles whether a legend showing how each data set is represented
+    is visible to the right of the plot.  Initially the legend is shown
+    only if more than one data set is being shown at once.
+    </p></dd>
+
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
 <dd><p>Allows you to draw a region on the screen defining a new 
     <ref id="subsets">Row Subset</ref>.  When you have finished 
@@ -6275,8 +6294,10 @@ you to change the appearance.
 <figureimage src="&FIG.MarkStyleEditor;"/>
 </figure>
 
-<p>The <label>Legend</label> box defines how the marker will be displayed
-in the legend which appears alongside the plot:
+<p>The <label>Legend</label> box defines how the selected set will 
+be identified in the legend which appears alongside the plot 
+(though the legend will only be visible if <label>Show Legend</label> 
+(&IMG.LEGEND;) is on):
 <dl>
 <dt>Icon</dt>
 <dd><p>Displays the icon which will be shown to identify the points in
@@ -6289,6 +6310,11 @@ in the legend which appears alongside the plot:
     By default this is derived from the Row Subset's name and, if it's
     not part of the main dataset, the name of the dataset's tab.
     You can type in a new value to change what is written in the legend.
+    </p></dd>
+
+<dt>Hide Legend</dt>
+<dd><p>If this checkbox is selected, then no entry for the selected set
+    will appear in the legend.
     </p></dd>
 </dl>
 </p>
@@ -6536,6 +6562,12 @@ see <ref id="activation"/>.
     will automatically be deselected.
     </p></dd>
 
+<dt>&IMG.LEGEND; Show Legend</dt>
+<dd><p>Toggles whether a legend showing how each data set is represented
+    is visible to the right of the plot.  Initially the legend is shown
+    only if more than one data set is being shown at once.
+    </p></dd>
+
 <dt>&IMG.Y0_LINE; y=0 Grid Lines</dt>
 <dd><p>Toggles whether a single horizontal line at y=0 is drawn.
     If this is selected, the full grid (see previous item)
@@ -6604,6 +6636,31 @@ dialogue will pop up which entables you to configure the plotting style.
 <caption><px>Stacked Line Plot Style Editor</px></caption>
 <figureimage src="&FIG.LinesStyleEditor;"/>
 </figure>
+
+<p>The <label>Legend</label> box defines how the selected set will 
+be identified in the legend which appears alongside the plot 
+(though the legend will only be visible if <label>Show Legend</label> 
+(&IMG.LEGEND;) is on):
+<dl>
+<dt>Icon</dt>
+<dd><p>Displays the icon which will be shown to identify the points in
+    the selected set.  Its appearance depends on the selections you
+    make in the rest of this dialogue window.
+    </p></dd>
+
+<dt>Label</dt>
+<dd><p>Gives the name written in the legend to label the subset.
+    By default this is derived from the Row Subset's name and, if it's
+    not part of the main dataset, the name of the dataset's tab.
+    You can type in a new value to change what is written in the legend.
+    </p></dd>
+
+<dt>Hide Legend</dt>
+<dd><p>If this checkbox is selected, then no entry for the selected set
+    will appear in the legend.
+    </p></dd>
+</dl>
+</p>
 
 <p>The <label>Display</label> box defines how the markers plotted for
 each data point will appear:
@@ -6801,6 +6858,12 @@ see <ref id="activation"/>.
 <dd><p>Toggles whether the cubic frame bounding the plot is drawn or not.
     </p></dd>
 
+<dt>&IMG.LEGEND; Show Legend</dt>
+<dd><p>Toggles whether a legend showing how each data set is represented
+    is visible to the right of the plot.  Initially the legend is shown
+    only if more than one data set is being shown at once.
+    </p></dd>
+
 <dt>&IMG.FOG; Fog</dt>
 <dd><p>Toggles whether rendering is done as if the space is filled with fog.
     If this option is selected, distant points will appear more washed out
@@ -6878,8 +6941,10 @@ you to change the appearance.
 <figureimage src="&FIG.MarkStyleEditorNoLines;"/>
 </figure>
 
-<p>The <label>Legend</label> box defines how the marker will be displayed
-in the legend which appears alongside the plot:
+<p>The <label>Legend</label> box defines how the selected set will 
+be identified in the legend which appears alongside the plot 
+(though the legend will only be visible if <label>Show Legend</label> 
+(&IMG.LEGEND;) is on):
 <dl>
 <dt>Icon</dt>
 <dd><p>Displays the icon which will be shown to identify the points in
@@ -6892,6 +6957,11 @@ in the legend which appears alongside the plot:
     By default this is derived from the Row Subset's name and, if it's
     not part of the main dataset, the name of the dataset's tab.
     You can type in a new value to change what is written in the legend.
+    </p></dd>
+
+<dt>Hide Legend</dt>
+<dd><p>If this checkbox is selected, then no entry for the selected set
+    will appear in the legend.
     </p></dd>
 </dl>
 </p>
@@ -7067,6 +7137,18 @@ coordinate.
 <dt>&IMG.GRID_ON; Grid</dt>
 <dd><p>Toggles whether the spherical wire frame bounding the plot 
     is drawn or not.
+    </p></dd>
+
+<dt>&IMG.LEGEND; Show Legend</dt>
+<dd><p>Toggles whether a legend showing how each data set is represented
+    is visible to the right of the plot.  Initially the legend is shown
+    only if more than one data set is being shown at once.
+    </p></dd>
+
+<dt>&IMG.FOG; Fog</dt>
+<dd><p>Toggles whether rendering is done as if the space is filled with fog.
+    If this option is selected, distant points will appear more washed out
+    than near ones.
     </p></dd>
 
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
@@ -7300,6 +7382,12 @@ or manually as described in <ref id="axisConfig"/>.
 <dd><p>Toggles between indexed and RGB modes (see the explanation above).
     </p></dd>
 
+<dt>&IMG.LEGEND; Show Legend</dt>
+<dd><p>Toggles whether a legend showing how each data set is represented
+    is visible to the right of the plot.  Initially the legend is shown
+    only if more than one data set is being shown at once.
+    </p></dd>
+
 <dt>&IMG.ROUGH; Bigger Pixels</dt>
 <dd><p>Increments the size of screen pixel corresponding to one density
     map bin.
@@ -7379,10 +7467,29 @@ enables you to change the colour channel.
 <figureimage src="&FIG.DensityStyleEditor;"/>
 </figure>
 
-<p>The <label>Label</label> text box allows you to set the name which
-will be written in the plot's legend to label the dataset.
-By default this is derived from the Row Subset's name and, if it's not
-part of the main dataset, the name of the dataset's tab.
+<p>The <label>Legend</label> box defines how the selected set will 
+be identified in the legend which appears alongside the plot 
+(though the legend will only be visible if <label>Show Legend</label> 
+(&IMG.LEGEND;) is on):
+<dl>
+<dt>Icon</dt>
+<dd><p>Displays the icon which will be shown to identify the points in
+    the selected set.  Its appearance depends on the selections you
+    make in the rest of this dialogue window.
+    </p></dd>
+
+<dt>Label</dt>
+<dd><p>Gives the name written in the legend to label the subset.
+    By default this is derived from the Row Subset's name and, if it's
+    not part of the main dataset, the name of the dataset's tab.
+    You can type in a new value to change what is written in the legend.
+    </p></dd>
+
+<dt>Hide Legend</dt>
+<dd><p>If this checkbox is selected, then no entry for the selected set
+    will appear in the legend.
+    </p></dd>
+</dl>
 </p>
 
 <p>The <label>Channel</label> selector allows you to select either 
@@ -10721,9 +10828,11 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
-    <li>Added <label>Show Legend</label> (&IMG.LEGEND;) toggle button to
-        plot windows.</li>
-    <li>Legend items with no associated label are not now displayed.</li>
+    <li>New <label>Hide Legend</label> checkbox in style editor windows which 
+        allows subset legend entries to be excluded from the displayed legend
+        individually.</li>
+    <li>New <label>Show Legend</label> (&IMG.LEGEND;) button in plot windows
+        which controls whether a legend will be shown at all.</li>
     </ul>
     </p></dd>
 
