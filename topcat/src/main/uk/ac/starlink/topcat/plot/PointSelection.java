@@ -29,6 +29,7 @@ public class PointSelection {
     private final long[] nrows_;
     private final StarTable[] dataTables_;
     private final StarTable[] errorTables_;
+    private final StarTable[] labelTables_;
     private final ErrorMode[] errorModes_;
     private final RowSubset[] subsets_;
     private final Style[] styles_;
@@ -71,6 +72,7 @@ public class PointSelection {
         tcModels_ = new TopcatModel[ nTable_ ];
         dataTables_ = new StarTable[ nTable_ ];
         errorTables_ = new StarTable[ nTable_ ];
+        labelTables_ = new StarTable[ nTable_ ];
         nrows_ = new long[ nTable_ ];
         long[] offsets = new long[ nTable_ ];
         long offset = 0L;
@@ -80,6 +82,7 @@ public class PointSelection {
             AxesSelector axsel = psel.getAxesSelector();
             dataTables_[ itab ] = axsel.getData();
             errorTables_[ itab ] = axsel.getErrorData();
+            labelTables_[ itab ] = axsel.getLabelData();
             nrows_[ itab ] = tcModels_[ itab ].getDataModel().getRowCount();
             offsets[ itab ] = offset;
             offset += nrows_[ itab ];
@@ -146,14 +149,19 @@ public class PointSelection {
         for ( int itab = 0; itab < nTable_; itab++ ) {
             RowSequence datSeq = null;
             RowSequence errSeq = null;
+            RowSequence labSeq = null;
             try {
                 datSeq = dataTables_[ itab ].getRowSequence();
                 if ( errorTables_[ itab ] != null ) {
                     errSeq = errorTables_[ itab ].getRowSequence();
                 }
+                if ( labelTables_[ itab ] != null ) {
+                    labSeq = labelTables_[ itab ].getRowSequence();
+                }
                 while ( datSeq.next() ) {
                     Object[] datRow = datSeq.getRow();
                     Object[] errRow;
+                    String label;
                     if ( errSeq == null ) {
                         errRow = null;
                     }
@@ -162,7 +170,16 @@ public class PointSelection {
                         assert hasNext;
                         errRow = errSeq.getRow();
                     }
-                    pointStore.storePoint( datRow, errRow );
+                    if ( labSeq == null ) {
+                        label = null;
+                    }
+                    else {
+                        boolean hasNext = labSeq.next();
+                        assert hasNext;
+                        Object obj = labSeq.getCell( 0 );
+                        label = obj == null ? null : obj.toString();
+                    }
+                    pointStore.storePoint( datRow, errRow, label );
                     ipoint++;
                     if ( ipoint % step == 0 ) {
                         if ( progress != null ) {
@@ -174,13 +191,20 @@ public class PointSelection {
                     }
                 }
                 assert ( errSeq == null ) || ( ! errSeq.next() );
+                assert ( labSeq == null ) || ( ! labSeq.next() );
             }
             finally {
                 if ( datSeq != null ) {
+                    assert ! datSeq.next();
                     datSeq.close();
                 }
                 if ( errSeq != null ) {
+                    assert ! errSeq.next();
                     errSeq.close();
+                }
+                if ( labSeq != null ) {
+                    assert ! labSeq.next();
+                    labSeq.close();
                 }
             }
         }
@@ -357,7 +381,7 @@ public class PointSelection {
     /**
      * Determines if the axes defining this point selection are the same
      * as those for another one.  This resembles {@link #sameData},
-     * except that PointSelections with different error information
+     * except that PointSelections with different error or label information
      * can be considered to have the same axes.
      *
      * @param  other  comparison object
@@ -381,7 +405,8 @@ public class PointSelection {
         return other != null 
             && Arrays.equals( this.dataTables_, other.dataTables_ )
             && Arrays.equals( this.errorTables_, other.errorTables_ )
-            && Arrays.equals( this.errorModes_, other.errorModes_ );
+            && Arrays.equals( this.errorModes_, other.errorModes_ )
+            && Arrays.equals( this.labelTables_, other.labelTables_ );
     }
 
     public boolean equals( Object otherObject ) {
@@ -400,6 +425,8 @@ public class PointSelection {
             code = 23 * code + dataTables_[ itab ].hashCode();
             code = 23 * code + ( errorTables_[ itab ] == null
                                  ? 99 : errorTables_[ itab ].hashCode() );
+            code = 23 * code + ( labelTables_[ itab ] == null
+                                 ? 199 : labelTables_[ itab ].hashCode() );
         }
         for ( int ie = 0; ie < errorModes_.length; ie++ ) {
             code = 23 * code + errorModes_[ ie ].hashCode();
@@ -419,6 +446,12 @@ public class PointSelection {
         private final TopcatModel tcModel_;
         private final BitSet mask_;
  
+        /**
+         * Constructor.
+         *
+         * @param  tcModel   table model
+         * @param  mask   bit vector
+         */
         private TableMask( TopcatModel tcModel, BitSet mask ) {
             tcModel_ = tcModel;
             mask_ = mask;
@@ -522,6 +555,12 @@ public class PointSelection {
         }
         public double[][] getErrors( int ipoint ) {
             throw new IllegalArgumentException( "no data" );
+        }
+        public boolean hasLabels() {
+            return false;
+        }
+        public String getLabel( int ipoint ) {
+            return null;
         }
     }
 }

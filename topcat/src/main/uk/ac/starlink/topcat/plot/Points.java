@@ -57,4 +57,21 @@ public interface Points {
      * @return  double[nerr][ndim] array with error extremum coordinates
      */
     double[][] getErrors( int ipoint );
+
+    /**
+     * Indicates whether a string label is associated with some points.
+     *
+     * @return  true if {@link #getLabel} may return a non-null value for
+     *          any point
+     */
+    boolean hasLabels();
+
+    /**
+     * Returns a string associated with a given point.
+     * May only return a non-null value if {@link #hasLabels} returns true.
+     *
+     * @param  ipoint  point index
+     * @return  label associated with points
+     */
+    String getLabel( int ipoint );
 }
