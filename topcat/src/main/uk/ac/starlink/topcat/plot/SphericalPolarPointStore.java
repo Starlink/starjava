@@ -89,8 +89,9 @@ public class SphericalPolarPointStore implements PointStore {
         assert double.class.equals( valueStore_.getType() );
     }
 
-    public void storePoint( Object[] coordRow, Object[] errorRow ) {
-        long ioff = ipoint_++ * (long) nword_;
+    public void storePoint( Object[] coordRow, Object[] errorRow,
+                            String label ) {
+        long ioff = ipoint_ * (long) nword_;
 
         /* Copy coordinate values. */
         for ( int i = 0; i < 3; i++ ) {
@@ -132,6 +133,8 @@ public class SphericalPolarPointStore implements PointStore {
             valueStore_.put( ioff, radBuf_, 0, nradWord_ );
             ioff += nradWord_;
         }
+
+        ipoint_++;
     }
 
     public int getCount() {
@@ -167,6 +170,14 @@ public class SphericalPolarPointStore implements PointStore {
             calcErrors( centre_, tanBuf_, radBuf_, errors_ );
         }
         return errors_;
+    }
+
+    public boolean hasLabels() {
+        return false;
+    }
+
+    public String getLabel( int ipoint ) {
+        return null;
     }
 
     /**

@@ -27,6 +27,7 @@ public interface PointStore extends Points {
      *
      * @param  coordRow  array of objects representing coordinate values
      * @param  errorRow  array of objects representing error values
+     * @param  label     string labelling the point
      */
-    void storePoint( Object[] coordRow, Object[] errorRow );
+    void storePoint( Object[] coordRow, Object[] errorRow, String label );
 }

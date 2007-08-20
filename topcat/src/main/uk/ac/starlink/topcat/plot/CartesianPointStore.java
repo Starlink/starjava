@@ -81,7 +81,8 @@ public class CartesianPointStore implements PointStore {
         assert double.class.equals( valueStore_.getType() );
     }
 
-    public void storePoint( Object[] coordRow, Object[] errorRow ) {
+    public void storePoint( Object[] coordRow, Object[] errorRow,
+                            String label ) {
         long ioff = ipoint_ * lnword_;
         for ( int i = 0; i < ndim_; i++ ) {
             buf1_[ 0 ] = doubleValue( coordRow[ i ] );
@@ -126,6 +127,14 @@ public class CartesianPointStore implements PointStore {
         assert ierr == errorReaders_.length * 2;
         assert off == ( ipoint + 1 ) * nword_;
         return errors_;
+    }
+
+    public boolean hasLabels() {
+        return false;
+    }
+
+    public String getLabel( int ipoint ) {
+        return null;
     }
 
     /**
