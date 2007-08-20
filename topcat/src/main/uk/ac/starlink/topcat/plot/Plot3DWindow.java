@@ -86,7 +86,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                          Component parent,
                          ErrorModeSelectionModel[] errorModeModels,
                          Plot3D plot ) {
-        super( viewName, axisNames, naux, errorModeModels, parent );
+        super( viewName, axisNames, naux, true, errorModeModels, parent );
         plot_ = plot;
 
         /* Set a suitable border on the plot.  The left part of this is
