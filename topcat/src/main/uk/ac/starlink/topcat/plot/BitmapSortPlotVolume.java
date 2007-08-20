@@ -119,11 +119,6 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
     }
 
-    public void plot2d( int px, int py, double z, double[] coords,
-                        int istyle ) {
-        pointStore_.addPoint( px, py, z, coords, istyle );
-    }
-
     public void plot2d( int px, int py, double z, double[] coords, int istyle, 
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {
@@ -212,19 +207,6 @@ public class BitmapSortPlotVolume extends PlotVolume {
     private static abstract class PointStore {
 
         /**
-         * Stores a point.
-         *
-         * @param   px   X coordinate
-         * @param   py   Y coordinate
-         * @param   z    Z coordinate
-         * @param   coords  full coordinate array; first three elements are
-         *          data space x,y,z and may contain additional auxiliary coords
-         * @param   istyle  index into styles array
-         */
-        public abstract void addPoint( int px, int py, double z,
-                                       double[] coords, int istyle );
-
-        /**
          * Stores a point with associated errors.
          *
          * @param   px   X coordinate
@@ -261,17 +243,24 @@ public class BitmapSortPlotVolume extends PlotVolume {
         List pointList_ = new ArrayList();
 
         public void addPoint( int px, int py, double z, double[] coords,
-                              int istyle ) {
-            pointList_.add( new BitmapPoint3D( pointList_.size(), z,
-                                               istyle, px, py ) );
-        }
-
-        public void addPoint( int px, int py, double z, double[] coords,
                               int istyle, boolean showPoint, int nerr,
                               int[] xoffs, int[] yoffs ) {
-            pointList_.add( new ErrorsBitmapPoint3D( pointList_.size(), z,
-                                                     istyle, px, py, showPoint,
-                                                     nerr, xoffs, yoffs ) );
+            int np = pointList_.size();
+            Point3D p3;
+            if ( nerr > 0 ) {
+                p3 = new ErrorsBitmapPoint3D( np, z, istyle, px, py, showPoint,
+                                              nerr, xoffs, yoffs );
+            }
+            else if ( showPoint ) {
+                p3 = new BitmapPoint3D( np, z, istyle, px, py );
+            }
+            else {
+                p3 = null;
+                assert false : "pointless call";
+            }
+            if ( p3 != null ) {
+                pointList_.add( p3 );
+            }
         }
 
         public Iterator getSortedPointIterator() {
@@ -307,35 +296,38 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
 
         public void addPoint( int px, int py, double z, double[] coords,
-                              int istyle ) {
-            float[] rgbaBuf = getRgba( istyle, coords );
-            if ( rgbaBuf != null ) {
-                final int rgba = packRgba( rgbaBuf );
-                pointList_.add( new BitmapPoint3D( pointList_.size(), z,
-                                                   istyle, px, py ) {
-                    public float[] getRgba( BitmapSortPlotVolume vol ) {
-                        unpackRgba( rgba, buf_ );
-                        return buf_;
-                    }
-                } );
-            }
-        }
-
-        public void addPoint( int px, int py, double z, double[] coords,
                               int istyle, boolean showPoint, int nerr,
                               int[] xoffs, int[] yoffs ) {
             float[] rgbaBuf = getRgba( istyle, coords );
             if ( rgbaBuf != null ) {
                 final int rgba = packRgba( rgbaBuf );
-                pointList_.add( new ErrorsBitmapPoint3D( pointList_.size(), z,
-                                                         istyle, px, py,
-                                                         showPoint, nerr,
-                                                         xoffs, yoffs ) {
-                    public float[] getRgba( BitmapSortPlotVolume vol ) {
-                        unpackRgba( rgba, buf_ );
-                        return buf_;
-                    }
-                } );
+                int np = pointList_.size();
+                Point3D p3;
+                if ( nerr > 0 ) {
+                    p3 = new ErrorsBitmapPoint3D( np, z, istyle, px, py,
+                                                  showPoint,
+                                                  nerr, xoffs, yoffs ) {
+                        public float[] getRgba( BitmapSortPlotVolume vol ) {
+                            unpackRgba( rgba, buf_ );
+                            return buf_;
+                        }
+                    };
+                }
+                else if ( showPoint ) {
+                    p3 = new BitmapPoint3D( np, z, istyle, px, py ) {
+                        public float[] getRgba( BitmapSortPlotVolume vol ) {
+                            unpackRgba( rgba, buf_ );
+                            return buf_;
+                        }
+                    };
+                }
+                else {
+                    assert false : "pointless call";
+                    p3 = null;
+                }
+                if ( p3 != null ) {
+                    pointList_.add( p3 );
+                }
             }
         }
 
@@ -392,18 +384,21 @@ public class BitmapSortPlotVolume extends PlotVolume {
         private static final int TWO12 = 2 << 12;
 
         public void addPoint( int px, int py, double z, double[] coords,
-                              int istyle ) {
-            if ( z > zmin_ && z <= zmax_ && 
-                 px >= 0 && px <= TWO12 &&
-                 py >= 0 && py <= TWO12 ) {
-                pointList_.add( pack( px, py, z, istyle ) );
-            }
-        }
-
-        public void addPoint( int px, int py, double z, double[] coords,
                               int istyle, boolean showPoint,
                               int nerr, int[] xoffs, int[] yoffs ) {
-            throw new UnsupportedOperationException();
+            if ( nerr > 0 ) {
+                throw new UnsupportedOperationException( "No errors" );
+            }
+            else if ( showPoint ) {
+                if ( z > zmin_ && z <= zmax_ &&
+                     px >= 0 && px <= TWO12 &&
+                     py >= 0 && py <= TWO12 ) {
+                    pointList_.add( pack( px, py, z, istyle ) );
+                }
+            }
+            else {
+                assert false : "pointless";
+            }
         }
 
         public Iterator getSortedPointIterator() {
