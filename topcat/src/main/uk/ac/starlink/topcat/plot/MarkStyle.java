@@ -319,6 +319,18 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Draws a label for a marker at a given point.
+     *
+     * @param  g  graphics context
+     * @param  x  X coordinate of point
+     * @param  y  Y coordinate of point
+     * @param  label   text to draw
+     */
+    public void drawLabel( Graphics g, int x, int y, String label ) {
+        g.drawString( label, x + 4, y - 4 );
+    }
+
+    /**
      * Draws a legend icon for this style without error rendering.
      *
      * @return   legend icon

@@ -151,7 +151,7 @@ public abstract class ScatterPlot extends SurfacePlot {
                 if ( label != null && label.trim().length() > 0 ) {
                     int iset = -1;
                     for ( int is = nset - 1; iset < 0 && is >= 0; is-- ) {
-                        if ( sets[ is ].isIncluded( ip ) ) {
+                        if ( activeSets[ is ].isIncluded( ip ) ) {
                             iset = is;
                         }
                     }
@@ -161,7 +161,6 @@ public abstract class ScatterPlot extends SurfacePlot {
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, true );
                         if ( point != null ) {
-                            point.translate( +4, -4 );
 
                             /* Maintain a mask of points which have been the
                              * origin of text labels already.  Subsequent
@@ -172,7 +171,9 @@ public abstract class ScatterPlot extends SurfacePlot {
                              * (expensive). */
                             if ( ! mask.get( point ) ) {
                                 mask.set( point );
-                                g.drawString( label, point.x, point.y );
+                                ((MarkStyle) styles[ iset ])
+                                            .drawLabel( g, point.x, point.y,
+                                                        label );
                             }
                         }
                     }
