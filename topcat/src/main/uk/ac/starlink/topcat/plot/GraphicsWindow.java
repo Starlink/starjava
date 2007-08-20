@@ -124,6 +124,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
     private final int ndim_;
     private final int naux_;
+    private final boolean hasLabels_;
     private final PointSelectorSet pointSelectors_;
 
     private final ReplotListener replotListener_;
@@ -142,6 +143,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final BoundedRangeModel noProgress_;
     private final BoundedRangeModel auxVisibleModel_;
     private final ComboBoxModel[] auxShaderModels_;
+    private final ToggleButtonModel labelsModel_;
     private final JComponent plotArea_;
     private final JComponent controlArea_;
     private final Legend legend_;
@@ -237,12 +239,14 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param   parent   parent window - may be used for positioning
      */
     public GraphicsWindow( String viewName, String[] axisNames, int naux,
+                           boolean hasLabels,
                            ErrorModeSelectionModel[] errorModeModels,
                            Component parent ) {
         super( viewName, parent );
         axisNames_ = axisNames;
         ndim_ = axisNames.length;
         naux_ = naux;
+        hasLabels_ = hasLabels;
         replotListener_ = new ReplotListener();
 
         /* Axis flags. */
@@ -292,6 +296,13 @@ public abstract class GraphicsWindow extends AuxWindow {
         };
         auxVisibleModel_.addChangeListener( auxEnabler );
         auxEnabler.stateChanged( null );
+
+        /* Model to control whether a label selection column can be used. */
+        labelsModel_ =
+            new ToggleButtonModel( "Label Display", ResourceIcon.DO_WHAT,
+                                   "Allow selection of labels for each "
+                                 + "plotted point" );
+        labelsModel_.addChangeListener( replotListener_ );
 
         /* Shader selection models for each auxiliary axis. */
         auxShaderModels_ = new ComboBoxModel[ naux ];
@@ -418,6 +429,10 @@ public abstract class GraphicsWindow extends AuxWindow {
             pselToolbar_.addSeparator();
             pselToolbar_.add( incAuxAction_ );
             pselToolbar_.add( decAuxAction_ );
+        }
+        if ( hasLabels ) {
+            pselToolbar_.addSeparator();
+            pselToolbar_.add( labelsModel_.createToolbarButton() );
         }
 
         /* Ensure that changes to the point selection trigger a replot. */
@@ -1030,9 +1045,9 @@ public abstract class GraphicsWindow extends AuxWindow {
             new CartesianAxesSelector( axisNames_, logModels_, flipModels_,
                                        errorModeModels );
 
-        /* If there are auxiliary axes, construct a composite AxesSelector
+        /* If there are additional axes, construct a composite AxesSelector
          * which can keep track of them. */
-        axsel = addAuxAxes( axsel );
+        axsel = addExtraAxes( axsel );
 
         /* Create, configure and return the point selector. */
         PointSelector psel = new PointSelector( axsel, getStyles() );
@@ -1044,7 +1059,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
-     * Adds auxiliary axes to a given AxesSelector as appropriate for this
+     * Adds additional axes to a given AxesSelector as appropriate for this
      * window.  The returned value may or may not be the same as the input 
      * <code>axsel</code> object.
      *
@@ -1055,7 +1070,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @return  axes selector containing additional auxiliary axes as
      *          appropriate
      */
-    protected AxesSelector addAuxAxes( AxesSelector axsel ) {
+    protected AxesSelector addExtraAxes( AxesSelector axsel ) {
         if ( naux_ > 0 ) {
             ToggleButtonModel[] auxLogModels = new ToggleButtonModel[ naux_ ];
             ToggleButtonModel[] auxFlipModels = new ToggleButtonModel[ naux_ ];
@@ -1072,11 +1087,19 @@ public abstract class GraphicsWindow extends AuxWindow {
                 }
             } );
             augsel.setAuxVisible( auxVisibleModel_.getValue() );
-            return augsel;
+            axsel = augsel;
         }
-        else {
-            return axsel;
+        if ( hasLabels_ ) {
+            final LabelledAxesSelector labsel =
+                new LabelledAxesSelector( axsel );
+            labelsModel_.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    labsel.enableLabels( labelsModel_.isSelected() );
+                }
+            } );
+            axsel = labsel;
         }
+        return axsel;
     }
 
     /**
@@ -1201,10 +1224,12 @@ public abstract class GraphicsWindow extends AuxWindow {
             for ( int ivis = 0; ivis < nvis; ivis++ ) {
                 boolean isActive = false;
                 for ( int isel = 0; isel < nsel && ! isActive; isel++ ) {
-                    CartesianAxesSelector auxSel = 
-                        ((AugmentedAxesSelector)
-                         pointSelectors_.getSelector( isel ).getAxesSelector())
-                       .getAuxSelector();
+                    AugmentedAxesSelector augSel =
+                        (AugmentedAxesSelector) TopcatUtils
+                       .getWrapped( pointSelectors_.getSelector( isel )
+                                                   .getAxesSelector(),
+                                    AugmentedAxesSelector.class );
+                    CartesianAxesSelector auxSel = augSel.getAuxSelector();
                     ColumnData auxCol =
                         (ColumnData) auxSel.getColumnSelector( ivis )
                                            .getSelectedItem();
