@@ -214,6 +214,10 @@ public class SphericalAxesSelector implements AxesSelector {
         return new ColumnDataTable( tcModel_, eCols );
     }
 
+    public StarTable getLabelData() {
+        return null;
+    }
+
     public PointStore createPointStore( int npoint ) {
         boolean hasTanerr = tangentErrorToggler_.isSelected();
         ErrorMode radialMode = radialErrorModeModel_.getMode();

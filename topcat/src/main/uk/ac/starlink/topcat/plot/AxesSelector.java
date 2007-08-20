@@ -97,6 +97,17 @@ public interface AxesSelector {
     StarTable getErrorData();
 
     /**
+     * Returns a StarTable whose single column contains a label for each
+     * point.
+     *
+     * <p>See the notes in {@link #getData} about table equality - 
+     * the same constraints apply.
+     *
+     * @return   label table
+     */
+    StarTable getLabelData();
+
+    /**
      * Constructs an array of AxisEditor objects suitable for modifying the
      * axes which are defined by this selector.  The number of
      * them is often, but not necessarily, the same as the dimensionality

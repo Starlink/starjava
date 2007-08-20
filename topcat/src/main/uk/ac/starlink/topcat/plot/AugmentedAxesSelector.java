@@ -14,6 +14,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.topcat.Wrapper;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -26,7 +27,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    4 Jun 2007
  */
-public class AugmentedAxesSelector implements AxesSelector {
+public class AugmentedAxesSelector implements AxesSelector, Wrapper {
 
     private final AxesSelector baseSelector_;
     private final int naux_;
@@ -114,7 +115,7 @@ public class AugmentedAxesSelector implements AxesSelector {
      *
      * @return  base axes selector
      */
-    public AxesSelector getBaseSelector() {
+    public Object getBase() {
         return baseSelector_;
     }
 
@@ -208,6 +209,10 @@ public class AugmentedAxesSelector implements AxesSelector {
         return baseSelector_.getErrorModes();
     }
 
+    public StarTable getLabelData() {
+        return baseSelector_.getLabelData();
+    }
+
     public AxisEditor[] createAxisEditors() {
         AxisEditor[] baseEds = baseSelector_.createAxisEditors();
         AxisEditor[] auxEds = auxSelector_.createAxisEditors();
@@ -223,7 +228,8 @@ public class AugmentedAxesSelector implements AxesSelector {
             return baseStore;
         }
         else {
-            if ( baseSelector_ instanceof CartesianAxesSelector ) {
+            if ( baseSelector_ instanceof CartesianAxesSelector &&
+                 ( ! baseStore.hasLabels() ) ) {
                 return new CartesianPointStore( getNdim(), getErrorModes(),
                                                 npoint );
             }
@@ -399,7 +405,7 @@ public class AugmentedAxesSelector implements AxesSelector {
      * PointStore implementation which augments a base point store with 
      * some additional axes.  These additional axes have no error data.
      */
-    private static class AugmentedPointStore implements PointStore {
+    private static class AugmentedPointStore implements PointStore, Wrapper {
         final PointStore baseStore_;
         final PointStore augStore_;
         final int baseDim_;
@@ -427,6 +433,10 @@ public class AugmentedAxesSelector implements AxesSelector {
             augErrors_ = new Object[ 0 ];
         }
 
+        public Object getBase() {
+            return baseStore_;
+        }
+
         public int getCount() {
             return baseStore_.getCount();
         }
@@ -451,11 +461,20 @@ public class AugmentedAxesSelector implements AxesSelector {
             return baseStore_.getErrors( ipoint );
         }
 
-        public void storePoint( Object[] coordRow, Object[] errorRow ) {
+        public boolean hasLabels() {
+            return baseStore_.hasLabels();
+        }
+
+        public String getLabel( int ipoint ) {
+            return baseStore_.getLabel( ipoint );
+        }
+
+        public void storePoint( Object[] coordRow, Object[] errorRow,
+                                String label ) {
             System.arraycopy( coordRow, 0, baseCoords_, 0, baseDim_ );
             System.arraycopy( coordRow, baseDim_, augCoords_, 0, augDim_ );
-            baseStore_.storePoint( baseCoords_, errorRow );
-            augStore_.storePoint( augCoords_, augErrors_ );
+            baseStore_.storePoint( baseCoords_, errorRow, label );
+            augStore_.storePoint( augCoords_, augErrors_, null );
         }
     }
 }

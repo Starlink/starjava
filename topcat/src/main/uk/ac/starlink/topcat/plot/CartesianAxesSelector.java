@@ -155,6 +155,10 @@ public class CartesianAxesSelector implements AxesSelector {
         return modes;
     }
 
+    public StarTable getLabelData() {
+        return null;
+    }
+
     /**
      * Returns one of the axis selector boxes used by this selector.
      *

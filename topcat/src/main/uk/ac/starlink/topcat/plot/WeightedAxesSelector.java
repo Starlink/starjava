@@ -121,6 +121,10 @@ public class WeightedAxesSelector implements AxesSelector {
         return errorData;
     }
 
+    public StarTable getLabelData() {
+        return baseSelector_.getLabelData();
+    }
+
     public AxisEditor[] createAxisEditors() {
         return baseSelector_.createAxisEditors();
     }
