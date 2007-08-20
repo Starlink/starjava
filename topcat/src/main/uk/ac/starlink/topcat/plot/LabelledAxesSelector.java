@@ -72,7 +72,7 @@ public class LabelledAxesSelector implements AxesSelector, Wrapper {
                 labelContainer_.remove( labelPanel_ );
             }
             labelsEnabled_ = enabled;
-            labelPanel_.revalidate();
+            labelContainer_.revalidate();
         }
     }
 
