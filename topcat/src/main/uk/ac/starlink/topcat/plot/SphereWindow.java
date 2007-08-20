@@ -12,6 +12,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * Graphics window for viewing 3D scatter plots using spherical polar
@@ -163,7 +164,7 @@ public class SphereWindow extends Plot3DWindow {
         AxesSelector axsel =
             new SphericalAxesSelector( logToggler_, tangentErrorToggler_,
                                        radialErrorModeModel_ );
-        axsel = addAuxAxes( axsel );
+        axsel = addExtraAxes( axsel );
         PointSelector psel = new PointSelector( axsel, getStyles() );
         ActionListener errorModeListener = psel.getErrorModeListener();
         tangentErrorToggler_.addActionListener( errorModeListener );
@@ -259,17 +260,8 @@ public class SphereWindow extends Plot3DWindow {
      */
     private static SphericalAxesSelector
                    getSphericalAxesSelector( PointSelector psel ) {
-        AxesSelector axsel = psel.getAxesSelector();
-        if ( axsel instanceof SphericalAxesSelector ) {
-            return (SphericalAxesSelector) axsel;
-        }
-        else if ( axsel instanceof AugmentedAxesSelector ) {
-            return (SphericalAxesSelector)
-                   ((AugmentedAxesSelector) axsel).getBaseSelector();
-        }
-        else {
-            throw new AssertionError();
-        }
+        return (SphericalAxesSelector)
+               TopcatUtils.getWrapped( psel.getAxesSelector() );
     }
 
     /**
