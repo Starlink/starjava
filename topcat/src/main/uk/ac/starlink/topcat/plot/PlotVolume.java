@@ -96,32 +96,6 @@ public abstract class PlotVolume {
     }
 
     /**
-     * Submits a point for plotting.  The graphical effect is not guaranteed
-     * to occur until a subsequent call to {@link #flush}.
-     * The coordinate array gives the point's 3D position in normalised 
-     * coordinates, in which points inside the unit cube 
-     * centred at (.5,.5,.5) are intended to be visible under normal 
-     * circumstances.
-     *
-     * <p>Note that the <code>coords</code> array is not guaranteed to retain
-     * its contents after this call returns; this method must make copies
-     * of the values if it needs to retain them.
-     *
-     * <p>The return value indicates whether the point was actually plotted;
-     * it may be false if the point was known to be off screen.
-     * This isn't guaranteed to be exact; there may be false positives or
-     * false negatives near the edge of the plotting area.
-     *
-     * @param   coords   normalised (x,y,z) coordinates
-     * @param   istyle   index into the array of styles set up for this volume
-     *                   which will define how the marker is plotted
-     * @return  true iff the point was actually plotted
-     */
-    public boolean plot3d( double[] coords, int istyle ) {
-        return plot3d( coords, istyle, true, 0, null, null, null );
-    }
-
-    /**
      * Submits a point with associated errors for plotting.
      * The graphical effect is not guaranteed to occur until a 
      * subsequent call to {@link #flush}.
@@ -159,6 +133,11 @@ public abstract class PlotVolume {
     public boolean plot3d( double[] centre, int istyle,
                            boolean showPoint, int nerr,
                            double[] xerrs, double[] yerrs, double[] zerrs ) {
+
+        /* Return directly if there is no work to do. */
+        if ( nerr == 0 && ! showPoint ) {
+            return false;
+        }
 
         /* Calculate the position of the point in 2D graphics coordinates. */
         int xp = projectX( centre[ 0 ] );
@@ -201,6 +180,7 @@ public abstract class PlotVolume {
             return true;
         }
         else {
+            assert showPoint;
             plot2d( xp, yp, z, centre, istyle );
             return true;
         }

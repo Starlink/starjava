@@ -428,22 +428,13 @@ public abstract class Plot3D extends JPanel {
                                                  errors, xerrs, yerrs, zerrs );
                         }
                         for ( int is = 0; is < nset; is++ ) {
-                            boolean plotted = false;
-                            if ( useErrors && showMarkErrors[ is ] ) {
-                                boolean vis =
-                                    vol.plot3d( coords, is,
-                                                showMarkPoints[ is ],
-                                                nerr, xerrs, yerrs, zerrs );
-                                if ( vis ) {
-                                    nVisible++;
-                                }
-                                plotted = true;
-                            }
-                            if ( ! plotted && showMarkPoints[ is ] ) {
-                                boolean vis = vol.plot3d( coords, is );
-                                if ( vis ) {
-                                    nVisible++;
-                                }
+                            boolean useErr = useErrors && showMarkErrors[ is ];
+                            boolean vis =
+                                vol.plot3d( coords, is, showMarkPoints[ is ],
+                                            useErr ? nerr : 0,
+                                            xerrs, yerrs, zerrs );
+                            if ( vis ) {
+                                nVisible++;
                             }
                         }
                     }
@@ -456,7 +447,7 @@ public abstract class Plot3D extends JPanel {
         dot[ 0 ] = 0.5;
         dot[ 1 ] = 0.5;
         dot[ 2 ] = 0.5;
-        vol.plot3d( dot, iDotStyle );
+        vol.plot3d( dot, iDotStyle, true, 0, null, null, null );
 
         /* Tell the volume that all the points are in for plotting.
          * This will do the painting on the graphics context if it hasn't
