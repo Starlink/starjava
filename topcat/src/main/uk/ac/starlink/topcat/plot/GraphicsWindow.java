@@ -299,9 +299,8 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Model to control whether a label selection column can be used. */
         labelsModel_ =
-            new ToggleButtonModel( "Label Display", ResourceIcon.DO_WHAT,
-                                   "Allow selection of labels for each "
-                                 + "plotted point" );
+            new ToggleButtonModel( "Show Labels", ResourceIcon.LABEL,
+                                   "Draw text labels for plotted points" );
         labelsModel_.addChangeListener( replotListener_ );
 
         /* Shader selection models for each auxiliary axis. */
