@@ -65,22 +65,24 @@ public class VectorSortPlotVolume extends PlotVolume {
         fixer_ = new FixColorTweaker();
     }
 
-    public void plot2d( int px, int py, double z, double[] coords,
-                        int istyle ) {
-        int rgb = getRgb( istyle, coords );
-        if ( rgb != NO_RGBA ) {
-            addPoint( new VectorPoint3D( iseq_++, z, px, py, istyle, rgb ) );
-        }
-    }
-
     public void plot2d( int px, int py, double z, double[] coords, int istyle,
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {
         int rgb = getRgb( istyle, coords );
         if ( rgb != NO_RGBA ) {
-            addPoint( new ErrorsVectorPoint3D( iseq_++, z, px, py, istyle, rgb,
-                                               showPoint, nerr,
-                                               xoffs, yoffs ) );
+            VectorPoint3D p3;
+            if ( nerr > 0 ) {
+                p3 = new ErrorsVectorPoint3D( iseq_++, z, px, py, istyle, rgb,
+                                              showPoint, nerr, xoffs, yoffs );
+            }
+            else if ( showPoint ) {
+                p3 = new VectorPoint3D( iseq_++, z, px, py, istyle, rgb );
+            }
+            else {
+                assert false : "pointless call";
+                p3 = null;
+            }
+            addPoint( p3 );
         }
     }
 

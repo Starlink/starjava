@@ -103,10 +103,6 @@ public class ZBufferPlotVolume extends PlotVolume {
                : (Paint) new FixedPaint( styles );
     }
 
-    public void plot2d( int xp, int yp, double zd, double[] coords, int is ) {
-        plot2d( xp, yp, zd, coords, is, true, 0, null, null, null );
-    }
-
     public void plot2d( int xp, int yp, double zd, double[] coords, int is,
                         boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
                         double[] zerrs ) {

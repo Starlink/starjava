@@ -181,7 +181,7 @@ public abstract class PlotVolume {
         }
         else {
             assert showPoint;
-            plot2d( xp, yp, z, centre, istyle );
+            plot2d( xp, yp, z, centre, istyle, true, 0, null, null, null );
             return true;
         }
     }
@@ -213,25 +213,8 @@ public abstract class PlotVolume {
     }
 
     /**
-     * Plots a marker at a given point in graphics coordinates with a 
-     * given additional Z coordinate.  As well as providing a z-buffer
-     * type ordering to determine which marks obscure which others,
-     * the Z value may be used as a cue to do some depth rendering.
-     *
-     * @param  px  graphics space X coordinate
-     * @param  py  graphics space Y coordinate
-     * @param  z   depth of point; a point with a greater <code>z</code>
-     *             should obscure a point with a lesser one
-     * @param  coords  original coordinate array; as well as (redundant)
-     *                 x,y,z values it may contain auxiliary axis coordinates
-     * @param  istyle  index of the style used to plot the point
-     */
-    protected abstract void plot2d( int px, int py, double z, double[] coords,
-                                    int istyle );
-
-    /**
-     * Plots a marker and associated error values at a given point in 
-     * graphics coordinates with given additional Z coordinates.
+     * Plots an marker and optional associated error values at a given 
+     * point in graphics coordinates with given additional Z coordinates.
      * Points with greater Z values should obscure points
      * with lesser ones.  
      * The ordering of the error points is that required by the 
@@ -244,12 +227,13 @@ public abstract class PlotVolume {
      *
      * @param  px  graphics space X coordinate of the central point
      * @param  py  graphics space Y coordinate of the central point
-     * @param  z   depth of point
+     * @param  z   depth of point; a point with a greater <code>z</code>
+     *             should obscure a point with a lesser one
      * @param  coords  original coordinate array; as well as (redundant)
      *                 x,y,z values it may contain auxiliary axis coordinates
      * @param  istyle  index of the style used to plot the point
      * @param  showPoint  whether the central point is to be plotted
-     * @param  nerr  number of error points
+     * @param  nerr  number of error points, or zero for no errors
      * @param  xoffs   <code>nerr</code>-element array of graphics space 
      *                 X coordinates for error points
      * @param  yoffs   <code>nerr</code>-element array of graphics space
