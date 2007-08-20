@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -140,6 +141,43 @@ public abstract class ScatterPlot extends SurfacePlot {
         else {
             plotPointsVector( g, points, activeSets, activeStyles, surface,
                               tweaker, pointCounts );
+        }
+
+        /* Write labels as required. */
+        if ( points.hasLabels() ) {
+            PixelMask mask = new PixelMask( surface.getClip().getBounds() );
+            for ( int ip = 0; ip < np; ip++ ) {
+                String label = points.getLabel( ip );
+                if ( label != null && label.trim().length() > 0 ) {
+                    int iset = -1;
+                    for ( int is = nset - 1; iset < 0 && is >= 0; is-- ) {
+                        if ( sets[ is ].isIncluded( ip ) ) {
+                            iset = is;
+                        }
+                    }
+                    if ( iset >= 0 ) {
+                        double[] coords = points.getPoint( ip );
+                        double x = coords[ 0 ];
+                        double y = coords[ 1 ];
+                        Point point = surface.dataToGraphics( x, y, true );
+                        if ( point != null ) {
+                            point.translate( +4, -4 );
+
+                            /* Maintain a mask of points which have been the
+                             * origin of text labels already.  Subsequent
+                             * text labels on the same point will not be 
+                             * plotted.  Such overwriting would be illegible
+                             * in any case, and doing this prevents drawing
+                             * strings for potentially very many points
+                             * (expensive). */
+                            if ( ! mask.get( point ) ) {
+                                mask.set( point );
+                                g.drawString( label, point.x, point.y );
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         /* Join the dots as required. */
