@@ -180,6 +180,7 @@ public class ResourceIcon implements Icon {
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
         MANUAL = makeIcon( "book1.gif" ),
         LEGEND = makeIcon( "legend3.gif" ),
+        LABEL = makeIcon( "label2.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
