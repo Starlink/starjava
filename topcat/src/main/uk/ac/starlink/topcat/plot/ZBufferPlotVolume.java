@@ -2,8 +2,11 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
@@ -31,6 +34,8 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final Graphics graphics_;
     private final Rectangle clip_;
     private final Paint paint_;
+    private final Font font_;
+    private final FontRenderContext frc_;
 
     /**
      * Packed RGBA value representing no colour.  This is used as a flag,
@@ -59,6 +64,8 @@ public class ZBufferPlotVolume extends PlotVolume {
                               DataColorTweaker tweaker, Workspace ws ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
         graphics_ = g;
+        font_ = g.getFont();
+        frc_ = ((Graphics2D) g).getFontRenderContext();
         styles_ = (MarkStyle[]) styles.clone();
 
         /* Work out the dimensions of the pixel grid that we're going
@@ -104,8 +111,8 @@ public class ZBufferPlotVolume extends PlotVolume {
     }
 
     public void plot2d( int xp, int yp, double zd, double[] coords, int is,
-                        boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
-                        double[] zerrs ) {
+                        boolean showPoint, String label,
+                        int nerr, int[] xoffs, int[] yoffs, double[] zerrs ) {
         float z = (float) zd;
         int xbase = xp - xoff_;
         int ybase = yp - yoff_;
@@ -128,6 +135,15 @@ public class ZBufferPlotVolume extends PlotVolume {
                .getPixels( clip_, xbase, ybase, xoffs, yoffs );
             for ( epixer.start(); epixer.next(); ) {
                 int pixoff = epixer.getX() + xdim_ * epixer.getY();
+                hitPixel( pixoff, z );
+            }
+        }
+
+        /* Draw label if required. */
+        if ( label != null ) {
+            Pixellator lpixer = createLabelPixellator( label, xbase, ybase );
+            for ( lpixer.start(); lpixer.next(); ) {
+                int pixoff = lpixer.getX() + xdim_ * lpixer.getY();
                 hitPixel( pixoff, z );
             }
         }
@@ -192,6 +208,17 @@ public class ZBufferPlotVolume extends PlotVolume {
                 rgbBuf_[ ipix ] = rgb;
             }
         }
+    }
+
+    /**
+     * Returns a pixellator containing the pixels of a text label.
+     *
+     * @param   label   text label
+     * @param   x    X coordinate of marker
+     * @param   y    Y coordinate of marker
+     */
+    private Pixellator createLabelPixellator( String label, int x, int y ) {
+        return Drawing.createTextPixellator( font_, frc_, clip_, label, x, y );
     }
 
     /**
