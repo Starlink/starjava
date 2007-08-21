@@ -33,7 +33,9 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final MarkStyle[] styles_;
     private final Graphics graphics_;
     private final Rectangle clip_;
-    private final Paint paint_;
+    private final Paint markPaint_;
+    private final Paint labelPaint_;
+    private final TextPixellatorFactory labelPixer_;
     private final Font font_;
     private final FontRenderContext frc_;
 
@@ -53,6 +55,7 @@ public class ZBufferPlotVolume extends PlotVolume {
      * @param   padFactor  minimum amount of space outside the unit cube
      *          in both dimensions - 1 means no extra space
      * @param   fogginess  thickness of fog for depth shading
+     * @param   hasLabels  true if any of the points may have associated labels
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
      * @param   tweaker  colour adjuster for using auxiliary axis coords
@@ -60,10 +63,12 @@ public class ZBufferPlotVolume extends PlotVolume {
      */
     public ZBufferPlotVolume( Component c, Graphics g, MarkStyle[] styles,
                               double padFactor, int[] padBorders,
-                              double fogginess,
+                              double fogginess, boolean hasLabels,
                               DataColorTweaker tweaker, Workspace ws ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
         graphics_ = g;
+        labelPixer_ = hasLabels ? new TextPixellatorFactory( (Graphics2D) g )
+                                : null;
         font_ = g.getFont();
         frc_ = ((Graphics2D) g).getFontRenderContext();
         styles_ = (MarkStyle[]) styles.clone();
@@ -104,10 +109,20 @@ public class ZBufferPlotVolume extends PlotVolume {
 
         /* Set up a suitable object for filling in the pixel values during
          * the plotting operations. */
-        DataColorTweaker foggingTweaker = createFoggingTweaker( tweaker );
-        paint_ = foggingTweaker != null
-               ? (Paint) new TweakedPaint( styles, foggingTweaker )
-               : (Paint) new FixedPaint( styles );
+        Color[] markColors = new Color[ nstyle ];
+        Color[] labelColors = new Color[ nstyle ];
+        for ( int is = 0; is < nstyle; is++ ) {
+            markColors[ is ] = styles[ is ].getColor();
+            labelColors[ is ] = Color.BLACK;
+        }
+        DataColorTweaker markTweaker = createFoggingTweaker( tweaker );
+        markPaint_ = markTweaker != null
+                   ? (Paint) new TweakedPaint( markColors, markTweaker )
+                   : (Paint) new FixedPaint( markColors );
+        DataColorTweaker labelTweaker = createFoggingTweaker( null );
+        labelPaint_ = labelTweaker != null
+                    ? (Paint) new TweakedPaint( labelColors, labelTweaker )
+                    : (Paint) new FixedPaint( labelColors );
     }
 
     public void plot2d( int xp, int yp, double zd, double[] coords, int is,
@@ -117,14 +132,14 @@ public class ZBufferPlotVolume extends PlotVolume {
         int xbase = xp - xoff_;
         int ybase = yp - yoff_;
         int base = xbase + xdim_ * ybase;
-        paint_.setColor( is, coords );
+        markPaint_.setColor( is, coords );
 
         /* Draw marker if required. */
         if ( showPoint ) {
             int[] pixoffs = pixoffs_[ is ];
             int npixoff = pixoffs.length;
             for ( int ioff = 0; ioff < npixoff; ioff++ ) {
-                hitPixel( base + pixoffs[ ioff ], z );
+                hitPixel( base + pixoffs[ ioff ], z, markPaint_ );
             }
         }
 
@@ -135,16 +150,18 @@ public class ZBufferPlotVolume extends PlotVolume {
                .getPixels( clip_, xbase, ybase, xoffs, yoffs );
             for ( epixer.start(); epixer.next(); ) {
                 int pixoff = epixer.getX() + xdim_ * epixer.getY();
-                hitPixel( pixoff, z );
+                hitPixel( pixoff, z, markPaint_ );
             }
         }
 
         /* Draw label if required. */
-        if ( label != null ) {
-            Pixellator lpixer = createLabelPixellator( label, xbase, ybase );
+        if ( label != null && z <= zbuf_[ base ] ) {
+            labelPaint_.setColor( is, coords );
+            Pixellator lpixer =
+                labelPixer_.createTextPixellator( label, xbase + 4, ybase - 4 );
             for ( lpixer.start(); lpixer.next(); ) {
                 int pixoff = lpixer.getX() + xdim_ * lpixer.getY();
-                hitPixel( pixoff, z );
+                hitPixel( pixoff, z, labelPaint_ );
             }
         }
     }
@@ -178,24 +195,29 @@ public class ZBufferPlotVolume extends PlotVolume {
             g.drawImage( image_.getSubimage( xmin, ymin, width, height ),
                          xoff_ + xmin, yoff_ + ymin, null );
         }
+
+        /* Tidy up. */
+        if ( labelPixer_ != null ) {
+            labelPixer_.dispose();
+        }
     }
        
     /**
-     * Deposit a point at a given index into the pixel buffer using the
-     * current paint.
+     * Deposit a point at a given index into the pixel buffer.
      * If it's behind an existing pixel there will be no effect.
      *
      * @param  ipix  pixel index
      * @param  z     Z buffer depth
+     * @param  paint  determines pixel colour
      */
-    private void hitPixel( int ipix, float z ) {
+    private void hitPixel( int ipix, float z, Paint paint ) {
 
         /* If the pixel isn't already filled with something nearer the
          * viewer than this... */
         if ( z <= zbuf_[ ipix ] ) {
 
             /* Get the colour and check it's valid. */
-            int rgb = paint_.getRgb();
+            int rgb = paint.getRgb();
             if ( rgb != NO_RGBA ) {
 
                 /* Record that we've touched this pixel. */
@@ -208,17 +230,6 @@ public class ZBufferPlotVolume extends PlotVolume {
                 rgbBuf_[ ipix ] = rgb;
             }
         }
-    }
-
-    /**
-     * Returns a pixellator containing the pixels of a text label.
-     *
-     * @param   label   text label
-     * @param   x    X coordinate of marker
-     * @param   y    Y coordinate of marker
-     */
-    private Pixellator createLabelPixellator( String label, int x, int y ) {
-        return Drawing.createTextPixellator( font_, frc_, clip_, label, x, y );
     }
 
     /**
@@ -258,13 +269,13 @@ public class ZBufferPlotVolume extends PlotVolume {
         /**
          * Constructor.
          *
-         * @param  styles  array of per-set marker styles
+         * @param  colors  array of per-set base colours
          */
-        public FixedPaint( MarkStyle[] styles ) {
-            int nstyle = styles.length;
+        public FixedPaint( Color[] colors ) {
+            int nstyle = colors.length;
             rgbs_ = new int[ nstyle ];
             for ( int is = 0; is < nstyle; is++ ) {
-                rgbs_[ is ] = styles[ is ].getColor().getRGB();
+                rgbs_[ is ] = colors[ is ].getRGB();
             }
         }
 
@@ -294,15 +305,15 @@ public class ZBufferPlotVolume extends PlotVolume {
         /**
          * Constructor.
          *
-         * @param  styles  array of per-set marker styles
+         * @param  styles  array of per-set base colours
          * @param  tweaker  colour adjuster
          */
-        public TweakedPaint( MarkStyle[] styles, DataColorTweaker tweaker ) {
-            int nstyle = styles.length;
+        public TweakedPaint( Color[] colors, DataColorTweaker tweaker ) {
+            int nstyle = colors.length;
             frgb_ = new float[ 4 ];
             frgbs_ = new float[ nstyle ][];
             for ( int is = 0; is < nstyle; is++ ) {
-                frgbs_[ is ] = styles[ is ].getColor().getRGBComponents( null );
+                frgbs_[ is ] = colors[ is ].getRGBComponents( null );
             }
             tweaker_ = tweaker;
             ncoord_ = tweaker.getNcoord();
