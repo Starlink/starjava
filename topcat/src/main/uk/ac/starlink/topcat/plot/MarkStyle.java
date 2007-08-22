@@ -244,6 +244,15 @@ public abstract class MarkStyle extends DefaultStyle {
     }
 
     /**
+     * Returns the colour to use for drawing labels.
+     *
+     * @return   label colour
+     */
+    public Color getLabelColor() {
+        return Color.BLACK;
+    }
+
+    /**
      * Draws this marker centered at a given position.  
      * This method sets the colour of the graphics context and 
      * then calls {@link #drawShape}.
@@ -327,7 +336,27 @@ public abstract class MarkStyle extends DefaultStyle {
      * @param  label   text to draw
      */
     public void drawLabel( Graphics g, int x, int y, String label ) {
+        drawLabel( g, x, y, label, null );
+    }
+
+    /**
+     * Draws a label for a marker at a given point with optional 
+     * colour modification.
+     *
+     * @param  g  graphics context
+     * @param  x  X coordinate of point
+     * @param  y  Y coordinate of point
+     * @param  label   text to draw
+     * @param  fixer  hook for modifying the colour (may be null)
+     */
+    public void drawLabel( Graphics g, int x, int y, String label,
+                           ColorTweaker fixer ) {
+        Color origColor = g.getColor();
+        Color labelColor = fixer == null ? getLabelColor()
+                                         : fixer.tweakColor( getLabelColor() );
+        g.setColor( labelColor );
         g.drawString( label, x + 4, y - 4 );
+        g.setColor( origColor );
     }
 
     /**
@@ -490,6 +519,20 @@ public abstract class MarkStyle extends DefaultStyle {
             offList.add( pixer.getX() + pixer.getY() * xStride );
         }
         return offList.toIntArray();
+    }
+
+    /**
+     * Returns an array over pixel positions which can be used to draw a
+     * label for this style.
+     *
+     * @param  textPixer   text pixellator factory object
+     * @param  label    text of label to draw
+     * @param  x   X coordinate of point to label
+     * @param  y   Y coordinate of point to label
+     */
+    public Pixellator getLabelPixels( TextPixellatorFactory textPixer, 
+                                      String label, int x, int y ) {
+        return textPixer.createTextPixellator( label, x + 4, y - 4 );
     }
 
     public boolean equals( Object o ) {
