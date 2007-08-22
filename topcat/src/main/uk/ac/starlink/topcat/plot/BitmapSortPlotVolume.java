@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -25,12 +26,15 @@ import uk.ac.starlink.util.LongList;
 public class BitmapSortPlotVolume extends PlotVolume {
 
     private PointStore pointStore_;
+    private boolean seenLabels_;
     private final int xdim_;
     private final int ydim_;
     private final int xoff_;
     private final int yoff_;
     private final Pixellator[] markPixoffs_;
+    private final MarkStyle[] styles_;
     private final float[][] rgbas_;
+    private final float[][] labelRgbas_;
     private final float[][] rgbaBufs_;
     private final int[] rgbBuf_;
     private final BufferedImage image_;
@@ -47,6 +51,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
      * @param   padBorders  space, additional to padFactor, to be left around
      *          the edges of the plot; order is (left,right,bottom,top)
      * @param   fogginess  thickness of fog for depth shading
+     * @param   hasLabels  must be true if any of the points to be plotted
+     *          will have associated labels
      * @param   hasErrors  must be true if any of the points to be plotted
      *          will contain errors
      * @param   zmin  a lower limit for z coordinates of plotted points
@@ -56,10 +62,11 @@ public class BitmapSortPlotVolume extends PlotVolume {
      */
     public BitmapSortPlotVolume( Component c, Graphics g, MarkStyle[] styles,
                                  double padFactor, int[] padBorders,
-                                 double fogginess, boolean hasErrors,
-                                 double zmin, double zmax,
+                                 double fogginess, boolean hasLabels,
+                                 boolean hasErrors, double zmin, double zmax,
                                  DataColorTweaker tweaker, Workspace ws ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
+        styles_ = styles;
 
         /* Work out the dimensions of the pixel grid that we're going
          * to need. */
@@ -91,10 +98,13 @@ public class BitmapSortPlotVolume extends PlotVolume {
 
         /* Set up basic RGB colours for each style. */
         rgbas_ = new float[ nstyle ][];
+        labelRgbas_ = new float[ nstyle ][];
         for ( int is = 0; is < nstyle; is++ ) {
             MarkStyle style = styles[ is ];
             rgbas_[ is ] = style.getColor().getRGBComponents( null );
             rgbas_[ is ][ 3 ] = 1.0f / style.getOpaqueLimit();
+            labelRgbas_[ is ] = style.getLabelColor().getRGBComponents( null );
+            labelRgbas_[ is ][ 3 ] = 1.0f;
         }
 
         /* Work out if there are auxiliary dimensions which may change
@@ -105,13 +115,13 @@ public class BitmapSortPlotVolume extends PlotVolume {
         /* Construct an appropriate PointStore object.  If only the point
          * positions need to be stored then all the information for each
          * object can be packed into a long, which is good for processing
-         * and memory efficiency.  However if errors and/or auxiliary axes
+         * and memory efficiency.  However if errors, labels or auxiliary axes
          * are (may be) present there is too much information for that, 
          * and we need a more conventional way of storing points. */
         if ( hasAux ) {
             pointStore_ = new AuxObjectPointStore( rgbas_, tweaker );
         }
-        else if ( hasErrors ) {
+        else if ( hasErrors || hasLabels ) {
             pointStore_ = new ObjectPointStore();
         }
         else {
@@ -120,10 +130,11 @@ public class BitmapSortPlotVolume extends PlotVolume {
     }
 
     public void plot2d( int px, int py, double z, double[] coords, int istyle, 
-                        boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
-                        double[] zerrs ) {
-        pointStore_.addPoint( px, py, z, coords, istyle, showPoint, nerr,
-                              xoffs, yoffs );
+                        boolean showPoint, String label, int nerr, 
+                        int[] xoffs, int[] yoffs, double[] zerrs ) {
+        pointStore_.addPoint( px, py, z, coords, istyle, showPoint, label,
+                              nerr, xoffs, yoffs );
+        seenLabels_ = seenLabels_ || label != null;
     }
 
     /**
@@ -138,6 +149,11 @@ public class BitmapSortPlotVolume extends PlotVolume {
         float[] bBuf = rgbaBufs_[ 2 ];
         float[] aBuf = rgbaBufs_[ 3 ];
 
+        /* Prepare for label drawing if any labels have been encountered. */
+        TextPixellatorFactory lpixer = seenLabels_
+             ? new TextPixellatorFactory( (Graphics2D) getGraphics() )
+             : null;
+
         /* Now work from the nearest to the most distant points.
          * For each one fill the RGB and alpha components until we have
          * an alpha of unity, and then stop adding. */
@@ -146,32 +162,71 @@ public class BitmapSortPlotVolume extends PlotVolume {
         for ( Iterator it = pointStore_.getSortedPointIterator();
               it.hasNext(); ) {
             BitmapPoint3D point = (BitmapPoint3D) it.next();
-            int base = point.getPixelBase( this );
-            Pixellator pixoffs = point.getPixelOffsets( this );
-            float[] rgba = point.getRgba( this );
             double z = point.getZ();
+            int base = point.getPixelBase( this );
 
-            /* Treat each pixel painted by this point. */
-            for ( pixoffs.start(); pixoffs.next(); ) {
-                int ipix = base + pixoffs.getX() + xdim_ * pixoffs.getY();
-                float alpha = aBuf[ ipix ];
+            /* Draw the marker and error bars if any. */
+            Pixellator pixoffs = point.getPixelOffsets( this );
+            if ( pixoffs != null ) {
+                float[] rgba = point.getRgba( this );
 
-                /* Only continue if we haven't used up all the opacity of
-                 * this pixel. */
-                if ( alpha < 1f ) {
-                    b4[ 0 ] = rgba[ 0 ];
-                    b4[ 1 ] = rgba[ 1 ];
-                    b4[ 2 ] = rgba[ 2 ];
-                    b4[ 3 ] = rgba[ 3 ];
-                    fogger.fogAt( z, b4 );
-                    float remain = 1f - alpha;
-                    float weight = Math.min( remain, rgba[ 3 ] );
-                    aBuf[ ipix ] += weight * 1f;
-                    rBuf[ ipix ] += weight * b4[ 0 ];
-                    gBuf[ ipix ] += weight * b4[ 1 ];
-                    bBuf[ ipix ] += weight * b4[ 2 ];
+                /* Treat each pixel painted by this point. */
+                for ( pixoffs.start(); pixoffs.next(); ) {
+                    int ipix = base + pixoffs.getX() + xdim_ * pixoffs.getY();
+                    float alpha = aBuf[ ipix ];
+
+                    /* Only continue if we haven't used up all the opacity of
+                     * this pixel. */
+                    if ( alpha < 1f ) {
+                        b4[ 0 ] = rgba[ 0 ];
+                        b4[ 1 ] = rgba[ 1 ];
+                        b4[ 2 ] = rgba[ 2 ];
+                        b4[ 3 ] = rgba[ 3 ];
+                        fogger.fogAt( z, b4 );
+                        float remain = 1f - alpha;
+                        float weight = Math.min( remain, rgba[ 3 ] );
+                        aBuf[ ipix ] += weight * 1f;
+                        rBuf[ ipix ] += weight * b4[ 0 ];
+                        gBuf[ ipix ] += weight * b4[ 1 ];
+                        bBuf[ ipix ] += weight * b4[ 2 ];
+                    }
                 }
             }
+
+            /* Draw the label if any. */
+            String label = point.getLabel();
+            if ( label != null && aBuf[ base ] < 1f ) {
+                int is = point.istyle_;
+                MarkStyle style = styles_[ is ];
+                Pixellator lpixoffs = style.getLabelPixels( lpixer, label,
+                                                            point.px_ - xoff_,
+                                                            point.py_ - yoff_ );
+                if ( lpixoffs != null ) {
+                    float[] rgba = labelRgbas_[ is ];
+                    for ( lpixoffs.start(); lpixoffs.next(); ) {
+                        int ipix = lpixoffs.getX() + xdim_ * lpixoffs.getY();
+                        float alpha = aBuf[ ipix ];
+                        if ( alpha < 1f ) {
+                            b4[ 0 ] = rgba[ 0 ];
+                            b4[ 1 ] = rgba[ 1 ];
+                            b4[ 2 ] = rgba[ 2 ];
+                            b4[ 3 ] = rgba[ 3 ];
+                            fogger.fogAt( z, b4 );
+                            float remain = 1f - alpha;
+                            float weight = Math.min( remain, rgba[ 3 ] );
+                            aBuf[ ipix ] += weight * 1f;
+                            rBuf[ ipix ] += weight * b4[ 0 ];
+                            gBuf[ ipix ] += weight * b4[ 1 ];
+                            bBuf[ ipix ] += weight * b4[ 2 ];
+                        }
+                    }
+                }
+            }
+        }
+
+        /* Tidy up. */
+        if ( lpixer != null ) {
+            lpixer.dispose();
         }
 
         /* Turn the RGBA float arrays into something you can put into an
@@ -216,6 +271,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
          *          data space x,y,z and may contain additional auxiliary coords
          * @param   istyle  index into styles array
          * @param   showPoint  whether to draw the marker as well
+         * @param   label  text label to draw near the marker
          * @param   nerr  number of error points
          * @param   xoffs  <code>nerr</code>-element array of error point
          *                 X offsets
@@ -224,8 +280,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
          */
         public abstract void addPoint( int px, int py, double z,
                                        double[] coords, int istyle,
-                                       boolean showPoint, int nerr, 
-                                       int[] xoffs, int[] yoffs );
+                                       boolean showPoint, String label,
+                                       int nerr, int[] xoffs, int[] yoffs );
 
         /**
          * Returns an iterator over all the points which have been stored
@@ -243,13 +299,13 @@ public class BitmapSortPlotVolume extends PlotVolume {
         List pointList_ = new ArrayList();
 
         public void addPoint( int px, int py, double z, double[] coords,
-                              int istyle, boolean showPoint, int nerr,
-                              int[] xoffs, int[] yoffs ) {
+                              int istyle, boolean showPoint, String label,
+                              int nerr, int[] xoffs, int[] yoffs ) {
             int np = pointList_.size();
             Point3D p3;
-            if ( nerr > 0 ) {
-                p3 = new ErrorsBitmapPoint3D( np, z, istyle, px, py, showPoint,
-                                              nerr, xoffs, yoffs );
+            if ( nerr > 0 || label != null ) {
+                p3 = new ExtrasBitmapPoint3D( np, z, istyle, px, py, showPoint,
+                                              label, nerr, xoffs, yoffs );
             }
             else if ( showPoint ) {
                 p3 = new BitmapPoint3D( np, z, istyle, px, py );
@@ -296,16 +352,16 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
 
         public void addPoint( int px, int py, double z, double[] coords,
-                              int istyle, boolean showPoint, int nerr,
-                              int[] xoffs, int[] yoffs ) {
+                              int istyle, boolean showPoint, String label,
+                              int nerr, int[] xoffs, int[] yoffs ) {
             float[] rgbaBuf = getRgba( istyle, coords );
             if ( rgbaBuf != null ) {
                 final int rgba = packRgba( rgbaBuf );
                 int np = pointList_.size();
                 Point3D p3;
-                if ( nerr > 0 ) {
-                    p3 = new ErrorsBitmapPoint3D( np, z, istyle, px, py,
-                                                  showPoint,
+                if ( nerr > 0 || label != null ) {
+                    p3 = new ExtrasBitmapPoint3D( np, z, istyle, px, py,
+                                                  showPoint, label,
                                                   nerr, xoffs, yoffs ) {
                         public float[] getRgba( BitmapSortPlotVolume vol ) {
                             unpackRgba( rgba, buf_ );
@@ -384,10 +440,11 @@ public class BitmapSortPlotVolume extends PlotVolume {
         private static final int TWO12 = 2 << 12;
 
         public void addPoint( int px, int py, double z, double[] coords,
-                              int istyle, boolean showPoint,
+                              int istyle, boolean showPoint, String label,
                               int nerr, int[] xoffs, int[] yoffs ) {
-            if ( nerr > 0 ) {
-                throw new UnsupportedOperationException( "No errors" );
+            if ( nerr > 0 || label != null ) {
+                throw new UnsupportedOperationException(
+                    "No errors or labels" );
             }
             else if ( showPoint ) {
                 if ( z > zmin_ && z <= zmax_ &&
@@ -570,14 +627,24 @@ public class BitmapSortPlotVolume extends PlotVolume {
         public float[] getRgba( BitmapSortPlotVolume vol ) {
             return vol.rgbas_[ istyle_ ];
         }
+
+        /**
+         * Returns a text label associated with this point if there is one.
+         *
+         * @return   label, or null
+         */
+        public String getLabel() {
+            return null;
+        }
     }
 
     /**
      * Point3D implementation with errors.
      */
-    private static class ErrorsBitmapPoint3D extends BitmapPoint3D {
+    private static class ExtrasBitmapPoint3D extends BitmapPoint3D {
 
         final boolean showPoint_;
+        final String label_;
         final int nerr_;
         final int[] xoffs_;
         final int[] yoffs_;
@@ -592,36 +659,48 @@ public class BitmapSortPlotVolume extends PlotVolume {
          * @param  px    X coordinate
          * @param  py    Y coordinate
          * @param  showPoint  whether to draw the marker as well
+         * @param  label   associated text label
          * @param  nerr  number of error points
          * @param  xoffs  <code>nerr</code>-element array of error point
          *                X offsets
          * @param  yoffs  <code>nerr</code>-element array of error point
          *                Y offsets
          */
-        public ErrorsBitmapPoint3D( int iseq, double z, int istyle,
+        public ExtrasBitmapPoint3D( int iseq, double z, int istyle,
                                     int px, int py, boolean showPoint,
-                                    int nerr, int[] xoffs, int[] yoffs ) {
+                                    String label, int nerr, int[] xoffs,
+                                    int[] yoffs ) {
             super( iseq, z, istyle, px, py );
             showPoint_ = showPoint;
+            label_ = label;
             nerr_ = nerr;
-            xoffs_ = (int[]) xoffs.clone();
-            yoffs_ = (int[]) yoffs.clone();
+            xoffs_ = nerr > 0 ? (int[]) xoffs.clone() : null;
+            yoffs_ = nerr > 0 ? (int[]) yoffs.clone() : null;
         }
 
         public Pixellator getPixelOffsets( BitmapSortPlotVolume vol ) {
             Rectangle clip = (Rectangle) vol.getGraphics().getClip();
             clip.translate( -px_, -py_ );
-            Pixellator ePixer = vol.getStyles()[ istyle_ ].getErrorRenderer()
-                               .getPixels( clip, 0, 0, xoffs_, yoffs_ );
-            if ( showPoint_ ) {
-                return Drawing.combinePixellators( new Pixellator[] {
-                    vol.markPixoffs_[ istyle_ ],
-                    ePixer,
-                } );
+            if ( nerr_ > 0 ) {
+                Pixellator ePixer =
+                    vol.getStyles()[ istyle_ ].getErrorRenderer()
+                       .getPixels( clip, 0, 0, xoffs_, yoffs_ );
+                return showPoint_
+                     ? Drawing.combinePixellators( new Pixellator[] {
+                           vol.markPixoffs_[ istyle_ ],
+                           ePixer,
+                       } )
+                     : ePixer;
             }
             else {
-                return ePixer;
+                return showPoint_
+                     ? vol.markPixoffs_[ istyle_ ]
+                     : null;
             }
+        }
+
+        public String getLabel() {
+            return label_;
         }
     }
 
