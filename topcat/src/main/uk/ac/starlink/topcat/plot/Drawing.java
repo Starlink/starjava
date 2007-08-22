@@ -363,7 +363,7 @@ public class Drawing implements Pixellator {
     }
 
     /**
-     * Draws the outlie of an arbitrary shape.
+     * Draws the outline of an arbitrary shape.
      * May not be that efficient.
      *
      * @param   shape  shape to draw
