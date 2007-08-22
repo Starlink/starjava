@@ -121,7 +121,8 @@ public abstract class PlotVolume {
      * @param  istyle  index into the array of styles set up for this volume
      *                 which will define how the marker is plotted
      * @param  showPoint  whether the central point is to be plotted
-     * @param  nerr    the number of error points
+     * @param  label   label for point, or null
+     * @param  nerr    the number of error points, or zero for no errors
      * @param  xerrs   <code>nerr</code>-element array of X coordinates of
      *                 error points 
      * @param  yerrs   <code>nerr</code>-element array of Y coordinates of
@@ -131,11 +132,11 @@ public abstract class PlotVolume {
      * @return  true iff the point was actually plotted
      */
     public boolean plot3d( double[] centre, int istyle,
-                           boolean showPoint, int nerr,
+                           boolean showPoint, String label, int nerr,
                            double[] xerrs, double[] yerrs, double[] zerrs ) {
 
         /* Return directly if there is no work to do. */
-        if ( nerr == 0 && ! showPoint ) {
+        if ( nerr == 0 && ! showPoint && label == null ) {
             return false;
         }
 
@@ -175,13 +176,14 @@ public abstract class PlotVolume {
             }
 
             /* Hand off the actual plotting to the concrete subclass. */
-            plot2d( xp, yp, z, centre, istyle, showPoint,
+            plot2d( xp, yp, z, centre, istyle, showPoint, label,
                     nerr, xoffs, yoffs, zerrs );
             return true;
         }
         else {
             assert showPoint;
-            plot2d( xp, yp, z, centre, istyle, true, 0, null, null, null );
+            plot2d( xp, yp, z, centre, istyle, true, label,
+                    0, null, null, null );
             return true;
         }
     }
@@ -233,6 +235,7 @@ public abstract class PlotVolume {
      *                 x,y,z values it may contain auxiliary axis coordinates
      * @param  istyle  index of the style used to plot the point
      * @param  showPoint  whether the central point is to be plotted
+     * @param  label   label for point, or null
      * @param  nerr  number of error points, or zero for no errors
      * @param  xoffs   <code>nerr</code>-element array of graphics space 
      *                 X coordinates for error points
@@ -242,8 +245,9 @@ public abstract class PlotVolume {
      *                 error points
      */
     protected abstract void plot2d( int px, int py, double z, double[] coords,
-                                    int istyle, boolean showPoint, int nerr, 
-                                    int[] xoffs, int[] yoffs, double[] zerrs );
+                                    int istyle, boolean showPoint, String label,
+                                    int nerr, int[] xoffs, int[] yoffs,
+                                    double[] zerrs );
 
     /**
      * Ensures that all points submitted through the <code>plot</code>

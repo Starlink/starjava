@@ -310,6 +310,9 @@ public abstract class Plot3D extends JPanel {
                         MarkStyle.hasErrors( (MarkStyle) styles[ is ], points );
         }
 
+        /* See if there may be labels to draw. */
+        boolean hasLabels = points.hasLabels();
+
         /* Get fogginess. */
         double fog = state.getFogginess();
 
@@ -330,13 +333,13 @@ public abstract class Plot3D extends JPanel {
         }
         else if ( allOpaque ) {
             vol = new ZBufferPlotVolume( c, g, plotStyles, padFactor,
-                                         padBorders_, fog, tweaker,
+                                         padBorders_, fog, hasLabels, tweaker,
                                          getZBufferWorkspace() );
         }
         else {
             vol = new BitmapSortPlotVolume( c, g, plotStyles, padFactor,
-                                            padBorders_, fog, anyErrors,
-                                            -1.0, 2.0, tweaker,
+                                            padBorders_, fog, hasLabels,
+                                            anyErrors, -1.0, 2.0, tweaker,
                                             getBitmapSortWorkspace() );
         }
 
@@ -403,6 +406,7 @@ public abstract class Plot3D extends JPanel {
             long lp = (long) ip;
             boolean use = false;
             boolean useErrors = false;
+            int labelSet = -1;
             for ( int is = 0; is < nset; is++ ) {
                 boolean included = sets[ is ].isIncluded( lp );
                 use = use || included;
@@ -411,6 +415,9 @@ public abstract class Plot3D extends JPanel {
                 useErrors = useErrors || showE;
                 showMarkPoints[ is ] = showP;
                 showMarkErrors[ is ] = showE;
+                if ( included && hasLabels ) {
+                    labelSet = is;
+                }
             }
             if ( use ) {
                 nInclude++;
@@ -428,10 +435,23 @@ public abstract class Plot3D extends JPanel {
                                                  errors, xerrs, yerrs, zerrs );
                         }
                         for ( int is = 0; is < nset; is++ ) {
-                            boolean useErr = useErrors && showMarkErrors[ is ];
+                            int numErr = useErrors && showMarkErrors[ is ]
+                                       ? nerr
+                                       : 0;
+                            String label;
+                            if ( is == labelSet ) {
+                                label = points.getLabel( ip );
+                                if ( label != null &&
+                                     label.trim().length() == 0 ) {
+                                    label = null;
+                                }
+                            }
+                            else {
+                                label = null;
+                            }
                             boolean vis =
                                 vol.plot3d( coords, is, showMarkPoints[ is ],
-                                            useErr ? nerr : 0,
+                                            label, numErr,
                                             xerrs, yerrs, zerrs );
                             if ( vis ) {
                                 nVisible++;
@@ -447,7 +467,7 @@ public abstract class Plot3D extends JPanel {
         dot[ 0 ] = 0.5;
         dot[ 1 ] = 0.5;
         dot[ 2 ] = 0.5;
-        vol.plot3d( dot, iDotStyle, true, 0, null, null, null );
+        vol.plot3d( dot, iDotStyle, true, null, 0, null, null, null );
 
         /* Tell the volume that all the points are in for plotting.
          * This will do the painting on the graphics context if it hasn't
