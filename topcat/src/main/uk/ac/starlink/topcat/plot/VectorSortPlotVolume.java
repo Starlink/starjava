@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,11 +18,16 @@ import java.util.List;
  */
 public class VectorSortPlotVolume extends PlotVolume {
 
-    private final DataColorTweaker tweaker_;
+    private final DataColorTweaker markTweaker_;
+    private final DataColorTweaker labelTweaker_;
+    private final Rectangle bounds_;
     private List pointList_;
     private int iseq_;
+    private boolean hasLabels_;
     private final int[] rgbs_;
     private final float[][] frgbs_;
+    private final int[] labelRgbs_;
+    private final float[][] labelFrgbs_;
     private final MarkStyle[] styles_;
     private final FixColorTweaker fixer_;
     private final float[] frgba_;
@@ -50,30 +56,42 @@ public class VectorSortPlotVolume extends PlotVolume {
                                  double padFactor, int[] padBorders,
                                  double fogginess, DataColorTweaker tweaker ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
+        bounds_ = c.getBounds();
         pointList_ = new ArrayList();
-        tweaker_ = createFoggingTweaker( tweaker );
+        markTweaker_ = createFoggingTweaker( tweaker );
+        labelTweaker_ = createFoggingTweaker( null );
         int nstyle = styles.length;
         frgba_ = new float[ 4 ];
         styles_ = styles;
         rgbs_ = new int[ nstyle ];
-        frgbs_ = new float[ nstyle][];
+        labelRgbs_ = new int[ nstyle ];
+        frgbs_ = new float[ nstyle ][];
+        labelFrgbs_ = new float[ nstyle ][];
         for ( int is = 0; is < nstyle; is++ ) {
             Color color = styles[ is ].getColor();
             rgbs_[ is ] = color.getRGB();
             frgbs_[ is ] = color.getRGBComponents( null );
+            Color labelColor = styles[ is ].getLabelColor();
+            labelRgbs_[ is ] = labelColor.getRGB();
+            labelFrgbs_[ is ] = labelColor.getRGBComponents( null );
         }
         fixer_ = new FixColorTweaker();
     }
 
     public void plot2d( int px, int py, double z, double[] coords, int istyle,
-                        boolean showPoint, int nerr, int[] xoffs, int[] yoffs,
-                        double[] zerrs ) {
-        int rgb = getRgb( istyle, coords );
+                        boolean showPoint, String label,
+                        int nerr, int[] xoffs, int[] yoffs, double[] zerrs ) {
+        int rgb = getMarkRgb( istyle, coords );
         if ( rgb != NO_RGBA ) {
             VectorPoint3D p3;
-            if ( nerr > 0 ) {
-                p3 = new ErrorsVectorPoint3D( iseq_++, z, px, py, istyle, rgb,
-                                              showPoint, nerr, xoffs, yoffs );
+            boolean hasErr = nerr > 0;
+            boolean hasLabel = label != null;
+            hasLabels_ = hasLabels_ || hasLabel;
+            if ( hasErr || hasLabel ) {
+                int labelRgb = getLabelRgb( istyle, coords );
+                p3 = new ExtrasVectorPoint3D( iseq_++, z, px, py, istyle, rgb,
+                                              showPoint, label, labelRgb,
+                                              nerr, xoffs, yoffs );
             }
             else if ( showPoint ) {
                 p3 = new VectorPoint3D( iseq_++, z, px, py, istyle, rgb );
@@ -93,8 +111,38 @@ public class VectorSortPlotVolume extends PlotVolume {
         VectorPoint3D[] points = getSortedPoints();
         int np = points.length;
         Graphics g = getGraphics();
-        for ( int ip = 0; ip < np; ip++ ) {
-            points[ ip ].render( g, this );
+
+        /* If we may be encountering labels, keep track of which points have
+         * had an associated label drawn.  Do not attempt to draw a label 
+         * based at the same point that another label has already been drawn.
+         * This (a) cuts down on visual clutter (unreadable overplotted labels)
+         * and (b) reduces the number of expensive label drawing actions when
+         * there are many points.  The number of overplots could be restricted
+         * even (much) further by avoiding labels near points which already
+         * have them as well as right on top. */
+        if ( hasLabels_ ) {
+            PixelMask mask = new PixelMask( bounds_ );
+            for ( int ip = 0; ip < np; ip++ ) {
+                VectorPoint3D point = points[ ip ];
+                if ( point.hasLabel() ) {
+                    int px = point.px_;
+                    int py = point.py_;
+                    if ( ! mask.get( px, py ) ) {
+                        point.render( g, this, true );
+                    }
+                    else {
+                        point.render( g, this, false );
+                        mask.set( px, py );
+                    }
+                }
+            }
+        }
+
+        /* No labels: just go through and plot all the points. */
+        else {
+            for ( int ip = 0; ip < np; ip++ ) {
+                points[ ip ].render( g, this, false );
+            }
         }
     }
 
@@ -129,18 +177,45 @@ public class VectorSortPlotVolume extends PlotVolume {
      * @param  istyle  style index
      * @param  coords  full coordinate array
      */
-    private int getRgb( int istyle, double[] coords ) {
-        if ( tweaker_ == null ) {
-            return rgbs_[ istyle ];
+    private int getMarkRgb( int istyle, double[] coords ) {
+        return getRgb( coords, markTweaker_, rgbs_[ istyle ],
+                       frgbs_[ istyle ] );
+    }
+
+    /**
+     * Returns the RGB integer for label drawing corresponding to a given
+     * marker style at a tiven set of coordinates.  This takes into account
+     * any Z-fogging.
+     *
+     * @param   istyle  style index
+     * @param   coords  full coordinate array
+     */
+    private int getLabelRgb( int istyle, double[] coords ) {
+        return getRgb( coords, labelTweaker_, labelRgbs_[ istyle ],
+                       labelFrgbs_[ istyle ] );
+    }
+
+    /**
+     * Gets an RGB integer taking into account colour modifications at a 
+     * given set of coordinates.
+     *
+     * @param   coords  full coordinate array
+     * @param   tweaker  colour tweaker sensitive to coords
+     * @param   rgb   integer representation of base colour
+     * @param   frgb  float[] array representation of base colour
+     */
+    private int getRgb( double[] coords, DataColorTweaker tweaker,
+                        int rgb, float[] frgb ) {
+        if ( tweaker == null ) {
+            return rgb;
         }
         else {
-            float[] frgba = frgbs_[ istyle ];
-            frgba_[ 0 ] = frgba[ 0 ];
-            frgba_[ 1 ] = frgba[ 1 ];
-            frgba_[ 2 ] = frgba[ 2 ];
-            frgba_[ 3 ] = frgba[ 3 ];
-            if ( tweaker_.setCoords( coords ) ) {
-                tweaker_.tweakColor( frgba_ );
+            frgba_[ 0 ] = frgb[ 0 ];
+            frgba_[ 1 ] = frgb[ 1 ];
+            frgba_[ 2 ] = frgb[ 2 ];
+            frgba_[ 3 ] = frgb[ 3 ];
+            if ( tweaker.setCoords( coords ) ) {
+                tweaker.tweakColor( frgba_ );
                 float r = frgba_[ 0 ];
                 float b = frgba_[ 2 ];
                 frgba_[ 2 ] = r;
@@ -230,7 +305,7 @@ public class VectorSortPlotVolume extends PlotVolume {
          *
          * @param  plotVol  owner
          */
-        ColorTweaker getColorTweaker( VectorSortPlotVolume plotVol ) {
+        FixColorTweaker getColorTweaker( VectorSortPlotVolume plotVol ) {
             FixColorTweaker fixer = plotVol.fixer_;
             fixer.setRgb( isrgb_ & 0xffffff );
             return fixer;
@@ -246,13 +321,25 @@ public class VectorSortPlotVolume extends PlotVolume {
         }
 
         /**
+         * Returns true if there is a text label associated with this point.
+         *
+         * @return   true  iff there is a non-blank label
+         */
+        public boolean hasLabel() {
+            return false;
+        }
+
+        /**
          * Draws this point on a vector-like graphics context, ignoring
          * transparency.
          *
          * @param   g  graphics context
          * @param   plotVol  owner
+         * @param   withLabel  whether an associated label should be 
+         *          drawn if this point has one
          */
-        public void render( Graphics g, VectorSortPlotVolume plotVol ) {
+        public void render( Graphics g, VectorSortPlotVolume plotVol,
+                            boolean withLabel ) {
             MarkStyle style = getStyle( plotVol );
             ColorTweaker tweaker = getColorTweaker( plotVol );
             style.drawMarker( g, px_, py_, tweaker );
@@ -260,11 +347,14 @@ public class VectorSortPlotVolume extends PlotVolume {
     }
 
     /**
-     * VectorPoint3D implementation which also draws error bars.
+     * VectorPoint3D implementation which can also draw error bars and 
+     * marker labels.
      */
-    private static class ErrorsVectorPoint3D extends VectorPoint3D {
+    private static class ExtrasVectorPoint3D extends VectorPoint3D {
 
         final boolean showPoint_;
+        final String label_;
+        final int labelRgb_;
         final int nerr_;
         final int[] xoffs_;
         final int[] yoffs_;
@@ -279,28 +369,43 @@ public class VectorSortPlotVolume extends PlotVolume {
          * @param  istyle  style index
          * @param  rgb     sRGB colour value
          * @param  showPoint  whether to draw the marker as well
+         * @param  label   text label
          * @param  nerr  number of error points
          * @param  xoffs  <code>nerr</code>-element array of error point 
          *                X offsets
          * @param  yoffs  <code>nerr</code>-element array of error point 
          *                Y offsets
          */
-        public ErrorsVectorPoint3D( int iseq, double z, int px, int py,
+        public ExtrasVectorPoint3D( int iseq, double z, int px, int py,
                                     int istyle, int rgb, boolean showPoint,
-                                    int nerr, int[] xoffs, int[] yoffs ) {
+                                    String label, int labelRgb, int nerr, 
+                                    int[] xoffs, int[] yoffs ) {
             super( iseq, z, px, py, istyle, rgb );
             showPoint_ = showPoint;
+            label_ = label;
+            labelRgb_ = labelRgb;
             nerr_ = nerr;
-            xoffs_ = (int[]) xoffs.clone();
-            yoffs_ = (int[]) yoffs.clone();
+            xoffs_ = nerr > 0 ? (int[]) xoffs.clone() : null;
+            yoffs_ = nerr > 0 ? (int[]) yoffs.clone() : null;
         }
 
-        public void render( Graphics g, VectorSortPlotVolume plotVol ) {
+        public boolean hasLabel() {
+            return label_ != null;
+        }
+
+        public void render( Graphics g, VectorSortPlotVolume plotVol,
+                            boolean withLabel ) {
             MarkStyle style = getStyle( plotVol );
-            ColorTweaker tweaker = getColorTweaker( plotVol );
-            style.drawErrors( g, px_, py_, xoffs_, yoffs_, tweaker );
+            FixColorTweaker tweaker = getColorTweaker( plotVol );
+            if ( nerr_ > 0 ) {
+                style.drawErrors( g, px_, py_, xoffs_, yoffs_, tweaker );
+            }
             if ( showPoint_ ) {
                 style.drawMarker( g, px_, py_, tweaker );
+            }
+            if ( withLabel && label_ != null ) {
+                tweaker.setRgb( labelRgb_ );
+                style.drawLabel( g, px_, py_, label_, tweaker );
             }
         }
     }
