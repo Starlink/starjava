@@ -171,9 +171,9 @@ public abstract class ScatterPlot extends SurfacePlot {
                              * (expensive). */
                             if ( ! mask.get( point ) ) {
                                 mask.set( point );
-                                ((MarkStyle) styles[ iset ])
-                                            .drawLabel( g, point.x, point.y,
-                                                        label );
+                                MarkStyle style = (MarkStyle) styles[ iset ];
+                                g.setColor( style.getLabelColor() );
+                                style.drawLabel( g, point.x, point.y, label );
                             }
                         }
                     }
