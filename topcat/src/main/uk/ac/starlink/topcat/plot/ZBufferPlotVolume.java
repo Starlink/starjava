@@ -158,16 +158,24 @@ public class ZBufferPlotVolume extends PlotVolume {
         if ( label != null && z <= zbuf_[ base ] ) {
             labelPaint_.setColor( is, coords );
             Pixellator lpixer =
-                labelPixer_.createTextPixellator( label, xbase + 4, ybase - 4 );
-            for ( lpixer.start(); lpixer.next(); ) {
-                int pixoff = lpixer.getX() + xdim_ * lpixer.getY();
-                hitPixel( pixoff, z, labelPaint_ );
+                styles_[ is ]
+               .getLabelPixels( labelPixer_, label, xbase, ybase );
+            if ( lpixer != null ) {
+                for ( lpixer.start(); lpixer.next(); ) {
+                    int pixoff = lpixer.getX() + xdim_ * lpixer.getY();
+                    hitPixel( pixoff, z, labelPaint_ );
+                }
             }
         }
     }
 
     public void flush() {
         Graphics g = getGraphics();
+
+        /* Tidy up. */
+        if ( labelPixer_ != null ) {
+            labelPixer_.dispose();
+        }
 
         /* Work out the region of the plot which has been affected. */
         int xmin = xdim_;
@@ -194,11 +202,6 @@ public class ZBufferPlotVolume extends PlotVolume {
                            xmin + ymin * xdim_, xdim_ );
             g.drawImage( image_.getSubimage( xmin, ymin, width, height ),
                          xoff_ + xmin, yoff_ + ymin, null );
-        }
-
-        /* Tidy up. */
-        if ( labelPixer_ != null ) {
-            labelPixer_.dispose();
         }
     }
        
