@@ -98,6 +98,8 @@ public abstract class TextPixellatorFactory {
                         extends TextPixellatorFactory {
 
         private final FontMetrics fm_;
+        private final int ascent_;
+        private final int descent_;
         private GraphicsPixellator gpixer_;
 
         /**
@@ -107,6 +109,8 @@ public abstract class TextPixellatorFactory {
          */
         public GraphicsTextPixellatorFactory( FontMetrics fm ) {
             fm_ = fm;
+            ascent_ = fm.getMaxAscent();
+            descent_ = fm.getMaxDescent();
         }
 
         public Pixellator getTextPixellator( String text, int x, int y ) {
@@ -114,7 +118,7 @@ public abstract class TextPixellatorFactory {
                 getGraphicsPixellator( fm_.stringWidth( text ) );
             gpixer.clear();
             gpixer.getGraphics().drawString( text, 0, 0 );
-            return new TranslatedPixellator( gpixer, x, y );
+            return new TranslatedPixellator( gpixer, x, y - ascent_ );
         }
 
         /**
@@ -124,10 +128,8 @@ public abstract class TextPixellatorFactory {
          */
         private GraphicsPixellator getGraphicsPixellator( int width ) {
             if ( gpixer_ == null || gpixer_.getBounds().width < width ) {
-                int ascent = fm_.getMaxAscent();
-                int descent = fm_.getMaxDescent();
                 Rectangle bounds =
-                    new Rectangle( 0, -ascent, width, ascent + descent );
+                    new Rectangle( 0, -ascent_, width, ascent_ + descent_ );
                 gpixer_ = new GraphicsPixellator( bounds );
             }
             return gpixer_;
