@@ -113,7 +113,6 @@ public abstract class TextPixellatorFactory {
             GraphicsPixellator gpixer =
                 getGraphicsPixellator( fm_.stringWidth( text ) );
             gpixer.clear();
-  gpixer.getGraphics().drawRect( 0, 0, 2, 2 );
             gpixer.getGraphics().drawString( text, 0, 0 );
             return new TranslatedPixellator( gpixer, x, y );
         }
