@@ -30,7 +30,7 @@ public abstract class TextPixellatorFactory {
     /**
      * Returns an instance of this class.
      *
-     * @param    graphics context onto which bitmap will be copied
+     * @param   g  graphics context onto which bitmap will be copied
      */
     public static TextPixellatorFactory createInstance( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g;
