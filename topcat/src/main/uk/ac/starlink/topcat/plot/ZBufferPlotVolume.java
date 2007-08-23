@@ -67,7 +67,7 @@ public class ZBufferPlotVolume extends PlotVolume {
                               DataColorTweaker tweaker, Workspace ws ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
         graphics_ = g;
-        labelPixer_ = hasLabels ? new TextPixellatorFactory( (Graphics2D) g )
+        labelPixer_ = hasLabels ? TextPixellatorFactory.createInstance( g )
                                 : null;
         font_ = g.getFont();
         frc_ = ((Graphics2D) g).getFontRenderContext();
@@ -171,11 +171,6 @@ public class ZBufferPlotVolume extends PlotVolume {
 
     public void flush() {
         Graphics g = getGraphics();
-
-        /* Tidy up. */
-        if ( labelPixer_ != null ) {
-            labelPixer_.dispose();
-        }
 
         /* Work out the region of the plot which has been affected. */
         int xmin = xdim_;

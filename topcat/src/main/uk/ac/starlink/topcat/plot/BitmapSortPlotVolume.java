@@ -150,8 +150,9 @@ public class BitmapSortPlotVolume extends PlotVolume {
         float[] aBuf = rgbaBufs_[ 3 ];
 
         /* Prepare for label drawing if any labels have been encountered. */
+        Graphics2D g2 = (Graphics2D) getGraphics();
         TextPixellatorFactory lpixer = seenLabels_
-             ? new TextPixellatorFactory( (Graphics2D) getGraphics() )
+             ? TextPixellatorFactory.createInstance( g2 )
              : null;
 
         /* Now work from the nearest to the most distant points.
@@ -222,11 +223,6 @@ public class BitmapSortPlotVolume extends PlotVolume {
                     }
                 }
             }
-        }
-
-        /* Tidy up. */
-        if ( lpixer != null ) {
-            lpixer.dispose();
         }
 
         /* Turn the RGBA float arrays into something you can put into an

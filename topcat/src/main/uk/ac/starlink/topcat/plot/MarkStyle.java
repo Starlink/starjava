@@ -532,7 +532,7 @@ public abstract class MarkStyle extends DefaultStyle {
      */
     public Pixellator getLabelPixels( TextPixellatorFactory textPixer, 
                                       String label, int x, int y ) {
-        return textPixer.createTextPixellator( label, x + 4, y - 4 );
+        return textPixer.getTextPixellator( label, x + 4, y - 4 );
     }
 
     public boolean equals( Object o ) {
