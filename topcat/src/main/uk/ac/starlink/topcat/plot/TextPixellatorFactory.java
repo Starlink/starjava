@@ -113,6 +113,7 @@ public abstract class TextPixellatorFactory {
             GraphicsPixellator gpixer =
                 getGraphicsPixellator( fm_.stringWidth( text ) );
             gpixer.clear();
+  gpixer.getGraphics().drawRect( 0, 0, 2, 2 );
             gpixer.getGraphics().drawString( text, 0, 0 );
             return new TranslatedPixellator( gpixer, x, y );
         }
@@ -123,7 +124,7 @@ public abstract class TextPixellatorFactory {
          * @param   width   buffer with in pixels
          */
         private GraphicsPixellator getGraphicsPixellator( int width ) {
-            if ( gpixer_ == null || gpixer_.getBounds().width > width ) {
+            if ( gpixer_ == null || gpixer_.getBounds().width < width ) {
                 int ascent = fm_.getMaxAscent();
                 int descent = fm_.getMaxDescent();
                 Rectangle bounds =
