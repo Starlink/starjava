@@ -32,7 +32,8 @@ public class GraphicsBitmap {
     /**
      * Constructor.
      *
-     * @param   bounds   bounds of the bitmapped region
+     * @param  width   width of the bitmapped region
+     * @param  height  height of the bitmapped region
      */
     public GraphicsBitmap( int width, int height ) {
         width_ = width;
