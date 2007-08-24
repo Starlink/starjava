@@ -2,11 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
@@ -35,9 +32,6 @@ public class ZBufferPlotVolume extends PlotVolume {
     private final Rectangle clip_;
     private final Paint markPaint_;
     private final Paint labelPaint_;
-    private final TextPixellatorFactory labelPixer_;
-    private final Font font_;
-    private final FontRenderContext frc_;
 
     /**
      * Packed RGBA value representing no colour.  This is used as a flag,
@@ -67,10 +61,6 @@ public class ZBufferPlotVolume extends PlotVolume {
                               DataColorTweaker tweaker, Workspace ws ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
         graphics_ = g;
-        labelPixer_ = hasLabels ? TextPixellatorFactory.createInstance( g )
-                                : null;
-        font_ = g.getFont();
-        frc_ = ((Graphics2D) g).getFontRenderContext();
         styles_ = (MarkStyle[]) styles.clone();
 
         /* Work out the dimensions of the pixel grid that we're going
@@ -158,8 +148,7 @@ public class ZBufferPlotVolume extends PlotVolume {
         if ( label != null && z <= zbuf_[ base ] ) {
             labelPaint_.setColor( is, coords );
             Pixellator lpixer =
-                styles_[ is ]
-               .getLabelPixels( labelPixer_, label, xbase, ybase );
+                styles_[ is ].getLabelPixels( label, xbase, ybase, clip_ );
             if ( lpixer != null ) {
                 for ( lpixer.start(); lpixer.next(); ) {
                     int pixoff = lpixer.getX() + xdim_ * lpixer.getY();

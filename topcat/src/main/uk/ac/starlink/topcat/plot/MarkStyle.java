@@ -3,11 +3,15 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.util.ArrayList;
@@ -62,7 +66,10 @@ public abstract class MarkStyle extends DefaultStyle {
     private static final RenderingHints.Key AA_KEY =
         RenderingHints.KEY_ANTIALIASING;
     private static final Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
-  
+    private static final Font LABEL_FONT =
+        new GraphicsBitmap( 1, 1 ).createGraphics().getFont();
+    private static final FontRenderContext PIXEL_FRC =
+        new FontRenderContext( null, false, false );
 
     static {
         pixHints_ = new RenderingHints( null );
@@ -525,14 +532,36 @@ public abstract class MarkStyle extends DefaultStyle {
      * Returns an array over pixel positions which can be used to draw a
      * label for this style.
      *
-     * @param  textPixer   text pixellator factory object
      * @param  label    text of label to draw
      * @param  x   X coordinate of point to label
      * @param  y   Y coordinate of point to label
+     * @param  clip  clipping region, or null
      */
-    public Pixellator getLabelPixels( TextPixellatorFactory textPixer, 
-                                      String label, int x, int y ) {
-        return textPixer.getTextPixellator( label, x + 4, y - 4 );
+    public Pixellator getLabelPixels( String label, int x, int y,
+                                      Rectangle clip ) {
+
+        /* Offset label from central position. */
+        x += 4;
+        y -= 4;
+
+        /* Do the work.  Currently the graphics-based method is used, it
+         * seems to be a lot faster.  The other implementation is available
+         * for reference though. */
+        if ( true ) {
+            return bitmapTextPixellator( label, x, y, getLabelFont(), clip );
+        }
+        else {
+            return glyphTextPixellator( label, x, y, getLabelFont(), clip );
+        }
+    }
+
+    /**
+     * Returns the font to use for labels.
+     *
+     * @return  label font
+     */
+    private Font getLabelFont() {
+        return LABEL_FONT;
     }
 
     public boolean equals( Object o ) {
@@ -589,6 +618,59 @@ public abstract class MarkStyle extends DefaultStyle {
                 g2.drawLine( -4, 0, -8, 0 );
             }
         };
+    }
+
+    /**
+     * Gets a text label pixellator using a bitmap.
+     *
+     * @param   text   text to paint
+     * @param   x      X coordinate of text origin
+     * @param   y      Y coordinate of text origin
+     * @param   font   font
+     * @param   clip   clipping region, or null
+     * @return  pixel iterator
+     */
+    private static Pixellator bitmapTextPixellator( String text, int x, int y,
+                                                    Font font,
+                                                    Rectangle clip ) {
+        Rectangle bounds = font.getStringBounds( text, PIXEL_FRC ).getBounds();
+        int xoff = bounds.x;
+        int yoff = bounds.y;
+        if ( clip != null ) {
+            bounds = new Rectangle( clip.x - x, clip.y - y,
+                                    clip.width, clip.height )
+                    .intersection( bounds );
+        }
+        GraphicsBitmap bitmap =
+            new GraphicsBitmap( bounds.width, bounds.height );
+        Graphics g = bitmap.createGraphics();
+        g.setFont( font );
+        g.drawString( text, -bounds.x, -bounds.y );
+        return new TranslatedPixellator( bitmap.createPixellator(),
+                                         x + bounds.x, y + bounds.y );
+    }
+
+    /**
+     * Gets a text label pixellator using glyph vectors.
+     *
+     * @param   text   text to paint
+     * @param   x      X coordinate of text origin
+     * @param   y      Y coordinate of text origin
+     * @param   font   font
+     * @param   clip   clipping region, or null
+     * @return  pixel iterator
+     */
+    private static Pixellator glyphTextPixellator( String text, int x, int y,
+                                                   Font font, Rectangle clip ) {
+        Shape outline =
+            font.createGlyphVector( PIXEL_FRC, text ).getOutline( x, y );
+        Rectangle bounds = outline.getBounds();
+        if ( clip != null ) {
+            bounds = bounds.intersection( clip );
+        }
+        Drawing drawing = new Drawing( bounds );
+        drawing.fill( outline );
+        return drawing;
     }
 
     /**

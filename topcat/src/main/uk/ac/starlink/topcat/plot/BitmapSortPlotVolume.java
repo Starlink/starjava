@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -149,17 +148,12 @@ public class BitmapSortPlotVolume extends PlotVolume {
         float[] bBuf = rgbaBufs_[ 2 ];
         float[] aBuf = rgbaBufs_[ 3 ];
 
-        /* Prepare for label drawing if any labels have been encountered. */
-        Graphics2D g2 = (Graphics2D) getGraphics();
-        TextPixellatorFactory lpixer = seenLabels_
-             ? TextPixellatorFactory.createInstance( g2 )
-             : null;
-
         /* Now work from the nearest to the most distant points.
          * For each one fill the RGB and alpha components until we have
          * an alpha of unity, and then stop adding. */
         float[] b4 = new float[ 4 ];
         Fogger fogger = getFogger();
+        Rectangle clip = getGraphics().getClipBounds();
         for ( Iterator it = pointStore_.getSortedPointIterator();
               it.hasNext(); ) {
             BitmapPoint3D point = (BitmapPoint3D) it.next();
@@ -199,9 +193,9 @@ public class BitmapSortPlotVolume extends PlotVolume {
             if ( label != null && aBuf[ base ] < 1f ) {
                 int is = point.istyle_;
                 MarkStyle style = styles_[ is ];
-                Pixellator lpixoffs = style.getLabelPixels( lpixer, label,
-                                                            point.px_ - xoff_,
-                                                            point.py_ - yoff_ );
+                Pixellator lpixoffs =
+                    style.getLabelPixels( label, point.px_ - xoff_,
+                                          point.py_ - yoff_, clip );
                 if ( lpixoffs != null ) {
                     float[] rgba = labelRgbas_[ is ];
                     for ( lpixoffs.start(); lpixoffs.next(); ) {
@@ -675,7 +669,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
         }
 
         public Pixellator getPixelOffsets( BitmapSortPlotVolume vol ) {
-            Rectangle clip = (Rectangle) vol.getGraphics().getClip();
+            Rectangle clip = vol.getGraphics().getClipBounds();
             clip.translate( -px_, -py_ );
             if ( nerr_ > 0 ) {
                 Pixellator ePixer =
