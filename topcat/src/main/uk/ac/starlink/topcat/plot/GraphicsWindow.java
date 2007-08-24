@@ -299,7 +299,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Model to control whether a label selection column can be used. */
         labelsModel_ =
-            new ToggleButtonModel( "Show Labels", ResourceIcon.LABEL,
+            new ToggleButtonModel( "Draw Labels", ResourceIcon.LABEL,
                                    "Draw text labels for plotted points" );
         labelsModel_.addChangeListener( replotListener_ );
 
