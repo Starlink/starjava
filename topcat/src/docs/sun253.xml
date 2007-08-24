@@ -10828,6 +10828,11 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>You can now draw annotate plotted points using text labels in
+        2d and 3d scatter plots - use the <label>Draw Label</label>
+        (&IMG.LABEL;) button to assign a column containing label text.</li>
+    <li>Radial axis control in sphere plot is now not visible by default -
+        you need to click the relevant button in the dataset toolbar.</li>
     <li>New <label>Hide Legend</label> checkbox in style editor windows which 
         allows subset legend entries to be excluded from the displayed legend
         individually.</li>
