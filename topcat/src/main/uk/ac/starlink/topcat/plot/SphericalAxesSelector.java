@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -43,10 +44,12 @@ public class SphericalAxesSelector implements AxesSelector {
     private final ColumnSelector phiSelector_;
     private final ColumnSelector thetaSelector_;
     private final AxisDataSelector rSelector_;
+    private final JComponent rContainer_;
     private final ColumnSelector tanerrSelector_;
     private final ToggleButtonModel logToggler_;
     private final ToggleButtonModel tangentErrorToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
+    private boolean radialVisible_;
     private TopcatModel tcModel_;
 
     /** Pattern for matching (probable) tangent error UCDs. */
@@ -148,9 +151,10 @@ public class SphericalAxesSelector implements AxesSelector {
             new AxisDataSelector( "Radial", new String[] { "Log" },
                                   new ToggleButtonModel[] { logToggler } );
         rSelector_.setEnabled( false );
-        colBox_.add( Box.createVerticalStrut( 5 ) );
-        colBox_.add( rSelector_ );
-        colBox_.add( Box.createVerticalStrut( 5 ) );
+        rSelector_.setBorder( BorderFactory.createEmptyBorder( 5, 0, 5, 0 ) );
+        rContainer_ = Box.createVerticalBox();
+        colBox_.add( rContainer_ );
+        radialErrorModeModel_.setEnabled( radialVisible_ );
 
         /* Align axis labels. */
         Dimension labelSize = new Dimension( 0, 0 );
@@ -196,7 +200,8 @@ public class SphericalAxesSelector implements AxesSelector {
     public StarTable getErrorData() {
         List colList = new ArrayList();
         boolean hasTanerr = tangentErrorToggler_.isSelected();
-        ErrorMode radialMode = radialErrorModeModel_.getMode();
+        ErrorMode radialMode = radialVisible_ ? radialErrorModeModel_.getMode()
+                                              : ErrorMode.NONE;
         if ( hasTanerr ) {
             ColumnData tData = tanerrSelector_.getColumnData();
             colList.add( tData == null ? ConstantColumnData.ZERO : tData );
@@ -220,7 +225,8 @@ public class SphericalAxesSelector implements AxesSelector {
 
     public PointStore createPointStore( int npoint ) {
         boolean hasTanerr = tangentErrorToggler_.isSelected();
-        ErrorMode radialMode = radialErrorModeModel_.getMode();
+        ErrorMode radialMode = radialVisible_ ? radialErrorModeModel_.getMode()
+                                              : ErrorMode.NONE;
         boolean radialLog = logToggler_.isSelected();
         return new SphericalPolarPointStore( radialMode, hasTanerr, radialLog,
                                              npoint );
@@ -231,7 +237,8 @@ public class SphericalAxesSelector implements AxesSelector {
         boolean hasTan = tangentErrorToggler_.isSelected();
         modes[ 0 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
         modes[ 1 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
-        modes[ 2 ] = radialErrorModeModel_.getMode();
+        modes[ 2 ] = radialVisible_ ? radialErrorModeModel_.getMode()
+                                    : ErrorMode.NONE;
         return modes;
     }
 
@@ -329,6 +336,26 @@ public class SphericalAxesSelector implements AxesSelector {
     }
 
     /**
+     * Determines whether the radial axis control is visible.
+     * If not, the radial axis is assumed always to have a value of unity.
+     *
+     * @param   vis  whether the radial control is visible
+     */
+    public void setRadialVisible( boolean vis ) {
+        if ( vis != radialVisible_ ) {
+            if ( vis ) {
+                rContainer_.add( rSelector_ );
+            }
+            else {
+                rContainer_.remove( rSelector_ );
+            }
+            radialVisible_ = vis;
+            rContainer_.revalidate();
+        }
+        radialErrorModeModel_.setEnabled( radialVisible_ );
+    }
+
+    /**
      * Returns metadata describing the currently selected radial coordinate.
      * If no radial coordinate is selected (all points on the surface of
      * the sphere), <code>null</code> is returned.
@@ -336,6 +363,9 @@ public class SphericalAxesSelector implements AxesSelector {
      * @return   radial column info
      */
     public ValueInfo getRadialInfo() {
+        if ( ! radialVisible_ ) {
+            return null;
+        }
         ColumnData cdata =
             (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
@@ -375,6 +405,9 @@ public class SphericalAxesSelector implements AxesSelector {
      * @return   radius column
      */
     private ColumnData getR() {
+        if ( ! radialVisible_ ) {
+            return ConstantColumnData.ONE;
+        }
         ColumnData cdata =
             (ColumnData) rSelector_.getMainSelector().getSelectedItem();
         if ( cdata == null ) {
