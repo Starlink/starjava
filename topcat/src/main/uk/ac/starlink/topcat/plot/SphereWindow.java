@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
@@ -25,6 +27,7 @@ public class SphereWindow extends Plot3DWindow {
 
     private final ToggleButtonModel logToggler_;
     private final ToggleButtonModel tangentErrorToggler_;
+    private final ToggleButtonModel radialToggler_;
     private final ErrorModeSelectionModel radialErrorModeModel_;
     private final ErrorModeSelectionModel[] tangentErrorModeModels_;
     private final ErrorModeSelectionModel[] errorModeModels3d_;
@@ -42,12 +45,19 @@ public class SphereWindow extends Plot3DWindow {
                new String[] { "Longitude", "Latitude", "Radius" }, 3, parent, 
                new ErrorModeSelectionModel[ 0 ], new SphericalPlot3D() );
 
+        /* Set up toggle button model for whether the radial axis is used. */
+        radialToggler_ =
+            new ToggleButtonModel( "Radial Coordinates",
+                                   ResourceIcon.DO_WHAT,
+                                   "Plot points with radial "
+                                 + "as well as angular coordinates" );
+        radialToggler_.addActionListener( getReplotListener() );
+
         /* Set up toggle button model for logarithmic radial axis. */
         logToggler_ =
             new ToggleButtonModel( "Log", ResourceIcon.XLOG,
                                    "Scale radius value logarithmically" );
         logToggler_.addActionListener( getReplotListener() );
-
 
         /* Set up toggle button model for tangential errors. */
         tangentErrorToggler_ = 
@@ -111,6 +121,9 @@ public class SphereWindow extends Plot3DWindow {
 
         /* Add toolbar buttons. */
         getPointSelectorToolBar().addSeparator();
+        getPointSelectorToolBar().add( radialToggler_
+                                      .createToolbarButton() );
+        getPointSelectorToolBar().addSeparator();
         getPointSelectorToolBar().add( tangentErrorToggler_
                                       .createToolbarButton() );
         getPointSelectorToolBar().add( radialErrorModeModel_
@@ -161,10 +174,15 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     protected PointSelector createPointSelector() {
-        AxesSelector axsel =
+        final SphericalAxesSelector sphaxsel =
             new SphericalAxesSelector( logToggler_, tangentErrorToggler_,
                                        radialErrorModeModel_ );
-        axsel = addExtraAxes( axsel );
+        radialToggler_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                sphaxsel.setRadialVisible( radialToggler_.isSelected() );
+            }
+        } );
+        AxesSelector axsel = addExtraAxes( sphaxsel );
         PointSelector psel = new PointSelector( axsel, getStyles() );
         ActionListener errorModeListener = psel.getErrorModeListener();
         tangentErrorToggler_.addActionListener( errorModeListener );
