@@ -622,13 +622,14 @@ public abstract class MarkStyle extends DefaultStyle {
 
     /**
      * Gets a text label pixellator using a bitmap.
+     * Null may be returned if there are no pixels.
      *
      * @param   text   text to paint
      * @param   x      X coordinate of text origin
      * @param   y      Y coordinate of text origin
      * @param   font   font
      * @param   clip   clipping region, or null
-     * @return  pixel iterator
+     * @return  pixel iterator, or null
      */
     private static Pixellator bitmapTextPixellator( String text, int x, int y,
                                                     Font font,
@@ -641,13 +642,18 @@ public abstract class MarkStyle extends DefaultStyle {
                                     clip.width, clip.height )
                     .intersection( bounds );
         }
-        GraphicsBitmap bitmap =
-            new GraphicsBitmap( bounds.width, bounds.height );
-        Graphics g = bitmap.createGraphics();
-        g.setFont( font );
-        g.drawString( text, -bounds.x, -bounds.y );
-        return new TranslatedPixellator( bitmap.createPixellator(),
-                                         x + bounds.x, y + bounds.y );
+        if ( bounds.isEmpty() ) {
+            return null;
+        }
+        else {
+            GraphicsBitmap bitmap =
+                new GraphicsBitmap( bounds.width, bounds.height );
+            Graphics g = bitmap.createGraphics();
+            g.setFont( font );
+            g.drawString( text, -bounds.x, -bounds.y );
+            return new TranslatedPixellator( bitmap.createPixellator(),
+                                             x + bounds.x, y + bounds.y );
+        }
     }
 
     /**
