@@ -5,6 +5,9 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
@@ -12,6 +15,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
@@ -32,6 +36,8 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
     private final ErrorMode[] options_;
     private final ActionForwarder actionForwarder_;
     private final ErrorRenderer errorRenderer_;
+    private final List controlList_;
+    private boolean enabled_;
     private int iOpt_;
 
     /**
@@ -46,6 +52,8 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
         options_ = ErrorMode.getOptions();
         actionForwarder_ = new ActionForwarder();
         errorRenderer_ = ErrorRenderer.EXAMPLE;
+        enabled_ = true;
+        controlList_ = new ArrayList();
         setMode( ErrorMode.NONE );
     }
 
@@ -65,6 +73,27 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
      */
     public void setMode( ErrorMode mode ) {
         actionPerformed( new ActionEvent( this, 0, mode.toString() ) );
+    }
+
+    /**
+     * Toggles enabled state of any controls based on this model.
+     *
+     * @param  enabled  true iff user should be able to change state
+     */
+    public void setEnabled( boolean enabled ) {
+        for ( Iterator it = controlList_.iterator(); it.hasNext(); ) {
+            ((JComponent) it.next()).setEnabled( enabled );
+        }
+        enabled_ = enabled;
+    }
+
+    /**
+     * Indicates enabledness of this model.
+     *
+     * @return   true  iff user should be able to change state
+     */
+    public boolean isEnabled() {
+        return enabled_;
     }
 
     /**
@@ -115,6 +144,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
             item.setActionCommand( mode.toString() );
             bGrp.add( item );
             item.addActionListener( this );
+            controlList_.add( (JComponent) item );
         }
         return items;
     }
@@ -164,6 +194,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
         model.addActionListener( this );
         button.setModel( model );
         button.setToolTipText( "Toggle " + axisName_ + " error bars on/off" );
+        controlList_.add( button );
         return button;
     }
 
