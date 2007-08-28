@@ -190,7 +190,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
 
             /* Draw the label if any. */
             String label = point.getLabel();
-            if ( label != null && aBuf[ base ] < 1f ) {
+            if ( label != null ) {
                 int is = point.istyle_;
                 MarkStyle style = styles_[ is ];
                 Pixellator lpixoffs =
