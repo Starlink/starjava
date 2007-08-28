@@ -530,7 +530,8 @@ public abstract class MarkStyle extends DefaultStyle {
 
     /**
      * Returns an array over pixel positions which can be used to draw a
-     * label for this style.
+     * label for this style.  The bounds of the returned pixellator are 
+     * a reasonable estimate of the bounds of the text to be drawn.
      *
      * @param  label    text of label to draw
      * @param  x   X coordinate of point to label
