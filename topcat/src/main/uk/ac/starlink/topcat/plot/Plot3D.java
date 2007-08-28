@@ -342,6 +342,7 @@ public abstract class Plot3D extends JPanel {
                                             anyErrors, -1.0, 2.0, tweaker,
                                             getBitmapSortWorkspace() );
         }
+        logger_.config( "PlotVolume class is: " + vol.getClass().getName() );
 
         /* If we're zoomed on a spherical plot and the points are only
          * on the surface of the sphere, then we don't want to see the
