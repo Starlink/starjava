@@ -48,7 +48,7 @@ public class SphereWindow extends Plot3DWindow {
         /* Set up toggle button model for whether the radial axis is used. */
         radialToggler_ =
             new ToggleButtonModel( "Radial Coordinates",
-                                   ResourceIcon.DO_WHAT,
+                                   ResourceIcon.RADIAL,
                                    "Plot points with radial "
                                  + "as well as angular coordinates" );
         radialToggler_.addActionListener( getReplotListener() );

@@ -181,6 +181,7 @@ public class ResourceIcon implements Icon {
         MANUAL = makeIcon( "book1.gif" ),
         LEGEND = makeIcon( "legend3.gif" ),
         LABEL = makeIcon( "label2.gif" ),
+        RADIAL = makeIcon( "clock1.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
