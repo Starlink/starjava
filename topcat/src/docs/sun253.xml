@@ -7064,10 +7064,13 @@ Right Ascension and Declination, these will be filled in automatically.
 If only these two are filled in, then the points will be plotted on
 the surface of the unit sphere - this is suitable if you just want to
 inspect the positions of a set of objects in the sky.
-You can optionally fill in the <label>Radius</label> selector as well.
-If you do this, then points will be plotted in the interior of the
-sphere, at a distance from the centre given by the value of the radial
-coordinate.
+</p>
+
+<p>If the <label>Radial Coordinates</label> (&IMG.RADIAL;) button is 
+activated, you can optionally fill in a value in the 
+<label>Radial Axis</label> selector as well.
+In this case points will be plotted in the interior of the sphere, 
+at a distance from the centre given by the value of the radial coordinate.
 </p>
 
 <p>The following buttons are available on the toolbar:
@@ -7192,6 +7195,15 @@ coordinate.
 <dd><p>See <ref id="auxAxes"/>.
     </p></dd>
 
+<dt>&IMG.RADIAL; Toggle Radial Coordinates</dt>
+<dd><p>When activated, a column selector labelled <label>Radial Axis</label>
+    will be visible below the Longitude and Latitude Axis selectors.
+    This enables you to enter a value for the radial coordinate of each 
+    point.  If this is disabled, or if it has a blank value, then all
+    the points will have an assumed radial coordinate of unity and will
+    be plotted on the surface of the sphere.
+    </p></dd>
+
 <dt>&IMG.ERROR_TANGENT; Toggle tangential error bars</dt>
 <dd><p>When activated, an additional column selector appears in the 
     dataset panel to the right of the Longitude and Latitude selectors,
@@ -7207,6 +7219,7 @@ coordinate.
 
 <dt>&IMG.ERROR_Z; Toggle radial error bars</dt>
 <dd><p>Switches radial error bars on and off.  See <ref id="errorBars"/>.
+    This button will only be enabled if the Radial Coordinates are in use.
     </p></dd>
 </dl>
 </p>
