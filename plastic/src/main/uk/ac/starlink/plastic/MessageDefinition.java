@@ -10,7 +10,8 @@ import java.util.Map;
  * Describes PLASTIC messages known to this package.
  * Instances of this class describe messages defined by the PLASTIC 
  * message definitions list, currently at 
- * <a href="http://plastic.sourceforge.net/coremessages.html"/>,
+ * <a href="http://plastic.sourceforge.net/coremessages.html"
+ *         >http://plastic.sourceforge.net/coremessages.html</a>,
  * perhaps along with other ones known from elsewhere.
  * The message IDs, argument types and return types are given.
  *
