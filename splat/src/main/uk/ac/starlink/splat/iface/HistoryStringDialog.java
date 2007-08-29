@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *     27-AUG-2004 (Peter W. Draper):
@@ -54,6 +55,7 @@ public class HistoryStringDialog
 
     /** Buttons */
     protected JButton okButton = new JButton( "OK" );
+    protected JButton clearButton = new JButton( "Clear" );
     protected JButton cancelButton = new JButton( "Cancel" );
 
     /**
@@ -86,6 +88,7 @@ public class HistoryStringDialog
         //  Buttons.
         okButton.addActionListener( this );
         cancelButton.addActionListener( this );
+        clearButton.addActionListener( this );
         getRootPane().setDefaultButton( okButton );
 
         //  JComboBox editable and <return> accepts.
@@ -109,6 +112,8 @@ public class HistoryStringDialog
         buttonPane.setLayout( new BoxLayout( buttonPane, BoxLayout.X_AXIS ) );
         buttonPane.setBorder( BorderFactory.createEmptyBorder( 0, 10, 10, 10 ) );
         buttonPane.add( Box.createHorizontalGlue() );
+        buttonPane.add( clearButton );
+        buttonPane.add( Box.createRigidArea( new Dimension( 10, 0 ) ) );
         buttonPane.add( cancelButton );
         buttonPane.add( Box.createRigidArea( new Dimension( 10, 0 ) ) );
         buttonPane.add( okButton );
@@ -124,7 +129,10 @@ public class HistoryStringDialog
      */
     protected String getValue()
     {
-        return value;
+        if ( value != null && ! value.equals( "" ) ) {
+            return value;
+        }
+        return null;
     }
 
     /**
@@ -133,12 +141,12 @@ public class HistoryStringDialog
     protected void acceptValue()
     {
         String newValue = (String) comboBox.getEditor().getItem();
-        if ( newValue != null ) { 
-            value = newValue;
+        if ( newValue != null ) {
             if ( ! newValue.equals( value ) ) {
                 comboBox.addItem( value );
             }
         }
+        value = newValue;
     }
 
     /**
@@ -147,6 +155,14 @@ public class HistoryStringDialog
     protected void clearValue()
     {
         value = null;
+    }
+
+    /**
+     * Clear the field and value.
+     */
+    protected void clearField()
+    {
+        comboBox.getEditor().setItem( null );
     }
 
     /**
@@ -163,11 +179,15 @@ public class HistoryStringDialog
         Object source = e.getSource();
         if ( source.equals( okButton ) ) {
             acceptValue();
+            closeWindow();
         }
         else if ( source.equals( cancelButton ) ) {
             clearValue();
+            closeWindow();
         }
-        closeWindow();
+        else if ( source.equals( clearButton ) ) {
+            clearField();
+        }
         return;
     }
 
@@ -231,6 +251,9 @@ public class HistoryStringDialog
         //  or blank Strings.
         public void addElement( Object anItem )
         {
+            if ( anItem == null ) {
+                return;
+            }
             if ( anItem instanceof String ) {
                 if ( ( (String) anItem).equals( "" ) ) {
                     return;
