@@ -70,6 +70,7 @@
   <!ENTITY FIG.LinesStyleEditor '&figs;LinesStyleEditor.gif'>
   <!ENTITY FIG.Cartesian3DWindow_aux '&figs;Cartesian3DWindow_aux.gif'>
   <!ENTITY FIG.PlotWindow_err '&figs;PlotWindow_err.gif'>
+  <!ENTITY FIG.SphereWindow_labels '&figs;SphereWindow_labels.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -93,7 +94,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>5 July 2007</docdate>
+<docdate>29 August 2007</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -5387,9 +5388,10 @@ window.  Here is dataset selector for the 2d scatter plot:
     (see below) and are present for all plots.
     The other items configure optional selectors appearing in the
     <label>Data Panel</label> - the ones shown here are concerned with
-    <ref id="auxAxes" plaintextref="yes">Auxiliary Axes</ref> and
+    <ref id="auxAxes" plaintextref="yes">Auxiliary Axes</ref>,
+    <ref id="labels" plaintextref="yes">Point Labels</ref> and
     <ref id="errorBars" plaintextref="yes">Error Bars</ref>,
-    but different ones are present for the different types of plot.
+    but not all the types of plot have exactly the same ones.
     </p></dd>
 
 <dt>Tabs</dt>
@@ -5640,6 +5642,38 @@ style for all the visible datasets at once.
 
 </subsubsubsect>
 
+<subsubsubsect id="labels">
+<subhead><title>Point Labels</title></subhead>
+
+<p>On the 2-d and 3-d scatter plots you can write text labels adjacent
+to plotted points.  To do this click the <label>Draw Labels</label>
+(&IMG.LABEL;) button in the dataset toolbar (below the plotting area
+in the plot window).  This will reveal a new <label>Point Labels</label>
+selector below the existing spatial ones.
+Using this you can select any of the table columns (not just the
+numeric ones as for the other selectors), or give a string or 
+numeric expression involving them.  When this selector is filled
+in, every point in the dataset which has a non-blank value for
+this quantity will have it written next to the point on the display.
+</p>
+
+<figure>
+<caption><px>Point Labelling for Messier objects
+             in the spherical plot</px></caption>
+<figureimage src="&FIG.SphereWindow_labels;"/>
+</figure>
+
+<p>In this example the NAME column has been selected,
+so that each point plotted (in this case all the Messier objects)
+is labelled with its name.
+As you can see, where many labels are plotted near to each other
+they can get in each others' way.  In some cases TOPCAT will
+omit plotting labels in crowded regions, in others not - but in any
+case if you have labels too tightly grouped they are unlikely
+to be legible.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="auxAxes">
 <subhead><title>Auxiliary Axes</title></subhead>
@@ -5998,7 +6032,8 @@ and if it's unchecked then zero is on a bin boundary.
 <dl>
 
 <dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
-<dd><p>See <ref id="PointSelector"/>.
+<dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
+    See <ref id="PointSelector"/>.
     </p></dd>
 
 <dt>&IMG.WEIGHT; Weight Counts</dt>
@@ -6255,15 +6290,21 @@ see <ref id="activation"/>.
 <dl>
 
 <dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
-<dd><p>See <ref id="PointSelector"/>.
+<dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
+    See <ref id="PointSelector"/>.
     </p></dd>
 
 <dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
-<dd><p>See <ref id="auxAxes"/>.
+<dd><p>Adds/removes a selector for entering an auxiliary axis to modify
+    point colours etc.
+    See <ref id="auxAxes"/>.
     </p></dd>
 
 <dt>&IMG.ERROR_X;/&IMG.ERROR_Y; Toggle X/Y error bars</dt>
-<dd><p>See <ref id="errorBars"/>.
+<dd><p>Switches between drawing symmetric error bars and no error bars
+    in the X and Y directions respectively.
+    Other options are available in the <label>Errors</label> menu.
+    See <ref id="errorBars"/>.
     </p></dd>
 
 </dl>
@@ -6608,7 +6649,10 @@ see <ref id="activation"/>.
     </p></dd>
 
 <dt>&IMG.ERROR_X;/&IMG.ERROR_Y; Toggle X/Y error bars</dt>
-<dd><p>See <ref id="errorBars"/>.
+<dd><p>Switches between drawing symmetric error bars and no error bars
+    in the X and Y directions respectively.
+    Other options are available in the <label>Errors</label> menu.
+    See <ref id="errorBars"/>.
     </p></dd>
 
 </dl>
@@ -6903,15 +6947,21 @@ see <ref id="activation"/>.
 <dl>
 
 <dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
-<dd><p>See <ref id="PointSelector"/>.
+<dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
+    See <ref id="PointSelector"/>.
     </p></dd>
 
 <dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
-<dd><p>See <ref id="auxAxes"/>.
+<dd><p>Adds/removes a selector for entering an auxiliary axis to modify
+    point colours etc.
+    See <ref id="auxAxes"/>.
     </p></dd>
 
-<dt>&IMG.ERROR_X;/&IMG.ERROR_Y;/&IMG.ERROR_Z; Toggle X/Y/Y error bars</dt>
-<dd><p>See <ref id="errorBars"/>.
+<dt>&IMG.ERROR_X;/&IMG.ERROR_Y;/&IMG.ERROR_Z; Toggle X/Y/Z error bars</dt>
+<dd><p>Switches between drawing symmetric error bars and no error bars
+    in the X, Y and Z directions respectively.
+    Other optinos are available in the <label>Errors</label> menu.
+    See <ref id="errorBars"/>.
     </p></dd>
 
 </dl>
@@ -7188,11 +7238,14 @@ at a distance from the centre given by the value of the radial coordinate.
 <dl>
 
 <dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
-<dd><p>See <ref id="PointSelector"/>.
+<dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
+    See <ref id="PointSelector"/>.
     </p></dd>
 
 <dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
-<dd><p>See <ref id="auxAxes"/>.
+<dd><p>Adds/removes a selector for entering an auxiliary axis to modify
+    point colours etc.
+    See <ref id="auxAxes"/>.
     </p></dd>
 
 <dt>&IMG.RADIAL; Toggle Radial Coordinates</dt>
@@ -7431,7 +7484,8 @@ or manually as described in <ref id="axisConfig"/>.
 <dl>
 
 <dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
-<dd><p>See <ref id="PointSelector"/>.
+<dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
+    See <ref id="PointSelector"/>.
     </p></dd>
 
 <dt>&IMG.WEIGHT; Weight Counts</dt>
@@ -10839,10 +10893,11 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.1 (29 August 2007)</dt>
 <dd><p>
     <ul>
-    <li>You can now draw annotate plotted points using text labels in
+    <li>You can now annotate plotted points using 
+        <ref id="labels" plaintextref="true">text labels</ref> in
         2d and 3d scatter plots - use the <label>Draw Label</label>
         (&IMG.LABEL;) button to assign a column containing label text.</li>
     <li>Radial axis control in sphere plot is now not visible by default -
