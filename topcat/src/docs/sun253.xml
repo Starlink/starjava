@@ -5249,7 +5249,7 @@ later presentation (see <ref id="exportGraphics"/>).
 However, at least at present, TOPCAT does
 not claim to be a full end-to-end system for generating publication
 quality graphics, and hence lacks facilities for detailed configuration of
-axis labelling, legend display, font control, data annotation and so on.
+axis labelling, font control, data annotation and so on.
 You may well find that you can use it to generate publication
 quality graphics, but if you need features which are not currently
 provided you may find it best to use TOPCAT to investigate your 
@@ -6031,7 +6031,7 @@ and if it's unchecked then zero is on a bin boundary.
 <p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
 
-<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dt>&IMG.ADD_TAB; / &IMG.REMOVE_TAB; Add/Remove dataset</dt>
 <dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
     See <ref id="PointSelector"/>.
     </p></dd>
@@ -6289,18 +6289,23 @@ see <ref id="activation"/>.
 <p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
 
-<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dt>&IMG.ADD_TAB; / &IMG.REMOVE_TAB; Add/Remove dataset</dt>
 <dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
     See <ref id="PointSelector"/>.
     </p></dd>
 
-<dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
+<dt>&IMG.ADD_COLORS; / &IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
 <dd><p>Adds/removes a selector for entering an auxiliary axis to modify
     point colours etc.
     See <ref id="auxAxes"/>.
     </p></dd>
 
-<dt>&IMG.ERROR_X;/&IMG.ERROR_Y; Toggle X/Y error bars</dt>
+<dt>&IMG.LABEL; Toggle point labelling</dt>
+<dd><p>Allows text labels to be drawn near plotted points.
+    See <ref id="labels"/>.
+    </p></dd>
+
+<dt>&IMG.ERROR_X; / &IMG.ERROR_Y; Toggle X/Y error bars</dt>
 <dd><p>Switches between drawing symmetric error bars and no error bars
     in the X and Y directions respectively.
     Other options are available in the <label>Errors</label> menu.
@@ -6642,13 +6647,13 @@ see <ref id="activation"/>.
 <p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
 
-<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dt>&IMG.ADD_TAB; / &IMG.REMOVE_TAB; Add/Remove dataset</dt>
 <dd><p>Adds/removes a dataset for plotting, which both adds/removes a 
     tab from the dataset selector and adds/removes a plot in the currently
     visible stack in the plotting area.  See above for more explanation.
     </p></dd>
 
-<dt>&IMG.ERROR_X;/&IMG.ERROR_Y; Toggle X/Y error bars</dt>
+<dt>&IMG.ERROR_X; / &IMG.ERROR_Y; Toggle X/Y error bars</dt>
 <dd><p>Switches between drawing symmetric error bars and no error bars
     in the X and Y directions respectively.
     Other options are available in the <label>Errors</label> menu.
@@ -6946,18 +6951,23 @@ see <ref id="activation"/>.
 <p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
 
-<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dt>&IMG.ADD_TAB; / &IMG.REMOVE_TAB; Add/Remove dataset</dt>
 <dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
     See <ref id="PointSelector"/>.
     </p></dd>
 
-<dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
+<dt>&IMG.ADD_COLORS; / &IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
 <dd><p>Adds/removes a selector for entering an auxiliary axis to modify
     point colours etc.
     See <ref id="auxAxes"/>.
     </p></dd>
 
-<dt>&IMG.ERROR_X;/&IMG.ERROR_Y;/&IMG.ERROR_Z; Toggle X/Y/Z error bars</dt>
+<dt>&IMG.LABEL; Toggle point labelling</dt>
+<dd><p>Allows text labels to be drawn near plotted points.
+    See <ref id="labels"/>.
+    </p></dd>
+
+<dt>&IMG.ERROR_X; / &IMG.ERROR_Y; / &IMG.ERROR_Z; Toggle X/Y/Z error bars</dt>
 <dd><p>Switches between drawing symmetric error bars and no error bars
     in the X, Y and Z directions respectively.
     Other optinos are available in the <label>Errors</label> menu.
@@ -7237,15 +7247,20 @@ at a distance from the centre given by the value of the radial coordinate.
 <p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
 
-<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dt>&IMG.ADD_TAB; / &IMG.REMOVE_TAB; Add/Remove dataset</dt>
 <dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
     See <ref id="PointSelector"/>.
     </p></dd>
 
-<dt>&IMG.ADD_COLORS;/&IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
+<dt>&IMG.ADD_COLORS; / &IMG.REMOVE_COLORS; Add/Remove auxiliary axis</dt>
 <dd><p>Adds/removes a selector for entering an auxiliary axis to modify
     point colours etc.
     See <ref id="auxAxes"/>.
+    </p></dd>
+
+<dt>&IMG.LABEL; Toggle point labelling</dt>
+<dd><p>Allows text labels to be drawn near plotted points.
+    See <ref id="labels"/>.
     </p></dd>
 
 <dt>&IMG.RADIAL; Toggle Radial Coordinates</dt>
@@ -7483,7 +7498,7 @@ or manually as described in <ref id="axisConfig"/>.
 <p>The <label>Dataset Toolbar</label> contains the following options:
 <dl>
 
-<dt>&IMG.ADD_TAB;/&IMG.REMOVE_TAB; Add/Remove dataset</dt>
+<dt>&IMG.ADD_TAB; / &IMG.REMOVE_TAB; Add/Remove dataset</dt>
 <dd><p>Adds/removes tabs in which the data for extra datasets can be entered.
     See <ref id="PointSelector"/>.
     </p></dd>
