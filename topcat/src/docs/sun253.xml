@@ -10912,7 +10912,7 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>You can now annotate plotted points using 
-        <ref id="labels" plaintextref="true">text labels</ref> in
+        <ref id="labels" plaintextref="yes">text labels</ref> in
         2d and 3d scatter plots - use the <label>Draw Label</label>
         (&IMG.LABEL;) button to assign a column containing label text.</li>
     <li>Radial axis control in sphere plot is now not visible by default -
