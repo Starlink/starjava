@@ -146,8 +146,9 @@ public class JdbcConer implements Coner {
 
         private final String raCol_;
         private final String decCol_;
-        private PreparedStatement middleStatement_;
-        private PreparedStatement equinoxStatement_;
+        private PreparedStatement allRaStatement_;
+        private PreparedStatement middleRaStatement_;
+        private PreparedStatement equinoxRaStatement_;
 
         /**
          * Constructor.
@@ -182,36 +183,43 @@ public class JdbcConer implements Coner {
                 .append( "WHERE" )
                 .append( ' ' )
                 .append( "( " )
+                .append( decCol )
+                .append( " BETWEEN ? AND ? )" ) // minDec,maxDec
                 .toString();
-            StringBuffer postRaBuf = new StringBuffer()
-                .append( " )" )
-                .append( " AND " )
-                .append( "( " + decCol + " BETWEEN ? AND ? )" ) // minDec,maxDec
-                ;
             if ( where != null && where.trim().length() > 0 ) {
-                postRaBuf.append( " AND " )
-                         .append( "( " + where + " )" );
+                preRa = new StringBuffer( preRa )
+                    .append( ' ' )
+                    .append( "AND ( " )
+                    .append( where )
+                    .append( " )" )
+                    .toString();
             }
-            String postRa = postRaBuf.toString();
 
-            /* Prepare two different variants of the SELECT statement. 
+            /* Prepare three different variants of the SELECT statement. 
              * In most cases a simple BETWEEN will work fine for 
              * filtering on right ascension.  However, in the case that
              * the region straddles the vernal equinox (RA=0/RA=360 line)
-             * we need to exclude the range between the values instead. */
-            String middleSelectSql =
-                preRa + raCol + " BETWEEN ? AND ?" + postRa;
-            String equinoxSelectSql =
-                preRa + raCol + " < ? OR " + raCol + " > ?" + postRa;
+             * we need to exclude the range between the values instead.
+             * In the case that the search region includes the pole, no
+             * filtering on RA can be done. */
+            String allRaSelectSql =
+                preRa;
+            String middleRaSelectSql =
+                preRa + " AND ( " + raCol + " BETWEEN ? AND ? )";
+            String equinoxRaSelectSql =
+                preRa + " AND ( " + raCol + " < ? OR " + raCol + " > ? )";
 
             /* Pre-compile the SQL for later use. */
             try {
-                logger_.info( middleSelectSql );
-                middleStatement_ =
-                    connection.prepareStatement( middleSelectSql );
-                logger_.info( equinoxSelectSql );
-                equinoxStatement_ =
-                    connection.prepareStatement( equinoxSelectSql );
+                logger_.info( allRaSelectSql );
+                allRaStatement_ =
+                    connection.prepareStatement( allRaSelectSql );
+                logger_.info( middleRaSelectSql );
+                middleRaStatement_ =
+                    connection.prepareStatement( middleRaSelectSql );
+                logger_.info( equinoxRaSelectSql );
+                equinoxRaStatement_ =
+                    connection.prepareStatement( equinoxRaSelectSql );
             }
             catch ( SQLException e ) {
                 throw new TaskException( "Error preparing SQL statement: "
@@ -226,14 +234,14 @@ public class JdbcConer implements Coner {
              * any records in the requested cone must fall.  Note that this
              * is a superset of the desired result (it makes the SELECT
              * statement much simpler and, more importantly, optimisable) -
-             * that is permitted by the performSearch contract. */
-            /* I'm almost sure that the spherical geometry is correct here. */
-            double minDec = Math.max( dec - sr, -90 );
-            double maxDec = Math.min( dec + sr, +90 );
-            double cosDec =
-                Math.cos( Math.toRadians( Math.max( Math.abs( minDec ),
-                                                    Math.abs( maxDec ) ) ) );
-            double deltaRa = sr / cosDec;
+             * this is permitted by the performSearch contract. */
+            double deltaDec = sr;
+            double minDec = Math.max( dec - deltaDec, -90 );
+            double maxDec = Math.min( dec + deltaDec, +90 );
+            double deltaRa =
+                Math.toDegrees( calculateDeltaRa( Math.toRadians( ra ),
+                                                  Math.toRadians( dec ),
+                                                  Math.toRadians( sr ) ) );
             double minRa = ra - deltaRa;
             double maxRa = ra + deltaRa;
 
@@ -241,12 +249,16 @@ public class JdbcConer implements Coner {
              * this will be done differently according to whether the
              * RA range straddles the vernal equinox (RA=0 line) or not. */
             PreparedStatement stmt;
-            if ( minRa > 0 && maxRa < 360 ) {
-                stmt = middleStatement_;
+            if ( deltaRa >= 180 ) {
+                stmt = allRaStatement_;
+                logger_.info( "no ra restriction" );
+            }
+            else if ( minRa > 0 && maxRa < 360 ) {
+                stmt = middleRaStatement_;
                 logger_.info( "ra BETWEEN " + minRa + " AND " + maxRa );
             }
             else {
-                stmt = equinoxStatement_;
+                stmt = equinoxRaStatement_;
                 double min = maxRa % 360.;
                 double max = ( minRa + 360 ) % 360.;
                 minRa = min;
@@ -256,10 +268,12 @@ public class JdbcConer implements Coner {
             logger_.info( "dec BETWEEN " + minDec + " AND " + maxDec );
             try {
                 stmt.clearParameters();
-                stmt.setDouble( 1, minRa );
-                stmt.setDouble( 2, maxRa );
-                stmt.setDouble( 3, minDec );
-                stmt.setDouble( 4, maxDec );
+                stmt.setDouble( 1, minDec );
+                stmt.setDouble( 2, maxDec );
+                if ( stmt != allRaStatement_ ) {
+                    stmt.setDouble( 3, minRa );
+                    stmt.setDouble( 4, maxRa );
+                }
             }
             catch ( SQLException e ) {
                 throw (IOException)
@@ -311,5 +325,37 @@ public class JdbcConer implements Coner {
                 return -1;
             }
         }
+    }
+
+    /**
+     * Works out the minimum change in Right Ascension which will encompass
+     * all points within a given search radius at a given central ra, dec.
+     *
+     * @param   ra   right ascension of the centre of the search region
+     *               in radians
+     * @param   dec  declination of the centre of the search region 
+     *               in radians
+     * @param   sr   radius of the search region in radians
+     * @return  minimum change in radians of RA from the central value
+     *          which will contain the entire search region
+     */
+    public static double calculateDeltaRa( double ra, double dec, double sr ) {
+ 
+        /* Get the arc angle between the pole and the cone centre. */
+        double hypArc = Math.PI / 2 - Math.abs( dec );
+
+        /* If the search radius is greater than this, then all right 
+         * ascensions must be included. */
+        if ( sr >= hypArc ) {
+            return Math.PI;
+        }
+
+        /* In the more general case, we need a bit of spherical trigonometry.
+         * Consider a right spherical triangle with one vertex at the pole,
+         * one vertex at the centre of the search circle, and the right angle
+         * vertex at the tangent between the search circle and a line of
+         * longitude; then apply Napier's Pentagon.  The vertex angle at the
+         * pole is the desired change in RA. */
+        return Math.asin( Math.cos( Math.PI / 2 - sr ) / Math.sin( hypArc ) );
     }
 }
