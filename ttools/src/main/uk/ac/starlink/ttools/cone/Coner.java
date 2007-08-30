@@ -27,6 +27,9 @@ public interface Coner {
      * the ecliptic system in use.  It may return the empty string if
      * no assumption is made.
      *
+     * <p>This string is used only for documentation purposes, for instance
+     * in prompt strings issued to the user.
+     *
      * @return  ecliptic coordinate system name
      */
     String getSkySystem();
