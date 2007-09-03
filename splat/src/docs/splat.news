@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.8-4
+   =====
+
+   When displaying a dual sideband spectrum with the observed band set to LSB
+   the axes coordinates for the USB sideband were shown incorrectly. This
+   bug has been fixed.
+
    3.8-3
    =====
 

@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.8-3"/>
+  <property name="version" value="3.8-4"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -1421,7 +1421,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <classpath refid="tests-classpath"/>
       <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
       <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
-      <jvmarg value="-mx128m"/>
+      <jvmarg value="-mx1024m"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xnoagent"/>
       <!--jvmarg value="-Xrunhprof:cpu=samples,file=profile.log"/-->
