@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2007 Science and Technology Facilities Council
  *
  *  History:
  *    12-SEP-1999 (Peter W. Draper):
@@ -1130,11 +1131,11 @@ public class DivaPlot
         sbandVisibleBaseBox = visibleBaseBox;
         visibleBaseBox = tmp;
 
-        //  Extract the Frame containing the DSBSpecFrame and make a
-        //  copy. Then switch copy to other sideband, make sure we take
-        //  sidebands into account when aligning and get the mapping between
-        //  them.
-        Frame f1 = astref.getFrame( FrameSet.AST__CURRENT );
+        //  Extract the Frame containing the DSBSpecFrame and make two
+        //  copies. Then switch a copy to other sideband, and to make sure we
+        //  take sidebands into account when getting a mapping set both to use
+        //  AlignSideBand when aligning.
+        Frame f1 = (Frame) astref.getFrame( FrameSet.AST__CURRENT ).copy();
         Frame f2 = (Frame) f1.copy();
         if ( "USB".equals( sideband ) ) {
             f2.setC( "SideBand", "LSB" );
@@ -1143,6 +1144,7 @@ public class DivaPlot
             f2.setC( "SideBand", "USB" );
         }
         f2.setB( "AlignSideBand", true );
+        f1.setB( "AlignSideBand", true );
         Mapping map = f1.convert( f2, "" );
 
         //  Transform existing baseBox values into new sideband.
