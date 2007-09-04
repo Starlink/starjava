@@ -187,6 +187,7 @@ public class IOUtils {
 
     /**
      * Copies all the bytes from a given input stream to a given output stream.
+     * Neither stream is closed following the copy.
      *
      * @param  in  source
      * @param  out destination
@@ -198,7 +199,5 @@ public class IOUtils {
         for ( int n; ( n = in.read( buf ) ) > 0; ) {
             out.write( buf, 0, n );
         }
-        in.close();
-        out.close();
     }
 }

@@ -105,6 +105,7 @@ public class IOUtilsTest extends TestCase {
 
     public void testCopy() throws IOException {
         assertCopyOK( "Llanstephan".getBytes( "UTF-8" ) );
+
         byte[] buf = new byte[ 9999 ];
         for ( int i = 0; i < buf.length; i++ ) {
             buf[ i ] = (byte) (Math.random() * 100);
@@ -116,6 +117,8 @@ public class IOUtilsTest extends TestCase {
         ByteArrayInputStream bin = new ByteArrayInputStream( inBuf );
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         IOUtils.copy( bin, bout );
+        bin.close();
+        bout.close();
         assertArrayEquals( inBuf, bout.toByteArray() );
     }
     
