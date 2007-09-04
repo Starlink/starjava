@@ -1,5 +1,7 @@
 package uk.ac.starlink.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.EOFException;
 import java.io.File;
@@ -9,7 +11,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import junit.framework.TestCase;
 
 /**
  * Tests for the IOUtils class.
@@ -100,6 +101,22 @@ public class IOUtilsTest extends TestCase {
                       IOUtils.getResourceContents( getClass(), "resource" ) );
         assertEquals( "?",
                       IOUtils.getResourceContents( getClass(), "not.resource" ) );
+    }
+
+    public void testCopy() throws IOException {
+        assertCopyOK( "Llanstephan".getBytes( "UTF-8" ) );
+        byte[] buf = new byte[ 9999 ];
+        for ( int i = 0; i < buf.length; i++ ) {
+            buf[ i ] = (byte) (Math.random() * 100);
+        }
+        assertCopyOK( buf );
+    }
+
+    private void assertCopyOK( byte[] inBuf ) throws IOException {
+        ByteArrayInputStream bin = new ByteArrayInputStream( inBuf );
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        IOUtils.copy( bin, bout );
+        assertArrayEquals( inBuf, bout.toByteArray() );
     }
     
 }

@@ -184,4 +184,21 @@ public class IOUtils {
             return "\n".getBytes();
         }
     }
+
+    /**
+     * Copies all the bytes from a given input stream to a given output stream.
+     *
+     * @param  in  source
+     * @param  out destination
+     */
+    public static void copy( InputStream in, OutputStream out )
+            throws IOException {
+        int bufsiz = 8096; 
+        byte[] buf = new byte[ bufsiz ];
+        for ( int n; ( n = in.read( buf ) ) > 0; ) {
+            out.write( buf, 0, n );
+        }
+        in.close();
+        out.close();
+    }
 }
