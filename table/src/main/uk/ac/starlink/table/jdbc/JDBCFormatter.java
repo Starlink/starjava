@@ -32,6 +32,7 @@ public class JDBCFormatter {
     private final Connection conn_;
     private final StarTable table_;
     private final SqlColumn[] sqlCols_;
+    private final int[] sqlTypes_;
     private final Map typeNameMap_;
 
     private static Logger logger = 
@@ -53,14 +54,14 @@ public class JDBCFormatter {
          * lengths. */
         int ncol = table_.getColumnCount();
         boolean[] charType = new boolean[ ncol ];
-        int[] sqlTypes = new int[ ncol ];
+        sqlTypes_ = new int[ ncol ];
         int[] charSizes = new int[ ncol ];
         boolean[] needSizes = new boolean[ ncol ];
         boolean needSomeSizes = false;
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo colInfo = table_.getColumnInfo( icol );
-            sqlTypes[ icol ] = getSqlType( colInfo.getContentClass() );
-            if ( sqlTypes[ icol ] == Types.VARCHAR ) {
+            sqlTypes_[ icol ] = getSqlType( colInfo.getContentClass() );
+            if ( sqlTypes_[ icol ] == Types.VARCHAR ) {
                 int leng = colInfo.getElementSize();
                 if ( leng > 0 ) {
                     charSizes[ icol ] = leng;
@@ -108,7 +109,7 @@ public class JDBCFormatter {
             cnames.add( colName );
 
             /* Add the column name to the statement string. */
-            int sqlType = sqlTypes[ icol ];
+            int sqlType = sqlTypes_[ icol ];
             String tSpec = typeName( sqlType );
             if ( tSpec == null ) {
                 logger.warning( "Can't write column " + colName + " type " 
@@ -224,11 +225,12 @@ public class JDBCFormatter {
                         pix++;
                         Object val = row[ icol ];
                         if ( Tables.isBlank( val ) ) {
-                            pstmt.setObject( pix, null );
+                            pstmt.setNull( pix, sqlTypes_[ icol ] );
+                            // pstmt.setObject( pix, null );
                         }
                         else {
                             // pstmt.setObject( pix, row[ icol ],
-                            //                  sqlTypes[ icol ] );
+                            //                  sqlTypes_[ icol ] );
                             pstmt.setObject( pix, row[ icol ] );
                         }
                     }
