@@ -7996,13 +7996,13 @@ documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
 <dd><p>This determines the database to be queried.  The following options
     are available:
     <dl>
-    <dt>Milli-Millennium (<code>http://www.g-vo.org/MyMillennium</code>)</dt>
+    <dt>Milli-Millennium (<code>http://www.g-vo.org/Millennium</code>)</dt>
     <dd><p>Public simulation results database, containing a fraction of the
         full simulation results.  
         No username or password is required (the User and Password
         boxes will be disabled).
         </p></dd>
-    <dt>Millennium (<code>http://www.g-vo.org/Millennium</code>)</dt>
+    <dt>Millennium (<code>http://www.g-vo.org/MyMillennium</code>)</dt>
     <dd><p>Full, protected simulation results database.  
         The username and password must be filled in for these queries.
         Registration is by application to GAVO.
