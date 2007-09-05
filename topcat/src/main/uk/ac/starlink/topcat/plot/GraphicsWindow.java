@@ -1096,6 +1096,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                     labsel.enableLabels( labelsModel_.isSelected() );
                 }
             } );
+            labsel.enableLabels( labelsModel_.isSelected() );
             axsel = labsel;
         }
         return axsel;

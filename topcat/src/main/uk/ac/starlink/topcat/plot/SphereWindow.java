@@ -182,6 +182,7 @@ public class SphereWindow extends Plot3DWindow {
                 sphaxsel.setRadialVisible( radialToggler_.isSelected() );
             }
         } );
+        sphaxsel.setRadialVisible( radialToggler_.isSelected() );
         AxesSelector axsel = addExtraAxes( sphaxsel );
         PointSelector psel = new PointSelector( axsel, getStyles() );
         ActionListener errorModeListener = psel.getErrorModeListener();
