@@ -313,6 +313,33 @@ public abstract class LinesPlot extends JComponent {
             }
         }
 
+        /* Draw text labels. */
+        if ( points.hasLabels() ) {
+            for ( int iset = 0; iset < nset; iset++ ) {
+                MarkStyle style = (MarkStyle) styles[ iset ]; 
+                GraphSurface graph = graphs[ graphIndices[ iset ] ];
+                Rectangle graphClip = graph.getClip().getBounds();
+                if ( g.hitClip( graphClip.x, graphClip.y,
+                                graphClip.width, graphClip.height ) ) {
+                    RowSubset rset = sets[ iset ];
+                    for ( int ix = 0; ix < npoint; ix++ ) {
+                        int ip = sequence_ == null ? ix : sequence_[ ix ];
+                        String label = points.getLabel( ip );
+                        if ( label != null && label.trim().length() > 0 &&
+                             rset.isIncluded( (long) ip ) ) {
+                            double[] coords = points.getPoint( ip );
+                            Point point =
+                                graph.dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                      true );
+                            if ( point != null ) {
+                                style.drawLabel( g, point.x, point.y, label );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /* Mark active points. */
         MarkStyle target = MarkStyle.targetStyle();
         Graphics targetGraphics = g.create();
