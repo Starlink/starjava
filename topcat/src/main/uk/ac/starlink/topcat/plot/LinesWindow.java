@@ -326,7 +326,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             PointSelector psel = pointSelectors.getSelector( isel );
             pselList.add( psel );
             LinesAxesSelector axsel =
-                (LinesAxesSelector) psel.getAxesSelector();
+                findLinesAxesSelector( psel.getAxesSelector() );
             Range yRange;
             if ( psel.isReady() ) {
                 AxisEditor yAxEd = axEds[ 1 + isel ];
@@ -394,8 +394,9 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                                    getFlipModels()[ 1 ].getDescription() );
         logModel.addActionListener( getReplotListener() );
         flipModel.addActionListener( getReplotListener() );
-        LinesAxesSelector axsel =
+        AxesSelector axsel =
             new LinesAxesSelector( logModel, flipModel, getErrorModeModels() );
+        axsel = addExtraAxes( axsel );
         PointSelector newSelector = new PointSelector( axsel, getStyles() );
 
         /* Work out if there is a default X axis we should initialise the
@@ -407,7 +408,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         Object mainXAxis = null;
         if ( mainSel != null && mainSel.isReady() ) {
             mainTable = mainSel.getTable();
-            mainXAxis = ((LinesAxesSelector) mainSel.getAxesSelector())
+            mainXAxis = findLinesAxesSelector( mainSel.getAxesSelector() )
                        .getColumnSelector( 0 ).getSelectedItem();
             for ( int i = 0; 
                   mainTable != null && mainXAxis != null
@@ -416,8 +417,9 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 PointSelector psel = pointSelectors.getSelector( i );
                 if ( psel.isReady() ) {
                     TopcatModel table = psel.getTable();
-                    Object xAxis = ((LinesAxesSelector) psel.getAxesSelector())
-                                  .getColumnSelector( 0 ).getSelectedItem();
+                    Object xAxis =
+                        findLinesAxesSelector( psel.getAxesSelector() )
+                       .getColumnSelector( 0 ).getSelectedItem();
                     if ( ( table != null && ! table.equals( mainTable ) ) ||
                          ( xAxis != null && ! xAxis.equals( mainXAxis ) ) ) {
                         mainTable = null;
@@ -432,7 +434,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         if ( mainTable != null ) {
             newSelector.setTable( mainTable, false );
             if ( mainXAxis != null ) {
-                axsel.getColumnSelector( 0 ).setSelectedItem( mainXAxis );
+                findLinesAxesSelector( axsel ).getColumnSelector( 0 )
+                                              .setSelectedItem( mainXAxis );
             }
         }
 
@@ -576,6 +579,21 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             }
         }
         return hasMultiples;
+    }
+
+    /**
+     * Convenience method to return the LinesAxesSelector associated 
+     * with a given AxesSelector.
+     * This may be the supplied <code>axsel</code> itself, or some object
+     * wrapped by it.
+     *
+     * @param   axsel   axes selector associated with this window
+     * @return  associated LinesAxesSelector
+     */
+    private static LinesAxesSelector
+                   findLinesAxesSelector( AxesSelector axsel ) {
+        return (LinesAxesSelector)
+               TopcatUtils.getWrapped( axsel, LinesAxesSelector.class );
     }
 
     /*
