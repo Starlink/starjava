@@ -403,11 +403,10 @@ public class VotCopyHandler
         public void startTable( final StarTable meta ) throws SAXException {
             assert streamThread_ == null;
             streamStore_ = new OnceRowPipe();
+            streamStore_.acceptMetadata( meta );
             streamThread_ = new Thread( "Table Streamer" ) {
                 public void run() {
                     try {
-                        streamStore_.acceptMetadata( meta );
-                       
                         writeDataElement( streamStore_.waitForStarTable() );
                     }
                     catch ( IOException e ) {
