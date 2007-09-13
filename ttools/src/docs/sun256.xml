@@ -351,11 +351,15 @@ follows:
 <dt><code>-stdout &lt;file&gt;</code></dt>
 <dd><p>Sends all normal output from the run to the given file.
     By default this goes to the standard output stream.
+    Supplying an empty string or "<code>-</code>" for <code>&lt;file&gt;</code>
+    will restore this default behaviour.
     </p></dd>
 
 <dt><code>-stderr &lt;file&gt;</code></dt>
 <dd><p>Sends all error output from the run to the given file.
     By default this goes to the standard error stream.
+    Supplying an empty string or "<code>-</code>" for <code>&lt;file&gt;</code>
+    will restore this default behaviour.
     </p></dd>
 
 </dl>
