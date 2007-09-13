@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -60,6 +62,8 @@ public class LineInvoker {
         LineTableEnvironment env = new LineTableEnvironment();
         int verbosity = 0;
         boolean bench = false;
+        PrintStream out = System.out;
+        PrintStream err = System.err;
 
         /* Treat flags. */
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -69,7 +73,7 @@ public class LineInvoker {
                      arg.equals( "-h" ) ) {
                     it.remove();
                     String topic = it.hasNext() ? (String) it.next() : null;
-                    System.out.println( "\n" + getUsage( topic ) );
+                    out.println( "\n" + getUsage( topic ) );
                     return 0;
                 }
                 else if ( arg.equals( "-version" ) ) {
@@ -91,9 +95,9 @@ public class LineInvoker {
                     for ( int il = 0; il < lines.length; il++ ) {
                         String line = lines[ il ];
                         if ( line.length() > 0 ) {
-                            System.out.print( "    " );
+                            out.print( "    " );
                         }
-                        System.out.println( line );
+                        out.println( line );
                     }
                     return 0;
                 }
@@ -136,15 +140,58 @@ public class LineInvoker {
                     String vers = (String) it.next();
                     it.remove();
                     if ( ! vers.equals( Stilts.getVersion() ) ) {
-                        System.err.println( "Version mismatch: "
-                                          + Stilts.getVersion() + " != "
-                                          + vers );
+                        err.println( "Version mismatch: "
+                                   + Stilts.getVersion() + " != " + vers );
+                        return 1;
+                    }
+                }
+                else if ( arg.equals( "-stdout" ) && it.hasNext() ) {
+                    it.remove();
+                    String outName = (String) it.next();
+                    it.remove();
+                    try {
+                        out =
+                            new PrintStream( new FileOutputStream( outName ) );
+                    }
+                    catch ( IOException e ) {
+                        if ( env.isDebug() ) {
+                            e.printStackTrace( err );
+                        }
+                        else {
+                            String msg = e.getMessage();
+                            if ( msg == null ) {
+                                msg = e.toString();
+                            }
+                            err.println( "\n" + msg + "\n" );
+                        }
+                        return 1;
+                    }
+                }
+                else if ( arg.equals( "-stderr" ) && it.hasNext() ) {
+                    it.remove();
+                    String errName = (String) it.next();
+                    it.remove();
+                    try {
+                        err =
+                            new PrintStream( new FileOutputStream( errName ) );
+                    }
+                    catch ( IOException e ) {
+                        if ( env.isDebug() ) {
+                            e.printStackTrace( err );
+                        }
+                        else {
+                            String msg = e.getMessage();
+                            if ( msg == null ) {
+                                msg = e.toString();
+                            }
+                            err.println( "\n" + msg + "\n" );
+                        }
                         return 1;
                     }
                 }
                 else {
                     it.remove();
-                    System.err.println( "\n" + getUsage() );
+                    err.println( "\n" + getUsage() );
                     return 1;
                 }
             }
@@ -154,9 +201,12 @@ public class LineInvoker {
         }
 
         if ( argList.size() == 0 ) {
-            System.err.println( "\n" + getUsage() );
+            err.println( "\n" + getUsage() );
             return 1;
         }
+
+        env.setOutputStream( out );
+        env.setErrorStream( err );
 
         InvokeUtils.configureLogging( verbosity, env.isDebug() );
 
@@ -169,7 +219,7 @@ public class LineInvoker {
                                     argList.toArray( new String[ 0 ] );
                 String helpText = helpMessage( env, task, taskName, taskArgs );
                 if ( helpText != null ) {
-                    System.out.println( "\n" + helpText );
+                    out.println( "\n" + helpText );
                     return 0;
                 }
                 else {
@@ -188,43 +238,43 @@ public class LineInvoker {
                             long millis = System.currentTimeMillis() - start;
                             String secs =
                                 Float.toString( ( millis / 100L ) * 0.1f );
-                            System.err.println( "Elapsed time: " + secs + "s" );
+                            err.println( "Elapsed time: " + secs + "s" );
                         }
                         return 0;
                     }
                     else {
-                        System.err.println( "\n" + getUnusedWarning( unused ) );
-                        System.err.println( getTaskUsage( task, taskName ) );
+                        err.println( "\n" + getUnusedWarning( unused ) );
+                        err.println( getTaskUsage( task, taskName ) );
                         return 1;
                     }
                 }
             }
             catch ( TaskException e ) {
                 if ( env.isDebug() ) {
-                    e.printStackTrace( System.err );
+                    e.printStackTrace( err );
                 }
                 else {
                     String msg = e.getMessage();
                     if ( msg == null ) {
                         msg = e.toString();
                     }
-                    System.err.println( "\n" + msg + "\n" );
+                    err.println( "\n" + msg + "\n" );
                 }
                 if ( e instanceof UsageException && task != null ) {
-                    System.err.println( getTaskUsage( task, taskName ) );
+                    err.println( getTaskUsage( task, taskName ) );
                 }
                 return 1;
             }
             catch ( IllegalArgumentException e ) {
                 if ( env.isDebug() ) {
-                    e.printStackTrace( System.err );
+                    e.printStackTrace( err );
                 }
                 else {
                     String msg = e.getMessage();
                     if ( msg == null ) {
                         msg = e.toString();
                     }
-                    System.err.println( "\n" + msg + "\n" );
+                    err.println( "\n" + msg + "\n" );
                 }
                 return 1;
             }
@@ -234,49 +284,49 @@ public class LineInvoker {
             }
             catch ( IOException e ) {
                 if ( env.isDebug() ) {
-                    e.printStackTrace( System.err );
+                    e.printStackTrace( err );
                 }
                 else {
                     String msg = e.getMessage();
                     if ( msg == null ) {
                         msg = e.toString();
                     }
-                    System.err.println( "\n" + msg + "\n" );
+                    err.println( "\n" + msg + "\n" );
                 }
                 return 1;
             }
             catch ( LoadException e ) {
-                System.err.println( "Task " + taskName + " not available" );
+                err.println( "Task " + taskName + " not available" );
                 if ( e.getMessage() != null ) {
-                    System.err.println( e.getMessage() + "\n" );
+                    err.println( e.getMessage() + "\n" );
                 }
                 if ( env.isDebug() ) {
-                    e.printStackTrace( System.err );
+                    e.printStackTrace( err );
                 }
                 return 1;
             }
             catch ( OutOfMemoryError e ) {
-                System.err.println( "\nOut of memory" );
+                err.println( "\nOut of memory" );
                 if ( e.getMessage() != null ) {
-                    System.err.println( e.getMessage() );
+                    err.println( e.getMessage() );
                 }
                 if ( env.getTableFactory().getStoragePolicy() 
                      != StoragePolicy.PREFER_DISK ) {
-                    System.err.println( "Try \"-disk\" flag?\n" );
+                    err.println( "Try \"-disk\" flag?\n" );
                 }
                 else {
-                    System.err.println( "Try increasing heap memory"
-                                      + " (-Xmx flag)\n" );
+                    err.println( "Try increasing heap memory"
+                               + " (-Xmx flag)\n" );
                 }
                 if ( env.isDebug() ) {
-                    e.printStackTrace( System.err );
+                    e.printStackTrace( err );
                 }
                 return 1;
             }
             catch ( NoClassDefFoundError e ) {
-                System.err.println( e );
+                err.println( e );
                 if ( env.isDebug() ) {
-                    e.printStackTrace( System.err );
+                    e.printStackTrace( err );
                 }
                 try {
                     String msg = new StringBuffer()
@@ -294,17 +344,17 @@ public class LineInvoker {
                         .append( "The recommended JRE is Sun's J2SE " )
                         .append( "version 1.4 or greater.\n" )
                         .toString();
-                    System.err.println( msg );
+                    err.println( msg );
                 }
                 catch ( Throwable e1 ) {
-                    e1.printStackTrace( System.err );
+                    e1.printStackTrace( err );
                 }
                 return 1;
             }
         }
         else {
-            System.err.println( "\nNo such task: " + taskName );
-            System.err.println( "\n" + getUsage() );
+            err.println( "\nNo such task: " + taskName );
+            err.println( "\n" + getUsage() );
             return 1;
         }
     }
@@ -413,6 +463,8 @@ public class LineInvoker {
             .append( pad )
             .append( " [-bench]" )
             .append( " [-checkversion <vers>]" )
+            .append( " [-stdout <file>]" )
+            .append( " [-stderr <file>]" )
             .append( '\n' )
             .append( pad )
             .append( " <task-name> <task-args>" )

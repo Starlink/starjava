@@ -348,6 +348,16 @@ follows:
     is being picked up.
     </p></dd>
 
+<dt><code>-stdout &lt;file&gt;</code></dt>
+<dd><p>Sends all normal output from the run to the given file.
+    By default this goes to the standard output stream.
+    </p></dd>
+
+<dt><code>-stderr &lt;file&gt;</code></dt>
+<dd><p>Sends all error output from the run to the given file.
+    By default this goes to the standard error stream.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -4328,6 +4338,14 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>Fixed VotCopy bug.</li>
+    </ul>
+    </p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Added <code>-stdout</code> and <code>-stderr</code> flags to
+        <code>stilts</code> command.</li>
     </ul>
     </p></dd>
 
