@@ -149,44 +149,56 @@ public class LineInvoker {
                     it.remove();
                     String outName = (String) it.next();
                     it.remove();
-                    try {
-                        out =
-                            new PrintStream( new FileOutputStream( outName ) );
+                    if ( outName == null || outName.trim().length() == 0 ||
+                         "-".equals( outName ) ) {
+                        out = System.out;
                     }
-                    catch ( IOException e ) {
-                        if ( env.isDebug() ) {
-                            e.printStackTrace( err );
+                    else {
+                        try {
+                            out = new PrintStream(
+                                      new FileOutputStream( outName ) );
                         }
-                        else {
-                            String msg = e.getMessage();
-                            if ( msg == null ) {
-                                msg = e.toString();
+                        catch ( IOException e ) {
+                            if ( env.isDebug() ) {
+                                e.printStackTrace( err );
                             }
-                            err.println( "\n" + msg + "\n" );
+                            else {
+                                String msg = e.getMessage();
+                                if ( msg == null ) {
+                                    msg = e.toString();
+                                }
+                                err.println( "\n" + msg + "\n" );
+                            }
+                            return 1;
                         }
-                        return 1;
                     }
                 }
                 else if ( arg.equals( "-stderr" ) && it.hasNext() ) {
                     it.remove();
                     String errName = (String) it.next();
                     it.remove();
-                    try {
-                        err =
-                            new PrintStream( new FileOutputStream( errName ) );
+                    if ( errName == null || errName.trim().length() == 0 ||
+                         "=".equals( errName ) ) {
+                        err = System.err;
                     }
-                    catch ( IOException e ) {
-                        if ( env.isDebug() ) {
-                            e.printStackTrace( err );
+                    else {
+                        try {
+                            err = new PrintStream(
+                                      new FileOutputStream( errName ) );
                         }
-                        else {
-                            String msg = e.getMessage();
-                            if ( msg == null ) {
-                                msg = e.toString();
+                        catch ( IOException e ) {
+                            if ( env.isDebug() ) {
+                                e.printStackTrace( err );
                             }
-                            err.println( "\n" + msg + "\n" );
+                            else {
+                                String msg = e.getMessage();
+                                if ( msg == null ) {
+                                    msg = e.toString();
+                                }
+                                err.println( "\n" + msg + "\n" );
+                            }
+                            return 1;
                         }
-                        return 1;
                     }
                 }
                 else {
@@ -351,10 +363,15 @@ public class LineInvoker {
                 }
                 return 1;
             }
+            finally {
+                out.flush();
+                err.flush();
+            }
         }
         else {
             err.println( "\nNo such task: " + taskName );
             err.println( "\n" + getUsage() );
+            err.flush();
             return 1;
         }
     }
