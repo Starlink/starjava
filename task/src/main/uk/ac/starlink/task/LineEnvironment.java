@@ -29,6 +29,8 @@ public class LineEnvironment implements Environment {
     private boolean interactive_ = true;
     private int numberedArgs_;
     private Argument[] arguments_;
+    private PrintStream out_ = System.out;
+    private PrintStream err_ = System.err;
     private final Set clearedParams_ = new HashSet();
     private final List acquiredValues_ = new ArrayList();
 
@@ -358,12 +360,30 @@ public class LineEnvironment implements Environment {
         clearedParams_.add( par );
     }
 
+    /**
+     * Sets the destination stream for standard out.
+     *
+     * @param   out   output stream
+     */
+    public void setOutputStream( PrintStream out ) {
+        out_ = out;
+    }
+
+    /**
+     * Sets the destination stream for standard error.
+     *
+     * @param   err  error stream
+     */
+    public void setErrorStream( PrintStream err ) {
+        err_ = err;
+    }
+
     public PrintStream getOutputStream() {
-        return System.out;
+        return out_;
     }
 
     public PrintStream getErrorStream() {
-        return System.err;
+        return err_;
     }
 
     public void acquireValue( Parameter param ) throws TaskException {
