@@ -34,6 +34,7 @@ public class CeaWriter extends XmlWriter {
     private final String appPath_;
     private final String ceaAppName_;
     private final Formatter formatter_;
+    private final FlagDef[] flagDefs_;
     private String docUrl_ = "http://www.starlink.ac.uk/stilts/sun256/";
 
     /**
@@ -54,6 +55,12 @@ public class CeaWriter extends XmlWriter {
         ceaAppName_ = ceaAppName;
         formatter_ = new Formatter();
         formatter_.setManualName( "the manual" );
+        flagDefs_ = new FlagDef[] {
+            new RedirectFlagDef( "stdout", "File for output from task",
+                                 "stilts.out" ),
+            new RedirectFlagDef( "stderr", "File for errors from task",
+                                 "stilts.err" ),
+        };
     }
 
     /**
@@ -96,10 +103,15 @@ public class CeaWriter extends XmlWriter {
                       formatAttribute( "name", ceaAppName_ ) 
                     + formatAttribute( "version", Stilts.getVersion() ) );
 
+        /* Write parameters which are common to all tasks. */
+        startElement( "ceab:Parameters" );
+        for ( int i = 0; i < flagDefs_.length; i++ ) {
+            flagDefs_[ i ].writeParameter();
+        }
+
         /* Write all the parameters for all tasks.  They are given 
          * reference names qualified by their task names so that they can
          * be referenced separately in their respective interfaces later. */
-        startElement( "ceab:Parameters" );
         for ( int i = 0; i < tasks_.length; i++ ) {
             writeParameters( tasks_[ i ] );
         }
@@ -159,7 +171,9 @@ public class CeaWriter extends XmlWriter {
          * and is only allowed to assume a single, fixed value. */
         startElement( "CmdLineParameterDefn",
                       formatAttribute( "name", getParamRef( task, null ) )
-                    + formatAttribute( "commandPosition", "1" )
+                    + formatAttribute( "commandPosition",
+                                       Integer
+                                      .toString( flagDefs_.length + 1 ) )
                     + formatAttribute( "fileRef", "false" )
                     + formatAttribute( "type", "text" ) );
         addElement( "agpd:UI_Name", "", "task" );
@@ -216,6 +230,13 @@ public class CeaWriter extends XmlWriter {
         CeaParameter[] params = task.getParameters();
         startElement( "Interface", formatAttribute( "name", task.getName() ) );
         startElement( "input" );
+
+        /* Writer CEA parameter references for the standard flags. */
+        for ( int iFlag = 0; iFlag < flagDefs_.length; iFlag++ ) {
+            addElement( "pref",
+                        formatAttribute( "ref", flagDefs_[ iFlag ].getName() ),
+                        "" );
+        }
 
         /* Write a CEA parameter reference for the parameter representing
          * the task itself. */
@@ -311,6 +332,19 @@ public class CeaWriter extends XmlWriter {
             }
         }
 
+        /* Remove some tasks unsuitable for the CEA installation. */
+        String[] removals = new String[] { "funcs", "sqlcone", };
+        for ( int i = 0; i < removals.length; i++ ) {
+            String rname = removals[ i ];
+            if ( appMap.containsKey( rname ) ) {
+                appMap.remove( rname );
+            }
+            else {
+                throw new RuntimeException( "Configuration error: no such task "
+                                          + rname );
+            }
+        }
+
         /* Doctor some of the specific tasks as required; small changes
          * to parameters etc are required for sensible use in a CEA
          * environment. */
@@ -332,6 +366,66 @@ public class CeaWriter extends XmlWriter {
             tasks[ i ] = (CeaTask) appMap.get( appNames[ i ] );
         }
         return tasks;
+    }
+
+    /**
+     * Definition of one of the flag-like parameters which precedes the
+     * task name on the stilts command line.
+     */
+    private abstract class FlagDef {
+
+        /**
+         * Returns parameter name, unadorned by "-" signs etc.
+         *
+         * @return  name
+         */
+        public abstract String getName();
+
+        /**
+         * Outputs a <code>CmdLineParameterDefn</code> element for this flag.
+         */
+        public abstract void writeParameter();
+    }
+
+    /**
+     * FlagDef implementation for standard output/error redirects.
+     */
+    private class RedirectFlagDef extends FlagDef {
+        private final String name_;
+        private final String description_;
+        private final String defaultValue_;
+       
+        /**
+         * Constructor.
+         *
+         * @param  name  parameter name, unadorned by "-" signs etc
+         * @param  description  parameter UI description
+         * @param  defaultValue  parameter default value, if any
+         */
+        RedirectFlagDef( String name, String description,
+                         String defaultValue ) {
+            name_ = name;
+            description_ = description;
+            defaultValue_ = defaultValue;
+        }
+
+        public String getName() {
+            return name_;
+        }
+
+        public void writeParameter() {
+            startElement( "CmdLineParameterDefn",
+                          formatAttribute( "name", name_ )
+                        + formatAttribute( "fileRef", "true" )
+                        + formatAttribute( "type", "text" )
+                        + formatAttribute( "switchType", "normal" ) );
+            addElement( "agpd:UI_Name", "", name_ );
+            addElement( "agpd:UI_Description", "", description_ );
+            if ( defaultValue_ != null ) {
+                addElement( "agpd:DefaultValue", "", defaultValue_ );
+            }
+            endElement( "CmdLineParameterDefn" );
+        }
     }
 
     /**
