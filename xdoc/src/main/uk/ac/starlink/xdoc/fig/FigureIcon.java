@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.FontMetrics;
+import java.awt.event.ActionEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.io.BufferedOutputStream;
@@ -16,11 +17,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 /**
  * Base class for drawings.
@@ -69,11 +72,21 @@ public abstract class FigureIcon implements Icon {
      * Displays the figure in a Swing window.
      */
     public void display() {
-        JFrame frame = new JFrame();
+        final JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
         JComponent container = new JPanel();
         container.setBackground( Color.WHITE );
         container.setOpaque( true );
         container.add( new JLabel( this ) );
+
+        Object quitKey = "quit";
+        container.getInputMap().put( KeyStroke.getKeyStroke( 'q' ), quitKey );
+        container.getActionMap().put( quitKey, new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                frame.dispose();
+            }
+        } );
+
         frame.getContentPane().add( container );
         frame.pack();
         frame.setVisible( true );
