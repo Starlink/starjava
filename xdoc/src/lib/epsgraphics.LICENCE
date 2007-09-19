@@ -1,0 +1,10 @@
+EPS Graphics2D is distributed under the GPL. The support URL is:
+
+  http://www.jibble.org/epsgraphics/
+
+Note 9-MAY-2006. Cannot see the dual licence agreement anymore, so
+this could be the last free release. 
+
+Patches: patched the clipping to interchange grestore/gsave in 
+EpsGraphics2D.java, stops the graphics context being reset.
+
