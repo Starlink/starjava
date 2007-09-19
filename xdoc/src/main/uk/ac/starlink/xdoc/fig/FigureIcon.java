@@ -35,18 +35,15 @@ import javax.swing.KeyStroke;
  */
 public abstract class FigureIcon implements Icon {
 
-    private final int width_;
-    private final int height_;
+    private final Rectangle bounds_;
 
     /**
      * Constructor.
      *
-     * @param   width   figure width in pixels
-     * @param   height  figure height in pixels
+     * @param   bounds of image
      */
-    protected FigureIcon( int width, int height ) {
-        width_ = width;
-        height_ = height;
+    protected FigureIcon( Rectangle bounds ) {
+        bounds_ = new Rectangle( bounds );
     }
 
     /**
@@ -57,15 +54,17 @@ public abstract class FigureIcon implements Icon {
     protected abstract void doDrawing( Graphics2D g2 );
 
     public int getIconWidth() {
-        return width_;
+        return bounds_.width;
     }
 
     public int getIconHeight() {
-        return height_;
+        return bounds_.height;
     }
 
     public void paintIcon( Component c, Graphics g, int x, int y ) {
-        doDrawing( (Graphics2D) g.create() );
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.translate( x - bounds_.x, y - bounds_.y );
+        doDrawing( g2 );
     }
 
     /**
@@ -102,24 +101,25 @@ public abstract class FigureIcon implements Icon {
 
         /* Scale to a pixel size which makes the bounding box sit sensibly
          * on an A4 or letter page.  EpsGraphics2D default scale is 72dpi. */
-        Rectangle bounds = new Rectangle( 0, 0, width_, height_ );
         double padfrac = 0.05;
-        double xdpi = bounds.width / 6.0;
-        double ydpi = bounds.height / 9.0;
+        double xdpi = bounds_.width / 6.0;
+        double ydpi = bounds_.height / 9.0;
         double scale;
         int pad;
         if ( xdpi > ydpi ) {
             scale = 72.0 / xdpi;
-            pad = (int) Math.ceil( bounds.width * padfrac * scale );
+            pad = (int) Math.ceil( bounds_.width * padfrac * scale );
         }
         else {
             scale = 72.0 / ydpi;
-            pad = (int) Math.ceil( bounds.height * padfrac * scale );
+            pad = (int) Math.ceil( bounds_.height * padfrac * scale );
         }
-        int xlo = (int) Math.floor( scale * bounds.x ) - pad;
-        int ylo = (int) Math.floor( scale * bounds.y ) - pad;
-        int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) ) + pad;
-        int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) ) + pad;
+        int xlo = (int) Math.floor( scale * bounds_.x ) - pad;
+        int ylo = (int) Math.floor( scale * bounds_.y ) - pad;
+        int xhi = (int)
+                  Math.ceil( scale * ( bounds_.x + bounds_.width ) ) + pad;
+        int yhi = (int)
+                  Math.ceil( scale * ( bounds_.y + bounds_.height ) ) + pad;
 
         /* Construct a graphics object which will write postscript
          * down this stream. */
@@ -137,11 +137,12 @@ public abstract class FigureIcon implements Icon {
     }
 
     /**
-     * Main method.  Run with <code>-help</code> flag for usage.
+     * Does the work for the {@link #main} method.
      *
      * @param   args  argument vector
+     * @return  status - zero means success
      */
-    public static void main( String[] args ) throws IOException {
+    private static int runMain( String[] args ) throws IOException {
 
         /* Usage string. */
         StringBuffer ubuf = new StringBuffer( "Usage:" )
@@ -173,6 +174,7 @@ public abstract class FigureIcon implements Icon {
             else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
+                return 0;
             }
             else if ( arg.startsWith( "-" ) ) {
                 Mode m = null;
@@ -185,7 +187,7 @@ public abstract class FigureIcon implements Icon {
                 }
                 if ( m == null ) {
                     System.err.println( usage );
-                    System.exit( 1 );
+                    return 1;
                 }
             }
             else if ( fig == null ) {
@@ -196,8 +198,7 @@ public abstract class FigureIcon implements Icon {
                 }
                 catch ( Throwable e ) {
                     System.err.println( "No class " + arg + ": " + e );
-                    System.exit( 1 );
-                    return;
+                    return 1;
                 }
                 try {
                     fig = (FigureIcon) clazz.newInstance();
@@ -205,17 +206,18 @@ public abstract class FigureIcon implements Icon {
                 catch ( Throwable e ) {
                     System.err.println( "Error instantiating " + clazz.getName()
                                       + ": " + e );
-                    System.exit( 1 );
+                    return 1;
                 }
             }
         }
         if ( ! argList.isEmpty() || fig == null || mode == null ) {
             System.err.println( usage );
-            System.exit( 1 );
+            return 1;
         }
 
         /* Do work. */
         mode.process( fig, destination );
+        return 0;
     }
 
     /**
@@ -293,5 +295,17 @@ public abstract class FigureIcon implements Icon {
                 fig.exportEps( getOutputStream( dest ) );
             }
         };
+    }
+
+    /**
+     * Main method.  Run with <code>-help</code> flag for usage.
+     *
+     * @param   args  argument vector
+     */
+    public static void main( String[] args ) throws IOException {
+        int status = runMain( args );
+        if ( status != 0 ) {
+            System.exit( status );
+        }
     }
 }
