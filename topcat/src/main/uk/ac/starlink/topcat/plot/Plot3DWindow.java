@@ -482,8 +482,10 @@ public abstract class Plot3DWindow extends GraphicsWindow
                 point.translate( - insets.left, - insets.top );
 
                 /* Get the closest plotted point to this. */
-                int ip = plot_.getPlottedPointIterator()
-                              .getClosestPoint( point, 4 );
+                PointIterator pointIt = plot_.getPlottedPointIterator();
+                int ip = pointIt == null
+                       ? -1
+                       : pointIt.getClosestPoint( point, 4 );
 
                 /* Highlight if there is one. */
                 if ( ip >= 0 ) {
