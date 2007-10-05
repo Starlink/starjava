@@ -221,6 +221,13 @@ public abstract class BasicTableLoadDialog extends JPanel
     }
 
     /**
+     * Returns the progress bar at the bottom of the dialogue window.
+     */
+    protected JProgressBar getProgessBar() {
+        return progBar_;
+    }
+
+    /**
      * Converts an exception to an IOException, probably by wrapping it
      * in one.  This utility method can be used for wrapping up an 
      * exception of some other kind if it needs to be thrown in 
@@ -289,7 +296,7 @@ public abstract class BasicTableLoadDialog extends JPanel
      *
      * @param  busy  whether we're busy
      */
-    private void setBusy( boolean busy ) {
+    protected void setBusy( boolean busy ) {
         setEnabled( ! busy );
         okAction_.setEnabled( ! busy );
         progBar_.setIndeterminate( busy );
