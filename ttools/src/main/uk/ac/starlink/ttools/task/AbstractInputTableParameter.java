@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import uk.ac.starlink.table.OnceRowPipe;
@@ -120,8 +121,15 @@ public abstract class AbstractInputTableParameter extends Parameter {
                 return tfact.makeStarTable( loc, fmt );
             }
         }
+        catch ( EOFException e ) {
+            throw new ExecutionException( "Premature end of file", e );
+        }
         catch ( IOException e ) {
-            throw new ExecutionException( e.getMessage(), e );
+            String msg = e.getMessage();
+            if ( msg == null || msg.trim().length() == 0 ) {
+                msg = e.toString();
+            }
+            throw new ExecutionException( msg, e );
         }
     }
 
