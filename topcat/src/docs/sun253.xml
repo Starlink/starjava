@@ -9780,6 +9780,7 @@ comments (apologies for any missed out):
 <li>Douglas Morgan (Bristol)</li>
 <li>Haggis Harris (Bath)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
+<li>Ivan Zolotukhin (SAI MSU)</li>
 </ul>
 </p>
 
@@ -10930,6 +10931,7 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Fix some bugs associated with text label plotting.</li>
+    <li>Add mouse wheel zoom for 3D plots.</li>
     </ul>
     </p></dd>
 
