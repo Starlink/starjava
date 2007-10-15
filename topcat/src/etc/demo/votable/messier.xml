@@ -12,7 +12,7 @@
 <PARAM arraysize="*" datatype="char" name="Origin" value="http://www.seds.org/messier/data1.html">
 <DESCRIPTION>Source of original data</DESCRIPTION>
 </PARAM>
-<FIELD arraysize="5" datatype="char" name="Name">
+<FIELD arraysize="5" datatype="char" name="Name" ucd="meta.id">
 <DESCRIPTION>ID</DESCRIPTION>
 </FIELD>
 <FIELD datatype="short" name="ID">
