@@ -58,7 +58,6 @@ class CeaParameter {
              taskParam instanceof InputStreamParameter ) {
             isRef_ = true;
             dflt_ = null;
-            isNullPermitted_ = false;
             truncateDescription();
         }
         if ( taskParam instanceof MultiParameter ) {
