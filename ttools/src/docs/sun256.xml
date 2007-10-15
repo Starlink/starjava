@@ -34,6 +34,7 @@
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
+  <!ENTITY sqlcone-summary SYSTEM 'sqlcone-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
@@ -178,13 +179,16 @@ the following commands specifically for operating on VOTable files:
     &votlint-purpose;
     </li>
 </ul>
-the following commands for accessing VO services:
+the following commands for accessing VO/database services:
 <ul>
 <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
     &regquery-purpose;
     </li>
 <li><ref id="multicone" plaintextref="yes"><code>multicone</code></ref>:
     &multicone-purpose;
+    </li>
+<li><ref id="sqlcone" plaintextref="yes"><code>sqlcone</code></ref>:
+    &sqlcone-purpose;
     </li>
 </ul>
 and the following general purpose utilities:
@@ -383,6 +387,7 @@ the available tasks are:
 <li><code>funcs</code></li>
 <li><code>multicone</code></li>
 <li><code>regquery</code></li>
+<li><code>sqlcone</code></li>
 <li><code>tcat</code></li>
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
@@ -1016,7 +1021,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
-           <ref id="multicone"><code>multicone</code></ref> and
+           <ref id="multicone"><code>multicone</code></ref>,
+           <ref id="sqlcone"><code>sqlcone</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
@@ -2448,6 +2454,7 @@ small number of rows.
 
 <p>The <label>cone search</label> protocol is not currently a formal IVOA 
 standard, but it is a simple service widely implemented by catalogue servers.
+<!-- oh yes it is -->
 A description of the protocol can be found at
 <webref url="http://us-vo.org/pubs/files/conesearch.html"/>.
 </p>
@@ -2476,6 +2483,7 @@ best to work out what the service responses mean in this case,
 and usually makes a good enough job of it.
 </p>
 
+<!-- still? -->
 <p>This command is experimental.  It may be modified or renamed in a future
 release of STILTS.
 </p>
@@ -2625,6 +2633,60 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
        for a cone search service with particular data for use with
        the <ref id="multicone"><code>multicone</code></ref> command.
        </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="sqlcone" tocleaf="yes">
+<subhead><title><code>sqlcone</code>: &sqlcone-purpose;</title></subhead>
+
+<p><code>sqlcone</code> resembles 
+<ref id="multicone" plaintextref="yes"><code>multicone</code></ref>,
+but instead
+of sending an HTTP query to a remote cone search service for each 
+match (i.e. each row of the input table), it executes an SQL query
+directly.  The query is a SELECT statement with a WHERE clause which
+makes restrictions on Right Ascension and Declination columns;
+the names of these columns must be given as parameters.
+The effect is that of a spatial join between a client-side table and 
+a table stored in the database.
+</p>
+
+<p>This command can only be used if you have access to an SQL
+database via JDBC.  The details of how to configure a JDBC connection
+to a database are discussed in <ref id="jdbcConfig"/> - obviously 
+you will need a database to connect to and appropriate read permissions 
+on it as well as the relevant drivers.
+</p>
+
+&sqlcone-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>sqlcone</code>:
+<dl>
+
+<dt><verbatim>
+stilts -classpath lib/drivers/mysql-connector-java.jar \
+       -Djdbc.drivers=com.mysql.jdbc.Driver 
+       sqlcone in=messier.xml ra=RA dec=DEC sr=0.05 \
+               db='jdbc:mysql://localhost/ASTRO1' user=mbt \
+               dbtable=FIRST dbra=_RA2000 dbdec=_DE2000 \
+               out=matches.xml
+</verbatim></dt>
+<dd><p>This performs a series of SELECT statements on the table FIRST
+    in the local MySQL database ASTRO1 to identify database objects in the
+    region of each object represented in the VOTable <code>messier.xml</code>.
+    The result, a join between the Messier and FIRST tables, is output
+    as a VOTable called <code>matches.xml</code>.
+    In this case a password has not been supplied on the command line,
+    so if one is required it will be prompted for on the console.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -4350,6 +4412,10 @@ but my thanks are especially due to the following:
     <ul>
     <li>Added <code>-stdout</code> and <code>-stderr</code> flags to
         <code>stilts</code> command.</li>
+    <li>Some bugs fixed in generation of CEA <code>app-description.xml</code>
+        file.</li>
+    <li>Documentation provided for <ref id="sqlcone"><code>sqlcone</code></ref>
+        command.</li>
     </ul>
     </p></dd>
 
