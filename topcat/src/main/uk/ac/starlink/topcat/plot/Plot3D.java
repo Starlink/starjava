@@ -9,6 +9,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,6 +51,7 @@ public abstract class Plot3D extends JPanel {
 
     private static final MarkStyle DOT_STYLE =
         MarkShape.POINT.getStyle( Color.BLACK, 1 );
+    private static final double CLICK_ZOOM_UNIT = 1.2;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -78,16 +81,23 @@ public abstract class Plot3D extends JPanel {
 
         /* Set up a zoom region if required. */
         if ( zoom ) {
-            Zoomer zoomer = new Zoomer() {
-                public void mousePressed( java.awt.event.MouseEvent evt ) {
-                    super.mousePressed( evt );
-                }
-            };
+            Zoomer zoomer = new Zoomer();
             zoomer.setRegions( Arrays.asList( getZoomRegions() ) );
             zoomer.setCursorComponent( this );
             this.addMouseListener( zoomer );
             this.addMouseMotionListener( zoomer );
         }
+
+        /* Arrange for mouse wheel zooming. */
+        addMouseWheelListener( new MouseWheelListener() {
+            public void mouseWheelMoved( MouseWheelEvent evt ) {
+                int nclick = evt.getWheelRotation();
+                if ( nclick != 0 ) {
+                    double factor = Math.pow( CLICK_ZOOM_UNIT, -nclick );
+                    callbacker_.requestZoom( state_.getZoomScale() * factor );
+                }
+            }
+        } );
     }
 
     /**
