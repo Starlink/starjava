@@ -1,9 +1,5 @@
 package uk.ac.starlink.ttools.cone;
 
-import gnu.jel.CompilationException;
-import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
-import gnu.jel.Library;
 import java.io.IOException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
@@ -17,8 +13,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.ColumnIdentifier;
-import uk.ac.starlink.ttools.JELUtils;
-import uk.ac.starlink.ttools.SequentialJELRowReader;
 import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.ttools.task.TableProducer;
 
@@ -33,53 +27,51 @@ public class SkyConeMatch2Producer implements TableProducer {
 
     private final ConeSearcher coneSearcher_;
     private final TableProducer inProd_;
+    private final QuerySequenceFactory qsFact_;
     private final boolean bestOnly_;
-    private final String raString_;
-    private final String decString_;
-    private final String srString_;
     private final String copyColIdList_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     /**
-     * Constructor.  Note the JEL expressions for ra, dec and sr may be
-     * string representations of constant numbers, column names, or 
-     * expressions involving column names.
+     * Constructor.
      *
      * @param   coneSearcher   cone search implementation
      * @param   inProd   source of input table (containing each crossmatch
      *                   specification)
+     * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
-     * @param   raString  JEL expression for the right ascension in degrees
-     *                    at each row of the input table
-     * @param   decString JEL expression for the declination in degrees
-     *                    at each row of the input table
-     * @param   srString  JEL expression for the search radius in degrees
-     *                    at each row of the input table
      * @param   copyColIdList  space-separated list of column identifiers for
      *                         columns to be copied to the output table,
      *                         "*" for all columns
      */
     public SkyConeMatch2Producer( ConeSearcher coneSearcher,
-                                  TableProducer inProd, boolean bestOnly,
-                                  String raString, String decString,
-                                  String srString, String copyColIdList ) {
+                                  TableProducer inProd,
+                                  QuerySequenceFactory qsFact,
+                                  boolean bestOnly,
+                                  String copyColIdList ) {
         coneSearcher_ = coneSearcher;
         inProd_ = inProd;
+        qsFact_ = qsFact;
         bestOnly_ = bestOnly;
-        raString_ = raString;
-        decString_ = decString;
-        srString_ = srString;
         copyColIdList_ = copyColIdList;
     }
 
+    /**
+     * Returns the result, which is a join between the input table and
+     * the table on which the cone searches are defined.
+     *
+     * <p><strong>Note</strong></p>: the result is a one-read-only table,
+     * designed for streaming.  If you are going to read it more than once,
+     * call {@link uk.ac.starlink.table.Tables#randomTable} on the result.
+     *
+     * @return   joined table
+     */
     public StarTable getTable() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
-        ConeQueryRowSequence querySeq =
-            new JELConeQuerySequence( inTable, raString_, decString_,
-                                      srString_ );
+        ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
         int[] iCopyCols = ( copyColIdList_ == null ||
                             copyColIdList_.trim().length() == 0 )
                         ? new int[ 0 ]
@@ -92,88 +84,6 @@ public class SkyConeMatch2Producer implements TableProducer {
         coneWorker.setDaemon( true );
         coneWorker.start();
         return rowPipe.waitForStarTable();
-    }
-
-    /**
-     * ConeQueryRowSequence implementation which uses JEL expressions for
-     * ra, dec and sr.
-     */
-    private static class JELConeQuerySequence extends SequentialJELRowReader
-                                              implements ConeQueryRowSequence {
-
-        private final CompiledExpression raExpr_;
-        private final CompiledExpression decExpr_;
-        private final CompiledExpression srExpr_;
-
-        /**
-         * Constructor.
-         *
-         * @param  table  input table
-         * @param  raString  JEL expression for right ascension in degrees
-         * @param  decString JEL expression for declination in degrees
-         * @param  srString  JEL expression for search radius in degrees
-         */
-        JELConeQuerySequence( StarTable table, String raString,
-                              String decString, String srString )
-                throws TaskException, IOException {
-            super( table );
-            Library lib = JELUtils.getLibrary( this );
-            raExpr_ = compileDouble( raString, lib );
-            decExpr_ = compileDouble( decString, lib );
-            srExpr_ = compileDouble( srString, lib );
-        }
-
-        public double getRa() throws IOException {
-            return evaluateDouble( raExpr_ );
-        }
-
-        public double getDec() throws IOException {
-            return evaluateDouble( decExpr_ );
-        }
-
-        public double getRadius() throws IOException {
-            return evaluateDouble( srExpr_ );
-        }
-
-        /**
-         * Returns the double value for a compiled expression.
-         *
-         * @param  expr  expression to evaluate
-         * @return  double value
-         */
-        private double evaluateDouble( CompiledExpression expr )
-                throws IOException {
-            Object obj;
-            try { 
-                obj = evaluate( expr );
-            }
-            catch ( Throwable e ) {
-                throw new IOException( "Evaluation error: " + expr );
-            }
-            return obj instanceof Number
-                 ? ((Number) obj).doubleValue()
-                 : Double.NaN;
-        }
-
-        /**
-         * Compiles a JEL expression.
-         * An informative UsageException is thrown if it won't compile.
-         *
-         * @param   sexpr   string expression
-         * @param   lib   JEL library
-         * @return  compiled expression
-         */
-        private static CompiledExpression compileDouble( String sexpr,
-                                                         Library lib )
-                throws UsageException {
-            try {
-                return Evaluator.compile( sexpr, lib, double.class );
-            }
-            catch ( CompilationException e ) {
-                throw new UsageException( "Bad numeric expression \"" + sexpr
-                                        + "\"" + " - " + e.getMessage() );
-            }
-        }
     }
 
     /**

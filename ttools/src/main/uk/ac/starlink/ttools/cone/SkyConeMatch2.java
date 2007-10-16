@@ -154,10 +154,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         }
         TableProducer inProd = createInputProducer( env );
         ConeSearcher coneSearcher = coner_.createSearcher( env, bestOnly );
+        QuerySequenceFactory qsFact =
+            new JELQuerySequenceFactory( raString, decString, srString );
 
         /* Return a table producer using these values. */
-        return new SkyConeMatch2Producer( coneSearcher, inProd, bestOnly,
-                                          raString, decString, srString,
-                                          copyColIdList );
+        return new SkyConeMatch2Producer( coneSearcher, inProd, qsFact,
+                                          bestOnly, copyColIdList );
     }
 }
