@@ -34,17 +34,20 @@ public class MultiConeFrameworkTest extends TestCase {
             }
         };
 
-        SkyConeMatch2Producer bestMatcher =
-            new SkyConeMatch2Producer( searcher, inProd, true,
-                                       "RA + 0", "DEC", "0.5", "*" );
+        SkyConeMatch2Producer bestMatcher = new SkyConeMatch2Producer(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ),
+                true, "*" );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
         assertEquals( messier.getColumnCount() + 3,
                       bestResult.getColumnCount() );
 
-        SkyConeMatch2Producer allMatcher =
-            new SkyConeMatch2Producer( searcher, inProd, false,
-                                       "RA", "DEC", "0.1 + 0.2", "RA DEC" );
+        SkyConeMatch2Producer allMatcher = new SkyConeMatch2Producer(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
+                                             "0.1 + 0.2" ),
+                false, "RA DEC" );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
         assertEquals( messier.getRowCount() * nIn, allResult.getRowCount() );
         assertEquals( 2 + 3, allResult.getColumnCount() );
