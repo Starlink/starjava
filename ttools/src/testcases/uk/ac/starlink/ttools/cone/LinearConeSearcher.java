@@ -52,12 +52,13 @@ public class LinearConeSearcher implements ConeSearcher {
         for ( int i = 0; i < nIn_; i++ ) {
             rowList.add( new Object[] { new Integer( i + 1 ),
                                         new Double( ra ),
-                                        new Double( dec + sr / nIn_ ) } );
+                                        new Double( dec + sr * i / nIn_ ) } );
         }
         for ( int i = 0; i < nOut_; i++ ) {
             rowList.add( new Object[] { new Integer( - i - 1 ),
                                         new Double( ra ),
-                                        new Double( dec + sr + sr / nOut_ ) } );
+                                        new Double( dec + sr * 1.01
+                                                        + sr * i / nOut_ ) } );
         }
         Collections.shuffle( rowList );
 
