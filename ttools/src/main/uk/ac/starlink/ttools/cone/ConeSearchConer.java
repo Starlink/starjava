@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -25,6 +26,8 @@ public class ConeSearchConer implements Coner {
 
     private final Parameter urlParam_;
     private final ChoiceParameter verbParam_;
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     /**
      * Constructor.
@@ -130,9 +133,15 @@ public class ConeSearchConer implements Coner {
 
         public int getRaIndex( StarTable result ) {
             for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
-                if ( "POS_EQ_RA_MAIN".equals( result.getColumnInfo( icol )
-                                                    .getUCD() ) ) {
-                    return icol;
+                ColumnInfo info = result.getColumnInfo( icol );
+                if ( "POS_EQ_RA_MAIN".equals( info.getUCD() ) ) {
+                    if ( Number.class
+                               .isAssignableFrom( info.getContentClass() ) ) {
+                        return icol;
+                    }
+                    else {
+                        logger.warning( "Non-numeric POS_EQ_RA_MAIN column" );
+                    }
                 }
             }
             return -1;
@@ -140,9 +149,15 @@ public class ConeSearchConer implements Coner {
 
         public int getDecIndex( StarTable result ) {
             for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
-                if ( "POS_EQ_DEC_MAIN".equals( result.getColumnInfo( icol )
-                                                     .getUCD() ) ) {
-                    return icol;
+                ColumnInfo info = result.getColumnInfo( icol );
+                if ( "POS_EQ_DEC_MAIN".equals( info.getUCD() ) ) {
+                    if ( Number.class
+                               .isAssignableFrom( info.getContentClass() ) ) {
+                        return icol;
+                    }
+                    else {
+                        logger.warning( "Non-numeric POS_EQ_DEC_MAIN column" );
+                    }
                 }
             }
             return -1;
