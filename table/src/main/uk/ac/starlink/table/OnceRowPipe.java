@@ -157,7 +157,12 @@ public class OnceRowPipe implements RowPipe, RowSequence {
     }
 
     public synchronized Object[] getRow() {
-        return seqRow_;
+        if ( seqRow_ != null ) {
+            return seqRow_;
+        }
+        else {
+            throw new IllegalStateException( "next() has not been called yet" );
+        }
     }
 
     public Object getCell( int icol ) {
