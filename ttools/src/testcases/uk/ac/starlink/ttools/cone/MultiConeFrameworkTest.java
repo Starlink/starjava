@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.cone;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
@@ -51,5 +53,33 @@ public class MultiConeFrameworkTest extends TestCase {
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
         assertEquals( messier.getRowCount() * nIn, allResult.getRowCount() );
         assertEquals( 2 + 3, allResult.getColumnCount() );
+
+        final int iRa = 5;
+        final int iDec = 6;
+        assertEquals( "RA", messier.getColumnInfo( iRa ).getName() );
+        assertEquals( "DEC", messier.getColumnInfo( iDec ).getName() );
+        QuerySequenceFactory qsFact3 = new QuerySequenceFactory() {
+            public ConeQueryRowSequence createQuerySequence( StarTable table )
+                    throws IOException {
+                return ColumnQueryRowSequence
+                      .createFixedRadiusSequence( table, iRa, iDec, 0.5 );
+            }
+        };
+        SkyConeMatch2Producer matcher3 = new SkyConeMatch2Producer(
+                searcher, inProd, qsFact3, true, "" );
+        StarTable result3 = Tables.randomTable( matcher3.getTable() );
+        assertEquals( 3, result3.getColumnCount() );
+        assertEquals( messier.getRowCount(), result3.getRowCount() );
+        RowSequence rseq1 = messier.getRowSequence();
+        RowSequence rseq2 = result3.getRowSequence();
+        while ( rseq1.next() ) {
+            assertTrue( rseq2.next() );
+            assertEquals( rseq1.getCell( iRa ), rseq2.getCell( 1 ) );
+            assertEquals( rseq1.getCell( iDec ), rseq2.getCell( 2 ) );
+        }
+        assertTrue( ! rseq1.next() );
+        assertTrue( ! rseq2.next() );
+        rseq1.close();
+        rseq2.close();
     }
 }
