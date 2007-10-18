@@ -174,6 +174,8 @@ public class FuncTest extends TestCase {
     public void testFluxes() {
         assertEquals( 21.4, Fluxes.janskyToAb( 10e-6 ), 1e-8 );
         assertEquals( 10e-6, Fluxes.abToJansky( 21.4 ), 1e-16 );
+        assertEquals( 1, Fluxes.luminosityToFlux( 4.0 * Math.PI, 1 ) );
+        double dist = 99;
         for ( int i = 1; i < 40; i++ ) {
             double mag = i * 1.0;
             double flux = i * 1e-6;
@@ -183,6 +185,14 @@ public class FuncTest extends TestCase {
             assertEquals( 1.0,
                           Fluxes.abToJansky( Fluxes.janskyToAb( flux ) ) / flux,
                           1e-12 );
+            assertEquals( 1.0,
+                Fluxes.luminosityToFlux( Fluxes.fluxToLuminosity( flux, dist ),
+                                         dist ) / flux,
+                1e-12 );
+            assertEquals( 1.0,
+                Fluxes.fluxToLuminosity( Fluxes.luminosityToFlux( flux, dist ),
+                                         dist ) / flux,
+                1e-12 );
         }
     }
 
