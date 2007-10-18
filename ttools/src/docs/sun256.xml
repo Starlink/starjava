@@ -4416,6 +4416,7 @@ but my thanks are especially due to the following:
         file.</li>
     <li>Documentation provided for <ref id="sqlcone"><code>sqlcone</code></ref>
         command.</li>
+    <li>Fixed error in <code>fluxToLuminosity</code> function.</li>
     </ul>
     </p></dd>
 

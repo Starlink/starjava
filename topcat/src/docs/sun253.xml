@@ -10932,6 +10932,7 @@ introduced since the last version:
     <ul>
     <li>Fix some bugs associated with text label plotting.</li>
     <li>Add mouse wheel zoom for 3D plots.</li>
+    <li>Fixed error in <code>fluxToLuminosity</code> function.</li>
     </ul>
     </p></dd>
 

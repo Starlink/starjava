@@ -71,14 +71,14 @@ public class Fluxes {
 
     /**
      * Converts flux to luminosity given a luminosity distance.
-     * <p>lumin=dist<sup>2</sup>/(4 x Pi x flux)
+     * <p>lumin=(4 x Pi x dist<sup>2</sup>) F
      *
      * @param   flux   flux
      * @param   dist   luminosity distance
      * @return  equivalent luminosity
      */
     public static double fluxToLuminosity( double flux, double dist ) {
-        return 0.25 * dist * dist / Math.PI / flux;
+        return 4.0 * Math.PI * dist * dist * flux;
     }
 
     /**
