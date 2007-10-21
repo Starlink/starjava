@@ -140,9 +140,12 @@ public abstract class FigureIcon implements Icon {
      * Does the work for the {@link #main} method.
      *
      * @param   args  argument vector
+     * @param   fig   optional FigureIcon instance to draw; if null the
+     *          class name must be supplied on the command line
      * @return  status - zero means success
      */
-    private static int runMain( String[] args ) throws IOException {
+    public static int runMain( String[] args, FigureIcon fig )
+            throws IOException {
 
         /* Usage string. */
         StringBuffer ubuf = new StringBuffer( "Usage:" )
@@ -156,14 +159,15 @@ public abstract class FigureIcon implements Icon {
             ubuf.append( modes[ i ].getFlag() );
         }
         ubuf.append( ']' );
-        ubuf.append( " <fig-class>" );
+        if ( fig == null ) {
+            ubuf.append( " <fig-class>" );
+        }
         String usage = ubuf.toString();
 
         /* Process arguments. */
         List argList = new ArrayList( Arrays.asList( args ) );
         String destination = null;
         Mode mode = null;
-        FigureIcon fig = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-o" ) && it.hasNext() ) {
@@ -303,7 +307,7 @@ public abstract class FigureIcon implements Icon {
      * @param   args  argument vector
      */
     public static void main( String[] args ) throws IOException {
-        int status = runMain( args );
+        int status = runMain( args, null );
         if ( status != 0 ) {
             System.exit( status );
         }
