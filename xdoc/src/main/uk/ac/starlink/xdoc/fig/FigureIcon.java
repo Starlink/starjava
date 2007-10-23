@@ -1,7 +1,9 @@
 package uk.ac.starlink.xdoc.fig;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -9,6 +11,7 @@ import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -134,6 +138,47 @@ public abstract class FigureIcon implements Icon {
          * eps file is not flushed or correctly terminated.
          * This closes the output stream too. */
         g2.close();
+    }
+
+    /**
+     * Exports this figure to an output stream using the ImageIO framework.
+     *
+     * @param  formatName  ImageIO format name
+     * @param  transparent  true iff image will have a transparent background
+     * @param  out  destination output stream; will not be closed
+     */
+    public void exportImageIO( String formatName, boolean transparent,
+                               OutputStream out )
+            throws IOException {
+
+        /* Set up image to draw into. */
+        BufferedImage image =
+            new BufferedImage( bounds_.width, bounds_.height,
+                               transparent ? BufferedImage.TYPE_INT_ARGB
+                                           : BufferedImage.TYPE_INT_RGB );
+
+        /* Prepare graphics context and clear background. */
+        Graphics2D g2 = image.createGraphics();
+        Color color = g2.getColor();
+        Composite compos = g2.getComposite();
+        g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
+        g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
+        g2.fillRect( 0, 0, bounds_.width, bounds_.height );
+        g2.setColor( color );
+        g2.setComposite( compos );
+
+        /* Do the drawing. */
+        g2.translate( - bounds_.x, - bounds_.y );
+        doDrawing( g2 );
+        g2.translate( + bounds_.x, + bounds_.y );
+        g2.dispose();
+
+        /* Write the prepared image. */
+        boolean done = ImageIO.write( image, formatName, out );
+        out.flush();
+        if ( ! done ) {
+            throw new IOException( "No handler for format " + formatName );
+        }
     }
 
     /**
@@ -283,6 +328,8 @@ public abstract class FigureIcon implements Icon {
             return new Mode[] {
                 SWING,
                 EPS,
+                new ImageIOMode( "png", "png", false ),
+                new ImageIOMode( "jpeg", "jpeg", false ),
             };
         }
 
@@ -299,6 +346,34 @@ public abstract class FigureIcon implements Icon {
                 fig.exportEps( getOutputStream( dest ) );
             }
         };
+
+        /**
+         * Output mode implementation which uses the ImageIO framework.
+         */
+        private static class ImageIOMode extends Mode {
+
+            private final String formatName_;
+            private final boolean transparent_;
+
+            /**
+             * Constructor. 
+             *
+             * @param  name  mode name
+             * @param  formatName   ImageIO format name
+             * @param  transparent  true iff image will have a
+             *                      transparent background
+             */
+            ImageIOMode( String name, String formatName, boolean transparent ) {
+                super( name );
+                formatName_ = formatName;
+                transparent_ = transparent;
+            }
+
+            void process( FigureIcon fig, String dest ) throws IOException {
+                fig.exportImageIO( formatName_, transparent_,
+                                   getOutputStream( dest ) );
+            }
+        }
     }
 
     /**
