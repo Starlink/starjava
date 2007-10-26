@@ -3,6 +3,8 @@ package uk.ac.starlink.ttools.cone;
 import java.io.IOException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowListStarTable;
@@ -10,6 +12,8 @@ import uk.ac.starlink.table.RowPipe;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.SelectorStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.ColumnIdentifier;
@@ -30,6 +34,7 @@ public class SkyConeMatch2Producer implements TableProducer {
     private final QuerySequenceFactory qsFact_;
     private final boolean bestOnly_;
     private final String copyColIdList_;
+    private boolean streamOutput_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
@@ -60,12 +65,25 @@ public class SkyConeMatch2Producer implements TableProducer {
     }
 
     /**
+     * Determines whether this object's {@link #getTable} method will 
+     * produce a one-read-only table or not.  If set true, then the output
+     * table is good for only a single read (<code>getRowSequence</code>
+     * may be called only once).
+     * The default is false.
+     *
+     * @param  streamOutput  whether output is streamed
+     */
+    public void setStreamOutput( boolean streamOutput ) {
+        streamOutput_ = streamOutput;
+    }
+
+    /**
      * Returns the result, which is a join between the input table and
      * the table on which the cone searches are defined.
      *
-     * <p><strong>Note</strong></p>: the result is a one-read-only table,
-     * designed for streaming.  If you are going to read it more than once,
-     * call {@link uk.ac.starlink.table.Tables#randomTable} on the result.
+     * <p><strong>Note</strong></p>: if the streamOut attribute of this
+     * class has been set the result will be a one-read-only table,
+     * designed for streaming.
      *
      * @return   joined table
      */
@@ -83,7 +101,9 @@ public class SkyConeMatch2Producer implements TableProducer {
                             iCopyCols, bestOnly_ );
         coneWorker.setDaemon( true );
         coneWorker.start();
-        return rowPipe.waitForStarTable();
+        StarTable streamTable = rowPipe.waitForStarTable();
+        return streamOutput_ ? streamTable
+                             : Tables.randomTable( streamTable );
     }
 
     /**
@@ -156,54 +176,83 @@ public class SkyConeMatch2Producer implements TableProducer {
          * and writes the result down a pipe.
          */
         private void multiCone() throws IOException {
-            boolean started = false;
+            int ncol = -1;
 
             /* Loop over rows of the input table. */
-            int irow = 0;
-            while ( querySeq_.next() ) {
+            for ( int irow = 0; querySeq_.next(); irow++ ) {
 
                 /* Perform the cone search for this row. */
                 StarTable result = getConeResult();
+                if ( result != null ) {
 
-                /* Append one row to the output for each row in the
-                 * cone search result.  Each row consists of the copied
-                 * columns from the input table followed by all the 
-                 * columns from the cone search result. */
-                RowSequence resultSeq = result.getRowSequence();
-                int nr = 0;
-                try {
-                    while ( resultSeq.next() ) {
-                        nr++;
-
-                        /* If this is the first non-blank entry we've got, 
-                         * acquire the metadata (most importantly column 
-                         * descriptions) from it and use that to initialise the
-                         * output row pipe. */
-                        if ( ! started ) {
-                            rowPipe_.acceptMetadata( getMetadata( result ) );
-                            started = true;
-                        }
-
-                        /* Append the actual rows. */
-                        int ncIn = iCopyCols_.length;
-                        int ncCone = result.getColumnCount();
-                        Object[] row = new Object[ ncIn + ncCone ];
-                        for ( int ic = 0; ic < ncIn; ic++ ) {
-                            row[ ic ] = querySeq_.getCell( iCopyCols_[ ic ] );
-                        }
-                        for ( int ic = 0; ic < ncCone; ic++ ) {
-                            row[ ncIn + ic ] = resultSeq.getCell( ic );
-                        }
-                        rowPipe_.acceptRow( row );
+                    /* If this is the first entry we've got, acquire the 
+                     * metadata (most importantly column descriptions) from it 
+                     * and use that to initialise the output row pipe. */
+                    int nc = result.getColumnCount();
+                    if ( ncol < 0 ) {
+                        ncol = nc;
+                        rowPipe_.acceptMetadata( getMetadata( result ) );
                     }
-                }
-                finally {
-                    resultSeq.close();
-                }
+                    else if ( nc != ncol ) {
+                        String msg = "Inconsistent column counts "
+                                   + "from different cone search invocations"
+                                   + " (" + nc + " != " + ncol + ")";
+                        throw new IOException( msg );
+                    }
 
-                /* Log number of rows successfully appended. */
-                logger_.info( "Row " + irow++ + ": got " + nr
-                            + ( ( nr == 1 ) ? " row" : " rows" ) );
+                    /* Append one row to the output for each row in the
+                     * cone search result.  Each row consists of the copied
+                     * columns from the input table followed by all the 
+                     * columns from the cone search result. */
+                    RowSequence resultSeq = result.getRowSequence();
+                    int nr = 0;
+                    try {
+                        while ( resultSeq.next() ) {
+                            nr++;
+
+                            /* Append the actual rows. */
+                            int ncIn = iCopyCols_.length;
+                            int ncCone = result.getColumnCount();
+                            Object[] row = new Object[ ncIn + ncCone ];
+                            for ( int ic = 0; ic < ncIn; ic++ ) {
+                                row[ ic ] =
+                                    querySeq_.getCell( iCopyCols_[ ic ] );
+                            }
+                            for ( int ic = 0; ic < ncCone; ic++ ) {
+                                row[ ncIn + ic ] = resultSeq.getCell( ic );
+                            }
+                            rowPipe_.acceptRow( row );
+                        }
+                    }
+                    finally {
+                        resultSeq.close();
+                    }
+
+                    /* Log number of rows successfully appended. */
+                    logger_.info( "Row " + irow + ": got " + nr
+                                + ( ( nr == 1 ) ? " match" : " matches" ) );
+                }
+                else {
+                    logger_.info( "Row " + irow + ": got no matches" );
+                }
+            }
+
+            /* If the output table was never initialised, do it here with a
+             * dummy table.  Ideally this will not happen, but it might do
+             * in the case that no matches were found AND the ConeSearcher
+             * implementation returns nulls instead of empty tables for
+             * empty searches. */
+            if ( ncol < 0 ) {
+                String msg = "No results were found and no table metadata "
+                           + "could be gathered.  Sorry.";
+                logger_.warning( msg );
+                StarTable result0 = new EmptyStarTable();
+                ValueInfo msgInfo =
+                    new DefaultValueInfo( "Message", String.class,
+                                          "Multicone execution report" );
+                result0.getParameters()
+                       .add( new DescribedValue( msgInfo, msg ) );
+                rowPipe_.acceptMetadata( new EmptyStarTable() );
             }
         }
 
@@ -242,8 +291,7 @@ public class SkyConeMatch2Producer implements TableProducer {
          * Queries this object's cone searcher according to the search
          * parameters in the current row of the input table.
          *
-         * @return  table containing cone search result; if it has no rows then
-         *          the column metadata may be wrong and should not be used
+         * @return  table containing cone search result, or possibly null
          */
         private StarTable getConeResult() throws IOException {
             double ra = querySeq_.getRa();
@@ -251,18 +299,11 @@ public class SkyConeMatch2Producer implements TableProducer {
             double sr = querySeq_.getRadius();
             if ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) &&
                  ! Double.isNaN( sr ) ) {
-                try {
-                    StarTable coneResult = getConeResult( ra, dec, sr );
-                    return coneResult;
-                }
-                catch ( IOException e ) {
-                    logger_.warning( "Cone search error: " + e.getMessage() );
-                    return new EmptyStarTable();
-                }
+                return getConeResult( ra, dec, sr );
             }
             else {
                 logger_.warning( "Invalid search parameters" );
-                return new EmptyStarTable();
+                return null;
             }
         }
 
@@ -273,10 +314,13 @@ public class SkyConeMatch2Producer implements TableProducer {
          * search region and will contain a restricted set of rows if
          * that has been requested.
          *
+         * <p>If no records in the cone are found, the return value may either
+         * be null or (preferably) an empty table with the correct columns.
+         *
          * @param   ra0   right ascension in degrees of region centre
          * @param   dec0  declination in degrees of region centre
          * @param   sr    search radius in degrees
-         * @return   filtered result table
+         * @return   filtered result table, or null
          */
         private StarTable getConeResult( final double ra0, final double dec0,
                                          final double sr )
@@ -285,6 +329,9 @@ public class SkyConeMatch2Producer implements TableProducer {
             /* Perform the cone search itself. */
             logger_.info( "Cone: ra=" + ra0 + "; dec=" + dec0 + "; sr=" + sr );
             StarTable result = coneSearcher_.performSearch( ra0, dec0, sr );
+            if ( result == null ) {
+                return null;
+            }
 
             /* Work out the columns which represent RA and Dec in the result. */
             final int ira = coneSearcher_.getRaIndex( result );
