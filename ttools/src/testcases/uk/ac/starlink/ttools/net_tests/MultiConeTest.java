@@ -43,7 +43,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "icmd", "head 10" );
         StarTable result = multicone( env );
 
-        assertEquals( 173L, result.getRowCount() );
+        assertEquals( 245L, result.getRowCount() );  // was 173 rows
         int ncol = result.getColumnCount();
         assertTrue( ncol > 10 && ncol < 100 );
 
@@ -96,7 +96,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "copycols", "$4" );
         StarTable result = multicone( env );
 
-        assertEquals( 166L, result.getRowCount() );
+        assertEquals( 451L, result.getRowCount() );  // was 166 rows
         assertEquals( 14, result.getColumnCount() );
 
         assertEquals( "Name", result.getColumnInfo( 0 ).getName() );
