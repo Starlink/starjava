@@ -26,9 +26,9 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
      * The JEL expressions will be resolved using the column names of the
      * supplied table when the factory method is called.
      *
-     * @param  JEL expression for right ascension in degrees
-     * @param  JEL expression for declination in degrees
-     * @param  JEL expression for search radius in degrees
+     * @param  raExpr  JEL expression for right ascension in degrees
+     * @param  decExpr JEL expression for declination in degrees
+     * @param  srExpr  JEL expression for search radius in degrees
      */
     public JELQuerySequenceFactory( String raExpr, String decExpr,
                                     String srExpr ) {
