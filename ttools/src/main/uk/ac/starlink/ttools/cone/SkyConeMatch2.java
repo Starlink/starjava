@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -33,6 +34,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final Parameter srParam_;
     private final Parameter copycolsParam_;
     private final ChoiceParameter modeParam_;
+    private final BooleanParameter ostreamParam_;
 
     /**
      * Constructor.
@@ -128,6 +130,21 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( modeParam_ );
 
+        ostreamParam_ = new BooleanParameter( "ostream" );
+        ostreamParam_.setDefault( "false" );
+        ostreamParam_.setPrompt( "Whether output will be strictly streamed" );
+        ostreamParam_.setDescription( new String[] {
+            "<p>If set true, this will cause the operation to stream on",
+            "output, so that the output table is built up as the results",
+            "are obtained from the cone search service.",
+            "The disadvantage of this is that some output modes and formats",
+            "need multiple passes through the data to work, so depending",
+            "on the output destination, the operation may fail if this is set.",
+            "Use with care (or be prepared for the operation to fail).",
+            "</p>",
+        } );
+        paramList.add( ostreamParam_ );
+
         getParameterList().addAll( paramList );
         getParameterList().addAll( Arrays.asList( coner.getParameters() ) );
     }
@@ -140,6 +157,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String raString = raParam_.stringValue( env );
         String decString = decParam_.stringValue( env );
         String srString = srParam_.stringValue( env );
+        boolean ostream = ostreamParam_.booleanValue( env );
         boolean bestOnly;
         String mode = modeParam_.stringValue( env );
         if ( mode.toLowerCase().equals( "best" ) ) {
@@ -158,7 +176,10 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             new JELQuerySequenceFactory( raString, decString, srString );
 
         /* Return a table producer using these values. */
-        return new SkyConeMatch2Producer( coneSearcher, inProd, qsFact,
-                                          bestOnly, copyColIdList );
+        SkyConeMatch2Producer producer =
+            new SkyConeMatch2Producer( coneSearcher, inProd, qsFact, bestOnly,
+                                       copyColIdList );
+        producer.setStreamOutput( ostream );
+        return producer;
     }
 }
