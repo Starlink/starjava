@@ -62,13 +62,29 @@ public class OnceRowPipe implements RowPipe, RowSequence {
                         throw new UnrepeatableSequenceException(
                                       "Can't re-read data from stream");
                     }
-                    else if ( error_ != null ) {
-                        throw error_;
-                    }
                     else {
+                        checkError();
                         RowSequence rseq = rseq_;
                         rseq_ = null;
-                        return rseq;
+                        return new WrapperRowSequence( rseq ) {
+                            public boolean next() throws IOException {
+                                checkError();
+                                return super.next();
+                            }
+                            public Object getCell( int icol )
+                                    throws IOException {
+                                checkError();
+                                return super.getCell( icol );
+                            }
+                            public Object[] getRow() throws IOException {
+                                checkError();
+                                return super.getRow();
+                            }
+                            public void close() throws IOException {
+                                checkError();
+                                super.close();
+                            }
+                        };
                     }
                 }
             }
@@ -122,19 +138,13 @@ public class OnceRowPipe implements RowPipe, RowSequence {
         catch ( InterruptedException e ) {
             throw new RuntimeException( "Thread interrupted", e );
         }
-        if ( error_ != null ) {
-            throw error_;
-        }
-        else {
-            return table_;
-        }
+        checkError();
+        return table_;
     }
 
     public synchronized boolean next() throws IOException {
-        if ( error_ != null ) {
-            throw error_;
-        }
-        else if ( seqEnded_ ) {
+        checkError();
+        if ( seqEnded_ ) {
             notifyAll();
             return false;
         }
@@ -171,5 +181,14 @@ public class OnceRowPipe implements RowPipe, RowSequence {
 
     public synchronized void close() {
         seqClosed_ = true;
+    }
+
+    /**
+     * Throws an IOException if there is one pending.
+     */
+    private void checkError() throws IOException {
+        if ( error_ != null ) {
+            throw error_;
+        }
     }
 }
