@@ -14,12 +14,16 @@ public interface ConeSearcher {
     /**
      * Returns a table consisting of all the objects within a given search
      * radius of a specified point on the sky.
-     * For every non-empty table returned, the columns should be the same.
+     * If no matching objects are found, then it is preferable to return
+     * an empty table with the correct columns.  However, if this cannot
+     * be done, it is permissible to return null.
+     * For every table returned, the columns should be the same.
      *
      * @param  ra  right ascension in degrees of search region centre
      * @param  dec  declination in degrees of search region centre
      * @param  sr  search radius in degrees
-     * @return   table containing records in the given cone
+     * @return   table containing records in the given cone,
+     *           or possibly null if no records are found
      */
     StarTable performSearch( double ra, double dec, double sr )
             throws IOException ;
