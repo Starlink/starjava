@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -128,7 +129,16 @@ public class ConeSearchConer implements Coner {
 
         public StarTable performSearch( double ra, double dec, double sr ) 
                 throws IOException {
-            return csearch_.performSearch( ra, dec, sr, verb_, tfact_ );
+            StarTable table = 
+                csearch_.performSearch( ra, dec, sr, verb_, tfact_ );
+
+            /* If the table has no rows, return null.  This is slightly 
+             * annoying, since it would be better to return a row-less table
+             * (see performSearch contract), but some cone search services
+             * tend to return tables with different numbers of columns when
+             * there are no rows.  This is against the spirit of the Cone
+             * Search standard, but not against the letter. */
+            return isEmpty( table ) ? null : table;
         }
 
         public int getRaIndex( StarTable result ) {
@@ -161,6 +171,28 @@ public class ConeSearchConer implements Coner {
                 }
             }
             return -1;
+        }
+
+        /**
+         * Determines whether a table is empty (has no rows).
+         *
+         * @param  table  table to test
+         * @return  true iff table has no rows
+         */
+        private static boolean isEmpty( StarTable table ) throws IOException {
+            long nr = table.getRowCount();
+            if ( nr >= 0 ) {
+                return nr == 0;
+            }
+            else {
+                RowSequence rseq = table.getRowSequence();
+                try {
+                    return rseq.next();
+                }
+                finally {
+                    rseq.close();
+                }
+            }
         }
     }
 }
