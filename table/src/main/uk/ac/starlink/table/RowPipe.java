@@ -34,6 +34,8 @@ public interface RowPipe extends TableSink {
      * May be called by the writing stream to set an I/O error on the pipe.
      * This error should be passed on to the reading end by throwing an
      * error with <code>e</code> as its cause from one of the read methods.
+     * If an error has already been set by a previous call of this method,
+     * this has no effect (only the first error is set).
      *
      * @param   e   exception to pass to readers
      */

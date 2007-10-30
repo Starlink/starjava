@@ -46,8 +46,10 @@ public class OnceRowPipe implements RowPipe, RowSequence {
     }
 
     public synchronized void setError( IOException error ) {
-        error_ = error;
-        notifyAll();
+        if ( error_ == null ) {
+            error_ = error;
+            notifyAll();
+        }
     }
 
     public synchronized void acceptMetadata( StarTable meta ) {
