@@ -153,6 +153,7 @@ public class AsciiTableWriter extends TextTableWriter {
             byte[] nameBuf = getBytes( cinfos[ i ].getName() );
             for ( int j = 0; j < nameBuf.length; j++ ) {
                 switch ( (char) nameBuf[ j ] ) {
+                    case ' ':
                     case '\'':
                     case '"':
                     case '#':
