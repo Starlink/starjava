@@ -10934,6 +10934,8 @@ introduced since the last version:
     <li>Fix some bugs associated with text label plotting.</li>
     <li>Add mouse wheel zoom for 3D plots.</li>
     <li>Fixed error in <code>fluxToLuminosity</code> function.</li>
+    <li>Embedded spaces in output ASCII format table column names 
+        are now substituted with underscores.</li>
     </ul>
     </p></dd>
 
