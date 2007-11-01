@@ -102,8 +102,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 //  }
 
     public Point dataToGraphics( double dx, double dy, boolean insideOnly ) {
-        if ( Double.isNaN( dx ) || Double.isInfinite( dx ) ||
-             Double.isNaN( dy ) || Double.isInfinite( dy ) ) {
+        if ( Double.isNaN( dx ) || Double.isNaN( dy ) ) {
             return null;
         }
         if ( _xlog ) {
@@ -111,7 +110,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
                 dx = Math.log( dx ) * _LOG10SCALE;
             }
             else {
-                return null;
+                if ( insideOnly ) {
+                    return null;
+                }
+                else {
+                    dx = Double.NEGATIVE_INFINITY;
+                }
             }
         }
         if ( _ylog ) {
@@ -119,7 +123,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
                 dy = Math.log( dy ) * _LOG10SCALE;
             }
             else {
-                return null;
+                if ( insideOnly ) {
+                    return null;
+                }
+                else {
+                    dy = Double.NEGATIVE_INFINITY;
+                }
             }
         }
         if ( _xflip ) {

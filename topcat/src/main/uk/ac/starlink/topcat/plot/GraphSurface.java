@@ -81,15 +81,26 @@ public class GraphSurface implements PlotSurface {
         if ( insideOnly && ( x < xlo_ || x > xhi_ || y < ylo_ || y > yhi_ ) ) {
             return null;
         }
-        else if ( Double.isNaN( x ) || Double.isNaN( y ) ||
-                  ( xLog_ && x <= 0.0 ) || ( yLog_ && y <= 0.0 ) ) {
+        else if ( Double.isNaN( x ) || Double.isNaN( y ) ) {
             return null;
         }
         else {
-            double rx = xLog_ ? Math.log( x / xlo_ ) / Math.log( xhi_ / xlo_ )
-                              : ( x - xlo_ ) / ( xhi_ - xlo_ );
-            double ry = yLog_ ? Math.log( y / ylo_ ) / Math.log( yhi_ / ylo_ )
-                              : ( y - ylo_ ) / ( yhi_ - ylo_ );
+            double rx;
+            if ( xLog_ ) {
+                rx = x > 0.0 ? Math.log( x / xlo_ ) / Math.log( xhi_ / xlo_ )
+                             : Double.NEGATIVE_INFINITY;
+            }
+            else {
+                rx = ( x - xlo_ ) / ( xhi_ - xlo_ );
+            }
+            double ry;
+            if ( yLog_ ) {
+                ry = y > 0.0 ? Math.log( y / ylo_ ) / Math.log( yhi_ / ylo_ )
+                             : Double.NEGATIVE_INFINITY;
+            }
+            else {
+                ry = ( y - ylo_ ) / ( yhi_ - ylo_ );
+            }
             if ( xFlip_ ) {
                 rx = 1.0 - rx;
             }
