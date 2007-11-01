@@ -10936,6 +10936,8 @@ introduced since the last version:
     <li>Fixed error in <code>fluxToLuminosity</code> function.</li>
     <li>Embedded spaces in output ASCII format table column names 
         are now substituted with underscores.</li>
+    <li>Error bars for zero/negative values are now correctly extended to the
+        axis (rather than being omitted) in 2D plots with logarithmic axes.</li>
     </ul>
     </p></dd>
 
