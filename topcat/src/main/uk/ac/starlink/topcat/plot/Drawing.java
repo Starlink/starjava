@@ -85,6 +85,8 @@ public class Drawing implements Pixellator {
                 y1 = y0;
                 y0 = y2;
             }
+            y0 = Math.max( y0, bounds_.y );
+            y1 = Math.min( y1, bounds_.y + bounds_.height );
             for ( int y = y0; y <= y1; y++ ) {
                 addPixel( x, y );
             }
@@ -98,6 +100,8 @@ public class Drawing implements Pixellator {
                 x1 = x0;
                 x0 = x2;
             }
+            x0 = Math.max( x0, bounds_.x );
+            x1 = Math.min( x1, bounds_.x + bounds_.width );
             for ( int x = x0; x <= x1; x++ ) {
                 addPixel( x, y );
             }
@@ -114,6 +118,8 @@ public class Drawing implements Pixellator {
                 y0 = y2;
             }
             double slope = (double) ( y1 - y0 ) / (double) ( x1 - x0 );
+            x0 = Math.max( x0, bounds_.x );
+            x1 = Math.min( x1, bounds_.x + bounds_.width );
             for ( int x = x0; x <= x1; x++ ) {
                 addPixel( x, y0 + (int) Math.round( ( x - x0 ) * slope ) );
             }
@@ -131,6 +137,8 @@ public class Drawing implements Pixellator {
                 y0 = y2;
             }
             double slope = (double) ( x1 - x0 ) / (double) ( y1 - y0 );
+            y0 = Math.max( y0, bounds_.y );
+            y1 = Math.min( y1, bounds_.y + bounds_.height );
             for ( int y = y0; y <= y1; y++ ) {
                 addPixel( x0 + (int) Math.round( ( y - y0 ) * slope ), y );
             }
@@ -172,16 +180,30 @@ public class Drawing implements Pixellator {
     public void drawOval( int x, int y, int width, int height ) {
         int a = width / 2;
         int b = height / 2;
-        double a2r = 1.0 / ( a * a );
-        double b2r = 1.0 / ( b * b );
+        double a2r = 1.0 / ( (double) a * a );
+        double b2r = 1.0 / ( (double) b * b );
         int x0 = x + a;
         int y0 = y + b;
 
-        int xmax = Math.min( a, Math.max( x0 - bounds_.x,
-                                          bounds_.x + bounds_.width - x0 ) );
-        int lasty = b;
-        for ( int ix = 0; ix < xmax; ix++ ) {
-            int iy = (int) Math.round( b * Math.sqrt( 1.0 - ix * ix * a2r ) );
+        int xmin;
+        int xmax;
+        int xp = x0 - bounds_.x;
+        int xq = bounds_.x + bounds_.width - x0;
+        if ( xp < 0 ) {
+            xmin = - xp;
+            xmax = + xq;
+        }
+        else if ( xq < 0 ) {
+            xmin = - xq;
+            xmax = + xp;
+        }
+        else {
+            xmin = 0;
+            xmax = Math.min( a, Math.max( xp, xq ) );
+        }
+        int lasty = 0;
+        for ( int ix = xmin; ix < xmax; ix++ ) {
+            int iy = (int) Math.round( b * Math.sqrt( 1.0 - a2r * ix * ix ) );
             addPixel( x0 + ix, y0 + iy );
             addPixel( x0 + ix, y0 - iy );
             addPixel( x0 - ix, y0 + iy );
@@ -192,11 +214,25 @@ public class Drawing implements Pixellator {
             lasty = iy;
         }
 
-        int ymax = Math.min( b, Math.max( y0 - bounds_.y,
-                                          bounds_.y + bounds_.height - y0 ) );
-        int lastx = a;
-        for ( int iy = 0; iy < ymax; iy++ ) {
-            int ix = (int) Math.round( a * Math.sqrt( 1.0 - iy * iy * b2r ) );
+        int ymin;
+        int ymax;
+        int yp = y0 - bounds_.y;
+        int yq = bounds_.y + bounds_.height - y0;
+        if ( yp < 0 ) {
+            ymin = - yp;
+            ymax = + yq;
+        }
+        else if ( yq < 0 ) {
+            ymin = - yq;
+            ymax = + yp;
+        }
+        else {
+            ymin = 0;
+            ymax = Math.min( b, Math.max( yp, yq ) );
+        }
+        int lastx = 0;
+        for ( int iy = ymin; iy < ymax; iy++ ) {
+            int ix = (int) Math.round( a * Math.sqrt( 1.0 - b2r * iy * iy ) );
             addPixel( x0 + ix, y0 + iy );
             addPixel( x0 + ix, y0 - iy );
             addPixel( x0 - ix, y0 + iy );
@@ -226,15 +262,15 @@ public class Drawing implements Pixellator {
         int xhi = Math.min( bounds_.x + bounds_.width, x + width );
         int ylo = Math.max( bounds_.y, y );
         int yhi = Math.min( bounds_.y + bounds_.height, y + height );
-        int a2 = a * a;
-        int b2 = b * b;
-        int a2b2 = a2 * b2;
+        double a2 = (double) a * a;
+        double b2 = (double) b * b;
+        double a2b2 = a2 * b2;
         for ( int ix = xlo; ix <= xhi; ix++ ) {
             int jx = ix - x0;
-            int jxb2 = jx * jx * b2;
+            double jxb2 = b2 * jx * jx;
             for ( int iy = ylo; iy <= yhi; iy++ ) {
                 int jy = iy - y0;
-                int jya2 = jy * jy * a2;
+                double jya2 = a2 * jy * jy;
                 if ( jxb2 + jya2 <= a2b2 ) {
                     addPixel( ix, iy );
                 }
@@ -261,10 +297,10 @@ public class Drawing implements Pixellator {
         int ylo = Math.max( y0 - ymax, bounds_.y );
         int yhi = Math.min( y0 + ymax, bounds_.y + bounds_.height );
 
-        double kxx = ay * ay + by * by;
-        double kxy = -2 * ( ax * ay + bx * by );
-        double kyy = ax * ax + bx * bx;
-        double r1 = ax * by - bx * ay;
+        double kxx = (double) ay * ay + (double) by * by;
+        double kxy = -2 * ( (double) ax * ay + (double) bx * by );
+        double kyy = (double) ax * ax + (double) bx * bx;
+        double r1 = (double) ax * by - (double) bx * ay;
         double r2 = r1 * r1;
 
         for ( int x = xlo; x <= xhi; x++ ) {
@@ -316,10 +352,10 @@ public class Drawing implements Pixellator {
         int ylo = Math.max( y0 - ymax, bounds_.y );
         int yhi = Math.min( y0 + ymax, bounds_.y + bounds_.height );
 
-        double kxx = ay * ay + by * by;
-        double kxy = -2 * ( ax * ay + bx * by );
-        double kyy = ax * ax + bx * bx;
-        double r = ax * by - bx * ay;
+        double kxx = (double) ay * ay + (double) by * by;
+        double kxy = -2 * ( (double) ax * ay + (double) bx * by );
+        double kyy = (double) ax * ax + (double) bx * bx;
+        double r = (double) ax * by - (double) bx * ay;
         double r2 = r * r;
 
         if ( xhi - xlo > 0 && yhi - ylo > 0 ) {
