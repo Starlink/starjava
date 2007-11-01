@@ -25,9 +25,13 @@ public class CeaTest extends TestCase {
        tmpFile.deleteOnExit();
        try {
            PrintStream out = new PrintStream( new FileOutputStream( tmpFile ) );
-           new CeaWriter( out, CeaWriter.getTasks(), "stilts",
-                          "starjava/stilts" )
-              .writeConfig( getClass().getName() );
+           String dummyCmd = "<" + getClass().getName() + ">";
+           CeaWriter writer =
+               new ImplementationCeaWriter( out, CeaWriter.createTaskList(),
+                                            dummyCmd );
+           writer.configure( dummyCmd,
+                             new String[] { "-path", "/usr/bin/stilts", } );
+           writer.writeDocument();
            out.close();
 
            String schema = APP_DESCRIPTION_SCHEMA;
