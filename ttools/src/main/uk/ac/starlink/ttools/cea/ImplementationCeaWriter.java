@@ -29,12 +29,11 @@ public class ImplementationCeaWriter extends CeaWriter {
         AG_SCHEMA_BASE + "AGParameterDefinition/v1";
 
     public static final String SCHEMA_LOCATION =
-        "http://software.astrogrid.org/schema/cea/CEAImplementation/v1.0/"
-      + "CEAImplementation.xsd";
+        "http://software.astrogrid.org/schema/" +
+        "cea/CEAImplementation/v1.0/CEAImplementation.xsd";
     public static final String APPLICATION_ID = "ivo://uk.ac.starlink/stilts";
 
     private String appPath_;
-    private final CeaTask[] tasks_;
 
     /**
      * Constructor.
@@ -47,7 +46,6 @@ public class ImplementationCeaWriter extends CeaWriter {
     public ImplementationCeaWriter( PrintStream out, CeaTask[] tasks,
                                     String cmdline ) {
         super( out, createImplementationConfig(), tasks, cmdline );
-        tasks_ = tasks;
     }
 
     public String getSchemaLocation() {
@@ -85,9 +83,7 @@ public class ImplementationCeaWriter extends CeaWriter {
             + formatAttribute( "xmlns:xsi",
                                "http://www.w3.org/2001/XMLSchema-instance" )
             + formatAttribute( "xsi:schemaLocation",
-                               CEAI_NS +
-                               " ./src/workflow-objects/schema/" +
-                               "CEAImplementation.xsd" ) );
+                               CEAI_NS + " " + SCHEMA_LOCATION ) );
         println( getIndent( getLevel() )
                + "<!-- Application name set from " + getClass().getName()
                + " command-line flag. -->" );
@@ -105,21 +101,13 @@ public class ImplementationCeaWriter extends CeaWriter {
                + " command-line flag. -->" );
         addElement( "ExecutionPath", "", appPath_.toString() );
 
-        /* Write description matter.  This includes short text and a link
-         * for each of the separate tasks (CEA interfaces). */
+        /* Write description matter. */
         addElement( "LongName", "",
                     "STILTS - "
                   + "Starlink Tables Infrastructure Library Tool Set" );
         addElement( "Version", "", Stilts.getVersion() );
         startElement( "Description" );
-        println( "STILTS is a package which provides a number of table " +
-                 "manipulation functions." );
-        println( "The following tasks (profiles) are provided: " );
-        for ( int i = 0; i < tasks_.length; i++ ) {
-            CeaTask task = tasks_[ i ];
-            println( "   " + task.getName() + ":" );
-            println( "      " + task.getPurpose() );
-        }
+        writeDescriptionContent();
         endElement( "Description" );
         addElement( "ReferenceURL", "", getManualURL() );
 
@@ -143,6 +131,9 @@ public class ImplementationCeaWriter extends CeaWriter {
         ElementDeclaration paramDecl =
             ElementDeclaration
            .createNamespaceElement( "ceai:CmdLineParameterDefn", AGPD_NS );
+        paramDecl.setAttributeNames( new String[] {
+            "fileRef", "switchType", "commandSwitch", "commandPosition",
+        } );
         return new CeaConfig( ifsDecl, paramsDecl, paramDecl );
     }
 }
