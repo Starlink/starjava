@@ -87,6 +87,7 @@ public class Stilts {
         taskFactory_.register( "tjoin", taskPkg + "TableJoinN" );
         taskFactory_.register( "tmatch2", taskPkg + "TableMatch2" );
         taskFactory_.register( "tpipe", taskPkg + "TablePipe" );
+        taskFactory_.register( "tskymatch2", taskPkg + "SkyMatch2" );
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
         taskFactory_.register( "votlint", taskPkg + "VotLint" );
 
