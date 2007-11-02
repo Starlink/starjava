@@ -64,6 +64,11 @@ public class SkyMatch2Mapper implements TableMapper {
         errorParam_ = new DoubleParameter( "error" );
         errorParam_.setUsage( "<arcsec>" );
         errorParam_.setPrompt( "Maximum separation in arcsec" );
+        errorParam_.setDescription( new String[] {
+            "<p>The maximum separation permitted between two objects",
+            "for them to count as a match.  Units are arc seconds.",
+            "</p>",
+        } );
 
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
