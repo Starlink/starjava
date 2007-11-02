@@ -42,6 +42,7 @@
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
+  <!ENTITY tskymatch2-summary SYSTEM 'tskymatch2-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
   <!ENTITY votlint-summary SYSTEM 'votlint-summary.xml'>
   
@@ -156,6 +157,9 @@ table manipulation:
     </li>
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
+    </li>
+<li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
+    &tskymatch2-purpose;
     </li>
 <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
     &tcat-purpose;
@@ -395,6 +399,7 @@ the available tasks are:
 <li><code>tjoin</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tpipe</code></li>
+<li><code>tskymatch2</code></li>
 <li><code>votcopy</code></li>
 <li><code>votlint</code></li>
 </ul>
@@ -1021,6 +1026,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
+           <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="multicone"><code>multicone</code></ref>,
            <ref id="sqlcone"><code>sqlcone</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
@@ -1286,6 +1292,7 @@ have parameters with names like "<code>cmd</code>" which you
 use to specify processing steps.
 Tasks with multiple input tables
 (<ref id="tmatch2"><code>tmatch2</code></ref>,
+ <ref id="tskymatch2"><code>tskymatch2</code></ref>,
  <ref id="tcatn"><code>tcatn</code></ref>,
  <ref id="tjoin"><code>tjoin</code></ref>)
 may have parameters named <code>icmd1</code>, <code>icmd2</code>, ...
@@ -1548,9 +1555,13 @@ java heap size of around 200Mb (<code>-Xmx200M</code>).
  -->
 </p>
 
-<p>In the current release of STILTS the only crossmatching task is 
-<ref id="tmatch2"><code>tmatch2</code></ref> which finds matches
-between pairs of tables.  In future versions however facilities for 
+<p>In the current release of STILTS the main crossmatching task is 
+<ref id="tmatch2"><code>tmatch2</code></ref>,
+which finds matches between a pair of tables.
+For convenience a simplified task named
+<ref id="tskymatch2"><code>tskymatch2</code></ref>
+is also provided when matching is between sky coordinates with fixed errors.
+In future versions however facilities for 
 finding matches within the same table, and in more than two tables,
 will be introduced.
 </p>
@@ -1569,8 +1580,12 @@ may be in a Cartesian space, or have a higher (or lower) dimensionality
 than two, or the match may be exact rather than within an error radius....
 </p>
 
-<p>To determine the matching criteria, you set the values of the 
-following parameters of <code>tmatch2</code>:
+<p>If you just need to match two tables according to sky position
+with fixed errors you are recommended to use the simplified
+<ref id="tskymatch2"><code>tskymatch2</code></ref> task.
+For other cases, this section describes how to specify much more
+flexible match criteria for use with <code>tmatch2</code>
+by setting the following parameters:
 <dl>
 <dt><code>matcher</code></dt>
 <dd><p>Name of the match criteria type.
@@ -1757,7 +1772,7 @@ constraints.
 <p>The <code>tpipe</code> command allows you to use algebraic
 expressions when making row selections and defining new synthetic 
 columns.  They can also be used in defining the quantities to 
-match against in <code>tmatch2</code>.
+match against in matching commands such as <code>tmatch2</code>.
 In both cases you are defining an expression which
 has a value in each row as a function of the values in the existing
 columns in that row.
@@ -3053,8 +3068,8 @@ tables whose row orderings correspond exactly to each other.
 </p>
 
 <p>For the (more usual) case in which the rows of the tables to be 
-joined are not already in the right order, use the
-<ref id="tmatch2"><code>tmatch</code></ref> command.
+joined are not already in the right order, use one of the
+<ref id="match" plaintextref="yes">crossmatching commands</ref>.
 </p>
 
 &tjoin-summary;
@@ -3112,6 +3127,11 @@ You can choose whether you want to identify all the matches or
 only the closest,
 and what form the output table takes, for instance matched rows only,
 or all rows from one or both tables, or only the unmatched rows.
+</p>
+
+<p>If you simply want to match two tables based on sky position with
+a fixed maximum separation, you may find the
+<ref id="tskymatch2"><code>tskymatch2</code></ref> command easier to use.
 </p>
 
 &tmatch2-summary;
@@ -3500,6 +3520,20 @@ stilts tpipe USNOB.FITS cmd='every 1000000' omode=stats
 
 </subsect>
 
+
+<subsect id="tskymatch2" tocleaf="yes">
+<subhead><title><code>tskymatch2</code>: &tskymatch2-purpose;</title></subhead>
+
+&tskymatch2-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+</subsubsect>
+
+<p>Here are some examples of using <code>tmatch2</code>
+</p>
+
+</subsect>
 
 <subsect id="votcopy" tocleaf="yes">
 <subhead><title><code>votcopy</code>: &votcopy-purpose;</title></subhead>
@@ -4423,6 +4457,7 @@ but my thanks are especially due to the following:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
     <li>Embedded spaces in output ASCII format table column names
         are now substituted with underscores.</li>
     </ul>
