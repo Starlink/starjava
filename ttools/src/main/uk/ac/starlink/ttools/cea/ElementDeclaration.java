@@ -1,5 +1,9 @@
 package uk.ac.starlink.ttools.cea;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import uk.ac.starlink.util.XmlWriter;
 
 /**
@@ -12,6 +16,7 @@ public class ElementDeclaration {
 
     private final String elName_;
     private final String attList_;
+    private Collection attNames_;
 
     /**
      * Constructs a declaration with a name but no attributes.
@@ -34,6 +39,32 @@ public class ElementDeclaration {
     public ElementDeclaration( String elName, String attList ) {
         elName_ = elName;
         attList_ = attList;
+    }
+
+    /**
+     * Sets a list of permitted attribute names associated with this 
+     * declaration.  This does not necessarily give all the permitted 
+     * attributes, but it can be used to designate a list of attributes
+     * which may be in doubt.
+     *
+     * @param   attNames  list of attribute names which are permitted 
+     *          on this element
+     */
+    public void setAttributeNames( String[] attNames ) {
+        attNames_ =
+             Collections
+            .unmodifiableCollection( new HashSet( Arrays.asList( attNames ) ) );
+    }
+
+    /**
+     * Queries whether a given attribute is known to be permitted on
+     * this element. 
+     *
+     * @param  attName  attribute name
+     * @return  true iff attName is permitted
+     */
+    public boolean hasAttribute( String attName ) {
+        return attNames_.contains( attName );
     }
 
     /**
