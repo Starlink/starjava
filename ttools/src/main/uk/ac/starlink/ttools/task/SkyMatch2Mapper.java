@@ -56,6 +56,7 @@ public class SkyMatch2Mapper implements TableMapper {
                 "This may simply be a column name, or it may be an",
                 "algebraic expression calculated from columns as explained",
                 "in <ref id='jel'/>.", 
+                "</p>",
             } );
             raParams_[ i ] = raParam;
             decParams_[ i ] = decParam;
