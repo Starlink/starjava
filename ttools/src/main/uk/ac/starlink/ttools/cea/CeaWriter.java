@@ -115,6 +115,21 @@ public abstract class CeaWriter extends XmlWriter {
     public abstract String getSchemaLocation();
 
     /**
+     * Outputs the content of a Description-type element.  The element tags
+     * are not written.
+     */
+    protected void writeDescriptionContent() {
+        println( "STILTS is a package which provides a number of table " +
+                 "manipulation functions." );
+        println( "The following tasks (profiles) are provided: " );
+        for ( int i = 0; i < tasks_.length; i++ ) {
+            CeaTask task = tasks_[ i ];
+            println( "   " + task.getName() + ":" );
+            println( "      " + task.getPurpose() );
+        }
+    }
+
+    /**
      * Writes a Parameters element suitable for use with CEA.
      */
     protected void writeParameters() throws SAXException {
@@ -154,34 +169,57 @@ public abstract class CeaWriter extends XmlWriter {
     private void writeParameters( CeaTask task ) throws SAXException {
         CeaParameter[] params = task.getParameters();
 
+        /* Work out specifics of attributes permitted on the parameter 
+         * element. */
+        ElementDeclaration paramDecl = config_.getParameterElement();
+        boolean hasFileRef = paramDecl.hasAttribute( "fileRef" );
+        boolean hasSwitchType = paramDecl.hasAttribute( "switchType" );
+        boolean hasCommandSwitch = paramDecl.hasAttribute( "commandSwitch" );
+        boolean hasCommandPosition =
+            paramDecl.hasAttribute( "commandPosition" );
+
         /* Write a CEA parameter definition representing the task itself.
          * This is identified only by its position on the command line,
          * and is only allowed to assume a single, fixed value. */
-        startElement( config_.getParameterElement(),
-                      formatAttribute( "name", getParamRef( task, null ) )
-                    + formatAttribute( "commandPosition",
-                                       Integer
-                                      .toString( flagDefs_.length + 1 ) )
-                    + formatAttribute( "fileRef", "false" )
-                    + formatAttribute( "type", "text" ) );
+        StringBuffer aBuf = new StringBuffer()
+            .append( formatAttribute( "name", getParamRef( task, null ) ) )
+            .append( formatAttribute( "type", "text" ) );
+        if ( hasFileRef ) {
+            aBuf.append( formatAttribute( "fileRef", "false" ) );
+        }
+        if ( hasCommandPosition ) {
+            aBuf.append( formatAttribute( "commandPosition",
+                                          Integer
+                                         .toString( flagDefs_.length + 1 ) ) );
+        }
+        startElement( paramDecl, aBuf.toString() );
         addElement( "UI_Name", "", "task" );
         addElement( "UI_Description", "", "Task name - fixed" );
         addElement( "DefaultValue", "", task.getName() );
         startElement( "OptionList" );
         addElement( "OptionVal", "", task.getName() );
         endElement( "OptionList" );
-        endElement( config_.getParameterElement() );
+        endElement( paramDecl );
 
-       /* Write CEA parameter definitions for each of the task's parameters. */
+        /* Write CEA parameter definitions for each of the task's parameters. */
         for ( int iParam = 0; iParam < params.length; iParam++ ) {
             CeaParameter param = params[ iParam ];
-            startElement( config_.getParameterElement(),
-                          formatAttribute( "name", getParamRef( task, param ) )
-                        + formatAttribute( "commandSwitch", param.getName() )
-                        + formatAttribute( "type", param.getType() )
-                        + formatAttribute( "fileRef", param.isRef() ? "true"
-                                                                    : "false" )
-                        + formatAttribute( "switchType", "keyword" ) );
+            StringBuffer attBuf = new StringBuffer()
+                .append( formatAttribute( "name", getParamRef( task, param ) ) )
+                .append( formatAttribute( "type", param.getType() ) );
+            if ( hasFileRef ) {
+                attBuf.append( formatAttribute( "fileRef",
+                                                param.isRef() ? "true"
+                                                              : "false" ) );
+            }
+            if ( hasSwitchType ) {
+                attBuf.append( formatAttribute( "switchType", "keyword" ) );
+            }
+            if ( hasCommandSwitch ) {
+                attBuf.append( formatAttribute( "commandSwitch",
+                                                param.getName() ) );
+            }
+            startElement( paramDecl, attBuf.toString() );
             addElement( "UI_Name", "", param.getName() );
 
             /* Note that although the CEA v1 schema documentation gives
@@ -203,7 +241,7 @@ public abstract class CeaWriter extends XmlWriter {
                 }
                 endElement( "OptionList" );
             }
-            endElement( config_.getParameterElement() );
+            endElement( paramDecl );
         }
     }
 
@@ -444,17 +482,23 @@ public abstract class CeaWriter extends XmlWriter {
         }
 
         public void writeParameter() {
-            startElement( config_.getParameterElement(),
-                          formatAttribute( "name", name_ )
-                        + formatAttribute( "fileRef", "true" )
-                        + formatAttribute( "type", "text" )
-                        + formatAttribute( "switchType", "normal" ) );
+            ElementDeclaration paramDecl = config_.getParameterElement();
+            StringBuffer attBuf = new StringBuffer()
+                .append( formatAttribute( "name", name_ ) )
+                .append( formatAttribute( "type", "text" ) );
+            if ( paramDecl.hasAttribute( "fileRef" ) ) {
+                attBuf.append( formatAttribute( "fileRef", "true" ) );
+            }
+            if ( paramDecl.hasAttribute( "switchType" ) ) {
+                attBuf.append( formatAttribute( "switchType", "normal" ) );
+            }
+            startElement( paramDecl, attBuf.toString() );
             addElement( "UI_Name", "", name_ );
             addElement( "UI_Description", "", description_ );
             if ( defaultValue_ != null ) {
                 addElement( "DefaultValue", "", defaultValue_ );
             }
-            endElement( config_.getParameterElement() );
+            endElement( paramDecl );
         }
     }
 
@@ -501,15 +545,15 @@ public abstract class CeaWriter extends XmlWriter {
                 usageBase += " " + arg;
                 writer = new ImplementationCeaWriter( out, tasks, cmdline );
             }
-//          else if ( arg.startsWith( "-serv" ) ) {
-//              it.remove();
-//              if ( writer != null ) {
-//                  System.err.println( usage );
-//                  return 1;
-//              }
-//              usageBase += " " + arg;
-//              writer = new ServiceCeaWriter( out, tasks, cmdline );
-//          }
+            else if ( arg.startsWith( "-serv" ) ) {
+                it.remove();
+                if ( writer != null ) {
+                    System.err.println( usage );
+                    return 1;
+                }
+                usageBase += " " + arg;
+                writer = new ServiceCeaWriter( out, tasks, cmdline );
+            }
         }
         if ( writer == null ) {
             System.err.println( usage );
