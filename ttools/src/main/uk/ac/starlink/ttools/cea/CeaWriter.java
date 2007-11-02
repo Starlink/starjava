@@ -42,7 +42,7 @@ public abstract class CeaWriter extends XmlWriter {
 
     /** Default location of the STILTS manual. */
     public static final String DOC_URL =
-        "http://www.starlink.ac.uk/stilts/sun256";
+        "http://www.starlink.ac.uk/stilts/sun256/";
 
     /**
      * Constructor.
