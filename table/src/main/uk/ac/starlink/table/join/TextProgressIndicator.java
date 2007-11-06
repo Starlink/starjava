@@ -30,6 +30,8 @@ public class TextProgressIndicator implements ProgressIndicator {
     }
 
     public void setLevel( double level ) {
+        assert level >= 0 && level <= 1;
+        level = Math.max( Math.min( level, 1.0 ), 0.0 );
         int moreDots = (int) ( level * blankWidth ) - dotCount;
         for ( int i = 0; i < moreDots; i++ ) {
             out.print( "." );
