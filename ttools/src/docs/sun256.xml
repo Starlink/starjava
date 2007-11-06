@@ -4460,6 +4460,8 @@ but my thanks are especially due to the following:
     <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
     <li>Embedded spaces in output ASCII format table column names
         are now substituted with underscores.</li>
+    <li>Fix a bug which caused an infinite number of dots to be printed
+        when attempting a crossmatch with an empty input table.</li>
     </ul>
     </p></dd>
 
