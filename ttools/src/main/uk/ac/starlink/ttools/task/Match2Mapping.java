@@ -27,7 +27,8 @@ import uk.ac.starlink.ttools.JELTable;
  */
 public class Match2Mapping implements TableMapping {
 
-    final String[][] exprTuples_;
+    final String[] exprTuple1_;
+    final String[] exprTuple2_;
     final JoinFixAction[] fixacts_;
     final MatchEngine matchEngine_;
     final boolean bestOnly_;
@@ -60,7 +61,8 @@ public class Match2Mapping implements TableMapping {
                    boolean bestOnly, JoinFixAction fixact1, 
                    JoinFixAction fixact2, PrintStream logStrm ) {
         matchEngine_ = matchEngine;
-        exprTuples_ = new String[][] { exprTuple1, exprTuple2 };
+        exprTuple1_ = exprTuple1;
+        exprTuple2_ = exprTuple2;
         join_ = join;
         bestOnly_ = bestOnly;
         fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
@@ -69,24 +71,27 @@ public class Match2Mapping implements TableMapping {
 
     public StarTable mapTables( InputTableSpec[] inSpecs )
             throws IOException, TaskException {
-        StarTable[] inTables = { inSpecs[ 0 ].getWrappedTable(), 
-                                 inSpecs[ 1 ].getWrappedTable(), };
+        StarTable inTable1 = inSpecs[ 0 ].getWrappedTable();
+        StarTable inTable2 = inSpecs[ 1 ].getWrappedTable();
 
         /* Attempt to create the tables containing the tuples with which
          * the match will be done.  This is a dry run, intended to
          * catch any exceptions before the possibly expensive work
          * of randomising the input tables is performed. */
-        makeSubTables( inTables );
+        makeSubTable( inTable1, exprTuple1_ );
+        makeSubTable( inTable2, exprTuple2_ );
 
         /* Now randomise the tables (currently required for the rest
          * of the matching) and create the subtables for real. */
-        for ( int i = 0; i < 2; i++ ) {
-            inTables[ i ] = Tables.randomTable( inTables[ i ] );
-        }
-        StarTable[] subTables = makeSubTables( inTables );
+        inTable1 = Tables.randomTable( inTable1 );
+        inTable2 = Tables.randomTable( inTable2 );
+        StarTable subTable1 = makeSubTable( inTable1, exprTuple1_ );
+        StarTable subTable2 = makeSubTable( inTable2, exprTuple2_ );
 
         /* Do the match. */
-        RowMatcher matcher = new RowMatcher( matchEngine_, subTables );
+        RowMatcher matcher =
+            new RowMatcher( matchEngine_,
+                            new StarTable[] { subTable1, subTable2 } );
         matcher.setIndicator( new TextProgressIndicator( logStrm_ ) );
         LinkSet matches;
         try {
@@ -102,46 +107,43 @@ public class Match2Mapping implements TableMapping {
 
          /* Create a new table from the result and return. */
         ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
-        return MatchStarTables.makeJoinTable( inTables[ 0 ], inTables[ 1 ],
-                                              matches, join_, ! bestOnly_,
-                                              fixacts_, scoreInfo );
+        return MatchStarTables.makeJoinTable( inTable1, inTable2, matches,
+                                              join_, ! bestOnly_, fixacts_,
+                                              scoreInfo );
     }
 
     /**
-     * Creates the tables containing the values which are required by the
-     * matcher.  These typically consist of a few of the columns from
-     * the input tables, but in general may come from any JEL expression
-     * based on them.  Because JEL compilation is performed here, an
-     * exception (rethrown as an ExecutionException) may occur.
+     * Creates a table containing the values which are required by the
+     * matcher.  This typically consists of a few of the columns from
+     * the input table, but in general may come from any JEL 
+     * expression based on them.  Because JEL compilation is performed here,
+     * an exception (rethrown as an ExecutionException) may occur.
      *
-     * @param  inTables  input tables
-     * @return   match value tables based on <code>inTables</code>
-     *           using this mapping's known algebraic expressions
+     * @param  inTable  input table
+     * @param  exprTuple  array of JEL expressions giving the values of 
+     *           the tuple elements required for the matcher
+     * @return  table containing only a column for each tuple element 
+     *          required for the matcher
      * @throws  ExecutionException  if a compilation error occurs
      */
-    private StarTable[] makeSubTables( StarTable[] inTables )
+    protected StarTable makeSubTable( StarTable inTable, String[] exprTuple )
             throws ExecutionException {
 
         /* Work out the type of columns we will require from each table. */
         ValueInfo[] tupleInfos = matchEngine_.getTupleInfos();
         int nCoord = tupleInfos.length;
-
-        /* For each table, create a new table containing only columns
-         * defined by the supplied expressions. */
-        StarTable[] subTables = new StarTable[ inTables.length ];
-        for ( int i = 0; i < subTables.length; i++ ) {
-            ColumnInfo[] colInfos = new ColumnInfo[ nCoord ];
-            for ( int j = 0; j < nCoord; j++ ) {
-                colInfos[ j ] = new ColumnInfo( tupleInfos[ j ] );
-            }
-            try {
-                subTables[ i ] = new JELTable( inTables[ i ], colInfos,
-                                               exprTuples_[ i ] );
-            }
-            catch ( CompilationException e ) {
-                throw new ExecutionException( e.getMessage(), e );
-            }
+        ColumnInfo[] colInfos = new ColumnInfo[ nCoord ];
+        for ( int i = 0; i < nCoord; i++ ) {
+            colInfos[ i ] = new ColumnInfo( tupleInfos[ i ] );
         }
-        return subTables;
+
+        /* Create and return a new table containing only columns defined
+         * by the supplied expressions. */
+        try {
+            return new JELTable( inTable, colInfos, exprTuple );
+        }
+        catch ( CompilationException e ) {
+            throw new ExecutionException( e.getMessage(), e );
+        }
     }
 }
