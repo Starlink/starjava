@@ -39,9 +39,10 @@ public class ProgressRowSequence extends WrapperRowSequence {
      * Invokes {@link #next} and also updates the progress indicator.
      */
     public boolean nextProgress() throws IOException, InterruptedException {
+        double level = nrow_ > 0 ? lrow_ / nrow_
+                                 : 0.0;
         boolean result = next();
-        indicator_.setLevel( nrow_ > 0 ? lrow_ / nrow_
-                                       : 0 );
+        indicator_.setLevel( level );
         return result;
     }
 
