@@ -36,8 +36,8 @@ public class SkyMatch2Mapper implements TableMapper {
             int i1 = i + 1;
             Parameter raParam = new Parameter( "ra" + i1 );
             Parameter decParam = new Parameter( "dec" + i1 );
-            raParam.setPrompt( "<expr/degs>" );
-            decParam.setPrompt( "<expr/degs>" );
+            raParam.setUsage( "<expr/degs>" );
+            decParam.setUsage( "<expr/degs>" );
             raParam.setPrompt( "Expression for table " + i1
                              + " right ascension in degrees" );
             decParam.setPrompt( "Expression for table " + i1
@@ -63,7 +63,7 @@ public class SkyMatch2Mapper implements TableMapper {
         }
 
         errorParam_ = new DoubleParameter( "error" );
-        errorParam_.setUsage( "<arcsec>" );
+        errorParam_.setUsage( "<value/arcsec>" );
         errorParam_.setPrompt( "Maximum separation in arcsec" );
         errorParam_.setDescription( new String[] {
             "<p>The maximum separation permitted between two objects",
