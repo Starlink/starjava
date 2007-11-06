@@ -42,12 +42,16 @@ public class SkyMatch2Mapper implements TableMapper {
                              + " right ascension in degrees" );
             decParam.setPrompt( "Expression for table " + i1
                               + " declination in degrees" );
+            raParam.setNullPermitted( true );
+            decParam.setNullPermitted( true );
             raParam.setDescription( new String[] {
                 "<p>Value in degrees for the right ascension of positions in",
                 "table " + i1 + " to be matched.",
                 "This may simply be a column name, or it may be an",
                 "algebraic expression calculated from columns as explained",
                 "in <ref id='jel'/>.", 
+                "If left blank, an attempt is made to guess from UCDs,",
+                "column names and unit annotations what expression to use.",
                 "</p>",
             } );
             decParam.setDescription( new String[] {
@@ -56,6 +60,8 @@ public class SkyMatch2Mapper implements TableMapper {
                 "This may simply be a column name, or it may be an",
                 "algebraic expression calculated from columns as explained",
                 "in <ref id='jel'/>.", 
+                "If left blank, an attempt is made to guess from UCDs,",
+                "column names and unit annotations what expression to use.",
                 "</p>",
             } );
             raParams_[ i ] = raParam;
@@ -107,10 +113,8 @@ public class SkyMatch2Mapper implements TableMapper {
             JoinFixAction.makeRenameDuplicatesAction( "_1", false, true );
         JoinFixAction fixact2 =
             JoinFixAction.makeRenameDuplicatesAction( "_2", false, true );
-        return new Match2Mapping( engine,
-                                  new String[] { ra1, dec1, },
-                                  new String[] { ra2, dec2, },
-                                  join, bestOnly, fixact1, fixact2,
-                                  env.getErrorStream() );
+        return new SkyMatch2Mapping( new HEALPixMatchEngine( error, false ),
+                                     ra1, dec1, ra2, dec2, join, bestOnly,
+                                     fixact1, fixact2, env.getErrorStream() );
     }
 }
