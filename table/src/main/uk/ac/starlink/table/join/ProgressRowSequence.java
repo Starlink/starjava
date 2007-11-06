@@ -40,7 +40,8 @@ public class ProgressRowSequence extends WrapperRowSequence {
      */
     public boolean nextProgress() throws IOException, InterruptedException {
         boolean result = next();
-        indicator_.setLevel( lrow_ / nrow_ );
+        indicator_.setLevel( nrow_ > 0 ? lrow_ / nrow_
+                                       : 0 );
         return result;
     }
 
