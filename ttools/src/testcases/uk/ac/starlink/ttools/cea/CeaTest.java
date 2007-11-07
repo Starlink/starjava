@@ -44,7 +44,7 @@ public class CeaTest extends TestCase {
             PrintStream out =
                 new PrintStream( new FileOutputStream( tmpFile ) );
             writer.setOut( out );
-            writer.configure( DUMMY_CMD, extraArgs );
+            writer.configure( extraArgs );
             writer.writeDocument();
             out.close();
 
