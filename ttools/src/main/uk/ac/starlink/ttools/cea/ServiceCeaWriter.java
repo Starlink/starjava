@@ -55,12 +55,13 @@ public class ServiceCeaWriter extends CeaWriter {
         super( out, createServiceConfig(), tasks, cmdline );
     }
 
-    public int configure( String usageBase, String[] args ) {
-        String usage = usageBase
-                     + "\n";
+    public static String getUsage() {
+        return "";
+    }
+
+    public int configure( String[] args ) {
         List argList = new ArrayList( Arrays.asList( args ) );
         if ( ! argList.isEmpty() ) {
-            System.err.println( usage );
             return 1;
         }
         return 0;

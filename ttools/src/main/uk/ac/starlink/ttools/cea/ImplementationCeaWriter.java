@@ -52,10 +52,11 @@ public class ImplementationCeaWriter extends CeaWriter {
         return SCHEMA_LOCATION;
     }
 
-    public int configure( String usageBase, String[] args ) {
-        String usage = usageBase
-                     + " -path <stilts-path>"
-                     + "\n";
+    public static String getUsage() {
+        return " -path <app-path>";
+    }
+
+    public int configure( String[] args ) {
         List argList = new ArrayList( Arrays.asList( args ) );
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -66,7 +67,6 @@ public class ImplementationCeaWriter extends CeaWriter {
             }
         }
         if ( ! argList.isEmpty() || appPath_ == null ) {
-            System.err.println( usage );
             return 1;
         }
         return 0;

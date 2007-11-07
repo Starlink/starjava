@@ -71,18 +71,14 @@ public abstract class CeaWriter extends XmlWriter {
 
     /**
      * Hook for additional configuration of concrete subclasses using 
-     * command-line flags.  Usage errors should be greeted with an
-     * informative usage message (incorporating <code>usageBase</code>
-     * and a non-zero return.
+     * command-line flags.
      *
-     * @param  usageBase  basic (common to all subclasses) usage string
-     *                    for presentation to the user
      * @param  args     array of command-line arguments all of which are
      *                  directed at this object (any generic ones will have
      *                  been removed)
      * @return   0 for success, otherwise an error status
      */
-    public abstract int configure( String usageBase, String[] args );
+    public abstract int configure( String[] args );
 
     /**
      * Writes the configuration XML document.
@@ -512,11 +508,22 @@ public abstract class CeaWriter extends XmlWriter {
              throws LoadException, SAXException {
 
         /* Prepare usage message. */
-        String usageBase = "\n   Usage: " + CeaWriter.class.getName();
-        String usage = usageBase
-            + " -service <service-args> |"
-            + " -impl <impl-args>"
-            + "\n";
+        String cmdname = CeaWriter.class.getName();
+        String usage = new StringBuffer()
+            .append( "\n   Usage:" )
+            .append( "\n      " )
+            .append( cmdname )
+            .append( " -help" )
+            .append( "\n      " )
+            .append( cmdname )
+            .append( " -impl" )
+            .append( ImplementationCeaWriter.getUsage() )
+            .append( "\n      " )
+            .append( cmdname )
+            .append( " -service" )
+            .append( ServiceCeaWriter.getUsage() )
+            .append( "\n" )
+            .toString();
 
         /* Prepare command line string for logging etc. */
         StringBuffer cmdBuf = new StringBuffer( CeaWriter.class.getName() );
@@ -542,7 +549,6 @@ public abstract class CeaWriter extends XmlWriter {
                     System.err.println( usage );
                     return 1;
                 }
-                usageBase += " " + arg;
                 writer = new ImplementationCeaWriter( out, tasks, cmdline );
             }
             else if ( arg.startsWith( "-serv" ) ) {
@@ -551,7 +557,6 @@ public abstract class CeaWriter extends XmlWriter {
                     System.err.println( usage );
                     return 1;
                 }
-                usageBase += " " + arg;
                 writer = new ServiceCeaWriter( out, tasks, cmdline );
             }
         }
@@ -562,9 +567,9 @@ public abstract class CeaWriter extends XmlWriter {
 
         /* Perform implementation-specific command-line arg configuration. */
         int configStat =
-            writer.configure( usageBase,
-                              (String[]) argList.toArray( new String[ 0 ] ) );
+            writer.configure( (String[]) argList.toArray( new String[ 0 ] ) );
         if ( configStat != 0 ) {
+            System.err.println( usage );
             return configStat;
         }
 
