@@ -36,25 +36,29 @@ app-description file.  It is attempted to keep these to a minimum -
 please inform the STILTS maintainer if you spot some.
 
 
-Generating app-description.xml
-------------------------------
+Generating the XML configuration files
+--------------------------------------
 
-To generate the app-description.xml file, use the following command:
+To generate the XML configuration file(s), use the following command:
 
    java -classpath stilts.jar uk.ac.starlink.ttools.cea.CeaWriter
 
 If executed with the "-help" flag, this will output a usage message,
 something like:
 
-   Usage: uk.ac.starlink.ttools.cea.CeaWriter
-      [-help]            displays this message
-      -path stilts-path  path to stilts script
-      [-cea-id id]       app ID [ivo://uk.ac.starlink/stilts]
-      [-docurl docurl]   documentation URL [http://www.starlink.ac.uk/stilts/]
+   Usage:
+      uk.ac.starlink.ttools.cea.CeaWriter -help
+      uk.ac.starlink.ttools.cea.CeaWriter -impl -path <app-path>
+      uk.ac.starlink.ttools.cea.CeaWriter -service
 
-Some of these flags are optional with defaulted values as shown,
-but the -path flag must be specified to give the location
-of the command to run.
+As this indicates, it can run in two modes: with the -impl flag it 
+generates the app-description file used where the service is deployed,
+and with the -service flag it generates the service registration 
+document which describes the registry entry.  The generated XML is 
+written to standard output and can be redirected in the usual way.
+
+In -impl mode it is necessary to give the path of the executable which
+will run the STILTS application.
 
 
 Preparing the execution script
