@@ -78,7 +78,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>30 October 2007</docdate>
+<docdate>7 November 2007</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -3150,7 +3150,7 @@ stilts tmatch2 in1=obs_v.xml in2=obs_i.xml out=obs_iv.xml \
     the V band and the other in the I band, and performs a match
     to find objects within 2 arcseconds of each other.
     The result is a new table containing only rows where a match was found.
-</p></dd>
+    </p></dd>
 
 <dt><verbatim>
 stilts tmatch2 survey.fits ifmt2=csv mycat.csv \
@@ -3190,26 +3190,27 @@ stilts tmatch2 ifmt1=ascii ifmt2=ascii int1=cat-a.txt in2=cat-b.txt \
                ocmd'keepcols "XDIFF YDIFF"' omode=stats
 </verbatim></dt>
 <dd><p>Two ASCII-format catalogues are matched, where rows are
-considered to match if their X,Y positions are within 5 units of
-each other in some Cartesian space.
-The result of the matching operation is a table of all the matched rows,
-containing columns named X_a, Y_a, X_b and Y_b (along with any others
-in the input tables) - the <code>duptag*</code> parameters describe 
-how the input X and Y columns are to be renamed to avoid duplicate
-column names in the output table.
-To this result are added two new columns, representing the X and Y positional
-difference between the rows from one input table and those from the other.
-The <code>keepcols</code> filter then throws all the other columns away,
-retaining only these difference columns.
-The final two-column table is not stored anywhere, 
-but (<code>omode=stats</code>) 
-statistics including mean and standard deviation 
-are calculated on its columns and displayed to the screen.
-Having done all this, you can examine the average X and Y differences
-between the two input tables for matched rows, and if they differ
-significantly from zero, you can conclude that there is a systematic
-error between the positions in the two input files.
-</p></dd>
+    considered to match if their X,Y positions are within 5 units of
+    each other in some Cartesian space.
+    The result of the matching operation is a table of all the matched rows,
+    containing columns named X_a, Y_a, X_b and Y_b (along with any others
+    in the input tables) - the <code>duptag*</code> parameters describe 
+    how the input X and Y columns are to be renamed to avoid duplicate
+    column names in the output table.
+    To this result are added two new columns, 
+    representing the X and Y positional
+    difference between the rows from one input table and those from the other.
+    The <code>keepcols</code> filter then throws all the other columns away,
+    retaining only these difference columns.
+    The final two-column table is not stored anywhere, 
+    but (<code>omode=stats</code>) 
+    statistics including mean and standard deviation 
+    are calculated on its columns and displayed to the screen.
+    Having done all this, you can examine the average X and Y differences
+    between the two input tables for matched rows, and if they differ
+    significantly from zero, you can conclude that there is a systematic
+    error between the positions in the two input files.
+    </p></dd>
 
 <dt><verbatim>
 stilts tmatch2 in1=mgc.fits in2=6dfgs.xml join=1and2 find=all \
@@ -3524,14 +3525,89 @@ stilts tpipe USNOB.FITS cmd='every 1000000' omode=stats
 <subsect id="tskymatch2" tocleaf="yes">
 <subhead><title><code>tskymatch2</code>: &tskymatch2-purpose;</title></subhead>
 
+<p><code>tskymatch2</code> performs a crossmatch of two tables based
+on the proximity of sky positions.
+You specify the columns or expressions giving 
+right ascension and declination in degrees for each input table, 
+and a maximum permissible separation in arcseconds, and the resulting
+joined table is output.
+</p>
+
+<p>If you omit expressions for the RA and Dec, an attempt is made to
+identify the columns to use using column
+Unified Content Descriptors 
+(<webref url="http://www.ivoa.net/Documents/latest/UCD.html">UCD</webref>s)
+or names.  First columns bearing appropriate UCD1 or UCD1+ values
+(<code>POS_EQ_RA</code>, <code>POS_EQ_RA_MAIN</code>, 
+<code>pos.eq.ra</code> or <code>pos.eq.ra;meta.main</code> and
+their equivalents for declination) are sought.  If these cannot be found, 
+columns named something like "RA" or "RA2000" are sought.
+If either is found, the column units are consulted and radian-&gt;degree
+conversions are performed if necessary (degrees are assumed if no
+unit value is given).  If nothing likely can be found, then the 
+command will fail with an error message.
+This search logic is intended as a convenience only; it is somewhat
+ad hoc and subject to change.  To make sure that the correct
+angle values are being used, specify the <code>ra</code> and <code>dec</code>
+position parameters explicitly.
+</p>
+
+<p><code>tskymatch2</code> is simply a cut-down version, provided for
+convenience, of the more general matching task 
+<ref id="tmatch2"><code>tmatch2</code></ref>. 
+If you want more match options or otherwise more configurability,
+you can probably find it by using <code>tmatch2</code>.
+</p>
+
 &tskymatch2-summary;
 
 <subsubsect>
 <subhead><title>Examples</title></subhead>
-</subsubsect>
 
 <p>Here are some examples of using <code>tmatch2</code>
+
+<dl>
+
+<dt><verbatim>
+stilts tskymatch2 in1=obs_v.xml in2=obs_i.xml out=obs_iv.xml \
+                  ra1=OBS_RA dec1=OBS_DEC ra2=OBS_RA dec2=OBS_DEC error=2
+</verbatim></dt>
+<dd><p>Takes two input catalogues (VOTables), one with observations in
+    the V band and the other in the I band, and performs a match to find
+    objects within 2 arcseconds of each other.
+    The result is a new VOTable containing only rows where a match was found.
+    </p></dd>
+
+<dt><verbatim>
+stilts tskymatch2 in1=obs_v.xml in2=obs_i.xml out=obs_iv.xml \
+                  error=2
+</verbatim></dt>
+<dd><p>This is the same as the previous example but without explicit
+    specification of the sky position columns in either table.
+    It will work only if those columns are identified with appropriate
+    UCDs, for instance <code>pos.eq.ra;meta.main</code> and
+    <code>pos.eq.dec:meta.main</code>.
+    If no suitable UCDs are in place this invocation will fail with an error.
+    </p></dd>
+
+<dt><verbatim>
+stilts tskymatch2 in1=virgo1.txt ifmt1=ascii in2=mgc.fits \
+                  ra1='radiansToDegrees(raRad)' dec1='radiansToDegrees(deRad)' \
+                  ra2=MGC_ALPHA_J2000 dec2=MGC_DELTA_J2000 \
+                  error=10 join=2not1 omode=count
+</verbatim></dt>
+<dd><p>Object positions in the text file virgo1.txt are compared to those
+    in the FITS file mgc.fits.  The angles have been recorded in the text file
+    in radians, so they are converted to degrees here before use.
+    Use of the <code>join=2not1</code> parameter causes the command to
+    identify all the objects in the first list 
+    which do not have counterparts within 10 arcsec in the second list.
+    The number of such objects found is simply output to the terminal.
+    </p></dd>
+
+</dl>
 </p>
+</subsubsect>
 
 </subsect>
 
@@ -4454,7 +4530,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 1.3-6 (7 Nov 2007)</dt>
 <dd><p>
     <ul>
     <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
@@ -4462,6 +4538,8 @@ but my thanks are especially due to the following:
         are now substituted with underscores.</li>
     <li>Fix a bug which caused an infinite number of dots to be printed
         when attempting a crossmatch with an empty input table.</li>
+    <li>CeaWriter can now output CEA service definition XML config file as
+        well as app-description file.</li>
     </ul>
     </p></dd>
 
