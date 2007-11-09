@@ -31,6 +31,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
 
     public void setValueAt( Object value, int irow, int icol ) {
         getMeta( icol ).setValue( irow, value );
+        fireTableCellUpdated( irow, icol );
     }
 
     public Class getColumnClass( int icol ) {
