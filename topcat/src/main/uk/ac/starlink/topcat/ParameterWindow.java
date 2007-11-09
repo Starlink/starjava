@@ -16,6 +16,7 @@ import javax.swing.Action;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -51,6 +52,7 @@ public class ParameterWindow extends AuxWindow
     private final Action removeAct;
     private int ncolRowIndex;
     private int nrowRowIndex;
+    private final ParameterDetailPanel detailPanel;
 
     private static final ValueInfo NAME_INFO = 
         new DefaultValueInfo( "Name", String.class, "Table name" );
@@ -61,6 +63,16 @@ public class ParameterWindow extends AuxWindow
                               "Number of columns" );
     private static final ValueInfo NROW_INFO =
         new DefaultValueInfo( "Row Count", Long.class, "Number of rows" );
+
+    public static final String NAME_NAME = "Name";
+    public static final String VALUE_NAME = "Value";
+    public static final String CLASS_NAME = "Class";
+    public static final String SHAPE_NAME = "Shape";
+    public static final String ELSIZE_NAME = "Element Size";
+    public static final String UNITS_NAME = "Units";
+    public static final String DESC_NAME = "Description";
+    public static final String UCD_NAME = "UCD";
+    public static final String UCDDESC_NAME = "UCD Description";
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -143,14 +155,22 @@ public class ParameterWindow extends AuxWindow
         List metas = new ArrayList();
 
         /* Add name column. */
-        metas.add( new MetaColumn( "Name", String.class ) {
+        metas.add( new MetaColumn( NAME_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return getParamInfo( irow ).getName();
+            }
+            public boolean isEditable( int irow ) {
+                return isEditableParameter( irow ) 
+                    && getParam( irow ).getInfo() instanceof DefaultValueInfo;
+            }
+            public void setValue( int irow, Object value ) {
+                ((DefaultValueInfo) getParam( irow ).getInfo())
+                                   .setName( value.toString() );
             }
         } );
 
         /* Add value column. */
-        metas.add( new MetaColumn( "Value", Object.class ) {
+        metas.add( new MetaColumn( VALUE_NAME, Object.class ) {
             public Object getValue( int irow ) {
                 return getParam( irow ).getValueAsString( 64 );
             }
@@ -185,7 +205,7 @@ public class ParameterWindow extends AuxWindow
 
         /* Add class column. */
         int classPos = metas.size();
-        metas.add( new MetaColumn( "Class", String.class ) {
+        metas.add( new MetaColumn( CLASS_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return DefaultValueInfo
                       .formatClass( getParamInfo( irow ).getContentClass() );
@@ -193,7 +213,7 @@ public class ParameterWindow extends AuxWindow
         } );
 
         /* Add shape column. */
-        metas.add( new MetaColumn( "Shape", String.class ) {
+        metas.add( new MetaColumn( SHAPE_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return DefaultValueInfo
                       .formatShape( getParamInfo( irow ).getShape() );
@@ -202,7 +222,7 @@ public class ParameterWindow extends AuxWindow
 
         /* Add element size column. */
         int sizePos = metas.size();
-        metas.add( new MetaColumn( "Element Size", Integer.class ) {
+        metas.add( new MetaColumn( ELSIZE_NAME, Integer.class ) {
             public Object getValue( int irow ) {
                 int size = getParamInfo( irow ).getElementSize();
                 return size > 0 ? new Integer( size ) : null;
@@ -235,7 +255,7 @@ public class ParameterWindow extends AuxWindow
         } );
 
         /* Add units column. */
-        metas.add( new MetaColumn( "Units", String.class ) {
+        metas.add( new MetaColumn( UNITS_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return getParamInfo( irow ).getUnitString();
             }
@@ -250,7 +270,7 @@ public class ParameterWindow extends AuxWindow
         } );
 
         /* Add description column. */
-        metas.add( new MetaColumn( "Description", String.class ) {
+        metas.add( new MetaColumn( DESC_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return getParamInfo( irow ).getDescription();
             }
@@ -265,7 +285,7 @@ public class ParameterWindow extends AuxWindow
         } );
 
         /* Add UCD column. */
-        metas.add( new MetaColumn( "UCD", String.class ) {
+        metas.add( new MetaColumn( UCD_NAME, String.class ) {
             public Object getValue( int irow ) {
                 return getParamInfo( irow ).getUCD();
             }
@@ -280,7 +300,7 @@ public class ParameterWindow extends AuxWindow
         } );
 
         /* Add UCD description column. */
-        metas.add( new MetaColumn( "UCD description", String.class ) {
+        metas.add( new MetaColumn( UCDDESC_NAME, String.class ) {
             public Object getValue( int irow ) {
                 String ucdid = getParamInfo( irow ).getUCD();
                 if ( ucdid != null ) {
@@ -326,8 +346,17 @@ public class ParameterWindow extends AuxWindow
         configureColumnCount();
         configureRowCount();
 
+        /* Construct and place a split pane to hold list/detail panels. */
+        JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+        splitter.setOneTouchExpandable( true );
+        getMainArea().add( splitter );
+
         /* Place the JTable into a scrollpane in this frame. */
-        getMainArea().add( new SizingScrollPane( jtab ) );
+        splitter.setTopComponent( new SizingScrollPane( jtab ) );
+
+        /* Place a component to hold value detail display. */
+        detailPanel = new ParameterDetailPanel( metaTableModel );
+        splitter.setBottomComponent( detailPanel );
 
         /* Action for adding a parameter. */
         Action addAct = new BasicAction( "New Parameter", ResourceIcon.ADD,
@@ -429,6 +458,7 @@ public class ParameterWindow extends AuxWindow
                           && index == rowSelectionModel.getMaxSelectionIndex()
                           && ! params.isPseudoParam( index );
             removeAct.setEnabled( active );
+            detailPanel.setItem( index, (DescribedValue) params.get( index ) );
         }
     }
 
