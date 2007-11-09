@@ -10,7 +10,7 @@
 <RESOURCE>
 <TABLE name="Messier" nrows="110">
 <PARAM name="Originators" datatype="char" arraysize="20x5" 
-       value="Charles Messier     Guy McArthur        Hartmut Frommert    Chrisine Kronburg   Mark Taylor         ">
+       value="Charles Messier     Guy McArthur        Hartmut Frommert    Christine Kronburg  Mark Taylor         ">
 <DESCRIPTION>People responsible for this document instance</DESCRIPTION>
 </PARAM> 
 <PARAM arraysize="*" datatype="char" name="Origin" value="http://www.seds.org/messier/data1.html">
