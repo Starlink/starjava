@@ -194,13 +194,10 @@ public abstract class ValueParser {
             }
             else {
                 if ( nel < 0 ) {
-                    return new VariableStringArrayParser( ascii, stringLeng );
+                    return new VariableCharArrayParser( ascii );
                 }
                 else {
-                    int nString = nel / stringLeng;
-                    return new FixedArrayParser(
-                                     new FixedCharParser( ascii, stringLeng ),
-                                     String[].class, nString );
+                    return new FixedCharArrayParser( ascii, nel, stringLeng );
                 }
             }
         }
@@ -731,36 +728,57 @@ public abstract class ValueParser {
     }
 
     /**
-     * Parser for variable-length multidimensional character arrays.
+     * Parser for variable-length multi-dimensional character arrays.
      */
-    private static class VariableStringArrayParser extends AbstractParser {
+    private static class VariableCharArrayParser extends AbstractParser {
         final boolean ascii_;
-        final int stringLeng_;
-
+ 
         /**
-         * Constructor.
-         *
          * @param  ascii  true for 7-bit ASCII characters, false for 
          *                16-bit unicode
-         * @param  stringLeng  size of fastest-varying array index
          */
-        VariableStringArrayParser( boolean ascii, int stringLeng ) {
+        VariableCharArrayParser( boolean ascii ) {
             super( String[].class, -1 );
             ascii_ = ascii;
-            stringLeng_ = stringLeng;
         }
-        public void checkString( String text ) {
-            for ( StringTokenizer stok = new StringTokenizer( text );
-                  stok.hasMoreTokens(); ) {
-                String item = stok.nextToken();
-                if ( item.length() > stringLeng_ ) {
-                    warning( "String " + item + " longer than declared " +
-                             "maximum length" );
-                }
-            }
-        }
+
         public void checkStream( InputStream in ) throws IOException {
             slurpStream( in, readCount( in ) * ( ascii_ ? 1 : 2 ) );
+        }
+
+        public void checkString( String text ) {
+        }
+    }
+
+    /**
+     * Parser for fixed-length multi-dimensional character arrays.
+     */
+    private static class FixedCharArrayParser extends AbstractParser {
+        final boolean ascii_;
+        final int nchar_;
+
+        /**
+         * @param  ascii  true for 7-bit ASCII characters, false for 
+         *                16-bit unicode
+         * @param  nchar  number of characters
+         * @param  stringLeng  characters per string
+         */
+        FixedCharArrayParser( boolean ascii, int nchar, int stringLeng ) {
+            super( String[].class, nchar / stringLeng );
+            ascii_ = ascii;
+            nchar_ = nchar;
+        }
+
+        public void checkStream( InputStream in ) throws IOException {
+            slurpStream( in, nchar_ * ( ascii_ ? 1 : 2 ) );
+        }
+
+        public void checkString( String text ) {
+            int leng = text.length();
+            if ( text.length() != nchar_ ) {
+                warning( "Wrong number of characters in string (" +
+                         leng + " found, " + nchar_ + " expected)" );
+            }
         }
     }
 
@@ -773,7 +791,8 @@ public abstract class ValueParser {
     void slurpStream( InputStream in, int nbyte ) throws IOException {
         for ( int i = 0; i < nbyte; i++ ) {
             if ( in.read() < 0 ) {
-                error( "Stream ended during data read" );
+                error( "Stream ended during data read; done "
+                     + i + "/" + nbyte );
                 throw new EOFException();
             }
         }
