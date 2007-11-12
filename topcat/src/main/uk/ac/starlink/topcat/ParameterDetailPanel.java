@@ -2,19 +2,23 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.lang.reflect.Array;
+import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.TableModelEvent;
@@ -185,7 +189,9 @@ public class ParameterDetailPanel extends JPanel {
         ValueDisplay display;
         boolean editable = irow_ >= 0
                         && model_.isCellEditable( irow_, iValueCol_ );
-        if ( Number.class.isAssignableFrom( clazz ) ) {
+        if ( Number.class.isAssignableFrom( clazz ) ||
+             Boolean.class.isAssignableFrom( clazz ) ||
+             irow_ == 0 ) {
             display = getLineDisplay();
             display.setEditable( editable );
         }
@@ -235,6 +241,8 @@ public class ParameterDetailPanel extends JPanel {
     private ValueDisplay getTextDisplay() {
         if ( textDisplay_ == null ) {
             JEditorPane editor = new JEditorPane();
+            editor.setFont( new Font( "Monospaced", Font.PLAIN,
+                                      getFont().getSize() ) );
             textDisplay_ =
                 new TextValueDisplay( new JScrollPane( editor ), editor );
         }
@@ -458,6 +466,7 @@ public class ParameterDetailPanel extends JPanel {
             if ( ! changing_ ) {
                 changing_ = true;
                 tcomp_.setText( info_.formatValue( value, Integer.MAX_VALUE ) );
+                tcomp_.setCaretPosition( 0 );
                 changing_ = false;
             }
         }
