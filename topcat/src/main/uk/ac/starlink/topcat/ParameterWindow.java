@@ -160,7 +160,7 @@ public class ParameterWindow extends AuxWindow
                 return getParamInfo( irow ).getName();
             }
             public boolean isEditable( int irow ) {
-                return isEditableParameter( irow ) 
+                return ! isPseudoParameter( irow ) 
                     && getParam( irow ).getInfo() instanceof DefaultValueInfo;
             }
             public void setValue( int irow, Object value ) {
@@ -175,7 +175,27 @@ public class ParameterWindow extends AuxWindow
                 return getParam( irow ).getValueAsString( 64 );
             }
             public boolean isEditable( int irow ) {
-                return isEditableParameter( irow );
+                if ( isEditableParameter( irow ) ) {
+                    Class clazz = getParam( irow ).getInfo().getContentClass();
+
+                    /* Not all value types can be edited, since the 
+                     * ValueInfo.unformatString() method doesn't work in all
+                     * cases.  Assembling this list of what does and doesn't
+                     * work as is done here is not very satisfactory, since
+                     * it doesn't necessarily get right which ones do and
+                     * which ones don't. */
+                    if ( Number.class.isAssignableFrom( clazz ) ||
+                         Boolean.class.equals( clazz ) ||
+                         String.class.equals( clazz ) ) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    return false;
+                }
             }
             public void setValue( int irow, Object value ) {
                 DescribedValue param = getParam( irow );
