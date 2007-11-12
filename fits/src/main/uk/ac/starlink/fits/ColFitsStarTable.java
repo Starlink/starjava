@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
@@ -47,19 +48,20 @@ public class ColFitsStarTable extends ColumnStarTable {
      */
     public ColFitsStarTable( File file, Header hdr, long dataPos )
             throws IOException {
+        HeaderCards cards = new HeaderCards( hdr );
 
         /* Check it's a BINTABLE. */
-        if ( ! hdr.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
+        if ( ! cards.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
             throw new TableFormatException( "HDU 1 not BINTABLE" );
         }
 
         /* Check it has exactly one row. */
-        if ( hdr.getIntValue( "NAXIS2" ) != 1 ) {
+        if ( cards.getIntValue( "NAXIS2" ).intValue() != 1 ) {
             throw new TableFormatException( "Doesn't have exactly one row" );
         }
 
         /* Find the number of columns. */
-        int ncol = hdr.getIntValue( "TFIELDS" );
+        int ncol = cards.getIntValue( "TFIELDS" ).intValue();
 
         /* Read metadata for each column from the FITS header cards. */
         long nrow = 0;
@@ -72,16 +74,18 @@ public class ColFitsStarTable extends ColumnStarTable {
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
 
             /* Format character and length. */
-            String tform = hdr.getStringValue( "TFORM" + jcol ).trim();
+            String tform = cards.getStringValue( "TFORM" + jcol ).trim();
             char formatChar = tform.charAt( tform.length() - 1 );
 
             /* Use a special value if we have byte values offset by 128
              * (which allows one to represent signed bytes as unigned ones). */
             if ( formatChar == 'B' &&
-                 ( hdr.containsKey( "TZERO" + jcol )
-                   && hdr.getFloatValue( "TZERO" + jcol ) == -128.0f ) &&
-                 ( ! hdr.containsKey( "TSCALE" + jcol )
-                   || hdr.getFloatValue( "TSCALE" + jcol ) == 1.0f ) ) {
+                 ( cards.containsKey( "TZERO" + jcol )
+                   && cards.getDoubleValue( "TZERO" + jcol ).doubleValue()
+                                                            == -128.0 ) &&
+                 ( ! cards.containsKey( "TSCALE" + jcol )
+                   || cards.getDoubleValue( "TSCALE" + jcol ).doubleValue()
+                                                             == 1.0 ) ) {
                 formatChar = 'b';
             }
   
@@ -96,7 +100,7 @@ public class ColFitsStarTable extends ColumnStarTable {
             formatChars[ icol ] = formatChar;
 
             /* Row count and item shape. */
-            String tdims = hdr.getStringValue( "TDIM" + jcol );
+            String tdims = cards.getStringValue( "TDIM" + jcol );
             long[] dims = parseTdim( tdims );
             if ( dims == null ) {
                 throw new TableFormatException( "Bad TDIM value " + tdims );
@@ -121,29 +125,29 @@ public class ColFitsStarTable extends ColumnStarTable {
 
             /* Null value. */
             String blankKey = "TNULL" + jcol;
-            Long blank = hdr.containsKey( blankKey )
-                       ? new Long( hdr.getLongValue( blankKey ) )
+            Long blank = cards.containsKey( blankKey )
+                       ? cards.getLongValue( blankKey )
                        : null;
             blanks[ icol ] = blank;
 
             /* Informational metadata. */
-            String ttype = hdr.getStringValue( "TTYPE" + jcol );
+            String ttype = cards.getStringValue( "TTYPE" + jcol );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
-            String tunit = hdr.getStringValue( "TUNIT" + jcol );
+            String tunit = cards.getStringValue( "TUNIT" + jcol );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
-            String tcomm = hdr.getStringValue( "TCOMM" + jcol );
+            String tcomm = cards.getStringValue( "TCOMM" + jcol );
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
-            String tucd = hdr.getStringValue( "TUCD" + jcol );
+            String tucd = cards.getStringValue( "TUCD" + jcol );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
-            String tutype = hdr.getStringValue( "TUTYP" + jcol );
+            String tutype = cards.getStringValue( "TUTYP" + jcol );
             if ( tutype != null ) {
                 Tables.setUtype( cinfo, tutype );
             }
@@ -164,6 +168,9 @@ public class ColFitsStarTable extends ColumnStarTable {
             addColumn( colData );
             pos += colData.getItemBytes() * nrow_;
         }
+
+        /* Add table params containing header card information. */
+        getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
     }
 
     public long getRowCount() {

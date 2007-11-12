@@ -218,15 +218,16 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * @param  hdr  FITS header cards describing this HDU
      */
     BintableStarTable( Header hdr ) throws FitsException {
+        HeaderCards cards = new HeaderCards( hdr );
 
         /* Check we have a BINTABLE header. */
-        if ( ! hdr.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
+        if ( ! cards.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
             throw new IllegalArgumentException( "Not a binary table header" );
         }
 
         /* Get Table characteristics. */
-        ncol = hdr.getIntValue( "TFIELDS" );
-        nrow = hdr.getIntValue( "NAXIS2" );
+        ncol = cards.getIntValue( "TFIELDS" ).intValue();
+        nrow = cards.getIntValue( "NAXIS2" ).intValue();
 
         /* Get column characteristics. */
         colInfos = new ColumnInfo[ ncol ];
@@ -238,19 +239,19 @@ public abstract class BintableStarTable extends AbstractStarTable {
             colInfos[ icol ] = cinfo;
 
             /* Name. */
-            String ttype = hdr.getStringValue( "TTYPE" + jcol );
+            String ttype = cards.getStringValue( "TTYPE" + jcol );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
 
             /* Units. */
-            String tunit = hdr.getStringValue( "TUNIT" + jcol );
+            String tunit = cards.getStringValue( "TUNIT" + jcol );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
 
             /* Format string. */
-            String tdisp = hdr.getStringValue( "TDISP" + jcol );
+            String tdisp = cards.getStringValue( "TDISP" + jcol );
             if ( tdisp != null ) {
                 auxdata.add( new DescribedValue( tdispInfo, tdisp ) );
             }
@@ -259,8 +260,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
             String blankKey = "TNULL" + jcol;
             long blank;
             boolean hasBlank;
-            if ( hdr.containsKey( blankKey ) ) {
-                blank = hdr.getLongValue( blankKey );
+            if ( cards.containsKey( blankKey ) ) {
+                blank = cards.getLongValue( blankKey ).longValue();
                 hasBlank = true;
                 auxdata.add( new DescribedValue( tnullInfo,
                                                  new Long( blank ) ) );
@@ -273,7 +274,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
             /* Shape. */
             int[] dims = null;
-            String tdim = hdr.getStringValue( "TDIM" + jcol );
+            String tdim = cards.getStringValue( "TDIM" + jcol );
             if ( tdim != null ) {
                 tdim = tdim.trim();
                 if ( tdim.charAt( 0 ) == '(' &&
@@ -297,16 +298,16 @@ public abstract class BintableStarTable extends AbstractStarTable {
             /* Scaling. */
             double scale;
             double zero;
-            if ( hdr.containsKey( "TSCAL" + jcol ) ) {
-                scale = hdr.getDoubleValue( "TSCAL" + jcol );
+            if ( cards.containsKey( "TSCAL" + jcol ) ) {
+                scale = cards.getDoubleValue( "TSCAL" + jcol ).doubleValue();
                 auxdata.add( new DescribedValue( tscalInfo,
                                                  new Double( scale ) ) );
             }
             else {
                 scale = 1.0;
             }
-            if ( hdr.containsKey( "TZERO" + jcol ) ) {
-                zero = hdr.getDoubleValue( "TZERO" + jcol );
+            if ( cards.containsKey( "TZERO" + jcol ) ) {
+                zero = cards.getDoubleValue( "TZERO" + jcol ).doubleValue();
                 auxdata.add( new DescribedValue( tzeroInfo,
                                                  new Double( zero ) ) );
             }
@@ -315,7 +316,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
 
             /* Format code (recorded but otherwise ignored). */
-            String tbcol = hdr.getStringValue( "TBCOL" + jcol );
+            String tbcol = cards.getStringValue( "TBCOL" + jcol );
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
                 auxdata.add( new DescribedValue( tbcolInfo,
@@ -323,25 +324,25 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
 
             /* Data type. */
-            String tform = hdr.getStringValue( "TFORM" + jcol );
+            String tform = cards.getStringValue( "TFORM" + jcol );
             if ( tform != null ) {
                 auxdata.add( new DescribedValue( tformInfo, tform ) );
             }
 
             /* Comment (non-standard). */
-            String tcomm = hdr.getStringValue( "TCOMM" + jcol );
+            String tcomm = cards.getStringValue( "TCOMM" + jcol );
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
 
             /* UCD (non-standard). */
-            String tucd = hdr.getStringValue( "TUCD" + jcol );
+            String tucd = cards.getStringValue( "TUCD" + jcol );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
 
             /* Utype (non-standard). */
-            String tutype = hdr.getStringValue( "TUTYP" + jcol );
+            String tutype = cards.getStringValue( "TUTYP" + jcol );
             if ( tutype != null ) {
                 Tables.setUtype( cinfo, tutype );
             }
@@ -407,11 +408,13 @@ public abstract class BintableStarTable extends AbstractStarTable {
             leng += colReaders[ icol ].getLength();
         }
         rowLength = leng;
-        int nax1 = hdr.getIntValue( "NAXIS1" );
+        int nax1 = cards.getIntValue( "NAXIS1" ).intValue();
         if ( rowLength != nax1 ) {
             throw new FitsException( "Got wrong row length: " + nax1 + 
                                      " != " + rowLength );
         }
+
+        getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
     }
 
     public long getRowCount() {
