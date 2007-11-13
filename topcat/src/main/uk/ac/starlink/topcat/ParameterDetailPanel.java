@@ -148,7 +148,8 @@ public class ParameterDetailPanel extends JPanel {
             LineField field = lineFields_[ i ];
             int icol = field.getColumnIndex();
             JTextField textField = field.getTextField();
-            Object val = model_.getValueAt( irow_, icol );
+            Object val = irow_ >= 0 ? model_.getValueAt( irow_, icol )
+                                    : null;
             String text = val instanceof String ? (String) val
                                                 : "";
             if ( ! text.equals( textField.getText() ) ) {
