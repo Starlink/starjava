@@ -2,7 +2,10 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Insets;
 import javax.swing.JComponent;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 
 /**
@@ -10,18 +13,12 @@ import javax.swing.JScrollPane;
  * a ResizingScrollPane will attempt to match the shape of its 
  * view component if it is a sensible shape.  Otherwise it will assume
  * some sensible shape.
+ *
+ * @author   Mark Taylor
  */
-class SizingScrollPane extends JScrollPane {
+public class SizingScrollPane extends JScrollPane {
 
-    private int minWidth = 100;
-    private int maxWidth = 700;
-    private int defWidth = 500;
-    private int minHeight = 100;
-    private int maxHeight = 600;
-    private int defHeight = 400;
-    private int sbw;
-    private int sbh;
-    private int headh;
+    private SizeConfig config_;
 
     /**
      * Constructs an empty scroll pane.
@@ -37,20 +34,18 @@ class SizingScrollPane extends JScrollPane {
      */
     public SizingScrollPane( Component view ) {
         super( view );
-        sbw = getVerticalScrollBar().getPreferredSize().width;
-        sbh = getHorizontalScrollBar().getPreferredSize().height;
     }
 
     public Dimension getPreferredSize() {
+        SizeConfig config = getConfig();
         if ( getViewport() != null && getViewport().getView() != null ) {
-
             Dimension vdim = getViewport().getView().getPreferredSize();
+            int vw = vdim.width;
+            int vh = vdim.height;
 
-
-            // Don't know why I need these plus fours, but it doesn't seem
-            // to be quite big enough without.
-            int vw = vdim.width + 4;
-            int vh = vdim.height + 4;
+            Insets insets = getInsets();
+            vw += insets.left + insets.right;
+            vh += insets.top + insets.bottom;
 
             Component rHead = getRowHeader();
             if ( rHead != null ) {
@@ -61,12 +56,73 @@ class SizingScrollPane extends JScrollPane {
                 vh += cHead.getPreferredSize().height;
             }
 
-            int w = Math.max( Math.min( vw, maxWidth ), minWidth );
-            int h = Math.max( Math.min( vh, maxHeight ), minHeight );
+            if ( vw > config.maxWidth_ ) {
+                vh += getVerticalScrollBar().getPreferredSize().width;
+            }
+            if ( vh > config.maxHeight_ ) {
+                vw += getHorizontalScrollBar().getPreferredSize().height;
+            }
+            int w = limit( vw, config.minWidth_, config.maxWidth_ );
+            int h = limit( vh, config.minHeight_, config.maxHeight_ );
             return new Dimension( w, h );
         }
         else {
-            return new Dimension( defWidth, defHeight );
+            return new Dimension( config.defWidth_, config.defHeight_ );
+        }
+    }
+
+    /**
+     * Gets a shape configuration object for this panel.
+     *
+     * @return  lazily constructed sizeconfig
+     */
+    private SizeConfig getConfig() {
+        if ( config_ == null ) {
+            config_ = new SizeConfig( ((Graphics2D) getGraphics())
+                                     .getDeviceConfiguration()
+                                     .getBounds().getSize() );
+        }
+        return config_;
+    }
+
+    /**
+     * Returns a value limited by supplied minimum and maximum values.
+     *
+     * @param   pref  preferred value
+     * @param   min   lower bound
+     * @param   max   upper bound
+     * @return  max(min(max,pref),min)
+     */
+    private static int limit( int pref, int min, int max ) {
+        if ( min >= max ) {
+            throw new IllegalArgumentException();
+        }
+        return Math.max( Math.min( pref, max ), min );
+    }
+
+    /**
+     * Container for max/min/default size settings.
+     */
+    private static class SizeConfig {
+        final int minWidth_;
+        final int maxWidth_;
+        final int defWidth_;
+        final int minHeight_;
+        final int maxHeight_;
+        final int defHeight_;
+
+        /**
+         * Constructor.
+         *
+         * @param   screen   dimensions of the physical display device
+         */
+        SizeConfig( Dimension screen ) {
+            minWidth_ = 100;
+            maxWidth_ = limit( (int) ( 0.6 * screen.width ), 300, 700 );
+            defWidth_ = limit( (int) ( 0.3 * screen.width ), 300, 500 );
+            minHeight_ = 100;
+            maxHeight_ = limit( (int) ( 0.3 * screen.height ), 200, 500 );
+            defHeight_ = limit( (int) ( 0.2 * screen.height ), 200, 300 );
         }
     }
 }
