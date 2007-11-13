@@ -10952,6 +10952,8 @@ introduced since the last version:
         are now substituted with underscores.</li>
     <li>Error bars for zero/negative values are now correctly extended to the
         axis (rather than being omitted) in 2D plots with logarithmic axes.</li>
+    <li>Modified the size of some windows - now posts somewhat smaller windows
+        if a small screen is in use.</li>
     </ul>
     </p></dd>
 
