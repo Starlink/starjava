@@ -58,7 +58,7 @@ public class ParameterDetailPanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param   table model representing parameter attributes
+     * @param  model   table model representing parameter attributes
      */
     public ParameterDetailPanel( TableModel model ) {
         model_ = model;
