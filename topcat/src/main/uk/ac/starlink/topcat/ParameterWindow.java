@@ -347,7 +347,7 @@ public class ParameterWindow extends AuxWindow
         jtab.setRowSelectionAllowed( true );
         rowSelectionModel = jtab.getSelectionModel();
         rowSelectionModel.setSelectionMode( ListSelectionModel
-                                           .SINGLE_SELECTION );
+                                           .MULTIPLE_INTERVAL_SELECTION );
         rowSelectionModel.addListSelectionListener( this );
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
 
@@ -393,21 +393,25 @@ public class ParameterWindow extends AuxWindow
         removeAct = new BasicAction( "Remove Parameter", ResourceIcon.DELETE,
                                      "Delete the selected parameter" ) {
             public void actionPerformed( ActionEvent evt ) {
-                if ( jtab.getSelectedRowCount() == 1 ) {
-                    int irow = jtab.getSelectedRow();
-                    DescribedValue dval = getParam( irow );
-                    if ( ParameterWindow.this.tcModel.getDataModel()
-                                        .getParameters().contains( dval ) ) {
-                        if ( confirm( "Remove Parameter \"" + dval + "\"?",
-                                      "Confirm Removal" ) ) {
-                            ParameterWindow.this.tcModel
-                                           .removeParameter( dval );
+                TopcatModel tcm = ParameterWindow.this.tcModel;
+                List removals = new ArrayList();
+                for ( int irow = rowSelectionModel.getMinSelectionIndex();
+                      irow <= rowSelectionModel.getMaxSelectionIndex();
+                      irow++ ) {
+                    if ( rowSelectionModel.isSelectedIndex( irow ) ) {
+                        DescribedValue dval = getParam( irow );
+                        if ( tcm.getDataModel().getParameters()
+                                               .contains( dval ) ) {
+                            removals.add( dval );
+                        }
+                        else {
+                            logger.warning( "Parameter \"" + dval + 
+                                            "\" missing from model??" );
                         }
                     }
-                    else {
-                        logger.warning( "Parameter \"" + dval + 
-                                        "\" missing from model??" );
-                    }
+                }
+                for ( Iterator it = removals.iterator(); it.hasNext(); ) {
+                    tcm.removeParameter( (DescribedValue) it.next() );
                 }
             }
         };
@@ -474,11 +478,18 @@ public class ParameterWindow extends AuxWindow
     public void valueChanged( ListSelectionEvent evt ) {
         if ( evt.getSource() == rowSelectionModel ) {
             int index = rowSelectionModel.getMinSelectionIndex();
-            boolean active = index >= 0 
-                          && index == rowSelectionModel.getMaxSelectionIndex()
-                          && ! params.isPseudoParam( index );
+            boolean active = index >= 0;
+            for ( int i = rowSelectionModel.getMinSelectionIndex();
+                  i <= rowSelectionModel.getMaxSelectionIndex(); i++ ) {
+                if ( rowSelectionModel.isSelectedIndex( i ) ) {
+                    active = active && ! params.isPseudoParam( index );
+                }
+            }
             removeAct.setEnabled( active );
-            detailPanel.setItem( index, (DescribedValue) params.get( index ) );
+            detailPanel.setItem( index,
+                                 (DescribedValue)
+                                 ( index >= 0 ? params.get( index )
+                                              : null ) );
         }
     }
 
