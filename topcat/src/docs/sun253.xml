@@ -778,6 +778,13 @@ output format (see <ref id="outFits"/>) then the metadata will be
 read in from the primary HDU as well.
 </p>
 
+<p>For normal FITS files, header cards in the table's HDU header will be
+made available as table parameters (see <ref id="ParameterWindow"/>).
+Only header cards which are not used to specify the table format itself
+are visible as parameters (e.g. NAXIS, TTYPE* etc cards are not).
+HISTORY and COMMENT cards are run together as one multi-line value.
+</p>
+
 <p>If the table is stored in a FITS binary table extension in a file
 on local disk in uncompressed form, then the table is 'mapped' into
 memory - this generally means fast loading and low memory use, 
@@ -4594,13 +4601,15 @@ button when the chosen table is selected in the
 
 <p>In table/database parlance, an item of
 per-table metadata is often known as a "parameter" of the table.
-The number of rows and columns will always be listed; some table file
-formats
-don't have facilities for storing other table parameter metadata,
-so there may not be much of interest displayed in this window.
+At least the number of rows and columns will be listed.
+Some table file formats (for instance VOTable and FITS) have provision
+for storing other table parameters, while others (for instance CSV)
+do not.  In the latter case there may not much much of interest displayed
+in this window.
 </p>
 
-<p>The display is a <ref id="JTable">JTable</ref> with one row for each
+<p>The top part of the display is a <ref id="JTable">JTable</ref> 
+with one row for each
 parameter.  It indicates the parameter's name, its value, the type of
 item it is (integer, string etc) and other items of interest such as
 units, dimensionality or UCD if they are defined.
@@ -4615,6 +4624,13 @@ used to reveal it.
 on them as usual.  
 </p>
 
+<p>The bottom part of the display gives an expanded view of a
+selected parameter (click on a row in the top part to select one).
+This is especially useful if the parameter value is too long to show
+fully in the table display.  In most cases you can edit the fields here
+to change the value and other characteristics of a parameter.
+</p>
+
 <p>The following items are available in the toolbar:
 <dl>
 
@@ -4624,18 +4640,12 @@ on them as usual.
     </p></dd>
 
 <dt>&IMG.DELETE; Remove Parameter</dt>
-<dd><p>If one of the parameters displayed in the JTable in this window
-    has been selected by clicking on its row, 
-    then clicking this button will remove it. 
-    You will be prompted before the removal takes place.
+<dd><p>If one or more of the parameters displayed in the JTable in this window
+    have been selected by clicking on the relevant rows,
+    then clicking this button will remove them. 
     Some parameters such as Row Count cannot be removed.
     </p></dd>
 </dl>
-</p>
-
-<p>Note that it is currently not easy to view parameter values which are
-quite long, or which are on multiple lines.  This is a deficiency in 
-TOPCAT and may be improved in a future version.
 </p>
 
 </subsubsect>
@@ -10931,9 +10941,13 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Considerably improved display of per-table metadata in the
+        <ref id="ParameterWindow">Parameter Window</ref>.</li>
+    <li>FITS header cards in table HDU are now read (but not written) 
+        as table parameters.</li>
     <li>Fix some bugs associated with text label plotting.</li>
     <li>Add mouse wheel zoom for 3D plots.</li>
-    <li>Fixed error in <code>fluxToLuminosity</code> function.</li>
+    <li>Fix error in <code>fluxToLuminosity</code> function.</li>
     <li>Embedded spaces in output ASCII format table column names 
         are now substituted with underscores.</li>
     <li>Error bars for zero/negative values are now correctly extended to the
