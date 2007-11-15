@@ -4530,16 +4530,22 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Version 1.3-6 (7 Nov 2007)</dt>
+<dt>Next Version</dt>
 <dd><p>
     <ul>
     <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
+    <li>FITS reader now imports table HDU header cards as table parameters.</li>
     <li>Embedded spaces in output ASCII format table column names
         are now substituted with underscores.</li>
     <li>Fix a bug which caused an infinite number of dots to be printed
         when attempting a crossmatch with an empty input table.</li>
     <li>CeaWriter can now output CEA service definition XML config file as
         well as app-description file.</li>
+    <li>Corrected <code>votlint</code> handling of TABLEDATA-type 
+        multi-dimensional <code>char</code>/<code>unicodeChar</code> arrays.
+        These are now split up into strings by counting characters rather
+        than using whitespace delimiters.
+        I <em>think</em> it's doing the right thing now.</li>
     </ul>
     </p></dd>
 
