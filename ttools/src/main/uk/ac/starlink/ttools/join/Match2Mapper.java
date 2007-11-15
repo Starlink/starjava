@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.ttools.join;
 
 import gnu.jel.CompilationException;
 import java.io.PrintStream;
@@ -12,6 +12,10 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.ttools.task.InputTableSpec;
+import uk.ac.starlink.ttools.task.TableMapper;
+import uk.ac.starlink.ttools.task.TableMapping;
+import uk.ac.starlink.ttools.task.WordsParameter;
 
 /**
  * TableMapper which does the work for pair matching (tmatch2).

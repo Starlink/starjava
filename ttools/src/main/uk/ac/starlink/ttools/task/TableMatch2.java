@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
+import uk.ac.starlink.ttools.join.Match2Mapper;
+
 /**
  * Task implementation for generic pair matching task.
  *

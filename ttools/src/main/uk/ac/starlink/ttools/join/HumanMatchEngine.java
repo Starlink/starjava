@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.ttools.join;
 
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;

@@ -8,6 +8,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.ttools.join.MatchEngineParameter;
 
 public class TableMatch2Test extends TableTestCase {
 

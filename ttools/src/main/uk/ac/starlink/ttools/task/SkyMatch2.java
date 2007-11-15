@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
+import uk.ac.starlink.ttools.join.SkyMatch2Mapper;
+
 /**
  * Task implementation for simplified sky matching task.
  *

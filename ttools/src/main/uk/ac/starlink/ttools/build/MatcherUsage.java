@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.task.MatchEngineParameter;
+import uk.ac.starlink.ttools.join.MatchEngineParameter;
 
 public class MatcherUsage {
 

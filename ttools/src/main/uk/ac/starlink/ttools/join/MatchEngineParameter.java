@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.ttools.join;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -18,6 +18,9 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.task.ExtraParameter;
+import uk.ac.starlink.ttools.task.TableEnvironment;
+import uk.ac.starlink.ttools.task.WordsParameter;
 
 /**
  * Parameter for acquiring a {@link uk.ac.starlink.table.join.MatchEngine}.

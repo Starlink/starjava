@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.ttools.join;
 
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.join.HEALPixMatchEngine;
@@ -11,6 +11,8 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.task.TableMapper;
+import uk.ac.starlink.ttools.task.TableMapping;
 
 /**
  * TableMapper which does the work for sky-specific pair matching (tskymatch2).

@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.ttools.join;
 
 import java.io.PrintStream;
 import java.util.logging.Logger;

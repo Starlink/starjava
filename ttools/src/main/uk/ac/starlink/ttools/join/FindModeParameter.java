@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.ttools.join;
 
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
