@@ -50,27 +50,33 @@ public class UsageWriter {
         outln( "in <ref id=\"stilts-flags\"/>." );
         outln( "</p>" );
         outln();
-        outln( "<p>Parameter values are assigned on the command line" );
-        outln( "as explained in <ref id=\"task-args\"/>." );
-        outln( "They are as follows:" );
-        outln( "</p>" );
-        outln( "<p>" );
-        outln( "<dl>" );
 
         Parameter[] params = task_.getParameters();
-        Arrays.sort( params, new Comparator() {
-            public int compare( Object o1, Object o2 ) {
-                Parameter p1 = (Parameter) o1;
-                Parameter p2 = (Parameter) o2;
-                return ((Parameter) o1).getName()
-                      .compareTo( ((Parameter) o2).getName() );
+        if ( params.length > 0 ) {
+            outln( "<p>Parameter values are assigned on the command line" );
+            outln( "as explained in <ref id=\"task-args\"/>." );
+            outln( "They are as follows:" );
+            outln( "</p>" );
+            outln( "<p>" );
+            outln( "<dl>" );
+            Arrays.sort( params, new Comparator() {
+                public int compare( Object o1, Object o2 ) {
+                    Parameter p1 = (Parameter) o1;
+                    Parameter p2 = (Parameter) o2;
+                    return ((Parameter) o1).getName()
+                          .compareTo( ((Parameter) o2).getName() );
+                }
+            } );
+            for ( int i = 0; i < params.length; i++ ) {
+                outln( xmlItem( params[ i ] ) );
             }
-        } );
-        for ( int i = 0; i < params.length; i++ ) {
-            outln( xmlItem( params[ i ] ) );
+            outln( "</dl>" );
+            outln( "</p>" );
         }
-        outln( "</dl>" );
-        outln( "</p>" );
+        else {
+            outln( "<p>This task has no parameters." );
+            outln( "</p>" );
+        }
         outln( "</subsubsect>" );
     }
 
