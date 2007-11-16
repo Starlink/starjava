@@ -1,10 +1,8 @@
 package uk.ac.starlink.ttools.join;
 
-import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -107,7 +105,7 @@ public class Match2Mapping implements TableMapping {
             throw new ExecutionException( e.getMessage(), e );  
         }
 
-         /* Create a new table from the result and return. */
+        /* Create a new table from the result and return. */
         ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
         return MatchStarTables.makeJoinTable( inTable1, inTable2, matches,
                                               join_, ! bestOnly_, fixacts_,
@@ -130,22 +128,7 @@ public class Match2Mapping implements TableMapping {
      */
     protected StarTable makeSubTable( StarTable inTable, String[] exprTuple )
             throws ExecutionException {
-
-        /* Work out the type of columns we will require from each table. */
-        ValueInfo[] tupleInfos = matchEngine_.getTupleInfos();
-        int nCoord = tupleInfos.length;
-        ColumnInfo[] colInfos = new ColumnInfo[ nCoord ];
-        for ( int i = 0; i < nCoord; i++ ) {
-            colInfos[ i ] = new ColumnInfo( tupleInfos[ i ] );
-        }
-
-        /* Create and return a new table containing only columns defined
-         * by the supplied expressions. */
-        try {
-            return new JELTable( inTable, colInfos, exprTuple );
-        }
-        catch ( CompilationException e ) {
-            throw new ExecutionException( e.getMessage(), e );
-        }
+        return JELTable.createJELTable( inTable, matchEngine_.getTupleInfos(),
+                                        exprTuple );
     }
 }
