@@ -41,7 +41,8 @@ public class UsageWriter {
         outln( "<subhead><title>Usage</title></subhead>" );
         outln( "<p>The usage of <code>" + taskName_ + "</code> is" );
         outln( "<verbatim><![CDATA[" );
-        outln( LineInvoker.getPrefixedTaskUsage( task_, prefix ) );
+        outln( LineInvoker.getPrefixedTaskUsage( task_, prefix )
+                          .replaceFirst( "\n+$", "" ) );
         outln( "]]></verbatim>" );
         outln( "If you don't have the <code>stilts</code> script installed," );
         outln( "write \"<code>java -jar stilts.jar</code>\" instead of" );
