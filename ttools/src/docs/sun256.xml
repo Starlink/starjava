@@ -40,6 +40,7 @@
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
+  <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
   <!ENTITY tskymatch2-summary SYSTEM 'tskymatch2-summary.xml'>
@@ -154,6 +155,9 @@ table manipulation:
     </li>
 <li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
     &tpipe-purpose;
+    </li>
+<li><ref id="tmatch1" plaintextref="yes"><code>tmatch1</code></ref>:
+    &tmatch1-purpose;
     </li>
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
@@ -397,6 +401,7 @@ the available tasks are:
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
 <li><code>tjoin</code></li>
+<li><code>tmatch1</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tpipe</code></li>
 <li><code>tskymatch2</code></li>
@@ -1025,6 +1030,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tcatn"><code>tcatn</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
+           <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="multicone"><code>multicone</code></ref>,
@@ -1530,8 +1536,8 @@ in the reference sections on the tools themselves in <ref id="cmdUsage"/>.
 </p>
 
 <p>Matching can in general be a computationally intensive process.
-The algorithm used by STILTS, except in pathological cases, 
-scales as <m>O(N log(N))</m> or thereabouts,
+The algorithm used by the <code>tmatch*</code> tasks in STILTS, 
+except in pathological cases, scales as <m>O(N log(N))</m> or thereabouts,
 where <m>N</m> is the total number of rows in all the tables being matched.
 No preparation (such as sorting) is required on the tables prior to
 invoking the matching operation.
@@ -1555,15 +1561,26 @@ java heap size of around 200Mb (<code>-Xmx200M</code>).
  -->
 </p>
 
-<p>In the current release of STILTS the main crossmatching task is 
-<ref id="tmatch2"><code>tmatch2</code></ref>,
-which finds matches between a pair of tables.
-For convenience a simplified task named
-<ref id="tskymatch2"><code>tskymatch2</code></ref>
-is also provided when matching is between sky coordinates with fixed errors.
-In future versions however facilities for 
-finding matches within the same table, and in more than two tables,
-will be introduced.
+<p>In the current release of STILTS the following tasks are provided
+for crossmatching between local tables:
+<dl>
+<dt><ref id="tmatch2"><code>tmatch2</code></ref></dt>
+<dd><p>Generic crossmatching between two tables.
+    </p></dd>
+
+<dt><ref id="tskymatch2"><code>tskymatch2</code></ref></dt>
+<dd><p>Crossmatching between two tables where the matching criterion is
+    a fixed separation on the sky.  This is simply a stripped-down 
+    version of <code>tmatch2</code> provided for convenience when the
+    full generality is not required.
+    </p></dd>
+
+<dt><ref id="tmatch1"><code>tmatch1</code></ref></dt>
+<dd><p>Generic crossmatching internal to a single table.
+    The basic task this performs is to identify groups of rows within a
+    single table which match each other. 
+    </p></dd>
+</dl>
 </p>
 
 <subsect id="MatchEngine">
@@ -1584,7 +1601,8 @@ than two, or the match may be exact rather than within an error radius....
 with fixed errors you are recommended to use the simplified
 <ref id="tskymatch2"><code>tskymatch2</code></ref> task.
 For other cases, this section describes how to specify much more
-flexible match criteria for use with <code>tmatch2</code>
+flexible match criteria for use with
+<code>tmatch1</code> or <code>tmatch2</code>
 by setting the following parameters:
 <dl>
 <dt><code>matcher</code></dt>
@@ -1759,6 +1777,52 @@ catalogues which are within a couple of arcseconds and also 0.5
 blue magnitudes of each other.
 Rolling your own matchers in this way can give you very flexible match
 constraints.
+</p>
+
+</subsect>
+
+<subsect id="matchGroup">
+<subhead><title>Multi-Object Matches</title></subhead>
+
+<p>The generic matching in STILTS is determined by specified 
+match criteria, as described in <ref id="MatchEngine"/>.
+These criteria give conditions for whether two items (table rows)
+count as matched with each other.  In the case of a pair match,
+as provided by <ref id="tmatch2"><code>tmatch2</code></ref> it is
+clear how this is to be interpreted.
+</p>
+
+<p>However, some of the matching tasks 
+(<ref id="tmatch1"><code>tmatch1</code></ref>)
+search for match groups which may have more than two members.
+This section explains precisely how STILTS applies the pair-wise
+matching criteria it is given to identifying multi-object groups.
+</p>
+
+<p>In a multi-object match context, the matcher identifies a matched
+group as the largest possible group of objects in which each is 
+linked by a pair match to <em>any</em> other object in the group.
+Formally, the set of matched groups is a set of disjoint graphs whose nodes
+are input table rows and whose edges are successful pair matches,
+where no successful pair match exists between nodes in 
+different elements of that set.
+Thus the set has a minimal number of elements, and each of its elements
+is a matched group of maximal size.
+The important point to note
+is that for any particular pair in a matched group,
+there is no guarantee that the two objects match each other,
+only that you can hop from one to the other via pairs which do match.
+</p>
+
+<p>So in the case of a multi-object sky match
+on a field which is very crowded compared to the specified error radius,
+it is quite possible for <em>all</em> the objects in the input table(s) 
+to end up as part of the same large matching group.  
+Results at or near this percolation threshold are
+(a) probably not useful and
+(b) likely to take a long time to run. 
+Some care should therefore be exercised when specifying match criteria
+in multi-object match contexts.
 </p>
 
 </subsect>
@@ -3106,6 +3170,42 @@ stilts tjoin nin=3 fixcols=all \
     all the columns of these selected rows, and written to the output.
 </p></dd>
 
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="tmatch1" tocleaf="yes">
+<subhead><title><code>tmatch1</code>: &tmatch1-purpose;</title></subhead>
+
+<p><code>tmatch1</code> performs efficient and flexible 
+crossmatching between the rows of a single table.
+It can match rows on the basis of their relative position in the sky,
+or alternatively using many other criteria such as separation in 
+in some isotropic or anisotropic Cartesian space,
+identity of a key value, or some combination of these;
+the full range of match criteria is dicussed in <ref id="MatchEngine"/>.
+</p>
+
+<p>The basic task performed by the intra-table matcher is to identify
+groups of rows within the table which match each other.
+See <ref id="matchGroup"/> for an explanation of exactly what 
+consitutes a match group.
+The result of identifying these groups is expressed as an output table 
+in one of a variety of ways, specified by the <code>action</code> parameter.
+These options include marking group membership in added columns 
+and eliminating some or all rows which form part of a match group.
+</p>
+
+&tmatch1-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tmatch1</code>
+<dl>
 </dl>
 </p>
 
@@ -4534,6 +4634,7 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
+    <li>New <ref id="tmatch1"><code>tmatch1</code></ref> command.</li>
     <li>FITS reader now imports table HDU header cards as table parameters.</li>
     <li>Embedded spaces in output ASCII format table column names
         are now substituted with underscores.</li>
