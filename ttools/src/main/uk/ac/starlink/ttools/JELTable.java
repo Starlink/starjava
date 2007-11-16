@@ -8,8 +8,10 @@ import gnu.jel.Library;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.task.ExecutionException;
 
 /**
  * Wrapper table which is constructed entirely of columns defined by 
@@ -186,5 +188,36 @@ public class JELTable extends WrapperStarTable {
                 return row;
             }
         };
+    }
+
+    /**
+     * Convenience factory method.  It turns all the supplied <code>infos</code>
+     * into ColumnInfos and rethrows any CompilationException as an
+     * ExecutionException.
+     *
+     * @param  baseTable  table which provides both behaviour determining
+     *         whether random access is available etc, and an evaluation
+     *         context for the JEL calculations
+     * @param  infos  metadata used to construct column metadata
+     * @param  exprs   JEL expressions, evaluated in a context determined
+     *         by <code>baseTable</code>, which give the data for this table.
+     */
+    public static StarTable createJELTable( StarTable baseTable,
+                                            ValueInfo[] infos, String[] exprs )
+            throws ExecutionException {
+        int ncol = exprs.length;
+        if ( infos.length != ncol ) {
+            throw new IllegalArgumentException( "Column length mismatch" );
+        }
+        ColumnInfo[] colInfos = new ColumnInfo[ ncol ];
+        for ( int i = 0; i < ncol; i++ ) {
+            colInfos[ i ] = new ColumnInfo( infos[ i ] );
+        }
+        try {
+            return new JELTable( baseTable, colInfos, exprs );
+        }
+        catch ( CompilationException e ) {
+            throw new ExecutionException( e.getMessage(), e );
+        }
     }
 }
