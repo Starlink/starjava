@@ -605,6 +605,13 @@ public class LineInvoker {
             line = new StringBuffer( pad );
         }
 
+        /* If there are unappended words in line, append them now.
+         * This will probably only happen if there were no normal parameters. */
+        if ( line.toString().trim().length() > 0 ) {
+            usage.append( line )
+                 .append( '\n' );
+        }
+
         /* Return the final usage string. */
         return usage.toString();
     }
