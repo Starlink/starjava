@@ -38,27 +38,7 @@ public class TableMatch1 extends SingleMapperTask {
         paramList.add( matcherParam_ );
         paramList.add( matcherParam_.getMatchParametersParameter() );
 
-        tupleParam_ = new WordsParameter( "values" );
-        tupleParam_.setUsage( "<expr-list>" );
-        tupleParam_.setPrompt( "Expressions for match values" );
-        tupleParam_.setDescription( new String[] {
-            "<p>Defines the values from the input table",
-            "which are used to determine whether a match has occurred.",
-            "These will typically be coordinate values such as RA and Dec",
-            "and perhaps some per-row error values as well, though exactly",
-            "what values are required is determined by the kind of match",
-            "as determined by",
-            "<code>" + matcherParam_.getName() + "</code>.",
-            "Depending on the kind of match, the number and type of",
-            "the values required will be different.",
-            "Multiple values should be separated by whitespace;",
-            "if whitespace occurs within a single value it must be",
-            "'quoted' or \"quoted\".",
-            "Elements of the expression list are commonly just column",
-            "names, but may be algebraic expressions calculated from",
-            "zero or more columns as explained in <ref id='jel'/>.",
-            "</p>",
-        } );
+        tupleParam_ = matcherParam_.createMatchTupleParameter( "" );
         paramList.add( tupleParam_ );
 
         type1Param_ = new Match1TypeParameter( "action" );

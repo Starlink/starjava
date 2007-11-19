@@ -38,33 +38,14 @@ public class Match2Mapper implements TableMapper {
 
         matcherParam_ = new MatchEngineParameter( "matcher" );
 
-        tupleParams_ = new WordsParameter[ 2 ];
+        tupleParams_ = new WordsParameter[] {
+            matcherParam_.createMatchTupleParameter( "1" ),
+            matcherParam_.createMatchTupleParameter( "2" ),
+        };
+
         duptagParams_ = new Parameter[ 2 ];
         for ( int i = 0; i < 2; i++ ) {
             int i1 = i + 1;
-            tupleParams_[ i ] = new WordsParameter( "values" + i1 );
-            tupleParams_[ i ].setUsage( "<expr-list>" );
-            tupleParams_[ i ].setPrompt( "Expressions for match values " +
-                                         "from table " + i1 );
-            tupleParams_[ i ].setDescription( new String[] {
-                "<p>Defines the values from table " + i1,
-                "which are used to determine whether a match has occurred.",
-                "These will typically be coordinate values such as RA and Dec",
-                "and perhaps some per-row error values as well, though exactly",
-                "what values are required is determined by the kind of match",
-                "as determined by",
-                "<code>" + matcherParam_.getName() + "</code>.",
-                "Depending on the kind of match, the number and type of",
-                "the values required will be different.",
-                "Multiple values should be separated by whitespace;",
-                "if whitespace occurs within a single value it must be",
-                "'quoted' or \"quoted\".",
-                "Elements of the expression list are commonly just column",
-                "names, but may be algebraic expressions calculated from",
-                "zero or more columns as explained in <ref id='jel'/>.",
-                "</p>",
-            } );
-
             duptagParams_[ i ] = new Parameter( "duptag" + i1 );
             duptagParams_[ i ].setUsage( "<trail-string>" );
             duptagParams_[ i ].setPrompt( "Column deduplication string " +
