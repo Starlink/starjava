@@ -50,26 +50,9 @@ public class TableMatch1 extends SingleMapperTask {
     protected TableProducer createProducer( Environment env )
             throws TaskException {
 
-        /* Get the matcher. */
+        /* Get the matcher and tuple expressions. */
         MatchEngine matcher = matcherParam_.matchEngineValue( env );
-
-        /* Find the number and characteristics of the columns required
-         * for this matcher. */
-        ValueInfo[] tinfos = matcher.getTupleInfos();
-        int ncol = tinfos.length;
-        StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < ncol; i++ ) {
-            if ( i > 0 ) {
-                sbuf.append( ' ' );
-            }
-            sbuf.append( tinfos[ i ].getName() );
-        }
-        String colNames = sbuf.toString();
-
-        /* Assemble the array of supplied expressions which will supply 
-         * the tuple of values to the matcher. */
-        tupleParam_.setRequiredWordCount( ncol );
-        tupleParam_.setPrompt( "Match columns (" + colNames + ")" );
+        MatchEngineParameter.configureTupleParameter( tupleParam_, matcher );
         String[] tupleExprs = tupleParam_.wordsValue( env );
 
         /* Get the matching type. */

@@ -86,27 +86,12 @@ public class Match2Mapper implements TableMapper {
         /* Get the matcher. */
         MatchEngine matcher = matcherParam_.matchEngineValue( env );
 
-        /* Find the number and characteristics of the columns required
-         * for this matcher. */
-        ValueInfo[] tinfos = matcher.getTupleInfos();
-        int ncol = tinfos.length;
-        StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < ncol; i++ ) {
-            if ( i > 0 ) {
-                sbuf.append( ' ' );
-            }
-            sbuf.append( tinfos[ i ].getName() );
-        }
-        String colNames = sbuf.toString();
-
         /* Assemble the arrays of supplied expressions which will supply
          * the values to the matcher for each table. */
         String[][] tupleExprs = new String[ 2 ][];
         for ( int i = 0; i < 2; i++ ) {
-            int i1 = i + 1;
-            tupleParams_[ i ].setRequiredWordCount( ncol );
-            tupleParams_[ i ].setPrompt( "Table " + i1 + " match columns ("
-                                       + colNames + ")" );
+            MatchEngineParameter.configureTupleParameter( tupleParams_[ i ],
+                                                          matcher );
             tupleExprs[ i ] = tupleParams_[ i ].wordsValue( env );
         }
 
