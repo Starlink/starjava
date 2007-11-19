@@ -57,7 +57,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "The value supplied for this parameter determines the meanings",
             "of the values required by the ",
             "<code>" + paramsParam_.getName() + "</code>,",
-            "<code>values1</code> and <code>values2</code> parameters.",
+            "<code>values*</code> parameter(s).",
             "</p>",
         } );
 
