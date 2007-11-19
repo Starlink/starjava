@@ -56,7 +56,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "is given in <ref id='MatchEngine'/>.",
             "The value supplied for this parameter determines the meanings",
             "of the values required by the ",
-            "<code>" + paramsParam_.getName() + "</code>,",
+            "<code>" + paramsParam_.getName() + "</code> and",
             "<code>values*</code> parameter(s).",
             "</p>",
         } );
