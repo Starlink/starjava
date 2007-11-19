@@ -54,7 +54,7 @@ public class VariableMapperTask extends MapperTask {
          * execution environment is available, and hence we know how
          * many of them there will be. */
         String numLabel = "N";
-        InputTableParameter inParam = getInputParameter( numLabel );
+        InputTableParameter inParam = createInputParameter( numLabel );
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam );
         FilterParameter filterParam;
@@ -104,7 +104,7 @@ public class VariableMapperTask extends MapperTask {
         InputTableSpec[] inSpecs = new InputTableSpec[ nin ];
         for ( int i = 0; i < nin; i++ ) {
             String label = String.valueOf( i + 1 );
-            InputTableParameter inParam = getInputParameter( label );
+            InputTableParameter inParam = createInputParameter( label );
             StarTable table = inParam.tableValue( env );
             String tName = inParam.stringValue( env );
             ProcessingStep[] steps =
@@ -121,7 +121,7 @@ public class VariableMapperTask extends MapperTask {
      * @param  label  input identifier - typically "1", "2", etc
      * @return  new input parameter
      */
-    private static InputTableParameter getInputParameter( String label ) {
+    private static InputTableParameter createInputParameter( String label ) {
         InputTableParameter inParam = new InputTableParameter( "in" + label );
         inParam.setUsage( "<table" + label + ">" );
         inParam.setPrompt( "Location of input table " + label );
