@@ -3206,6 +3206,61 @@ and eliminating some or all rows which form part of a match group.
 
 <p>Here are some examples of using <code>tmatch1</code>
 <dl>
+
+<dt><verbatim>
+stilts tmatch1 matcher=sky values="RA2000 DE2000" params=20 \
+               action=keep0 in=crowded.vot out=sparse.vot
+</verbatim></dt>
+<dd><p>Copies an input catalogue "crowded.vot" to an output catalogue
+    "sparse.vot", but omitting any objects (rows) which are within 20 arcsec
+    of other objects.  The output catalogue will contain no near neighbours.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmatch1 matcher=skyerr values="RA2000 DE2000 RADIUS*4" params=100 \
+               action=keep0 in=crowded.vot out=sparse.vot
+</verbatim></dt>
+<dd><p>This is similar to the previous example, but uses the 
+    <code>skyerr</code> matcher which determines the proximity threshold
+    on a row-by-row basis from values in the table - in this case 4 times
+    the value of the RADIUS column (this value must be in arc seconds). 
+    It is still necessary to specify <code>params=60</code>, but here it
+    just gives an upper limit for 4*RADIUS for all rows - this value is
+    required by the algorithm, and should not be too large for performance
+    reasons, but as long as it's set high enough it will 
+    not affect the result.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmatch1 matcher=3d values="XPIX YPIX ZPIX" params=10 action=identify \
+               in=state.fit ocmd='select GroupSize&gt;3' out=groups3+.fit
+</verbatim></dt>
+<dd><p>Uses the "3d" matcher to identify groups of objects
+    in terms of their proximity in a 3-dimensional Cartesian space,
+    with positions given by the XPIX, YPIX and ZPIX columns in the input table.
+    The <code>action=identify</code> parameter means that the input table
+    is written out with the same rows, but with additional columns indicating
+    which rows are associated with each other.  One of these columns,
+    "GroupSize" gives the number of objects in each group.  
+    The postprocessing filter <code>ocmd='select GroupSize&gt;3'</code>
+    selects only those rows which are part of groups of three objects or
+    larger; singletons and pairs are discarded before writing the output file.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmatch1 matcher=sky values="ra dec" params=3 action=wide2 \
+               ocmd='keepcols "id_1 ra_1 dec_1 id_2 ra_2 dec_2"'
+               in=galaxy.fits out=binaries.txt ofmt=ascii
+</verbatim></dt>
+<dd><p>Identifies pairs of objects within 3 arcsec of each other from an
+    input catalogue.  Singles, and groups of three or more, will be 
+    discarded.  The output table generated is a double-width version of
+    the input table with pairs of objects next to each other on the same row.
+    Here, the <code>ocmd</code> post-processing filter discards all of the
+    columns except the identifiers and sky positions for each object.
+    The output is to a text file.
+    </p></dd>
+
 </dl>
 </p>
 
