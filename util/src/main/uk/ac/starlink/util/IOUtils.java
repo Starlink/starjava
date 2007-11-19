@@ -42,12 +42,29 @@ public class IOUtils {
         }
 
         /* Try to skip. */ 
+        boolean hasSkipped = false;
         while ( nskip > 0L ) {
 
             /* Attempt to skip a chunk. */
-            int iskip = 
-                strm.skipBytes( (int) Math.min( nskip, 
-                                                (long) Integer.MAX_VALUE ) );
+            int jskip = (int) Math.min( nskip, (long) Integer.MAX_VALUE );
+            int iskip;
+            try {
+                iskip = strm.skipBytes( jskip );
+                hasSkipped = true;
+            }
+
+            /* Annoyingly, skipBytes can throw an "Illegal Seek" exception if
+             * the underlying stream does not support seek (e.g. stdin on
+             * Linux).  This behaviour has not always been documented in
+             * the InputStream javadocs (see Sun bug ID 6222822). 
+             * If it looks like we've tripped over this here, log a suggested
+             * explanation. */
+            catch ( IOException e ) {
+                if ( ! hasSkipped && ! ( e instanceof EOFException ) ) {
+                    logger_.warning( "Input stream does not support seeks??" );
+                }
+                throw e;
+            }
 
             /* If no bytes were skipped, attempt to read a byte.  This will
              * either advance 1, or throw an EOFException. */
@@ -84,10 +101,28 @@ public class IOUtils {
 
         /* Try to skip up the the last byte. */
         long nskip1 = nskip - 1;
+        boolean hasSkipped = false;
         while ( nskip1 > 0L ) {
 
             /* Attempt to skip a chunk. */
-            long iskip = strm.skip( nskip1 );
+            long iskip;
+            try {
+                iskip = strm.skip( nskip1 );
+                hasSkipped = true;
+            }
+
+            /* Annoyingly, skip can throw an "Illegal Seek" exception if
+             * the underlying stream does not support seek (e.g. stdin on
+             * Linux).  This behaviour has not always been documented in
+             * the InputStream javadocs (see Sun bug ID 6222822). 
+             * If it looks like we've tripped over this here, log a suggested
+             * explanation. */
+            catch ( IOException e ) {
+                if ( ! hasSkipped && ! ( e instanceof EOFException ) ) {
+                    logger_.warning( "Input stream does not support seeks??" );
+                }
+                throw e;
+            }
 
             /* If no bytes were skipped, attempt to read a byte. */
             if ( iskip == 0 ) {
