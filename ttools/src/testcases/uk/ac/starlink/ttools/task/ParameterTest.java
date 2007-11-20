@@ -22,7 +22,7 @@ public class ParameterTest extends TestCase {
 
     private Collection noDefaults = new HashSet( Arrays.asList( new String[] {
         "protocol", "database", "newtable",
-        "matcher", "values", "values1", "values2", "params",
+        "matcher", "values", "values1", "values2", "valuesN", "params",
         "in", "in1", "in2", "nin", "inN",
         "expression",
         "cols", "binsizes",
