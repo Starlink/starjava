@@ -131,4 +131,14 @@ public class ChoiceParameter extends Parameter {
     public String[] getOptionNames() {
         return (String[]) nameList_.toArray( new String[ 0 ] );
     }
+
+    /** 
+     * Returns an array of the option objects which may form the
+     * values of this parameter.
+     *
+     * @return   permitted options
+     */
+    public Object[] getOptions() {
+        return optionList_.toArray( new Object[ 0 ] );
+    }
 }
