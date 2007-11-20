@@ -426,7 +426,7 @@ public class LineInvoker {
                 Parameter[] params = task.getParameters();
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
-                    if ( helpFor.equals( param.getName() ) ) {
+                    if ( helpFor.equalsIgnoreCase( param.getName() ) ) {
                         return getParamHelp( env, taskName, param );
                     }
                 }
