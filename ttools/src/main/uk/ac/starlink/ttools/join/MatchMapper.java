@@ -18,6 +18,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.JELTable;
 import uk.ac.starlink.ttools.task.InputTableSpec;
+import uk.ac.starlink.ttools.task.JoinFixActionParameter;
 import uk.ac.starlink.ttools.task.TableMapper;
 import uk.ac.starlink.ttools.task.TableMapping;
 import uk.ac.starlink.ttools.task.WordsParameter;
@@ -31,6 +32,7 @@ import uk.ac.starlink.ttools.task.WordsParameter;
 public class MatchMapper implements TableMapper {
 
     private final MatchEngineParameter matcherParam_;
+    private final JoinFixActionParameter fixcolsParam_;
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
@@ -40,6 +42,7 @@ public class MatchMapper implements TableMapper {
      */
     public MatchMapper() {
         matcherParam_ = new MatchEngineParameter( "matcher" );
+        fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
     }
 
     public Parameter[] getParameters() {
@@ -48,6 +51,8 @@ public class MatchMapper implements TableMapper {
             matcherParam_.getMatchParametersParameter(),
             matcherParam_.createMatchTupleParameter( "N" ),
             new UseAllParameter( "N" ),
+            fixcolsParam_,
+            fixcolsParam_.createSuffixParameter( "N" ),
         };
     }
 
@@ -64,8 +69,7 @@ public class MatchMapper implements TableMapper {
                 matcherParam_.createMatchTupleParameter( numLabel );
             MatchEngineParameter.configureTupleParameter( tupleParam, matcher );
             exprTuples[ i ] = tupleParam.wordsValue( env );
-            fixActs[ i ] =
-                JoinFixAction.makeRenameDuplicatesAction( "_" + numLabel );
+            fixActs[ i ] = fixcolsParam_.getJoinFixAction( env, numLabel );
             useAlls[ i ] =
                 new UseAllParameter( numLabel ).useAllValue( env );
         }
