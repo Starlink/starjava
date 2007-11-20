@@ -200,7 +200,16 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             if ( i > 0 ) {
                 sbuf.append( ' ' );
             }
-            sbuf.append( tinfos[ i ].getName() );
+            sbuf.append( tinfos[ i ].getName().replaceAll( " ", "_" ) );
+            String units = tinfos[ i ].getUnitString();
+            if ( units != null && units.trim().length() > 0 ) {
+                if ( units.equalsIgnoreCase( "degree" ) ||
+                     units.equalsIgnoreCase( "degrees" ) ) {
+                    units = "deg";
+                }
+                sbuf.append( '/' )
+                    .append( units );
+            }
         }
         sbuf.append( ")" );
         String prompt = sbuf.toString();
