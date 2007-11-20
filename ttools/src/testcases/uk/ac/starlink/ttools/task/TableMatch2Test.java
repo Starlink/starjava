@@ -139,12 +139,13 @@ public class TableMatch2Test extends TableTestCase {
                             .setValue( "values2", "X Y" )
                             .setValue( "params", Double.toString( err ) )
                             .setValue( "join", join )
-                            .setValue( "find", find );
+                            .setValue( "find", find )
+                            .setValue( "fixcols", "dups" );
         if ( duptag1 != null ) {
-            env.setValue( "duptag1", duptag1 );
+            env.setValue( "suffix1", duptag1 );
         }
         if ( duptag2 != null ) {
-            env.setValue( "duptag2", duptag2 );
+            env.setValue( "suffix2", duptag2 );
         }
         new TableMatch2().createExecutable( env ).execute();
         StarTable result = env.getOutputTable( "omode" );

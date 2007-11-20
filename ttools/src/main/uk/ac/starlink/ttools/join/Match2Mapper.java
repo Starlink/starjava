@@ -13,6 +13,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.task.InputTableSpec;
+import uk.ac.starlink.ttools.task.JoinFixActionParameter;
 import uk.ac.starlink.ttools.task.TableMapper;
 import uk.ac.starlink.ttools.task.TableMapping;
 import uk.ac.starlink.ttools.task.WordsParameter;
@@ -29,40 +30,18 @@ public class Match2Mapper implements TableMapper {
     private final WordsParameter[] tupleParams_;
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
-    private final Parameter[] duptagParams_;
+    private final JoinFixActionParameter fixcolParam_;
 
     /**
      * Constructor.
      */
     public Match2Mapper() {
-
         matcherParam_ = new MatchEngineParameter( "matcher" );
-
         tupleParams_ = new WordsParameter[] {
             matcherParam_.createMatchTupleParameter( "1" ),
             matcherParam_.createMatchTupleParameter( "2" ),
         };
-
-        duptagParams_ = new Parameter[ 2 ];
-        for ( int i = 0; i < 2; i++ ) {
-            int i1 = i + 1;
-            duptagParams_[ i ] = new Parameter( "duptag" + i1 );
-            duptagParams_[ i ].setUsage( "<trail-string>" );
-            duptagParams_[ i ].setPrompt( "Column deduplication string " +
-                                          "for table " + i1 );
-            duptagParams_[ i ].setDefault( "_" + i1 );
-            duptagParams_[ i ].setNullPermitted( true );
-            duptagParams_[ i ].setDescription( new String[] {
-                "<p>If the same column name appears in both of the input",
-                "tables, those columns are renamed in the output table",
-                "to avoid ambiguity.",
-                "The output column name of such a duplicated column",
-                "is formed by appending the value of this parameter",
-                "to its name in the input table.",
-                "</p>",
-            } );
-        }
-
+        fixcolParam_ = new JoinFixActionParameter( "fixcols" );
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
     }
@@ -75,8 +54,9 @@ public class Match2Mapper implements TableMapper {
             matcherParam_.getMatchParametersParameter(),
             joinParam_,
             modeParam_,
-            duptagParams_[ 0 ],
-            duptagParams_[ 1 ],
+            fixcolParam_,
+            fixcolParam_.createSuffixParameter( "1" ),
+            fixcolParam_.createSuffixParameter( "2" ),
         };
     }
 
@@ -98,14 +78,7 @@ public class Match2Mapper implements TableMapper {
         /* Get other parameter values. */
         JoinType join = joinParam_.joinTypeValue( env );
         boolean bestOnly = modeParam_.bestOnlyValue( env );
-        JoinFixAction[] fixacts = new JoinFixAction[ 2 ];
-        for ( int i = 0; i < 2; i++ ) {
-            String duptag = duptagParams_[ i ].stringValue( env );
-            fixacts[ i ] = ( duptag == null || duptag.trim().length() == 0 )
-                ? JoinFixAction.NO_ACTION
-                : JoinFixAction.makeRenameDuplicatesAction( duptag,
-                                                            false, true );
-        }
+        JoinFixAction[] fixacts = fixcolParam_.getJoinFixActions( env, 2 );
         PrintStream logStrm = env.getErrorStream();
 
         /* Construct and return a mapping based on this lot. */
