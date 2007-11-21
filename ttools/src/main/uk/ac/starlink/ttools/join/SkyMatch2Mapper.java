@@ -1,9 +1,13 @@
 package uk.ac.starlink.ttools.join;
 
+import java.io.PrintStream;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.join.HEALPixMatchEngine;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.NullProgressIndicator;
+import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
@@ -115,8 +119,12 @@ public class SkyMatch2Mapper implements TableMapper {
             JoinFixAction.makeRenameDuplicatesAction( "_1", false, true );
         JoinFixAction fixact2 =
             JoinFixAction.makeRenameDuplicatesAction( "_2", false, true );
+        PrintStream err = env.getErrorStream();
+        ProgressIndicator progger =
+            err == null ? (ProgressIndicator) new NullProgressIndicator()
+                        : (ProgressIndicator) new TextProgressIndicator( err );
         return new SkyMatch2Mapping( new HEALPixMatchEngine( error, false ),
                                      ra1, dec1, ra2, dec2, join, bestOnly,
-                                     fixact1, fixact2, env.getErrorStream() );
+                                     fixact1, fixact2, progger );
     }
 }

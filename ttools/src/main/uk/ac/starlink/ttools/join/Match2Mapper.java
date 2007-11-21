@@ -4,8 +4,9 @@ import gnu.jel.CompilationException;
 import java.io.PrintStream;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.JoinType;
+import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -31,6 +32,7 @@ public class Match2Mapper implements TableMapper {
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
     private final JoinFixActionParameter fixcolParam_;
+    private final ProgressIndicatorParameter progressParam_;
 
     /**
      * Constructor.
@@ -44,6 +46,7 @@ public class Match2Mapper implements TableMapper {
         fixcolParam_ = new JoinFixActionParameter( "fixcols" );
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
+        progressParam_ = new ProgressIndicatorParameter( "progress" );
     }
 
     public Parameter[] getParameters() {
@@ -57,6 +60,7 @@ public class Match2Mapper implements TableMapper {
             fixcolParam_,
             fixcolParam_.createSuffixParameter( "1" ),
             fixcolParam_.createSuffixParameter( "2" ),
+            progressParam_,
         };
     }
 
@@ -79,11 +83,13 @@ public class Match2Mapper implements TableMapper {
         JoinType join = joinParam_.joinTypeValue( env );
         boolean bestOnly = modeParam_.bestOnlyValue( env );
         JoinFixAction[] fixacts = fixcolParam_.getJoinFixActions( env, 2 );
+        ProgressIndicator progger =
+            progressParam_.progressIndicatorValue( env );
         PrintStream logStrm = env.getErrorStream();
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
                                   join, bestOnly,
-                                  fixacts[ 0 ], fixacts[ 1 ], logStrm );
+                                  fixacts[ 0 ], fixacts[ 1 ], progger );
     }
 }

@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.join;
 
-import java.io.PrintStream;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -8,6 +7,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.join.JoinType;
+import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.SkyMatchEngine;
 import uk.ac.starlink.task.ExecutionException;
 
@@ -57,18 +57,18 @@ public class SkyMatch2Mapping extends Match2Mapping {
      * @param   bestOnly   whether only the best match is to be retained
      * @param   fixact1    deduplication fix action for first input table
      * @param   fixact2    deduplication fix action for second input table
-     * @param   logStrm    print stream for logging output
+     * @param   progger    progress indicator for match process
      */
     public SkyMatch2Mapping( SkyMatchEngine matcher, 
                              String raExpr1, String decExpr1,
                              String raExpr2, String decExpr2,
                              JoinType join, boolean bestOnly,
                              JoinFixAction fixact1, JoinFixAction fixact2,
-                             PrintStream logStrm ) {
+                             ProgressIndicator progger ) {
         super( new HumanMatchEngine( matcher ),
                new String[] { raExpr1, decExpr1, }, 
                new String[] { raExpr2, decExpr2, }, join, bestOnly,
-               fixact1, fixact2, logStrm );
+               fixact1, fixact2, progger );
     }
 
     protected StarTable makeSubTable( StarTable inTable, String[] exprTuple )

@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.join;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -9,8 +8,8 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.Match1Type;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowMatcher;
-import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.JELTable;
@@ -28,7 +27,7 @@ public class Match1Mapping implements SingleTableMapping {
     private final MatchEngine matchEngine_;
     private final Match1Type type1_;
     private final String[] tupleExprs_;
-    private final PrintStream logStrm_;
+    private final ProgressIndicator progger_;
     private final static Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
@@ -41,14 +40,14 @@ public class Match1Mapping implements SingleTableMapping {
      * @param   tupleExprs  array of JEL expressions to execute in the context
      *                      of the input table, one for each element of
      *                      the matchEngine's tuple
-     * @param   logStrm   output stream for progress logging messages
+     * @param   progger   progress indicator
      */
     public Match1Mapping( MatchEngine matchEngine, Match1Type type1,
-                          String[] tupleExprs, PrintStream logStrm ) {
+                          String[] tupleExprs, ProgressIndicator progger ) {
         matchEngine_ = matchEngine;
         type1_ = type1;
         tupleExprs_ = (String[]) tupleExprs.clone();
-        logStrm_ = logStrm;
+        progger_ = progger;
     }
 
     /**
@@ -76,7 +75,7 @@ public class Match1Mapping implements SingleTableMapping {
         /* Do the matching. */
         RowMatcher matcher =
             new RowMatcher( matchEngine_, new StarTable[] { subTable } );
-        matcher.setIndicator( new TextProgressIndicator( logStrm_ ) );
+        matcher.setIndicator( progger_ );
         LinkSet matches; 
         try {
             matches = matcher.findInternalMatches( false );

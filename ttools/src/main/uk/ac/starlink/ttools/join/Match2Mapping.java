@@ -11,8 +11,8 @@ import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
+import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowMatcher;
-import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.JELTable;
@@ -33,7 +33,7 @@ public class Match2Mapping implements TableMapping {
     final MatchEngine matchEngine_;
     final boolean bestOnly_;
     final JoinType join_;
-    final PrintStream logStrm_;
+    final ProgressIndicator progger_;
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -54,19 +54,19 @@ public class Match2Mapping implements TableMapping {
      * @param   bestOnly   whether only the best match is to be retained
      * @param   fixact1    deduplication fix action for first input table
      * @param   fixact2    deduplication fix action for second input table
-     * @param   logStrm    print stream for logging output
+     * @param   progger    progress indicator for matching
      */
     Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
                    String[] exprTuple2, JoinType join,
                    boolean bestOnly, JoinFixAction fixact1, 
-                   JoinFixAction fixact2, PrintStream logStrm ) {
+                   JoinFixAction fixact2, ProgressIndicator progger ) {
         matchEngine_ = matchEngine;
         exprTuple1_ = exprTuple1;
         exprTuple2_ = exprTuple2;
         join_ = join;
         bestOnly_ = bestOnly;
         fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
-        logStrm_ = logStrm;
+        progger_ = progger;
     }
 
     public StarTable mapTables( InputTableSpec[] inSpecs )
@@ -92,7 +92,7 @@ public class Match2Mapping implements TableMapping {
         RowMatcher matcher =
             new RowMatcher( matchEngine_,
                             new StarTable[] { subTable1, subTable2 } );
-        matcher.setIndicator( new TextProgressIndicator( logStrm_ ) );
+        matcher.setIndicator( progger_ );
         LinkSet matches;
         try {
             matches = matcher.findPairMatches( bestOnly_ );

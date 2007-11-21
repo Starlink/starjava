@@ -8,11 +8,13 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.Match1Type;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.join.Match1Mapping;
 import uk.ac.starlink.ttools.join.Match1TypeParameter;
 import uk.ac.starlink.ttools.join.MatchEngineParameter;
+import uk.ac.starlink.ttools.join.ProgressIndicatorParameter;
 
 /**
  * Performs an internal (single-table) crossmatch.
@@ -25,6 +27,7 @@ public class TableMatch1 extends SingleMapperTask {
     private final MatchEngineParameter matcherParam_;
     private final WordsParameter tupleParam_;
     private final Match1TypeParameter type1Param_;
+    private final ProgressIndicatorParameter progressParam_;
 
     /**
      * Constructor.
@@ -44,6 +47,9 @@ public class TableMatch1 extends SingleMapperTask {
         type1Param_ = new Match1TypeParameter( "action" );
         paramList.add( type1Param_ );
 
+        progressParam_ = new ProgressIndicatorParameter( "progress" );
+        paramList.add( progressParam_ );
+
         getParameterList().addAll( 0, paramList );
     }
 
@@ -58,12 +64,13 @@ public class TableMatch1 extends SingleMapperTask {
         /* Get the matching type. */
         Match1Type type1 = type1Param_.typeValue( env );
 
-        /* Get the logging stream. */
-        PrintStream logStrm = env.getErrorStream();
+        /* Get the progress indicator. */
+        ProgressIndicator progger =
+            progressParam_.progressIndicatorValue( env );
 
         /* Construct and return a table producer which will do the work. */
         final SingleTableMapping mapping = 
-            new Match1Mapping( matcher, type1, tupleExprs, logStrm );
+            new Match1Mapping( matcher, type1, tupleExprs, progger );
         final TableProducer inProd = createInputProducer( env );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
