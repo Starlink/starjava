@@ -3289,6 +3289,12 @@ a fixed maximum separation, you may find the
 <ref id="tskymatch2"><code>tskymatch2</code></ref> command easier to use.
 </p>
 
+<p><strong>Note:</strong> the <code>duptag1</code> and <code>duptag2</code>
+parameters have been replaced at version 1.4 by 
+<code>suffix1</code> and <code>suffix2</code>
+for consistency with other table join tasks.
+</p>
+
 &tmatch2-summary;
 
 <subsubsect>
@@ -3338,9 +3344,9 @@ stilts tmatch2 survey.fits ifmt2=csv mycat.csv \
     </p></dd>
 
 <dt><verbatim>
-stilts tmatch2 ifmt1=ascii ifmt2=ascii int1=cat-a.txt in2=cat-b.txt \
+stilts tmatch2 ifmt1=ascii ifmt2=ascii in1=cat-a.txt in2=cat-b.txt \
                matcher=2d values1='X Y' values2='X Y' params=5 join=1and2 \
-               duptag1=_a duptag2=_b \
+               suffix1=_a suffix2=_b \
                ocmd='addcol XDIFF X_a-X_b; addcol YDIFF Y_a-Y_b' \
                ocmd'keepcols "XDIFF YDIFF"' omode=stats
 </verbatim></dt>
@@ -3349,7 +3355,7 @@ stilts tmatch2 ifmt1=ascii ifmt2=ascii int1=cat-a.txt in2=cat-b.txt \
     each other in some Cartesian space.
     The result of the matching operation is a table of all the matched rows,
     containing columns named X_a, Y_a, X_b and Y_b (along with any others
-    in the input tables) - the <code>duptag*</code> parameters describe 
+    in the input tables) - the <code>suffix*</code> parameters describe 
     how the input X and Y columns are to be renamed to avoid duplicate
     column names in the output table.
     To this result are added two new columns, 
@@ -4702,6 +4708,11 @@ but my thanks are especially due to the following:
         These are now split up into strings by counting characters rather
         than using whitespace delimiters.
         I <em>think</em> it's doing the right thing now.</li>
+    <li>Removed <code>duptag1</code> and <code>duptag2</code> parameters
+        from task <code>tmatch2</code>. 
+        Replaced by <code>suffix1</code> and <code>suffix2</code> parameters
+        for consistency with other table join tasks.</li>
+    <li>Added <code>progress</code> parameter to matching tasks.</li>
     </ul>
     </p></dd>
 
