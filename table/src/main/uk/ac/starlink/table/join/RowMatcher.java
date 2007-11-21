@@ -506,7 +506,7 @@ public class RowMatcher {
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
      */
-    public LinkSet getPossibleInterLinks( int index1, int index2 )
+    private LinkSet getPossibleInterLinks( int index1, int index2 )
             throws IOException, InterruptedException {
         int ncol = tables[ index1 ].getColumnCount();
         if ( tables[ index2 ].getColumnCount() != ncol ) {
@@ -536,12 +536,12 @@ public class RowMatcher {
                 Comparable[] max2 = bounds2[ 1 ];
                 for ( int i = 0; i < ncol; i++ ) {
                     if ( min1[ i ] != null && min2[ i ] != null ) {
-                        min[ i ] = min1[ i ].compareTo( min2[ i ] ) > 0 
+                        min[ i ] = compare( min1[ i ], min2[ i ] ) > 0 
                                  ? min1[ i ]
                                  : min2[ i ];
                     }
                     if ( max1[ i ] != null && max2[ i ] != null ) {
-                        max[ i ] = max1[ i ].compareTo( max2[ i ] ) < 0
+                        max[ i ] = compare( max1[ i ], max2[ i ] ) < 0
                                  ? max1[ i ]
                                  : max2[ i ];
                     }
@@ -553,11 +553,11 @@ public class RowMatcher {
                 nIncludedRows2 = countInRange( index2, min, max );
             }
 
-            /* The Comparable.compareTo() method which is used heavily in
-             * the above processing will result if some of the columns are
-             * comparable, but not mutually comparable (e.g. different 
-             * Number classes like Float and Double).  In this case catch
-             * the error, forget about trying to locate max/mins, and move on.
+            /* The compare() method used in the above processing could
+             * result in ClassCastExceptions if some of the columns 
+             * are comparable, but not mutually comparable.
+             * This is not very likely, but in that case catch the error,
+             * forget about trying to locate max/mins, and move on.
              * This will only impact efficiency, not correctness. */ 
             catch ( ClassCastException e ) {
                 indicator.logMessage( "Common region location failed " +
@@ -1100,11 +1100,11 @@ public class RowMatcher {
                              ! Tables.isBlank( cell ) ) {
                             Comparable val = (Comparable) cell;
                             if ( mins[ icol ] == null || 
-                                 mins[ icol ].compareTo( val ) > 0 ) {
+                                 compare( mins[ icol ], val ) > 0 ) {
                                 mins[ icol ] = val;
                             }
                             if ( maxs[ icol ] == null ||
-                                 maxs[ icol ].compareTo( val ) < 0 ) {
+                                 compare( maxs[ icol ], val ) < 0 ) {
                                 maxs[ icol ] = val;
                             }
                         }
@@ -1114,12 +1114,30 @@ public class RowMatcher {
         }
 
         /* It's possible, though not particularly likely, that a 
-         * compareTo invocation can result in a ClassCastException 
+         * compare invocation can result in a ClassCastException 
          * (e.g. comparing an Integer to a Double).  Such ClassCastExceptions
          * should get caught higher up, but we need to make sure the
          * row sequence is closed or the logging will get in a twist. */
         finally {
             rseq.close();
+        }
+
+        /* Deal sensibly with funny numbers. */
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            if ( mins[ icol ] instanceof Number ) {
+                double min = ((Number) mins[ icol ]).doubleValue();
+                assert ! Double.isNaN( min );
+                if ( Double.isInfinite( min ) ) {
+                    mins[ icol ] = null;
+                }
+            }
+            if ( maxs[ icol ] instanceof Number ) {
+                double max = ((Number) maxs[ icol ]).doubleValue();
+                assert ! Double.isNaN( max );
+                if ( Double.isInfinite( max ) ) {
+                    maxs[ icol ] = null;
+                }
+            }
         }
 
         /* Report and return. */
@@ -1158,8 +1176,8 @@ public class RowMatcher {
             for ( int i = 0; i < ncol; i++ ) {
                 if ( row[ i ] instanceof Comparable ) {
                     Comparable val = (Comparable) row[ i ];
-                    if ( min[ i ] != null && val.compareTo( min[ i ] ) < 0 ||
-                         max[ i ] != null && val.compareTo( max[ i ] ) > 0 ) {
+                    if ( min[ i ] != null && compare( val, min[ i ] ) < 0 ||
+                         max[ i ] != null && compare( val, max[ i ] ) > 0 ) {
                         return false;
                     }
                 }
@@ -1257,7 +1275,34 @@ public class RowMatcher {
      * Turns a <tt>long</tt> into an <tt>int</tt>, throwing an unchecked
      * exception if it can't be done.
      */
-    private int checkedLongToInt( long lval ) {
+    private static int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
+    }
+
+    /**
+     * Compares <code>Comparable</code>s.  Slightly smarter than 
+     * {@link java.lang.Comparable#compareTo}, since it can compare
+     * different number types (such as Float and Double) with each other
+     * without throwing a ClassCastException.
+     *
+     * @param   o1  first object
+     * @param   o2  second object
+     * @return   <code>o1.compareTo(o2)</code> or similar
+     * @throws  ClassCastException  if <code>o1</code> and <code>o2</code>
+     *                              are not mutually comparable
+     */
+    private static int compare( Comparable o1, Comparable o2 ) {
+        try {
+            return o1.compareTo( o2 );
+        }
+        catch ( ClassCastException e ) {
+            if ( o1 instanceof Number && o2 instanceof Number ) {
+                return Double.compare( ((Number) o1).doubleValue(),
+                                       ((Number) o2).doubleValue() );
+            }
+            else {
+                throw e;
+            }
+        }
     }
 }
