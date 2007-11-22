@@ -102,6 +102,17 @@ public class RangeTest extends TestCase {
             new Range( n2( 10, 100 ), n2( 20, 110 ) ),
             Range.intersection( new Range( n2( 0, 90 ), n2( 20, 110 ) ),
                                 new Range( n2( 10, 100 ), n2( 30, 120 ) ) ) );
+
+        assertNull(
+            Range.intersection( new Range( n2( 10, 20 ), n2( 12, 22 ) ),
+                                new Range( n2( 110, 120 ), n2( 112, 122 ) ) ) );
+        assertNull(
+            Range.intersection( new Range( n2( 10, 20 ), n2( 12, 22 ) ),
+                                new Range( n2( 110, 20 ), n2( 112, 22 ) ) ) );
+        assertNull(
+            Range.intersection( new Range( n2( 10, NULL ), n2( 12, NULL ) ),
+                                new Range( n2( 110, NULL ),
+                                           n2( 112, NULL ) ) ) );
     }
 
     private static Comparable n( float val ) {
