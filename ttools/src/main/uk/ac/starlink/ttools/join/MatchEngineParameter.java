@@ -278,7 +278,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                     throw new UsageException( "Value " + words[ i ]
                                             + " not suitable "
                                             + "for matching parameter "
-                                            + params[ i ].getInfo() );
+                                            + params[ i ].getInfo(), e );
                 }
             }
         }
