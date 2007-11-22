@@ -201,19 +201,47 @@ public class SkyMatchTest extends TableTestCase {
     }
 
     private int countMatches( double tol ) throws Exception {
-        MapEnvironment env = new MapEnvironment()
+
+        /* Do physically the same sky match using three different match engines.
+         * This is a good test because the implementations are quite different,
+         * especially sky and sky3d, which are using geometrically quite
+         * different criteria. */
+        MapEnvironment tskyEnv = new MapEnvironment()
            .setValue( "params", Double.toString( tol ) )
            .setValue( "matcher", "sky" );
-        StarTable tResult = tmatch2( env, t1, "ra1 dec1", t2, "ra2 dec2" );
+        StarTable tskyResult =
+            tmatch2( tskyEnv, t1, "ra1 dec1", t2, "ra2 dec2" );
+
+        MapEnvironment thtmEnv = new MapEnvironment()
+           .setValue( "params", Double.toString( tol ) )
+           .setValue( "matcher", "htm" );
+        StarTable thtmResult =
+            tmatch2( thtmEnv, t1, "ra1 dec1", t2, "ra2 dec2" );
+
+        MapEnvironment tsky3dEnv = new MapEnvironment()
+           .setValue( "params", Double.toString( tol * Coords.ARC_SECOND ) )
+           .setValue( "matcher", "sky3d" );
+        StarTable tsky3dResult =
+            tmatch2( tsky3dEnv, t1, "ra1 dec1 1", t2, "ra2 dec2 1" );
+
         StarTable skyResult =
             skymatch2( new MapEnvironment(), t1, "ra1", "dec1",
                                              t2, "ra2", "dec2", tol );
-        assertSameData( tResult, skyResult );
 
-        RowSequence rseq = tResult.getRowSequence();
+        assertSameData( tskyResult, skyResult );
+        assertSameData( tskyResult, thtmResult );
 
-        assertEquals( "ID_1", tResult.getColumnInfo( 0 ).getName() );
-        assertEquals( "ID_2", tResult.getColumnInfo( 4 ).getName() );
+        // Sky3d matcher output will be different since the separation column
+        // is not the same.  It will have the same number of rows and columns
+        // though.
+        assertEquals( tskyResult.getColumnCount(),
+                      tsky3dResult.getColumnCount() );
+        assertEquals( tskyResult.getRowCount(), tsky3dResult.getRowCount() );
+
+        RowSequence rseq = tskyResult.getRowSequence();
+
+        assertEquals( "ID_1", tskyResult.getColumnInfo( 0 ).getName() );
+        assertEquals( "ID_2", tskyResult.getColumnInfo( 4 ).getName() );
         boolean[] got = new boolean[ NROW ];
         while ( rseq.next() ) {
             Object[] row = rseq.getRow();
@@ -227,7 +255,7 @@ public class SkyMatchTest extends TableTestCase {
         assertTrue( ! rseq.next() );
         rseq.close();
 
-        return (int) tResult.getRowCount();
+        return (int) tskyResult.getRowCount();
     }
 
     public static StarTable createTestTable() {

@@ -9,6 +9,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.VOTableBuilder;
 
@@ -111,21 +112,39 @@ public class TableMatch1Test extends TableTestCase {
             throws Exception {
         MapEnvironment env = new MapEnvironment()
             .setValue( "in", messier_ )
-            .setValue( "matcher", "sky" )
-            .setValue( "values", "ucd$POS_EQ_RA DEC*1" )
-            .setValue( "params", Double.toString( err ) )
             .setValue( "action", action );
         if ( ocmd != null ) {
             env.setValue( "ocmd", ocmd );
         }
-        new TableMatch1().createExecutable( env ).execute();
-        StarTable result = env.getOutputTable( "omode" );
-        if ( result != null ) {
-            Tables.checkTable( result );
-        }
+
+        MapEnvironment skyEnv = new MapEnvironment( env )
+            .setValue( "matcher", "sky" )
+            .setValue( "values", "ra dec" )
+            .setValue( "params", Double.toString( err ) );
+        new TableMatch1().createExecutable( skyEnv ).execute();
+        StarTable skyResult = skyEnv.getOutputTable( "omode" );
+
+        MapEnvironment sky3dEnv = new MapEnvironment( env ) 
+            .setValue( "matcher", "sky3d" )
+            .setValue( "values", "RA DEC 1" )
+            .setValue( "params", Double.toString( err * Coords.ARC_SECOND ) );
+        new TableMatch1().createExecutable( sky3dEnv ).execute();
+        StarTable sky3dResult = sky3dEnv.getOutputTable( "omode" );
+
+        MapEnvironment htmEnv = new MapEnvironment( env )
+            .setValue( "matcher", "htm" )
+            .setValue( "values", "ucd$POS_EQ_RA DEC*1" )
+            .setValue( "params", Double.toString( err ) );
+        new TableMatch1().createExecutable( htmEnv ).execute();
+        StarTable htmResult = htmEnv.getOutputTable( "omode" );
+
+        assertSameData( skyResult, sky3dResult );
+        assertSameData( skyResult, htmResult );
+     
+        StarTable result = skyResult;
+        Tables.checkTable( result );
         result = Tables.randomTable( result );
         Tables.checkTable( result );
         return result;
     }
-
 }
