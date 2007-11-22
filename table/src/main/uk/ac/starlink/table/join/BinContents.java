@@ -99,6 +99,15 @@ public class BinContents {
     }
 
     /**
+     * Returns the number of rows currently contained in this object.
+     *
+     * @return  row count
+     */
+    public long getRowCount() {
+        return nrow_;
+    }
+
+    /**
      * Calculates a set of {@link RowLink} objects which represent all the
      * distinct groups of RowRefs associated with any of the bins,
      * and adds them to a given Set object.
@@ -139,7 +148,7 @@ public class BinContents {
             /* Remove the entry from the map as we're going along, to
              * save on memory. */
             it.remove();
-            indicator_.setLevel( il++ / nl );
+            indicator_.setLevel( ++il / nl );
         }
         assert map_.isEmpty();
         nrow_ = 0;
