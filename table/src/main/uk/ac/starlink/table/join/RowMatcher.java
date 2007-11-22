@@ -467,29 +467,14 @@ public class RowMatcher {
      */
     private LinkSet getAllPossibleLinks()
             throws IOException, InterruptedException {
+        Range range = new Range( tables[ 0 ].getColumnCount() );
         BinContents bins = new BinContents( indicator );
         long totalRows = 0;
-        long nBin = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
-            StarTable table = tables[ itab ];
-            ProgressRowSequence rseq = 
-                new ProgressRowSequence( tables[ itab ], indicator,
-                                         "Binning rows for table " + 
-                                         (itab + 1 ) );
-            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                Object[] keys = engine.getBins( rseq.getRow() );
-                int nkey = keys.length;
-                if ( nkey > 0 ) {
-                    RowRef rref = new RowRef( itab, lrow );
-                    for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                        bins.putRowInBin( keys[ ikey ], rref );
-                    }
-                }
-                nBin += nkey;
-                totalRows++;
-            }
-            rseq.close();
+            binRows( itab, range, bins, true );
+            totalRows += tables[ itab ].getRowCount();
         }
+        long nBin = bins.getRowCount();
         indicator.logMessage( "Average bin count per row: " +
                               (float) ( nBin / (double) totalRows ) );
         LinkSet links = createLinkSet();
@@ -529,11 +514,16 @@ public class RowMatcher {
             try {
                 range = Range.intersection( getRange( index1 ),
                                             getRange( index2 ) );
-                indicator.logMessage( "Potential match region: " + range );
-
-                /* Count the rows in the match region for each table. */
-                nIncludedRows1 = countInRange( index1, range );
-                nIncludedRows2 = countInRange( index2, range );
+                if ( range != null ) {
+                    indicator.logMessage( "Potential match region: " + range );
+                    nIncludedRows1 = countInRange( index1, range );
+                    nIncludedRows2 = countInRange( index2, range );
+                }
+                else {
+                    indicator.logMessage( "No region overlap"
+                                        + " - matches not possible" );
+                    return createLinkSet();
+                }
             }
 
             /* The compare() method used in the above processing could
@@ -552,92 +542,28 @@ public class RowMatcher {
             range = new Range( ncol );
         }
 
-        /* Now do the actual binning and identification of possible links.
+        /* Prepare to do the binning.
          * For efficiency, we want to do the table which will fill the 
          * smallest number of bins first (presumably the one with the
          * smallest number of rows in the match region. */
-        return nIncludedRows1 < nIncludedRows2 
-             ? getPossibleInterLinks( index1, index2, range )
-             : getPossibleInterLinks( index2, index1, range );
-    }
-        
-    /**
-     * Gets a list of all the pairs of rows which constitute possible 
-     * links between two tables.  For efficiency reasons, 
-     * the table at <tt>index1</tt> ought to be the one with fewer
-     * rows in the match region.
-     *
-     * @param   index1   index of the first table
-     * @param   index2   index of the second table
-     * @param   range    limits of region to consider for the match;
-     *                   if null no restrictions are in place
-     * @return  set of {@link RowLink} objects which constitute possible
-     *          matches
-     */
-    private LinkSet getPossibleInterLinks( int index1, int index2,
-                                           Range range )
-            throws IOException, InterruptedException {
+        final int indexA;
+        final int indexB;
+        if ( nIncludedRows1 < nIncludedRows2 ) {
+            indexA = index1;
+            indexB = index2;
+        }
+        else {
+            indexA = index2;
+            indexB = index1;
+        }
+
+        /* Now do the actual binning.  Bin all the rows in the first table,
+         * then add any entries from the second table which are in bins
+         * we have already seen.  There is no point adding entries from the
+         * second table into bins which do not appear in the first one. */
         BinContents bins = new BinContents( indicator );
-
-        /* Bin all the rows in the first (hopefully shorter) table. */
-        { // code block prevents variable leakage
-            ProgressRowSequence rseq1 = 
-                new ProgressRowSequence( tables[ index1 ], indicator,
-                                         "Binning rows for table " + 
-                                         ( index1 + 1 ) );
-            long exclude1 = 0;
-            for ( long lrow1 = 0; rseq1.nextProgress(); lrow1++ ) {
-                Object[] row = rseq1.getRow();
-                if ( range.isInside( row ) ) {
-                    Object[] keys = engine.getBins( row );
-                    int nkey = keys.length;
-                    if ( nkey > 0 ) {
-                        RowRef rref = new RowRef( index1, lrow1 );
-                        for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                            bins.putRowInBin( keys[ ikey ], rref );
-                        }
-                    }
-                }
-            }
-            rseq1.close();
-            if ( exclude1 > 0 ) {
-                indicator.logMessage( exclude1 + 
-                                      " rows excluded (out of match region)" );
-            }
-        }
-
-        /* Bin any of the rows in the second table which will go in bins
-         * we've already added from the first one.  There's no point in
-         * doing ones which haven't been filled by the first table, 
-         * since they can't result in inter-table matches. */
-        { // code block prevents variable leakage
-            ProgressRowSequence rseq2 =
-                new ProgressRowSequence( tables[ index2 ], indicator,
-                                         "Binning rows for table " + 
-                                         ( index2 + 1 ) );
-            long exclude2 = 0;
-            for ( long lrow2 = 0; rseq2.nextProgress(); lrow2++ ) {
-                Object[] row = rseq2.getRow();
-                if ( range.isInside( row ) ) {
-                    Object[] keys = engine.getBins( row );
-                    int nkey = keys.length;
-                    if ( nkey > 0 ) {
-                        RowRef rref = new RowRef( index2, lrow2 );
-                        for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                            Object key = keys[ ikey ];
-                            if ( bins.containsKey( key ) ) {
-                                bins.putRowInBin( key, rref );
-                            }
-                        }
-                    }
-                }
-            }
-            rseq2.close();
-            if ( exclude2 > 0 ) {
-                indicator.logMessage( exclude2 +
-                                      " rows excluded (out of match region)" );
-            }
-        }
+        binRows( index1, range, bins, true );
+        binRows( index2, range, bins, false );
 
         /* Return the result. */
         LinkSet links = createLinkSet();
@@ -1119,6 +1045,62 @@ public class RowMatcher {
          * region on). */
         Comparable[][] bounds = engine.getMatchBounds( mins, maxs );
         return new Range( bounds[ 0 ], bounds[ 1 ] );
+    }
+
+    /**
+     * Adds entries for the rows of a table to a given BinContents object.
+     *
+     * <p>The <code>newBins</code> parameter determines whether new bins
+     * will be started in the <code>bins</code> object.  If true, then
+     * every relevant row in the table will be binned.  If false, then
+     * only rows with entries in bins which are already present in 
+     * the <code>bins</code> object will be added and others will be ignored.
+     *
+     * @param   itab   index of table to operate on
+     * @param   range  range of row coordinates of interest - any rows outside
+     *                 this range are ignored
+     * @param   bins   bin container object to modify
+     * @param   newBins  whether new bins may be added to <code>bins</code>
+     */
+    private void binRows( int itab, Range range, BinContents bins,
+                          boolean newBins )
+            throws IOException, InterruptedException {
+        StarTable table = tables[ itab ];
+        ProgressRowSequence rseq =
+            new ProgressRowSequence( table, indicator,
+                                     "Binning rows for table " + ( itab + 1 ) );
+        long nrow = 0;
+        long nexclude = 0;
+        try {
+            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
+                Object[] row = rseq.getRow();
+                if ( range.isInside( row ) ) {
+                    Object[] keys = engine.getBins( row );
+                    int nkey = keys.length;
+                    if ( nkey > 0 ) {
+                        RowRef rref = new RowRef( itab, lrow );
+                        for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                            Object key = keys[ ikey ];
+                            if ( newBins || bins.containsKey( key ) ) {
+                                bins.putRowInBin( keys[ ikey ], rref );
+                            }
+                        }
+                    }
+                }
+                else {
+                    nexclude++;
+                }
+                nrow++;
+            }
+            assert nrow == table.getRowCount();
+        }
+        finally {
+            rseq.close();
+        }
+        if ( nexclude > 0 ) {
+            indicator.logMessage( nexclude + "/" + nrow + " rows excluded "
+                                + "(out of match region)" );
+        }
     }
 
     /**
