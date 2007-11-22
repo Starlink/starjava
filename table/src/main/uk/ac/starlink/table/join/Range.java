@@ -145,10 +145,12 @@ class Range {
 
     /**
      * Returns a new range which is the intersection of two given ones.
+     * If the intersection is empty (regions are disjoint) then null will
+     * be returned.
      *
      * @param  r1  first range
      * @param  r2  second range
-     * @return   intersection
+     * @return   non-empty intersection, or null
      */
     public static Range intersection( Range r1, Range r2 ) {
         if ( r1.ndim_ != r2.ndim_ ) {
@@ -161,6 +163,35 @@ class Range {
             for ( int i = 0; i < ndim; i++ ) {
                 mins[ i ] = max( r1.mins_[ i ], r2.mins_[ i ], false );
                 maxs[ i ] = min( r1.maxs_[ i ], r2.maxs_[ i ], false );
+            }
+            for ( int i = 0; i < ndim; i++ ) {
+                if ( mins[ i ] != null && maxs[ i ] != null &&
+                     compare( mins[ i ], maxs[ i ] ) > 0 ) {
+                    return null;
+                }
+            }
+            return new Range( mins, maxs );
+        }
+    }
+
+    /**
+     * Returns a new range which is the union of two given ones.
+     *
+     * @param  r1  first range
+     * @param  r2  second range
+     * @return  union
+     */
+    public static Range union( Range r1, Range r2 ) {
+        if ( r1.ndim_ != r2.ndim_ ) {
+            throw new IllegalArgumentException( "Dimensionality mismatch" );
+        }
+        else {
+            int ndim = r1.ndim_;
+            Comparable[] mins = new Comparable[ ndim ];
+            Comparable[] maxs = new Comparable[ ndim ];
+            for ( int i = 0; i < ndim; i++ ) {
+                mins[ i ] = min( r1.mins_[ i ], r2.mins_[ i ], true );
+                maxs[ i ] = max( r1.maxs_[ i ], r2.maxs_[ i ], true );
             }
             return new Range( mins, maxs );
         }
