@@ -26,6 +26,9 @@ public class HTMMatchEngine extends SkyMatchEngine {
 
     private HTMindexImp htm_;
 
+    /** Minimum resolution in degrees supported by HTM implementation. */
+    public static final double HTM_MIN_RESOLUTION = 2.7e-6;
+
     /**
      * Scaling factor which determines the size of the mesh cells used
      * as a multiple of the size of the separation.  It can be used as
@@ -53,13 +56,16 @@ public class HTMMatchEngine extends SkyMatchEngine {
         /* Construct an HTM index with mesh elements of a size suitable
          * for the requested resolution. */
         // assert MESH_SCALE > ??; not sure what is the maximum sensible value
+        double resolution = Math.max( Math.toDegrees( separation ) * MESH_SCALE,
+                                      HTM_MIN_RESOLUTION );
         try {
-            htm_ = new HTMindexImp( Math.toDegrees( separation ) * MESH_SCALE );
+            htm_ = new HTMindexImp( resolution );
         }
         catch ( HTMException e ) {
             throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad separation? "
-                                              + separation + " radians" )
+                  new IllegalArgumentException( "Bad resolution? "
+                                              + resolution + " degrees"
+                                              + " - shouldn't happen" )
                  .initCause( e );
         }
     }
