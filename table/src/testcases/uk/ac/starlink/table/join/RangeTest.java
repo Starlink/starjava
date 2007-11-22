@@ -90,6 +90,9 @@ public class RangeTest extends TestCase {
         assertEquals( small, Range.intersection( small, big ) );
         assertEquals( small, Range.intersection( big, small ) );
 
+        assertEquals( small, Range.intersection( small, small ) );
+        assertEquals( big, Range.intersection( big, big ) );
+
         Range small1 = new Range( n2( 10, NULL ), n2( 11, NULL ) );
         Range big1 = new Range( n2( 5, NULL ), n2( 15, NULL ) );
         assertEquals( small1, Range.intersection( small1, big1 ) );
@@ -113,6 +116,25 @@ public class RangeTest extends TestCase {
             Range.intersection( new Range( n2( 10, NULL ), n2( 12, NULL ) ),
                                 new Range( n2( 110, NULL ),
                                            n2( 112, NULL ) ) ) );
+    }
+
+    public void testUnion() {
+        Range small = new Range( n2( 10, 20 ), n2( 11, 21 ) );
+        Range big = new Range( n2( 5, 15 ), n2( 15, 25 ) );
+        assertEquals( big, Range.union( big, small ) );
+        assertEquals( big, Range.union( small, big ) );
+
+        assertEquals( small, Range.union( small, small ) );
+        assertEquals( big, Range.union( big, big ) );
+
+        Range bigger = new Range( n2( 5, NULL ), n2( 15, 25 ) );
+        assertEquals( bigger, Range.union( small, bigger ) );
+        assertEquals( bigger, Range.union( small, bigger ) );
+
+        assertEquals(
+            new Range( n2( 0, 90 ), n2( 30, 120 ) ),
+            Range.union( new Range( n2( 0, 90 ), n2( 20, 110 ) ),
+                         new Range( n2( 10, 100 ), n2( 30, 120 ) ) ) );
     }
 
     private static Comparable n( float val ) {
