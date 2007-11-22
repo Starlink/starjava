@@ -1,5 +1,7 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Arrays;
+
 /**
  * Describes a range in an N-dimensional space.
  * Each dimension may have a minimum and maximum; each of these bounds is a
@@ -36,8 +38,14 @@ class Range {
         }
         boolean isBounded = false;
         for ( int i = 0; i < ndim_; i++ ) {
-            if ( mins_[ i ] != null || maxs_[ i ] != null ) {
-                isBounded = true;
+            Comparable min = mins_[ i ];
+            Comparable max = maxs_[ i ];
+            boolean hasMin = min != null;
+            boolean hasMax = max != null;
+            isBounded = isBounded || hasMin || hasMax;
+            if ( hasMin && hasMax && compare( min, max ) > 0 ) {
+                throw new IllegalArgumentException( "Boundary limits error: " 
+                                                  + min + " > " + max );
             }
         }
         isBounded_ = isBounded;
@@ -92,6 +100,24 @@ class Range {
         else {
             return true;
         }
+    }
+
+    public boolean equals( Object o ) {
+        if ( o instanceof Range ) {
+            Range other = (Range) o;
+            return Arrays.equals( this.mins_, other.mins_ )
+                && Arrays.equals( this.maxs_, other.maxs_ );
+        }
+        else {
+            return false;
+        }
+    }
+
+    public int hashCode() {
+        int code = 23;
+        code = 37 * code + Arrays.asList( mins_ ).hashCode();
+        code = 37 * code + Arrays.asList( maxs_ ).hashCode();
+        return code;
     }
 
     /**
