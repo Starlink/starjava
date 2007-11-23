@@ -68,7 +68,7 @@ public class MatchStarTables {
      * The <code>matchScoreInfo</code> parameter is optional. 
      * If it is non-null, then an additional column, described by 
      * <code>matchScoreInfo</code>, will be added to the table containing 
-     * the <code>score</code> values from the <code>RowLink</code>s in
+     * the <code>score</code> values from any <code>RowLink2</code>s in
      * <code>links</code>.  The content class of <code>matchScoreInfo</code>
      * should be <code>Number</code> or one of its subclasses.
      * <p>
@@ -244,8 +244,8 @@ public class MatchStarTables {
 
             /* If we're scoring and there is a score associated with
              * this row, store it. */
-            if ( scores != null ) {
-                double score = link.getScore();
+            if ( scores != null && link instanceof RowLink2 ) {
+                double score = ((RowLink2) link).getScore();
                 if ( ! Double.isNaN( score ) ) {
                     scores[ iLink ] = score;
                     nScore++;

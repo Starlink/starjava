@@ -352,8 +352,8 @@ public class RowMatcher {
                  * If they match, add the new pair to the set of pairs. */
                 for ( int i = 0; i < nref; i++ ) {
                     for ( int j = 0; j < i; j++ ) {
-                        RowLink pair = new RowLink( link.getRef( i ),
-                                                    link.getRef( j ) );
+                        RowLink2 pair = new RowLink2( link.getRef( i ),
+                                                      link.getRef( j ) );
                         if ( ! pairs.containsLink( pair ) ) {
                             double score = engine.matchScore( binnedRows[ i ],
                                                               binnedRows[ j ] );
@@ -373,7 +373,8 @@ public class RowMatcher {
 
     /**
      * Identifies all the pairs of equivalent rows from a set of RowLinks
-     * between rows from two specified tables.
+     * between rows from two specified tables.  All the elements of the
+     * output set will be {@link RowLink2} objects.
      *
      * <p>The input set, <code>possibleLinks</code>, may be affected.
      *
@@ -436,7 +437,7 @@ public class RowMatcher {
                             int iTableJ = refJ.getTableIndex();
                             if ( iTableI == index1 && iTableJ == index2 ||
                                  iTableI == index2 && iTableJ == index1 ) {
-                                RowLink pair = new RowLink( refI, refJ );
+                                RowLink2 pair = new RowLink2( refI, refJ );
                                 if ( ! pairs.containsLink( pair ) ) {
                                     double score = 
                                         engine.matchScore( binnedRows[ i ],
@@ -712,14 +713,14 @@ public class RowMatcher {
      * contained in more than one pair.  If multiple pairs exist containing
      * the same RowRef, all but one (the one with the lowest score) 
      * are discarded.  
-     * <p>The links in the input set should be 
-     * 2-ref <tt>RowLink</tt>s representing a matched pair,
-     * with non-blank pair scores.
+     * <p>The links in the input set should be {@link RowLink2}s 
+     * representing a matched pair, with non-blank pair scores.
      * The pairs may only contain RowRefs with a table index of 0 or 1.
      *
      * <p>The input set, <code>pairs</code>, may be affected by this method.
      * 
-     * @param  pairs  set of {@link RowLink} objects representing matched pairs
+     * @param  pairs  set of <code>RowLink2</code> objects
+     *                representing matched pairs
      * @return  set resembling pairs but with multiple entries discarded
      */
     private LinkSet eliminateMultipleRowEntries( LinkSet pairs ) 
@@ -741,7 +742,7 @@ public class RowMatcher {
         int iPair = 0;
         indicator.startStage( "Eliminating multiple row references" );
         for ( Iterator it = inPairs.iterator(); it.hasNext(); ) {
-            RowLink pair = (RowLink) it.next();
+            RowLink2 pair = (RowLink2) it.next();
             it.remove();
             double score = pair.getScore();
             if ( pair.size() != 2 || Double.isNaN( score ) || score < 0.0 ) {
@@ -752,8 +753,8 @@ public class RowMatcher {
             if ( ref1.getTableIndex() != 0 || ref2.getTableIndex() != 1 ) {
                 throw new IllegalArgumentException();
             }
-            RowLink best1 = (RowLink) bestRowScores.get( ref1 );
-            RowLink best2 = (RowLink) bestRowScores.get( ref2 );
+            RowLink2 best1 = (RowLink2) bestRowScores.get( ref1 );
+            RowLink2 best2 = (RowLink2) bestRowScores.get( ref2 );
 
             /* If neither row in this pair has been seen before, or we
              * have a better match this time than previous appearances,
