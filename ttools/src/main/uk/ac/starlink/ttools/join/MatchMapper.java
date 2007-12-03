@@ -15,6 +15,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
+import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.JELTable;
 import uk.ac.starlink.ttools.task.InputTableSpec;
@@ -33,6 +34,11 @@ public class MatchMapper implements TableMapper {
 
     private final MatchEngineParameter matcherParam_;
     private final JoinFixActionParameter fixcolsParam_;
+    private final ChoiceParameter mmodeParam_;
+    private final IntegerParameter irefParam_;
+
+    private static final String PAIRS_MODE = "pairs";
+    private static final String GROUP_MODE = "group";
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
@@ -41,12 +47,66 @@ public class MatchMapper implements TableMapper {
      * Constructor.
      */
     public MatchMapper() {
+
+        irefParam_ = new IntegerParameter( "iref" );
+        irefParam_.setPrompt( "Index of reference table in " + PAIRS_MODE
+                            + " mode" );
+        irefParam_.setUsage( "<table-index>" );
+        irefParam_.setDefault( "1" );
+
+        mmodeParam_ =
+            new ChoiceParameter( "multimode",
+                                 new String[] { PAIRS_MODE, GROUP_MODE, } );
+        mmodeParam_.setPrompt( "Semantics of multi-table match" );
+        mmodeParam_.setDefault( PAIRS_MODE );
+
+        irefParam_.setDescription( new String[] {
+            "<p>If <code>" + mmodeParam_.getName() + "</code>"
+                           + "=<code>" + PAIRS_MODE + "</code>",
+            "this parameter gives the index of the table in the input table",
+            "list which is to serve as the reference table",
+            "(the one which must be matched by other tables).",
+            "Ignored in other modes.",
+            "</p>",
+        } );
+        mmodeParam_.setDescription( new String[] {
+            "<p>Defines what is meant by a multi-table match.",
+            "There are two possibilities:",
+            "<ul>",
+            "<li><code>" + PAIRS_MODE + "</code>:",
+            "Each output row corresponds to a single row of the",
+            "<em>reference table</em>",
+            "(see parameter <code>" + irefParam_.getName() + "</code>)",
+            "and contains entries from other tables which are pair matches",
+            "to that.",
+            "If a reference table row matches multiple rows from one of",
+            "the other tables, only the best one is included.",
+            "</li>",
+            "<li><code>" + GROUP_MODE + "</code>:",
+            "Each output row corresponds to a group of entries from the",
+            "input tables which are",
+            "mutually linked by pair matches between them.",
+            "This means that although you can get from any entry to any",
+            "other entry via one or more pair matches,",
+            "there is no guarantee that any entry",
+            "is a pair match with any other entry.",
+            "No table has privileged status in this case.",
+            "If there are multiple entries from a given table in the",
+            "match group, an arbitrary one is chosen for inclusion",
+            "(there is no unique way to select the best).",
+            "</li>",
+            "</ul>",
+            "</p>",
+        } );
+
         matcherParam_ = new MatchEngineParameter( "matcher" );
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
     }
 
     public Parameter[] getParameters() {
         return new Parameter[] {
+            mmodeParam_,
+            irefParam_,
             matcherParam_,
             matcherParam_.getMatchParametersParameter(),
             matcherParam_.createMatchTupleParameter( "N" ),
@@ -59,6 +119,16 @@ public class MatchMapper implements TableMapper {
     public TableMapping createMapping( Environment env, int nin )
             throws TaskException {
 
+        String mmode = mmodeParam_.stringValue( env );
+        final int iref;
+        if ( PAIRS_MODE.equalsIgnoreCase( mmode ) ) {
+            irefParam_.setMinimum( 1 );
+            irefParam_.setMaximum( nin );
+            iref = irefParam_.intValue( env ) - 1;
+        }
+        else {
+            iref = -1;
+        }
         MatchEngine matcher = matcherParam_.matchEngineValue( env );
         String[][] exprTuples = new String[ nin ][];
         JoinFixAction[] fixActs = new JoinFixAction[ nin ];
@@ -70,23 +140,30 @@ public class MatchMapper implements TableMapper {
             MatchEngineParameter.configureTupleParameter( tupleParam, matcher );
             exprTuples[ i ] = tupleParam.wordsValue( env );
             fixActs[ i ] = fixcolsParam_.getJoinFixAction( env, numLabel );
-            useAlls[ i ] =
-                new UseAllParameter( numLabel ).useAllValue( env );
+            useAlls[ i ] = new UseAllParameter( numLabel ).useAllValue( env );
         }
         PrintStream logStrm = env.getErrorStream();
-        return new MatchMapping( matcher, exprTuples, useAlls, fixActs,
-                                 logStrm );
+        if ( GROUP_MODE.equalsIgnoreCase( mmode ) ) {
+            return new GroupMatchMapping( matcher, exprTuples, fixActs, logStrm,
+                                          useAlls );
+        }
+        else if ( PAIRS_MODE.equalsIgnoreCase( mmode ) ) {
+            return new PairsMatchMapping( matcher, exprTuples, fixActs, logStrm,
+                                          iref, useAlls );
+        }
+        else {
+            throw new AssertionError( "Unknown multimode " + mmode + "???" );
+        }
     }
 
     /**
      * TableMapping implementation used by MatchMapper.
      */
-    private static class MatchMapping implements TableMapping {
+    private static abstract class MatchMapping implements TableMapping {
 
         private final int nin_;
         private final MatchEngine matchEngine_;
         private final String[][] exprTuples_;
-        private final boolean[] useAlls_;
         private final JoinFixAction[] fixActs_;
         private final PrintStream logStrm_;
 
@@ -96,18 +173,14 @@ public class MatchMapper implements TableMapper {
          * @param   matchEngine  match engine
          * @param   exprTuples  nin-element array of tuples of JEL 
          *          expressions for matcher inputs
-         * @param   useAlls   nin-element array of flags indicating whether
-         *                    all or only matched rows should be output
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
          * @param   logStrm   output stream for progress logging
          */
         MatchMapping( MatchEngine matchEngine, String[][] exprTuples,
-                      boolean[] useAlls, JoinFixAction[] fixActs,
-                      PrintStream logStrm ) {
+                      JoinFixAction[] fixActs, PrintStream logStrm ) {
             matchEngine_ = matchEngine;
             exprTuples_ = exprTuples;
-            useAlls_ = useAlls;
             fixActs_ = fixActs;
             logStrm_ = logStrm;
             nin_ = exprTuples_.length;
@@ -141,7 +214,7 @@ public class MatchMapper implements TableMapper {
             matcher.setIndicator( new TextProgressIndicator( logStrm_ ) );
             LinkSet matches;
             try { 
-                matches = matcher.findGroupMatches( useAlls_ );
+                matches = findMatches( matcher );
                 if ( ! matches.sort() ) {
                     logger.warning( "Implementation can't sort rows - "
                                   + "matched table rows may not be sorted" );
@@ -152,9 +225,32 @@ public class MatchMapper implements TableMapper {
             }
 
             /* Create a new table based on the matched rows. */
-            return MatchStarTables
-                  .makeJoinTable( inTables, matches, false, fixActs_, null );
+            return createJoinTable( inTables, matches, fixActs_ );
         }
+
+        /**
+         * Calculates a set of RowLinks representing the required table match.
+         * The returned set is not necessarily sorted.
+         *
+         * @param   matcher  row matcher configured for use
+         * @return  set of matched row links
+         */
+        protected abstract LinkSet findMatches( RowMatcher matcher )
+                throws IOException, InterruptedException;
+
+        /**
+         * Builds a table representing the requested join given a set of
+         * row links.  These links will already have been sorted if appropriate.
+         *
+         * @param   inTables   array of input tables
+         * @param   matches    row link set
+         * @param   fixActs    actions for fixing up duplicated table columns
+         */
+        protected abstract StarTable createJoinTable( StarTable[] inTables,
+                                                      LinkSet matches,
+                                                      JoinFixAction[] fixActs )
+                throws IOException;
+      
 
         /**
          * Creates a table containing the values which are required by the
@@ -175,6 +271,85 @@ public class MatchMapper implements TableMapper {
             return JELTable.createJELTable( inTable,
                                             matchEngine_.getTupleInfos(),
                                             exprTuple );
+        }
+    }
+
+    /**
+     * MatchMapping concrete subclass for multi-pair matches.
+     */
+    private static class PairsMatchMapping extends MatchMapping {
+
+        private final int iref_;
+        private final boolean[] useAlls_;
+
+        /**
+         * Constructor.
+         *
+         * @param   matchEngine  match engine
+         * @param   exprTuples  nin-element array of tuples of JEL 
+         *          expressions for matcher inputs
+         * @param   fixActs   nin-element array of actions for fixing up 
+         *                    duplicated table columns
+         * @param   logStrm   output stream for progress logging
+         * @param   iref      index (0-based) of reference table
+         */
+        PairsMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
+                           JoinFixAction[] fixActs, PrintStream logStrm,
+                           int iref, boolean[] useAlls ) {
+            super( matchEngine, exprTuples, fixActs, logStrm );
+            iref_ = iref;
+            useAlls_ = useAlls;
+        }
+
+        protected LinkSet findMatches( RowMatcher matcher )
+                throws IOException, InterruptedException {
+            return matcher.findMultiPairMatches( iref_, true, useAlls_ );
+        }
+
+        protected StarTable createJoinTable( StarTable[] inTables,
+                                             LinkSet matches,
+                                             JoinFixAction[] fixActs ) {
+            return MatchStarTables
+                  .makeJoinTable( inTables, matches, false, fixActs, null );
+        }
+    }
+
+    /**
+     * MatchMapping concrete subclass for group matches.
+     */
+    private static class GroupMatchMapping extends MatchMapping {
+
+        private final boolean[] useAlls_;
+
+        /**
+         * Constructor.
+         *
+         * @param   matchEngine  match engine
+         * @param   exprTuples  nin-element array of tuples of JEL 
+         *          expressions for matcher inputs
+         * @param   fixActs   nin-element array of actions for fixing up 
+         *                    duplicated table columns
+         * @param   logStrm   output stream for progress logging
+         * @param   useAlls   nin-element array of flags indicating whether
+         *                    all or only matched rows should be output
+         */
+        GroupMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
+                           JoinFixAction[] fixActs, PrintStream logStrm,
+                           boolean[] useAlls ) {
+            super( matchEngine, exprTuples, fixActs, logStrm );
+            useAlls_ = useAlls;
+        }
+
+        protected LinkSet findMatches( RowMatcher matcher )
+                throws IOException, InterruptedException {
+            return matcher.findGroupMatches( useAlls_ );
+        }
+
+        protected StarTable createJoinTable( StarTable[] inTables,
+                                             LinkSet matches,
+                                             JoinFixAction[] fixActs ) {
+            return MatchStarTables
+                  .makeJoinTable( inTables, matches, false, fixActs, null );
         }
     }
 
@@ -202,7 +377,7 @@ public class MatchMapper implements TableMapper {
             setPrompt( prompt );
             setDefault( FALSE );
             setDescription( new String[] {
-                "Determines which rows",
+                "<p>Determines which rows",
                 ( hasNum ? ( "from input table " + numLabel )
                          : "" ),
                 "are included in the output table.",
@@ -217,8 +392,8 @@ public class MatchMapper implements TableMapper {
                 "will be included in the output table;",
                 "if it has the value \"<code>" + FALSE + "</code>\"",
                 "then only those rows",
-                "which form a match with at least one other input table",
-                "are included in the output.",
+                "which participate in a match are included in the output.",
+                "</p>",
             } );
         }
 
