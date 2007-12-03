@@ -189,6 +189,64 @@ public class RowMatcher {
     }
 
     /**
+     * Returns a set of RowLink objects each of which represents matches
+     * between one of the rows of a reference table and any of the other tables
+     * which can provide matches.  Elements of the result set will be
+     * instances of {@link PairsRowLink}.
+     *
+     * @param   index0  index of the reference table in the list of tables
+     *          owned by this row matcher
+     * @param   bestOnly  true if only the best match between the reference
+     *          table and any other table should be retained
+     * @param  useAlls  array of booleans indicating for each table whether
+     *         all rows are to be used (otherwise just matched)
+     * @return  set of PairsRowLink objects representing multi-pair matches
+     */
+    public LinkSet findMultiPairMatches( int index0, boolean bestOnly,
+                                         boolean[] useAlls )
+            throws IOException, InterruptedException {
+        checkRandom();
+        if ( useAlls.length != nTable ) {
+            throw new IllegalArgumentException(
+                "Options length " + useAlls.length +
+                " differs from table count " + nTable );
+        }
+        startMatch();
+
+        /* Get all the possible candidates for inter-table links containing
+         * the reference table. */
+        LinkSet possibleLinks = getPossibleMultiPairLinks( index0 );
+
+        /* Get the actual matches based on this set. */
+        LinkSet multiLinks =
+            findMultiPairMatches( possibleLinks, index0, bestOnly );
+
+        /* We now have a set of links corresponding to all the matches
+         * with one entry for each row of the reference table which has
+         * one or more matches.  In the case that we want to output 
+         * some links with unmatched parts, add new singleton row 
+         * links as necessary. */
+        LinkSet[] missing = new LinkSet[ nTable ];
+        for ( int i = 0; i < nTable; i++ ) {
+            if ( useAlls[ i ] ) {
+                missing[ i ] = missingSingles( multiLinks, i );
+            }
+        }
+        for ( int i = 0; i < nTable; i++ ) {
+            if ( missing[ i ] != null ) {
+                for ( Iterator it = missing[ i ].iterator(); it.hasNext(); ) {
+                    multiLinks.addLink( (RowLink) it.next() );
+                }
+                missing[ i ] = null;
+            }
+        }
+
+        /* Return. */
+        endMatch();
+        return multiLinks;
+    }
+
+    /**
      * Returns a list of RowLink objects corresponding to a match
      * performed with this matcher's tables using its match engine.
      * Each element in the returned list corresponds to a matched group of 
@@ -676,6 +734,219 @@ public class RowMatcher {
     }
 
     /**
+     * Gets a list of all the row links which constitute possible matches
+     * including a given reference table.  Links of interest are only those 
+     * ones which constitute pair matches from the reference table to another.
+     * This differs from the semantics of a match group.
+     *
+     * @param  index0  index of reference table 
+     */
+    private LinkSet getPossibleMultiPairLinks( int index0 )
+            throws IOException, InterruptedException {
+        int ncol = tables[ index0 ].getColumnCount();
+
+        /* Attempt to restrict ranges for match assessments if we can. */
+        Range range;
+        if ( engine.canBoundMatch() ) {
+            indicator.logMessage( "Attempt to locate "
+                                + "restricted common region" );
+            try {
+
+                /* Locate the ranges of all the tables. */
+                Range[] ranges = new Range[ nTable ];
+                for ( int i = 0; i < nTable; i++ ) {
+                    ranges[ i ] = getRange( i );
+                }
+
+                /* Work out the range of the reference table which we are
+                 * interested in.  This is its intersection with the union 
+                 * of all the other tables. */
+                Range unionOthers = null;
+                for ( int i = 0; i < nTable; i++ ) {
+                    if ( i != index0 ) {
+                        unionOthers = unionOthers == null
+                                    ? ranges[ i ]
+                                    : Range.union( unionOthers, ranges[ i ] );
+                    }
+                }
+                range = Range.intersection( ranges[ index0 ], unionOthers );
+                indicator.logMessage( "Potential match region: " + range );
+            }
+            catch ( ClassCastException e ) {
+                indicator.logMessage( "Region location failed "
+                                    + "(incompatible value types)" );
+                range = new Range( ncol );
+            }
+        }
+        else {
+            range = new Range( ncol );
+        }
+
+        /* Bin all the rows in the interesting region of the reference table. */
+        BinContents bins = new BinContents( indicator );
+        binRows( index0, range, bins, true );
+
+        /* Bin any rows in the other tables which have entries in the bins
+         * we have already created for the reference table.  Rows without
+         * such entries can be ignored. */
+        for ( int itab = 0; itab < nTable; itab++ ) {
+            if ( itab != index0 ) {
+                binRows( itab, range, bins, false );
+            }
+        }
+
+        /* Convert the result to a link set and return. */
+        LinkSet linkSet = createLinkSet();
+        bins.addRowLinks( linkSet );
+        return linkSet;
+    }
+
+    /**
+     * Takes a set of links representing possible matches and filters it
+     * to retain actual desired matches.  The return value is a
+     * set of links, one per row of a reference table, including rows
+     * from any other tables which match it.  All of the input possibleLinks
+     * should contain at least one entry from the reference table.
+     *
+     * @param  possibleLinks  set of {@link RowLink} objects which correspond
+     *         to groups of possibly matched objects; each link must contain
+     *         at least one object from the reference table
+     *         (<code>index0</code>)
+     * @param  index0  index of the reference table in this row matcher's list
+     *         of tables
+     * @param  bestOnly  true iff only the best match with each other table
+     *         is required; if false multiple matches from each non-reference
+     *         table may appear in the output RowLinks
+     * @return   a set of RowLink objects which represent all the actual
+     *           multi-pair matches
+     */
+    private LinkSet findMultiPairMatches( LinkSet possibleLinks, int index0,
+                                          boolean bestOnly ) 
+            throws IOException, InterruptedException {
+
+        /* Set up a link set which will be populated with every pair involving
+         * the reference table and another table. */
+        LinkSet pairs = createLinkSet();
+        double nLink = (double) possibleLinks.size();
+        int iLink = 0;
+        indicator.startStage( "Locating pair matches between " + index0
+                            + " and other tables");
+        for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+
+            /* Get the next link and delete it from the input list, for
+             * memory efficiency. */
+            RowLink link = (RowLink) it.next();
+            it.remove();
+
+            /* Work out if this link contains any rows which are not from the
+             * reference table. */
+            int nref = link.size();
+            boolean hasOthers = false;
+            for ( int iref = 0; iref < nref && ! hasOthers; iref++ ) {
+                if ( link.getRef( iref ).getTableIndex() != index0 ) {
+                    hasOthers = true;
+                }
+            }
+
+            /* If there are any rows from tables other than the reference
+             * table, we need to test them for matches. */
+            if ( hasOthers ) {
+
+                /* Cache the rows from each ref, since it may be expensive
+                 * to get them multiple times. */
+                Object[][] binnedRows = new Object[ nref ][];
+                for ( int iref = 0; iref < nref; iref++ ) {
+                    RowRef ref = link.getRef( iref );
+                    StarTable table = tables[ ref.getTableIndex() ];
+                    binnedRows[ iref ] = table.getRow( ref.getRowIndex() );
+                }
+
+                /* Iterate over each of the reference table rows. */
+                for ( int i0 = 0; i0 < nref; i0++ ) {
+                    RowRef ref0 = link.getRef( i0 );
+                    int iTable0 = ref0.getTableIndex();
+                    if ( iTable0 == index0 ) {
+                        long irow0 = ref0.getRowIndex();
+
+                        /* For each reference table row iterate over all the 
+                         * non-reference table rows, looking for matches. */
+                        for ( int i1 = 0; i1 < nref; i1++ ) {
+                            RowRef ref1 = link.getRef( i1 );
+                            int iTable1  = ref1.getTableIndex();
+                            if ( iTable1 != index0 ) {
+                                RowLink2 pair = new RowLink2( ref0, ref1 );
+                                if ( ! pairs.containsLink( pair ) ) {
+                                    double score =
+                                        engine.matchScore( binnedRows[ i0 ],
+                                                           binnedRows[ i1 ] );
+                                    if ( score >= 0 ) {
+                                        pair.setScore( score );
+                                        pairs.addLink( pair );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            indicator.setLevel( ++iLink / nLink );
+        }
+        indicator.endStage();
+
+        /* Store all the pairs in a map keyed by row reference of the reference
+         * table. */
+        Map pairMap = new HashMap();
+        ListStore store = new ListStore();
+        for ( Iterator it = pairs.iterator(); it.hasNext(); ) {
+            RowLink2 pair = (RowLink2) it.next();
+            it.remove();
+            RowRef refA = pair.getRef( 0 );
+            RowRef refB = pair.getRef( 1 );
+            final RowRef ref0;
+            final RowRef ref1;
+            if ( refA.getTableIndex() == index0 ) {
+                assert refB.getTableIndex() != index0;
+                ref0 = refA;
+                ref1 = refB;
+            }
+            else if ( refB.getTableIndex() == index0 ) {
+                assert refA.getTableIndex() != index0;
+                ref0 = refB;
+                ref1 = refA;
+            }
+            else {
+                throw new IllegalArgumentException( "Pair doesn't contain "
+                                                  + "reference table" );
+            }
+            Object key = ref0;
+            Object value = new ScoredRef( ref1, pair.getScore() );
+            pairMap.put( key, store.addItem( pairMap.get( key ), value ) );
+        }
+
+        /* Convert the pairs in pairMap to a LinkSet. */
+        LinkSet multiLinks = createLinkSet();
+        for ( Iterator it = pairMap.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            RowRef ref0 = (RowRef) entry.getKey();
+            ScoredRef[] sref1s =
+                (ScoredRef[]) store.getList( entry.getValue() )
+                             .toArray( new ScoredRef[ 0 ] );
+            int nref1 = sref1s.length;
+            if ( nref1 > 0 ) {
+                RowRef[] ref1s = new RowRef[ nref1 ];
+                double[] scores = new double[ nref1 ];
+                for ( int ir1 = 0; ir1 < nref1; ir1++ ) {
+                    ref1s[ ir1 ] = sref1s[ ir1 ].ref_;
+                    scores[ ir1 ] = sref1s[ ir1 ].score_;
+                }
+                multiLinks.addLink( new PairsRowLink( ref0, ref1s, scores,
+                                                      bestOnly ) );
+            }
+        }
+        return multiLinks;
+    }
+
+    /**
      * Applies a set of options to a RowLink, eliminating
      * any elements which do not fit the given options.
      *
@@ -1157,5 +1428,24 @@ public class RowMatcher {
      */
     private static int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
+    }
+
+    /**
+     * Helper class which decorates a RowRef with a score value.
+     */
+    private static class ScoredRef {
+        final RowRef ref_;
+        final double score_;
+
+        /** 
+         * Constructor.
+         *
+         * @param   ref  row ref
+         * @param   score  score
+         */
+        public ScoredRef( RowRef ref, double score ) {
+            ref_ = ref;
+            score_ = score;
+        }
     }
 }
