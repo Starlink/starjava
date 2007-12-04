@@ -42,6 +42,7 @@
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
   <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
+  <!ENTITY tmatchn-summary SYSTEM 'tmatchn-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
   <!ENTITY tskymatch2-summary SYSTEM 'tskymatch2-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
@@ -161,6 +162,9 @@ table manipulation:
     </li>
 <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
     &tmatch2-purpose;
+    </li>
+<li><ref id="tmatchn" plaintextref="yes"><code>tmatchn</code></ref>:
+    &tmatchn-purpose;
     </li>
 <li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
     &tskymatch2-purpose;
@@ -403,6 +407,7 @@ the available tasks are:
 <li><code>tjoin</code></li>
 <li><code>tmatch1</code></li>
 <li><code>tmatch2</code></li>
+<li><code>tmatchn</code></li>
 <li><code>tpipe</code></li>
 <li><code>tskymatch2</code></li>
 <li><code>votcopy</code></li>
@@ -1032,6 +1037,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tjoin"><code>tjoin</code></ref>,
            <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
+           <ref id="tmatchn"><code>tmatchn</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="multicone"><code>multicone</code></ref>,
            <ref id="sqlcone"><code>sqlcone</code></ref> and
@@ -1580,6 +1586,10 @@ for crossmatching between local tables:
     The basic task this performs is to identify groups of rows within a
     single table which match each other. 
     </p></dd>
+
+<dt><ref id="tmatchn"><code>tmatchn</code></ref></dt>
+<dd><p>Generic crossmatching between multiple (&gt;2) tables.
+    </p></dd>
 </dl>
 </p>
 
@@ -1602,7 +1612,7 @@ with fixed errors you are recommended to use the simplified
 <ref id="tskymatch2"><code>tskymatch2</code></ref> task.
 For other cases, this section describes how to specify much more
 flexible match criteria for use with
-<code>tmatch1</code> or <code>tmatch2</code>
+<code>tmatch1</code>, <code>tmatch2</code> or <code>tmatchn</code>
 by setting the following parameters:
 <dl>
 <dt><code>matcher</code></dt>
@@ -1793,7 +1803,8 @@ clear how this is to be interpreted.
 </p>
 
 <p>However, some of the matching tasks 
-(<ref id="tmatch1"><code>tmatch1</code></ref>)
+(<ref id="tmatchn"><code>tmatchn</code></ref> in group mode and
+ <ref id="tmatch1"><code>tmatch1</code></ref>)
 search for match groups which may have more than two members.
 This section explains precisely how STILTS applies the pair-wise
 matching criteria it is given to identifying multi-object groups.
@@ -3398,6 +3409,43 @@ stilts tmatch2 in1=mgc.fits in2=6dfgs.xml join=1and2 find=all \
 </subsubsect>
 
 </subsect>
+
+<subsect id="tmatchn" tocleaf="yes">
+<subhead><title><code>tmatchn</code>: &tmatchn-purpose;</title></subhead>
+
+<p><code>tmatchn</code> performs efficient and flexible crossmatching
+between multiple tables.  
+It can match rows on the basis of their relative position in the sky,
+or alternatively using many other criteria such as separation in
+in some isotropic or anisotropic Cartesian space,
+identity of a key value, or some combination of these;
+the full range of match criteria is dicussed in <ref id="MatchEngine"/>.
+</p>
+
+<p>Since the match criteria define what counts as a match between two
+objects, it is not immediately obvious what is meant by a multi-table
+match.  In fact the command can work in one of two distinct modes,
+controlled by the <code>multimode</code> parameter.
+In <code>pairs</code> mode, one table (by default the first input table)
+is taken as a reference table, and pair matches between each of the
+other tables and that one are identified.
+In <code>group</code> mode groups of objects from all the input tables are
+identified, as discussed in <ref id="matchGroup"/>.
+Currently, in both cases only a single object per table is output
+for each match.  Options for output of multiple matches may be 
+forthcoming in future releases if there is demand.
+</p>
+
+<p><code>tmatchn</code> is intended for use with more than two input tables -
+see <ref id="tmatch1"><code>tmatch1</code></ref>
+and <ref id="tmatch2"><code>tmatch2</code></ref>
+for 1- and 2-table crossmatching respectively.
+</p>
+
+&tmatchn-summary;
+
+</subsect>
+
 
 <subsect id="tpipe" tocleaf="yes">
 <subhead><title><code>tpipe</code>: &tpipe-purpose;</title></subhead>
