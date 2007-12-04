@@ -198,17 +198,16 @@ public class RowMatcher {
      *          owned by this row matcher
      * @param   bestOnly  true if only the best match between the reference
      *          table and any other table should be retained
-     * @param  useAlls  array of booleans indicating for each table whether
-     *         all rows are to be used (otherwise just matched)
+     * @param   joinTypes  inclusion criteria for output table rows
      * @return  set of PairsRowLink objects representing multi-pair matches
      */
     public LinkSet findMultiPairMatches( int index0, boolean bestOnly,
-                                         boolean[] useAlls )
+                                         MultiJoinType[] joinTypes )
             throws IOException, InterruptedException {
         checkRandom();
-        if ( useAlls.length != nTable ) {
+        if ( joinTypes.length != nTable ) {
             throw new IllegalArgumentException(
-                "Options length " + useAlls.length +
+                "Options length " + joinTypes.length +
                 " differs from table count " + nTable );
         }
         startMatch();
@@ -228,7 +227,7 @@ public class RowMatcher {
          * links as necessary. */
         LinkSet[] missing = new LinkSet[ nTable ];
         for ( int i = 0; i < nTable; i++ ) {
-            if ( useAlls[ i ] ) {
+            if ( joinTypes[ i ] == MultiJoinType.ALWAYS ) {
                 missing[ i ] = missingSingles( multiLinks, i );
             }
         }
@@ -238,6 +237,14 @@ public class RowMatcher {
                     multiLinks.addLink( (RowLink) it.next() );
                 }
                 missing[ i ] = null;
+            }
+        }
+
+        /* Filter the links to contain only those rows we're interested in. */
+        for ( Iterator it = multiLinks.iterator(); it.hasNext(); ) {
+            RowLink link = (RowLink) it.next();
+            if ( ! acceptRow( link, joinTypes ) ) {
+                it.remove();
             }
         }
 
@@ -252,16 +259,13 @@ public class RowMatcher {
      * Each element in the returned list corresponds to a matched group of 
      * input rows, with no more than one entry from each table.
      * Each input table row appears in no more than one RowLink in
-     * the returned list.  Whether each returned RowLink must contain
-     * an entry from every input table is determined by the
-     * <tt>useAll</tt> argument.
+     * the returned list.
      * Any number of tables can be matched.
      * 
-     * @param  useAll  array of booleans indicating for each table whether
-     *         all rows are to be used (otherwise just matched)
+     * @param  joinTypes  inclusion criteria for output table rows
      * @return list of {@link RowLink}s corresponding to the selected rows
      */
-    public LinkSet findGroupMatches( boolean[] useAll )
+    public LinkSet findGroupMatches( MultiJoinType[] joinTypes )
             throws IOException, InterruptedException {
         checkRandom();
 
@@ -271,11 +275,10 @@ public class RowMatcher {
                                            + "for multiple tables" );
         }
 
-        /* Check that there are the right number of options and that they
-         * are not null. */
-        if ( useAll.length != nTable ) {
+        /* Check that there are the right number of options. */
+        if ( joinTypes.length != nTable ) {
             throw new IllegalArgumentException( 
-                "Options length " + useAll.length +
+                "Options length " + joinTypes.length +
                 " differs from table count " + nTable );
         }
         startMatch();
@@ -300,7 +303,7 @@ public class RowMatcher {
          * parts, add new singleton row links as necessary. */
         LinkSet[] missing = new LinkSet[ nTable ];
         for ( int i = 0; i < nTable; i++ ) {
-            if ( useAll[ i ] ) {
+            if ( joinTypes[ i ] == MultiJoinType.ALWAYS ) {
                 missing[ i ] = missingSingles( links, i );
             }
         }
@@ -317,7 +320,7 @@ public class RowMatcher {
          * interested in. */
         for ( Iterator it = links.iterator(); it.hasNext(); ) {
             RowLink link = (RowLink) it.next();
-            if ( ! acceptRow( link, useAll ) ) {
+            if ( ! acceptRow( link, joinTypes ) ) {
                 it.remove();
             }
         }
@@ -951,10 +954,9 @@ public class RowMatcher {
      * any elements which do not fit the given options.
      *
      * @param  link   RowLink representing the row to be tested
-     * @param  useAll  array of flags indicating for each table whether
-     *         all rows should be used or just matching ones
+     * @param  joinTypes  array of per-table inclusion criteria
      */
-    private boolean acceptRow( RowLink link, boolean[] useAll ) {
+    private boolean acceptRow( RowLink link, MultiJoinType[] joinTypes ) {
         boolean[] present = new boolean[ nTable ];
         int nref = link.size();
         for ( int i = 0; i < nref; i++ ) {
@@ -962,21 +964,7 @@ public class RowMatcher {
             int iTable = ref.getTableIndex();
             present[ iTable ] = true;
         }
-        boolean ok = true;
-        for ( int i = 0; i < nTable; i++ ) {
-            boolean pres = present[ i ];
-            if ( useAll[ i ] ) {
-                if ( pres ) {
-                    return true;
-                }
-            }
-            else {
-                if ( ! pres ) {
-                    ok = false;
-                }
-            }
-        }
-        return ok;
+        return MultiJoinType.accept( joinTypes, present );
     }
 
     /**
