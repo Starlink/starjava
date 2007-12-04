@@ -94,8 +94,12 @@ public class MatchMapper implements TableMapper {
             "If there are multiple entries from a given table in the",
             "match group, an arbitrary one is chosen for inclusion",
             "(there is no unique way to select the best).",
+            "See <ref id='matchGroup'/> for more discussion.",
             "</li>",
             "</ul>",
+            "In the case of well-separated objects these modes will give",
+            "the same results.  For crowded fields however it will make",
+            "a difference which is chosen.",
             "</p>",
         } );
 
@@ -386,7 +390,7 @@ public class MatchMapper implements TableMapper {
                 "the other input tables, and this parameter determines",
                 "what to do with that information.",
                 "If it has the value \"<code>" + TRUE + "</code>\"",
-                "then all of the row from",
+                "then all of the rows from",
                 ( hasNum ? ( "input table " + numLabel )
                          : "the input tables" ),
                 "will be included in the output table;",
