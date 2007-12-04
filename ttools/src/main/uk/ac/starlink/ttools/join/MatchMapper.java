@@ -68,6 +68,10 @@ public class MatchMapper implements TableMapper {
             "(the one which must be matched by other tables).",
             "Ignored in other modes.",
             "</p>",
+            "<p>Row ordering in the output table is usually tidiest",
+            "if the default setting of 1 is used",
+            "(i.e. if the first input table is used as the reference table).",
+            "</p>",
         } );
         mmodeParam_.setDescription( new String[] {
             "<p>Defines what is meant by a multi-table match.",
