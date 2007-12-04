@@ -3427,12 +3427,13 @@ objects, it is not immediately obvious what is meant by a multi-table
 match.  In fact the command can work in one of two distinct modes,
 controlled by the <code>multimode</code> parameter.
 In <code>pairs</code> mode, one table (by default the first input table)
-is taken as a reference table, and pair matches between each of the
+is designated the reference table, and pair matches between each of the
 other tables and that one are identified.
 In <code>group</code> mode groups of objects from all the input tables are
 identified, as discussed in <ref id="matchGroup"/>.
-Currently, in both cases only a single object per table is output
-for each match.  Options for output of multiple matches may be 
+Currently, in both cases an output matched row cannot contain more
+than one object from each input table.
+Options for output of multiple rows per input table per match may be 
 forthcoming in future releases if there is demand.
 </p>
 
@@ -3443,6 +3444,75 @@ for 1- and 2-table crossmatching respectively.
 </p>
 
 &tmatchn-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tmatchn</code>
+<dl>
+
+<dt><verbatim>
+stilts tmatchn multimode=pairs nin=4 matcher=sky params=5 \
+       in1=transients.txt ifmt1=ascii values1='alpha delta' \
+       in2=2mass_virgo.fits values2='ra2000 dec2000' \
+       in3=sdss_virgo.fits values3='ra dec' \
+       in4=first_virgo.fits values4='pos_eq_ra pos_eq_dec' \
+       out=matches.xml ofmt=votable-binary
+</verbatim></dt>
+<dd><p>Compares a text-format table "transients.txt" against each of 
+    three other catalogues covering the same region of sky, and outputs
+    a table which contains a row for each row of "transients.txt" which
+    matches (is within 5 arcsec) of an object in any of the other tables.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmatchn multimode=pairs nin=4 matcher=sky params=5 \
+       in1=transients.txt ifmt1=ascii suffix1='_t' values1='alpha delta' \
+       in2=2mass_virgo.fits suffix2='_2mass' values2='ra2000 dec2000' \
+       in3=sdss_virgo.fits  suffix3='_sdss'  values3='ra dec' \
+       in4=first_virgo.fits suffix4='_first' values4='pos_eq_ra pos_eq_dec' \
+       fixcols=all join1=all \
+       ocmd='keepcols "*_t designation_2mass SDSSName_sdss id_field_first"' \
+       out=matches.xml ofmt=votable-binary
+</verbatim></dt>
+<dd><p>Similar to the previous example but with some doctoring of what the
+    output table will look like.  The <code>fixcols=all</code> and 
+    <code>suffixN</code> assignments mean that all the columns from the
+    input tables will be renamed for output by adding the given suffixes.
+    The <code>keepcols</code> filter applied to the output table throws out
+    all the columns except the ones from the reference table (<code>*_t</code>)
+    and one column from each of the other table giving object identifiers.
+    This output table will probably be easier to read (though contain less
+    information) than that from the previous example).
+    Additionally, the <code>join1=all</code> assignment means that the output
+    table will have one row for each row of the reference table 
+    (transients.txt), even if no matches are found for it.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmatchn multimode=group nin=3 matcher=skyerr params=8 \
+       in1=Hband.fits values='RA DEC SEEING*2' \
+       in2=Jband.fits values='RA DEC SEEING*2' \
+       in3=Kband.fits values='RA DEC SEEING*2' \
+       omode=topcat
+</verbatim></dt>
+<dd><p>Performs a group-mode match.  There is no reference table, so that
+    an output row will result for each object which is represented in any
+    two of the input catalogues. 
+    The match takes account of per-object errors equivalent to twice the
+    recorded seeing with a maximum of 8 arcsec separation.
+    Note that this may not operate as expected if the catalogues contain
+    multiple distinct objects too close (in comparison to the declared
+    separation) to each other.
+    The resulting matched table is sent directly to 
+    <webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref> 
+    (if available).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
@@ -4744,6 +4814,7 @@ but my thanks are especially due to the following:
     <ul>
     <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
     <li>New <ref id="tmatch1"><code>tmatch1</code></ref> command.</li>
+    <li>New <ref id="tmatchn"><code>tmatchn</code></ref> command.</li>
     <li>FITS reader now imports table HDU header cards as table parameters.</li>
     <li>Embedded spaces in output ASCII format table column names
         are now substituted with underscores.</li>
