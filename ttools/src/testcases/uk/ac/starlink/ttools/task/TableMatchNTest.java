@@ -29,7 +29,7 @@ public class TableMatchNTest extends TableTestCase {
         StarTable t2 = createNumberTable( np, 2 );
 
         assertEquals( 6, groupMatchN( new StarTable[] { t1a, t1b, t1c, },
-                                       new boolean[ 3 ], 0.5 )
+                                      new boolean[ 3 ], 0.5 )
                         .getColumnCount() );
 
         assertEquals( 100L, groupMatchN( new StarTable[] { t1a, t1b, t1c, },
@@ -61,18 +61,77 @@ public class TableMatchNTest extends TableTestCase {
                                          0.00001 ).getRowCount() );
     }
 
+    public void testPairsMatchN() throws IOException, TaskException {
+        int np = 100;
+        StarTable t1a = createNumberTable( np, 1 );
+        StarTable t1b = createNumberTable( np, 1 );
+        StarTable t1c = createNumberTable( np, 1 );
+        StarTable t2 = createNumberTable( np, 2 );
+
+        assertEquals( 6, pairsMatchN( new StarTable[] { t1a, t1b, t1c, },
+                                      new boolean[ 3 ], 0.5, 1 )
+                        .getColumnCount() );
+
+        assertEquals( 100L, pairsMatchN( new StarTable[] { t1a, t1b, t1c, },
+                                         new boolean[ 3 ], 0.5, 2 )
+                           .getRowCount() );
+        assertEquals( 100L, pairsMatchN( new StarTable[] { t1a, t1b, t1c, t2, },
+                                         new boolean[ 4 ], 0.5, 3 )
+                           .getRowCount() );
+
+        // These ones just regression tests really, though I've eyeballed 
+        // the results and they look about right.
+        assertEquals(  76L, pairsMatchN( new StarTable[] { t1a, t1b, t1c, },
+                                         new boolean[ 3 ], 0.2, 1 )
+                           .getRowCount() );
+        assertEquals(  76L, pairsMatchN( new StarTable[] { t1c, t1a, t1b, },
+                                         new boolean[ 3 ], 0.2, 2 )
+                           .getRowCount() );
+        assertEquals(  76L, pairsMatchN( new StarTable[] { t1c, t1b, t1a, },
+                                         new boolean[ 3 ], 0.2, 3 )
+                           .getRowCount() );
+        assertEquals(  34L, pairsMatchN( new StarTable[] { t1a, t1b, t1c, },
+                                         new boolean[ 3 ], 0.1, 1 )
+                           .getRowCount() );
+    }
+
+    private StarTable pairsMatchN( StarTable[] tables, boolean[] useAll, 
+                                   double err, int iref )
+            throws IOException, TaskException {
+        int nin= tables.length;
+        MapEnvironment env = new MapEnvironment();
+        env.setValue( "nin", Integer.toString( nin ) );
+        env.setValue( "multimode", "pairs" );
+        env.setValue( "iref", Integer.toString( iref ) );
+        env.setValue( "matcher", "1d" );
+        for ( int i = 0; i < nin; i++ ) {
+            int i1 = i + 1;
+            env.setValue( "in" + i1, tables[ i ] );
+            env.setValue( "values" + i1, "DATA" );
+            env.setValue( "join" + i1, useAll[ i ] ? "always" : "match" );
+        }
+        env.setValue( "params", Double.toString( err ) );
+        new TableMatchN().createExecutable( env ).execute();
+        StarTable result = env.getOutputTable( "omode" );
+        if ( result != null ) {
+            Tables.checkTable( result );
+        }
+        return Tables.randomTable( result );
+    }
+
     private StarTable groupMatchN( StarTable[] tables, boolean[] useAll,
                                    double err )
             throws IOException, TaskException {
         int nin= tables.length;
         MapEnvironment env = new MapEnvironment();
         env.setValue( "nin", Integer.toString( nin ) );
+        env.setValue( "multimode", "group" );
         env.setValue( "matcher", "1d" );
         for ( int i = 0; i < nin; i++ ) {
             int i1 = i + 1;
             env.setValue( "in" + i1, tables[ i ] );
             env.setValue( "values" + i1, "DATA" );
-            env.setValue( "join" + i1, useAll[ i ] ? "all" : "matched" );
+            env.setValue( "join" + i1, useAll[ i ] ? "always" : "match" );
         }
         env.setValue( "params", Double.toString( err ) );
         new TableMatchN().createExecutable( env ).execute();
