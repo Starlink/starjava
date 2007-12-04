@@ -8,6 +8,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
+import uk.ac.starlink.table.join.MultiJoinType;
 
 /**
  * Defines the per-table requirements for type of output in a multi-table
@@ -76,6 +77,15 @@ public class OutputRequirements {
      */
     public MatchOption getRowOption() {
         return rowOption;
+    }
+
+    /**
+     * Returns the selected join type for this object.
+     *
+     * @return  join type
+     */
+    public MultiJoinType getJoinType() {
+        return rowOption.getJoinType();
     }
 
     private class OptionAction extends AbstractAction {

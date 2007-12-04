@@ -20,6 +20,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
+import uk.ac.starlink.table.join.MultiJoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
@@ -119,13 +120,10 @@ public class InterMatchSpec extends MatchSpec {
         }
 
         /* Do the matching. */
-        boolean[] useAlls = getUseAlls();
+        MultiJoinType[] joinTypes = getJoinTypes();
         RowMatcher matcher = new RowMatcher( engine, tables );
         matcher.setIndicator( indicator );
-        LinkSet matches = nTable == 2
-                        ? matcher.findPairMatches( ! useAlls[ 0 ],
-                                                   ! useAlls[ 1 ] )
-                        : matcher.findGroupMatches( useAlls );
+        LinkSet matches = matcher.findGroupMatches( joinTypes );
         if ( ! matches.sort() ) {
             logger.warning( "Can't sort matches - matched table rows may be "
                           + "in an unhelpful order" );
@@ -135,8 +133,7 @@ public class InterMatchSpec extends MatchSpec {
         /* Create a new table based on the matched lines we have identified. */
         result = MatchStarTables
                 .makeJoinTable( bases, matches, false,
-                                getDefaultFixActions( nTable ),
-                                engine.getMatchScoreInfo() );
+                                getDefaultFixActions( nTable ), null );
         addMatchMetadata( result, getDescription(), engine, tables );
 
         /* If it makes sense to do so, record which tables appear in which
@@ -217,12 +214,12 @@ public class InterMatchSpec extends MatchSpec {
      *
      * @return  nTable-element array
      */
-    private boolean[] getUseAlls() {
-        boolean[] ua = new boolean[ nTable ];
+    private MultiJoinType[] getJoinTypes() {
+        MultiJoinType[] joinTypes = new MultiJoinType[ nTable ];
         for ( int i = 0; i < nTable; i++ ) {
-            ua[ i ] = outReqs[ i ].getRowOption() == MatchOption.ANY;
+            joinTypes[ i ] = outReqs[ i ].getJoinType();
         }
-        return ua;
+        return joinTypes;
     }
 
     /**
