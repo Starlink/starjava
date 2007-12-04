@@ -211,6 +211,10 @@
     <!-- VOTABLE -->
     <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
+    <!-- Xerces (default J2SE1.4 JAXP parser Crimson has bugs) -->
+    <pathelement location="${star.jar.dir}/xercesImpl.jar"/>
+    <pathelement location="${star.jar.dir}/xml-apis.jar"/>
+
   </extclasspath>
 
   <!-- Local build system jar files.
