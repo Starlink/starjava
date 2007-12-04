@@ -9,6 +9,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
+import uk.ac.starlink.table.join.MultiJoinType;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -118,7 +119,7 @@ public class MatchMapper implements TableMapper {
             matcherParam_,
             matcherParam_.getMatchParametersParameter(),
             matcherParam_.createMatchTupleParameter( "N" ),
-            new UseAllParameter( "N" ),
+            new MultiJoinTypeParameter( "N" ),
             fixcolsParam_,
             fixcolsParam_.createSuffixParameter( "N" ),
         };
@@ -140,7 +141,7 @@ public class MatchMapper implements TableMapper {
         MatchEngine matcher = matcherParam_.matchEngineValue( env );
         String[][] exprTuples = new String[ nin ][];
         JoinFixAction[] fixActs = new JoinFixAction[ nin ];
-        boolean[] useAlls = new boolean[ nin ];
+        MultiJoinType[] joinTypes = new MultiJoinType[ nin ];
         for ( int i = 0; i < nin; i++ ) {
             String numLabel = Integer.toString( i + 1 );
             WordsParameter tupleParam =
@@ -148,16 +149,18 @@ public class MatchMapper implements TableMapper {
             MatchEngineParameter.configureTupleParameter( tupleParam, matcher );
             exprTuples[ i ] = tupleParam.wordsValue( env );
             fixActs[ i ] = fixcolsParam_.getJoinFixAction( env, numLabel );
-            useAlls[ i ] = new UseAllParameter( numLabel ).useAllValue( env );
+            joinTypes[ i ] =
+                (MultiJoinType) new MultiJoinTypeParameter( numLabel )
+                               .objectValue( env );
         }
         PrintStream logStrm = env.getErrorStream();
         if ( GROUP_MODE.equalsIgnoreCase( mmode ) ) {
             return new GroupMatchMapping( matcher, exprTuples, fixActs, logStrm,
-                                          useAlls );
+                                          joinTypes );
         }
         else if ( PAIRS_MODE.equalsIgnoreCase( mmode ) ) {
             return new PairsMatchMapping( matcher, exprTuples, fixActs, logStrm,
-                                          iref, useAlls );
+                                          iref, joinTypes );
         }
         else {
             throw new AssertionError( "Unknown multimode " + mmode + "???" );
@@ -288,7 +291,7 @@ public class MatchMapper implements TableMapper {
     private static class PairsMatchMapping extends MatchMapping {
 
         private final int iref_;
-        private final boolean[] useAlls_;
+        private final MultiJoinType[] joinTypes_;
 
         /**
          * Constructor.
@@ -300,18 +303,19 @@ public class MatchMapper implements TableMapper {
          *                    duplicated table columns
          * @param   logStrm   output stream for progress logging
          * @param   iref      index (0-based) of reference table
+         * @param   joinTypes inclusion criteria for links in output table
          */
         PairsMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
                            JoinFixAction[] fixActs, PrintStream logStrm,
-                           int iref, boolean[] useAlls ) {
+                           int iref, MultiJoinType[] joinTypes ) {
             super( matchEngine, exprTuples, fixActs, logStrm );
             iref_ = iref;
-            useAlls_ = useAlls;
+            joinTypes_ = joinTypes;
         }
 
         protected LinkSet findMatches( RowMatcher matcher )
                 throws IOException, InterruptedException {
-            return matcher.findMultiPairMatches( iref_, true, useAlls_ );
+            return matcher.findMultiPairMatches( iref_, true, joinTypes_ );
         }
 
         protected StarTable createJoinTable( StarTable[] inTables,
@@ -327,7 +331,7 @@ public class MatchMapper implements TableMapper {
      */
     private static class GroupMatchMapping extends MatchMapping {
 
-        private final boolean[] useAlls_;
+        private final MultiJoinType[] joinTypes_;
 
         /**
          * Constructor.
@@ -338,19 +342,18 @@ public class MatchMapper implements TableMapper {
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
          * @param   logStrm   output stream for progress logging
-         * @param   useAlls   nin-element array of flags indicating whether
-         *                    all or only matched rows should be output
+         * @param   joinTypes inclusion criteria for links in output table
          */
         GroupMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
                            JoinFixAction[] fixActs, PrintStream logStrm,
-                           boolean[] useAlls ) {
+                           MultiJoinType[] joinTypes ) {
             super( matchEngine, exprTuples, fixActs, logStrm );
-            useAlls_ = useAlls;
+            joinTypes_ = joinTypes;
         }
 
         protected LinkSet findMatches( RowMatcher matcher )
                 throws IOException, InterruptedException {
-            return matcher.findGroupMatches( useAlls_ );
+            return matcher.findGroupMatches( joinTypes_ );
         }
 
         protected StarTable createJoinTable( StarTable[] inTables,
@@ -365,25 +368,26 @@ public class MatchMapper implements TableMapper {
      * Parameter which determines whether all or only matched rows should be
      * output for a given input table.
      */
-    private static class UseAllParameter extends ChoiceParameter {
-
-        private static final String TRUE = "all";
-        private static final String FALSE = "matched";
+    private static class MultiJoinTypeParameter extends ChoiceParameter {
 
         /**
          * Constructor.
          *
          * @param   numLabel  numeric label, "1", "2", "N" etc
          */
-        public UseAllParameter( String numLabel ) {
-            super( "join" + numLabel, new String[] { TRUE, FALSE, } );
+        public MultiJoinTypeParameter( String numLabel ) {
+            super( "join" + numLabel );
+            addOption( MultiJoinType.DEFAULT );
+            addOption( MultiJoinType.MATCH );
+            addOption( MultiJoinType.NOMATCH );
+            addOption( MultiJoinType.ALWAYS );
             boolean hasNum = numLabel != null && numLabel.length() > 0;
             String prompt = "Output row selection criteria";
             if ( hasNum ) {
                 prompt += " from table " + numLabel;
             }
             setPrompt( prompt );
-            setDefault( FALSE );
+            setDefault( MultiJoinType.DEFAULT.toString() );
             setDescription( new String[] {
                 "<p>Determines which rows",
                 ( hasNum ? ( "from input table " + numLabel )
@@ -393,35 +397,35 @@ public class MatchMapper implements TableMapper {
                 "each of the input tables correspond to which rows in",
                 "the other input tables, and this parameter determines",
                 "what to do with that information.",
-                "If it has the value \"<code>" + TRUE + "</code>\"",
-                "then all of the rows from",
-                ( hasNum ? ( "input table " + numLabel )
-                         : "the input tables" ),
-                "will be included in the output table;",
-                "if it has the value \"<code>" + FALSE + "</code>\"",
-                "then only those rows",
-                "which participate in a match are included in the output.",
+                "</p>",
+                "<p>The default behaviour is that a row will appear in the",
+                "output table if it represents a match of rows from two or",
+                "more of the input tables.",
+                "This can be altered on a per-input-table basis however",
+                "by choosing one of the non-default options below:",
+                "<ul>",
+                "<li><code>" + MultiJoinType.MATCH + "</code>:",
+                "Rows are included only if they contain an entry from",
+                "input table " + numLabel + ".",
+                "</li>",
+                "<li><code>" + MultiJoinType.NOMATCH + "</code>:",
+                "Rows are included only if they do not contain an entry from",
+                "input table " + numLabel + ".",
+                "</li>",
+                "<li><code>" + MultiJoinType.ALWAYS + "</code>:", 
+                "Rows are included if they contain an entry from",
+                "input table " + numLabel,
+                "(overrides any " + MultiJoinType.MATCH
+                        + " and " + MultiJoinType.NOMATCH,
+                "settings of other tables).",
+                "</li>",
+                "<li><code>" + MultiJoinType.DEFAULT + "</code>:",
+                "Input table " + numLabel + " has no special effect on",
+                "whether rows are included.",
+                "</li>",
+                "</ul>",
                 "</p>",
             } );
-        }
-
-        /**
-         * Returns the boolean value of this parameter.
-         *
-         * @return   true for use all, false for use matched only
-         */
-        public boolean useAllValue( Environment env ) throws TaskException {
-            Object oval = objectValue( env );
-            if ( TRUE.equals( oval ) ) {
-                return true;
-            }
-            else if ( FALSE.equals( oval ) ) {
-                return false;
-            }
-            else {
-                assert false;
-                return false;
-            }
         }
     }
 }
