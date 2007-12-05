@@ -148,7 +148,9 @@ public class MatchMapper implements TableMapper {
                 matcherParam_.createMatchTupleParameter( numLabel );
             MatchEngineParameter.configureTupleParameter( tupleParam, matcher );
             exprTuples[ i ] = tupleParam.wordsValue( env );
-            fixActs[ i ] = fixcolsParam_.getJoinFixAction( env, numLabel );
+            Parameter suffixParam =
+                fixcolsParam_.createSuffixParameter( numLabel );
+            fixActs[ i ] = fixcolsParam_.getJoinFixAction( env, suffixParam );
             joinTypes[ i ] =
                 (MultiJoinType) new MultiJoinTypeParameter( numLabel )
                                .objectValue( env );
