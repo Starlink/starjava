@@ -107,6 +107,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         copycolsParam_ = new Parameter( "copycols" );
         copycolsParam_.setUsage( "<colid-list>" );
         copycolsParam_.setNullPermitted( true );
+        copycolsParam_.setDefault( "*" );
         copycolsParam_.setPrompt( "Columns to be copied from input table" );
         copycolsParam_.setDescription( new String[] {
             "<p>List of columns from the input table which are to be copied",
@@ -116,6 +117,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "and its value for each row taken from the input table row",
             "which provided the parameters of the query which produced it.",
             "See <ref id='colid-list'/> for list syntax.",
+            "The default setting is \"<code>*</code>\", which means that",
+            "all columns from the input table are included in the output.",
             "</p>",
         } );
         paramList.add( copycolsParam_ );
