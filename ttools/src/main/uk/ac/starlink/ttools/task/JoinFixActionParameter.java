@@ -149,6 +149,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
         Parameter param = new Parameter( name );
         param.setDefault( dflt );
         param.setNullPermitted( true );
+        param.setUsage( "<label>" );
         param.setPrompt( "Deduplicating suffix for columns in " + descrip );
         param.setDescription( new String[] {
             "<p>If the <code>" + getName() + "</code> parameter",
