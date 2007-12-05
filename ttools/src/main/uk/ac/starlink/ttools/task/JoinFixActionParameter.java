@@ -156,7 +156,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
             "the output table, this parameter determines how the",
             "renaming is done.",
             "It gives a suffix which is appended to all renamed columns",
-            "from table " + descrip + ".",
+            "from " + descrip + ".",
             "</p>",
         } );
         return param;

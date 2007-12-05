@@ -153,10 +153,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
         insuffixParam_ =
             fixcolsParam_.createSuffixParameter( "suffix0",
-                                                 "input table", "_0" );
+                                                 "the input table", "_0" );
         conesuffixParam_ =
             fixcolsParam_.createSuffixParameter( "suffix1",
-                                                 "cone result table", "_1" );
+                                                 "the cone result table",
+                                                 "_1" );
         paramList.add( fixcolsParam_ );
         paramList.add( insuffixParam_ );
         paramList.add( conesuffixParam_ );
