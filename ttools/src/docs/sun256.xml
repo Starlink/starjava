@@ -1590,6 +1590,13 @@ for crossmatching between local tables:
 <dt><ref id="tmatchn"><code>tmatchn</code></ref></dt>
 <dd><p>Generic crossmatching between multiple (&gt;2) tables.
     </p></dd>
+
+<dt><ref id="tjoin"><code>tjoin</code></ref></dt>
+<dd><p>Trivial join operation between multiple tables in which no row
+    re-ordering is required.  This barely warrants the term "crossmatch"
+    and the concepts explained in the rest of this section are not
+    relevant to it.
+    </p></dd>
 </dl>
 </p>
 
