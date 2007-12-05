@@ -28,7 +28,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
         /* Option which does not alter column names. */
         addOption( new Fixer( "none", "columns are not renamed" ) {
             public JoinFixAction createAction( Environment env,
-                                               String numLabel )
+                                               Parameter suffixParam )
                     throws TaskException {
                 return JoinFixAction.NO_ACTION;
             }
@@ -40,9 +40,9 @@ public class JoinFixActionParameter extends ChoiceParameter {
                             + "names in the output will be renamed "
                             + "to indicate which table they came from" ) {
             public JoinFixAction createAction( Environment env,
-                                               String numLabel )
+                                               Parameter suffixParam )
                     throws TaskException {
-                String suffix = getSuffix( env, numLabel );
+                String suffix = suffixParam.stringValue( env );
                 return suffix == null || suffix.trim().length() == 0
                      ? JoinFixAction.NO_ACTION
                      : JoinFixAction.makeRenameDuplicatesAction( suffix );
@@ -54,9 +54,9 @@ public class JoinFixActionParameter extends ChoiceParameter {
                               "all columns will be renamed to indicate "
                             + "which table they came from" ) {
             public JoinFixAction createAction( Environment env,
-                                               String numLabel )
+                                               Parameter suffixParam )
                     throws TaskException {
-                String suffix = getSuffix( env, numLabel );
+                String suffix = suffixParam.stringValue( env );
                 return suffix == null | suffix.trim().length() == 0
                      ? JoinFixAction.NO_ACTION
                      : JoinFixAction.makeRenameAllAction( suffix );
@@ -94,17 +94,20 @@ public class JoinFixActionParameter extends ChoiceParameter {
      * Returns the action specified by this parameter for a given label.
      *
      * @param   env  execution environment
-     * @param   numLabel  table identifier such as "1"
+     * @param   suffixParam  parameter supplying suffix value
+     *          (got from a <code>createSuffixParameter</code> method)
      */
-    public JoinFixAction getJoinFixAction( Environment env, String numLabel )
+    public JoinFixAction getJoinFixAction( Environment env,
+                                           Parameter suffixParam )
             throws TaskException {
         Fixer fixer = (Fixer) objectValue( env );
-        return fixer.createAction( env, numLabel );
+        return fixer.createAction( env, suffixParam );
     }
 
     /**
      * Returns an array of fix actions, one for each of a list of numbered
-     * input tables.
+     * input tables.  This is a convenience method that relies on conventional
+     * naming of suffix parameters.
      *
      * @param  env  execution environment
      * @param  nin  size of fix action array 
@@ -114,30 +117,46 @@ public class JoinFixActionParameter extends ChoiceParameter {
             throws TaskException {
         JoinFixAction[] fixActs = new JoinFixAction[ nin ];
         for ( int i = 0; i < nin; i++ ) {
-            fixActs[ i ] = getJoinFixAction( env, Integer.toString( i + 1 ) );
+            Parameter suffixParam =
+                createSuffixParameter( Integer.toString( i + 1 ) );
+            fixActs[ i ] = getJoinFixAction( env, suffixParam );
         }
         return fixActs;
     }
 
     /**
-     * Returns a new parameter by which per-table suffix strings can be 
-     * specified.
+     * Returns a new parameter, identified by a numeric-like label, 
+     * by which per-table suffix strings can be specified.
      *
      * @param  numLabel  table identifier such as "1"
      */
     public Parameter createSuffixParameter( String numLabel ) {
-        Parameter param = new Parameter( "suffix" + numLabel );
-        param.setDefault( "_" + numLabel );
+        return createSuffixParameter( "suffix" + numLabel, "table " + numLabel,
+                                      "_" + numLabel );
+    }
+
+    /**
+     * Returns a new parameter by which per-table suffix strings can be
+     * specified.
+     *
+     * @param  name  parameter name
+     * @param  descrip   phrase identifying table that this parameter controls
+     *                   (such as "table 3")
+     * @param  dflt  default value
+     */
+    public Parameter createSuffixParameter( String name, String descrip,
+                                            String dflt ) {
+        Parameter param = new Parameter( name );
+        param.setDefault( dflt );
         param.setNullPermitted( true );
-        param.setPrompt( "Deduplicating suffix for columns in table "
-                       + numLabel );
+        param.setPrompt( "Deduplicating suffix for columns in " + descrip );
         param.setDescription( new String[] {
             "<p>If the <code>" + getName() + "</code> parameter",
             "is set so that input columns are renamed for insertion into",
             "the output table, this parameter determines how the",
             "renaming is done.",
             "It gives a suffix which is appended to all renamed columns",
-            "from table " + numLabel + ".",
+            "from table " + descrip + ".",
             "</p>",
         } );
         return param;
@@ -167,22 +186,12 @@ public class JoinFixActionParameter extends ChoiceParameter {
          * Returns a JoinFixAction corresponding to a given label.
          *
          * @param  env  execution environment
-         * @param  numLabel   table index label such as "1"
+         * @param   suffixParam  parameter supplying suffix value
+         *          (got from a <code>createSuffixParameter</code> method)
          */
         public abstract JoinFixAction createAction( Environment env,
-                                                    String numLabel )
+                                                    Parameter suffixParam )
                 throws TaskException;
-
-        /**
-         * Returns the suffix to be used for a given label.
-         *
-         * @param  env  execution environment
-         * @param  numLabel   table index label such as "1"
-         */
-        protected String getSuffix( Environment env, String numLabel )
-                throws TaskException {
-            return createSuffixParameter( numLabel ).stringValue( env );
-        }
 
         /**
          * Returns a short description of the function of this object.
