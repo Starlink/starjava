@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -899,7 +898,7 @@ public class RowMatcher {
         /* Store all the pairs in a map keyed by row reference of the reference
          * table. */
         Map pairMap = new HashMap();
-        ListStore store = new ListStore();
+        ListStore store = ListStores.createListStore();
         for ( Iterator it = pairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             it.remove();
@@ -1079,15 +1078,13 @@ public class RowMatcher {
         /* Construct a new hash mapping each RowRef in the given set of
          * links to a list of all the links it appears in. */
         Map refMap = new HashMap();
+        ListStore listStore = ListStores.createModifiableListStore();
         for ( Iterator linkIt = links.iterator(); linkIt.hasNext(); ) {
             RowLink link = (RowLink) linkIt.next();
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
-                if ( ! refMap.containsKey( ref ) ) {
-                    refMap.put( ref, new LinkedList() );
-                }
-                ((Collection) refMap.get( ref )).add( link );
+                refMap.put( ref, listStore.addItem( refMap.get( ref ), link ) );
             }
         }
 
@@ -1107,7 +1104,8 @@ public class RowMatcher {
             boolean isolated = true;
             for ( int i = 0; isolated && i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
-                Collection refLinks = (Collection) refMap.get( ref );
+                Collection refLinks = listStore.getList( refMap.get( ref ) );
+                assert refLinks.size() > 0;
                 isolated = isolated && refLinks.size() == 1;
             } 
 
@@ -1137,7 +1135,7 @@ public class RowMatcher {
             indicator.setLevel( 1.0 - ( refMap.size() / nRefs ) );
             RowRef ref1 = (RowRef) refMap.keySet().iterator().next();
             Set refSet = new HashSet();
-            walkLinks( ref1, refMap, refSet );
+            walkLinks( ref1, refMap, listStore, refSet );
             agglomeratedLinks.addLink( new RowLink( refSet ) );
         }
         indicator.endStage();
@@ -1151,18 +1149,22 @@ public class RowMatcher {
      * RowRefs to RowLinks and dumps them in a set of nodes.
      *
      * @param   baseRef  the RowRef at which to start/continue the search
-     * @param   refMap   a map of RowRefs to (all so far untraversed) RowLinks
+     * @param   refMap   a map of RowRefs storing Lists of 
+     *                   (all so far untraversed) RowLinks
+     * @param   listStore  list storage object for interrogating 
+     *                     <code>refMap</code>
      * @param   outSet   an existing set of RowRefs into which new RowRefs
      *                   connected to baseRef should be inserted
      */
-    private static void walkLinks( RowRef baseRef, Map refMap, Set outSet ) {
+    private static void walkLinks( RowRef baseRef, Map refMap,
+                                   ListStore listStore, Set outSet ) {
 
         /* Do nothing if the output set already contains the requested
          * reference; without this test we would recurse to infinite depth. */
         if ( ! outSet.contains( baseRef ) ) {
 
             /* Get all the links of which this reference is a member. */
-            Collection links = (Collection) refMap.get( baseRef );
+            Collection links = listStore.getList( refMap.get( baseRef ) );
             if ( ! links.isEmpty() ) {
 
                 /* Add the current row to the output set. */
@@ -1174,7 +1176,7 @@ public class RowMatcher {
                     RowLink link = (RowLink) linkIt.next();
                     for ( int i = 0; i < link.size(); i++ ) {
                         RowRef rref = link.getRef( i );
-                        walkLinks( rref, refMap, outSet );
+                        walkLinks( rref, refMap, listStore, outSet );
                     }
 
                     /* Having traversed this link, remove it so it is never

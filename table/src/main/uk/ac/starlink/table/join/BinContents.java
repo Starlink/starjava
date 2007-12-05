@@ -2,7 +2,6 @@ package uk.ac.starlink.table.join;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,15 +26,8 @@ import java.util.Map;
  */
 public class BinContents {
 
-    /**
-     * Bin ID -> value map.  The value represents a set of RowRefs.
-     * For memory efficiency reasons, the values can have two different
-     * classes; if there's only one RowRef to store, it's put in there 
-     * directly.  If there are two or more, they're stored as a List - 
-     * a currently LinkedList, since I reckon (without testing) it's 
-     * likely to be more efficient.
-     */
-    private final Map map_ = new HashMap();
+    private final Map map_;
+    private final ListStore listStore_;
     private final ProgressIndicator indicator_;
     private long nrow_;
 
@@ -47,6 +39,8 @@ public class BinContents {
      */
     public BinContents( ProgressIndicator indicator ) {
         indicator_ = indicator;
+        map_ = new HashMap();
+        listStore_ = ListStores.createListStore();
     }
 
     /**
@@ -57,34 +51,7 @@ public class BinContents {
      */
     public void putRowInBin( Object key, RowRef row ) {
         nrow_++;
-        Object value = map_.get( key );
-
-        /* If the key doesn't exist in the map, create a new entry with a
-         * single RowRef in it.  This has the same meaning as a list 
-         * containing a single RowRef, but it's cheaper on memory. */
-        if ( value == null ) {
-            assert ! map_.containsKey( key );
-            map_.put( key, row );
-        }
-        else {
-            List rowList;
-
-            /* If the entry is a single RowRef, replace it by a one-element
-             * list containing that RowRef (ready to add a new one). */
-            if ( value instanceof RowRef ) {
-                rowList = new LinkedList();
-                rowList.add( (RowRef) value );
-                map_.put( key, rowList );
-            }
-
-            /* Otherwise, it must already be a list. */
-            else {
-                rowList = (List) value;
-            }
-
-            /* Add the new row. */
-            rowList.add( row );
-        }
+        map_.put( key, listStore_.addItem( map_.get( key ), row ) );
     }
 
     /**
@@ -131,18 +98,13 @@ public class BinContents {
         int il = 0;
         for ( Iterator it = map_.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
-            Object value = entry.getValue();
+            List refList = listStore_.getList( entry.getValue() );
 
             /* If there is more than one RowRef, create and store the
-             * corresponding RowLink. */
-            if ( value instanceof List ) {
-                links.addLink( new RowLink( (List) value ) );
-            }
-
-            /* If there's only one RowRef, it doesn't constitute any 
-             * interesting kind of potential match - throw it away. */
-            else {
-                assert value instanceof RowRef;
+             * corresponding RowLink.  Items with zero or 1 entry are 
+             * not potential matches - take no action. */
+            if ( refList.size() > 1 ) {
+                links.addLink( new RowLink( refList ) );
             }
 
             /* Remove the entry from the map as we're going along, to
