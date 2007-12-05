@@ -27,7 +27,7 @@ public interface ListStore {
      * <code>value</code> should either be <code>null</code>, or an object
      * returned by an earlier invocation of this method.
      *
-     * @param   old value  list storage element
+     * @param   value  list storage element
      * @param   item   object to append to the list
      * @return  new list storage element
      */
