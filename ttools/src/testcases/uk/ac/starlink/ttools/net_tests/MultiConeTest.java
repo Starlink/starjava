@@ -40,6 +40,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "ra", "RA" )
             .setValue( "dec", "DEC" )
             .setValue( "sr", "0.05" )
+            .setValue( "copycols", "" )
             .setValue( "icmd", "head 10" );
         StarTable result = multicone( env );
 
@@ -64,6 +65,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "ra", "RAJ2000" )
             .setValue( "dec", "DEJ2000" )
             .setValue( "sr", "0.01" )
+            .setValue( "copycols", "name" )
             .setValue( "ocmd",
                        "replacecol -units rad " +
                        "RA hmsToRadians(RA[0],RA[1],RA[2])" +
@@ -74,13 +76,16 @@ public class MultiConeTest extends TableTestCase {
         StarTable result = multicone( env );
 
         assertEquals( 462L, result.getRowCount() );
-        assertEquals( 15, result.getColumnCount() );
+        assertEquals( 16, result.getColumnCount() );
 
-        assertEquals( "id", result.getColumnInfo( 0 ).getName() );
-        assertEquals( "RA", result.getColumnInfo( 1 ).getName() );
-        assertEquals( "DEC", result.getColumnInfo( 2 ).getName() );
-        assertEquals( "1120-0088780",
+        assertEquals( "name", result.getColumnInfo( 0 ).getName() );
+        assertEquals( "id", result.getColumnInfo( 1 ).getName() );
+        assertEquals( "RA", result.getColumnInfo( 2 ).getName() );
+        assertEquals( "DEC", result.getColumnInfo( 3 ).getName() );
+        assertEquals( "CRAB",
                       result.getCell( 0L, 0 ).toString().trim() );
+        assertEquals( "1120-0088780",
+                      result.getCell( 0L, 1 ).toString().trim() );
     }
 
     public void testExample3() throws Exception {
