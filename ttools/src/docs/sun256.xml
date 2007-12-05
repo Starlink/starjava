@@ -80,7 +80,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>7 November 2007</docdate>
+<docdate>5 December 2007</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -4816,32 +4816,67 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 1.4 (5 December 2007)</dt>
 <dd><p>
-    <ul>
-    <li>New <ref id="tskymatch2"><code>tskymatch2</code></ref> command.</li>
-    <li>New <ref id="tmatch1"><code>tmatch1</code></ref> command.</li>
-    <li>New <ref id="tmatchn"><code>tmatchn</code></ref> command.</li>
-    <li>FITS reader now imports table HDU header cards as table parameters.</li>
-    <li>Embedded spaces in output ASCII format table column names
-        are now substituted with underscores.</li>
-    <li>Fix a bug which caused an infinite number of dots to be printed
-        when attempting a crossmatch with an empty input table.</li>
-    <li>CeaWriter can now output CEA service definition XML config file as
-        well as app-description file.</li>
-    <li>Corrected <code>votlint</code> handling of TABLEDATA-type 
-        multi-dimensional <code>char</code>/<code>unicodeChar</code> arrays.
-        These are now split up into strings by counting characters rather
-        than using whitespace delimiters.
-        I <em>think</em> it's doing the right thing now.</li>
-    <li>Removed <code>duptag1</code> and <code>duptag2</code> parameters
-        from task <code>tmatch2</code>. 
-        Replaced by <code>suffix1</code> and <code>suffix2</code> parameters
-        for consistency with other table join tasks.</li>
-    <li>Added <code>progress</code> parameter to matching tasks.</li>
-    <li><code>copycols</code> parameter of <code>multicone</code> and 
-        <code>sqlcone</code> now defaults to "<code>*</code>".</li>
-    </ul>
+    <dl>
+    <dt>Table joins</dt>
+    <dd><p>This version provides more cross matching functionality.
+        Added to the existing <ref id="tmatch2"><code>tmatch2</code></ref>
+        command are new tasks:
+        <ul>
+        <li><ref id="tskymatch2"><code>tskymatch2</code></ref>:
+            stripped down version of <code>tmatch2</code> for ease of use when
+            matching with sky coordinates.</li>
+        <li><ref id="tmatch1"><code>tmatch1</code></ref>:
+            internal matcher, finds groups of objects within a table.</li>
+        <li><ref id="tmatchn"><code>tmatchn</code></ref>:
+            finds group or multiple-pair matches between multiple (&gt;2)
+            tables.</li>
+        </ul>
+        </p>
+        <p>There has also been some enhancement and rationalisation of
+        parameters for all table join tools (<code>tmatch*</code> as well as 
+        <code>tjoin</code>, <code>multicone</code> and <code>sqlcone</code>):
+        <ul>
+        <li>All table join commands now use similar <code>fixcols</code> and 
+            <code>suffix*</code> parameters to control renaming of duplicated
+            columns in output tables (note this replaces the old 
+            <code>duptag*</code> parameters in <code>tmatch2</code>).</li>
+        <li>Crossmatching tasks have a new <code>progress</code> parameter
+            which allows you to configure whether progress is reported to the 
+            console.</li>
+        <li>The <code>copycols</code> parameter of <code>multicone</code> 
+            and <code>sqlcone</code> now defaults to "<code>*</code>" 
+            (include all columns from input table in the output).</li>
+        </ul>
+        </p></dd>
+
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>FITS reader now imports table HDU header cards as table parameters.
+            </li>
+        <li>CeaWriter can now output CEA service definition XML config file as
+            well as app-description file (experimental - may be withdrawn).</li>
+        </ul>
+        </p></dd>
+
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Embedded spaces in output ASCII format table column names
+            are now substituted with underscores.</li>
+        <li>Fix a bug which caused an infinite number of dots to be printed
+            when attempting a crossmatch with an empty input table.</li>
+        <li>Corrected <code>votlint</code> handling of TABLEDATA-type 
+            multi-dimensional <code>char</code>/<code>unicodeChar</code> arrays.
+            These are now split up into strings by counting characters rather
+            than using whitespace delimiters.
+            I <em>think</em> it's doing the right thing now.</li>
+        </ul>
+        </p></dd>
+
+    </dl>
     </p></dd>
 
 </dl>
