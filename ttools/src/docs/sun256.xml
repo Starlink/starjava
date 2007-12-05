@@ -4839,6 +4839,8 @@ but my thanks are especially due to the following:
         Replaced by <code>suffix1</code> and <code>suffix2</code> parameters
         for consistency with other table join tasks.</li>
     <li>Added <code>progress</code> parameter to matching tasks.</li>
+    <li><code>copycols</code> parameter of <code>multicone</code> and 
+        <code>sqlcone</code> now defaults to "<code>*</code>".</li>
     </ul>
     </p></dd>
 
