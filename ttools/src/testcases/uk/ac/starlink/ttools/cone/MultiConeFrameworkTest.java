@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.cone;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -39,7 +40,7 @@ public class MultiConeFrameworkTest extends TestCase {
         SkyConeMatch2Producer bestMatcher = new SkyConeMatch2Producer(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ),
-                true, "*" );
+                true, "*", JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
         assertEquals( messier.getColumnCount() + 3,
@@ -49,7 +50,9 @@ public class MultiConeFrameworkTest extends TestCase {
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
-                false, "RA DEC" );
+                false, "RA DEC",
+                JoinFixAction.makeRenameDuplicatesAction( "_A" ),
+                JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
         assertEquals( messier.getRowCount() * nIn, allResult.getRowCount() );
         assertEquals( 2 + 3, allResult.getColumnCount() );
@@ -58,6 +61,11 @@ public class MultiConeFrameworkTest extends TestCase {
         final int iDec = 6;
         assertEquals( "RA", messier.getColumnInfo( iRa ).getName() );
         assertEquals( "DEC", messier.getColumnInfo( iDec ).getName() );
+        assertEquals( "RA_A", allResult.getColumnInfo( 0 ).getName() );
+        assertEquals( "DEC_A", allResult.getColumnInfo( 1 ).getName() );
+        assertEquals( "ID", allResult.getColumnInfo( 2 ).getName() );
+        assertEquals( "RA_B", allResult.getColumnInfo( 3 ).getName() );
+        assertEquals( "Dec_B", allResult.getColumnInfo( 4 ).getName() );
         QuerySequenceFactory qsFact3 = new QuerySequenceFactory() {
             public ConeQueryRowSequence createQuerySequence( StarTable table )
                     throws IOException {
@@ -66,9 +74,13 @@ public class MultiConeFrameworkTest extends TestCase {
             }
         };
         SkyConeMatch2Producer matcher3 = new SkyConeMatch2Producer(
-                searcher, inProd, qsFact3, true, "" );
+                searcher, inProd, qsFact3, true, "",
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );
         assertEquals( 3, result3.getColumnCount() );
+        assertEquals( "ID", result3.getColumnInfo( 0 ).getName() );
+        assertEquals( "RA", result3.getColumnInfo( 1 ).getName() );
+        assertEquals( "Dec", result3.getColumnInfo( 2 ).getName() );
         assertEquals( messier.getRowCount(), result3.getRowCount() );
         RowSequence rseq1 = messier.getRowSequence();
         RowSequence rseq2 = result3.getRowSequence();

@@ -1,11 +1,16 @@
 package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.RowPipe;
@@ -34,6 +39,8 @@ public class SkyConeMatch2Producer implements TableProducer {
     private final QuerySequenceFactory qsFact_;
     private final boolean bestOnly_;
     private final String copyColIdList_;
+    private final JoinFixAction inFixAct_;
+    private final JoinFixAction coneFixAct_;
     private boolean streamOutput_;
 
     private final static Logger logger_ =
@@ -51,17 +58,24 @@ public class SkyConeMatch2Producer implements TableProducer {
      * @param   copyColIdList  space-separated list of column identifiers for
      *                         columns to be copied to the output table,
      *                         "*" for all columns
+     * @param   inFixAct   column name deduplication action for input table
+     * @param   coneFixAct column name deduplication action for result
+     *                     of cone searches
      */
     public SkyConeMatch2Producer( ConeSearcher coneSearcher,
                                   TableProducer inProd,
                                   QuerySequenceFactory qsFact,
                                   boolean bestOnly,
-                                  String copyColIdList ) {
+                                  String copyColIdList,
+                                  JoinFixAction inFixAct,
+                                  JoinFixAction coneFixAct ) {
         coneSearcher_ = coneSearcher;
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
         copyColIdList_ = copyColIdList;
+        inFixAct_ = inFixAct;
+        coneFixAct_ = coneFixAct;
     }
 
     /**
@@ -98,7 +112,7 @@ public class SkyConeMatch2Producer implements TableProducer {
         RowPipe rowPipe = new OnceRowPipe();
         Thread coneWorker =
             new ConeWorker( rowPipe, inTable, coneSearcher_, querySeq,
-                            iCopyCols, bestOnly_ );
+                            iCopyCols, bestOnly_, inFixAct_, coneFixAct_ );
         coneWorker.setDaemon( true );
         coneWorker.start();
         StarTable streamTable = rowPipe.waitForStarTable();
@@ -117,6 +131,8 @@ public class SkyConeMatch2Producer implements TableProducer {
         private final ConeQueryRowSequence querySeq_;
         private final int[] iCopyCols_;
         private final boolean bestOnly_;
+        private final JoinFixAction inFixAct_;
+        private final JoinFixAction coneFixAct_;
 
         /**
          * Constructor.
@@ -129,10 +145,14 @@ public class SkyConeMatch2Producer implements TableProducer {
          * @param   iCopyCols  indices of columns from the input table to
          *                     be copied to the output table
          * @param   bestOnly  true if only the best one row is to be returned
+         * @param   inFixAct   column name deduplication action for input table
+         * @param   coneFixAct column name deduplication action for result
+         *                     of cone searches
          */
         ConeWorker( RowPipe rowPipe, StarTable inTable,
                     ConeSearcher coneSearcher, ConeQueryRowSequence querySeq,
-                    int[] iCopyCols, boolean bestOnly ) {
+                    int[] iCopyCols, boolean bestOnly,
+                    JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
             super( "Cone searcher" );
             rowPipe_ = rowPipe;
             inTable_ = inTable;
@@ -140,6 +160,8 @@ public class SkyConeMatch2Producer implements TableProducer {
             querySeq_ = querySeq;
             iCopyCols_ = iCopyCols;
             bestOnly_ = bestOnly;
+            inFixAct_ = inFixAct;
+            coneFixAct_ = coneFixAct;
         }
 
         public void run() {
@@ -269,14 +291,40 @@ public class SkyConeMatch2Producer implements TableProducer {
          */
         private StarTable getMetadata( StarTable coneResult ) {
             int ncol = iCopyCols_.length + coneResult.getColumnCount();
+
+            /* Assemble metadata for copied columns. */
             ColumnInfo[] infos = new ColumnInfo[ ncol ];
             for ( int icol = 0; icol < iCopyCols_.length; icol++ ) {
                 infos[ icol ] = inTable_.getColumnInfo( iCopyCols_[ icol ] );
             }
+
+            /* Assemble metadata for columns returned from cone search. */
             for ( int icol = 0; icol < coneResult.getColumnCount(); icol++ ) {
                 infos[ icol + iCopyCols_.length ] =
                     coneResult.getColumnInfo( icol );
             }
+
+            /* Perform column name deduplication as required. */
+            List colNames = new ArrayList();
+            for ( int icol = 0; icol < infos.length; icol++ ) {
+                colNames.add( infos[ icol ].getName() );
+            }
+            for ( int icol = 0; icol < infos.length; icol++ ) {
+                JoinFixAction fixAct = icol < iCopyCols_.length ? inFixAct_
+                                                                : coneFixAct_;
+                String name = infos[ icol ].getName();
+                assert name.equals( colNames.get( icol ) );
+                colNames.set( icol, null );
+                String fixName = fixAct.getFixedName( name, colNames );
+                colNames.set( icol, name );
+                if ( ! fixName.equals( name ) ) {
+                    ColumnInfo info = new ColumnInfo( infos[ icol ] );
+                    info.setName( fixName );
+                    infos[ icol ] = info;
+                }
+            }
+
+            /* Return the metadata table. */
             return new RowListStarTable( infos ) {
                 public long getRowCount() {
                     return -1L;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
@@ -11,6 +12,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.task.ChoiceMode;
+import uk.ac.starlink.ttools.task.JoinFixActionParameter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.ttools.task.SingleMapperTask;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -35,6 +37,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final Parameter copycolsParam_;
     private final ChoiceParameter modeParam_;
     private final BooleanParameter ostreamParam_;
+    private final JoinFixActionParameter fixcolsParam_;
+    private final Parameter insuffixParam_;
+    private final Parameter conesuffixParam_;
 
     /**
      * Constructor.
@@ -145,6 +150,17 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( ostreamParam_ );
 
+        fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
+        insuffixParam_ =
+            fixcolsParam_.createSuffixParameter( "suffix0",
+                                                 "input table", "_0" );
+        conesuffixParam_ =
+            fixcolsParam_.createSuffixParameter( "suffix1",
+                                                 "cone result table", "_1" );
+        paramList.add( fixcolsParam_ );
+        paramList.add( insuffixParam_ );
+        paramList.add( conesuffixParam_ );
+
         getParameterList().addAll( paramList );
         getParameterList().addAll( Arrays.asList( coner.getParameters() ) );
     }
@@ -172,13 +188,17 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         }
         TableProducer inProd = createInputProducer( env );
         ConeSearcher coneSearcher = coner_.createSearcher( env, bestOnly );
+        JoinFixAction inFixAct =
+            fixcolsParam_.getJoinFixAction( env, insuffixParam_ );
+        JoinFixAction coneFixAct =
+            fixcolsParam_.getJoinFixAction( env, conesuffixParam_ );
         QuerySequenceFactory qsFact =
             new JELQuerySequenceFactory( raString, decString, srString );
 
         /* Return a table producer using these values. */
         SkyConeMatch2Producer producer =
             new SkyConeMatch2Producer( coneSearcher, inProd, qsFact, bestOnly,
-                                       copyColIdList );
+                                       copyColIdList, inFixAct, coneFixAct );
         producer.setStreamOutput( ostream );
         return producer;
     }
