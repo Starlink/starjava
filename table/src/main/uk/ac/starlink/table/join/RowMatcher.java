@@ -125,69 +125,6 @@ public class RowMatcher {
     }
 
     /**
-     * Returns a set of RowLink objects corresponding to a match 
-     * between this matcher's two tables performed with its match engine.
-     * Each element in the returned list basically corresponds to a matched 
-     * pair with one entry from each of the input tables, however using
-     * the <tt>req1</tt> and <tt>req2</tt> arguments you can specify whether
-     * both input tables need to be represented.
-     * Each input table row appears in no more than one RowLink in the
-     * returned list.
-     *
-     * @param  req1  whether an entry from the first table must be present
-     *         in each element of the result
-     * @param  req2  whether an entry from the second table must be present
-     *         in each element of the result
-     * @return  link set
-     */
-    public LinkSet findPairMatches( boolean req1, boolean req2 )
-            throws IOException, InterruptedException {
-        checkRandom();
-
-        /* Check we have two tables. */
-        if ( nTable != 2 ) {
-            throw new IllegalStateException( "findPairMatches only makes sense"
-                                           + " for 2 tables" );
-        }
-        startMatch();
-
-        /* Get the possible candidates for inter-table links. */
-        LinkSet links = getPossibleInterLinks( 0, 1 );
-
-        /* Get all the possible inter-table pairs. */
-        links = findInterPairs( links, 0, 1 );
-
-        /* Make sure that no row is represented more than once
-         * (this isn't necessary for the result to make sense, but it's 
-         * probably what the caller is expecting). */
-        links = eliminateMultipleRowEntries( links );
-
-        /* We now have a set of links corresponding to all the matches
-         * with one entry for each of two or more of the input tables.
-         * In the case that we want to output some links with unmatched
-         * parts, add new singleton row links as necessary. 
-         * They are added without scores, since they don't represent 
-         * actual matches. */
-        LinkSet[] missing = new LinkSet[] {
-            ( req1 ? null : missingSingles( links, 0 ) ),
-            ( req2 ? null : missingSingles( links, 1 ) ),
-        };
-        for ( int i = 0; i < 2; i++ ) {
-            if ( missing[ i ] != null ) {
-                for ( Iterator it = missing[ i ].iterator(); it.hasNext(); ) {
-                    links.addLink( (RowLink) it.next() );
-                    it.remove();
-                }
-                missing[ i ] = null;
-            }
-        }
-
-        /* Return. */
-        endMatch();
-        return links;
-    }
-
-    /**
      * Returns a set of RowLink objects each of which represents matches
      * between one of the rows of a reference table and any of the other tables
      * which can provide matches.  Elements of the result set will be
