@@ -397,7 +397,7 @@ public abstract class CeaWriter extends XmlWriter {
         }
 
         /* Remove some tasks unsuitable for the CEA installation. */
-        String[] removals = new String[] { "funcs", "sqlcone", };
+        String[] removals = new String[] { "funcs", "sqlskymatch", };
         for ( int i = 0; i < removals.length; i++ ) {
             String rname = removals[ i ];
             if ( appMap.containsKey( rname ) ) {
