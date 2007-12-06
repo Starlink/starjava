@@ -31,10 +31,10 @@
 
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
+  <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
-  <!ENTITY multicone-summary SYSTEM 'multicone-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
-  <!ENTITY sqlcone-summary SYSTEM 'sqlcone-summary.xml'>
+  <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
@@ -80,7 +80,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>5 December 2007</docdate>
+<docdate>6 December 2007</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -196,11 +196,11 @@ the following commands for accessing VO/database services:
 <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
     &regquery-purpose;
     </li>
-<li><ref id="multicone" plaintextref="yes"><code>multicone</code></ref>:
-    &multicone-purpose;
+<li><ref id="coneskymatch" plaintextref="yes"><code>coneskymatch</code></ref>:
+    &coneskymatch-purpose;
     </li>
-<li><ref id="sqlcone" plaintextref="yes"><code>sqlcone</code></ref>:
-    &sqlcone-purpose;
+<li><ref id="sqlskymatch" plaintextref="yes"><code>sqlskymatch</code></ref>:
+    &sqlskymatch-purpose;
     </li>
 </ul>
 and the following general purpose utilities:
@@ -397,9 +397,9 @@ the available tasks are:
 <ul>
 <li><code>calc</code></li>
 <li><code>funcs</code></li>
-<li><code>multicone</code></li>
+<li><code>coneskymatch</code></li>
 <li><code>regquery</code></li>
-<li><code>sqlcone</code></li>
+<li><code>sqlskymatch</code></li>
 <li><code>tcat</code></li>
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
@@ -505,7 +505,7 @@ itself about task and its parameters, as described in the next section.
 </subsect>
 
 <subsect>
-<subhead><title>Getting help</title></subhead>
+<subhead><title>Getting Help</title></subhead>
 
 <p>As well as the command descriptions in this document
 (especially the reference section <ref id="cmdUsage"/>)
@@ -1039,8 +1039,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
-           <ref id="multicone"><code>multicone</code></ref>,
-           <ref id="sqlcone"><code>sqlcone</code></ref> and
+           <ref id="coneskymatch"><code>coneskymatch</code></ref>,
+           <ref id="sqlskymatch"><code>sqlskymatch</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
@@ -1377,7 +1377,7 @@ three separate words.
 </subsect>
 
 <subsect id="col-id">
-<subhead><title>Specifying a single column</title></subhead>
+<subhead><title>Specifying a Single Column</title></subhead>
 
 <p>If an argument is specified in the help text for a 
 command with the symbol <code>&lt;col-id&gt;</code>
@@ -1430,7 +1430,7 @@ existing columns in a table.
 </subsect>
 
 <subsect id="colid-list">
-<subhead><title>Specifying a list of columns</title></subhead>
+<subhead><title>Specifying a List of Columns</title></subhead>
 
 <p>If an argument is specified in the help text for a command
 with the symbol <code>&lt;colid-list&gt;</code> it means you 
@@ -1669,133 +1669,191 @@ which will tell you about all the known matchers and their associated
 <code>params</code> and <code>values*</code> parameters.
 </p>
 
-<p>Here is a list of all the basic <code>matcher</code> types and the
+<p>The following subsections list the basic <code>matcher</code> types and the
 requirements of their associated <code>params</code> and 
 <code>values*</code> parameters.  The units of the required values
 are given where significant.
-<dl>
+</p>
 
-<dt>&matcher-sky-usage;</dt>
-<dd><p>Comparison of positions on the celestial sphere with a fixed error
-    radius.  
-    Rows are considred to match when the 
-    two <code>ra</code>, <code>dec</code> positions are within 
-    <code>max-error</code> arcseconds of each other along a great circle.
-    </p></dd>
+<subsubsect id="SkyMatchEngine">
+<subhead><title><code>sky</code>: Sky Matching</title></subhead>
 
-<dt>&matcher-skyerr-usage;</dt>
-<dd><p>Comparison of positions on the celestial sphere with per-row 
-    error radii.
-    Rows are considered to match when the separation between the
-    two <code>ra</code>, <code>dec</code> positions is smaller than 
-    <em>both</em> the fixed <code>max-error</code> value 
-    <em>and</em> the sum of the two per-row <code>error</code> values.
-    If either of the <code>error</code> values is blank,
-    then any separation up to <code>max-error</code> is considered a match.
-    According to these rules, you might decide to set <code>max-error</code>
-    to an arbitarily large number so that only the sum of <code>error</code>s
-    will determine the actual match criteria.
-    However please <em>don't</em> do this, since <code>max-error</code>
-    also functions as a tuning parameter for the matching algorithm,
-    and ought to be reasonably close to the actual maximum acceptable
-    separation.
-    </p></dd>
+<p>&matcher-sky-usage;</p>
 
-<dt>&matcher-sky3d-usage;</dt>
-<dd><p>Comparison of positions in the sky taking account of
-    distance from the observer.
-    The position in three-dimensional space is calculated for each 
-    row using the <code>ra</code>, <code>dec</code> and <code>distance</code>
-    as spherical polar coordinates, where <code>distance</code> is the
-    distance from the observer along the line of sight.
-    Rows are considered to match when their positions in this space are
-    within <code>error</code> units of each other.
-    The units of <code>error</code> are the same as those of 
-    <code>distance</code>.
-    </p></dd>
+<p>The <code>sky</code> matcher compares positions on the celestial sphere
+with a fixed error radius.
+Rows are considered to match when the two (<code>ra</code>, <code>dec</code>)
+positions are within <code>max-error</code> arcseconds of each other
+along a great circle.
+</p>
 
-<dt>&matcher-exact-usage;</dt>
-<dd><p>Comparison of arbitrary key values for exact equality.
-    Rows are considered to match only if the values in their 
-    <code>matched-value</code> columns are exactly the same.
-    These values can be strings, numbers, or anything else.
-    A blank value never matches, not even with another blank one.
-    Since the <code>params</code> parameter holds no values, 
-    it does not have to be specified.
-    </p></dd>
+<p>In fact this matching is not restricted to equatorial coordinates - 
+the <code>ra</code> and <code>dec</code> parameters may represent
+any longitude-like and latitude-like coordinates in degrees, 
+since the spherical geometry for the matching is unchanged under 
+such transformations.
+</p>
 
-<dt>&matcher-1d-usage;</dt>
-<dd><p>Comparison of positions in 1-dimensional Cartesian space.
-    Rows are considered to match if their <code>x</code> column
-    values differ by no more than <code>error</code>.
-    </p></dd>
+</subsubsect>
 
-<dt>&matcher-2d-usage;</dt>
-<dd><p>Comparison of positions in 2-dimensional Cartesian space.
-    Rows are considered to match if the difference in their 
-    (<code>x</code>,<code>y</code>) positions reckoned using
-    Pythagoras is less than <code>error</code>.
-    </p></dd>
+<subsubsect id="SkyMatchEngine-err">
+<subhead><title><code>skyerr</code>:
+         Sky Matching with Per-Object Errors</title></subhead>
 
-<dt><verbatim><![CDATA[matcher=Nd values*='<x> <y> ...'
-          params='<error>']]></verbatim></dt>
-<dd><p>Comparison of positions in N-dimensional Cartesian space.
-    As for <code>matcher=2d</code>, 
-    but specify <code>matcher=3d</code> or whatever and
-    the corresponding number of entries in the <code>values*</code> parameters.
-    </p></dd>
+<p>&matcher-skyerr-usage;</p>
 
-<dt>&matcher-2d_anis-usage;</dt>
-<dd><p>Comparison of positions in 2-dimensional Cartesian space using
-    an anisotropic metric.
-    Rows are considered to match if their (<code>x</code>,<code>y</code>)
-    positions fall within an error ellipse with radii 
-    <code>error-in-x</code>,<code>error-in-y</code> of each other.
-    This kind of match will typically be used for non-'spatial' spaces,
-    for instance (magnitude,redshift) space, in which the metrics along
-    different axes are not related to each other.
-    </p></dd>
+<p>The <code>skyerr</code> matcher compares positions on the celestial 
+sphere using error radii which can be different for each row.
+Rows are considered to match when the separation between the
+two <code>ra</code>, <code>dec</code> positions is smaller than 
+<em>both</em> the fixed <code>max-error</code> value 
+<em>and</em> the sum of the two per-row <code>error</code> values.
+If either of the <code>error</code> values is blank,
+then any separation up to <code>max-error</code> is considered a match.
+</p>
 
-<dt><verbatim><![CDATA[matcher=Nd_anisotropic values*='<x> <y> ...'
-                       params='<error-in-x> <error-in-y> ...']]></verbatim></dt>
-<dd><p>Comparison of positions in N-dimensional Cartesian space using
-    an anisotropic metric.
-    As <code>matcher=2d_anisotropic</code>,
-    but specify <code>matcher=3d_anisotropic</code> or whatever
-    and the corresponding number of entries in the <code>values*</code>
-    and <code>params</code> parameters.
-    </p></dd>
+<p>According to these rules, you might decide to set <code>max-error</code>
+to an arbitarily large number so that only the sum of <code>error</code>s
+will determine the actual match criteria.
+However please <em>don't</em> do this, since <code>max-error</code>
+also functions as a tuning parameter for the matching algorithm,
+and ought to be reasonably close to the actual maximum acceptable
+separation.
+</p>
 
-</dl>
-In addition to those matching criteria listed above, you can build your
-own by combining any of these.  To do this, take the two (or more)
+<p>As with <ref id="SkyMatchEngine"><code>sky</code></ref> matching,
+other longitude/latitude coordinate pairs may be used in place of
+right ascension and declination.
+</p>
+
+</subsubsect>
+
+<subsubsect id="SphericalPolarMatchEngine">
+<subhead><title><code>sky3d</code>: Spherical Polar Matching</title></subhead>
+
+<p>&matcher-sky3d-usage;</p>
+
+<p>The <code>sky3d</code> matcher compares positions in the volume of 
+the sky taking account of distance from the observer.
+The position in three-dimensional space is calculated for each 
+row using the <code>ra</code>, <code>dec</code> and <code>distance</code>
+as spherical polar coordinates, where <code>distance</code> is the
+distance from the observer along the line of sight.
+Rows are considered to match when their positions in this space are
+within <code>error</code> units of each other.
+The units of <code>error</code> are the same as those of 
+<code>distance</code>.
+</p>
+
+<p>As with <ref id="SkyMatchEngine"><code>sky</code></ref> matching,
+other longitude/latitude coordinate pairs may be used in place of
+right ascension and declination.
+</p>
+
+</subsubsect>
+
+<subsubsect id="EqualsMatchEngine">
+<subhead><title><code>exact</code>: Exact Matching</title></subhead>
+
+<p>&matcher-exact-usage;</p>
+
+<p>The <code>exact</code> matcher compares arbitrary key values 
+for exact equality.
+Rows are considered to match only if the values in their 
+<code>matched-value</code> columns are exactly the same.
+These values can be strings, numbers, or anything else.
+A blank value never matches, not even with another blank one.
+Since the <code>params</code> parameter holds no values, 
+it does not have to be specified.
+</p>
+
+</subsubsect>
+
+<subsubsect id="IsotropicCartesianMatchEngine">
+<subhead><title><code>1d</code>, <code>2d</code>, ...:
+         Isotropic Cartesian Matching</title></subhead>
+
+<p>&matcher-1d-usage;</p>
+
+<p>&matcher-2d-usage;</p>
+
+<p>The <code>1d</code> matcher compares positions in 1-dimensional 
+Cartesian space.
+Rows are considered to match if their <code>x</code> column
+values differ by no more than <code>error</code>.
+</p>
+
+<p>The <code>2d</code> matcher compares postions in 2-dimensional
+Cartesian space.
+Rows are considered to match if the difference in their 
+(<code>x</code>,<code>y</code>) positions reckoned using
+Pythagoras is less than <code>error</code>.
+</p>
+
+<p>Matching in any number of Cartesian dimensions can be done by
+extending this syntax in the obvious way.
+</p>
+
+</subsubsect>
+
+<subsubsect id="AnisotropicCartesianMatchEngine">
+<subhead><title><code>2d_anisotropic</code>, ...:
+         Anisotropic Cartesian Matching</title></subhead>
+
+<p>&matcher-2d_anis-usage;</p>
+
+<p>The <code>2d_anisotropic</code> matcher compares positions in 
+2-dimensional Cartesian space using an anisotropic metric.
+Rows are considered to match if their (<code>x</code>,<code>y</code>)
+positions fall within an error ellipse with radii 
+<code>error-in-x</code>,<code>error-in-y</code> of each other.
+This kind of match will typically be used for non-'spatial' spaces,
+for instance (magnitude,redshift) space, in which the metrics along
+different axes are not related to each other.
+</p>
+
+<p>Matching in any number of dimensions of Cartesian space using an
+anisotropic metric can be done by extending this syntax in the obvious way.
+</p>
+
+</subsubsect>
+
+<subsubsect id="CombinedMatchEngine">
+<subhead><title>Matcher Combinations</title></subhead>
+
+<p>In addition to the matching criteria listed in the previous subsections, 
+you can build your own by combining any of these.  
+To do this, take the two (or more)
 matchers that you want to use, and separate their names with a
 "<code>+</code>" character.  The <code>values*</code> parameters
 of the combined matcher should then hold the concatenation of the
 <code>values*</code> entries of the constituent matchers, and the
 same for the <code>params</code> parameter.
-So for instance the following can be used:
-<dl>
+</p>
 
-<dt>&matcher-sky.1d-usage;</dt>
-<dd><p>Comparison of positions on the sky with an additional scalar constraint.
-    Rows are considered to match if <em>both</em>
-    their <code>ra</code>, <code>dec</code> positions are within
-    <code>max-error</code> arcseconds of each other along a great circle
-    (as for <code>matcher=sky</code>) 
-    <em>and</em>
-    their <code>x</code> values differ by no more than <code>error</code>
-    (as for <code>matcher=1d</code>).
-    </p></dd>
+<p>So for instance the matcher "<code>sky+1d</code>" could be used
+with the following syntax:
 
-</dl>
-This example might be used for instance to identify objects from two
+&matcher-sky.1d-usage;
+
+This would compare positions on the sky with an additional scalar constraint.
+Rows are considered to match if <em>both</em>
+their <code>ra</code>, <code>dec</code> positions are within
+<code>max-error</code> arcseconds of each other along a great circle
+(as for <code>matcher=sky</code>) 
+<em>and</em>
+their <code>x</code> values differ by no more than <code>error</code>
+(as for <code>matcher=1d</code>).
+</p>
+
+<p>This example might be used for instance to identify objects from two
 catalogues which are within a couple of arcseconds and also 0.5
 blue magnitudes of each other.
 Rolling your own matchers in this way can give you very flexible match
 constraints.
 </p>
 
+</subsubsect>
 </subsect>
 
 <subsect id="matchGroup">
@@ -1805,8 +1863,8 @@ constraints.
 match criteria, as described in <ref id="MatchEngine"/>.
 These criteria give conditions for whether two items (table rows)
 count as matched with each other.  In the case of a pair match,
-as provided by <ref id="tmatch2"><code>tmatch2</code></ref> it is
-clear how this is to be interpreted.
+as provided by <ref id="tmatch2"><code>tmatch2</code></ref>,
+it is clear how this is to be interpreted.
 </p>
 
 <p>However, some of the matching tasks 
@@ -2495,6 +2553,149 @@ stilts calc 'param$author' table=catalogue.xml
 
 </subsect>
 
+<subsect id="coneskymatch" tocleaf="yes">
+<subhead><title><code>coneskymatch</code>: &coneskymatch-purpose;</title></subhead>
+
+<p><code>coneskymatch</code> is a utility which performs a 
+<webref url="http://www.ivoa.net/Documents/latest/ConeSearch.html"
+        >cone search</webref>
+(cone search is an IVOA standard protocol)
+query for each row of an input table and concatenates the results 
+of all these queries together into one big output table.
+You give the <label>service URL</label> for the cone search server you wish
+to use, and expressions (usually column names) 
+defining how to get the search parameters 
+(sky position and search radius) for each row of the input table.  
+The program then goes through the input table and dispatches
+a cone search query to the server for each row.  
+For each of these queries the service should respond with a 
+VOTable containing the objects it knows about in the specified region; 
+hopefully the columns will be the same or very similar for
+all the different queries since they are using the same service.
+The response tables are stitched together top-to-bottom 
+(in the same way as <ref id="tcat"><code>tcat</code></ref>)
+and the result is output.
+</p>
+
+<p>The effect of this is like doing a positional crossmatch 
+where one of the catalogues is local and the other is remote and
+provides a cone search service.
+Because of both the network communication and the naive algorithm
+however, it is only suitable if the local catalogue has a rather
+small number of rows.
+</p>
+
+<p>You can locate available cone search services and their service URLs
+by interrogating the <label>VO Registry</label>.
+One way to do this is using the <code>regquery</code> command.
+For instance, to identify registered cone search services that have
+something to do with Sloan data, you could execute the folowing:
+<verbatim>
+    stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
+           ocmd="keepcols 'shortName serviceUrl'" \
+           ofmt=ascii
+</verbatim>
+Writing just <code>query="serviceType = 'CONE'"</code> with no
+further qualification will give you all registered cone search services.
+See the section on 
+<ref id="regquery" plaintextref="yes"><code>regquery</code></ref> 
+for more explanation.
+</p>
+
+<p>Note that when running, <code>coneskymatch</code> often generates a lot
+of WARNING messages.  Most of these are complaining about badly formed
+VOTables being returned from the cone search services.  STILTS does its
+best to work out what the service responses mean in this case, 
+and usually makes a good enough job of it.
+</p>
+
+<p><em>Note: this task was known as <code>multicone</code> in its experimental
+form in STILTS v1.2 and v1.3.</em>
+</p>
+
+&coneskymatch-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>coneskymatch</code>:
+<dl>
+
+<dt><verbatim>
+stilts coneskymatch serviceurl=http://archive.stsci.edu/hst/search.php \
+                    in=messier.xml ra=RA dec=DEC sr=0.05 \
+                    out=matches.xml
+</verbatim></dt>
+<dd><p>This queries the HST cone search service from Space Telescope for
+    records within .05 degrees of each Messier object contained in a 
+    local VOTable <code>messier.xml</code>.  The result is written to a
+    new VOTable, <code>matches.xml</code>.  The J2000 positions of each
+    record in the input file are held in columns named RA and
+    DEC respectively.
+    </p></dd>
+
+<dt><verbatim>
+stilts coneskymatch \
+       serviceurl='http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=NOMAD' \
+       in=vizier.xml#7 \
+       icmd='addskycoords -inunit sex fk4 fk5 RAB1950 DEB1950 RAJ2000 DEJ2000' \
+       icmd='progress'
+       ra=RAJ2000 dec=DEJ2000 sr=0.01 \
+       ocmd='replacecol -units rad RA hmsToRadians(RA[0],RA[1],RA[2])' \
+       ocmd='replacecol -units rad DEC dmsToRadians(DEC[0],DEC[1],DEC[2])' \
+       omode=topcat
+</verbatim></dt>
+<dd><p>In this example some pre-processing of the input catalogue and
+    post-processing of the output catalogue is performed as well as the
+    multiple cone search itself.
+    </p>
+    <p>The input catalogue, which is the 8th TABLE element in a VOTable file,
+    contains sky positions in sexagesimal FK4 (B1950) coordinates.  
+    The <code>icmd=addskycoords...</code> parameter specifies a filter which
+    will add new columns in FK5 (J2000) degrees, which are what the 
+    <code>coneskymatch</code> command requires.
+    The <code>icmd=progress</code> parameter specifies a filter which
+    will write progress information to the terminal so you can see how
+    the queries are progressing.
+    </p>
+    <p>The NOMAD service specified by the <code>serviceurl</code> parameter
+    used here happens to return results with the RA/DEC columns represented
+    in a rather eccentric format, namely 3-element floating point arrays 
+    representing (hours,minutes,seconds)/(degrees,minutes,seconds).
+    The two <code>ocmd=replacecol...</code> filters replace the values of
+    these columns with the scalar equivalents in radians.
+    Finally, the <code>omode=topcat</code> parameter causes the result
+    table to be loaded directly into TOPCAT (if it is available).
+    </p>
+    </dd>
+
+<dt><verbatim>
+stilts coneskymatch serviceurl='http://archive.stsci.edu/iue/search.php?' \
+                    in=queries.txt ifmt=ascii \
+                    ra='&column.id.char;1' dec='&column.id.char;2' \
+                    sr='&column.id.char;3' copycols='&column.id.char;4' \
+                    out=found.fits
+</verbatim></dt>
+<dd><p>Here the input is a plain text table with four unnamed columns, 
+    giving in order the right ascension, declination,
+    positional error and name of target objects.
+    The command carries out a cone search to the named service for
+    each one.  Note in this case the search radius (<code>sr</code> parameter)
+    is taken from the table and so varies for each query.
+    The <code>copycols</code> parameter has the value 
+    '<code>&column.id.char;4</code>',
+    which means that the value of the fourth column of the input table 
+    will be prepended to each row of the output table for 
+    which it is responsible.
+    Output is to a FITS table.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="funcs" tocleaf="yes">
 <subhead><title><code>funcs</code>: &funcs-purpose;</title></subhead>
 
@@ -2518,152 +2719,6 @@ There are no parameters.
 </p>
 
 &funcs-summary;
-
-</subsect>
-
-<subsect id="multicone" tocleaf="yes">
-<subhead><title><code>multicone</code>: &multicone-purpose;</title></subhead>
-
-<p><code>multicone</code> is a utility which performs a cone search
-query for each row of an input table and concatenates the results 
-of all these queries together into one big output table.
-You give the <label>service URL</label> for the cone search server you wish
-to use, and expressions (usually column names) 
-defining how to get the search parameters 
-(sky position and search radius) for each row of the input table.  
-The program then goes through the input table and dispatches
-a cone search query to the server for each row.  
-For each of these queries the service should respond with a 
-VOTable containing the objects it knows about in the specified region; 
-hopefully the columns will be the same or very similar for
-all the different queries since they are using the same service.
-The response tables are stitched together top-to-bottom 
-(in the same way as <ref id="tcat"><code>tcat</code></ref>)
-and the result is output.
-</p>
-
-<p>This is in some ways like doing a positional crossmatch 
-where one of the catalogues is local and the other is remote.
-Because of both the network communication and the naive algorithm
-however, it is only suitable if the local catalogue has a rather
-small number of rows.
-</p>
-
-<p>The <label>cone search</label> protocol is not currently a formal IVOA 
-standard, but it is a simple service widely implemented by catalogue servers.
-<!-- oh yes it is -->
-A description of the protocol can be found at
-<webref url="http://us-vo.org/pubs/files/conesearch.html"/>.
-</p>
-
-<p>You can locate available cone search services and their service URLs
-by interrogating the <label>VO Registry</label>.
-One way to do this is using the <code>regquery</code> command.
-For instance, to identify registered cone search services that have
-something to do with Sloan data, you could execute the folowing:
-<verbatim>
-    stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
-           ocmd="keepcols 'shortName serviceUrl'" \
-           ofmt=ascii
-</verbatim>
-Writing just <code>query="serviceType = 'CONE'"</code> with no
-further qualification will give you all registered cone search services.
-See the section on 
-<ref id="regquery" plaintextref="yes"><code>regquery</code></ref> 
-for more explanation.
-</p>
-
-<p>Note that when running, <code>multicone</code> often generates a lot
-of WARNING messages.  Most of these are complaining about badly formed
-VOTables being returned from the cone search services.  STILTS does its
-best to work out what the service responses mean in this case, 
-and usually makes a good enough job of it.
-</p>
-
-<!-- still? -->
-<p>This command is experimental.  It may be modified or renamed in a future
-release of STILTS.
-</p>
-
-&multicone-summary;
-
-<subsubsect>
-<subhead><title>Examples</title></subhead>
-
-<p>Here are some examples of <code>multicone</code>:
-<dl>
-
-<dt><verbatim>
-stilts multicone serviceurl=http://archive.stsci.edu/hst/search.php \
-                 in=messier.xml ra=RA dec=DEC sr=0.05 \
-                 out=matches.xml
-</verbatim></dt>
-<dd><p>This queries the HST cone search service from Space Telescope for
-    records within .05 degrees of each Messier object contained in a 
-    local VOTable <code>messier.xml</code>.  The result is written to a
-    new VOTable, <code>matches.xml</code>.  The J2000 positions of each
-    record in the input file are held in columns named RA and
-    DEC respectively.
-    </p></dd>
-
-<dt><verbatim>
-stilts multicone \
-       serviceurl='http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=NOMAD' \
-       in=vizier.xml#7 \
-       icmd='addskycoords -inunit sex fk4 fk5 RAB1950 DEB1950 RAJ2000 DEJ2000' \
-       icmd='progress'
-       ra=RAJ2000 dec=DEJ2000 sr=0.01 \
-       ocmd='replacecol -units rad RA hmsToRadians(RA[0],RA[1],RA[2])' \
-       ocmd='replacecol -units rad DEC dmsToRadians(DEC[0],DEC[1],DEC[2])' \
-       omode=topcat
-</verbatim></dt>
-<dd><p>In this example some pre-processing of the input catalogue and
-    post-processing of the output catalogue is performed as well as the
-    multiple cone search itself.
-    </p>
-    <p>The input catalogue, which is the 8th TABLE element in a VOTable file,
-    contains sky positions in sexagesimal FK4 (B1950) coordinates.  
-    The <code>icmd=addskycoords...</code> parameter specifies a filter which
-    will add new columns in FK5 (J2000) degrees, which are what the 
-    multicone command requires.
-    The <code>icmd=progress</code> parameter specifies a filter which
-    will write progress information to the terminal so you can see how
-    the queries are progressing.
-    </p>
-    <p>The NOMAD service specified by the <code>serviceurl</code> parameter
-    used here happens to return results with the RA/DEC columns represented
-    in a rather eccentric format, namely 3-element floating point arrays 
-    representing (hours,minutes,seconds)/(degrees,minutes,seconds).
-    The two <code>ocmd=replacecol...</code> filters replace the values of
-    these columns with the scalar equivalents in radians.
-    Finally, the <code>omode=topcat</code> parameter causes the result
-    table to be loaded directly into TOPCAT (if it is available).
-    </p>
-    </dd>
-
-<dt><verbatim>
-stilts multicone serviceurl='http://archive.stsci.edu/iue/search.php?' \
-                 in=queries.txt ifmt=ascii \
-                 ra='&column.id.char;1' dec='&column.id.char;2' sr='&column.id.char;3' copycols='&column.id.char;4' \
-                 out=found.fits
-</verbatim></dt>
-<dd><p>Here the input is a plain text table with four unnamed columns, 
-    giving in order the right ascension, declination,
-    positional error and name of target objects.
-    The command carries out a cone search to the named service for
-    each one.  Note in this case the search radius (<code>sr</code> parameter)
-    is taken from the table and so varies for each query.
-    The <code>copycols</code> parameter has the value 
-    '<code>&column.id.char;4</code>',
-    which means that the value of the fourth column of the input table 
-    will be prepended to each row of the output table for 
-    which it is responsible.
-    Output is to a FITS table.
-    </p></dd>
-</dl>
-</p>
-
-</subsubsect>
 
 </subsect>
 
@@ -2728,7 +2783,7 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
        <code>serviceUrl</code>, and these are written to the terminal
        in ASCII format.  This may be useful to find the service URL
        for a cone search service with particular data for use with
-       the <ref id="multicone"><code>multicone</code></ref> command.
+       the <ref id="coneskymatch"><code>coneskymatch</code></ref> command.
        </p></dd>
 </dl>
 </p>
@@ -2737,11 +2792,12 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
-<subsect id="sqlcone" tocleaf="yes">
-<subhead><title><code>sqlcone</code>: &sqlcone-purpose;</title></subhead>
+<subsect id="sqlskymatch" tocleaf="yes">
+<subhead><title><code>sqlskymatch</code>:
+                &sqlskymatch-purpose;</title></subhead>
 
-<p><code>sqlcone</code> resembles 
-<ref id="multicone" plaintextref="yes"><code>multicone</code></ref>,
+<p><code>sqlskymatch</code> resembles 
+<ref id="coneskymatch" plaintextref="yes"><code>coneskymatch</code></ref>,
 but instead
 of sending an HTTP query to a remote cone search service for each 
 match (i.e. each row of the input table), it executes an SQL query
@@ -2759,21 +2815,25 @@ you will need a database to connect to and appropriate read permissions
 on it as well as the relevant drivers.
 </p>
 
-&sqlcone-summary;
+<p><em>Note: this task was known as <code>sqlcone</code> in its experimental
+form in STILTS v1.3.</em>
+</p>
+
+&sqlskymatch-summary;
 
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of <code>sqlcone</code>:
+<p>Here are some examples of <code>sqlskymatch</code>:
 <dl>
 
 <dt><verbatim>
 stilts -classpath lib/drivers/mysql-connector-java.jar \
        -Djdbc.drivers=com.mysql.jdbc.Driver 
-       sqlcone in=messier.xml ra=RA dec=DEC sr=0.05 \
-               db='jdbc:mysql://localhost/ASTRO1' user=mbt \
-               dbtable=FIRST dbra=_RA2000 dbdec=_DE2000 \
-               out=matches.xml
+       sqlskymatch in=messier.xml ra=RA dec=DEC sr=0.05 \
+                   db='jdbc:mysql://localhost/ASTRO1' user=mbt \
+                   dbtable=FIRST dbra=_RA2000 dbdec=_DE2000 \
+                   out=matches.xml
 </verbatim></dt>
 <dd><p>This performs a series of SELECT statements on the table FIRST
     in the local MySQL database ASTRO1 to identify database objects in the
@@ -4589,10 +4649,10 @@ but my thanks are especially due to the following:
     <dt>New VO commands</dt>
     <dd><p>Added two new commands for querying Virtual Observatory services:
         <ul>
-        <li><ref id="multicone"><code>multicone</code></ref>
-                                - &multicone-purpose;</li>
+        <li><code>multicone</code>
+            - Makes multiple cone search queries to the same service</li>
         <li><ref id="regquery"><code>regquery</code></ref>
-                                - &regquery-purpose;</li>
+            - &regquery-purpose;</li>
         </ul>
         These tasks are experimental and may be modified or renamed in
         future releases.
@@ -4691,8 +4751,7 @@ but my thanks are especially due to the following:
         <li>The <code>exact</code> match mode in 
             <ref id="tmatch2"><code>tmatch2</code></ref>
             now copes with array-valued columns.</li>
-        <li>Added <code>force</code> parameter to 
-            <code><ref id="multicone">multicone</ref></code> task 
+        <li>Added <code>force</code> parameter to <code>multicone</code> task 
             as a workaround for some broken services.</li>
         <li>Added Sample (as opposed to Population) Standard Deviation/Variance
             calculation options to the <code>stats</code> filter.</li>
@@ -4810,13 +4869,12 @@ but my thanks are especially due to the following:
         <code>stilts</code> command.</li>
     <li>Some bugs fixed in generation of CEA <code>app-description.xml</code>
         file.</li>
-    <li>Documentation provided for <ref id="sqlcone"><code>sqlcone</code></ref>
-        command.</li>
+    <li>Documentation provided for <code>sqlcone</code> command.</li>
     <li>Fixed error in <code>fluxToLuminosity</code> function.</li>
     </ul>
     </p></dd>
 
-<dt>Version 1.4 (5 December 2007)</dt>
+<dt>Version 1.4 (6 December 2007)</dt>
 <dd><p>
     <dl>
     <dt>Table joins</dt>
@@ -4834,9 +4892,18 @@ but my thanks are especially due to the following:
             tables.</li>
         </ul>
         </p>
+        <p>Two tasks have been renamed for improved clarity and consistency:
+        <ul>
+        <li><code>multicone</code> is now named
+            <ref id="coneskymatch"><code>coneskymatch</code></ref></li>
+        <li><code>sqlcone</code> is now named
+            <ref id="sqlskymatch"><code>sqlskymatch</code></ref></li>
+        </ul>
+        </p>
         <p>There has also been some enhancement and rationalisation of
         parameters for all table join tools (<code>tmatch*</code> as well as 
-        <code>tjoin</code>, <code>multicone</code> and <code>sqlcone</code>):
+        <code>tjoin</code>,
+        <code>coneskymatch</code> and <code>sqlskymatch</code>):
         <ul>
         <li>All table join commands now use similar <code>fixcols</code> and 
             <code>suffix*</code> parameters to control renaming of duplicated
@@ -4845,10 +4912,12 @@ but my thanks are especially due to the following:
         <li>Crossmatching tasks have a new <code>progress</code> parameter
             which allows you to configure whether progress is reported to the 
             console.</li>
-        <li>The <code>copycols</code> parameter of <code>multicone</code> 
-            and <code>sqlcone</code> now defaults to "<code>*</code>" 
+        <li>The <code>copycols</code> parameter of <code>coneskymatch</code> 
+            and <code>sqlskymatch</code> now defaults to "<code>*</code>" 
             (include all columns from input table in the output).</li>
         </ul>
+        <p><ref id="match"/> of the manual has been somewhat
+        rearranged and improved.</p>
         </p></dd>
 
     <dt>Other enhancements</dt>
