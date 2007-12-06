@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.gui.MethodBrowser;
 public class ShowFunctions implements Task, Executable {
 
     public String getPurpose() {
-        return "Browse functions used by algebraic expression langauage";
+        return "Browses functions used by algebraic expression langauage";
     }
 
     public Parameter[] getParameters() {

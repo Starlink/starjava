@@ -11,7 +11,7 @@ import uk.ac.starlink.ttools.cone.SkyConeMatch2;
  */
 public class SqlCone extends SkyConeMatch2 {
     public SqlCone() {
-        super( "Crossmatch between local table and table in SQL database",
+        super( "Crossmatches table on sky position against SQL table",
                new JdbcConer() );
     }
 }
