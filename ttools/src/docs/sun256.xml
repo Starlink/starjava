@@ -4916,8 +4916,9 @@ but my thanks are especially due to the following:
             and <code>sqlskymatch</code> now defaults to "<code>*</code>" 
             (include all columns from input table in the output).</li>
         </ul>
+        </p>
         <p><ref id="match"/> of the manual has been somewhat
-        rearranged and improved.</p>
+        rearranged and improved.
         </p></dd>
 
     <dt>Other enhancements</dt>
