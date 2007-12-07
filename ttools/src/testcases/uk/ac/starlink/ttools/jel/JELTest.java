@@ -1,10 +1,12 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.jel;
 
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.ttools.QuickTable;
 
 public class JELTest extends TableTestCase {
 

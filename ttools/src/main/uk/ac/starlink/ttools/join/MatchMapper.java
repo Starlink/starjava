@@ -18,7 +18,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.JELTable;
+import uk.ac.starlink.ttools.jel.JELTable;
 import uk.ac.starlink.ttools.task.InputTableSpec;
 import uk.ac.starlink.ttools.task.JoinFixActionParameter;
 import uk.ac.starlink.ttools.task.TableMapper;

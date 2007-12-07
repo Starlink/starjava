@@ -6,7 +6,7 @@ import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 public class ReplaceColumnFilter extends BasicFilter {
 

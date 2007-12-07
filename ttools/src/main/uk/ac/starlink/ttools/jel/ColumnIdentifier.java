@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import uk.ac.starlink.table.StarTable;
 /**
  * Can identify columns of a table using string identifiers.
  * Permitted identifiers are (currently) column name (case insensitive),
- * column index (1-based), ucd$* style UCD spedifiers (see JELRowReader) 
+ * column index (1-based), ucd$* style UCD specifiers (see JELRowReader) 
  * and where requested cases simple wildcarding expressions.
  *
  * @author   Mark Taylor (Starlink)

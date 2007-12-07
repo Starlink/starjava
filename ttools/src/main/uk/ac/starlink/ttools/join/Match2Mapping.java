@@ -15,7 +15,7 @@ import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.JELTable;
+import uk.ac.starlink.ttools.jel.JELTable;
 import uk.ac.starlink.ttools.task.InputTableSpec;
 import uk.ac.starlink.ttools.task.TableMapping;
 

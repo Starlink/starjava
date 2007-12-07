@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnStarTable;
-import uk.ac.starlink.ttools.RandomJELRowReader;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.util.TestCase;
 
 public class JELTest extends TestCase {

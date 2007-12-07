@@ -18,10 +18,10 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.ColumnIdentifier;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.util.Destination;
 
 /**

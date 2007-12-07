@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Filter for replacing magic values with blanks.

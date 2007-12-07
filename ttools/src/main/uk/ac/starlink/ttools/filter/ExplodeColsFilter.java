@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ExplodedStarTable;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Table filter for replacing selected N-element array-valued columns

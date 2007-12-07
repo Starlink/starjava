@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Filter which removes parameters from a table.

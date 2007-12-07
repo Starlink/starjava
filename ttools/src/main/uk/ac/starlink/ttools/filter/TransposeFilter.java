@@ -11,7 +11,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.formats.RowEvaluator;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Processing filter which transposes a table.

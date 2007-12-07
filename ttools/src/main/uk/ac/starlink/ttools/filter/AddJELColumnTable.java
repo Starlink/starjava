@@ -10,9 +10,9 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.ttools.JELUtils;
-import uk.ac.starlink.ttools.RandomJELRowReader;
-import uk.ac.starlink.ttools.SequentialJELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
+import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
 /**
  * Wrapper table which adds one or more columns, defined by JEL expressions.

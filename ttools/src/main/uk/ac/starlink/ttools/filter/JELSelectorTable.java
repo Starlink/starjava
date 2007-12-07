@@ -10,20 +10,20 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.ttools.JELUtils;
-import uk.ac.starlink.ttools.RandomJELRowReader;
-import uk.ac.starlink.ttools.SequentialJELRowReader;
 import uk.ac.starlink.ttools.func.Arithmetic;
 import uk.ac.starlink.ttools.func.Conversions;
 import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
+import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
+import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
 /**
  * Sequential table which selects rows on the basis of a JEL-interpreted
  * expression.
  *
- * @see  uk.ac.starlink.ttools.JELRowReader
+ * @see  uk.ac.starlink.ttools.jel.JELRowReader
  */
 public class JELSelectorTable extends WrapperStarTable {
 

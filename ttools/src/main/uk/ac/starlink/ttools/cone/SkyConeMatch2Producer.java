@@ -21,8 +21,8 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.ColumnIdentifier;
 import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.task.TableProducer;
 
 /**

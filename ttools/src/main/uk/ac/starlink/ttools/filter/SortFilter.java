@@ -14,9 +14,9 @@ import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.JELUtils;
-import uk.ac.starlink.ttools.RandomJELRowReader;
 import uk.ac.starlink.ttools.Tokenizer;
+import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * Processing filter which sorts on one or more JEL expressions.

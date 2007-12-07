@@ -45,7 +45,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Spectrum;
-import uk.ac.starlink.ttools.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELRowReader;
 
 /**
  * A dialogue window which queries the user for a new activation action

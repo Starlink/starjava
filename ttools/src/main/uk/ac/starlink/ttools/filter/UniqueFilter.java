@@ -10,7 +10,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Filters out rows which are identical in some or all columns.

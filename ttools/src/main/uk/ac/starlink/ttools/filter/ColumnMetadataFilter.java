@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import java.util.Iterator;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;

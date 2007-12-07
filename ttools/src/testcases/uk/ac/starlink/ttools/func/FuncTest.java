@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import uk.ac.starlink.ttools.JELUtils;
+import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class FuncTest extends TestCase {

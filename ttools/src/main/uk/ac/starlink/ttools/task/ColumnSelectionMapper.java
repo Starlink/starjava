@@ -6,7 +6,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Mapper which operates on a user-supplied selection of the columns of

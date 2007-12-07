@@ -6,8 +6,8 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.JELUtils;
-import uk.ac.starlink.ttools.SequentialJELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
 /**
  * QuerySequenceFactory which uses JEL expressions for RA, Dec and SR.

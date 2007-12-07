@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.jel;
 
 import gnu.jel.CompiledExpression;
 import java.io.IOException;

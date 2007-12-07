@@ -21,8 +21,8 @@ import uk.ac.starlink.topcat.func.Spectrum;
 import uk.ac.starlink.topcat.func.Splat;
 import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
-import uk.ac.starlink.ttools.JELRowReader;
-import uk.ac.starlink.ttools.JELUtils;
+import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
  * This class provides some utility methods for use with the JEL

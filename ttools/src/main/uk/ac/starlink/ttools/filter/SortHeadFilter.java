@@ -13,10 +13,10 @@ import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.JELRowReader;
-import uk.ac.starlink.ttools.JELUtils;
-import uk.ac.starlink.ttools.SequentialJELRowReader;
 import uk.ac.starlink.ttools.Tokenizer;
+import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
 /**
  * Filter for returning the first (or last) few rows of a sorted table.

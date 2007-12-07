@@ -1,7 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.RandomJELRowReader;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * Random JELRowReader which in addition to the variables recognised 

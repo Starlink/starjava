@@ -15,9 +15,9 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.JELRowReader;
-import uk.ac.starlink.ttools.JELUtils;
 import uk.ac.starlink.ttools.filter.DummyJELRowReader;
+import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
  * Task to do static calculations.

@@ -5,9 +5,9 @@ import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.ColumnIdentifier;
 import uk.ac.starlink.ttools.convert.SkyUnits;
 import uk.ac.starlink.ttools.convert.SkySystem;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
 /**
  * Filter used for converting sky coordinates from one system to another.

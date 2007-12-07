@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
 import uk.ac.starlink.table.RowSequence;
