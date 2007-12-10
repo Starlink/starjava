@@ -138,7 +138,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a boolean value for a cell of the current row.
      * Will only be called if the relevant column is declared boolean.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -149,7 +149,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a byte value for a cell of the current row.
      * Will only be called if the relevant column is declared byte.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -160,7 +160,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a char value for a cell of the current row.
      * Will only be called if the relevant column is declared char.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -171,7 +171,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a short value for a cell of the current row.
      * Will only be called if the relevant column is declared short.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -182,7 +182,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a int value for a cell of the current row.
      * Will only be called if the relevant column is declared int.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -193,7 +193,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a long value for a cell of the current row.
      * Will only be called if the relevant column is declared long.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -204,7 +204,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a float value for a cell of the current row.
      * Will only be called if the relevant column is declared float.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -215,7 +215,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns a double value for a cell of the current row.
      * Will only be called if the relevant column is declared double.
-     * Must call {@link #wasNull} (and return any value) if the result
+     * Must call {@link #foundNull} (and return any value) if the result
      * is null.
      *
      * @param   icol   column index
@@ -581,7 +581,7 @@ public abstract class JELRowReader extends DVMap {
      * of the strings returned by the getTypeName method.
      * 
      * Those methods which return primitives check explicitly for null
-     * values and call {@link #wasNull} while returning a dummy value.
+     * values and call {@link #foundNull} while returning a dummy value.
      * It would be a bit simpler for these methods to throw a 
      * NullPointerException instead, which would percolate up to be 
      * thrown from the evaluate method, but handling it like that
