@@ -110,10 +110,6 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         return table_.getColumnInfo( icol ).getContentClass();
     }
 
-    protected int getColumnCount() {
-        return table_.getColumnCount();
-    }
-
     protected int getColumnIndexByName( String name ) {
 
         /* Try it as a UCD specification. */

@@ -17,6 +17,9 @@ import java.util.List;
  * Anything else is treated as an <tt>Object</tt> or <tt>Object[]</tt>.
  * It could be extended to deal with more if necessary.
  * <p>
+ * Column indices used in this class must be &gt;=0, but no other restriction
+ * is applied (for instance they are not required to be zero-based).
+ * <p>
  * Expressions of the following types are understood:
  * <dl>
  * <dt>"null":
@@ -127,13 +130,6 @@ public abstract class JELRowReader extends DVMap {
      * @return  value class
      */
     protected abstract Class getColumnClass( int icol );
-
-    /**
-     * Returns the number of columns in the table.
-     *
-     * @return  column count
-     */
-    protected abstract int getColumnCount();
 
     /**
      * Returns a boolean value for a cell of the current row.
@@ -425,7 +421,7 @@ public abstract class JELRowReader extends DVMap {
         if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
             try {
                 int icol = Integer.parseInt( name.substring( 1 ) ) - 1;
-                if ( icol >= 0 && icol < getColumnCount() ) {
+                if ( icol >= 0 ) {
                     return icol;
                 }
             }
