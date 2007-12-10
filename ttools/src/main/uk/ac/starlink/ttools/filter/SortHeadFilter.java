@@ -14,7 +14,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Tokenizer;
-import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELStarTableRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
@@ -213,7 +213,7 @@ public class SortHeadFilter extends BasicFilter {
             final int nkey1_;
             final Object[] keyVals_;
 
-            SortKey( JELRowReader jelly, CompiledExpression[] compExs )
+            SortKey( JELStarTableRowReader jelly, CompiledExpression[] compExs )
                     throws IOException {
                 nkey1_ = compExs.length + 1;
                 keyVals_ = new Object[ nkey1_ ];

@@ -17,6 +17,7 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.filter.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELStarTableRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
@@ -55,8 +56,8 @@ public class Calc implements Task {
             "its only purpose is to allow use of constant expressions",
             "(table parameters) associated with the table.",
             "These can be referenced using identifiers of the form",
-            "<code>" + JELRowReader.PARAM_PREFIX + "*</code> or",
-            "<code>" + JELRowReader.UCD_PREFIX + "*</code> -",
+            "<code>" + JELStarTableRowReader.PARAM_PREFIX + "*</code> or",
+            "<code>" + JELStarTableRowReader.UCD_PREFIX + "*</code> -",
             "see <ref id='jel-paramref'/> for more detail.",
             "</p>",
         } );
