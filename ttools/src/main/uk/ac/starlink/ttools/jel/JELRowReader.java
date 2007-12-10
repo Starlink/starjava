@@ -17,9 +17,6 @@ import java.util.List;
  * Anything else is treated as an <tt>Object</tt> or <tt>Object[]</tt>.
  * It could be extended to deal with more if necessary.
  * <p>
- * Column indices used in this class must be &gt;=0, but no other restriction
- * is applied (for instance they are not required to be zero-based).
- * <p>
  * Expressions of the following types are understood:
  * <dl>
  * <dt>"null":
