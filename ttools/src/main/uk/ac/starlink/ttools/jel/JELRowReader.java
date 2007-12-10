@@ -846,8 +846,6 @@ public abstract class JELRowReader extends DVMap {
      * @return   <code>name</code> minux <code>prefix</code>,
      *           or <code>null</code>
      * @see   #NULL_QUERY_PREFIX
-     * @see   #PARAM_PREFIX
-     * @see   #UCD_PREFIX
      */
     public static String stripPrefix( String name, String prefix ) {
         if ( name != null &&
