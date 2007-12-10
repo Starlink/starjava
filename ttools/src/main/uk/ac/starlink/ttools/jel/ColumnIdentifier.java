@@ -115,9 +115,8 @@ public class ColumnIdentifier {
                     jcols = findMatchingColumns( colId );
                 }
                 catch ( IllegalArgumentException e ) {
-                    String ucdSpec =
-                        JELRowReader.stripPrefix( colId,
-                                                  JELRowReader.UCD_PREFIX );
+                    String ucdSpec = JELRowReader
+                       .stripPrefix( colId, JELStarTableRowReader.UCD_PREFIX );
                     String msg = ucdSpec == null
                                ? ( "Not a column ID or wildcard: " + colId )
                                : ( "No column with UCD matching " + ucdSpec );
@@ -188,11 +187,13 @@ public class ColumnIdentifier {
             return ix1 - 1;
         }
         else if ( JELRowReader
-                 .stripPrefix( colid, JELRowReader.UCD_PREFIX ) != null ) {
+                 .stripPrefix( colid,
+                               JELStarTableRowReader.UCD_PREFIX ) != null ) {
             Pattern ucdRegex =
-                JELRowReader
+                JELStarTableRowReader
                .getUcdRegex( JELRowReader
-                            .stripPrefix( colid, JELRowReader.UCD_PREFIX ) );
+                            .stripPrefix( colid,
+                                          JELStarTableRowReader.UCD_PREFIX ) );
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 String ucd = colUcds_[ icol ];
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {

@@ -14,7 +14,7 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor (Starlink)
  * @since    8 Feb 2005
  */
-public class SequentialJELRowReader extends JELRowReader
+public class SequentialJELRowReader extends JELStarTableRowReader
                                     implements RowSequence {
 
     
