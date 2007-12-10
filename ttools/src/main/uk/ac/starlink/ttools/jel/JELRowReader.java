@@ -116,7 +116,7 @@ public abstract class JELRowReader extends DVMap {
      * Indicates whether the value in a given column is null.
      *
      * @param   icol  column index
-     * @returh   true if value at icol is null
+     * @return   true if value at icol is null
      */
     protected abstract boolean isBlank( int icol );
 
