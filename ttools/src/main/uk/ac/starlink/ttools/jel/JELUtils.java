@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.func.Fluxes;
 import uk.ac.starlink.ttools.func.Formats;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
-import uk.ac.starlink.ttools.func.Tiling;
+import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.Loader;
 
@@ -76,7 +76,7 @@ public class JELUtils {
                 Formats.class,
                 Maths.class,
                 Strings.class,
-                Tiling.class,
+                Tilings.class,
                 Times.class,
             } ) );
 
