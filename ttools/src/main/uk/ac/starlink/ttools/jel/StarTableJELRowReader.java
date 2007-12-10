@@ -45,7 +45,7 @@ import uk.ac.starlink.table.Tables;
  * @author   Mark Taylor
  * @since    7 Dec 2007
  */
-public abstract class JELStarTableRowReader extends JELRowReader {
+public abstract class StarTableJELRowReader extends JELRowReader {
 
     private final StarTable table_;
     private final long HASH_LONG = System.identityHashCode( this );
@@ -75,7 +75,7 @@ public abstract class JELStarTableRowReader extends JELRowReader {
      *
      * @param  table  the StarTable this reader will read from
      */
-    public JELStarTableRowReader( StarTable table ) {
+    public StarTableJELRowReader( StarTable table ) {
         table_ = table;
     }
 

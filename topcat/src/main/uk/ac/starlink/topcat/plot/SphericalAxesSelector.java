@@ -28,7 +28,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -705,7 +705,7 @@ public class SphericalAxesSelector implements AxesSelector {
         }
 
         public String toString() {
-            return JELRowReader.PARAM_PREFIX + name_;
+            return StarTableJELRowReader.PARAM_PREFIX + name_;
         }
 
         public int hashCode() {

@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.filter;
 
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.jel.JELStarTableRowReader;
+import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 
 /**
  * JELRowReader which can't actually read any rows.  It's only good for
@@ -10,7 +10,7 @@ import uk.ac.starlink.ttools.jel.JELStarTableRowReader;
  * @author   Mark Taylor (Starlink)
  * @since    3 Mar 2005
  */
-public class DummyJELRowReader extends JELStarTableRowReader {
+public class DummyJELRowReader extends StarTableJELRowReader {
 
     /**
      * Constructor.

@@ -10,7 +10,7 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor (Starlink)
  * @since    8 Feb 2005
  */
-public class RandomJELRowReader extends JELStarTableRowReader {
+public class RandomJELRowReader extends StarTableJELRowReader {
 
     private long lrow_ = -1L;
     private final StarTable table_;
