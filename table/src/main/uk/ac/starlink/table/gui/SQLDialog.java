@@ -30,6 +30,7 @@ import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
  */
 public class SQLDialog extends JOptionPane {
 
+    private LabelledComponentStack stack;
     private JComboBox protoField;
     private JComboBox hostField;
     private JTextField dbField;
@@ -50,7 +51,7 @@ public class SQLDialog extends JOptionPane {
     public SQLDialog( String refString ) {
 
         /* JOptionPane configuration. */
-        LabelledComponentStack stack = new LabelledComponentStack();
+        stack = new LabelledComponentStack();
         Font inputFont = stack.getInputFont();
         setMessage( stack );
         setOptionType( OK_CANCEL_OPTION );
@@ -184,5 +185,14 @@ public class SQLDialog extends JOptionPane {
 
     public boolean isAvailable() {
         return DriverManager.getDrivers().hasMoreElements();
+    }
+
+    /**
+     * Returns the container for query components.
+     *
+     * @return   query component stack
+     */
+    protected LabelledComponentStack getStack() {
+        return stack;
     }
 }
