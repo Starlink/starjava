@@ -6,6 +6,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.formats.TextTableWriter;
+import uk.ac.starlink.table.jdbc.WriteMode;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
@@ -68,7 +69,7 @@ public class CopyMode implements ProcessingMode {
                 throw new UsageException( "jdbc: output location does not "
                                         + "match output format " + fmt );
             }
-            return new JdbcConsumer( loc, env );
+            return new JdbcConsumer( loc, env, WriteMode.DROP_CREATE );
         }
         else {
             return new CopyConsumer( loc, fmt,
