@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.jdbc.JDBCFormatter;
+import uk.ac.starlink.table.jdbc.WriteMode;
 
 /**
  * A popup dialog for querying the user about the location of a new
@@ -17,12 +19,16 @@ import uk.ac.starlink.table.jdbc.JDBCFormatter;
 public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
 
     private JDialog dialog_; 
+    private JComboBox modeSelector_;
 
     /**
      * Constructs a new SQLWriteDialog.
      */
     public SQLWriteDialog() {
         super( "Write New SQL Table" );
+        modeSelector_ = new JComboBox( WriteMode.getAllModes() );
+        modeSelector_.setSelectedItem( WriteMode.CREATE );
+        getStack().addLine( "Write Mode", null, modeSelector_ );
     }
 
     public String getName() {
@@ -46,11 +52,13 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
                 SaveWorker worker = new SaveWorker( parent, table, getRef() ) {
                     public void attemptSave( StarTable table )
                             throws IOException {
+                        WriteMode mode =
+                            (WriteMode) modeSelector_.getSelectedItem();
                         Connection conn = null;
                         try {
                             conn = getConnector().getConnection();
                             new JDBCFormatter( conn, table )
-                               .createJDBCTable( getRef() );
+                               .createJDBCTable( getRef(), mode );
                         }
                         catch ( SQLException e ) {
                             throw (IOException) 
