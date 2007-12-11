@@ -4,6 +4,8 @@ import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
+import uk.ac.starlink.table.jdbc.WriteMode;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
@@ -22,6 +24,7 @@ public class JdbcMode implements ProcessingMode {
     private final Parameter hostParam_;
     private final Parameter dbParam_;
     private final Parameter tableParam_;
+    private final ChoiceParameter writeParam_;
     private final Parameter userParam_;
     private final Parameter passwdParam_;
 
@@ -52,7 +55,7 @@ public class JdbcMode implements ProcessingMode {
             "</p>",
         } );
 
-        dbParam_ = new Parameter( "database" );
+        dbParam_ = new Parameter( "db" );
         dbParam_.setPrompt( "Name of database on database server" );
         dbParam_.setUsage( "<db-name>" );
         dbParam_.setDescription( new String[] {
@@ -61,15 +64,35 @@ public class JdbcMode implements ProcessingMode {
             "</p>",
         } );
 
-        tableParam_ = new Parameter( "newtable" );
-        tableParam_.setPrompt( "Name of new table to write to database" );
+        tableParam_ = new Parameter( "dbtable" );
+        tableParam_.setPrompt( "Name of table to write to database" );
         tableParam_.setUsage( "<table-name>" );
         tableParam_.setDescription( new String[] {
-            "<p>The name of the new table which will be written to the",
+            "<p>The name of the table which will be written to the",
             "database.",
-            "If a table by this name already exists, it may be overwritten.",
             "</p>",
         } );
+
+        WriteMode[] modes = WriteMode.getAllModes();
+        writeParam_ = new ChoiceParameter( "write", modes );
+        writeParam_.setPrompt( "Mode for writing to the database table" );
+        writeParam_.setDefault( WriteMode.CREATE.toString() );
+        StringBuffer descrip = new StringBuffer()
+            .append( "<p>Controls how the values are written to a table " )
+            .append( "in the database. " )
+            .append( "The options are:\n" )
+            .append( "<ul>\n" );
+        for ( int i = 0; i < modes.length; i++ ) {
+            descrip.append( "<li><code>" )
+                   .append( modes[ i ].toString() )
+                   .append( "</code>: " )
+                   .append( modes[ i ].getDescription() )
+                   .append( "</li>" )
+                   .append( "\n" );
+        }
+        descrip.append( "</ul>\n" )
+               .append( "</p>" );
+        writeParam_.setDescription( descrip.toString() );
 
         userParam_ = new Parameter( "user" ); 
         userParam_.setPrompt( "Username for SQL connection" );
@@ -104,6 +127,7 @@ public class JdbcMode implements ProcessingMode {
             hostParam_,
             dbParam_,
             tableParam_,
+            writeParam_,
             userParam_,
             passwdParam_,
         };
@@ -132,11 +156,12 @@ public class JdbcMode implements ProcessingMode {
         logger_.info( "JDBC URL: " + url );
         final String user = userParam_.stringValue( env );
         final String passwd = passwdParam_.stringValue( env );
+        final WriteMode mode = (WriteMode) writeParam_.objectValue( env );
         JDBCAuthenticator auth = new JDBCAuthenticator() {
             public String[] authenticate() {
                 return new String[] { user, passwd };
             }
         };
-        return new JdbcConsumer( url, new JDBCHandler( auth ) );
+        return new JdbcConsumer( url, new JDBCHandler( auth ), mode );
     }
 }
