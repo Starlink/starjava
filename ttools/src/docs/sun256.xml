@@ -5020,6 +5020,19 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>New command <ref id="sqlupdate"><code>sqlupdate</code></ref>.</li>
+    <li>Some changes to <ref id="mode-tosql"><code>tosql</code></ref> 
+        output mode:
+        <ul>
+        <li>choice of options for how to write to the database output table, 
+            controlled by new associated parameter <code>write</code>
+            (can be <code>create</code>, <code>dropcreate</code> 
+                 or <code>append</code>)</li>
+        <li>associated parameter <code>newtable</code> renamed
+            <code>dbtable</code></li>
+        <li>associated parameter <code>database</code> renamed
+            <code>db</code> for consistency with other commands</li>
+        </ul>
+        </li>
     </ul>
     </p></dd>
 
