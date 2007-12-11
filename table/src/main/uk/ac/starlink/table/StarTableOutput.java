@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
+import uk.ac.starlink.table.jdbc.WriteMode;
 import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.table.formats.CsvTableWriter;
 import uk.ac.starlink.table.formats.HTMLTableWriter;
@@ -212,7 +213,8 @@ public class StarTableOutput {
         /* Handle the JDBC case. */
         if ( location.startsWith( "jdbc:" ) ) {
             try {
-                getJDBCHandler().createJDBCTable( startab, location );
+                getJDBCHandler().createJDBCTable( startab, location,
+                                                  WriteMode.DROP_CREATE );
                 return;
             }
             catch ( SQLException e ) {
