@@ -125,7 +125,8 @@ public class JDBCHandler {
         }
     }
 
-    public void createJDBCTable( StarTable startab, String spec ) 
+    public void createJDBCTable( StarTable startab, String spec,
+                                 WriteMode mode ) 
             throws IOException, SQLException {
 
         /* Reject if it doesn't look like a JDBC URL. */
@@ -146,7 +147,7 @@ public class JDBCHandler {
         Connection conn = getConnection( url );
  
         /* And write the data to the table. */
-        new JDBCFormatter( conn, startab ).createJDBCTable( frag );
+        new JDBCFormatter( conn, startab ).createJDBCTable( frag, mode );
     }
 
     private Connection getConnection( String url )

@@ -183,30 +183,35 @@ public class JDBCFormatter {
 
     /**
      * Creates a new table in the database according to the input table
-     * of this formatter.
+     * of this formatter with a given write mode.
      *
-     * @param   tableName  name of the new table to create in the database
+     * @param   tableName  name of the new table to write to in the database
+     * @param   mode   mode for writing records
      */
-    public void createJDBCTable( String tableName )
+    public void createJDBCTable( String tableName, WriteMode mode )
             throws IOException, SQLException {
+        Statement stmt = conn_.createStatement();
  
         /* Table deletion. */
-        Statement stmt = conn_.createStatement();
-        try {
-            String cmd = "DROP TABLE " + tableName;
-            logger.info( cmd );
-            stmt.executeUpdate( cmd );
-            logger.warning( "Dropped existing table " + tableName + 
-                            " to write new one" );
-        }
-        catch ( SQLException e ) {
-            // no action - might not be there
+        if ( mode.getAttemptDrop() ) {
+            try {
+                String cmd = "DROP TABLE " + tableName;
+                logger.info( cmd );
+                stmt.executeUpdate( cmd );
+                logger.warning( "Dropped existing table " + tableName + 
+                                " to write new one" );
+            }
+            catch ( SQLException e ) {
+                // no action - might not be there
+            }
         }
 
         /* Table creation. */
-        String create = getCreateStatement( tableName );
-        logger.info( create );
-        stmt.executeUpdate( create );
+        if ( mode.getCreate() ) {
+            String create = getCreateStatement( tableName );
+            logger.info( create );
+            stmt.executeUpdate( create );
+        }
 
         /* Prepare a statement for adding the data. */
         String insert = getInsertStatement( tableName );
@@ -415,7 +420,8 @@ public class JDBCFormatter {
                          .makeStarTable( inTable );
         try {
             Connection conn = DriverManager.getConnection( jdbcUrl );
-            new JDBCFormatter( conn, intab ).createJDBCTable( tableName );
+            new JDBCFormatter( conn, intab )
+               .createJDBCTable( tableName, WriteMode.CREATE );
         }
         catch ( SQLException e ) {
             if ( e.getNextException() != null ) {
