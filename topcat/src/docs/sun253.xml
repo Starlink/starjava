@@ -8280,6 +8280,25 @@ the new table to write, as follows:
 <dd><p>The password for the given username.  Again, whether this is
     necessary depends on the access policy of the database.
     </p></dd>
+
+<dt>Write Mode</dt>
+<dd><p>Options for writing the table to the database.  Choose one of:
+    <dl>
+    <dt>create</dt>
+    <dd><p>A new table is created for the output.
+        If one with the given name already exists, an error results.
+        </p></dd>
+    <dt>dropcreate</dt>
+    <dd><p>A new table is created for the output.
+        If one with the given name already exists, it is dropped first.
+        </p></dd>
+    <dt>append</dt>
+    <dd><p>The results are appended to an existing table with the given name.
+        If the table has the wrong number or types of columns,
+        an error results.
+        </p></dd>
+    </dl>
+    </p></dd>
 </dl>
 </p>
 
@@ -10954,6 +10973,10 @@ introduced since the last version:
         axis (rather than being omitted) in 2D plots with logarithmic axes.</li>
     <li>Modified the size of some windows - now posts somewhat smaller windows
         if a small screen is in use.</li>
+    <li>Add <label>Write Mode</label> selector to 
+        <ref id="SQLWriteDialog">SQL Output Dialogue</ref>, to allow
+        appending and optional drop prior to create of new table in 
+        database.</li>
     </ul>
     </p></dd>
 
