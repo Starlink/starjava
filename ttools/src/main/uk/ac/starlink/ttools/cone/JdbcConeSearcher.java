@@ -76,6 +76,7 @@ public class JdbcConeSearcher implements ConeSearcher {
         tiling_ = tiling;
 
         /* Write the common parts of the SQL SELECT statement. */
+        String quote = connection.getMetaData().getIdentifierQuoteString();
         String preRa = new StringBuffer() 
             .append( "SELECT" )
             .append( ' ' )
@@ -88,7 +89,9 @@ public class JdbcConeSearcher implements ConeSearcher {
             .append( "WHERE" )
             .append( ' ' )
             .append( "( " )
+            .append( quote )
             .append( decCol )
+            .append( quote )
             .append( " BETWEEN ? AND ? )" ) // minDec,maxDec
             .toString();
         if ( tiling_ != null && tileCol != null ) {
@@ -96,7 +99,9 @@ public class JdbcConeSearcher implements ConeSearcher {
             .append( "AND" )
             .append( ' ' )
             .append( "( " )
+            .append( quote )
             .append( tileCol )
+            .append( quote )
             .append( " BETWEEN ? AND ?" ) // minTile,maxTile
             .append( " )" )
             .toString();
@@ -120,9 +125,10 @@ public class JdbcConeSearcher implements ConeSearcher {
         String allRaSelectSql =
             preRa;
         String middleRaSelectSql =
-            preRa + " AND ( " + raCol + " BETWEEN ? AND ? )";
+            preRa + " AND ( " + quote + raCol + quote + " BETWEEN ? AND ? )";
         String equinoxRaSelectSql =
-            preRa + " AND ( " + raCol + " < ? OR " + raCol + " > ? )";
+            preRa + " AND ( " + quote + raCol + quote + " < ? OR " 
+                              + quote + raCol + quote + " > ? )";
 
         /* Pre-compile the SQL for later use. */
         logger_.info( allRaSelectSql );
