@@ -24,6 +24,15 @@ public class HtmTiling implements SkyTiling {
         htm_ = htm;
     }
 
+    /**
+     * Constructs an HtmTiling with a given level.
+     *
+     * @param  level   HTM level
+     */
+    public HtmTiling( int level ) {
+        this( new HTMindexImp( level ) );
+    }
+
     public long getPositionTile( double ra, double dec ) {
         try {
             return htm_.lookupId( ra, dec );
