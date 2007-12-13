@@ -26,6 +26,8 @@ public class JdbcConer implements Coner {
     private final Parameter dbtableParam_;
     private final Parameter dbraParam_;
     private final Parameter dbdecParam_;
+    private final Parameter dbtileParam_;
+    private final TilingParameter tilingParam_;
     private final Parameter colsParam_;
     private final Parameter whereParam_;
     private final ChoiceParameter dbunitParam_;
@@ -81,6 +83,26 @@ public class JdbcConer implements Coner {
             "</p>",
         } );
 
+        tilingParam_ = new TilingParameter( "tiling" );
+
+        dbtileParam_ = new Parameter( "dbtile" );
+        dbtileParam_.setUsage( "<sql-col>" );
+        dbtileParam_.setNullPermitted( true );
+        dbtileParam_.setPrompt( "Name of tiling column in database" );
+        dbtileParam_.setDescription( new String[] {
+            "<p>The name of a column in the SQL database table",
+            "<code>" + dbtableParam_.getName() + "</code>",
+            "which contains a sky tiling pixel index.",
+            "The tiling scheme is given by the " + tilingParam_.getName(),
+            "parameter.",
+            "Use of a tiling column is optional, but if present",
+            "(and if the column is indexed in the database table)",
+            "it may serve to speed up searches.",
+            "Set to null if the database table contains no tiling column",
+            "or if you do not wish to use one.",
+            "</p>",
+        } );
+
         colsParam_ = new Parameter( "selectcols" );
         colsParam_.setUsage( "<sql-cols>" );
         colsParam_.setPrompt( "Database columns to select" );
@@ -123,6 +145,8 @@ public class JdbcConer implements Coner {
         pList.add( dbraParam_ );
         pList.add( dbdecParam_ );
         pList.add( dbunitParam_ );
+        pList.add( tilingParam_ );
+        pList.add( dbtileParam_ );
         pList.add( colsParam_ );
         pList.add( whereParam_ );
         return (Parameter[]) pList.toArray( new Parameter[ 0 ] );
@@ -134,6 +158,9 @@ public class JdbcConer implements Coner {
         String table = dbtableParam_.stringValue( env );
         String raCol = dbraParam_.stringValue( env );
         String decCol = dbdecParam_.stringValue( env );
+        String tileCol = dbtileParam_.stringValue( env );
+        SkyTiling tiling = tileCol == null ? null
+                                           : tilingParam_.tilingValue( env );
         AngleUnits units = (AngleUnits) dbunitParam_.objectValue( env );
         String cols = colsParam_.stringValue( env );
         String where = whereParam_.stringValue( env );
@@ -145,7 +172,8 @@ public class JdbcConer implements Coner {
         }
         try {
             return new JdbcConeSearcher( connection, table, raCol, decCol,
-                                         units, cols, where, bestOnly );
+                                         units, tileCol, tiling, cols,
+                                         where, bestOnly );
         }
         catch ( SQLException e ) {
             throw new TaskException( "Error preparing SQL statement: "

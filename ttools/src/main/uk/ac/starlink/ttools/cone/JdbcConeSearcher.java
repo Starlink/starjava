@@ -24,6 +24,8 @@ public class JdbcConeSearcher implements ConeSearcher {
     private final String raCol_;
     private final String decCol_;
     private final AngleUnits units_;
+    private final String tileCol_;
+    private final SkyTiling tiling_;
     private final PreparedStatement allRaStatement_;
     private final PreparedStatement middleRaStatement_;
     private final PreparedStatement equinoxRaStatement_;
@@ -56,17 +58,22 @@ public class JdbcConeSearcher implements ConeSearcher {
      * @param  decCol name of table column containing declination
      *                in degrees
      * @param  units  angular units used by ra and dec columns
+     * @param  tileCol column containing a sky tiling index value, or null
+     * @param  tiling tiling scheme used by tileCol column
      * @param  cols   list of column names for the SELECT statement
      * @param  where  additional WHERE clause constraints
      * @param  bestOnly  true iff only the closest match is required (hint)
      */
     JdbcConeSearcher( Connection connection, String tableName,
                       String raCol, String decCol, AngleUnits units,
+                      String tileCol, SkyTiling tiling,
                       String cols, String where, boolean bestOnly )
             throws SQLException {
         raCol_ = raCol;
         decCol_ = decCol;
         units_ = units;
+        tileCol_ = tileCol;
+        tiling_ = tiling;
 
         /* Write the common parts of the SQL SELECT statement. */
         String preRa = new StringBuffer() 
@@ -84,6 +91,16 @@ public class JdbcConeSearcher implements ConeSearcher {
             .append( decCol )
             .append( " BETWEEN ? AND ? )" ) // minDec,maxDec
             .toString();
+        if ( tiling_ != null && tileCol != null ) {
+            preRa = new StringBuffer( preRa )
+            .append( "AND" )
+            .append( ' ' )
+            .append( "( " )
+            .append( tileCol )
+            .append( " BETWEEN ? AND ?" ) // minTile,maxTile
+            .append( " )" )
+            .toString();
+        }
         if ( where != null && where.trim().length() > 0 ) {
             preRa = new StringBuffer( preRa )
                 .append( ' ' )
@@ -158,11 +175,23 @@ public class JdbcConeSearcher implements ConeSearcher {
         try {
             double factor = units_.getCircle() / AngleUnits.DEGREES.getCircle();
             stmt.clearParameters();
-            stmt.setDouble( 1, minDec * factor );
-            stmt.setDouble( 2, maxDec * factor );
+            int ipar = 0;
+            stmt.setDouble( ++ipar, minDec * factor );
+            stmt.setDouble( ++ipar, maxDec * factor );
+            if ( tiling_ != null ) {
+                long[] range = tiling_.getTileRange( ra, dec, sr );
+                long lotile = range == null ? Long.MIN_VALUE : range[ 0 ];
+                long hitile = range == null ? Long.MAX_VALUE : range[ 1 ];
+                if ( range != null ) {
+                    logger_.info( tileCol_ + " BETWEEN " + lotile + " AND "
+                                + hitile );
+                }
+                stmt.setLong( ++ipar, lotile );
+                stmt.setLong( ++ipar, hitile );
+            }
             if ( stmt != allRaStatement_ ) {
-                stmt.setDouble( 3, minRa * factor );
-                stmt.setDouble( 4, maxRa * factor );
+                stmt.setDouble( ++ipar, minRa * factor );
+                stmt.setDouble( ++ipar, maxRa * factor );
             }
         }
         catch ( SQLException e ) {
