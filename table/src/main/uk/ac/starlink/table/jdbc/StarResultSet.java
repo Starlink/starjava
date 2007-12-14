@@ -282,33 +282,13 @@ class StarResultSet {
         }
 
         public Object getCell( int icol ) throws IOException {
-            try {
-                if ( rset_.isBeforeFirst() ) {
-                    throw new NoSuchElementException( "No current row" );
-                }
-                else {
-                    return StarResultSet.this.getCell( icol );
-                }
-            }
-            catch ( SQLException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
+            checkHasCurrentRow();
+            return StarResultSet.this.getCell( icol );
         }
 
         public Object[] getRow() throws IOException {
-            try {
-                if ( rset_.isBeforeFirst() ) {
-                    throw new NoSuchElementException( "No current row" );
-                }
-                else {
-                    return StarResultSet.this.getRow();
-                }
-            }
-            catch ( SQLException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
+            checkHasCurrentRow();
+            return StarResultSet.this.getRow();
         }
 
         public void close() throws IOException {
@@ -318,6 +298,25 @@ class StarResultSet {
             catch ( SQLException e ) {
                 throw (IOException) new IOException( e.getMessage() )
                                    .initCause( e );
+            }
+        }
+
+        /**
+         * Ensure that there is a current row.
+         *
+         * @throws NoSuchElementException  if there is no current row
+         */
+        private void checkHasCurrentRow() {
+            try {
+                if ( rset_.isBeforeFirst() ) {
+                    throw new NoSuchElementException( "No current row" );
+                }
+            }
+
+            /* SQL Server driver is known to fail here reporting an unsupported
+             * operation when isBeforeFirst is called.  Just assume it's OK
+             * in that case. */
+            catch ( SQLException e ) {
             }
         }
     }
