@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
+import edu.jhu.htm.core.Domain;
 import edu.jhu.htm.core.HTMException;
 import edu.jhu.htm.core.HTMindexImp;
 import edu.jhu.htm.core.HTMrange;
@@ -45,10 +46,21 @@ public class HtmTiling implements SkyTiling {
     }
 
     public long[] getTileRange( double ra, double dec, double radius ) {
-        HTMrange range = new HTMrange();
-        new Circle( ra, dec, radius * 60 ).getConvex()
-                                          .intersect( htm_, range, false );
 
+        /* Get the intersection as a range of HTM pixels.
+         * The more obvious
+         *      range = htm_.intersect( zone.getDomain() );
+         * is flawed, since it can return pixel IDs which refer to
+         * pixels at different HTM levels (i.e. of different sizes).
+         * By doing it as below (on advice from Wil O'Mullane) we
+         * ensure that all the pixels are at the HTM's natural level. */
+        Circle zone = new Circle( ra, dec, radius * 60.0 );
+        Domain domain = zone.getDomain();
+        domain.setOlevel( htm_.maxlevel_ );
+        HTMrange range = new HTMrange();
+        domain.intersect( htm_, range, false );
+
+        /* Turn it into a (lo, hi) bounding range. */
         long lo = Long.MAX_VALUE;
         long hi = Long.MIN_VALUE;
         range.reset();
@@ -58,6 +70,10 @@ public class HtmTiling implements SkyTiling {
         }
         return lo <= hi ? new long[] { lo, hi }
                         : null;
+    }
+
+    public String toString() {
+        return "htm" + htm_.maxlevel_;
     }
 
     /**
