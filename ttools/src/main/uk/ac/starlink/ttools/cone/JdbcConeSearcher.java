@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -34,6 +36,7 @@ public class JdbcConeSearcher implements ConeSearcher {
     private int decIndex_ = -1;
     private int raRsetIndex_ = -1;
     private int decRsetIndex_ = -1;
+    private int tileRsetIndex_ = -1;
 
     private static final ValueInfo RADEG_INFO =
         new DefaultValueInfo( "RA_DEGREES", Double.class,
@@ -84,7 +87,9 @@ public class JdbcConeSearcher implements ConeSearcher {
             .append( ' ' )
             .append( "FROM" )
             .append( ' ' )
+            .append( quote )
             .append( tableName )
+            .append( quote )
             .append( ' ' )
             .append( "WHERE" )
             .append( ' ' )
@@ -254,40 +259,77 @@ public class JdbcConeSearcher implements ConeSearcher {
                 raIndex_ = -1;
                 decIndex_ = -1;
             }
+            if ( tileCol_ != null ) {
+                try {
+                    tileRsetIndex_ = rset.findColumn( tileCol_ ) - 1;
+                }
+                catch ( SQLException e ) {
+                    logger_.warning( "Cannot identify tile column" );
+                    tileRsetIndex_ = -1;
+                }
+            }
         }
 
         /* Doctor the output table: if the angles are not in degrees as
          * supplied, append columns which are in degrees, since they are
          * required by the interface. */
-        StarTable result;
-        if ( convertAngles && raRsetIndex_ >= 0 && decRsetIndex_ >= 0 ) {
-            int[] inColIndices = new int[ ncolRset ];
-            for ( int i = 0; i < ncolRset; i++ ) {
-                inColIndices[ i ] = i;
-            }
-            final double factor =
-                AngleUnits.DEGREES.getCircle() / units_.getCircle();
-            ColumnInfo[] outInfos = new ColumnInfo[] {
-                new ColumnInfo( RADEG_INFO ),
-                new ColumnInfo( DECDEG_INFO ),
-            };
-            result = new AddColumnsTable( rsetTable, inColIndices, outInfos,
-                                          ncolRset ) {
-                protected Object[] calculateValues( Object[] inValues ) {
-                    Object ra = (Number) inValues[ raRsetIndex_ ];
-                    Object dec = (Number) inValues[ decRsetIndex_ ];
-                    return ( ra instanceof Number && dec instanceof Number )
-                      ? new Object[] {
-                            new Double( ((Number) ra).doubleValue() * factor ),
-                            new Double( ((Number) dec).doubleValue() * factor ),
-                        }
-                      : new Object[ 2 ];
+        int[] inColIndices = new int[ ncolRset ];
+        for ( int i = 0; i < ncolRset; i++ ) {
+            inColIndices[ i ] = i;
+        }
+        List outInfoList = new ArrayList();
+        final double angleFactor =
+            AngleUnits.DEGREES.getCircle() / units_.getCircle();
+        final boolean addDegCols =
+            convertAngles && raRsetIndex_ >= 0 && decRsetIndex_ >= 0;
+        if ( addDegCols ) {
+            outInfoList.add( new ColumnInfo( RADEG_INFO ) );
+            outInfoList.add( new ColumnInfo( DECDEG_INFO ) );
+        }
+        ColumnInfo[] outInfos =
+            (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
+        StarTable result = new AddColumnsTable( rsetTable, inColIndices, 
+                                                outInfos, ncolRset ) {
+            protected Object[] calculateValues( Object[] inValues ) {
+                List calcValues = new ArrayList();
+
+                /* Work out position in degrees. */
+                Object ra = inValues[ raRsetIndex_ ];
+                Object dec = inValues[ decRsetIndex_ ];
+                double raDeg;
+                double decDeg;
+                if ( ra instanceof Number && dec instanceof Number ) {
+                    raDeg = ((Number) ra).doubleValue() * angleFactor;
+                    decDeg = ((Number) dec).doubleValue() * angleFactor;
                 }
-            };
-        }
-        else {
-            result = rsetTable;
-        }
+                else {
+                    raDeg = Double.NaN;
+                    decDeg = Double.NaN;
+                }
+
+                /* If necessary, prepare additional column values containing
+                 * position in degrees. */
+                if ( addDegCols ) {
+                    calcValues.add( new Double( raDeg ) );
+                    calcValues.add( new Double( decDeg ) );
+                }
+
+                /* If using tiles, do an assertion test on the value of this
+                 * one. */
+                if ( tileRsetIndex_ >= 0 ) {
+                    long gotTile =
+                        ((Number) inValues[ tileRsetIndex_ ]).longValue();
+                    long calcTile = tiling_.getPositionTile( raDeg, decDeg );
+                    if ( gotTile != calcTile ) {
+                        logger_.warning( "Tiling equivalence fails: "
+                                       + calcTile + " != " + gotTile );
+                    }
+                }
+
+                /* Return additional column values. */
+                return calcValues.toArray();
+            }
+        };
 
         /* Return the result table. */
         return result;
