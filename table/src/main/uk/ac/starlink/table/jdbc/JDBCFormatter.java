@@ -30,6 +30,7 @@ import uk.ac.starlink.util.Loader;
 public class JDBCFormatter {
 
     private final Connection conn_;
+    private final String quote_;
     private final StarTable table_;
     private final SqlColumn[] sqlCols_;
     private final int[] sqlTypes_;
@@ -49,6 +50,7 @@ public class JDBCFormatter {
         conn_ = conn;
         table_ = table;
         typeNameMap_ = makeTypesMap( conn_ );
+        quote_ = conn_.getMetaData().getIdentifierQuoteString();
 
         /* Work out column types and see if we need to work out maximum string
          * lengths. */
@@ -132,7 +134,9 @@ public class JDBCFormatter {
     public String getCreateStatement( String tableName ) {
         StringBuffer sql = new StringBuffer();
         sql.append( "CREATE TABLE " )
+           .append( quote_ )
            .append( tableName )
+           .append( quote_ )
            .append( " (" );
         int ncol = sqlCols_.length;
         boolean first = true;
@@ -144,7 +148,9 @@ public class JDBCFormatter {
                 }
                 first = false;
                 sql.append( ' ' )
+                   .append( quote_ )
                    .append( sqlCol.getColumnName() )
+                   .append( quote_ )
                    .append( ' ' )
                    .append( sqlCol.getTypeSpec() );
             }
@@ -163,7 +169,9 @@ public class JDBCFormatter {
     public String getInsertStatement( String tableName ) {
         StringBuffer sql = new StringBuffer();
         sql.append( "INSERT INTO " )
+           .append( quote_ )
            .append( tableName )
+           .append( quote_ )
            .append( " VALUES(" );
         boolean first = true;
         int ncol = sqlCols_.length;
@@ -195,7 +203,7 @@ public class JDBCFormatter {
         /* Table deletion. */
         if ( mode.getAttemptDrop() ) {
             try {
-                String cmd = "DROP TABLE " + tableName;
+                String cmd = "DROP TABLE " + quote_ + tableName + quote_;
                 logger.info( cmd );
                 stmt.executeUpdate( cmd );
                 logger.warning( "Dropped existing table " + tableName + 
