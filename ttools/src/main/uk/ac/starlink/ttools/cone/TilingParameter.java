@@ -64,6 +64,10 @@ public class TilingParameter extends Parameter {
             int nside = getNumberSuffix( value, HEALPIX_RING_PREFIX );
             tiling_ = new HealpixTiling( nside, false );
         }
+        else {
+            throw new ParameterValueException( this, "Unknown tiling scheme \""
+                                                   + value + "\"" );
+        }
         super.setValueFromString( env, value );
     }
 
