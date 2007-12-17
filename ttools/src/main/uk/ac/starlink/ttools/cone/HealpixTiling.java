@@ -60,6 +60,6 @@ public class HealpixTiling implements SkyTiling {
      */
     private Vector3d toVector( double ra, double dec ) {
         double theta = Math.PI * 0.5 - Math.toRadians( dec );
-        return pixTools_.Ang2Vec( theta, ra );
+        return pixTools_.Ang2Vec( theta, Math.toRadians( ra ) );
     }
 }
