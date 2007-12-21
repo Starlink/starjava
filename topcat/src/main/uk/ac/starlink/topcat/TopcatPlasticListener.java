@@ -91,8 +91,8 @@ public class TopcatPlasticListener extends HubManager {
             String id = args.size() > 1 ? String.valueOf( args.get( 1 ) )
                                         : null;
             votableLoad( sender, text, id );
-	    return Boolean.TRUE;
-	}
+	        return Boolean.TRUE;
+        }
 
         /* Load VOTable by URL. */
         else if ( MessageId.VOT_LOADURL.equals( message ) &&
