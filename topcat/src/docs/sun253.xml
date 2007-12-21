@@ -10977,6 +10977,7 @@ introduced since the last version:
         <ref id="SQLWriteDialog">SQL Output Dialogue</ref>, to allow
         appending and optional drop prior to create of new table in 
         database.</li>
+    <li>Activation window permits selection of different image viewers.</li>
     </ul>
     </p></dd>
 
