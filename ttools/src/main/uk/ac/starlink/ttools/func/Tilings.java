@@ -49,13 +49,19 @@ public class Tilings {
      * Gives the pixel index for a given sky position in the HEALPix 
      * NEST scheme.
      *
-     * @param   nside  resolution parameter
+     * @param   log2nside  resolution parameter - log to base 2 of nside
      * @param   ra     right ascension in degrees
      * @param   dec    declination in degrees
      * @return  pixel index
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixNestIndex( long nside, double ra, double dec ) {
+    public static long healpixNestIndex( int log2nside,
+                                         double ra, double dec ) {
+        if ( log2nside > 63 ) {
+            throw new IllegalArgumentException( "log2nside " + log2nside 
+                                              + " too large" );
+        }
+        long nside = 1L << log2nside;
         return pixTools_.vect2pix_nest( nside, toVector( ra, dec ) );
     }
 
@@ -63,26 +69,33 @@ public class Tilings {
      * Gives the pixel index for a given sky position in the HEALPix
      * RING scheme.
      *
-     * @param   nside  resolution parameter
+     * @param   log2nside  resolution parameter - log to base 2 of nside
      * @param   ra     right ascension in degrees
      * @param   dec    declination in degrees
      * @return  pixel index
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixRingIndex( long nside, double ra, double dec ) {
+    public static long healpixRingIndex( int log2nside,
+                                         double ra, double dec ) {
+        if ( log2nside > 63 ) {
+            throw new IllegalArgumentException( "log2nside " + log2nside 
+                                              + " too large" );
+        }
+        long nside = 1L << log2nside;
         return pixTools_.vect2pix_ring( nside, toVector( ra, dec ) );
     }
 
     /**
-     * Gives the HEALPix <code>nside</code> parameter suitable for a given
-     * pixel size.
+     * Gives the log to base 2 of the HEALPix <code>nside</code> 
+     * parameter suitable for a given pixel size.
      *
      * @param   pixelsize   pixel size in degrees
      * @return  HEALPix nside parameter
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixNside( double pixelsize ) {
-        return pixTools_.GetNSide( pixelsize * 60 * 60 );
+    public static int healpixLog2Nside( double pixelsize ) {
+        long nside = pixTools_.GetNSide( pixelsize * 60 * 60 );
+        return (int) ( Math.log( nside ) / Math.log( 2 ) );
     }
 
     /**
