@@ -615,23 +615,51 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
-     * Activator factory for displaying a column in an ImageWindow.
+     * Activator factory for displaying an image (probably FITS) 
+     * in a viewer.
      */
     private class ImageActivatorFactory extends ColumnActivatorFactory {
+        private final ImageViewerComboBoxModel viewerModel_;
         ImageActivatorFactory() {
             super( "Image" );
 
             /* If this is the result of a SIAP query, select the acref 
              * field for display by default. */
             selectColumnByUCD( "VOX:Image_AccessReference" );
+
+            /* Set up a selector for the image viewer. */
+            TopcatPlasticListener pserv =
+                ControlWindow.getInstance().getPlasticServer();
+            viewerModel_ =
+                new ImageViewerComboBoxModel( pserv );
+            JComboBox viewerSelector = new JComboBox( viewerModel_ );
+            JLabel viewerLabel = new JLabel( "Image Viewer: " );
+            List eList = new ArrayList( Arrays.asList( enablables_ ) );
+            eList.add( viewerLabel );
+            eList.add( viewerSelector );
+            enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
+            Box viewerBox = Box.createHorizontalBox();
+            viewerBox.add( viewerLabel );
+            viewerBox.add( viewerSelector );
+            queryPanel_.add( Box.createVerticalStrut( 5 ) );
+            queryPanel_.add( viewerBox );
         }
+
         Activator makeActivator( final TableColumn tcol ) {
+            final ImageViewer viewer = viewerModel_.getSelectedViewer();
             return new ColumnActivator( "image", tcol ) {
                 String activateValue( Object val ) {
-                    return val == null
-                         ? null
-                         : Image.displayImage( getWindowLabel( tcol ),
-                                               val.toString() );
+                    String loc = val.toString();
+                    if ( val == null ) {
+                        return null;
+                    }
+                    else {
+                        boolean status =
+                            viewer.viewImage( getWindowLabel( tcol ), loc );
+                        return "view(" + loc + ")"
+                             + ( status ? ""
+                                        : " - failed" );
+                    }
                 }
             };
         }
