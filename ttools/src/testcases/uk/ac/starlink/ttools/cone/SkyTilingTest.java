@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.cone;
 
 import gov.fnal.eag.healpix.PixTools;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import javax.vecmath.Vector3d;
 import junit.framework.TestCase;
@@ -14,32 +16,65 @@ public class SkyTilingTest extends TestCase {
         super( name );
     }
 
-    public void testHealpixNest() {
+    public void testPixTools() {
+
+        /* Known to fail in early versions of PixTools. */
         if ( true ) {
-            System.err.println( "Skipping query_disc nesting test" 
-                              + " - known Pixtools bug" );
+            System.err.println( "Skipping test due to suspected PixTools bug" );
         }
         else {
-            new PixTools().query_disc( 1048576,
-                                       new Vector3d( -0.704, 0.580, 0.408 ),
-                                       1.22E-7,
-                                       1, 1 );
+            int nside = 1 << 20;
+            Vector3d pos = new Vector3d( -0.704, 0.580, 0.408 );
+            double radius = 1.22E-7;
+            List nestPixels =
+                new PixTools().query_disc( nside, pos, radius, 1, 1 );
+            List ringPixels =
+                new PixTools().query_disc( nside, pos, radius, 0, 1 );
+            assertEquals( ringPixels.size(), nestPixels.size() );
+            for ( int i = 0; i < ringPixels.size(); i++ ) {
+                long iring = ((Number) ringPixels.get( i )).longValue();
+                long inest = new PixTools().ring2nest( nside, iring );
+                ringPixels.set( i, new Long( inest ) );
+            }
+            Collections.sort( nestPixels );
+            Collections.sort( ringPixels );
+            assertEquals( nestPixels, ringPixels );
+        }
+
+        /* Actually I'm not certain these should be 1-element arrays - but
+         * unless I've got very lucky with the vector position they should
+         * be. */
+        /* Following discussion with Nikolai Kouropatkine (Pixtools author) -
+         * this is probably not a bug, but it would be nice if it behaved
+         * otherwise (for performance reasons). */
+        if ( true ) {
+            // System.err.println( "Skipping test due to known PixTools bug" );
+        }
+        else {
+            assertEquals(
+                1,
+                new PixTools().query_disc( 1024,
+                                           new Vector3d( -0.704, 0.580, 0.408 ),
+                                           1.22E-12,
+                                           1, 1 ).size() );
+            assertEquals(
+                1,
+                new PixTools().query_disc( 1024,
+                                           new Vector3d( -0.704, 0.580, 0.408 ),
+                                           1.22E-12,
+                                           0, 1 ).size() );
         }
     }
 
     public void testGetNSide() {
-        if ( true ) {
-            System.err.println( "Skipping GetNSide test "
-                              + " - known Pixtools bug" );
-        }
-        else {
-            double radius = 0.25 / 3600;
-            for ( int i = 0; i < 20; i++ ) {
-                long nside = new PixTools().GetNSide( radius * 60 * 60 );
-                int l2n = (int) ( Math.log( nside ) / Math.log( 2 ) );
-                assertEquals( (int) Math.pow( 2, l2n ), nside );
-                radius *= 2;
-            }
+
+        /* Known to fail for early versions of PixTools. */
+        double radius = 0.25 / 3600;
+        for ( int i = 0; i < 20; i++ ) {
+            long nside = new PixTools().GetNSide( radius * 60 * 60 );
+            int l2n = (int) ( Math.log( nside ) / Math.log( 2 ) );
+            assertEquals( (int) Math.pow( 2, l2n ), nside );
+            radius *= 2;
         }
     }
 
@@ -55,9 +90,9 @@ public class SkyTilingTest extends TestCase {
     public void testHealpixTilings() {
         double radius = 0.25/3600;
         for ( int i = 0; i < 10; i++ ) {
-            long nside = Tilings.healpixNside( radius );
-            checkTiling( new HealpixTiling( nside, true ), radius );
-            checkTiling( new HealpixTiling( nside, false ), radius );
+            int log2nside = Tilings.healpixLog2Nside( radius );
+            checkTiling( new HealpixTiling( log2nside, true ), radius );
+            checkTiling( new HealpixTiling( log2nside, false ), radius );
             radius *= 2;
         }
     }
@@ -67,14 +102,15 @@ public class SkyTilingTest extends TestCase {
             double ra = random_.nextDouble() * 360;
             double dec = ( random_.nextDouble() - 0.5 ) * 90;
             for ( int level = 2; level <= 20; level++ ) {
-                int nside = (int) Math.pow( 2, level );
-                assertEquals( (double) nside, Math.pow( 2, level ), 0.0 );
+                int log2nside = level;
                 assertEquals(
-                    new HealpixTiling( nside, true ).getPositionTile( ra, dec ),
-                    Tilings.healpixNestIndex( nside, ra, dec ) );
+                    new HealpixTiling( log2nside, true )
+                       .getPositionTile( ra, dec ),
+                    Tilings.healpixNestIndex( log2nside, ra, dec ) );
                 assertEquals(
-                    new HealpixTiling( nside, false ).getPositionTile( ra, dec),
-                    Tilings.healpixRingIndex( nside, ra, dec ) );
+                    new HealpixTiling( log2nside, false )
+                       .getPositionTile( ra, dec),
+                    Tilings.healpixRingIndex( log2nside, ra, dec ) );
                 assertEquals(
                     new HtmTiling( level ).getPositionTile( ra, dec ),
                     Tilings.htmIndex( level, ra, dec ) );
