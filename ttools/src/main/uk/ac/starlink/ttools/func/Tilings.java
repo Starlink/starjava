@@ -49,19 +49,17 @@ public class Tilings {
      * Gives the pixel index for a given sky position in the HEALPix 
      * NEST scheme.
      *
-     * @param   log2nside  resolution parameter - log to base 2 of nside
+     * @param   k      resolution parameter - log to base 2 of nside
      * @param   ra     right ascension in degrees
      * @param   dec    declination in degrees
      * @return  pixel index
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixNestIndex( int log2nside,
-                                         double ra, double dec ) {
-        if ( log2nside > 63 ) {
-            throw new IllegalArgumentException( "log2nside " + log2nside 
-                                              + " too large" );
+    public static long healpixNestIndex( int k, double ra, double dec ) {
+        if ( k > 63 ) {
+            throw new IllegalArgumentException( "k " + k + " too large" );
         }
-        long nside = 1L << log2nside;
+        long nside = 1L << k;
         return pixTools_.vect2pix_nest( nside, toVector( ra, dec ) );
     }
 
@@ -69,31 +67,30 @@ public class Tilings {
      * Gives the pixel index for a given sky position in the HEALPix
      * RING scheme.
      *
-     * @param   log2nside  resolution parameter - log to base 2 of nside
+     * @param   k      resolution parameter - log to base 2 of nside
      * @param   ra     right ascension in degrees
      * @param   dec    declination in degrees
      * @return  pixel index
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixRingIndex( int log2nside,
-                                         double ra, double dec ) {
-        if ( log2nside > 63 ) {
-            throw new IllegalArgumentException( "log2nside " + log2nside 
-                                              + " too large" );
+    public static long healpixRingIndex( int k, double ra, double dec ) {
+        if ( k > 63 ) {
+            throw new IllegalArgumentException( "k " + k + " too large" );
         }
-        long nside = 1L << log2nside;
+        long nside = 1L << k;
         return pixTools_.vect2pix_ring( nside, toVector( ra, dec ) );
     }
 
     /**
-     * Gives the log to base 2 of the HEALPix <code>nside</code> 
-     * parameter suitable for a given pixel size.
+     * Gives the HEALPix resolution parameter suitable for a given pixel size.
+     * This <code>k</code> value is the logarithm to base 2 of the 
+     * Nside parameter.
      *
      * @param   pixelsize   pixel size in degrees
-     * @return  HEALPix nside parameter
+     * @return  HEALPix resolution parameter <code>k</code>
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static int healpixLog2Nside( double pixelsize ) {
+    public static int healpixK( double pixelsize ) {
         long nside = pixTools_.GetNSide( pixelsize * 60 * 60 );
         return (int) ( Math.log( nside ) / Math.log( 2 ) );
     }
