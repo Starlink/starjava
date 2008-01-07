@@ -19,7 +19,7 @@ public class SkyTilingTest extends TestCase {
     public void testPixTools() {
 
         /* Known to fail in early versions of PixTools. */
-        if ( true ) {
+        if ( false ) {
             System.err.println( "Skipping test due to suspected PixTools bug" );
         }
         else {
@@ -90,9 +90,9 @@ public class SkyTilingTest extends TestCase {
     public void testHealpixTilings() {
         double radius = 0.25/3600;
         for ( int i = 0; i < 10; i++ ) {
-            int log2nside = Tilings.healpixLog2Nside( radius );
-            checkTiling( new HealpixTiling( log2nside, true ), radius );
-            checkTiling( new HealpixTiling( log2nside, false ), radius );
+            int k = Tilings.healpixK( radius );
+            checkTiling( new HealpixTiling( k, true ), radius );
+            checkTiling( new HealpixTiling( k, false ), radius );
             radius *= 2;
         }
     }
@@ -102,15 +102,15 @@ public class SkyTilingTest extends TestCase {
             double ra = random_.nextDouble() * 360;
             double dec = ( random_.nextDouble() - 0.5 ) * 90;
             for ( int level = 2; level <= 20; level++ ) {
-                int log2nside = level;
+                int k = level;
                 assertEquals(
-                    new HealpixTiling( log2nside, true )
+                    new HealpixTiling( k, true )
                        .getPositionTile( ra, dec ),
-                    Tilings.healpixNestIndex( log2nside, ra, dec ) );
+                    Tilings.healpixNestIndex( k, ra, dec ) );
                 assertEquals(
-                    new HealpixTiling( log2nside, false )
+                    new HealpixTiling( k, false )
                        .getPositionTile( ra, dec),
-                    Tilings.healpixRingIndex( log2nside, ra, dec ) );
+                    Tilings.healpixRingIndex( k, ra, dec ) );
                 assertEquals(
                     new HtmTiling( level ).getPositionTile( ra, dec ),
                     Tilings.htmIndex( level, ra, dec ) );
