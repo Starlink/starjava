@@ -382,7 +382,9 @@
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
     <copy todir="${dist.lib.pkg}">
-       <fileset dir="${src.jars.dir}"/>
+       <fileset dir="${src.jars.dir}">
+          <include name="*.jar"/>
+       </fileset>
     </copy>
 
   </target>
