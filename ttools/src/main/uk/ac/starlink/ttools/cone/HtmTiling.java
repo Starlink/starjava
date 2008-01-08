@@ -5,6 +5,7 @@ import edu.jhu.htm.core.HTMException;
 import edu.jhu.htm.core.HTMindexImp;
 import edu.jhu.htm.core.HTMrange;
 import edu.jhu.htm.geometry.Circle;
+import uk.ac.starlink.ttools.func.Tilings;
 
 /**
  * HTM implementation of SkyTiling.
@@ -15,6 +16,8 @@ import edu.jhu.htm.geometry.Circle;
 public class HtmTiling implements SkyTiling {
 
     private final HTMindexImp htm_;
+    private final int level_;
+    private final double resolution_;
 
     /**
      * Constructs an HtmTiling given an HTMindexImp.
@@ -23,6 +26,8 @@ public class HtmTiling implements SkyTiling {
      */
     public HtmTiling( HTMindexImp htm ) {
         htm_ = htm;
+        level_ = htm.maxlevel_;
+        resolution_ = Tilings.htmResolution( level_ );
     }
 
     /**
@@ -32,6 +37,7 @@ public class HtmTiling implements SkyTiling {
      */
     public HtmTiling( int level ) {
         this( new HTMindexImp( level ) );
+        assert level_ == level;
     }
 
     public long getPositionTile( double ra, double dec ) {
@@ -47,6 +53,12 @@ public class HtmTiling implements SkyTiling {
 
     public long[] getTileRange( double ra, double dec, double radius ) {
 
+        /* If the radius is too big, don't attempt the calculation - 
+         * range determination might be slow. */
+        if ( radius > resolution_ * 50 ) {
+            return null;
+        }
+
         /* Get the intersection as a range of HTM pixels.
          * The more obvious
          *      range = htm_.intersect( zone.getDomain() );
@@ -56,7 +68,7 @@ public class HtmTiling implements SkyTiling {
          * ensure that all the pixels are at the HTM's natural level. */
         Circle zone = new Circle( ra, dec, radius * 60.0 );
         Domain domain = zone.getDomain();
-        domain.setOlevel( htm_.maxlevel_ );
+        domain.setOlevel( level_ );
         HTMrange range = new HTMrange();
         domain.intersect( htm_, range, false );
 
@@ -73,7 +85,7 @@ public class HtmTiling implements SkyTiling {
     }
 
     public String toString() {
-        return "htm" + htm_.maxlevel_;
+        return "htm" + level_;
     }
 
     /**
