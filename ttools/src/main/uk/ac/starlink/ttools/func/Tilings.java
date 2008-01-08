@@ -96,6 +96,21 @@ public class Tilings {
     }
 
     /**
+     * Gives the approximate resolution in degrees for a given HEALPix
+     * resolution parameter <code>k</code>
+     * This <code>k</code> value is the logarithm to base 2 of the 
+     * Nside parameter.
+     *
+     * @param   k  HEALPix resolution parameter <code>k</code>
+     * @return  approximate angular resolution in degrees
+     */
+    public static double healpixResolution( int k ) {
+        long nside = 1L << k;
+        double resArcsec = pixTools_.PixRes( nside );
+        return resArcsec / 3600.;
+    }
+
+    /**
      * Gives the HTM <code>level</code> parameter suitable for a given 
      * pixel size.
      *
@@ -115,6 +130,16 @@ public class Tilings {
          */
         return (int) Math.ceil( 5 - Math.log( pixelsize / 2.8125 )
                                   / Math.log( 2 ) );
+    }
+
+    /**
+     * Gives the approximate resolution in degrees for a given HTM depth level.
+     *
+     * @param   level  HTM depth
+     * @return  approximate angular resolution in degrees
+     */
+    public static double htmResolution( int level ) {
+        return 2.8125 * Math.pow( 2, 5 - level );
     }
 
     /**
