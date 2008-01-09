@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,21 +15,19 @@ import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
 
 /**
- * ConeSearcher implementation using SQL.
+ * ConeSearcher implementation using JDBC access to an SQL database.
  *
  * @author   Mark Taylor
  * @since    5 Nov 2007
  */
 public class JdbcConeSearcher implements ConeSearcher {
 
+    private final ConeSelector selector_;
     private final String raCol_;
     private final String decCol_;
     private final AngleUnits units_;
     private final String tileCol_;
     private final SkyTiling tiling_;
-    private final PreparedStatement allRaStatement_;
-    private final PreparedStatement middleRaStatement_;
-    private final PreparedStatement equinoxRaStatement_;
     private boolean first_ = true;
     private int raIndex_ = -1;
     private int decIndex_ = -1;
@@ -57,9 +54,7 @@ public class JdbcConeSearcher implements ConeSearcher {
      * @param  connection   live connection to database
      * @param  tableName  name of a table in the database to search
      * @param  raCol  name of table column containing right ascension
-     *                in degrees
      * @param  decCol name of table column containing declination
-     *                in degrees
      * @param  units  angular units used by ra and dec columns
      * @param  tileCol column containing a sky tiling index value, or null
      * @param  tiling tiling scheme used by tileCol column
@@ -77,145 +72,22 @@ public class JdbcConeSearcher implements ConeSearcher {
         units_ = units;
         tileCol_ = tileCol;
         tiling_ = tiling;
-
-        /* Write the common parts of the SQL SELECT statement. */
-        String quote = connection.getMetaData().getIdentifierQuoteString();
-        String preRa = new StringBuffer() 
-            .append( "SELECT" )
-            .append( ' ' )
-            .append( cols )
-            .append( ' ' )
-            .append( "FROM" )
-            .append( ' ' )
-            .append( quote )
-            .append( tableName )
-            .append( quote )
-            .append( ' ' )
-            .append( "WHERE" )
-            .append( ' ' )
-            .append( "( " )
-            .append( quote )
-            .append( decCol )
-            .append( quote )
-            .append( " BETWEEN ? AND ? )" ) // minDec,maxDec
-            .toString();
-        if ( tiling_ != null && tileCol != null ) {
-            preRa = new StringBuffer( preRa )
-            .append( "AND" )
-            .append( ' ' )
-            .append( "( " )
-            .append( quote )
-            .append( tileCol )
-            .append( quote )
-            .append( " BETWEEN ? AND ?" ) // minTile,maxTile
-            .append( " )" )
-            .toString();
-        }
-        if ( where != null && where.trim().length() > 0 ) {
-            preRa = new StringBuffer( preRa )
-                .append( ' ' )
-                .append( "AND ( " )
-                .append( where )
-                .append( " )" )
-                .toString();
-        }
-
-        /* Prepare three different variants of the SELECT statement. 
-         * In most cases a simple BETWEEN will work fine for 
-         * filtering on right ascension.  However, in the case that
-         * the region straddles the vernal equinox (RA=0/RA=360 line)
-         * we need to exclude the range between the values instead.
-         * In the case that the search region includes the pole, no
-         * filtering on RA can be done. */
-        String allRaSelectSql =
-            preRa;
-        String middleRaSelectSql =
-            preRa + " AND ( " + quote + raCol + quote + " BETWEEN ? AND ? )";
-        String equinoxRaSelectSql =
-            preRa + " AND ( " + quote + raCol + quote + " < ? OR " 
-                              + quote + raCol + quote + " > ? )";
-
-        /* Pre-compile the SQL for later use. */
-        logger_.info( allRaSelectSql );
-        allRaStatement_ = connection.prepareStatement( allRaSelectSql );
-        logger_.info( middleRaSelectSql );
-        middleRaStatement_ = connection.prepareStatement( middleRaSelectSql );
-        logger_.info( equinoxRaSelectSql );
-        equinoxRaStatement_ = connection.prepareStatement( equinoxRaSelectSql );
+        selector_ = ( tiling != null && tileCol != null )
+               ? ConeSelector.createTiledSelector( connection, tableName, raCol,
+                                                   decCol, units, cols, where,
+                                                   tileCol, tiling, true )
+               : ConeSelector.createSelector( connection, tableName, raCol,
+                                              decCol, units, cols, where,
+                                              true );
     }
 
     public StarTable performSearch( double ra, double dec, double sr )
             throws IOException {
 
-        /* Work out the bounds of a rectangular RA, Dec box within which
-         * any records in the requested cone must fall.  Note that this
-         * is a superset of the desired result (it makes the SELECT
-         * statement much simpler and, more importantly, optimisable) -
-         * this is permitted by the performSearch contract. */
-        double deltaDec = sr;
-        double minDec = Math.max( dec - deltaDec, -90 );
-        double maxDec = Math.min( dec + deltaDec, +90 );
-        double deltaRa =
-            Math.toDegrees( calculateDeltaRa( Math.toRadians( ra ),
-                                              Math.toRadians( dec ),
-                                              Math.toRadians( sr ) ) );
-        double minRa = ra - deltaRa;
-        double maxRa = ra + deltaRa;
-
-        /* Configure a precompiled statement accordingly.  Note that
-         * this will be done differently according to whether the
-         * RA range straddles the vernal equinox (RA=0 line) or not. */
-        PreparedStatement stmt;
-        if ( deltaRa >= 180 ) {
-            stmt = allRaStatement_;
-            logger_.info( "no ra restriction" );
-        }
-        else if ( minRa > 0 && maxRa < 360 ) {
-            stmt = middleRaStatement_;
-            logger_.info( "ra BETWEEN " + minRa + " AND " + maxRa );
-        }
-        else {
-            stmt = equinoxRaStatement_;
-            double min = maxRa % 360.;
-            double max = ( minRa + 360 ) % 360.;
-            minRa = min;
-            maxRa = max;
-            logger_.info( "ra NOT BETWEEN " + minRa + " AND " + maxRa );
-        }
-        logger_.info( "dec BETWEEN " + minDec + " AND " + maxDec );
-        try {
-            double factor = units_.getCircle() / AngleUnits.DEGREES.getCircle();
-            stmt.clearParameters();
-            int ipar = 0;
-            stmt.setDouble( ++ipar, minDec * factor );
-            stmt.setDouble( ++ipar, maxDec * factor );
-            if ( tiling_ != null ) {
-                long[] range = tiling_.getTileRange( ra, dec, sr );
-                long lotile = range == null ? Long.MIN_VALUE : range[ 0 ];
-                long hitile = range == null ? Long.MAX_VALUE : range[ 1 ];
-                if ( range != null ) {
-                    logger_.info( tileCol_ + " BETWEEN " + lotile + " AND "
-                                + hitile );
-                }
-                stmt.setLong( ++ipar, lotile );
-                stmt.setLong( ++ipar, hitile );
-            }
-            if ( stmt != allRaStatement_ ) {
-                stmt.setDouble( ++ipar, minRa * factor );
-                stmt.setDouble( ++ipar, maxRa * factor );
-            }
-        }
-        catch ( SQLException e ) {
-            throw (IOException)
-                  new IOException( "Error configuring SQL statement: "
-                                 + e.getMessage() )
-                 .initCause( e );
-        }
-
         /* Execute the statement and turn it into a StarTable. */
         ResultSet rset;
         try {
-            rset = stmt.executeQuery();
+            rset = selector_.executeQuery( ra, dec, sr );
         }
         catch ( SQLException e ) {
             throw (IOException)
@@ -235,7 +107,7 @@ public class JdbcConeSearcher implements ConeSearcher {
         }
         int ncolRset = rsetTable.getColumnCount();
 
-        /* Identify the columns containing RA and Dec first time around 
+        /* Identify the columns containing RA and Dec first time around
          * (it should be the same for every query, so we only do it once). */
         boolean convertAngles = ! AngleUnits.DEGREES.equals( units_ );
         if ( first_ ) {
@@ -288,7 +160,7 @@ public class JdbcConeSearcher implements ConeSearcher {
         }
         ColumnInfo[] outInfos =
             (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
-        StarTable result = new AddColumnsTable( rsetTable, inColIndices, 
+        StarTable result = new AddColumnsTable( rsetTable, inColIndices,
                                                 outInfos, ncolRset ) {
             protected Object[] calculateValues( Object[] inValues ) {
                 List calcValues = new ArrayList();
@@ -341,37 +213,5 @@ public class JdbcConeSearcher implements ConeSearcher {
 
     public int getDecIndex( StarTable result ) {
         return decIndex_;
-    }
-
-    /**
-     * Works out the minimum change in Right Ascension which will encompass
-     * all points within a given search radius at a given central ra, dec.
-     *
-     * @param   ra   right ascension of the centre of the search region
-     *               in radians
-     * @param   dec  declination of the centre of the search region 
-     *               in radians
-     * @param   sr   radius of the search region in radians
-     * @return  minimum change in radians of RA from the central value
-     *          which will contain the entire search region
-     */
-    public static double calculateDeltaRa( double ra, double dec, double sr ) {
- 
-        /* Get the arc angle between the pole and the cone centre. */
-        double hypArc = Math.PI / 2 - Math.abs( dec );
-
-        /* If the search radius is greater than this, then all right 
-         * ascensions must be included. */
-        if ( sr >= hypArc ) {
-            return Math.PI;
-        }
-
-        /* In the more general case, we need a bit of spherical trigonometry.
-         * Consider a right spherical triangle with one vertex at the pole,
-         * one vertex at the centre of the search circle, and the right angle
-         * vertex at the tangent between the search circle and a line of
-         * longitude; then apply Napier's Pentagon.  The vertex angle at the
-         * pole is the desired change in RA. */
-        return Math.asin( Math.cos( Math.PI / 2 - sr ) / Math.sin( hypArc ) );
     }
 }
