@@ -23,6 +23,7 @@ public class LinearConeSearcher implements ConeSearcher {
 
     private final int nIn_;
     private final int nOut_;
+    private boolean closed_;
 
     private static final ValueInfo ID_INFO =
          new DefaultValueInfo( "ID", Integer.class );
@@ -71,5 +72,13 @@ public class LinearConeSearcher implements ConeSearcher {
             table.addRow( (Object[]) it.next() );
         }
         return table;
+    }
+
+    public void close() {
+        closed_ = true;
+    }
+
+    public boolean isClosed() {
+        return closed_;
     }
 }

@@ -42,6 +42,7 @@ public class MultiConeFrameworkTest extends TestCase {
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ),
                 true, "*", JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
+        assertTrue( ((LinearConeSearcher) searcher).isClosed() );
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
         assertEquals( messier.getColumnCount() + 3,
                       bestResult.getColumnCount() );
