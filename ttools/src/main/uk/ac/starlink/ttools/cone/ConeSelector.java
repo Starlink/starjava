@@ -23,6 +23,15 @@ public abstract class ConeSelector {
     final RangeClause middleRaClause_;
     final RangeClause equinoxRaClause_;
 
+    /** All RA values are included. */
+    private static final RaRegime ALL_REGIME = new RaRegime( "all" );
+
+    /** RA range does not straddle the RA=0/RA=360 line. */
+    private static final RaRegime MIDDLE_REGIME = new RaRegime( "middle" );
+
+    /** RA range does straddle the RA=0/RA=360 line. */
+    private static final RaRegime EQUINOX_REGIME = new RaRegime( "equinox" );
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
@@ -206,6 +215,34 @@ public abstract class ConeSelector {
     }
 
     /**
+     * Determines which regime of Right Ascension a given RA range is in.
+     * The range has the same semantics as those for a {@link SkyBox},
+     * and is in degrees.
+     *
+     * @param   raRange   (ra1,ra2) range of right ascensions in degrees
+     * @return  regime
+     */
+    private static RaRegime getRegime( double[] raRange ) {
+        double ra1 = raRange[ 0 ];
+        double ra2 = raRange[ 1 ];
+        if ( ra1 <= 0 && ra2 >= 360 ) {
+            return ALL_REGIME;
+        }
+        else if ( ra1 < 0 || ra2 > 360 ) {
+            throw new IllegalArgumentException();
+        }
+        else if ( ra1 <= ra2 ) {
+            return MIDDLE_REGIME;
+        }
+        else if ( ra1 > ra2 ) {
+            return EQUINOX_REGIME;
+        }
+        else {
+            throw new AssertionError();
+        }
+    }
+
+    /**
      * ConeSelector subclass which uses {@link java.sql.PreparedStatement}s.
      * Concrete subclasses must supply zero or more additional parameters
      * to the prepared statement.
@@ -291,26 +328,27 @@ public abstract class ConeSelector {
 
             /* Work out the box cut in RA and Dec. */
             SkyBox coneBox = getConeBoxDegrees( ra, dec, sr );
-            double ra1deg = coneBox.getRaRange()[ 0 ];
-            double ra2deg = coneBox.getRaRange()[ 1 ];
-            double ra1u = fromDegrees( ra1deg );
-            double ra2u = fromDegrees( ra2deg );
+            double ra1 = fromDegrees( coneBox.getRaRange()[ 0 ] );
+            double ra2 = fromDegrees( coneBox.getRaRange()[ 1 ] );
+            double dec1 = fromDegrees( coneBox.getDecRange()[ 0 ] );
+            double dec2 = fromDegrees( coneBox.getDecRange()[ 1 ] );
 
             /* Identify the correct PreparedStatement to use. */
             PreparedStatement stmt;
             boolean useRa;
-            if ( ra1deg <= 0 && ra2deg >= 360 ) {
+            RaRegime regime = getRegime( coneBox.getRaRange() );
+            if ( regime == ALL_REGIME ) {
                 stmt = allRaStatement_;
                 useRa = false;
             }
-			else if ( ra1deg <= ra2deg ) {
+            else if ( regime == MIDDLE_REGIME ) {
                 stmt = middleRaStatement_;
                 logger_.info( middleRaClause_
-                             .toSql( Double.toString( ra1u ),
-                                     Double.toString( ra2u ) ) );
+                             .toSql( Double.toString( ra1 ),
+                                     Double.toString( ra2 ) ) );
                 useRa = true;
 			}
-            else if ( ra1deg > ra2deg ) {
+            else if ( regime == EQUINOX_REGIME ) {
                 stmt = equinoxRaStatement_;
                 useRa = true;
             }
@@ -323,15 +361,13 @@ public abstract class ConeSelector {
             int ipar = 0;
             setExtraParameters( stmt, ipar, ra, dec, sr );
             ipar += nExtraParams_;
-            double dec1u = fromDegrees( coneBox.getDecRange()[ 0 ] );
-            double dec2u = fromDegrees( coneBox.getDecRange()[ 1 ] );
-            logger_.info( decClause_.toSql( Double.toString( dec1u ),
-                                            Double.toString( dec2u ) ) );
-            stmt.setDouble( ++ipar, dec1u );
-            stmt.setDouble( ++ipar, dec2u );
+            logger_.info( decClause_.toSql( Double.toString( dec1 ),
+                                            Double.toString( dec2 ) ) );
+            stmt.setDouble( ++ipar, dec1 );
+            stmt.setDouble( ++ipar, dec2 );
             if ( useRa ) {
-                stmt.setDouble( ++ipar, ra1u );
-                stmt.setDouble( ++ipar, ra2u );
+                stmt.setDouble( ++ipar, ra1 );
+                stmt.setDouble( ++ipar, ra2 );
             }
             assert stmt.getParameterMetaData().getParameterCount() == ipar;
 
@@ -409,6 +445,17 @@ public abstract class ConeSelector {
          */
         OutsideClause( String value ) {
             super( "( " + value + " < ", " OR " + value + " > ", " )" );
+        }
+    }
+
+    /**
+     * Enumeration class for indicating which regime of right ascension 
+     * a box is in.
+     */
+    private static class RaRegime {
+        private final String name_;
+        private RaRegime( String name ) {
+            name_ = name;
         }
     }
 }
