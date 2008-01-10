@@ -129,7 +129,7 @@ public abstract class ConeSelector {
             throws SQLException {
         if ( usePrepared ) {
             return new PreparedSelector( connection, tableName, raCol, decCol,
-                                          units, cols, where, 0, null ) {
+                                         units, cols, where, 0, null ) {
                 protected void setExtraParameters( PreparedStatement stmt,
                                                    int ipar, double ra,
                                                    double dec, double sr ) {
@@ -137,7 +137,13 @@ public abstract class ConeSelector {
             };
         }
         else {
-            throw new UnsupportedOperationException();
+            return new UnpreparedSelector( connection, tableName, raCol, decCol,
+                                           units, cols, where ) {
+                protected String getExtraClause( double ra, double dec,
+                                                 double sr ) {
+                    return null;
+                }
+            };
         }
     }
 
@@ -169,10 +175,10 @@ public abstract class ConeSelector {
                                                     final SkyTiling tiling,
                                                     boolean usePrepared )
             throws SQLException {
+        String quote = connection.getMetaData().getIdentifierQuoteString();
+        final RangeClause tileClause =
+            new BetweenClause( quote + tileCol + quote );
         if ( usePrepared ) {
-            String quote = connection.getMetaData().getIdentifierQuoteString();
-            final RangeClause tileClause =
-                new BetweenClause( quote + tileCol + quote );
             return new PreparedSelector( connection, tableName, raCol, decCol,
                                          units, cols, where, 2,
                                          tileClause.toSql( "?", "?" ) ) {
@@ -194,7 +200,17 @@ public abstract class ConeSelector {
             };
         }
         else {
-            throw new UnsupportedOperationException();
+            return new UnpreparedSelector( connection, tableName, raCol, decCol,
+                                           units, cols, where ) {
+                protected String getExtraClause( double ra, double dec,
+                                                 double sr ) {
+                    long[] range = tiling.getTileRange( ra, dec, sr );
+                    return range == null
+                         ? null
+                         : tileClause.toSql( Long.toString( range[ 0 ] ),
+                                             Long.toString( range[ 1 ] ) );
+                }
+            };
         }
     }
 
@@ -241,6 +257,94 @@ public abstract class ConeSelector {
             throw new AssertionError();
         }
     }
+
+    /**
+     * Abstract ConeSelector subclass which uses {@link java.sql.Statement}s.
+     * Concrete subclasses must supply a (possibly empty) clause giving
+     * additional constraints as an SQL string.
+     */
+    private static abstract class UnpreparedSelector extends ConeSelector {
+        private final Statement stmt_;
+
+        /**
+         * Constructor.
+         *
+         * @param  connection   live connection to database
+         * @param  tableName  name of a table in the database to search
+         * @param  raCol  name of table column containing right ascension
+         * @param  decCol name of table column containing declination
+         * @param  units  angular units used by ra and dec columns
+         * @param  cols   list of column names for the SELECT statement
+         * @param  where  additional WHERE clause constraints
+         */
+        UnpreparedSelector( Connection connection, String tableName,
+                            String raCol, String decCol, AngleUnits units,
+                            String cols, String where )
+                throws SQLException {
+            super( connection, tableName, raCol, decCol, units, cols, where );
+            stmt_ = connection.createStatement();
+        }
+
+        /**
+         * Returns an SQL fragment suitable for insertion in a WHERE clause
+         * additional to the RA and Dec constraints.  Don't include an AND.
+         * May be empty.
+         *
+         * @param  ra  right ascension of cone centre in degrees
+         * @param  dec declination of cone centre in degrees
+         * @param  sr  search radius of cone in degrees
+         * @return   WHERE clause fragment
+         */
+        protected abstract String getExtraClause( double ra, double dec,
+                                                  double sr );
+
+        public ResultSet executeQuery( double ra, double dec, double sr )
+                throws SQLException {
+            StringBuffer sqlBuf = new StringBuffer( preamble_ );
+            String extra = getExtraClause( ra, dec, sr );
+            if ( extra != null && extra.trim().length() > 0 ) {
+                sqlBuf.append( "( " )
+                      .append( extra )
+                      .append( " )" )
+                      .append( " AND " );
+            }
+
+            /* Work out cut box. */
+            SkyBox coneBox = getConeBoxDegrees( ra, dec, sr );
+
+            /* Add condition on RA. */
+            RaRegime regime = getRegime( coneBox.getRaRange() );
+            double ra1 = fromDegrees( coneBox.getRaRange()[ 0 ] );
+            double ra2 = fromDegrees( coneBox.getRaRange()[ 1 ] );
+            if ( regime == ALL_REGIME ) {
+                // no RA restriction
+            }
+            else if ( regime == MIDDLE_REGIME ) {
+                sqlBuf.append( middleRaClause_
+                              .toSql( Double.toString( ra1 ),
+                                      Double.toString( ra2 ) ) )
+                      .append( " AND " );
+            }
+            else if ( regime == EQUINOX_REGIME ) {
+                sqlBuf.append( equinoxRaClause_
+                              .toSql( Double.toString( ra1 ),
+                                      Double.toString( ra2 ) ) )
+                      .append( " AND " );
+            }
+ 
+            /* Add condition on Dec. */
+            double dec1 = fromDegrees( coneBox.getDecRange()[ 0 ] );
+            double dec2 = fromDegrees( coneBox.getDecRange()[ 1 ] );
+            sqlBuf.append( decClause_.toSql( Double.toString( dec1 ),
+                                            Double.toString( dec2 ) ) );
+
+            /* Execute SQL. */
+            String sql = sqlBuf.toString();
+            logger_.info( sql );
+            return stmt_.executeQuery( sql );
+        }
+    }
+
 
     /**
      * ConeSelector subclass which uses {@link java.sql.PreparedStatement}s.
