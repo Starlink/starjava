@@ -63,11 +63,11 @@ public class JdbcConeSearcher implements ConeSearcher {
      * @param  bestOnly  true iff only the closest match is required (hint)
      * @param  prepareSql  whether to use PreparedStatements or not
      */
-    JdbcConeSearcher( Connection connection, String tableName,
-                      String raCol, String decCol, AngleUnits units,
-                      String tileCol, SkyTiling tiling,
-                      String cols, String where, boolean bestOnly,
-                      boolean prepareSql )
+    public JdbcConeSearcher( Connection connection, String tableName,
+                             String raCol, String decCol, AngleUnits units,
+                             String tileCol, SkyTiling tiling,
+                             String cols, String where, boolean bestOnly,
+                             boolean prepareSql )
             throws SQLException {
         raCol_ = raCol;
         decCol_ = decCol;
