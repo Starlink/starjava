@@ -452,6 +452,9 @@ public abstract class ConeSelector {
 			}
             else if ( regime == EQUINOX_REGIME ) {
                 stmt = equinoxRaStatement_;
+                logger_.info( equinoxRaClause_
+                             .toSql( Double.toString( ra1 ),
+                                     Double.toString( ra2 ) ) );
                 useRa = true;
             }
             else {
@@ -546,7 +549,7 @@ public abstract class ConeSelector {
          * @param   value  SQL designation for target value
          */
         OutsideClause( String value ) {
-            super( "( " + value + " < ", " OR " + value + " > ", " )" );
+            super( "( " + value + " > ", " OR " + value + " < ", " )" );
         }
     }
 
