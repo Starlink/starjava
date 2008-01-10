@@ -173,6 +173,9 @@ public class ConeSearchConer implements Coner {
             return -1;
         }
 
+        public void close() {
+        }
+
         /**
          * Determines whether a table is empty (has no rows).
          *

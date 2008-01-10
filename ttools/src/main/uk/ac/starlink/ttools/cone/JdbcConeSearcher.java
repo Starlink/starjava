@@ -28,6 +28,7 @@ public class JdbcConeSearcher implements ConeSearcher {
     private final AngleUnits units_;
     private final String tileCol_;
     private final SkyTiling tiling_;
+    private final Connection connectionToClose_;
     private boolean first_ = true;
     private int raIndex_ = -1;
     private int decIndex_ = -1;
@@ -62,18 +63,21 @@ public class JdbcConeSearcher implements ConeSearcher {
      * @param  where  additional WHERE clause constraints
      * @param  bestOnly  true iff only the closest match is required (hint)
      * @param  prepareSql  whether to use PreparedStatements or not
+     * @param  closeConnection  whether to close the connection when this
+     *         object is closed
      */
     public JdbcConeSearcher( Connection connection, String tableName,
                              String raCol, String decCol, AngleUnits units,
                              String tileCol, SkyTiling tiling,
                              String cols, String where, boolean bestOnly,
-                             boolean prepareSql )
+                             boolean prepareSql, boolean closeConnection )
             throws SQLException {
         raCol_ = raCol;
         decCol_ = decCol;
         units_ = units;
         tileCol_ = tileCol;
         tiling_ = tiling;
+        connectionToClose_ = closeConnection ? connection : null;
         selector_ = ( tiling != null && tileCol != null )
                ? ConeSelector.createTiledSelector( connection, tableName, raCol,
                                                    decCol, units, cols, where,
@@ -215,5 +219,19 @@ public class JdbcConeSearcher implements ConeSearcher {
 
     public int getDecIndex( StarTable result ) {
         return decIndex_;
+    }
+
+    /**
+     * Closes the connection if requested to.
+     */
+    public void close() {
+        if ( connectionToClose_ != null ) {
+            try {
+                connectionToClose_.close();
+            }
+            catch ( SQLException e ) {
+                logger_.warning( "Error closing connection: " + e );
+            }
+        }
     }
 }

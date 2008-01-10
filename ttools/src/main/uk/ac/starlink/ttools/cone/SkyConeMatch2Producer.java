@@ -190,6 +190,7 @@ public class SkyConeMatch2Producer implements TableProducer {
                 catch ( IOException e ) {
                     // never mind
                 }
+                coneSearcher_.close();
             }
         }
 

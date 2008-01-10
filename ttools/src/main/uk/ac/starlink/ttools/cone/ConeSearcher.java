@@ -47,4 +47,9 @@ public interface ConeSearcher {
      * @return  index of dec column, or -1 if it can't be found
      */
     int getDecIndex( StarTable result );
+
+    /**
+     * Called when this searcher is no longer required.
+     */
+    void close();
 }

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -33,6 +34,9 @@ public class JdbcConer implements Coner {
     private final Parameter whereParam_;
     private final ChoiceParameter dbunitParam_;
     private final BooleanParameter prepareParam_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     /**
      * Constructor.
@@ -170,7 +174,7 @@ public class JdbcConer implements Coner {
 
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
-        Connection connection = connParam_.connectionValue( env );
+        final Connection connection = connParam_.connectionValue( env );
         String table = dbtableParam_.stringValue( env );
         String raCol = dbraParam_.stringValue( env );
         String decCol = dbdecParam_.stringValue( env );
@@ -190,7 +194,7 @@ public class JdbcConer implements Coner {
         try {
             return new JdbcConeSearcher( connection, table, raCol, decCol,
                                          units, tileCol, tiling, cols,
-                                         where, bestOnly, prepareSql );
+                                         where, bestOnly, prepareSql, true );
         }
         catch ( SQLException e ) {
             throw new TaskException( "Error preparing SQL statement: "
