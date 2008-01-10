@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -31,6 +32,7 @@ public class JdbcConer implements Coner {
     private final Parameter colsParam_;
     private final Parameter whereParam_;
     private final ChoiceParameter dbunitParam_;
+    private final BooleanParameter prepareParam_;
 
     /**
      * Constructor.
@@ -127,6 +129,19 @@ public class JdbcConer implements Coner {
             "A null value indicates no additional criteria.",
             "</p>",
         } );
+
+        prepareParam_ = new BooleanParameter( "preparesql" );
+        prepareParam_.setPrompt( "Use JDBC PreparedStatements?" );
+        prepareParam_.setDescription( new String[] {
+            "<p>If true, the JDBC connection will use",
+            "<code>PreparedStatement</code>s for the SQL SELECTs",
+            "otherwise it will use simple <code>Statement</code>s.",
+            "This is a tuning parameter and affects only performance.",
+            "On some database/driver combinations it's a lot faster set",
+            "false (the default); on others it may be faster, who knows?",
+            "</p>",
+        } );
+        prepareParam_.setDefault( "false" );
     }
 
     /**
@@ -149,6 +164,7 @@ public class JdbcConer implements Coner {
         pList.add( dbtileParam_ );
         pList.add( colsParam_ );
         pList.add( whereParam_ );
+        pList.add( prepareParam_ );
         return (Parameter[]) pList.toArray( new Parameter[ 0 ] );
     }
 
@@ -164,6 +180,7 @@ public class JdbcConer implements Coner {
         AngleUnits units = (AngleUnits) dbunitParam_.objectValue( env );
         String cols = colsParam_.stringValue( env );
         String where = whereParam_.stringValue( env );
+        boolean prepareSql = prepareParam_.booleanValue( env );
         if ( where != null &&
              where.toLowerCase().trim().startsWith( "where" ) ) {
             String msg = "Omit <code>WHERE</code> keyword from "
@@ -173,7 +190,7 @@ public class JdbcConer implements Coner {
         try {
             return new JdbcConeSearcher( connection, table, raCol, decCol,
                                          units, tileCol, tiling, cols,
-                                         where, bestOnly );
+                                         where, bestOnly, prepareSql );
         }
         catch ( SQLException e ) {
             throw new TaskException( "Error preparing SQL statement: "

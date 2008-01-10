@@ -61,11 +61,13 @@ public class JdbcConeSearcher implements ConeSearcher {
      * @param  cols   list of column names for the SELECT statement
      * @param  where  additional WHERE clause constraints
      * @param  bestOnly  true iff only the closest match is required (hint)
+     * @param  prepareSql  whether to use PreparedStatements or not
      */
     JdbcConeSearcher( Connection connection, String tableName,
                       String raCol, String decCol, AngleUnits units,
                       String tileCol, SkyTiling tiling,
-                      String cols, String where, boolean bestOnly )
+                      String cols, String where, boolean bestOnly,
+                      boolean prepareSql )
             throws SQLException {
         raCol_ = raCol;
         decCol_ = decCol;
@@ -75,10 +77,10 @@ public class JdbcConeSearcher implements ConeSearcher {
         selector_ = ( tiling != null && tileCol != null )
                ? ConeSelector.createTiledSelector( connection, tableName, raCol,
                                                    decCol, units, cols, where,
-                                                   tileCol, tiling, true )
+                                                   tileCol, tiling, prepareSql )
                : ConeSelector.createSelector( connection, tableName, raCol,
                                               decCol, units, cols, where,
-                                              true );
+                                              prepareSql );
     }
 
     public StarTable performSearch( double ra, double dec, double sr )
