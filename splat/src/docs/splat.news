@@ -7,6 +7,9 @@
    the axes coordinates for the USB sideband were shown incorrectly. This
    bug has been fixed.
 
+   A bug converting the epoch into UTC, in the absence of a DATE-OBS, has
+   been fixed in the synopsis. Previously times were reported in TAI.
+
    3.8-3
    =====
 

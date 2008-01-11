@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *     01-DEC-2006 (Peter W. Draper):
@@ -193,11 +193,19 @@ public class JACSynopsisFigure
             if ( specAxis.test( "Epoch" ) ) {
 
                 //  Use Epoch value, that's decimal years (TDB), so convert
-                //  into human readable form. Get epoch in TAI (/UTC).
+                //  into human readable form in UTC.
+
+                //  Get epoch in TAI (==TT) from TDB.
                 double epoch = specAxis.getEpoch() -
                     ( 32.184 / ( 60.0 * 60.0 * 24.0 * 365.25 ) );
+
+                //  To MJD.
                 Pal pal = new Pal();
                 double mjd = pal.Epj2d( epoch );
+
+                //  TAI to UTC (leap seconds).
+                mjd -= pal.Dat( mjd );
+
                 try {
                     mjDate date = pal.Djcl( mjd );
                     palTime dayfrac = pal.Dd2tf( date.getFraction() );
@@ -286,14 +294,14 @@ public class JACSynopsisFigure
         }
 
         //  The coordinate system. AST code.
-        b.append( "Coord Sys: " + specAxis.getSystem() + "\n" );
+        b.append( "Coord sys: " + specAxis.getSystem() + "\n" );
 
         if ( specAxis instanceof SpecFrame ) {
 
             //  Extraction position.
             prop = specData.getProperty( "EXRAX" );
             if ( ! "".equals( prop ) ) {
-                b.append( "Spec Position: " +
+                b.append( "Spec position: " +
                           prop + ", " +
                           specData.getProperty( "EXDECX" ) + "\n" );
             }
@@ -303,7 +311,7 @@ public class JACSynopsisFigure
             //  position, EXRA is just the image centre.
             prop = specData.getProperty( "EXRRA" );
             if ( ! "".equals( prop ) ) {
-                b.append( "Src Position: " +
+                b.append( "Src position: " +
                           prop + ", " +
                           specData.getProperty( "EXRDEC" ) + "\n" );
 
@@ -320,7 +328,7 @@ public class JACSynopsisFigure
                 //  Try for image centre.
                 prop = specData.getProperty( "EXRA" );
                 if ( ! "".equals( prop ) ) {
-                    b.append( "Img Centre: " +
+                    b.append( "Img centre: " +
                               prop + ", " +
                               specData.getProperty( "EXDEC" ) + "\n" );
 
