@@ -24,8 +24,7 @@ public class ParameterValueException extends UsageException {
         param_ = par;
     }
     public ParameterValueException( Parameter par, Throwable cause ) {
-        super( "Bad value for parameter " + par + " - " + describe( cause ),
-               cause );
+        super( "Bad value for parameter " + par, cause );
         param_ = par;
     }
 
