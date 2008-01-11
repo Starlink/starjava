@@ -17,6 +17,7 @@ import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.task.LineFormatter;
 import uk.ac.starlink.task.LineWord;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
@@ -272,7 +273,14 @@ public class LineInvoker {
                     }
                     err.println( "\n" + msg + "\n" );
                 }
-                if ( e instanceof UsageException && task != null ) {
+                if ( e instanceof ParameterValueException && task != null ) {
+                    Parameter param =
+                        ((ParameterValueException) e).getParameter();
+                    err.println( "Usage: " + param.getName() + "="
+                               + param.getUsage() );
+                    err.println();
+                }
+                else if ( e instanceof UsageException && task != null ) {
                     err.println( getTaskUsage( task, taskName ) );
                 }
                 return 1;
