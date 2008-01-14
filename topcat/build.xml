@@ -1299,6 +1299,7 @@
           output="${topcat.usage}"
           append="yes"
           classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-help"/>
     </java>
     <echo message="]]&gt;" file="${topcat.usage}" append="yes"/>
