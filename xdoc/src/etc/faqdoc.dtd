@@ -1,0 +1,95 @@
+  <!ENTITY % paracontent "( #PCDATA
+                            | em | strong | code
+                            | m | sub | sup
+                            | webref | docxref | javadoc | ref
+                            | blockquote | blockcode | verbatim
+                            | dl | ul | ol
+                            | var | label | img
+                           )*">
+
+  <!ENTITY % simplephrase "( #PCDATA
+                             | em | strong | code
+                             | m | sub | sup
+                             | webref | docxref | javadoc | ref
+                             | var | label | img
+                           )*">
+
+  <!ELEMENT faqdoc ( faqinfo?, faqbody )>
+  <!ELEMENT faqinfo ( title?,
+                      authorlist?,
+                      softwareversion?,
+                      docdate?,
+                      contactlist? )>
+  <!ELEMENT title %simplephrase;>
+  <!ELEMENT authorlist ( author* )>
+  <!ELEMENT softwareversion ( #PCDATA )>
+  <!ELEMENT docdate ( #PCDATA )>
+  <!ELEMENT contactlist ( contact* )>
+  <!ELEMENT contact %paracontent;>
+  <!ELEMENT faqbody ( sect*, faqlist, sect* )>
+  <!ELEMENT faqlist ( sect | question )*>
+  <!ELEMENT subhead ( title )>
+  <!ELEMENT p %paracontent;>
+  <!ELEMENT ul ( li* )>
+  <!ELEMENT ol ( li* )>
+  <!ELEMENT li %paracontent;>
+  <!ELEMENT dl ( ( dt, dd? )* )>
+  <!ELEMENT dt %paracontent;>
+  <!ELEMENT dd ( p* )>
+  <!ELEMENT em %paracontent;>
+  <!ELEMENT strong %paracontent;>
+  <!ELEMENT code %paracontent;>
+  <!ELEMENT m ( #PCDATA | sub | sup )*>
+  <!ELEMENT sup ( #PCDATA )>
+  <!ELEMENT sub ( #PCDATA )>
+  <!ELEMENT verbatim %paracontent;>
+  <!ELEMENT blockquote %paracontent;>
+  <!ELEMENT var %paracontent;>
+  <!ELEMENT label %paracontent;>
+
+  <!ELEMENT blockcode ( #PCDATA | imports | hidden )*>
+  <!ATTLIST blockcode group NMTOKEN #IMPLIED>
+
+  <!ELEMENT author ( #PCDATA )>
+  <!ATTLIST author id ID #IMPLIED
+                   email CDATA #IMPLIED
+                   webpage CDATA #IMPLIED
+                   affiliation CDATA #IMPLIED>
+
+  <!ELEMENT img EMPTY>
+  <!ATTLIST img src CDATA #REQUIRED
+                alt CDATA #IMPLIED>
+
+  <!ELEMENT figure ( caption?, figureimage )>
+  <!ELEMENT caption ( px+ )>
+  <!ELEMENT figureimage EMPTY>
+  <!ATTLIST figureimage src CDATA #REQUIRED>
+
+  <!ELEMENT ref %simplephrase;>
+  <!ATTLIST ref id IDREF #REQUIRED
+                plaintextref ( yes | no ) #IMPLIED>
+
+  <!ELEMENT webref %simplephrase;>
+  <!ATTLIST webref url CDATA #REQUIRED
+                   plaintextref ( yes | no ) #IMPLIED>
+
+  <!ELEMENT docxref %simplephrase;>
+  <!ATTLIST docxref doc CDATA #REQUIRED
+                    loc CDATA #IMPLIED
+                    plaintextref ( yes | no ) #IMPLIED>
+
+  <!ELEMENT javadoc %simplephrase;>
+  <!ATTLIST javadoc class CDATA #REQUIRED
+                    member CDATA #IMPLIED
+                    docset CDATA #IMPLIED
+                    codetext CDATA #IMPLIED>
+
+  <!ELEMENT sect ( subhead?, question* )>
+  <!ATTLIST sect id ID #IMPLIED>
+
+  <!ELEMENT question ( q, a )>
+  <!ATTLIST question id ID #IMPLIED>
+
+  <!ELEMENT q %paracontent;>
+  <!ELEMENT a ( p* )>
+
