@@ -3,7 +3,8 @@
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:param name="CSS_HREF" select="''"/>
-  <xsl:param name="VERSION" select="''"/>
+  <xsl:param name="SOFTWARE_VERSION" select="''"/>
+  <xsl:param name="DOC_VERSION" select="''"/>
 
   <!-- Top level element -->
 
@@ -38,9 +39,10 @@
     </h1>
     <br/>
     <xsl:text>Software version: </xsl:text>
-    <xsl:call-template name="getVersion"/>
+    <xsl:call-template name="getSoftwareVersion"/>
     <br/>
-    <xsl:text>FAQ version: $Version$</xsl:text>
+    <xsl:text>FAQ version: </xsl:text>
+    <xsl:call-template name="getDocVersion"/>
     <br/>
     <xsl:apply-templates select="contactlist"/>
   </xsl:template>
@@ -273,13 +275,27 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template name="getVersion">
+  <xsl:template name="getSoftwareVersion">
     <xsl:choose>
-      <xsl:when test="/faq/faqinfo/softwareversion">
-        <xsl:apply-templates select="/faq/faqinfo/softwareversion"/>
+      <xsl:when test="/faqdoc/faqinfo/softwareversion">
+        <xsl:apply-templates select="/faqdoc/faqinfo/softwareversion"/>
       </xsl:when>
-      <xsl:when test="$VERSION">
-        <xsl:value-of select="$VERSION"/>
+      <xsl:when test="$SOFTWARE_VERSION">
+        <xsl:value-of select="$SOFTWARE_VERSION"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>???</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="getDocVersion">
+    <xsl:choose>
+      <xsl:when test="/faqdoc/faqinfo/docversion">
+        <xsl:apply-templates select="/faqdoc/faqinfo/docversion"/>
+      </xsl:when>
+      <xsl:when test="$DOC_VERSION">
+        <xsl:value-of select="$DOC_VERSION"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:text>???</xsl:text>
