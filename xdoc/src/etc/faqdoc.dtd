@@ -18,11 +18,13 @@
   <!ELEMENT faqinfo ( title?,
                       authorlist?,
                       softwareversion?,
+                      docversion?,
                       docdate?,
                       contactlist? )>
   <!ELEMENT title %simplephrase;>
   <!ELEMENT authorlist ( author* )>
   <!ELEMENT softwareversion ( #PCDATA )>
+  <!ELEMENT docversion ( #PCDATA )>
   <!ELEMENT docdate ( #PCDATA )>
   <!ELEMENT contactlist ( contact* )>
   <!ELEMENT contact %paracontent;>
