@@ -334,7 +334,7 @@ public abstract class ConeSelector {
             double dec1 = fromDegrees( coneBox.getDecRange()[ 0 ] );
             double dec2 = fromDegrees( coneBox.getDecRange()[ 1 ] );
             sqlBuf.append( decClause_.toSql( Double.toString( dec1 ),
-                                            Double.toString( dec2 ) ) );
+                                             Double.toString( dec2 ) ) );
 
             /* Execute SQL. */
             String sql = sqlBuf.toString();
