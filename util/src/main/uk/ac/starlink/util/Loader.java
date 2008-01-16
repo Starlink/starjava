@@ -9,8 +9,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -189,7 +191,19 @@ public class Loader {
             InputStream propIn = new FileInputStream( propfile );
             starProps.load( propIn );
             propIn.close();
-            System.getProperties().putAll( starProps );
+
+            /* Merge with system properties, but do not overwrite existing
+             * system properties, since they were probably specified 
+             * explicitly on the command line so should take precedence. */
+            Properties sysProps = System.getProperties();
+            for ( Iterator it = starProps.entrySet().iterator();
+                  it.hasNext(); ) {
+                Map.Entry starProp = (Map.Entry) it.next();
+                String key = (String) starProp.getKey();
+                if ( ! sysProps.containsKey( key ) ) {
+                    sysProps.put( key, starProp.getValue() );
+                }
+            }
             logger.config( "Properties read from " + propfile );
         }
         catch ( FileNotFoundException e ) {
