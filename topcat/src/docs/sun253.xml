@@ -3518,6 +3518,18 @@ with the following RDBMSs and corresponding JDBC drivers:
     </verbatim>
     for writing a new table (saving).
     </p></dd>
+
+<dt><webref url="http://www.microsoft.com/SQL">SQL Server</webref></dt>
+<dd><p>There is more than one JDBC driver known to work with
+    SQL Server, including 
+    <webref url="http://jtds.sourceforge.net/">jTDS</webref> 
+    and the
+    <webref url="http://www.microsoft.com/sql/technologies/jdbc/default.mspx"
+            >Microsoft JDBC driver</webref>.
+    Some evidence suggests that jTDS may be the better choice, 
+    but your mileage may vary.
+    </p></dd>
+
 </dl>
 Other RDBMSs and drivers may or may not work - please let us know the
 results of any experiments you carry out.
@@ -3547,6 +3559,13 @@ databases known to work.
 <dd><p><verbatim>
    java -classpath topcat-full.jar:ojdbc14.jar \
         -Djdbc.drivers=oracle.jdbc.driver.OracleDriver \
+        uk.ac.starlink.topcat.Driver
+</verbatim></p></dd>
+
+<dt>SQL Server with jTDS</dt>
+<dd><p><verbatim>
+   java -classpath topcat-full.jar:jtds-1.1.jar \
+        -Djdbc.drivers=net.sourceforge.jtds.jdbc.Driver \
         uk.ac.starlink.topcat.Driver
 </verbatim></p></dd>
 
@@ -10978,6 +10997,8 @@ introduced since the last version:
         appending and optional drop prior to create of new table in 
         database.</li>
     <li>Activation window permits selection of different image viewers.</li>
+    <li>System properties specified explicitly on command line now take
+        precendence over those in <code>.starjava.properies</code> file.</li>
     </ul>
     </p></dd>
 
