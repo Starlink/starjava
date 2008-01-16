@@ -104,6 +104,14 @@ public class SkyConeMatch2Producer implements TableProducer {
     public StarTable getTable() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
+        ConeResultRowSequence resultSeq =
+                new SequentialResultRowSequence( querySeq, coneSearcher_,
+                                                 bestOnly_ ) {
+            public void close() throws IOException {
+                super.close();
+                coneSearcher_.close();
+            }
+        };
         int[] iCopyCols = ( copyColIdList_ == null ||
                             copyColIdList_.trim().length() == 0 )
                         ? new int[ 0 ]
@@ -111,13 +119,124 @@ public class SkyConeMatch2Producer implements TableProducer {
                          .getColumnIndices( copyColIdList_ );
         RowPipe rowPipe = new OnceRowPipe();
         Thread coneWorker =
-            new ConeWorker( rowPipe, inTable, coneSearcher_, querySeq,
-                            iCopyCols, bestOnly_, inFixAct_, coneFixAct_ );
+            new ConeWorker( rowPipe, inTable, resultSeq, iCopyCols, 
+                            inFixAct_, coneFixAct_ );
         coneWorker.setDaemon( true );
         coneWorker.start();
         StarTable streamTable = rowPipe.waitForStarTable();
         return streamOutput_ ? streamTable
                              : Tables.randomTable( streamTable );
+    }
+
+    /**
+     * Performs a cone search and returns the resulting table with
+     * appropriate filtering operations applied.
+     * The resulting table will fall strictly within the specified
+     * search region and will contain a restricted set of rows if
+     * that has been requested.
+     *
+     * <p>If no records in the cone are found, the return value may either
+     * be null or (preferably) an empty table with the correct columns.
+     *
+     * @param   coneSearcher   cone search implementation
+     * @param   bestOnly  true iff only the best match for each input table
+     *                    row is required, false for all matches within radius
+     * @param   ra0   right ascension in degrees of region centre
+     * @param   dec0  declination in degrees of region centre
+     * @param   sr    search radius in degrees
+     * @return   filtered result table, or null
+     */
+    public static StarTable getConeResult( ConeSearcher coneSearcher,
+                                           boolean bestOnly,
+                                           final double ra0, final double dec0,
+                                           final double sr )
+            throws IOException {
+
+        /* Validate parameters. */
+        if ( Double.isNaN( ra0 ) || Double.isNaN( dec0 ) ||
+             Double.isNaN( sr ) ) {
+            logger_.warning( "Invalid search parameters" );
+            return null;
+        }
+
+        /* Perform the cone search itself. */
+        logger_.info( "Cone: ra=" + ra0 + "; dec=" + dec0 + "; sr=" + sr );
+        StarTable result = coneSearcher.performSearch( ra0, dec0, sr );
+        if ( result == null ) {
+            return null;
+        }
+
+        /* Work out the columns which represent RA and Dec in the result. */
+        final int ira = coneSearcher.getRaIndex( result );
+        final int idec = coneSearcher.getDecIndex( result );
+        if ( ira < 0 || idec < 0 ) {
+            logger_.warning( "Can't locate RA/DEC in output table - "
+                           + "no post-filtering" );
+            return result;
+        }
+
+        /* If only a single output row per input row has been requested,
+         * identify the best match and return a table containing only 
+         * that one. */
+        if ( bestOnly ) {
+            RowSequence rseq = result.getRowSequence();
+            double bestDist = Double.NaN;
+            Object[] bestRow = null;
+            while ( rseq.next() ) {
+                Object[] row = rseq.getRow();
+                double dist = getDistance( row, ira, idec, ra0, dec0 );
+                if ( dist <= sr &&
+                     ( dist < bestDist || Double.isNaN( bestDist ) ) ) {
+                    bestDist = dist;
+                    bestRow = (Object[]) row.clone();
+                }
+            }
+            RowListStarTable result1 = new RowListStarTable( result );
+            if ( ! Double.isNaN( bestDist ) ) {
+                result1.addRow( bestRow );
+            }
+            return result1;
+        }
+
+        /* Otherwise return a table which ensures that all the rows are
+         * in the search region.  This filtering is necessary since the
+         * ConeSearcher contract allows the return of supersets of the
+         * requested region. */
+        else {
+            return new SelectorStarTable( result ) {
+                public boolean isIncluded( RowSequence rseq )
+                        throws IOException {
+                    return getDistance( rseq.getRow(),
+                                        ira, idec, ra0, dec0 ) <= sr;
+                }
+            };
+        }
+    }
+
+    /**
+     * Returns the distance between two points on the sky.
+     *
+     * @param  row  data row
+     * @param  ira  index of element in <code>row</code> containing 
+     *              right ascension in degrees of first point
+     * @param  idec index of element in <code>row</code> containing
+     *              declination in degrees of first point
+     * @param  ra0  right ascension in degrees of second point
+     * @param  dec0 declination in degrees of second point
+     * @return   distance between points in degrees, or NaN if it can't
+     *           be determined
+     */
+    private static double getDistance( Object[] row, int ira, int idec,
+                                       double ra0, double dec0 ) {
+        Object raObj = row[ ira ];
+        Object decObj = row[ idec ];
+        double ra1 = raObj instanceof Number
+                   ? ((Number) raObj).doubleValue()
+                   : Double.NaN;
+        double dec1 = decObj instanceof Number
+                    ? ((Number) decObj).doubleValue()
+                    : Double.NaN;
+        return Coords.skyDistanceDegrees( ra0, dec0, ra1, dec1 );
     }
 
     /**
@@ -127,10 +246,8 @@ public class SkyConeMatch2Producer implements TableProducer {
     private static class ConeWorker extends Thread {
         private final RowPipe rowPipe_;
         private final StarTable inTable_;
-        private final ConeSearcher coneSearcher_;
-        private final ConeQueryRowSequence querySeq_;
+        private final ConeResultRowSequence resultSeq_;
         private final int[] iCopyCols_;
-        private final boolean bestOnly_;
         private final JoinFixAction inFixAct_;
         private final JoinFixAction coneFixAct_;
 
@@ -139,27 +256,22 @@ public class SkyConeMatch2Producer implements TableProducer {
          *
          * @param   rowPipe  row data pipe
          * @param   inTable  input table
-         * @param   coneSearcher   cone search implementation object
-         * @param   querySeq  cone search query row sequence, positioned at
-         *                    the start of the data
+         * @param   resultSeq  cone search result row sequence, positioned at
+         *                     the start of the data
          * @param   iCopyCols  indices of columns from the input table to
          *                     be copied to the output table
-         * @param   bestOnly  true if only the best one row is to be returned
          * @param   inFixAct   column name deduplication action for input table
          * @param   coneFixAct column name deduplication action for result
          *                     of cone searches
          */
         ConeWorker( RowPipe rowPipe, StarTable inTable,
-                    ConeSearcher coneSearcher, ConeQueryRowSequence querySeq,
-                    int[] iCopyCols, boolean bestOnly,
+                    ConeResultRowSequence resultSeq, int[] iCopyCols,
                     JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
             super( "Cone searcher" );
             rowPipe_ = rowPipe;
             inTable_ = inTable;
-            coneSearcher_ = coneSearcher;
-            querySeq_ = querySeq;
+            resultSeq_ = resultSeq;
             iCopyCols_ = iCopyCols;
-            bestOnly_ = bestOnly;
             inFixAct_ = inFixAct;
             coneFixAct_ = coneFixAct;
         }
@@ -185,12 +297,11 @@ public class SkyConeMatch2Producer implements TableProducer {
                     // never mind
                 }
                 try {
-                    querySeq_.close();
+                    resultSeq_.close();
                 }
                 catch ( IOException e ) {
                     // never mind
                 }
-                coneSearcher_.close();
             }
         }
 
@@ -202,10 +313,10 @@ public class SkyConeMatch2Producer implements TableProducer {
             int ncol = -1;
 
             /* Loop over rows of the input table. */
-            for ( int irow = 0; querySeq_.next(); irow++ ) {
+            for ( int irow = 0; resultSeq_.next(); irow++ ) {
 
                 /* Perform the cone search for this row. */
-                StarTable result = getConeResult();
+                StarTable result = resultSeq_.getConeResult();
                 if ( result != null ) {
 
                     /* If this is the first entry we've got, acquire the 
@@ -227,10 +338,10 @@ public class SkyConeMatch2Producer implements TableProducer {
                      * cone search result.  Each row consists of the copied
                      * columns from the input table followed by all the 
                      * columns from the cone search result. */
-                    RowSequence resultSeq = result.getRowSequence();
+                    RowSequence rSeq = result.getRowSequence();
                     int nr = 0;
                     try {
-                        while ( resultSeq.next() ) {
+                        while ( rSeq.next() ) {
                             nr++;
 
                             /* Append the actual rows. */
@@ -239,16 +350,16 @@ public class SkyConeMatch2Producer implements TableProducer {
                             Object[] row = new Object[ ncIn + ncCone ];
                             for ( int ic = 0; ic < ncIn; ic++ ) {
                                 row[ ic ] =
-                                    querySeq_.getCell( iCopyCols_[ ic ] );
+                                    resultSeq_.getCell( iCopyCols_[ ic ] );
                             }
                             for ( int ic = 0; ic < ncCone; ic++ ) {
-                                row[ ncIn + ic ] = resultSeq.getCell( ic );
+                                row[ ncIn + ic ] = rSeq.getCell( ic );
                             }
                             rowPipe_.acceptRow( row );
                         }
                     }
                     finally {
-                        resultSeq.close();
+                        rSeq.close();
                     }
 
                     /* Log number of rows successfully appended. */
@@ -334,125 +445,6 @@ public class SkyConeMatch2Producer implements TableProducer {
                     return false;
                 }
             };
-        }
-
-        /**
-         * Queries this object's cone searcher according to the search
-         * parameters in the current row of the input table.
-         *
-         * @return  table containing cone search result, or possibly null
-         */
-        private StarTable getConeResult() throws IOException {
-            double ra = querySeq_.getRa();
-            double dec = querySeq_.getDec();
-            double sr = querySeq_.getRadius();
-            if ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) &&
-                 ! Double.isNaN( sr ) ) {
-                return getConeResult( ra, dec, sr );
-            }
-            else {
-                logger_.warning( "Invalid search parameters" );
-                return null;
-            }
-        }
-
-        /**
-         * Performs a cone search and returns the resulting table with
-         * appropriate filtering operations applied.
-         * The resulting table will fall strictly within the specified 
-         * search region and will contain a restricted set of rows if
-         * that has been requested.
-         *
-         * <p>If no records in the cone are found, the return value may either
-         * be null or (preferably) an empty table with the correct columns.
-         *
-         * @param   ra0   right ascension in degrees of region centre
-         * @param   dec0  declination in degrees of region centre
-         * @param   sr    search radius in degrees
-         * @return   filtered result table, or null
-         */
-        private StarTable getConeResult( final double ra0, final double dec0,
-                                         final double sr )
-                throws IOException {
-
-            /* Perform the cone search itself. */
-            logger_.info( "Cone: ra=" + ra0 + "; dec=" + dec0 + "; sr=" + sr );
-            StarTable result = coneSearcher_.performSearch( ra0, dec0, sr );
-            if ( result == null ) {
-                return null;
-            }
-
-            /* Work out the columns which represent RA and Dec in the result. */
-            final int ira = coneSearcher_.getRaIndex( result );
-            final int idec = coneSearcher_.getDecIndex( result );
-            if ( ira < 0 || idec < 0 ) {
-                logger_.warning( "Can't locate RA/DEC in output table - "
-                               + "no post-filtering" );
-                return result;
-            }
-
-            /* If only a single output row per input row has been requested,
-             * identify the best match and return a table containing only 
-             * that one. */
-            if ( bestOnly_ ) {
-                RowSequence rseq = result.getRowSequence();
-                double bestDist = Double.NaN;
-                Object[] bestRow = null;
-                while ( rseq.next() ) {
-                    Object[] row = rseq.getRow();
-                    double dist = getDistance( row, ira, idec, ra0, dec0 );
-                    if ( dist <= sr &&
-                         ( dist < bestDist || Double.isNaN( bestDist ) ) ) {
-                        bestDist = dist;
-                        bestRow = (Object[]) row.clone();
-                    }
-                }
-                RowListStarTable result1 = new RowListStarTable( result );
-                if ( ! Double.isNaN( bestDist ) ) {
-                    result1.addRow( bestRow );
-                }
-                return result1;
-            }
-
-            /* Otherwise return a table which ensures that all the rows are
-             * in the search region.  This filtering is necessary since the
-             * ConeSearcher contract allows the return of supersets of the
-             * requested region. */
-            else {
-                return new SelectorStarTable( result ) {
-                    public boolean isIncluded( RowSequence rseq )
-                            throws IOException {
-                        return getDistance( rseq.getRow(),
-                                            ira, idec, ra0, dec0 ) <= sr;
-                    }
-                };
-            }
-        }
-
-        /**
-         * Returns the distance between two points on the sky.
-         *
-         * @param  row  data row
-         * @param  ira  index of element in <code>row</code> containing 
-         *              right ascension in degrees of first point
-         * @param  idec index of element in <code>row</code> containing
-         *              declination in degrees of first point
-         * @param  ra0  right ascension in degrees of second point
-         * @param  dec0 declination in degrees of second point
-         * @return   distance between points in degrees, or NaN if it can't
-         *           be determined
-         */
-        private static double getDistance( Object[] row, int ira, int idec,
-                                           double ra0, double dec0 ) {
-            Object raObj = row[ ira ];
-            Object decObj = row[ idec ];
-            double ra1 = raObj instanceof Number
-                       ? ((Number) raObj).doubleValue()
-                       : Double.NaN;
-            double dec1 = decObj instanceof Number
-                        ? ((Number) decObj).doubleValue()
-                        : Double.NaN;
-            return Coords.skyDistanceDegrees( ra0, dec0, ra1, dec1 );
         }
     }
 }
