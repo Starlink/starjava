@@ -8,12 +8,13 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
-public class MultiConeFrameworkTest extends TestCase {
+public class MultiConeFrameworkTest extends TableTestCase {
 
     public MultiConeFrameworkTest( String name ) {
         super( name );
@@ -22,12 +23,15 @@ public class MultiConeFrameworkTest extends TestCase {
     }
 
     public void testLinear() throws Exception {
-        doTestLinear( 1 );
-        doTestLinear( 2 );
-        doTestLinear( 33 );
+        StarTable t1 = doTestLinear( 1 );
+        int[] nThreads = new int[] { 2, 8, 33, };
+        for ( int i = 0; i < nThreads.length; i++ ) {
+            StarTable tn = doTestLinear( nThreads[ i ] );
+            assertSameData( t1, tn );
+        }
     }
 
-    private void doTestLinear( int parallelism ) throws Exception {
+    private StarTable doTestLinear( int parallelism ) throws Exception {
         int nIn = 4;
         int nOut = 2;
         ConeSearcher searcher = new LinearConeSearcher( nIn, nOut );
@@ -100,5 +104,7 @@ public class MultiConeFrameworkTest extends TestCase {
         assertTrue( ! rseq2.next() );
         rseq1.close();
         rseq2.close();
+
+        return allResult;
     }
 }
