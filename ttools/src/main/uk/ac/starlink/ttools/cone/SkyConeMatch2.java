@@ -8,6 +8,7 @@ import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
@@ -37,6 +38,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final Parameter copycolsParam_;
     private final ChoiceParameter modeParam_;
     private final BooleanParameter ostreamParam_;
+    private final IntegerParameter parallelParam_;
     private final JoinFixActionParameter fixcolsParam_;
     private final Parameter insuffixParam_;
     private final Parameter conesuffixParam_;
@@ -46,8 +48,10 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
      *
      * @param  purpose  one-line description of the purpose of the task
      * @param  coner   object which provides the sky cone search service
+     * @param  allowParallel  if true, provide parameters for selecting
+     *         multi-threaded operation
      */
-    public SkyConeMatch2( String purpose, Coner coner ) {
+    public SkyConeMatch2( String purpose, Coner coner, boolean allowParallel ) {
         super( purpose, new ChoiceMode(), true, true );
         coner_ = coner;
         List paramList = new ArrayList();
@@ -138,6 +142,29 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( modeParam_ );
 
+        parallelParam_ = new IntegerParameter( "parallel" );
+        parallelParam_.setDefault( "1" );
+        parallelParam_.setPrompt( "Number of queries to make in parallel" );
+        parallelParam_.setUsage( "<n>" );
+        parallelParam_.setMinimum( 1 );
+        parallelParam_.setDescription( new String[] {
+            "<p>Allows multiple cone searches to be performed concurrently.",
+            "If set to the default value, 1, the cone query corresponding",
+            "to the first row of the input table will be dispatched,",
+            "when that is completed the query corresponding to the",
+            "second row will be dispatched, and so on.",
+            "If set to <code>&lt;n&gt;</code>, then queries will be overlapped",
+            "in such a way that up to approximately <code>&lt;n&gt;</code>",
+            "may be running at any one time.",
+            "Whether this is a good idea, and what might be a sensible",
+            "maximum value for <code>&lt;n&gt;</code>, depends on the",
+            "characteristics of the service being queried.",
+            "</p>",
+        } );
+        if ( allowParallel ) {
+            paramList.add( parallelParam_ );
+        }
+
         ostreamParam_ = new BooleanParameter( "ostream" );
         ostreamParam_.setDefault( "false" );
         ostreamParam_.setPrompt( "Whether output will be strictly streamed" );
@@ -178,6 +205,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String decString = decParam_.stringValue( env );
         String srString = srParam_.stringValue( env );
         boolean ostream = ostreamParam_.booleanValue( env );
+        int parallelism = parallelParam_.intValue( env );
         boolean bestOnly;
         String mode = modeParam_.stringValue( env );
         if ( mode.toLowerCase().equals( "best" ) ) {
@@ -201,8 +229,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         /* Return a table producer using these values. */
         SkyConeMatch2Producer producer =
-            new SkyConeMatch2Producer( coneSearcher, inProd, qsFact, bestOnly,
-                                       copyColIdList, inFixAct, coneFixAct );
+            new SkyConeMatch2Producer( coneSearcher, inProd, qsFact,
+                                       parallelism, bestOnly, copyColIdList,
+                                       inFixAct, coneFixAct );
         producer.setStreamOutput( ostream );
         return producer;
     }
