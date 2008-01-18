@@ -2590,6 +2590,19 @@ however, it is only suitable if the local catalogue has a rather
 small number of rows.
 </p>
 
+<p>The <code>parallel</code> parameter allows you to perform multiple
+cone searches concurrently, so that instead of completing the 
+first cone search, then the second, then the third, 
+the program can be executing a number of them at once.
+This can speed up operation considerably, especially
+in the face of network latency, but beware that submitting a very large
+number of queries simultaneously to the same server may overload it,
+resulting in some combination of failed queries, ultimately slower runtimes,
+and unpopularity with cone search server admins.
+Best to start with a low parallelism and cautiously increase it to
+see whether there are gains in performance.
+</p>
+
 <p>You can locate available cone search services and their service URLs
 by interrogating the <label>VO Registry</label>.
 One way to do this is using the <code>regquery</code> command.
@@ -5033,6 +5046,10 @@ but my thanks are especially due to the following:
             <code>db</code> for consistency with other commands</li>
         </ul>
         </li>
+    <li>Improved error reporting.</li>
+    <li>Added (undocumented) <code>+verbose</code> flag.</li>
+    <li>Added <code>parallel</code> parameter to 
+        <ref id="coneskymatch"><code>coneskymatch</code></ref> task.</li>
     </ul>
     </p></dd>
 
