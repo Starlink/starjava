@@ -22,6 +22,12 @@ public class MultiConeFrameworkTest extends TestCase {
     }
 
     public void testLinear() throws Exception {
+        doTestLinear( 1 );
+        doTestLinear( 2 );
+        doTestLinear( 33 );
+    }
+
+    private void doTestLinear( int parallelism ) throws Exception {
         int nIn = 4;
         int nOut = 2;
         ConeSearcher searcher = new LinearConeSearcher( nIn, nOut );
@@ -40,9 +46,9 @@ public class MultiConeFrameworkTest extends TestCase {
         SkyConeMatch2Producer bestMatcher = new SkyConeMatch2Producer(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ),
-                true, "*", JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+                parallelism, true, "*",
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
-        assertTrue( ((LinearConeSearcher) searcher).isClosed() );
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
         assertEquals( messier.getColumnCount() + 3,
                       bestResult.getColumnCount() );
@@ -51,7 +57,7 @@ public class MultiConeFrameworkTest extends TestCase {
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
-                false, "RA DEC",
+                parallelism, false, "RA DEC",
                 JoinFixAction.makeRenameDuplicatesAction( "_A" ),
                 JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
@@ -75,7 +81,7 @@ public class MultiConeFrameworkTest extends TestCase {
             }
         };
         SkyConeMatch2Producer matcher3 = new SkyConeMatch2Producer(
-                searcher, inProd, qsFact3, true, "",
+                searcher, inProd, qsFact3, parallelism, true, "",
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );
         assertEquals( 3, result3.getColumnCount() );
