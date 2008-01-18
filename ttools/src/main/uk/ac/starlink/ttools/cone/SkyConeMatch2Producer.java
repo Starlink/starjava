@@ -37,6 +37,7 @@ public class SkyConeMatch2Producer implements TableProducer {
     private final ConeSearcher coneSearcher_;
     private final TableProducer inProd_;
     private final QuerySequenceFactory qsFact_;
+    private final int parallelism_;
     private final boolean bestOnly_;
     private final String copyColIdList_;
     private final JoinFixAction inFixAct_;
@@ -53,6 +54,8 @@ public class SkyConeMatch2Producer implements TableProducer {
      * @param   inProd   source of input table (containing each crossmatch
      *                   specification)
      * @param   qsFact    object which can produce a ConeQueryRowSequence
+     * @param   parallelism  number of threads to concurrently execute matches -
+     *                       only &gt;1 if coneSearcher is thread-safe
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
      * @param   copyColIdList  space-separated list of column identifiers for
@@ -65,6 +68,7 @@ public class SkyConeMatch2Producer implements TableProducer {
     public SkyConeMatch2Producer( ConeSearcher coneSearcher,
                                   TableProducer inProd,
                                   QuerySequenceFactory qsFact,
+                                  int parallelism,
                                   boolean bestOnly,
                                   String copyColIdList,
                                   JoinFixAction inFixAct,
@@ -72,6 +76,7 @@ public class SkyConeMatch2Producer implements TableProducer {
         coneSearcher_ = coneSearcher;
         inProd_ = inProd;
         qsFact_ = qsFact;
+        parallelism_ = parallelism;
         bestOnly_ = bestOnly;
         copyColIdList_ = copyColIdList;
         inFixAct_ = inFixAct;
@@ -104,14 +109,28 @@ public class SkyConeMatch2Producer implements TableProducer {
     public StarTable getTable() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
-        ConeResultRowSequence resultSeq =
-                new SequentialResultRowSequence( querySeq, coneSearcher_,
-                                                 bestOnly_ ) {
-            public void close() throws IOException {
-                super.close();
-                coneSearcher_.close();
-            }
-        };
+        final ConeResultRowSequence resultSeq;
+        if ( parallelism_ == 1 ) {
+            resultSeq = new SequentialResultRowSequence( querySeq,
+                                                         coneSearcher_,
+                                                         bestOnly_ ) {
+                   public void close() throws IOException {
+                       super.close();
+                       coneSearcher_.close();
+                   }
+               };
+        }
+        else {
+            resultSeq = new ParallelResultRowSequence( querySeq,
+                                                       coneSearcher_,
+                                                       bestOnly_,
+                                                       parallelism_ ) {
+                public void close() throws IOException {
+                    super.close();
+                    coneSearcher_.close();
+                }
+            };
+        }
         int[] iCopyCols = ( copyColIdList_ == null ||
                             copyColIdList_.trim().length() == 0 )
                         ? new int[ 0 ]
