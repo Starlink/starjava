@@ -53,10 +53,13 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     public boolean next() throws IOException {
         synchronized ( resultPool_ ) {
 
-            /* Block until a result is ready, or we know that no more will
-             * be forthcoming. */
+            /* Block until the next result in sequence is ready, 
+             * or we know that no more will be forthcoming. */
             try {
-                while ( resultPool_.size() == 0 && ! workersFinished() ) {
+                while ( ( resultPool_.size() == 0 ||
+                          ((Result) resultPool_.first()).index_
+                                                != nextIndex_ ) &&
+                        ! workersFinished() ) {
                     resultPool_.wait();
                 }
             }
