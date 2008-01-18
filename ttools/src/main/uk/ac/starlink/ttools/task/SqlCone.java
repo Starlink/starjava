@@ -11,7 +11,12 @@ import uk.ac.starlink.ttools.cone.SkyConeMatch2;
  */
 public class SqlCone extends SkyConeMatch2 {
     public SqlCone() {
+
+        /* Note that parallelism is not permitted.  Not only is it doubtful
+         * whether it would provide advantages, but the JdbcConer 
+         * implementation uses a single JDBC connection for all queries,
+         * and this cannot be used to make multiple queries at once. */
         super( "Crossmatches table on sky position against SQL table",
-               new JdbcConer() );
+               new JdbcConer(), false );
     }
 }
