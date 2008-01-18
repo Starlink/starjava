@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -269,55 +270,88 @@ public class PlasticRequest {
     private static List decodeArgs( List inList ) {
         List outList = new ArrayList();
         for ( Iterator it = inList.iterator(); it.hasNext(); ) {
-            String inArg = (String) it.next();
-            int leng = inArg.length();
-            Object outArg;
-
-            /* Forced string (single or double quoted). */
-            if ( ( inArg.charAt( 0 ) == '"' &&
-                   inArg.charAt( leng - 1 ) == '"' ) ||
-                 ( inArg.charAt( 0 ) == '\'' &&
-                   inArg.charAt( leng - 1 ) == '\'' ) ) {
-                outArg = inArg.substring( 1, leng - 1 );
-            }
-
-            /* List (parenthesised and comma-separated). */
-            else if ( ( inArg.charAt( 0 ) == '(' &&
-                        inArg.charAt( leng - 1 ) == ')' ) ) {
-                String[] items = inArg.substring( 1, leng - 1 )
-                                .split( " *, *" );
-                outArg = decodeArgs( Arrays.asList( items ) );
-            }
-
-            /* Boolean. */
-            else if ( "true".equals( inArg ) ) {
-                outArg = Boolean.TRUE;
-            }
-            else if ( "false".equals( inArg ) ) {
-                outArg = Boolean.FALSE;
-            }
-
-            /* Try integer. */
-            else {
-                try {
-                    outArg = Integer.valueOf( inArg );
-                }
-
-                /* Try double. */
-                catch ( NumberFormatException e1 ) {
-                    try {
-                        outArg = Double.valueOf( inArg );
-                    }
-                    catch ( NumberFormatException e2 ) {
-                        outArg = inArg;
-                    }
-                }
-            }
-
-            /* Otherwise, it's an unquoted. */
-            outList.add( outArg );
+            outList.add( decodeArg( (String) it.next() ) );
         }
         return outList;
+    }
+
+    /**
+     * Turns a single string from the command line into a typed value
+     * suitable for passing as an argument of a PLASTIC request.
+     * Uses ad hoc guesses.
+     *
+     * @param  inArg  string
+     * @return   object
+     */
+    private static Object decodeArg( String inArg ) {
+        int leng = inArg.length();
+
+        /* Forced string (single or double quoted). */
+        if ( ( inArg.charAt( 0 ) == '"' &&
+               inArg.charAt( leng - 1 ) == '"' ) ||
+             ( inArg.charAt( 0 ) == '\'' &&
+               inArg.charAt( leng - 1 ) == '\'' ) ) {
+            return inArg.substring( 1, leng - 1 );
+        }
+
+        /* List (parenthesised and comma-separated). */
+        else if ( ( inArg.charAt( 0 ) == '(' &&
+                    inArg.charAt( leng - 1 ) == ')' ) ) {
+            String[] items = inArg.substring( 1, leng - 1 )
+                            .split( " *, *" );
+            return decodeArgs( Arrays.asList( items ) );
+        }
+
+        /* Map (in curly brackets; {a=>b,c=>d,...}) */
+        else if ( ( inArg.charAt( 0 ) == '{' &&
+                    inArg.charAt( leng - 1 ) == '}' ) ) {
+            if ( leng == 2 ) {
+                return new HashMap();
+            }
+            String[] items = inArg.substring( 1, leng - 1 )
+                            .split( " *, *" );
+            Map map = new HashMap();
+            boolean ok = true;
+            for ( int i = 0; ok && ( i < items.length ); i++ ) {
+                int sepPos = items[ i ].indexOf( "=>" );
+                if ( sepPos > 0 ) {
+                    Object key =
+                        decodeArg( items[ i ].substring( 0, sepPos ) );
+                    Object value =
+                        decodeArg( items[ i ].substring( sepPos + 2 ) );
+                    map.put( key, value );
+                }
+                else {
+                    ok = false;
+                }
+            }
+            return ok ? (Object) map : (Object) inArg;
+        }
+
+        /* Boolean. */
+        else if ( "true".equals( inArg ) ) {
+            return Boolean.TRUE;
+        }
+        else if ( "false".equals( inArg ) ) {
+            return Boolean.FALSE;
+        }
+
+        /* Try integer. */
+        else {
+            try {
+                return Integer.valueOf( inArg );
+            }
+
+            /* Try double. */
+            catch ( NumberFormatException e1 ) {
+                try {
+                    return Double.valueOf( inArg );
+                }
+                catch ( NumberFormatException e2 ) {
+                    return inArg;
+                }
+            }
+        }
     }
 
     /**
