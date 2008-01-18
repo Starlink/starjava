@@ -11,7 +11,8 @@ import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.MultiCone;
 
 /**
- * Unit tests for MultiCone task.  These tests are timeconsuming and fragile
+ * Unit tests for MultiCone (coneskymatch) task.  
+ * These tests are timeconsuming and fragile
  * since they make multiple requests to remote services.
  * Various assertions may easily break in the future if the services
  * decide to change what they return.  However, if these tests pass,
@@ -66,12 +67,6 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "dec", "DEJ2000" )
             .setValue( "sr", "0.01" )
             .setValue( "copycols", "name" )
-            .setValue( "ocmd",
-                       "replacecol -units rad " +
-                       "RA hmsToRadians(RA[0],RA[1],RA[2])" +
-                       ";" +
-                       "replacecol -units rad " +
-                       "DEC dmsToRadians(DEC[0],DEC[1],DEC[2])" )
             .setValue( "zerometa", "true" );
         StarTable result = multicone( env );
 
@@ -102,7 +97,7 @@ public class MultiConeTest extends TableTestCase {
         StarTable result = multicone( env );
 
         assertEquals( 451L, result.getRowCount() );  // was 166 rows
-        assertEquals( 14, result.getColumnCount() );
+        assertEquals( 15, result.getColumnCount() );  // was 14 cols
 
         assertEquals( "Name", result.getColumnInfo( 0 ).getName() );
         assertEquals( "fomalhaut", result.getCell( 0L, 0 ) );
