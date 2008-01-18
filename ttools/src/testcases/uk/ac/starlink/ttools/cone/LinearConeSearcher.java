@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowListStarTable;
@@ -60,7 +61,7 @@ public class LinearConeSearcher implements ConeSearcher {
                                         new Double( dec + sr * 1.01
                                                         + sr * i / nOut_ ) } );
         }
-        Collections.shuffle( rowList );
+        Collections.shuffle( rowList, new Random( 11223344556677L ) );
 
         RowListStarTable table =
             new RowListStarTable( new ColumnInfo[] {
