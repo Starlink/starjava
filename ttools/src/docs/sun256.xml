@@ -34,6 +34,7 @@
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
+  <!ENTITY sql-summary SYSTEM 'sql-summary.xml'>
   <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
   <!ENTITY sqlupdate-summary SYSTEM 'sqlupdate-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
@@ -211,6 +212,9 @@ and the following general purpose utilities:
     </li>
 <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
     &funcs-purpose;
+    </li>
+<li><ref id="sql" plaintextref="yes"><code>sql</code></ref>:
+    &sql-purpose;
     </li>
 <li><ref id="sqlupdate" plaintextref="yes"><code>sqlupdate</code></ref>:
     &sqlupdate-purpose;
@@ -403,6 +407,7 @@ the available tasks are:
 <li><code>funcs</code></li>
 <li><code>coneskymatch</code></li>
 <li><code>regquery</code></li>
+<li><code>sql</code></li>
 <li><code>sqlskymatch</code></li>
 <li><code>sqlupdate</code></li>
 <li><code>tcat</code></li>
@@ -2810,6 +2815,81 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
+<subsect id="sql" tocleaf="yes">
+<subhead><title><code>sql</code>:
+                &sql-purpose;</title></subhead>
+
+<p><code>sql</code> is a simple command-line client for use with SQL databases.
+One or more SQL statements can be supplied using the <code>stmt</code>
+parameter.
+The result of each statement may be one or more update counts 
+(for update-type statements) or tables (for query-type statements).
+Tables will be written to
+standard output in a format given by the <code>ofmt</code> parameter.
+Update results and timing information will be written to standard error.
+</p>
+
+<p>In most cases, you will find life easier if you use either the
+database's own command-line or GUI client, or, if you require STILTS-type
+format conversion or post-processing, a <code>jdbc:</code>-format URL
+for the <code>in</code> parameter of the
+<ref id="tpipe"><code>tpipe</code></ref> or
+<ref id="tcopy"><code>tcopy</code></ref> commands
+(see <ref id="jdbcConfig"/> for more explanation of the latter).
+However, this command enables you to submit multiple queries over the
+same JDBC connection, including ones which do not generate a tabular
+result.  It may be useful if a command-line client is not available to
+you for the database you are using.
+</p>
+
+<p>This command can only be used if you have access to an SQL
+database via JDBC.  The details of how to configure a JDBC connection
+to a database are discussed in <ref id="jdbcConfig"/> - obviously 
+you will need a database to connect to and appropriate permissions 
+on it as well as the relevant drivers.
+</p>
+
+<p><strong>This command is experimental</strong>,
+and it may be enhanced, renamed or withdrawn in future releases.
+</p>
+
+&sql-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>sql</code>:
+<dl>
+
+<dt><verbatim>
+stilts -classpath lib/drivers.jtds-1.1.jar \
+       -Djdbc.drivers=net.sourceforge.jtds.jdbc.Driver \
+       -Djava.net.preferIPv4Stack=true \
+       sql db='jdbc:jtds:sqlserver://amenhotep:1433/twomass' \
+           user='guest1' \
+           ofmt=csv-nohead \
+           stmt='SET SHOWPLAN_TEXT ON' \
+           stmt='SELECT ra,dec FROM twomass_psc WHERE ra BETWEEN 21.7 AND 21.8 \
+                                                  AND dec BETWEEN 9.1 AND 9.12'
+</verbatim></dt>
+<dd><p>This sends two commands to a SQL Server database; the first one
+    (SET SHOWPLAN...) sets a flag which causes the DB to return an 
+    execution plan rather than the result for subsequent queries, 
+    and the second makes the query itself.  
+    Since the password is not provided on the command line, a prompt 
+    for it will be issued before execution.
+    The result is SQL Server's execution plan for the SELECT statement 
+    expressed as a headerless comma-separated value table sent to the terminal.
+    CSV is chosen for the output format since it does not truncate wide columns.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="sqlskymatch" tocleaf="yes">
 <subhead><title><code>sqlskymatch</code>:
                 &sqlskymatch-purpose;</title></subhead>
@@ -5033,6 +5113,7 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>New command <ref id="sqlupdate"><code>sqlupdate</code></ref>.</li>
+    <li>New command <ref id="sql"><code>sql</code></ref>.</li>
     <li>Some changes to <ref id="mode-tosql"><code>tosql</code></ref> 
         output mode:
         <ul>
