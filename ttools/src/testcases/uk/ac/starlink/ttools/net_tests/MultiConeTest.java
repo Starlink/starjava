@@ -43,7 +43,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "sr", "0.05" )
             .setValue( "copycols", "" )
             .setValue( "icmd", "head 10" );
-        StarTable result = multicone( env );
+        StarTable result = multicone( env, new int[] { 1, } );
 
         assertEquals( 245L, result.getRowCount() );  // was 173 rows
         int ncol = result.getColumnCount();
@@ -68,7 +68,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "sr", "0.01" )
             .setValue( "copycols", "name" )
             .setValue( "zerometa", "true" );
-        StarTable result = multicone( env );
+        StarTable result = multicone( env, new int[] { 5, 8, } );
 
         assertEquals( 462L, result.getRowCount() );
         assertEquals( 16, result.getColumnCount() );
@@ -94,7 +94,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "dec", "$2" )
             .setValue( "sr", "$3" )
             .setValue( "copycols", "$4" );
-        StarTable result = multicone( env );
+        StarTable result = multicone( env, new int[] { 1, 2, 3, } );
 
         assertEquals( 451L, result.getRowCount() );  // was 166 rows
         assertEquals( 15, result.getColumnCount() );  // was 14 cols
@@ -104,17 +104,29 @@ public class MultiConeTest extends TableTestCase {
         assertEquals( "sirius", result.getCell( result.getRowCount() - 1, 0 ) );
     }
 
-    private StarTable multicone( MapEnvironment env ) throws Exception {
-        new MultiCone().createExecutable( env ).execute();
-        StarTable result = Tables.randomTable( env.getOutputTable( "omode" ) );
-        File odir = new File( "/mbt/scratch/table" );
-        if ( odir.canWrite() ) {
-            new StarTableOutput()
-               .writeStarTable( result,
-                                new File( odir,
-                                          "multicone" + ++index_ + ".xml" )
-                               .toString(),
-                                StarTableOutput.AUTO_HANDLER );
+    private StarTable multicone( MapEnvironment env,
+                                 int[] parallelisms ) throws Exception {
+        StarTable result = null;
+        for ( int ip = 0; ip < parallelisms.length; ip++ ) {
+            MapEnvironment penv = new MapEnvironment( env );
+            penv.setValue( "parallel", Integer.toString( parallelisms[ ip ] ) );
+            new MultiCone().createExecutable( penv ).execute();
+            StarTable res =
+                Tables.randomTable( penv.getOutputTable( "omode" ) );
+            if ( result == null ) {
+                result = res;
+                File odir = new File( "/mbt/scratch/table" );
+                if ( odir.canWrite() ) {
+                    new StarTableOutput()
+                       .writeStarTable( result,
+                                        new File( odir, "multicone" + ++index_
+                                                  + ".xml" ).toString(),
+                                        StarTableOutput.AUTO_HANDLER );
+                }
+            }
+            else {
+                assertSameData( result, res );
+            }
         }
         return result;
     }
