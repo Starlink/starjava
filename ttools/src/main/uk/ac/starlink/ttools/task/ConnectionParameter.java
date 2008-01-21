@@ -65,6 +65,7 @@ public class ConnectionParameter extends Parameter {
         passParam_ = new Parameter( "password" );
         passParam_.setPrompt( "Password for database connection" );
         passParam_.setNullPermitted( true );
+        passParam_.setPreferExplicit( true );
         passParam_.setDescription( new String[] {
             "<p>Password for logging in to SQL database.",
             "</p>",
@@ -115,9 +116,9 @@ public class ConnectionParameter extends Parameter {
             String msg = "Must be of form \"jdbc:<subprotocol>:<subname>\"";
             throw new ParameterValueException( this, msg );
         }
+        String user = userParam_.stringValue( env );
+        String pass = passParam_.stringValue( env );
         try {
-            String user = userParam_.stringValue( env );
-            String pass = passParam_.stringValue( env );
             connection_ =
                 DriverManager.getConnection( stringValue, user, pass );
         }
