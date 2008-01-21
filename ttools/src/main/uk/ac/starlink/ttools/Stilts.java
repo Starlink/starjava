@@ -79,6 +79,7 @@ public class Stilts {
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
         taskFactory_.register( "regquery", taskPkg + "RegQuery" );
+        taskFactory_.register( "sql", taskPkg + "Sql" );
         taskFactory_.register( "sqlskymatch", taskPkg + "SqlCone" );
         taskFactory_.register( "sqlupdate", taskPkg + "SqlUpdate" );
         taskFactory_.register( "tcat", taskPkg + "TableCat" );
