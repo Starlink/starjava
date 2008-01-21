@@ -57,6 +57,9 @@ public class MapEnvironment implements TableEnvironment {
      */
     public MapEnvironment( MapEnvironment env ) {
         this( new HashMap( env.paramMap_ ) );
+        this.resourceBase_ = env.resourceBase_;
+        this.debug_ = env.debug_;
+        this.strictVot_ = env.strictVot_;
     }
 
     public PrintStream getOutputStream() {
