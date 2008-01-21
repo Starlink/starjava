@@ -69,7 +69,7 @@ public class LineInvoker {
         /* Treat flags. */
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.startsWith( "-" ) ) {
+            if ( arg.startsWith( "-" ) || arg.startsWith( "+" ) ) {
                 if ( arg.equals( "-help" ) ||
                      arg.equals( "-h" ) ) {
                     it.remove();
@@ -105,6 +105,10 @@ public class LineInvoker {
                 else if ( arg.equals( "-verbose" ) ) {
                     it.remove();
                     verbosity++;
+                }
+                else if ( arg.equals( "+verbose" ) ) {
+                    it.remove();
+                    verbosity--;
                 }
                 else if ( arg.equals( "-disk" ) ) {
                     it.remove();
@@ -263,16 +267,7 @@ public class LineInvoker {
                 }
             }
             catch ( TaskException e ) {
-                if ( env.isDebug() ) {
-                    e.printStackTrace( err );
-                }
-                else {
-                    String msg = e.getMessage();
-                    if ( msg == null ) {
-                        msg = e.toString();
-                    }
-                    err.println( "\n" + msg + "\n" );
-                }
+                reportError( env, e );
                 if ( e instanceof ParameterValueException && task != null ) {
                     Parameter param =
                         ((ParameterValueException) e).getParameter();
@@ -286,16 +281,7 @@ public class LineInvoker {
                 return 1;
             }
             catch ( IllegalArgumentException e ) {
-                if ( env.isDebug() ) {
-                    e.printStackTrace( err );
-                }
-                else {
-                    String msg = e.getMessage();
-                    if ( msg == null ) {
-                        msg = e.toString();
-                    }
-                    err.println( "\n" + msg + "\n" );
-                }
+                reportError( env, e );
                 return 1;
             }
             catch ( RuntimeException e ) {
@@ -303,16 +289,7 @@ public class LineInvoker {
                 return 1;
             }
             catch ( IOException e ) {
-                if ( env.isDebug() ) {
-                    e.printStackTrace( err );
-                }
-                else {
-                    String msg = e.getMessage();
-                    if ( msg == null ) {
-                        msg = e.toString();
-                    }
-                    err.println( "\n" + msg + "\n" );
-                }
+                reportError( env, e );
                 return 1;
             }
             catch ( LoadException e ) {
@@ -344,7 +321,7 @@ public class LineInvoker {
                 return 1;
             }
             catch ( NoClassDefFoundError e ) {
-                err.println( e );
+                reportError( env, e );
                 if ( env.isDebug() ) {
                     e.printStackTrace( err );
                 }
@@ -461,6 +438,41 @@ public class LineInvoker {
             }
         }
         return getUsage();
+    }
+
+    /**
+     * Outputs a description of a throwable to the environment.
+     *
+     * @param   env  execution environment
+     * @param   e    error
+     */
+    private void reportError( TableEnvironment env, Throwable e ) {
+        if ( env.isDebug() ) {
+            e.printStackTrace( env.getErrorStream() );
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer();
+            int i = 0;
+            for ( ; e != null; e = e.getCause() ) {
+                String msg = e.getMessage();
+                if ( msg == null ) {
+                    msg = e.toString();
+                }
+                if ( i > 0 ) {
+                    sbuf.append( '\n' );
+                    for ( int j = 0; j < i; j++ ) {
+                        sbuf.append( "    " );
+                    }
+                    sbuf.append( '(' );
+                }
+                sbuf.append( msg );
+                i++;
+            }
+            for ( int j = 1; j < i; j++ ) {
+                sbuf.append( ')' );
+            }
+            env.getErrorStream().println( sbuf.toString() );
+        }
     }
 
     /**
