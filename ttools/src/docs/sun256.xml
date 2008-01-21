@@ -193,13 +193,22 @@ the following commands specifically for operating on VOTable files:
     &votlint-purpose;
     </li>
 </ul>
-the following commands for accessing VO/database services:
+the following commands for accessing Virtual Observatory services:
 <ul>
 <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
     &regquery-purpose;
     </li>
 <li><ref id="coneskymatch" plaintextref="yes"><code>coneskymatch</code></ref>:
     &coneskymatch-purpose;
+    </li>
+</ul>
+the following commands for direct interaction with a SQL database:
+<ul>
+<li><ref id="sql" plaintextref="yes"><code>sql</code></ref>:
+    &sql-purpose;
+    </li>
+<li><ref id="sqlupdate" plaintextref="yes"><code>sqlupdate</code></ref>:
+    &sqlupdate-purpose;
     </li>
 <li><ref id="sqlskymatch" plaintextref="yes"><code>sqlskymatch</code></ref>:
     &sqlskymatch-purpose;
@@ -212,12 +221,6 @@ and the following general purpose utilities:
     </li>
 <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
     &funcs-purpose;
-    </li>
-<li><ref id="sql" plaintextref="yes"><code>sql</code></ref>:
-    &sql-purpose;
-    </li>
-<li><ref id="sqlupdate" plaintextref="yes"><code>sqlupdate</code></ref>:
-    &sqlupdate-purpose;
     </li>
 </ul>
 More tools may be introduced in the future.
