@@ -65,6 +65,8 @@ public abstract class HubManager implements PlasticListener {
     private PlasticHubListener hub_;
     private ApplicationListModel appListModel_;
     private JFrame hubWindow_;
+    private int autoRegInterval_;
+    private Thread autoThread_;
 
     private static final URI[] INTERNAL_SUPPORTED_MESSAGES = new URI[] {
         MessageId.TEST_ECHO,
@@ -186,31 +188,39 @@ public abstract class HubManager implements PlasticListener {
                 }
             }
         }
-        if ( doRegister ) {
+        try {
+            if ( doRegister ) {
 
-            /* Attempt the registration. */
-            assert hub_ == null;
-            assert plasticId_ == null;
-            try {
-                PlasticHubListener hub = PlasticUtils.getLocalHub();
-                Collection supported = new HashSet();
-                if ( supportedMessages_.length > 0 ) {
-                    supported.addAll( Arrays.asList( supportedMessages_ ) );
-                    supported.addAll( Arrays
-                                     .asList( INTERNAL_SUPPORTED_MESSAGES ) );
+                /* Attempt the registration. */
+                assert hub_ == null;
+                assert plasticId_ == null;
+                try {
+                    PlasticHubListener hub = PlasticUtils.getLocalHub();
+                    Collection supported = new HashSet();
+                    if ( supportedMessages_.length > 0 ) {
+                        supported.addAll( Arrays.asList( supportedMessages_ ) );
+                        supported.addAll(
+                            Arrays.asList( INTERNAL_SUPPORTED_MESSAGES ) );
+                    }
+                    URI id = hub.registerRMI( applicationName_,
+                                              new ArrayList( supported ),
+                                              this );
+                    synchronized ( this ) {
+                        setHub( hub );
+                        assert hub_ == hub;
+                        plasticId_ = id;
+                    }
+                    updateState( true );
                 }
-                URI id = hub.registerRMI( applicationName_,
-                                          new ArrayList( supported ), this );
-                synchronized ( this ) {
-                    setHub( hub );
-                    assert hub_ == hub;
-                    plasticId_ = id;
+                catch ( IOException e ) {
+                    updateState( false );
+                    throw e;
                 }
-                updateState( true );
             }
-            catch ( IOException e ) {
-                updateState( false );
-                throw e;
+        }
+        finally {
+            if ( autoRegInterval_ > 0 ) {
+                runAutoRegistration( true );
             }
         }
     }
@@ -224,6 +234,14 @@ public abstract class HubManager implements PlasticListener {
      * successfully - too bad, failing to unregister is not a serious crime.
      */
     public void unregister() {
+
+        /* If this is a genuine unregistration, make sure that the 
+         * auto-register thread is deactivated.
+         * If it's a pseudo-unregistration triggered by the hub stopping
+         * (not currently registered) then no action is required. */
+        if ( plasticId_ != null ) {
+            runAutoRegistration( false );
+        }
 
         /* Check safely whether we've already attempted an unregister. */
         boolean doUnregister;
@@ -276,6 +294,69 @@ public abstract class HubManager implements PlasticListener {
             catch ( InterruptedException e ) {
             }
         }
+    }
+
+    /**
+     * Sets the auto registration thread to be running or stopped.
+     * Calling this method with the current state is legal and has no effect.
+     *
+     * @param  active  true iff the auto registration thread should be running
+     */
+    private synchronized void runAutoRegistration( boolean active ) {
+        if ( active && autoThread_ == null ) {
+            Thread autoThread = new Thread( "PLASTIC Registration" ) {
+                public void run() {
+                    try {
+                        while ( ! Thread.currentThread().isInterrupted() ) {
+                            if ( plasticId_ == null &&
+                                 PlasticUtils.isHubRunning() ) {
+                                try {
+                                    register();
+                                }
+                                catch ( IOException e ) {
+                                }
+                                catch ( RuntimeException e ) {
+                                }
+                                catch ( Error e ) {
+                                }
+                            }
+                            if ( autoRegInterval_ > 0 ) {
+                                Thread.sleep( autoRegInterval_ );
+                            }
+                        }
+                    }
+                    catch ( InterruptedException e ) {
+                    }
+                }
+            };
+            autoThread.setDaemon( true );
+            autoThread.start();
+            autoThread_ = autoThread;
+        }
+        else if ( ! active && autoThread_ != null ) {
+            Thread autoThread = autoThread_;
+            autoThread_ = null;
+            autoThread.interrupt();
+        }
+    }
+
+    /**
+     * Controls whether auto registration is used, and how often to attempt
+     * a connection if unregistered.
+     * If <code>interval&gt;0</code>, then a separate thread will 
+     * remain active ensuring that this object is always registered 
+     * with a hub, if a hub is present.  It will check every 
+     * <code>interval</code> milliseconds that there is a connection to 
+     * the hub, and attempt to make one if there is not.
+     * If <code>interval&lt;=0</code> (the default), then no autoregistration
+     * is performed.
+     *
+     * @param  interval  autoregistration attempt interval in milliseconds,
+     *                   or &lt;=0 to disable registration
+     */
+    public synchronized void setAutoRegister( int interval ) {
+        autoRegInterval_ = interval;
+        runAutoRegistration( interval > 0 );
     }
 
     /**
@@ -335,16 +416,16 @@ public abstract class HubManager implements PlasticListener {
                                     : " in a separate process" ) );
         registerToggle_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                if ( registerToggle_.isSelected() ) {
-                    hubAct.setEnabled( false );
+                if ( ! registerToggle_.isSelected() ) {
+                    hubAct.setEnabled( true );
                 }
                 else {
                     hubAct.setEnabled( ! PlasticUtils.isHubRunning() );
                 }
             }
         } );
-        if ( registerToggle_.isSelected() ) {
-            hubAct.setEnabled( false );
+        if ( ! registerToggle_.isSelected() ) {
+            hubAct.setEnabled( true );
         }
         else {
             hubAct.setEnabled( ! PlasticUtils.isHubRunning() );
