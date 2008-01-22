@@ -480,6 +480,7 @@ public class Driver {
             catch ( Throwable e ) {
                 logger.info( "PLASTIC registration failed: " + e );
             }
+            getControlWindow().getPlasticServer().setAutoRegister( 2000 );
         }
     }
 
