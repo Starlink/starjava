@@ -2645,15 +2645,10 @@ will connect to it automatically, listening for messages sent by
 other tools.  If not, you can start a hub from the
 <label>Interop</label> menu in the 
 <ref id="ControlWindow">Control Window</ref> or start one
-externally and then connect to it using that menu.
+externally.
 Other tools will have their own policy for connecting to the hub,
 but in general it's best to start a hub first before starting up
 the tools which you want to talk to it.
-Currently, the usual way to run a hub is to start up the 
-<label>AstroGrid Workbench</label> which provides a hub service.
-You can run Workbench using Java WebStart from
-<webref url="http://software.astrogrid.org/userdocs/workbench.html"
-            >http://software.astrogrid.org/userdocs/workbench.html</webref>.
 </p>
 
 <p>The interoperability has two aspects to it: on the one hand TOPCAT
@@ -3084,13 +3079,24 @@ The meaning of the flags is as follows:
 
 <dt>-[no]plastic</dt>
 <dd><p>Controls whether TOPCAT will attempt to connect to a running
-    PLASTIC hub on startup.  Currently, the default is that it does
-    connect if a hub is running.  See <ref id="interop"/>.
+    PLASTIC hub.  Currently, the default is that it does connect 
+    if a hub is running.  See <ref id="interop"/>.
     </p></dd>
 
 <dt>-hub</dt>
-<dd><p>Causes TOPCAT to run an internal PLASTIC hub.  This feature is
-    experimental.
+<dd><p>Causes TOPCAT to run an internal PLASTIC hub, if no hub is already
+    running.  The hub will terminate when TOPCAT does.
+    See <ref id="interop"/>.
+    </p></dd>
+
+<dt>-exthub</dt>
+<dd><p>Causes TOPCAT to attempt to run an external PLASTIC hub, if no hub
+    is already running.  The hub will show up in its own window, and can
+    be stopped by closing the window.  The hub will continue to run 
+    after TOPCAT terminates.
+    Invoking external processes from Java is inherently 
+    unreliable, so this is done on a best-efforts basis.
+    See <ref id="interop"/>.
     </p></dd>
 
 <dt>-[no]soap</dt>
@@ -10999,6 +11005,13 @@ introduced since the last version:
     <li>Activation window permits selection of different image viewers.</li>
     <li>System properties specified explicitly on command line now take
         precendence over those in <code>.starjava.properies</code> file.</li>
+    <li>Now TOPCAT will automatically register with a PLASTIC hub any time
+        one becomes available - the hub does not have to be running
+        when TOPCAT starts.  As a corrollary, if you start an internal or
+        external hub from the <label>Interop</label> menu, 
+        you do not need to explicitly invoke the 
+        <label>Register</label> item afterwards.</li>
+    <li>Add <code>-exthub</code> flag.</li>
     </ul>
     </p></dd>
 
