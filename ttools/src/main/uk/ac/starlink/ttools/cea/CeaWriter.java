@@ -190,10 +190,11 @@ public abstract class CeaWriter extends XmlWriter {
         }
         startElement( paramDecl, aBuf.toString() );
         addElement( "UI_Name", "", "task" );
-        addElement( "UI_Description", "", "Task name - fixed" );
-        addElement( "DefaultValue", "", task.getName() );
+        addElement( "UI_Description", "",
+                    xmlToCdata( task.getName() + ": " + task.getPurpose() ) );
+        addElement( "DefaultValue", "", xmlToCdata( task.getName() ) );
         startElement( "OptionList" );
-        addElement( "OptionVal", "", task.getName() );
+        addElement( "OptionVal", "", xmlToCdata( task.getName() ) );
         endElement( "OptionList" );
         endElement( paramDecl );
 
