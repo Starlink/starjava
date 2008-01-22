@@ -431,6 +431,7 @@ public class SplatBrowser
         setEmbedded( embedded );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         this.plasticServer = new SplatPlastic( this );
+        plasticServer.setAutoRegister( 2000 );
         try {
             initComponents();
         }
