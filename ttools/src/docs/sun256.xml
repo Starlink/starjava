@@ -5134,6 +5134,7 @@ but my thanks are especially due to the following:
     <li>Added (undocumented) <code>+verbose</code> flag.</li>
     <li>Added <code>parallel</code> parameter to 
         <ref id="coneskymatch"><code>coneskymatch</code></ref> task.</li>
+    <li>Minor improvement to CEA app-description.</li>
     </ul>
     </p></dd>
 
