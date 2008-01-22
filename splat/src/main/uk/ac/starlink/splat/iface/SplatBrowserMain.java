@@ -10,10 +10,15 @@ package uk.ac.starlink.splat.iface;
 import jargs.gnu.CmdLineParser;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
+import uk.ac.starlink.plastic.PlasticHub;
+import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.util.SplatException;
@@ -37,6 +42,10 @@ import uk.ac.starlink.util.ProxySetup;
  */
 public class SplatBrowserMain
 {
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.iface.SplatBrowserMain" );
+
     /**
      * Reference to the SplatBrowser that is created.
      */
@@ -55,6 +64,7 @@ public class SplatBrowserMain
              " [{-s,--selectax} axis_index]" +
              " [{-c,--clear}]" +
              " [{-k,--keepcoords}]" +
+             " [{--hub,--exthub}]" +
              " [spectra1 spectra2 ...]"
             );
     }
@@ -90,6 +100,10 @@ public class SplatBrowserMain
                 parser.addBooleanOption( 'k', "keepcoords" );
             CmdLineParser.Option ignore =
                 parser.addBooleanOption( 'i', "ignore" );
+            CmdLineParser.Option hub = 
+                parser.addBooleanOption( '\0', "hub" );
+            CmdLineParser.Option exthub =
+                parser.addBooleanOption( '\0', "exthub" );
 
             try {
                 parser.parse( args );
@@ -126,6 +140,24 @@ public class SplatBrowserMain
             ignoreErrors = (Boolean) parser.getOptionValue( ignore );
             if ( ignoreErrors == null ) {
                 ignoreErrors = Boolean.FALSE;
+            }
+
+            //  PLASTIC hub options.
+            if ( Boolean.TRUE.equals( parser.getOptionValue( hub ) ) ) {
+                try {
+                    PlasticHub.startHub( null, null );
+                }
+                catch (IOException e) {
+                    logger.log( Level.WARNING, "Internal hub not started", e );
+                }
+            }
+            else if ( Boolean.TRUE.equals( parser.getOptionValue( exthub ) ) ) {
+                try {
+                    PlasticUtils.startExternalHub( true );
+                }
+                catch ( IOException e ) {
+                    logger.log( Level.WARNING, "External hub not started", e );
+                }
             }
 
             //  Everything else should be spectra.
