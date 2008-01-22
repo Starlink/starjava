@@ -462,6 +462,39 @@ public class PlasticUtils {
     }
 
     /**
+     * Blocks until a successful registration has been achieved.
+     * The most common reason for registration to fail is that the
+     * hub is not running.  This method is therefore suitable to run
+     * (probably on a background thread) while waiting for a hub to 
+     * start up.
+     *
+     * @param  hubMan  hub manager object
+     * @param  interval  number of milliseconds between registration attempts
+     * @throws  InterruptedException  if the thread is interrupted
+     */
+    public static void waitToRegister( HubManager hubMan, final int interval )
+            throws InterruptedException {
+        while ( ! Thread.currentThread().isInterrupted() ) {
+            if ( isHubRunning() ) {
+                try {
+                    hubMan.register();
+                    return;
+                }
+                catch ( IOException e ) {
+                }
+                catch ( RuntimeException e ) {
+                    throw e;
+                }
+                catch ( Error e ) {
+                    throw e;
+                }
+            }
+            Thread.sleep( interval );
+        }
+        throw new InterruptedException();
+    }
+
+    /**
      * Returns an array of ApplicationItem objects representing the 
      * applications currently registered with a given hub.
      * 
