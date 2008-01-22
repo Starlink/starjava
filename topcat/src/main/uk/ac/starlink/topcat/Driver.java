@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.plastic.PlasticHub;
+import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -240,7 +241,7 @@ public class Driver {
         String pad = pre.replaceAll( ".", " " );
         String usage = 
               pre + " [-help] [-version] [-verbose] [-demo] [-disk]\n"
-            + pad + " [-hub] [-[no]plastic] [-[no]soap] [-noserv]\n"
+            + pad + " [-hub] [-exthub] [-[no]plastic] [-[no]soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
                   + " [-registry] [-siap]\n"
             + pad + " [[-f <format>] table ...]";
@@ -255,7 +256,8 @@ public class Driver {
         int verbosity = 0;
         boolean soapServe = false;
         boolean plasticServe = true;
-        boolean plasticHub = false;
+        boolean internalHub = false;
+        boolean externalHub = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -288,7 +290,11 @@ public class Driver {
             }
             else if ( arg.equals( "-hub" ) ) {
                 it.remove();
-                plasticHub = true;
+                internalHub = true;
+            }
+            else if ( arg.equals( "-exthub" ) ) {
+                it.remove();
+                externalHub = true;
             }
             else if ( arg.equals( "-plastic" ) ) {
                 it.remove();
@@ -464,9 +470,17 @@ public class Driver {
                 logger.warning( "No SOAP server: " + e );
             }
         }
-        if ( plasticHub ) {
+        if ( internalHub ) {
             try {
                 PlasticHub.startHub( null, null );
+            }
+            catch ( IOException e ) {
+                logger.warning( "Can't start PLASTIC hub: " + e );
+            }
+        }
+        else if ( externalHub ) {
+            try {
+                PlasticUtils.startExternalHub( true );
             }
             catch ( IOException e ) {
                 logger.warning( "Can't start PLASTIC hub: " + e );
@@ -651,6 +665,7 @@ public class Driver {
            .append( p2 + "-disk        use disk backing store for "
                                        + "large tables" ) 
            .append( p2 + "-hub         run internal PLASTIC hub" )
+           .append( p2 + "-exthub      run external PLASTIC hub" )
            .append( p2 + "-[no]plastic do [not] connect to running " 
                                        + "PLASTIC hub" )
            .append( p2 + "-[no]soap    do [not] start SOAP services" )
