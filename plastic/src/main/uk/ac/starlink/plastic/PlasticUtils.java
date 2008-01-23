@@ -451,8 +451,12 @@ public class PlasticUtils {
      * @param  gui  true iff a window representing the hub is to be posted
      */
     public static void startExternalHub( boolean gui ) throws IOException {
+        File javaHome = new File( System.getProperty( "java.home" ) );
+        File javaExec = new File( new File( javaHome, "bin" ), "java" );
+        String javacmd = javaExec.exists() ? javaExec.toString()
+                                           : "java";
         String[] args = new String[] {
-            "java",
+            javacmd,
             "-classpath",
             System.getProperty( "java.class.path" ),
             PlasticHub.class.getName(),
