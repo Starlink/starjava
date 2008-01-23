@@ -6,6 +6,7 @@ import java.util.regex.PatternSyntaxException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.SkyMatchEngine;
@@ -68,7 +69,8 @@ public class SkyMatch2Mapping extends Match2Mapping {
         super( new HumanMatchEngine( matcher ),
                new String[] { raExpr1, decExpr1, }, 
                new String[] { raExpr2, decExpr2, }, join, bestOnly,
-               fixact1, fixact2, progger );
+               fixact1, fixact2, 
+               new HumanMatchEngine( matcher ).getMatchScoreInfo(), progger );
     }
 
     protected StarTable makeSubTable( StarTable inTable, String[] exprTuple )

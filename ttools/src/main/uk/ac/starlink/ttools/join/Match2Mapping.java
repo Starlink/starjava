@@ -33,6 +33,7 @@ public class Match2Mapping implements TableMapping {
     final MatchEngine matchEngine_;
     final boolean bestOnly_;
     final JoinType join_;
+    final ValueInfo scoreInfo_;
     final ProgressIndicator progger_;
 
     private static final Logger logger =
@@ -54,18 +55,22 @@ public class Match2Mapping implements TableMapping {
      * @param   bestOnly   whether only the best match is to be retained
      * @param   fixact1    deduplication fix action for first input table
      * @param   fixact2    deduplication fix action for second input table
+     * @param   scoreInfo  column description for inter-table match score
+     *                     values, or null for no score column
      * @param   progger    progress indicator for matching
      */
     Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
                    String[] exprTuple2, JoinType join,
                    boolean bestOnly, JoinFixAction fixact1, 
-                   JoinFixAction fixact2, ProgressIndicator progger ) {
+                   JoinFixAction fixact2, ValueInfo scoreInfo,
+                   ProgressIndicator progger ) {
         matchEngine_ = matchEngine;
         exprTuple1_ = exprTuple1;
         exprTuple2_ = exprTuple2;
         join_ = join;
         bestOnly_ = bestOnly;
         fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
+        scoreInfo_ = scoreInfo;
         progger_ = progger;
     }
 
@@ -106,10 +111,9 @@ public class Match2Mapping implements TableMapping {
         }
 
         /* Create a new table from the result and return. */
-        ValueInfo scoreInfo = matchEngine_.getMatchScoreInfo();
         return MatchStarTables.makeJoinTable( inTable1, inTable2, matches,
                                               join_, ! bestOnly_, fixacts_,
-                                              scoreInfo );
+                                              scoreInfo_ );
     }
 
     /**
