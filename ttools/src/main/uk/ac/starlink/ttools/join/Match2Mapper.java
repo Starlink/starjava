@@ -60,6 +60,7 @@ public class Match2Mapper implements TableMapper {
             fixcolParam_,
             fixcolParam_.createSuffixParameter( "1" ),
             fixcolParam_.createSuffixParameter( "2" ),
+            matcherParam_.getScoreParameter(),
             progressParam_,
         };
     }
@@ -83,13 +84,14 @@ public class Match2Mapper implements TableMapper {
         JoinType join = joinParam_.joinTypeValue( env );
         boolean bestOnly = modeParam_.bestOnlyValue( env );
         JoinFixAction[] fixacts = fixcolParam_.getJoinFixActions( env, 2 );
+        ValueInfo scoreInfo = matcherParam_.getScoreInfo( env );
         ProgressIndicator progger =
             progressParam_.progressIndicatorValue( env );
         PrintStream logStrm = env.getErrorStream();
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
-                                  join, bestOnly,
-                                  fixacts[ 0 ], fixacts[ 1 ], progger );
+                                  join, bestOnly, fixacts[ 0 ], fixacts[ 1 ],
+                                  scoreInfo, progger );
     }
 }
