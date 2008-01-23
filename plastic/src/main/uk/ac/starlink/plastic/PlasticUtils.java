@@ -453,8 +453,9 @@ public class PlasticUtils {
     public static void startExternalHub( boolean gui ) throws IOException {
         File javaHome = new File( System.getProperty( "java.home" ) );
         File javaExec = new File( new File( javaHome, "bin" ), "java" );
-        String javacmd = javaExec.exists() ? javaExec.toString()
-                                           : "java";
+        String javacmd = ( javaExec.exists() && ! javaExec.isDirectory() )
+                       ? javaExec.toString()
+                       : "java";
         String[] args = new String[] {
             javacmd,
             "-classpath",
@@ -462,6 +463,15 @@ public class PlasticUtils {
             PlasticHub.class.getName(),
             ( gui ? "-gui" : "-verbose" ),
         };
+        StringBuffer cmdbuf = new StringBuffer();
+        for ( int iarg = 0; iarg < args.length; iarg++ ) {
+            if ( iarg > 0 ) {
+                cmdbuf.append( ' ' );
+            }
+            cmdbuf.append( args[ iarg ] );
+        }
+        logger_.info( "Starting external hub" );
+        logger_.info( cmdbuf.toString() );
         Runtime.getRuntime().exec( args );
     }
 
