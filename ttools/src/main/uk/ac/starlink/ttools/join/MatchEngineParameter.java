@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.join;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
@@ -31,7 +32,12 @@ import uk.ac.starlink.ttools.task.WordsParameter;
 public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
     private final WordsParameter paramsParam_;
+    private final Parameter scoreParam_;
     private MatchEngine matchEngine_;
+
+    private static final ValueInfo SCORE_INFO = 
+        new DefaultValueInfo( "Score", Number.class,
+                              "Closeness of match (0 is exact)" );
 
     /** Base name for tuple parameter. */
     private static final String TUPLE_NAME = "values";
@@ -77,6 +83,25 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         } );
         paramsParam_.setNullPermitted( true );
         paramsParam_.setUsage( "<match-params>" );
+
+        scoreParam_ = new Parameter( "scorecol" );
+        scoreParam_.setUsage( "<col-name>" );
+        scoreParam_.setPrompt( "Match score column name" );
+        scoreParam_.setDescription( new String[] {
+            "<p>Gives the name of a column in the output table to contain",
+            "the \"match score\" for each pairwise match.",
+            "The meaning of this column is dependent on the chosen",
+            "<code>" + getName() + "</code>,",
+            "but it typically represents a distance of some kind between",
+            "the two matching points.",
+            "If a null value is chosen, no score column will be inserted",
+            "in the output table.",
+            "The default value of this parameter depends on",
+            "<code>" + getName() + "</code>.",
+            "</p>",
+        } );
+        scoreParam_.setNullPermitted( true );
+        scoreParam_.setDefault( SCORE_INFO.getName() );
     }
 
     public String getExtraUsage( TableEnvironment env ) {
@@ -120,6 +145,39 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      */
     public Parameter getMatchParametersParameter() {
         return paramsParam_;
+    }
+
+    /**
+     * Returns the associated parameter which is used for specifying the
+     * match score column metadata.  Do not interrogate this parameter
+     * directly - use {@link #getScoreInfo}.
+     *
+     * @return  match score parameter
+     */
+    public Parameter getScoreParameter() {
+        return scoreParam_;
+    }
+
+    /**
+     * Returns the match score metadata associated with this parameter.
+     *
+     * @param   env  execution environment
+     * @return  match score metadata; may be null
+     */
+    public ValueInfo getScoreInfo( Environment env ) throws TaskException {
+        checkGotValue( env );
+        String scoreVal = scoreParam_.stringValue( env );
+        if ( scoreVal == null || scoreVal.trim().length() == 0 ) {
+            return null;
+        }
+        else {
+            ValueInfo baseInfo = matchEngine_.getMatchScoreInfo();
+            DefaultValueInfo info = baseInfo == null
+                                  ? new DefaultValueInfo( SCORE_INFO )
+                                  : new DefaultValueInfo( baseInfo );
+            info.setName( scoreVal );
+            return info;
+        }
     }
 
     /**
@@ -239,6 +297,11 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
          * string value. */
         String name = stringVal.toLowerCase();
         MatchEngine engine = createEngine( name );
+
+        /* Configure score column parameter accordingly. */
+        ValueInfo scoreInfo = engine.getMatchScoreInfo();
+        scoreParam_.setDefault( scoreInfo == null ? null
+                                                  : scoreInfo.getName() );
 
         /* See about the match parameter constants that the resulting
          * match engine requires. */
