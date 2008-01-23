@@ -113,8 +113,6 @@ public class SkyMatch2Mapper implements TableMapper {
         JoinType join = joinParam_.joinTypeValue( env );
         boolean bestOnly = modeParam_.bestOnlyValue( env );
 
-        MatchEngine engine =
-            new HumanMatchEngine( new HEALPixMatchEngine( error, false ) );
         JoinFixAction fixact1 =
             JoinFixAction.makeRenameDuplicatesAction( "_1", false, true );
         JoinFixAction fixact2 =
