@@ -34,7 +34,7 @@
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
-  <!ENTITY sql-summary SYSTEM 'sql-summary.xml'>
+  <!ENTITY sqlclient-summary SYSTEM 'sqlclient-summary.xml'>
   <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
   <!ENTITY sqlupdate-summary SYSTEM 'sqlupdate-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
@@ -204,8 +204,8 @@ the following commands for accessing Virtual Observatory services:
 </ul>
 the following commands for direct interaction with a SQL database:
 <ul>
-<li><ref id="sql" plaintextref="yes"><code>sql</code></ref>:
-    &sql-purpose;
+<li><ref id="sqlclient" plaintextref="yes"><code>sqlclient</code></ref>:
+    &sqlclient-purpose;
     </li>
 <li><ref id="sqlupdate" plaintextref="yes"><code>sqlupdate</code></ref>:
     &sqlupdate-purpose;
@@ -410,7 +410,7 @@ the available tasks are:
 <li><code>funcs</code></li>
 <li><code>coneskymatch</code></li>
 <li><code>regquery</code></li>
-<li><code>sql</code></li>
+<li><code>sqlclient</code></li>
 <li><code>sqlskymatch</code></li>
 <li><code>sqlupdate</code></li>
 <li><code>tcat</code></li>
@@ -2818,12 +2818,13 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
-<subsect id="sql" tocleaf="yes">
-<subhead><title><code>sql</code>:
-                &sql-purpose;</title></subhead>
+<subsect id="sqlclient" tocleaf="yes">
+<subhead><title><code>sqlclient</code>:
+                &sqlclient-purpose;</title></subhead>
 
-<p><code>sql</code> is a simple command-line client for use with SQL databases.
-One or more SQL statements can be supplied using the <code>stmt</code>
+<p><code>sqlclient</code> is a simple command-line client 
+for use with SQL databases.
+One or more SQL statements can be supplied using the <code>sql</code>
 parameter.
 The result of each statement may be one or more update counts 
 (for update-type statements) or tables (for query-type statements).
@@ -2856,24 +2857,25 @@ on it as well as the relevant drivers.
 and it may be enhanced, renamed or withdrawn in future releases.
 </p>
 
-&sql-summary;
+&sqlclient-summary;
 
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of <code>sql</code>:
+<p>Here are some examples of <code>sqlclient</code>:
 <dl>
 
 <dt><verbatim>
 stilts -classpath lib/drivers.jtds-1.1.jar \
        -Djdbc.drivers=net.sourceforge.jtds.jdbc.Driver \
        -Djava.net.preferIPv4Stack=true \
-       sql db='jdbc:jtds:sqlserver://amenhotep:1433/twomass' \
+       sqlclient \
+           db='jdbc:jtds:sqlserver://amenhotep:1433/twomass' \
            user='guest1' \
            ofmt=csv-nohead \
-           stmt='SET SHOWPLAN_TEXT ON' \
-           stmt='SELECT ra,dec FROM twomass_psc WHERE ra BETWEEN 21.7 AND 21.8 \
-                                                  AND dec BETWEEN 9.1 AND 9.12'
+           sql='SET SHOWPLAN_TEXT ON' \
+           sql='SELECT ra,dec FROM twomass_psc WHERE ra BETWEEN 21.7 AND 21.8 \
+                                                 AND dec BETWEEN 9.1 AND 9.12'
 </verbatim></dt>
 <dd><p>This sends two commands to a SQL Server database; the first one
     (SET SHOWPLAN...) sets a flag which causes the DB to return an 
@@ -5115,8 +5117,8 @@ but my thanks are especially due to the following:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>New command <ref id="sqlclient"><code>sqlclient</code></ref>.</li>
     <li>New command <ref id="sqlupdate"><code>sqlupdate</code></ref>.</li>
-    <li>New command <ref id="sql"><code>sql</code></ref>.</li>
     <li>Some changes to <ref id="mode-tosql"><code>tosql</code></ref> 
         output mode:
         <ul>

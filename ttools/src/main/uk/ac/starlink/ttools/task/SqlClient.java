@@ -30,7 +30,7 @@ import uk.ac.starlink.ttools.Tokenizer;
  * @author   Mark Taylor
  * @since    21 Jan 2008
  */
-public class Sql implements Task {
+public class SqlClient implements Task {
 
     private final ConnectionParameter connParam_;
     private final StatementParameter stmtParam_;
@@ -39,9 +39,9 @@ public class Sql implements Task {
     /** 
      * Constructor.
      */
-    public Sql() {
+    public SqlClient() {
         connParam_ = new ConnectionParameter( "db" );
-        stmtParam_ = new StatementParameter( "stmt" );
+        stmtParam_ = new StatementParameter( "sql" );
         ofmtParam_ = new OutputFormatParameter( "ofmt" );
         ofmtParam_.setDefault( "text" );
     }
