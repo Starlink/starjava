@@ -24,15 +24,15 @@
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the
 Research Councils \\
 Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council
-Copyright \copyright\ 2007 Science and Technology Facilities Council
+Copyright \copyright\ 2007-2008 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.30}
+\newcommand{\stardocnumber}    {243.31}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {21 July 2007}
+\newcommand{\stardocdate}      {23 January 2008}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.8-2}
+\newcommand{\stardocversion}   {3.8-5}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -3548,15 +3548,13 @@ in the browser window, which looks like this:
 
 \subheading{What is PLASTIC?}
 
-PLASTIC stands for the PLatform for AStronomical Tool InterConnection.
-It is a protocol which allows tools on the desktop to communicate
-with each other.  Briefly, the way it works is that applications
-can send messages to a central {\em hub process} which will
-then pass them on to other applications which can respond to them
-in some appropriate way.  
-The messages are things like ``load this spectrum''.
-Applications which currently talk PLASTIC include
-TOPCAT, GAIA and various tools from the AstroGrid project.
+PLASTIC stands for the PLatform for AStronomical Tool InterConnection.  It is
+a protocol which allows tools on the desktop to communicate with each other.
+Briefly, the way it works is that applications can send messages to a central
+{\em hub process} which will then pass them on to other applications which can
+respond to them in some appropriate way.  The messages are things like ``load
+this spectrum''.  Applications which currently talk PLASTIC include TOPCAT,
+GAIA and various tools from the AstroGrid project.
 
 You can find more information about how it works, what applications
 are compatible, and how it can be useful at the
@@ -3574,15 +3572,18 @@ It is possible however to start the hub using either the
 \menuitem{Start internal PLASTIC hub} or \menuitem{Start external PLASTIC hub}
 menu items.  The internal one will terminate when you exit \SPLAT,
 but the external one will continue running until it is explicitly stopped.
+For convenience these two options are also available from the command-line
+as the \verb+--hub+ and \verb+--exthub+ switches.
 
 If the hub is running when \SPLAT\ starts up, \SPLAT\ will connect to it
 (``register'') automatically.
 If you start the hub while \SPLAT\ is already running,
 you can connect to it by selecting the \menuitem{Register with PLASTIC}
-option from the \menuitem{Interop} menu.  When registered,
-\SPLAT\ will listen out for messages from other applications and act
-on them.  You will also be able to send messages to other applications.
-If you want to stop \SPLAT\ responding to any such messages,
+option from the \menuitem{Interop} menu, or wait for a while and the
+presence of the hub will be automatically detected.
+When registered, \SPLAT\ will listen out for messages from other applications
+and act on them.  You will also be able to send messages to other
+applications.  If you want to stop \SPLAT\ responding to any such messages,
 you can select \menuitem{Unregister with PLASTIC} from the same menu.
 
 The \menuitem{Show Registered Applications} menu item will display a
@@ -3657,18 +3658,44 @@ similiar functionality in the SPEFO program, and were suggested by Petr Skoda
 research, contact Petr for further details).
 
 This work has mainly been supported by the now closed
-\htmladdnormallink{Starlink Project}{http://www.starlink.ac.uk}, funded by
-the 
+\htmladdnormallink{Starlink Project}{http://www.starlink.ac.uk}, 
+funded by the 
 \htmladdnormallink{Particle Physics and Astronomy Research Council}{http://www.pparc.ac.uk}
 and more recently by the 
 \htmladdnormallink{Joint Astronomy Centre Hawaii}{http://www.jach.hawaii.edu},
 also funded by the 
-\htmladdnormallink{Particle Physics and Astronomy Research Council}{http://www.pparc.ac.uk}.
+\htmladdnormallink{Particle Physics and Astronomy Research Council}{http://www.pparc.ac.uk}
+and more recently by it's successor organisation the
+\htmladdnormallink{Science and Technology Facilities Council}{http://www.scitech.ac.uk}.
+
 Finally, many programmers working for Starlink have made contributions to the
 components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
 
 \section{Changes}
+
+\subsection{3.8-5}
+
+Two new command-line options have been added, "--hub" and "--exthub".
+These start an internal PLASTIC hub and an external one respectively.
+Note an external hub will persist after SPLAT has been closed down.
+
+\subsection{3.8-4}
+
+When displaying a dual sideband spectrum with the observed band set to LSB the
+axes coordinates for the USB sideband were shown incorrectly. This bug has
+been fixed.
+
+A bug converting the epoch into UTC, in the absence of a DATE-OBS, has been
+fixed in the synopsis. Previously times were reported in TAI.
+
+\subsection{3.8-3}
+
+Standard IR spectral lines from UKIRT have been added to the built-in
+line identifiers (thanks to Andy Adamson).
+
+Line identifier labels in text files can now be quoted using single
+or double quotes.
 
 \subsection{3.8-2}
 
@@ -3709,7 +3736,7 @@ all plot aspect ratios.
 Data units which dimensionally match one of the preset flux values will now be
 identified and shown as the preset value in the data units and plot units
 toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now be recognised as
-"erg/cm^2/s/Angstrom".
+"erg/cm\^2/s/Angstrom".
 
 \subsection{3.8-0}
 

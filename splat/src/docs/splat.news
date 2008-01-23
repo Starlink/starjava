@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.8-5
+   =====
+
+   Two new command-line options have been added, --hub and --exthub.
+   These start an internal PLASTIC hub and an external one respectively.
+   Note an external hub will persist after SPLAT has been closed down.
+
    3.8-4
    =====
 

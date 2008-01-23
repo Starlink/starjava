@@ -7,7 +7,7 @@ setenv HTX_EMAIL '<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A>'
 
 set copyr1="Copyright (C) 2001-2005 Council for the Central Laboratory of the Research Councils"
 set copyr2="Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council"
-set copyr3="Copyright (C) 2007 Science and Technology Facilities Council"
+set copyr3="Copyright (C) 2007-2008 Science and Technology Facilities Council"
 
 setenv COPYRIGHT "$copyr1<br>$copyr2<br>$copyr3"
 
