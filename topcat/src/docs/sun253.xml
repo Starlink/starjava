@@ -11004,7 +11004,7 @@ introduced since the last version:
         database.</li>
     <li>Activation window permits selection of different image viewers.</li>
     <li>System properties specified explicitly on command line now take
-        precendence over those in <code>.starjava.properies</code> file.</li>
+        precendence over those in <code>.starjava.properties</code> file.</li>
     <li>Now TOPCAT will automatically register with a PLASTIC hub any time
         one becomes available - the hub does not have to be running
         when TOPCAT starts.  As a corrollary, if you start an internal or
