@@ -86,7 +86,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
         scoreParam_ = new Parameter( "scorecol" );
         scoreParam_.setUsage( "<col-name>" );
-        scoreParam_.setPrompt( "Match score column name" );
+        scoreParam_.setPrompt( "Match score output column name" );
         scoreParam_.setDescription( new String[] {
             "<p>Gives the name of a column in the output table to contain",
             "the \"match score\" for each pairwise match.",
