@@ -15,7 +15,7 @@ public interface ConeResultRowSequence extends ConeQueryRowSequence {
     /**
      * Returns the result of the cone search for the current row of this 
      * sequence.  The work will typically be done using
-     * {@link SkyConeMatch2Producer#getConeResult}.
+     * {@link ConeMatcher#getConeResult}.
      *
      * <p>If no records in the cone are found, the return value may either
      * be null or (preferably) an empty table with the correct columns.

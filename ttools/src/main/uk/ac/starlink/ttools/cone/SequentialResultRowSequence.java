@@ -36,11 +36,10 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
     }
 
     public StarTable getConeResult() throws IOException {
-        return SkyConeMatch2Producer.getConeResult( coneSearcher_, bestOnly_,
-                                                    distanceCol_,
-                                                    querySeq_.getRa(),
-                                                    querySeq_.getDec(),
-                                                    querySeq_.getRadius() );
+        return ConeMatcher
+              .getConeResult( coneSearcher_, bestOnly_, distanceCol_,
+                              querySeq_.getRa(), querySeq_.getDec(),
+                              querySeq_.getRadius() );
     }
 
     public boolean next() throws IOException {

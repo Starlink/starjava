@@ -34,7 +34,7 @@ import uk.ac.starlink.ttools.task.TableProducer;
  * @author   Mark Taylor
  * @since    31 Aug 2007
  */
-public class SkyConeMatch2Producer implements TableProducer {
+public class ConeMatcher implements TableProducer {
 
     private final ConeSearcher coneSearcher_;
     private final TableProducer inProd_;
@@ -70,10 +70,8 @@ public class SkyConeMatch2Producer implements TableProducer {
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
      */
-    public SkyConeMatch2Producer( ConeSearcher coneSearcher,
-                                  TableProducer inProd,
-                                  QuerySequenceFactory qsFact,
-                                  boolean bestOnly ) {
+    public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
+                        QuerySequenceFactory qsFact, boolean bestOnly ) {
         this( coneSearcher, inProd, qsFact, bestOnly,
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
@@ -100,15 +98,11 @@ public class SkyConeMatch2Producer implements TableProducer {
      * @param   coneFixAct column name deduplication action for result
      *                     of cone searches
      */
-    public SkyConeMatch2Producer( ConeSearcher coneSearcher,
-                                  TableProducer inProd,
-                                  QuerySequenceFactory qsFact,
-                                  boolean bestOnly,
-                                  int parallelism,
-                                  String copyColIdList,
-                                  String distanceCol,
-                                  JoinFixAction inFixAct,
-                                  JoinFixAction coneFixAct ) {
+    public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
+                        QuerySequenceFactory qsFact, boolean bestOnly,
+                        int parallelism, String copyColIdList,
+                        String distanceCol, JoinFixAction inFixAct,
+                        JoinFixAction coneFixAct ) {
         coneSearcher_ = coneSearcher;
         inProd_ = inProd;
         qsFact_ = qsFact;

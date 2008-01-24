@@ -56,7 +56,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
 
-        SkyConeMatch2Producer bestMatcher = new SkyConeMatch2Producer(
+        ConeMatcher bestMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 parallelism, "*", scoreCol,
@@ -66,7 +66,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         assertEquals( messier.getColumnCount() + 3 + ( addScore ? 1 : 0 ),
                       bestResult.getColumnCount() );
 
-        SkyConeMatch2Producer allMatcher = new SkyConeMatch2Producer(
+        ConeMatcher allMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
@@ -110,7 +110,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
                       .createFixedRadiusSequence( table, iRa, iDec, 0.5 );
             }
         };
-        SkyConeMatch2Producer matcher3 = new SkyConeMatch2Producer(
+        ConeMatcher matcher3 = new ConeMatcher(
                 searcher, inProd, qsFact3, true, parallelism, "", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );

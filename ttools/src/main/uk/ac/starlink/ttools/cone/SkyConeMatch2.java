@@ -246,11 +246,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             new JELQuerySequenceFactory( raString, decString, srString );
 
         /* Return a table producer using these values. */
-        SkyConeMatch2Producer producer =
-            new SkyConeMatch2Producer( coneSearcher, inProd, qsFact,
-                                       bestOnly, parallelism, copyColIdList,
-                                       distanceCol, inFixAct, coneFixAct );
-        producer.setStreamOutput( ostream );
-        return producer;
+        ConeMatcher coneMatcher =
+            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly,
+                             parallelism, copyColIdList, distanceCol,
+                             inFixAct, coneFixAct );
+        coneMatcher.setStreamOutput( ostream );
+        return coneMatcher;
     }
 }

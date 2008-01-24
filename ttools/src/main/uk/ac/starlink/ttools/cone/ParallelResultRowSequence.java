@@ -318,9 +318,9 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             }
 
             /* Perform the query. */
-            StarTable table = SkyConeMatch2Producer
-                             .getConeResult( coneSearcher_, bestOnly_,
-                                             distanceCol_, ra, dec, radius );
+            StarTable table =
+                ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
+                                           distanceCol_, ra, dec, radius );
 
             /* Return the completed result object. */
             return new Result( index, ra, dec, radius, row, table );
