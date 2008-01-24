@@ -51,12 +51,13 @@ public class SkyConeMatch2Producer implements TableProducer {
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     /** Default metadata for distance column. */
-    private static final ValueInfo DISTANCE_INFO = 
+    private static final ValueInfo DISTANCE_INFO =
         new DefaultValueInfo( "Distance", Double.class,
                               "Angular separation between query position and "
                             + "result position" );
     static {
         ((DefaultValueInfo) DISTANCE_INFO).setUnitString( "deg" );
+        ((DefaultValueInfo) DISTANCE_INFO).setUCD( "pos.angDistance" );
     }
 
     /**
