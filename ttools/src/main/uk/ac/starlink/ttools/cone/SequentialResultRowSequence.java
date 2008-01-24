@@ -15,6 +15,7 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
     private final boolean bestOnly_;
+    private final String distanceCol_;
 
     /**
      * Constructor.
@@ -22,17 +23,21 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
      * @param  bestOnly  whether all results or just best are required
+     * @param  distanceCol  name of column to hold distance information 
+     *                      in output table, or null
      */
     public SequentialResultRowSequence( ConeQueryRowSequence querySeq,
                                         ConeSearcher coneSearcher,
-                                        boolean bestOnly ) {
+                                        boolean bestOnly, String distanceCol ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
         bestOnly_ = bestOnly;
+        distanceCol_ = distanceCol;
     }
 
     public StarTable getConeResult() throws IOException {
         return SkyConeMatch2Producer.getConeResult( coneSearcher_, bestOnly_,
+                                                    distanceCol_,
                                                     querySeq_.getRa(),
                                                     querySeq_.getDec(),
                                                     querySeq_.getRadius() );
