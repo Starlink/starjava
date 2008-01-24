@@ -119,7 +119,10 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             ? "Normalised distance between matched points" +
               "(0 is identical position, 1 is worst permissible match)"
             : "Spatial distance between matched points";
-        return new DefaultValueInfo( "Separation", Double.class, descrip );
+        DefaultValueInfo scoreInfo = 
+            new DefaultValueInfo( "Separation", Double.class, descrip );
+        scoreInfo.setUCD( "pos.distance" );
+        return scoreInfo;
     }
 
     /**

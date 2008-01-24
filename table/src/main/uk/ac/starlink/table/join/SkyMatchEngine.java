@@ -43,6 +43,7 @@ public abstract class SkyMatchEngine implements MatchEngine {
         ERR_INFO.setNullable( true );
 
         SCORE_INFO.setUnitString( "arcsec" );
+        SCORE_INFO.setUCD( "pos.angDistance" );
     }
 
     /**
