@@ -175,13 +175,16 @@ public abstract class SkyMatchEngine implements MatchEngine {
     protected abstract Object[] getBins( double ra, double dec, double err );
 
     public ValueInfo getMatchScoreInfo() {
-        return SCORE_INFO;
+        return new DefaultValueInfo( SCORE_INFO );
     }
 
     public ValueInfo[] getTupleInfos() {
         return getUseErrors()
-             ? new ValueInfo[] { Tables.RA_INFO, Tables.DEC_INFO, ERR_INFO }
-             : new ValueInfo[] { Tables.RA_INFO, Tables.DEC_INFO };
+             ? new ValueInfo[] { new DefaultValueInfo( Tables.RA_INFO ),
+                                 new DefaultValueInfo( Tables.DEC_INFO ),
+                                 new DefaultValueInfo( ERR_INFO ), }
+             : new ValueInfo[] { new DefaultValueInfo( Tables.RA_INFO ),
+                                 new DefaultValueInfo( Tables.DEC_INFO ), };
     }
 
     public DescribedValue[] getMatchParameters() {
