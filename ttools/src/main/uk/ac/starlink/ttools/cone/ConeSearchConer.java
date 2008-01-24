@@ -43,9 +43,8 @@ public class ConeSearchConer implements Coner {
             "If this value does not end in either a '?' or a '&amp;',",
             "one will be added as appropriate.",
             "</p>",
-            "<p>Note that the <ref id='regquery'><code>regquery</code></ref>",
-            "command can be used to locate the service URL for cone search",
-            "services.",
+            "<p>See <ref id='coneService'/> for discussion of how to locate",
+            "service URLs corresponding to given datasets.",
             "</p>",
         } );
 
