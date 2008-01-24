@@ -2575,7 +2575,8 @@ stilts calc 'param$author' table=catalogue.xml
 (cone search is an IVOA standard protocol)
 query for each row of an input table and concatenates the results 
 of all these queries together into one big output table.
-You give the <label>service URL</label> for the cone search server you wish
+You give the <ref plaintextref="yes" id="coneService">service URL</ref> 
+for the cone search server you wish
 to use, and expressions (usually column names) 
 defining how to get the search parameters 
 (sky position and search radius) for each row of the input table.  
@@ -2609,23 +2610,6 @@ resulting in some combination of failed queries, ultimately slower runtimes,
 and unpopularity with cone search server admins.
 Best to start with a low parallelism and cautiously increase it to
 see whether there are gains in performance.
-</p>
-
-<p>You can locate available cone search services and their service URLs
-by interrogating the <label>VO Registry</label>.
-One way to do this is using the <code>regquery</code> command.
-For instance, to identify registered cone search services that have
-something to do with Sloan data, you could execute the folowing:
-<verbatim>
-    stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
-           ocmd="keepcols 'shortName serviceUrl'" \
-           ofmt=ascii
-</verbatim>
-Writing just <code>query="serviceType = 'CONE'"</code> with no
-further qualification will give you all registered cone search services.
-See the section on 
-<ref id="regquery" plaintextref="yes"><code>regquery</code></ref> 
-for more explanation.
 </p>
 
 <p>Note that when running, <code>coneskymatch</code> often generates a lot
@@ -2716,6 +2700,44 @@ stilts coneskymatch serviceurl='http://archive.stsci.edu/iue/search.php?' \
     Output is to a FITS table.
     </p></dd>
 </dl>
+</p>
+
+</subsubsect>
+
+<subsubsect id="coneService">
+<subhead><title>Locating Cone Search Service URLs</title></subhead>
+
+<p>To use the <code>coneskymatch</code> command you need the
+<label>service URL</label> (also known as the <label>base URL</label>
+or <label>access URL</label>) of a cone search service to use.
+If you know one of these representing a service that you wish to use, 
+you can use it directly.
+</p>
+
+<p>If you don't, you will need to find the URL from somewhere.
+It is the job of the Virtual Observatory <label>Registry</label>
+to keep a record of where you can find various astronomical services,
+so this is where you should look.
+</p>
+
+<p>There are various ways you can interrogate the registry; the
+easiest is probably to use a graphical registry search tool such
+as AstroGrid's <label>VOExplorer</label>.
+</p>
+
+<p>It is also possible to interrogate the registry using STILTS's
+<ref id="regquery" plaintextref="yes"><code>regquery</code></ref>
+command.  See that section of the manual for details, but for
+instance to locate registered Cone Search services which have
+something to do with SDSS data, you could execute the following:
+<verbatim>
+    stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
+           ocmd="keepcols 'shortName serviceUrl'" \
+           ofmt=ascii
+</verbatim>
+Writing just <code>query="serviceType = 'CONE'"</code> with no
+further qualification would give you <em>all</em> 
+registered cone search services.
 </p>
 
 </subsubsect>
@@ -5137,6 +5159,13 @@ but my thanks are especially due to the following:
     <li>Added <code>parallel</code> parameter to 
         <ref id="coneskymatch"><code>coneskymatch</code></ref> task.</li>
     <li>Minor improvement to CEA app-description.</li>
+    <li>Downgraded from WARNING to INFO log messages about 
+        the (extremely common) VOTable syntax error of omitting 
+        a FIELD/PARAM element's <code>datatype</code> attribute.</li>
+    <li>New parameter <code>scorecol</code> added to
+        <code>tmatch2</code>,
+        <code>coneskymatch</code> and
+        <code>sqlskymatch</code> commands.</li>
     </ul>
     </p></dd>
 
