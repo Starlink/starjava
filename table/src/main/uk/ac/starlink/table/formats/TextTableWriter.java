@@ -346,10 +346,26 @@ public class TextTableWriter extends StreamStarTableWriter {
 
     private int getMaxWidth( Class clazz ) {
         if ( clazz == Double.class ) {
-            return 13;
+            return Math.max( Double.toString( - Double.MAX_VALUE ).length(),
+                             Double.toString( - Double.MIN_VALUE ).length() );
         }
         else if ( clazz == Float.class ) {
-            return 11;
+            return Math.max( Float.toString( - Float.MAX_VALUE ).length(),
+                             Float.toString( - Float.MIN_VALUE ).length() );
+        }
+        else if ( clazz == Long.class ) {
+            return Math.max( Long.toString( Long.MIN_VALUE ).length(),
+                             Long.toString( Long.MAX_VALUE ).length() );
+        }
+        else if ( clazz == Integer.class ) {
+            return Math.max( Integer.toString( Integer.MIN_VALUE ).length(),
+                             Integer.toString( Integer.MAX_VALUE ).length() );
+        }
+        else if ( clazz == Short.class ||
+                  clazz == Byte.class ||
+                  clazz == Character.class ) {
+            return Math.max( Short.toString( Short.MIN_VALUE ).length(),
+                             Short.toString( Short.MAX_VALUE ).length() );
         }
         else {
             return getMaxWidth();
