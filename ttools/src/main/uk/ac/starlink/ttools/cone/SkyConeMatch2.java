@@ -37,6 +37,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final Parameter srParam_;
     private final Parameter copycolsParam_;
     private final ChoiceParameter modeParam_;
+    private final Parameter distcolParam_;
     private final BooleanParameter ostreamParam_;
     private final IntegerParameter parallelParam_;
     private final JoinFixActionParameter fixcolsParam_;
@@ -142,6 +143,21 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( modeParam_ );
 
+        distcolParam_ = new Parameter( "scorecol" );
+        distcolParam_.setNullPermitted( true );
+        distcolParam_.setDefault( "Separation" );
+        distcolParam_.setPrompt( "Angular distance output column name" );
+        distcolParam_.setUsage( "<col-name>" );
+        distcolParam_.setDescription( new String[] {
+            "<p>Gives the name of a column in the output table to contain",
+            "the distance between the requested central position and the",
+            "actual position of the returned row.",
+            "The distance returned is an angular distance in degrees.",
+            "If a null value is chosen, no distance column will appear",
+            "in the output table.",
+            "</p>",
+        } );
+
         parallelParam_ = new IntegerParameter( "parallel" );
         parallelParam_.setDefault( "1" );
         parallelParam_.setPrompt( "Number of queries to make in parallel" );
@@ -206,6 +222,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String srString = srParam_.stringValue( env );
         boolean ostream = ostreamParam_.booleanValue( env );
         int parallelism = parallelParam_.intValue( env );
+        String distanceCol = distcolParam_.stringValue( env );
         boolean bestOnly;
         String mode = modeParam_.stringValue( env );
         if ( mode.toLowerCase().equals( "best" ) ) {
@@ -230,8 +247,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         /* Return a table producer using these values. */
         SkyConeMatch2Producer producer =
             new SkyConeMatch2Producer( coneSearcher, inProd, qsFact,
-                                       parallelism, bestOnly, copyColIdList,
-                                       inFixAct, coneFixAct );
+                                       bestOnly, parallelism, copyColIdList,
+                                       distanceCol, inFixAct, coneFixAct );
         producer.setStreamOutput( ostream );
         return producer;
     }
