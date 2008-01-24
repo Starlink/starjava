@@ -112,8 +112,8 @@ public class FieldElement extends VOElement {
             return getAttribute( "datatype" );
         }
         else {
-            logger_.warning( "Missing datatype attribute for " + getHandle() +
-                             " - assume char(*)" );
+            logger_.info( "Missing datatype attribute for " + getHandle() +
+                          " - assume char(*)" );
             return "char";
         }
     }
