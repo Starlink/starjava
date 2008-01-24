@@ -109,6 +109,21 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( srParam_ );
 
+        modeParam_ = new ChoiceParameter( "find", new String[] {
+            "best", "all",
+        } );
+        modeParam_.setDefault( "all" );
+        modeParam_.setPrompt( "Type of match to perform" );
+        modeParam_.setDescription( new String[] {
+            "<p>Determines which matches are retained.",
+            "If <code>best</code> is selected, then only the query table row",
+            "which best matches the row from the input table will be output.",
+            "If <code>all</code> is selected, then any rows in the query table",
+            "which match the input table are output.",
+            "</p>",
+        } );
+        paramList.add( modeParam_ );
+
         copycolsParam_ = new Parameter( "copycols" );
         copycolsParam_.setUsage( "<colid-list>" );
         copycolsParam_.setNullPermitted( true );
@@ -128,21 +143,6 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( copycolsParam_ );
 
-        modeParam_ = new ChoiceParameter( "find", new String[] {
-            "best", "all",
-        } );
-        modeParam_.setDefault( "all" );
-        modeParam_.setPrompt( "Type of match to perform" );
-        modeParam_.setDescription( new String[] {
-            "<p>Determines which matches are retained.",
-            "If <code>best</code> is selected, then only the query table row",
-            "which best matches the row from the input table will be output.",
-            "If <code>all</code> is selected, then any rows in the query table",
-            "which match the input table are output.",
-            "</p>",
-        } );
-        paramList.add( modeParam_ );
-
         distcolParam_ = new Parameter( "scorecol" );
         distcolParam_.setNullPermitted( true );
         distcolParam_.setDefault( "Separation" );
@@ -157,6 +157,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "in the output table.",
             "</p>",
         } );
+        paramList.add( distcolParam_ );
 
         parallelParam_ = new IntegerParameter( "parallel" );
         parallelParam_.setDefault( "1" );
