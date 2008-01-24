@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.cone;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -23,18 +24,26 @@ public class MultiConeFrameworkTest extends TableTestCase {
     }
 
     public void testLinear() throws Exception {
-        StarTable t1 = doTestLinear( 1 );
+        StarTable t1f = doTestLinear( 1, false );
+        int[] colMap = new int[ t1f.getColumnCount() ];
+        for ( int i = 0; i < colMap.length; i++ ) {
+            colMap[ i ] = i;
+        }
+        StarTable t1 = doTestLinear( 1, true );
         int[] nThreads = new int[] { 2, 8, 33, };
         for ( int i = 0; i < nThreads.length; i++ ) {
-            StarTable tn = doTestLinear( nThreads[ i ] );
+            StarTable tn = doTestLinear( nThreads[ i ], true );
             assertSameData( t1, tn );
+            assertSameData( t1f, new ColumnPermutedStarTable( tn, colMap ) );
         }
     }
 
-    private StarTable doTestLinear( int parallelism ) throws Exception {
+    private StarTable doTestLinear( int parallelism, boolean addScore )
+            throws Exception {
         int nIn = 4;
         int nOut = 2;
         ConeSearcher searcher = new LinearConeSearcher( nIn, nOut );
+        String scoreCol = addScore ? "dist" : null;
 
         final StarTable messier = 
             new VOTableBuilder()
@@ -49,24 +58,41 @@ public class MultiConeFrameworkTest extends TableTestCase {
 
         SkyConeMatch2Producer bestMatcher = new SkyConeMatch2Producer(
                 searcher, inProd,
-                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ),
-                parallelism, true, "*",
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
-        assertEquals( messier.getColumnCount() + 3,
+        assertEquals( messier.getColumnCount() + 3 + ( addScore ? 1 : 0 ),
                       bestResult.getColumnCount() );
 
         SkyConeMatch2Producer allMatcher = new SkyConeMatch2Producer(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
-                parallelism, false, "RA DEC",
+                false, parallelism, "RA DEC", scoreCol,
                 JoinFixAction.makeRenameDuplicatesAction( "_A" ),
                 JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
         assertEquals( messier.getRowCount() * nIn, allResult.getRowCount() );
-        assertEquals( 2 + 3, allResult.getColumnCount() );
+        assertEquals( 2 + 3 + ( addScore ? 1 : 0 ),
+                      allResult.getColumnCount() );
+        if ( addScore ) {
+            int iscore = allResult.getColumnCount() - 1;
+            assertEquals( scoreCol,
+                          allResult.getColumnInfo( iscore ).getName() );
+            RowSequence rseq = allResult.getRowSequence();
+            double maxFrac = 0;
+            while ( rseq.next() ) {
+                double score = ((Number) rseq.getCell( iscore )).doubleValue();
+                double fraction = score / 0.3;
+                maxFrac = Math.max( fraction, maxFrac );
+                assertTrue( fraction >= 0 );
+                assertTrue( fraction <= 1.0 );
+            }
+            rseq.close();
+            assertTrue( maxFrac > 0.5 );
+        }
 
         final int iRa = 5;
         final int iDec = 6;
@@ -85,10 +111,10 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
         SkyConeMatch2Producer matcher3 = new SkyConeMatch2Producer(
-                searcher, inProd, qsFact3, parallelism, true, "",
+                searcher, inProd, qsFact3, true, parallelism, "", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );
-        assertEquals( 3, result3.getColumnCount() );
+        assertEquals( 3 + ( addScore ? 1 : 0 ), result3.getColumnCount() );
         assertEquals( "ID", result3.getColumnInfo( 0 ).getName() );
         assertEquals( "RA", result3.getColumnInfo( 1 ).getName() );
         assertEquals( "Dec", result3.getColumnInfo( 2 ).getName() );

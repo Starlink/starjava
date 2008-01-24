@@ -66,21 +66,27 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "ra", "RAJ2000" )
             .setValue( "dec", "DEJ2000" )
             .setValue( "sr", "0.01" )
+            .setValue( "scorecol", "OFFSET" )
             .setValue( "copycols", "name" )
             .setValue( "zerometa", "true" );
         StarTable result = multicone( env, new int[] { 5, 8, } );
+        int ncol = result.getColumnCount();
 
         assertEquals( 462L, result.getRowCount() );
-        assertEquals( 16, result.getColumnCount() );
+        assertEquals( 17, ncol );
 
         assertEquals( "name", result.getColumnInfo( 0 ).getName() );
         assertEquals( "id", result.getColumnInfo( 1 ).getName() );
         assertEquals( "RA", result.getColumnInfo( 2 ).getName() );
         assertEquals( "DEC", result.getColumnInfo( 3 ).getName() );
+        assertEquals( "OFFSET", result.getColumnInfo( ncol - 1 ).getName() );
         assertEquals( "CRAB",
                       result.getCell( 0L, 0 ).toString().trim() );
         assertEquals( "1120-0088780",
                       result.getCell( 0L, 1 ).toString().trim() );
+        assertEquals( 0.00872,
+                      ((Number) result.getCell( 0L, ncol - 1 )).doubleValue(),
+                      0.00001 );
     }
 
     public void testExample3() throws Exception {
@@ -93,6 +99,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "ra", "$1" )
             .setValue( "dec", "$2" )
             .setValue( "sr", "$3" )
+            .setValue( "scorecol", null )
             .setValue( "copycols", "$4" );
         StarTable result = multicone( env, new int[] { 1, 2, 3, } );
 
