@@ -11012,6 +11012,9 @@ introduced since the last version:
         you do not need to explicitly invoke the 
         <label>Register</label> item afterwards.</li>
     <li>Add <code>-exthub</code> flag.</li>
+    <li>Downgraded from WARNING to INFO log messages about 
+        the (extremely common) VOTable syntax error of omitting 
+        a FIELD/PARAM element's <code>datatype</code> attribute.</li>
     </ul>
     </p></dd>
 
