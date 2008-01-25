@@ -2412,7 +2412,7 @@ name clashes are a possibility.
 </p>
 
 <p>This cleverness is all made possible by the rather wonderful
-<webref url="http://galaxy.fzu.cz/JEL/" plaintextref="yes">JEL</webref>.
+<webref url="http://kinetic.ac.donetsk.ua/JEL/" plaintextref="yes">JEL</webref>.
 </p>
 
 </subsubsect>
@@ -4593,7 +4593,7 @@ and directly from AstroGrid funding beyond that.
 the following external libraries provide important parts of STILTS's
 functionality:
 <ul>
-<li><webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>
+<li><webref url="http://kinetic.ac.donetsk.ua/JEL/">JEL</webref>
     (GNU) for algebraic expression evaluation</li>
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
