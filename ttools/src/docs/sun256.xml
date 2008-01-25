@@ -2612,7 +2612,7 @@ Best to start with a low parallelism and cautiously increase it to
 see whether there are gains in performance.
 </p>
 
-<p>Note that when running, <code>coneskymatch</code> often generates a lot
+<p>Note that when running, <code>coneskymatch</code> can generate a lot
 of WARNING messages.  Most of these are complaining about badly formed
 VOTables being returned from the cone search services.  STILTS does its
 best to work out what the service responses mean in this case, 
@@ -5166,6 +5166,8 @@ but my thanks are especially due to the following:
         <code>tmatch2</code>,
         <code>coneskymatch</code> and
         <code>sqlskymatch</code> commands.</li>
+    <li>New parameter <code>erract</code> added to 
+        <code>coneskymatch</code>.</li>
     </ul>
     </p></dd>
 
