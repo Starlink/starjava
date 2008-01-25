@@ -28,6 +28,7 @@ class CeaParameter {
 
     private String name_;
     private String description_;
+    private String summary_;
     private String type_;
     private String dflt_;
     private boolean isOutput_;
@@ -47,6 +48,7 @@ class CeaParameter {
     public CeaParameter( Parameter taskParam ) {
         name_ = taskParam.getName();
         description_ = taskParam.getDescription();
+        summary_ = taskParam.getPrompt();
         dflt_ = taskParam.getDefault();
         isNullPermitted_ = taskParam.isNullPermitted();
         type_ = "text";
@@ -116,6 +118,15 @@ class CeaParameter {
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Returns a one-line summary of this parameter's purpose.
+     *
+     * @return  summary
+     */
+    public String getSummary() {
+        return summary_;
     }
 
     /**
