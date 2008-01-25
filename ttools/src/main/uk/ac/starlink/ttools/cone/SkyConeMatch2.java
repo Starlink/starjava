@@ -40,7 +40,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final Parameter distcolParam_;
     private final BooleanParameter ostreamParam_;
     private final IntegerParameter parallelParam_;
-    private final ConeErrorActionParameter erractParam_;
+    private final ConeErrorPolicyParameter erractParam_;
     private final JoinFixActionParameter fixcolsParam_;
     private final Parameter insuffixParam_;
     private final Parameter conesuffixParam_;
@@ -183,7 +183,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             paramList.add( parallelParam_ );
         }
 
-        erractParam_ = new ConeErrorActionParameter( "erract" );
+        erractParam_ = new ConeErrorPolicyParameter( "erract" );
         paramList.add( erractParam_ );
 
         ostreamParam_ = new BooleanParameter( "ostream" );
@@ -227,7 +227,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String srString = srParam_.stringValue( env );
         boolean ostream = ostreamParam_.booleanValue( env );
         int parallelism = parallelParam_.intValue( env );
-        ConeErrorAction erract = erractParam_.actionValue( env );
+        ConeErrorPolicy erract = erractParam_.policyValue( env );
         String distanceCol = distcolParam_.stringValue( env );
         boolean bestOnly;
         String mode = modeParam_.stringValue( env );

@@ -17,7 +17,7 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor
  * @since    24 Jan 2007
  */
-public abstract class ConeErrorAction {
+public abstract class ConeErrorPolicy {
 
     private final String name_;
 
@@ -27,8 +27,8 @@ public abstract class ConeErrorAction {
     /**
      * An error during a cone search results in a failure of the task.
      */
-    public static final ConeErrorAction ABORT =
-            new ConeErrorAction( "abort" ) {
+    public static final ConeErrorPolicy ABORT =
+            new ConeErrorPolicy( "abort" ) {
         public ConeSearcher adjustConeSearcher( ConeSearcher base ) {
             return base;
         }
@@ -38,8 +38,8 @@ public abstract class ConeErrorAction {
      * Errors during cone searches are treated as if the search had 
      * returned with no results.
      */
-    public static final ConeErrorAction IGNORE =
-            new ConeErrorAction( "ignore" ) {
+    public static final ConeErrorPolicy IGNORE =
+            new ConeErrorPolicy( "ignore" ) {
         public ConeSearcher adjustConeSearcher( ConeSearcher base ) {
             return new WrapperConeSearcher( base ) {
                 public StarTable performSearch( double ra, double dec,
@@ -62,15 +62,15 @@ public abstract class ConeErrorAction {
      * If an error occurs during a cone search it is retried until a non-error
      * result is obtained.  Use with care.
      */
-    public static final ConeErrorAction RETRY =
-        createRetryAction( "retry", -1 );
+    public static final ConeErrorPolicy RETRY =
+        createRetryPolicy( "retry", -1 );
 
     /**
      * Constructor.
      *
-     * @param  name  error action name
+     * @param  name  policy name
      */
-    protected ConeErrorAction( String name ) {
+    protected ConeErrorPolicy( String name ) {
         name_ = name;
     }
 
@@ -83,7 +83,7 @@ public abstract class ConeErrorAction {
 
     /**
      * Apply this method to a basic cone searcher to obtain a new one 
-     * which uses the error-handling policy defined by this action object.
+     * which uses the error-handling policy defined by this policy object.
      *
      * @param  base  base cone searcher
      * @return  cone searcher based on <code>base</code> with possibly 
@@ -92,17 +92,17 @@ public abstract class ConeErrorAction {
     public abstract ConeSearcher adjustConeSearcher( ConeSearcher base );
 
     /**
-     * Constructs an error action which will retry the search a fixed
+     * Constructs an error policy which will retry the search a fixed
      * number of times.
      *
-     * @param   error action name
+     * @param   name  policy name
      * @param   nTry  maximum number of attempts;
      *                if &lt;=0 will retry indefinitely
-     * @return  new error action
+     * @return  new error policy
      */
-    public static ConeErrorAction createRetryAction( String name,
+    public static ConeErrorPolicy createRetryPolicy( String name,
                                                      final int nTry ) {
-        return new ConeErrorAction( name ) {
+        return new ConeErrorPolicy( name ) {
             public ConeSearcher adjustConeSearcher( ConeSearcher base ) {
                 return new RetryConeSearcher( base, nTry );
             }

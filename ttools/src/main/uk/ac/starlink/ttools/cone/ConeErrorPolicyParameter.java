@@ -6,43 +6,43 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 
 /**
- * Parameter for selecting {@link ConeErrorAction} objects.
+ * Parameter for selecting {@link ConeErrorPolicy} objects.
  *
  * @author   Mark Taylor
  * @since    24 Jan 2008
  */
-public class ConeErrorActionParameter extends Parameter {
+public class ConeErrorPolicyParameter extends Parameter {
 
-    private ConeErrorAction action_;
+    private ConeErrorPolicy policy_;
 
-    private static final ConeErrorAction[] FIXED_ACTIONS =
-        new ConeErrorAction[] {
-            ConeErrorAction.ABORT,
-            ConeErrorAction.IGNORE,
-            ConeErrorAction.RETRY,
+    private static final ConeErrorPolicy[] FIXED_POLICIES =
+        new ConeErrorPolicy[] {
+            ConeErrorPolicy.ABORT,
+            ConeErrorPolicy.IGNORE,
+            ConeErrorPolicy.RETRY,
         };
-    private static final String RETRY_PREFIX = ConeErrorAction.RETRY.toString();
+    private static final String RETRY_PREFIX = ConeErrorPolicy.RETRY.toString();
 
     /**
      * Constructor.
      *
      * @param   name  parameter name
      */
-    public ConeErrorActionParameter( String name ) {
+    public ConeErrorPolicyParameter( String name ) {
         super( name );
         StringBuffer ubuf = new StringBuffer();
-        for ( int i = 0; i < FIXED_ACTIONS.length; i++ ) {
+        for ( int i = 0; i < FIXED_POLICIES.length; i++ ) {
             if ( i > 0 ) {
                 ubuf.append( '|' );
             }
-            ubuf.append( FIXED_ACTIONS[ i ].toString() );
+            ubuf.append( FIXED_POLICIES[ i ].toString() );
         }
         ubuf.append( '|' )
             .append( RETRY_PREFIX )
             .append( "<n>" );
         setUsage( ubuf.toString() );
         setPrompt( "Action on cone search failure" );
-        setDefault( ConeErrorAction.ABORT.toString() );
+        setDefault( ConeErrorPolicy.ABORT.toString() );
         setDescription( new String[] {
             "<p>Determines what will happen if any of the individual cone",
             "search requests fails.  By default the task aborts.",
@@ -52,14 +52,14 @@ public class ConeErrorActionParameter extends Parameter {
             "operation in the face of a few failures.",
             "The options are:",
             "<ul>",
-            "<li><code>" + ConeErrorAction.ABORT.toString() + "</code>:",
+            "<li><code>" + ConeErrorPolicy.ABORT.toString() + "</code>:",
             "failure of any query terminates the task",
             "</li>",
-            "<li><code>" + ConeErrorAction.IGNORE.toString() + "</code>:",
+            "<li><code>" + ConeErrorPolicy.IGNORE.toString() + "</code>:",
             "failure of a query is treated the same as a query which",
             "returns no rows",
             "</li>",
-            "<li><code>" + ConeErrorAction.RETRY.toString() + "</code>:",
+            "<li><code>" + ConeErrorPolicy.RETRY.toString() + "</code>:",
             "failed queries are retried until they succeed;",
             "use with care - if the failure is for some good, or at least",
             "reproducible reason this could prevent the task from ever",
@@ -77,33 +77,33 @@ public class ConeErrorActionParameter extends Parameter {
 
     public void setValueFromString( Environment env, String stringVal )
             throws TaskException {
-        action_ = stringToAction( stringVal );
+        policy_ = stringToPolicy( stringVal );
         super.setValueFromString( env, stringVal );
     }
 
     /**
-     * Returns the value of this parameter as a ConeErrorAction.
+     * Returns the value of this parameter as a ConeErrorPolicy.
      *
      * @param  env  execution environment
-     * @return  action value
+     * @return  error policy value
      */
-    public ConeErrorAction actionValue( Environment env ) throws TaskException {
+    public ConeErrorPolicy policyValue( Environment env ) throws TaskException {
         checkGotValue( env );
-        return action_;
+        return policy_;
     }
 
     /**
-     * Decodes a string representation into a ConeErrorAction object.
+     * Decodes a string representation into a ConeErrorPolicy object.
      *
      * @param  stringVal   string value
-     * @return   action object
+     * @return   policy object
      */
-    private ConeErrorAction stringToAction( String stringVal )
+    private ConeErrorPolicy stringToPolicy( String stringVal )
             throws TaskException {
-        for ( int i = 0; i < FIXED_ACTIONS.length; i++ ) {
-            ConeErrorAction action = FIXED_ACTIONS[ i ];
-            if ( action.toString().equalsIgnoreCase( stringVal ) ) {
-                return action;
+        for ( int i = 0; i < FIXED_POLICIES.length; i++ ) {
+            ConeErrorPolicy policy = FIXED_POLICIES[ i ];
+            if ( policy.toString().equalsIgnoreCase( stringVal ) ) {
+                return policy;
             }
         } 
         if ( stringVal.toLowerCase()
@@ -121,10 +121,10 @@ public class ConeErrorActionParameter extends Parameter {
                 throw new ParameterValueException( this, "\"" + numString
                                                  + "\" not numeric" );
             }
-            return ConeErrorAction.createRetryAction( stringVal, nTry );
+            return ConeErrorPolicy.createRetryPolicy( stringVal, nTry );
         }
 
-        /* No known action. */
+        /* No known policy. */
         throw new ParameterValueException( this, "Unknown error action "
                                                + stringVal );
     }
