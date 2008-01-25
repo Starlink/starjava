@@ -49,8 +49,8 @@ public abstract class ConeErrorPolicy {
                         return base_.performSearch( ra, dec, sr );
                     }
                     catch ( IOException e ) {
-                        logger.warning( searchString( ra, dec, sr )
-                                      + " failed: " + e );
+                        logger.info( searchString( ra, dec, sr )
+                                   + " failed: " + e );
                         return null;
                     }
                 }
@@ -105,6 +105,23 @@ public abstract class ConeErrorPolicy {
         return new ConeErrorPolicy( name ) {
             public ConeSearcher adjustConeSearcher( ConeSearcher base ) {
                 return new RetryConeSearcher( base, nTry );
+            }
+        };
+    }
+
+    /**
+     * Returns a new policy which behaves like a base one, but provides
+     * a supplied message in the IOException which is thrown if the
+     * search fails.
+     *
+     * @param  policy  base policy
+     * @param  advice  message of exception on failure
+     */
+    public static ConeErrorPolicy addAdvice( ConeErrorPolicy policy,
+                                             final String advice ) {
+        return new ConeErrorPolicy( policy.toString() ) {
+            public ConeSearcher adjustConeSearcher( ConeSearcher base ) {
+                return new AdviceConeSearcher( base, advice );
             }
         };
     }
@@ -189,13 +206,43 @@ public abstract class ConeErrorPolicy {
                     if ( nTry_ > 0 ) {
                         count += "/" + nTry_;
                     }
-                    logger.warning( searchString( ra, dec, sr ) + " attempt " 
-                                  + count + " failed" );
+                    logger.info( searchString( ra, dec, sr ) + " attempt " 
+                               + count + " failed" );
                     lastError = e;
                 }
             }
             throw (IOException) new IOException( nTry_ + " attempts failed " )
                                .initCause( lastError );
+        }
+    }
+
+    /**
+     * ConeSearcher implementation which behaves like a base one, but provides
+     * a supplied message in the IOException which is thrown if the
+     * search fails.
+     */
+    private static class AdviceConeSearcher extends WrapperConeSearcher {
+        private final String advice_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base cone searcher
+         * @param  advice  message of exception on failure
+         */
+        AdviceConeSearcher( ConeSearcher base, String advice ) {
+            super( base );
+            advice_ = advice;
+        }
+
+        public StarTable performSearch( double ra, double dec, double sr )
+                throws IOException {
+            try {
+                return base_.performSearch( ra, dec, sr );
+            }
+            catch ( IOException e ) {
+                throw (IOException) new IOException( advice_ ).initCause( e );
+            }
         }
     }
 }
