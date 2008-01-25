@@ -82,7 +82,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>6 December 2007</docdate>
+<docdate>25 January 2008</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -104,12 +104,12 @@ It has been designed for, but is not restricted to, use on astronomical
 data such as source catalogues.  
 It contains both generic (format-independent) table processing tools and 
 tools for processing VOTable documents.  Facilities offered include
+crossmatching,
 format conversion, 
 format validation, 
 column calculation and rearrangement, 
 row selection,
 sorting,
-crossmatching,
 statistical calculations
 and metadata display.
 Calculations on cell data can be performed using a powerful and 
@@ -159,18 +159,7 @@ table manipulation:
 <li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
     &tpipe-purpose;
     </li>
-<li><ref id="tmatch1" plaintextref="yes"><code>tmatch1</code></ref>:
-    &tmatch1-purpose;
-    </li>
-<li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
-    &tmatch2-purpose;
-    </li>
-<li><ref id="tmatchn" plaintextref="yes"><code>tmatchn</code></ref>:
-    &tmatchn-purpose;
-    </li>
-<li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
-    &tskymatch2-purpose;
-    </li>
+
 <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
     &tcat-purpose;
     </li>
@@ -182,6 +171,21 @@ table manipulation:
     </li>
 <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
     &tcube-purpose;
+    </li>
+</ul>
+the following commands for crossmatching between local tables:
+<ul>
+<li><ref id="tmatch1" plaintextref="yes"><code>tmatch1</code></ref>:
+    &tmatch1-purpose;
+    </li>
+<li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
+    &tmatch2-purpose;
+    </li>
+<li><ref id="tmatchn" plaintextref="yes"><code>tmatchn</code></ref>:
+    &tmatchn-purpose;
+    </li>
+<li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
+    &tskymatch2-purpose;
     </li>
 </ul>
 the following commands specifically for operating on VOTable files:
@@ -5142,41 +5146,65 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 1.4-1 (25 January 2008)</dt>
 <dd><p>
-    <ul>
-    <li>New command <ref id="sqlclient"><code>sqlclient</code></ref>.</li>
-    <li>New command <ref id="sqlupdate"><code>sqlupdate</code></ref>.</li>
-    <li>Some changes to <ref id="mode-tosql"><code>tosql</code></ref> 
-        output mode:
+    <dl>
+    <dt>New RDBMS-related features</dt>
+    <dd><p>
         <ul>
-        <li>choice of options for how to write to the database output table, 
-            controlled by new associated parameter <code>write</code>
-            (can be <code>create</code>, <code>dropcreate</code> 
-                 or <code>append</code>)</li>
-        <li>associated parameter <code>newtable</code> renamed
-            <code>dbtable</code></li>
-        <li>associated parameter <code>database</code> renamed
-            <code>db</code> for consistency with other commands</li>
+        <li>New command <ref id="sqlclient"><code>sqlclient</code></ref>,
+            which is a general JDBC-based SQL command-line client.</li>
+        <li>New command <ref id="sqlupdate"><code>sqlupdate</code></ref>,
+            which allows updates to existing rows in SQL tables.</li>
+        <li>Some changes to <ref id="mode-tosql"><code>tosql</code></ref> 
+            output mode:
+            <ul>
+            <li>choice of options for how to write to the database output table,
+                controlled by new associated parameter <code>write</code>
+                (can be <code>create</code>, <code>dropcreate</code> 
+                     or <code>append</code>)</li>
+            <li>associated parameter <code>newtable</code> renamed
+                <code>dbtable</code></li>
+            <li>associated parameter <code>database</code> renamed
+                <code>db</code> for consistency with other commands</li>
+            </ul>
+            </li>
         </ul>
-        </li>
-    <li>Improved error reporting.</li>
-    <li>Added (undocumented) <code>+verbose</code> flag.</li>
-    <li>Added <code>parallel</code> parameter to 
-        <ref id="coneskymatch"><code>coneskymatch</code></ref> task.</li>
-    <li>Minor improvement to CEA app-description.</li>
-    <li>Downgraded from WARNING to INFO log messages about 
-        the (extremely common) VOTable syntax error of omitting 
-        a FIELD/PARAM element's <code>datatype</code> attribute.</li>
-    <li>New parameter <code>scorecol</code> added to
-        <code>tmatch2</code>,
-        <code>coneskymatch</code> and
-        <code>sqlskymatch</code> commands.</li>
-    <li>New parameter <code>erract</code> added to 
-        <code>coneskymatch</code>.</li>
-    <li>Add new help option <code>help='*'</code> which prints help for
-        all parameters of a task at once.</li>
-    </ul>
+        </p></dd>
+    <dt>Local and service-based matching command enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>New parameter <code>scorecol</code> added to
+            <code>tmatch2</code>,
+            <code>coneskymatch</code> and
+            <code>sqlskymatch</code> commands,
+            which controls adding a new column to match output tables 
+            containing a goodness-of-match value.</li>
+        <li>New parameter <code>parallel</code> added to 
+            <ref id="coneskymatch"><code>coneskymatch</code></ref> task
+            which allows multiple cone searches to be carried out in 
+            parallel.</li>
+        <li>New parameter <code>erract</code> added to 
+            <code>coneskymatch</code> which controls response to 
+            isolated failures in individual cone search queries.</li>
+        </ul>
+        </p></dd>
+    <dt>General improvements</dt>
+    <dd><p>
+        <ul>
+        <li>Improved error reporting (reasons for errors are now reported
+            even without the <code>-debug</code> flag).</li>
+        <li>Add new help option <code>help='*'</code> which prints help for
+            all parameters of a task at once.</li>
+        <li>Added (mostly undocumented) <code>+verbose</code> flag 
+            for reducing verbosity level.</li>
+        <li>Minor improvements to CEA app-description.</li>
+        <li>Downgraded from WARNING to INFO log messages about 
+            the (extremely common) VOTable syntax error of omitting 
+            a FIELD/PARAM element's <code>datatype</code> attribute.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
