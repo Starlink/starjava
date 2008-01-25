@@ -30,6 +30,7 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.soap.TopcatSOAPServer;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -240,7 +241,8 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-version] [-verbose] [-demo] [-disk]\n"
+              pre + " [-help] [-version] [-stilts <stilts-args>]\n"
+            + pad + " [-verbose] [-demo] [-disk]\n"
             + pad + " [-hub] [-exthub] [-[no]plastic] [-[no]soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
                   + " [-registry] [-siap]\n"
@@ -258,6 +260,7 @@ public class Driver {
         boolean plasticServe = true;
         boolean internalHub = false;
         boolean externalHub = false;
+        boolean stiltsMode = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -274,6 +277,11 @@ public class Driver {
                     System.out.println( "    " + about[ i ] );
                 }
                 System.out.println();
+                return;
+            }
+            else if ( arg.equals( "-stilts" ) ) {
+                it.remove();
+                Stilts.main( (String[]) argList.toArray( new String[ 0 ] ) );
                 return;
             }
             else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
@@ -657,19 +665,21 @@ public class Driver {
 
         /* General flags. */
         buf.append( p1 + "General flags:" )
-           .append( p2 + "-help        print this message and exit" )
-           .append( p2 + "-version     print component versions etc and exit" )
-           .append( p2 + "-verbose     increase verbosity of "
-                                       + "reports to console" )
-           .append( p2 + "-demo        start with demo data" )
-           .append( p2 + "-disk        use disk backing store for "
-                                       + "large tables" ) 
-           .append( p2 + "-hub         run internal PLASTIC hub" )
-           .append( p2 + "-exthub      run external PLASTIC hub" )
-           .append( p2 + "-[no]plastic do [not] connect to running " 
-                                       + "PLASTIC hub" )
-           .append( p2 + "-[no]soap    do [not] start SOAP services" )
-           .append( p2 + "-noserv      don't run any services" );
+           .append( p2 + "-help          print this message and exit" )
+           .append( p2 + "-version       print component versions etc "
+                                         + "and exit" )
+           .append( p2 + "-verbose       increase verbosity of "
+                                         + "reports to console" )
+           .append( p2 + "-demo          start with demo data" )
+           .append( p2 + "-disk          use disk backing store for "
+                                         + "large tables" ) 
+           .append( p2 + "-hub           run internal PLASTIC hub" )
+           .append( p2 + "-exthub        run external PLASTIC hub" )
+           .append( p2 + "-[no]plastic   do [not] connect to running " 
+                                         + "PLASTIC hub" )
+           .append( p2 + "-[no]soap      do [not] start SOAP services" )
+           .append( p2 + "-noserv        don't run any services" );
+           .append( p2 + "-stilts <args> run STILTS not TOPCAT" )
 
         /* Load dialogues. */
         buf.append( p1 + "Optional load dialogue flags:" )
