@@ -407,7 +407,7 @@ public class LineInvoker {
             else if ( arg.length() > 2 && arg.endsWith( "=?" ) ) {
                 helpFor = arg.substring( 0, arg.length() - 2 );
             }
-            if ( helpFor.equals( "*" ) ) {
+            if ( "*".equals( helpFor ) ) {
                 Parameter [] params = task.getParameters();
                 StringBuffer sbuf = new StringBuffer();
                 for ( int j = 0; j < params.length; j++ ) {
