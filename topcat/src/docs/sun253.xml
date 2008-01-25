@@ -3111,6 +3111,19 @@ The meaning of the flags is as follows:
     which it may run are SOAP and PLASTIC (see above).
     </p></dd>
 
+<dt>-stilts &lt;stilts-args&gt;</dt>
+<dd><p>This flag is a convenience which allows you to run the
+    <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>
+    command-line tool instead of TOPCAT.  This is possible
+    because TOPCAT is built on top of STILTS and contains a superset
+    of its code. 
+    See the STILTS
+    <webref url="http://www.starlink.ac.uk/stilts/sun256/invoke.html"
+            >manual</webref>
+    (or <code>topcat -stilts -help</code>)
+    for the form of the <code>&lt;stilts-args&gt;</code>.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -11015,6 +11028,7 @@ introduced since the last version:
     <li>Downgraded from WARNING to INFO log messages about 
         the (extremely common) VOTable syntax error of omitting 
         a FIELD/PARAM element's <code>datatype</code> attribute.</li>
+    <li>Added <code>-stilts</code> convenience flag.</li>
     </ul>
     </p></dd>
 

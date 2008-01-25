@@ -665,6 +665,16 @@ The example above in this case would look something like:
 </verbatim>
 </p>
 
+<p>Finally, as a convenience, it is possible to run STILTS from a
+<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref> 
+installation by using its <code>-stilts</code> flag, like this:
+<verbatim><![CDATA[
+   topcat <java-flags> -stilts <stilts-flags> <task-name> <task-args>
+]]></verbatim>
+This is possible because TOPCAT is built on top of STILTS, so contains
+a superset of its code.
+</p>
+
 <p>The 
 <code>&lt;stilts-flags&gt;</code>,
 <code>&lt;task-name&gt;</code> and
