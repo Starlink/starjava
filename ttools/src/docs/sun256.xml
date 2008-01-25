@@ -548,6 +548,12 @@ by writing <code>help=&lt;param-name&gt;</code>, like this:
 </verbatim>
 gives
 <verbatim>&tcopy-in-usage;</verbatim>
+If you use "<code>*</code>" instead of a parameter name in this usage, 
+help for all the parameters will be printed.  Note that in most shells
+you will probably need to quote the asterisk, so you should write
+<verbatim>
+   stilts tcopy help='*'
+</verbatim>
 </p>
 
 <p>In some cases, as described in <ref id="task-args"/>, you will
@@ -5168,6 +5174,8 @@ but my thanks are especially due to the following:
         <code>sqlskymatch</code> commands.</li>
     <li>New parameter <code>erract</code> added to 
         <code>coneskymatch</code>.</li>
+    <li>Add new help option <code>help='*'</code> which prints help for
+        all parameters of a task at once.</li>
     </ul>
     </p></dd>
 
