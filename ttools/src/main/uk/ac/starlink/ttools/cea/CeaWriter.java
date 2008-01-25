@@ -217,7 +217,9 @@ public abstract class CeaWriter extends XmlWriter {
                                                 param.getName() ) );
             }
             startElement( paramDecl, attBuf.toString() );
-            addElement( "UI_Name", "", param.getName() );
+            addElement( "UI_Name", "",
+                        xmlToCdata( param.getName() + " - "
+                                  + param.getSummary() ) );
 
             /* Note that although the CEA v1 schema documentation gives
              * UI_Description content as type "agpd:xhtmlDocumentation",
