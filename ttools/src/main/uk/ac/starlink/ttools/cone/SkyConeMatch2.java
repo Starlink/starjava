@@ -228,6 +228,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         boolean ostream = ostreamParam_.booleanValue( env );
         int parallelism = parallelParam_.intValue( env );
         ConeErrorPolicy erract = erractParam_.policyValue( env );
+        if ( erract == ConeErrorPolicy.ABORT ) {
+            String advice = "Cone search failed - try other values of "
+                          + erractParam_.getName() + " parameter?";
+            erract = ConeErrorPolicy.addAdvice( erract, advice );
+        }
         String distanceCol = distcolParam_.stringValue( env );
         boolean bestOnly;
         String mode = modeParam_.stringValue( env );
