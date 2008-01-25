@@ -678,8 +678,8 @@ public class Driver {
            .append( p2 + "-[no]plastic   do [not] connect to running " 
                                          + "PLASTIC hub" )
            .append( p2 + "-[no]soap      do [not] start SOAP services" )
-           .append( p2 + "-noserv        don't run any services" );
-           .append( p2 + "-stilts <args> run STILTS not TOPCAT" )
+           .append( p2 + "-noserv        don't run any services" )
+           .append( p2 + "-stilts <args> run STILTS not TOPCAT" );
 
         /* Load dialogues. */
         buf.append( p1 + "Optional load dialogue flags:" )
