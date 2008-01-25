@@ -407,7 +407,16 @@ public class LineInvoker {
             else if ( arg.length() > 2 && arg.endsWith( "=?" ) ) {
                 helpFor = arg.substring( 0, arg.length() - 2 );
             }
-            if ( helpFor != null ) {
+            if ( helpFor.equals( "*" ) ) {
+                Parameter [] params = task.getParameters();
+                StringBuffer sbuf = new StringBuffer();
+                for ( int j = 0; j < params.length; j++ ) {
+                    sbuf.append( getParamHelp( env, taskName, params[ j ] ) );
+                    sbuf.append( '\n' );
+                }
+                return sbuf.toString();
+            }
+            else if ( helpFor != null ) {
                 Parameter[] params = task.getParameters();
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
@@ -510,7 +519,7 @@ public class LineInvoker {
 
         sbuf.append( pad1 )
             .append( toolName_ )
-            .append( " <task-name> help[=<param-name>]" )
+            .append( " <task-name> help[=<param-name>|*]" )
             .append( '\n' )
             .append( '\n' );
 
