@@ -153,6 +153,26 @@ public class ConeSearchConer implements Coner {
                     }
                 }
             }
+
+            /* No UCD1-style RA, as mandated in the standard. */
+            logger.warning( "No POS_EQ_RA_MAIN column"
+                          + " (service violates SCS 1.02 standard)"
+                          + " - clutching at straws" );
+            for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
+                ColumnInfo info = result.getColumnInfo( icol );
+                if ( Number.class.isAssignableFrom( info.getContentClass() ) ) {
+                    String ucd = info.getUCD();
+                    String name = info.getName();
+                    if ( ucd != null && ucd.startsWith( "pos.eq.ra" ) ) {
+                        return icol;
+                    }
+                    else if ( name != null &&
+                              ( name.equalsIgnoreCase( "ra" ) ||
+                                name.equalsIgnoreCase( "ra2000" ) ) ) {
+                        return icol;
+                    }
+                }
+            }
             return -1;
         }
 
@@ -166,6 +186,26 @@ public class ConeSearchConer implements Coner {
                     }
                     else {
                         logger.warning( "Non-numeric POS_EQ_DEC_MAIN column" );
+                    }
+                }
+            }
+
+            /* No UCD1-style Dec, as mandated in the standard. */
+            logger.warning( "No POS_EQ_DEC_MAIN column"
+                          + " (service violates SCS 1.02 standard)"
+                          + " - clutching at straws" );
+            for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
+                ColumnInfo info = result.getColumnInfo( icol );
+                if ( Number.class.isAssignableFrom( info.getContentClass() ) ) {
+                    String ucd = info.getUCD();
+                    String name = info.getName();
+                    if ( ucd != null && ucd.startsWith( "pos.eq.dec" ) ) {
+                        return icol;
+                    }
+                    else if ( name != null &&
+                              ( name.equalsIgnoreCase( "dec" ) ||
+                                name.equalsIgnoreCase( "dec2000" ) ) ) {
+                        return icol;
                     }
                 }
             }
