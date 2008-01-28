@@ -61,7 +61,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             /* Block until the next result in sequence is ready, 
              * or we know that no more will be forthcoming. */
             try {
-                while ( ( resultPool_.size() == 0 ||
+                while ( ( ( resultPool_.size() == 0 ) ||
                           ((Result) resultPool_.first()).index_
                                                 != nextIndex_ ) &&
                         ! workersFinished() ) {
@@ -71,6 +71,13 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             catch ( InterruptedException e ) {
                 throw (IOException)
                       new IOException( "Interrupted" ).initCause( e );
+            }
+
+            /* If there is an error, throw it. */
+            if ( error_ != null ) {
+                throw (IOException)
+                      new IOException( "Rethrowing error from read thread" )
+                     .initCause( error_ );
             }
 
             /* If we have a result, note it as the current one for purposes
@@ -138,7 +145,9 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     private Result getCurrentResult() throws IOException {
         if ( error_ != null ) {
-            throw error_;
+            throw (IOException)
+                  new IOException( "Rethrowing error from read thread" )
+                 .initCause( error_ );
         }
         else if ( currentResult_ == null ) {
             String msg = "No current row";
@@ -358,7 +367,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         }
 
         /**
-         * Notify that an error has occurred.  This erro is passed 
+         * Notify that an error has occurred.  This error is passed 
          * to the container object where it can be picked up and 
          * re-thrown later as appropriate.
          *
