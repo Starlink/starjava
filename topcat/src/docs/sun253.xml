@@ -9035,7 +9035,12 @@ in the control window will indicate the action you have configured.
     compressed using gzip, Unix compress, or bzip2 format.
     Select the column which contains the location, and activating a 
     row will pop up an image viewer to display it.
-    See <ref id="imageViewers"/> for more information about image viewers.
+    The <label>Image Viewer</label> selector allows you to choose one 
+    of the options in <ref id="imageViewers"/> or, if you are registered
+    with a PLASTIC hub, any PLASTIC image viewer which is also registered -
+    see <ref id="interop"/>.
+    Unfortunately you cannot currently select image or spectrum viewers
+    for the other options in this window at present.
     </p></dd>
 
 <dt>View URL as Spectrum</dt>
@@ -11015,20 +11020,24 @@ introduced since the last version:
         <ref id="SQLWriteDialog">SQL Output Dialogue</ref>, to allow
         appending and optional drop prior to create of new table in 
         database.</li>
-    <li>Activation window permits selection of different image viewers.</li>
     <li>System properties specified explicitly on command line now take
         precendence over those in <code>.starjava.properties</code> file.</li>
     <li>Now TOPCAT will automatically register with a PLASTIC hub any time
         one becomes available - the hub does not have to be running
         when TOPCAT starts.  As a corrollary, if you start an internal or
         external hub from the <label>Interop</label> menu, 
-        you do not need to explicitly invoke the 
+        you no longer need to explicitly invoke the 
         <label>Register</label> item afterwards.</li>
     <li>Add <code>-exthub</code> flag.</li>
     <li>Downgraded from WARNING to INFO log messages about 
         the (extremely common) VOTable syntax error of omitting 
         a FIELD/PARAM element's <code>datatype</code> attribute.</li>
     <li>Added <code>-stilts</code> convenience flag.</li>
+    <li>Activation window permits selection of different image viewers
+        for <label>View URL as Image</label> option.
+        Note this is not currently provided for the 
+        <label>Display Cutout Image</label> option - this may be
+        addressed in the future.</li>
     </ul>
     </p></dd>
 
