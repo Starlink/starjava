@@ -82,7 +82,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>25 January 2008</docdate>
+<docdate>28 January 2008</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -5156,7 +5156,7 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Version 1.4-1 (25 January 2008)</dt>
+<dt>Version 1.4-1 (28 January 2008)</dt>
 <dd><p>
     <dl>
     <dt>New RDBMS-related features</dt>
