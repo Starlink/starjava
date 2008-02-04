@@ -207,6 +207,9 @@
 #        Adapted for TREEVIEW.
 #     25-OCT-2006 (BC):
 #        Added support for Mac OS X on i386.
+#     04-FEB-2008 (PWD):
+#        Merge support for MacOSX_ppc and MacOSX_i386. Cannot invoke
+#        these targets independently (requires JAVA_SYSTEM to be defined).
 #     {enter_further_changes_here}
 #
 #  Bugs:
@@ -293,9 +296,9 @@
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
-#  Intel PC running Mac OS X.
-#  -------------------------
-            i386_MacOSX)
+#  Mac OS X ppc and i386.
+#  ----------------------
+            MacOSX)
                AR_IN='ar r'
                BLD_SHR='f() { gcc -dynamiclib -single_module -flat_namespace -undefined suppress -o $$1 $$2 ;}; f'
                CC='gcc'
@@ -307,28 +310,6 @@
                SHARE='.jnilib'
                TAR_IN='tar -cvhf'
                TAR_OUT='tar -xf'
-               JAVA_SYSTEM='ppc'
-               JAVA_INCLUDE='$(JDK)/Headers'
-               echo "mk: Environment variables defined for $SYSTEM system"
-               ;;
-
-#  PPC systems:
-#  ===========
-#  PowerPC running Mac OS X.
-#  ------------------------
-            ppc_MacOSX)
-               AR_IN='ar r'
-               BLD_SHR='f() { gcc -dynamiclib -single_module -flat_namespace -undefined suppress -o $$1 $$2 ;}; f'
-               CC='gcc'
-               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g'
-               FC='g77'
-               FFLAGS='-fno-second-underscore -O'
-               LINK='ln -s'
-               RANLIB='ranlib'
-               SHARE='.jnilib'
-               TAR_IN='tar -cvhf'
-               TAR_OUT='tar -xf'
-               JAVA_SYSTEM='ppc'
                JAVA_INCLUDE='$(JDK)/Headers'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;

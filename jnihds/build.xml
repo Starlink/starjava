@@ -519,8 +519,8 @@
 
      <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
            failonerror="yes">
-       <env key="SYSTEM" value="ppc_MacOSX"/>
-       <env key="JAVA_SYSTEM" value="ppc"/>
+       <env key="SYSTEM" value="MacOSX"/>
+       <env key="JAVA_SYSTEM" value="${os.arch}"/>
        <env key="STARLINK" value="${stardev}"/>
        <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
        <env key="ADDINCS" value="-I${stardev.add}/include"/>
