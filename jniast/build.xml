@@ -783,7 +783,7 @@
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="SunOS"
           failonerror="yes">
       <env key="SYSTEM" value="sun4_Solaris"/>
-      <env key="JAVA_SYSTEM" value="solaris"/>
+      <env key="JAVA_SYSTEM" value="${os.arch}"/>
       <env key="STARLINK" value="${stardev}"/>
       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
@@ -794,22 +794,9 @@
     </exec>
 
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
-          failonerror="yes" arch="ppc" >
-      <env key="SYSTEM" value="ppc_MacOSX"/>
-      <env key="JAVA_SYSTEM" value="ppc"/>
-      <env key="STARLINK" value="${stardev}"/>
-      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
-      <env key="ADDINCS" value="-I${stardev.add}/include"/>
-      <env key="JDK" value="${jdk}"/>
-      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${build.lib.arch}"/>
-      <arg line="${mk.action}"/>
-    </exec>
-
-    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
-          failonerror="yes" arch="i386" >
-      <env key="SYSTEM" value="i386_MacOSX"/>
-      <env key="JAVA_SYSTEM" value="i386"/>
+          failonerror="yes" >
+      <env key="SYSTEM" value="MacOSX"/>
+      <env key="JAVA_SYSTEM" value="${os.arch}"/>
       <env key="STARLINK" value="${stardev}"/>
       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
