@@ -25,6 +25,10 @@ public class LoaderTest extends TestCase {
                                                TestCase.class ).getClass() );
     }
 
+    public void testCheckJ2se() throws ClassNotFoundException {
+        Loader.checkJ2se();
+    }
+
     public void testGetClassInstances() {
         System.setProperty( "util.loader.classes",
                             "java.util.HashMap:java.util.WeakHashMap" );
