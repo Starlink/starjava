@@ -170,36 +170,18 @@ public class Driver {
      */
     public static void main( String[] args ) {
         try {
-            runMain( args );
+            Loader.checkJ2se();
         }
-        catch ( NoClassDefFoundError e ) {
+        catch ( ClassNotFoundException e ) {
             for ( int i = 0; i < args.length; i++ ) {
                 if ( args[ i ].toLowerCase().startsWith( "-debug" ) ) {
                     e.printStackTrace( System.err );
                 }
             }
-            try {
-                String msg = new StringBuffer()
-                    .append( "\n" )
-                    .append( "The runtime Java Runtime Environment (JRE) " )
-                    .append( "is missing some compile-time classes.\n" )
-                    .append( "The most likely reason is that you are " )
-                    .append( "using an incomplete java such as GNU gcj.\n" )
-                    .append( "The JVM you are using is " )
-                    .append( System.getProperty( "java.vm.name",
-                                                 "unknown" ) )
-                    .append( " version " )
-                    .append( System.getProperty( "java.vm.version", "?" ) )
-                    .append( ".\n" )
-                    .append( "The recommended JRE is Sun's J2SE " )
-                    .append( "version 1.4 or greater.\n" )
-                    .toString();
-                System.err.println( msg );
-            }
-            catch ( Throwable e1 ) {
-                e1.printStackTrace( System.err );
-            }
+            System.err.println( e.getMessage() );
+            return;
         }
+        runMain( args );
     }
 
     /**
