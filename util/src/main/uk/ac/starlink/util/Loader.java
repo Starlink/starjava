@@ -435,6 +435,41 @@ public class Loader {
     }
 
     /**
+     * Checks that the JRE contains classes that you'd expect it to.
+     * This is chiefly useful for bailing out if we find ourself running
+     * in Gnu GCJ, which at time of writing is hopelessly incomplete.
+     * In the case that J2SE classes are missing, an exception will be
+     * thrown.  The text of this exception will be a user-friendly message
+     * about what has gone wrong.
+     *
+     * @throws  ClassNotFoundException in case of a defective JRE
+     */
+    public static void checkJ2se() throws ClassNotFoundException {
+        try {
+            Class.forName( "java.util.LinkedHashMap" );
+            Class.forName( "org.w3c.dom.Node" );
+            Class.forName( "javax.swing.table.DefaultTableModel" );
+        }
+        catch ( ClassNotFoundException e ) {
+            String msg = new StringBuffer()
+                .append( "\n" )
+                .append( "The runtime Java Runtime Environment (JRE) " )
+                .append( "is missing some compile-time classes.\n" )
+                .append( "The most likely reason is that you are " )
+                .append( "using an incomplete java such as GNU gcj.\n" )
+                .append( "The JVM you are using is " )
+                .append( System.getProperty( "java.vm.name", "unknown" ) )
+                .append( " version " )
+                .append( System.getProperty( "java.vm.version", "?" ) )
+                .append( ".\n" )
+                .append( "The recommended JRE is Sun's J2SE " )
+                .append( "version 1.4 or greater.\n" )
+                .toString();
+             throw new ClassNotFoundException( msg, e );
+        }
+    }
+
+    /**
      * Register a warning.  Log it through the logger, unless we've said
      * the same thing already.
      * 
