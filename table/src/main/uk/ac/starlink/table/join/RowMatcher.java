@@ -560,8 +560,8 @@ public class RowMatcher {
          * we have already seen.  There is no point adding entries from the
          * second table into bins which do not appear in the first one. */
         BinContents bins = new BinContents( indicator );
-        binRows( index1, range, bins, true );
-        binRows( index2, range, bins, false );
+        binRows( indexA, range, bins, true );
+        binRows( indexB, range, bins, false );
 
         /* Return the result. */
         LinkSet links = createLinkSet();
