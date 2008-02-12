@@ -5217,6 +5217,14 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
+    <dt>Next version</dt>
+    <dd><p>
+        <ul>
+        <li>Fix pair matching performance bug (slower if tables were not 
+            given in the right order) introduced at v1.4.</li>
+        </ul>
+        </p></dd>
+
 </dl>
 </p>
 </subsect>
