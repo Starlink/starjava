@@ -57,7 +57,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
                                                Parameter suffixParam )
                     throws TaskException {
                 String suffix = suffixParam.stringValue( env );
-                return suffix == null | suffix.trim().length() == 0
+                return suffix == null || suffix.trim().length() == 0
                      ? JoinFixAction.NO_ACTION
                      : JoinFixAction.makeRenameAllAction( suffix );
             }
