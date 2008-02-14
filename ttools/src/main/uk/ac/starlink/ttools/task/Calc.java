@@ -121,7 +121,7 @@ public class Calc implements Task {
             private Object evaluate() throws TaskException {
                 Object result;
                 try {
-                    return compEx.evaluate( new Object[] { rdr } );
+                    return rdr.evaluate( compEx );
                 }
                 catch ( NullPointerException e ) {
                     return null;
