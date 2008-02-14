@@ -5222,6 +5222,7 @@ but my thanks are especially due to the following:
         <ul>
         <li>Fix pair matching performance bug (slower if tables were not 
             given in the right order) introduced at v1.4.</li>
+        <li>Fixed null handling error in <code>calc</code> task.</li>
         </ul>
         </p></dd>
 
