@@ -5225,6 +5225,10 @@ but my thanks are especially due to the following:
         <li>Fixed null handling error in <code>calc</code> task.</li>
         <li>Fixed error in <code>stats</code> filter cardinality value 
             calculation.</li>
+        <li>Fixed minor bugs in suffix addition for matching commands
+            <code>fixcols</code>.</li>
+        <li>Removed unformatted XML output in <code>stats</code> filter
+            usage message.</li>
         </ul>
         </p></dd>
 
