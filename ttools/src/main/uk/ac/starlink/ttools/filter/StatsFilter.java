@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -21,6 +22,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.DocUtils;
+import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.util.MapGroup;
 
 /**
@@ -189,10 +191,22 @@ public class StatsFilter extends BasicFilter {
                     infoList.add( new QuantileInfo( quant ) );
                 }
                 else {
-                    throw new ArgException( "Unknown quantity " + name + "; " 
-                        + "must be one of " 
-                        + DocUtils.listInfos( ALL_KNOWN_INFOS )
-                        + ", or Q.nn" );
+                    StringBuffer msg = new StringBuffer()
+                       .append( "Unknown quantity " )
+                       .append( name );
+                    try {
+                        String opts =
+                            new Formatter()
+                           .formatXML( DocUtils.listInfos( ALL_KNOWN_INFOS ),
+                                       6 );
+                        msg.append( " must be one of: " )
+                           .append( opts )
+                           .append( "or Q.nn" );
+                    }
+                    catch ( SAXException e ) {
+                        assert false;
+                    }
+                    throw new ArgException( msg.toString() );
                 }
             }
             colInfos = (ValueInfo[]) infoList.toArray( new ValueInfo[ 0 ] );
