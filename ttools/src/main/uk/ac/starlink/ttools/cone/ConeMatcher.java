@@ -172,7 +172,9 @@ public class ConeMatcher implements TableProducer {
         RowPipe rowPipe = new OnceRowPipe();
         Thread coneWorker =
             new ConeWorker( rowPipe, inTable, resultSeq, iCopyCols, 
-                            inFixAct_, coneFixAct_ );
+                            ( distanceCol_ != null &&
+                              distanceCol_.trim().length() > 0 ) ? 1 : 0,
+                            inFixAct_, coneFixAct_, JoinFixAction.NO_ACTION );
         coneWorker.setDaemon( true );
         coneWorker.start();
         StarTable streamTable = rowPipe.waitForStarTable();
@@ -382,8 +384,10 @@ public class ConeMatcher implements TableProducer {
         private final StarTable inTable_;
         private final ConeResultRowSequence resultSeq_;
         private final int[] iCopyCols_;
+        private final int extraCols_;
         private final JoinFixAction inFixAct_;
         private final JoinFixAction coneFixAct_;
+        private final JoinFixAction extrasFixAct_;
 
         /**
          * Constructor.
@@ -394,20 +398,28 @@ public class ConeMatcher implements TableProducer {
          *                     the start of the data
          * @param   iCopyCols  indices of columns from the input table to
          *                     be copied to the output table
+         * @param   extraCols  number of columns at the end of the column list
+         *                     which correspond to neither the input nor the
+         *                     searched tables
          * @param   inFixAct   column name deduplication action for input table
          * @param   coneFixAct column name deduplication action for result
          *                     of cone searches
+         * @param   extrasFixAct  column name deduplication action for 
+         *                        extra columns
          */
         ConeWorker( RowPipe rowPipe, StarTable inTable,
                     ConeResultRowSequence resultSeq, int[] iCopyCols,
-                    JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
+                    int extraCols, JoinFixAction inFixAct,
+                    JoinFixAction coneFixAct, JoinFixAction extrasFixAct ) {
             super( "Cone searcher" );
             rowPipe_ = rowPipe;
             inTable_ = inTable;
             resultSeq_ = resultSeq;
             iCopyCols_ = iCopyCols;
+            extraCols_ = extraCols;
             inFixAct_ = inFixAct;
             coneFixAct_ = coneFixAct;
+            extrasFixAct_ = extrasFixAct;
         }
 
         public void run() {
@@ -556,8 +568,16 @@ public class ConeMatcher implements TableProducer {
                 colNames.add( infos[ icol ].getName() );
             }
             for ( int icol = 0; icol < infos.length; icol++ ) {
-                JoinFixAction fixAct = icol < iCopyCols_.length ? inFixAct_
-                                                                : coneFixAct_;
+                JoinFixAction fixAct;
+                if ( icol < iCopyCols_.length ) {
+                    fixAct = inFixAct_;
+                }
+                else if ( icol < infos.length - extraCols_ ) {
+                    fixAct = coneFixAct_;
+                }
+                else {
+                    fixAct = extrasFixAct_;
+                }
                 String name = infos[ icol ].getName();
                 assert name.equals( colNames.get( icol ) );
                 colNames.set( icol, null );
