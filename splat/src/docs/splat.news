@@ -1,5 +1,14 @@
 1 Starlink SPLAT news.
 
+   3.8-6
+   =====
+
+   A new command-line option --debuglevel to control the messages output on
+   the terminal has been introduced. By default fewer messages will now
+   be seen (especially from the browser window), more can be seen by 
+   setting a level greater than zero, but that should only be required when
+   helping to diagnose a problem.
+
    3.8-5
    =====
 

@@ -65,6 +65,7 @@ public class SplatBrowserMain
              " [{-c,--clear}]" +
              " [{-k,--keepcoords}]" +
              " [{--hub,--exthub}]" +
+             " [{--debuglevel} level]" +
              " [spectra1 spectra2 ...]"
             );
     }
@@ -83,6 +84,7 @@ public class SplatBrowserMain
         Boolean clearPrefs = Boolean.FALSE;
         Boolean keepCoords = null;
         Boolean ignoreErrors = Boolean.FALSE;
+        Integer debugLevel = null;
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
 
             //  Parse the command-line.
@@ -104,6 +106,8 @@ public class SplatBrowserMain
                 parser.addBooleanOption( '\0', "hub" );
             CmdLineParser.Option exthub =
                 parser.addBooleanOption( '\0', "exthub" );
+            CmdLineParser.Option debug =
+                parser.addIntegerOption( '\0', "debuglevel" );            
 
             try {
                 parser.parse( args );
@@ -160,6 +164,12 @@ public class SplatBrowserMain
                 }
             }
 
+            //  Show log with more information.
+            debugLevel = (Integer) parser.getOptionValue( debug );
+            if ( debugLevel == null ) {
+                debugLevel = new Integer( 0 );
+            }
+
             //  Everything else should be spectra.
             spectraArgs = parser.getRemainingArgs();
 
@@ -189,6 +199,36 @@ public class SplatBrowserMain
         //  Cause a load and/or guess of various properties that can
         //  be useful in locating resources etc.
         guessProperties( clearPrefs.booleanValue() );
+
+        //  Set up logging options, by default local tweaks are applied that
+        //  limit the amount of information coming out on the terminal.
+        //  When level is greater than 0 we give out more information.
+        int level = debugLevel.intValue();
+        if ( level == 0 ) {
+            tweakLogging();
+        }
+        else {
+
+            //  Show all local log messages.
+            Logger.getLogger( "uk.ac.starlink.splat" ).setLevel( Level.ALL );
+            if ( level >= 2 ) {
+                //  Local plus STARJAVA messages.
+                Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.ALL );
+                if ( level > 2 ) {
+                    //  Everyone's messages.
+                    Logger.getLogger( "" ).setLevel( Level.ALL );
+                }
+            }
+            
+            //  All handlers also need to respect this.
+            java.util.logging.Handler handler[] = 
+                Logger.getLogger( "" ).getHandlers();
+            if ( handler != null ) {
+                for ( int i = 0; i < handler.length; i++ ) {
+                    handler[i].setLevel( Level.ALL );
+                }
+            }
+        }
 
         //  Make interface visible. Do this from an event thread as
         //  parts of the GUI could be realized before returning (not
@@ -313,6 +353,31 @@ public class SplatBrowserMain
             result = "guess";
         }
         return result;
+    }
+
+
+    /**
+     *  Tweak the logging. Switch off various classes from outputting
+     *  to the console.
+     */
+    protected void tweakLogging()
+    {
+        // Make the SOAPSERVER package and related quieter.
+        Logger.getLogger( "uk.ac.starlink.soapserver" )
+            .setLevel( Level.SEVERE );
+        Logger.getLogger( "org.mortbay" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
+            .setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.soap.AppHttpSOAPServer" )
+            .setLevel( Level.SEVERE );
+
+        // Preferences system issue.
+        Logger.getLogger( "java.utils.prefs" ).setLevel( Level.SEVERE );
+
+        // Table chatter when trying out types.
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.srb" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
     }
 
     /**
