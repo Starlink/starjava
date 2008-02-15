@@ -472,10 +472,12 @@ public class StatsFilter extends BasicFilter {
         void acceptDatum( Object obj ) {
             if ( ! Tables.isBlank( obj ) ) {
                 if ( items_ != null ) {
-                    items_.add( obj );
-                }
-                if ( items_.size() > maxCard_ ) {
-                    items_ = null;
+                    if ( items_.size() < maxCard_ ) {
+                        items_.add( obj );
+                    }
+                    else {
+                        items_ = null;
+                    }
                 }
             }
         }
