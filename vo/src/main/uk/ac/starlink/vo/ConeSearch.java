@@ -184,7 +184,7 @@ public class ConeSearch {
                         .addArgument( "DEC", dec )
                         .addArgument( "SR", sr );
         if ( verb > 0 && verb < 3 ) {
-            query.addArgument( "VERB", sr );
+            query.addArgument( "VERB", verb );
         }
         return query.toURL();
     }
