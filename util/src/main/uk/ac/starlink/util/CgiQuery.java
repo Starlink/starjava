@@ -2,6 +2,7 @@ package uk.ac.starlink.util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
 
 /**
  * Utility class for constructing CGI query strings.
@@ -65,7 +66,19 @@ public class CgiQuery {
      * @return  this query
      */
     public CgiQuery addArgument( String name, double value ) {
-        return addArgument( name, Double.toString( value ) );
+        return addArgument( name, formatDouble( value ) );
+    }
+
+    /**
+     * Adds a single-precision floating point argument to this query.
+     * For convenience the return value is this query.
+     *
+     * @param  name  argument name
+     * @param  value  value for the argument
+     * @return  this query
+     */
+    public CgiQuery addArgument( String name, float value ) {
+        return addArgument( name, formatFloat( value ) );
     }
 
     /**
@@ -135,5 +148,70 @@ public class CgiQuery {
      */
     public String toString() {
         return sbuf_.toString();
+    }
+
+    /**
+     * Formats a double precision value.
+     *
+     * @param   value  value
+     * @return   string representation
+     */
+    static String formatDouble( double value ) {
+        return formatDouble( value, 16, 32 );
+    }
+
+    /**
+     * Formats a single precision value.
+     *
+     * @param   value  value
+     * @return   string representation
+     */
+    static String formatFloat( float value ) {
+        return formatDouble( (double) value, 7, 32 );
+    }
+
+    /**
+     * Formats a floating point value.
+     * It will be done in fixed point format if it can be done within the
+     * given number of characters, else exponential notation.
+     *
+     * @param   value  value
+     * @param   nsf   number of significant figures
+     * @param   maxleng  maximum length of string - if longer than this, 
+     *          will return to exponential notation
+     * @return  fixed format string representation
+     */
+    private static String formatDouble( double value, int nsf, int maxleng ) {
+        String sval = Double.toString( value );
+        if ( sval.indexOf( 'E' ) < 0 ) {
+            return sval;
+        }
+        else {
+            int log10 = log10( value );
+            StringBuffer fbuf = new StringBuffer( "0." );
+            for ( int i = 0; i < nsf - log10; i++ ) {
+                fbuf.append( '0' );
+            }
+            String fval =
+                new DecimalFormat( fbuf.toString() ).format( value );
+            fval = fval.replaceFirst( "0+$", "" );
+            if ( fval.length() <= maxleng ) {
+                return fval;
+            }
+            else {
+                return sval;
+            }
+        }
+    }
+
+    /**
+     * Returns approximate logarithm to base 10 of the value.
+     *
+     * @param  value  value
+     * @return  approximate log to base 10
+     */
+    private static int log10( double value ) {
+        return (int) 
+               Math.round( Math.log( Math.abs( value ) ) / Math.log( 10 ) );
     }
 }

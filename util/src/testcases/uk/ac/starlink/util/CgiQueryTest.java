@@ -48,4 +48,20 @@ public class CgiQueryTest extends TestCase {
         }
         assertTrue( worked );
     }
+
+    public void testFormat() {
+        assertEquals( "1.25", CgiQuery.formatDouble( 5./4. ) );
+        assertEquals( "0.00000000125", CgiQuery.formatDouble( 5./4e9 ) );
+        assertEquals( "1250000000.", CgiQuery.formatDouble( 5e9/4. ) );
+        assertEquals( "1.25E99", CgiQuery.formatDouble( 5e99/4. ) );
+        assertEquals( "1.25E-99", CgiQuery.formatDouble( 5e-99/4. ) );
+
+        assertEquals( "-1.25", CgiQuery.formatDouble( -5./4. ) );
+        assertEquals( "-0.00000000125", CgiQuery.formatDouble( -5./4e9 ) );
+        assertEquals( "-1250000000.", CgiQuery.formatDouble( -5e9/4. ) );
+        assertEquals( "-1.25E99", CgiQuery.formatDouble( -5e99/4. ) );
+        assertEquals( "-1.25E-99", CgiQuery.formatDouble( -5e-99/4. ) );
+
+        assertEquals( "3.141592653589793", CgiQuery.formatDouble( Math.PI ) );
+    }
 }
