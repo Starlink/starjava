@@ -5229,6 +5229,8 @@ but my thanks are especially due to the following:
             <code>fixcols</code>.</li>
         <li>Removed unformatted XML output in <code>stats</code> filter
             usage message.</li>
+        <li>Try to avoid exponential format in cone search URLs 
+            (some endpoints seem to require fixed point format).</li>
         </ul>
         </p></dd>
 
