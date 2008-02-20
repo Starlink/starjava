@@ -9,6 +9,9 @@
    setting a level greater than zero, but that should only be required when
    helping to diagnose a problem.
 
+   The errors of a spectrum can now be plotted as the spectral line, not
+   just as error bars.
+
    3.8-5
    =====
 

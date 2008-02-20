@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *     29-SEP-2000 (Peter W. Draper):
@@ -154,6 +154,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem offsetMatching = null;
     protected JCheckBoxMenuItem baseSystemMatching = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
+    protected JCheckBoxMenuItem displayErrorsAsData = null;
     protected JCheckBoxMenuItem horizontalLineIDs = null;
     protected JCheckBoxMenuItem prefixLineIDs = null;
     protected JCheckBoxMenuItem showVerticalMarks = null;
@@ -671,6 +672,12 @@ public class PlotControlFrame
         state1 = prefs.getBoolean( "PlotControlFrame_errorbarautoranging",
                                    false );
         errorbarAutoRanging.setSelected( state1 );
+
+        //  Display errors as the spectrum. Note not session persistent.
+        displayErrorsAsData = new JCheckBoxMenuItem("Draw errors as spectrum");
+        optionsMenu.add( displayErrorsAsData );
+        displayErrorsAsData.addItemListener( this );
+        displayErrorsAsData.setSelected( false );
 
         //  Autofit to Y when selecting a percentile cut.
         autoFitPercentiles =
@@ -1887,6 +1894,13 @@ public class PlotControlFrame
             boolean state = errorbarAutoRanging.isSelected();
             plot.getSpecDataComp().setErrorbarAutoRanging( state );
             prefs.putBoolean( "PlotControlFrame_errorbarautoranging", state );
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( displayErrorsAsData ) ) {
+            boolean state = displayErrorsAsData.isSelected();
+            plot.getSpecDataComp().setPlotErrorsAsData( state );
             plot.updatePlot();
             return;
         }

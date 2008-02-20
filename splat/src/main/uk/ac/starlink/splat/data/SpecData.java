@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *     01-SEP-2002 (Peter W. Draper):
@@ -659,6 +659,29 @@ public class SpecData
     public boolean haveYDataErrors()
     {
         return ( yErr != null );
+    }
+
+    /**
+     * Swap the data and the data errors, so that the spectral data are the
+     * errors. This can be used to plot the errors as a line rather than as 
+     * errorbars. Does nothing there are no errors. Call again to undo the
+     * effect. Note does not affect the underlying implementation, so
+     * refreshing from that will also reset this.
+     */
+    public void swapDataAndErrors() 
+    {
+        if ( yErr != null ) {
+            double tmp[] = yPos;
+            yPos = yErr;
+            yErr = tmp;
+
+            tmp = yPosOri;
+            yPosOri = yErrOri;
+            yErrOri = tmp;
+
+            //  Reset ranges.
+            setRangePrivate();
+        }
     }
 
 

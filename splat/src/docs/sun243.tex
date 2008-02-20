@@ -28,11 +28,11 @@ Copyright \copyright\ 2007-2008 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.31}
+\newcommand{\stardocnumber}    {243.32}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {23 January 2008}
+\newcommand{\stardocdate}      {20 February 2008}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.8-5}
+\newcommand{\stardocversion}   {3.8-6}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1217,6 +1217,13 @@ the display area.\\
   spectrum that has associated errors the limits do not include the extent of
   any error bars that will be drawn, if you want this to be otherwise select
   this option.
+
+  \item \submenuitem{Options}{Draw errors as spectrum}. If this option is
+  selected and any of the displayed spectra have errors, then those spectra
+  with errors will be drawn using the error value as each point on the line
+  rather than the data values (and conversely the data values will be used to
+  draw error bars, if that is enabled for any of the spectra). When displaying
+  spectra without any errors this option has no effect.
 
   \item \submenuitem{Options}{Auto-fit percentiles in Y}. When this option is
   selected choosing a percentile limit in Y results in the plot also being

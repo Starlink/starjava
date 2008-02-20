@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     21-SEP-2000 (Peter W. Draper):
@@ -115,6 +116,12 @@ public class SpecDataComp
      * ranging.
      */
     private boolean errorbarAutoRanging = false;
+
+    /**
+     *  Whether to draw the errors as as the spectra rather than just as
+     *  error bars. Ignored if there are no errors.
+     */
+    private boolean plotErrorsAsData = false;
 
     /**
      * List of references to the spectra. Note that indexing this
@@ -385,6 +392,25 @@ public class SpecDataComp
     public boolean isErrorbarAutoRanging()
     {
         return errorbarAutoRanging;
+    }
+
+    /**
+     * Set whether we want to swap the role of the data and errors, so that
+     * the errors can be plotted as a line graph. Note only effects what is
+     * drawn and nothing else.
+     */
+    public void setPlotErrorsAsData( boolean on )
+    {
+        plotErrorsAsData = on;
+    }
+
+    /**
+     * Get whether we want to swap the role of the data and errors, so that
+     * the errors can be plotted as a line graph.
+     */
+    public boolean isPlotErrorsAsData()
+    {
+        return plotErrorsAsData;
     }
 
     /**
@@ -695,7 +721,23 @@ public class SpecDataComp
             range[3] = -Double.MAX_VALUE;
             return range;
         }
-        double[] range = (double[]) currentSpec.getRange().clone();
+
+        //  Get an initial range. Note need to swap data and errors if we're
+        //  drawing errors as the plot. We never want to leave the data and
+        //  errors swapped, so use a finally trap.
+        //  XXX also need to re-generate range.
+        double[] range = null;
+        if ( plotErrorsAsData ) {
+            currentSpec.swapDataAndErrors();
+        }
+        try {
+            range = (double[]) currentSpec.getRange().clone();
+        }
+        finally {
+            if ( plotErrorsAsData ) {
+                currentSpec.swapDataAndErrors();
+            }
+        }
 
         regenerateMappings();
 
@@ -709,15 +751,25 @@ public class SpecDataComp
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData) spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
-                if ( coordinateMatching ) {
-                    xEndPoints = spectrum.getXEndPoints();
-                    yEndPoints = spectrum.getYEndPoints();
-                    mapping = (FrameSet) mappings.get( spectrum );
-                    newrange = transformEndPoints( mapping, xEndPoints,
-                                                   yEndPoints );
+                if ( plotErrorsAsData ) {
+                    spectrum.swapDataAndErrors();
                 }
-                else {
-                    newrange = spectrum.getRange();
+                try {
+                    if ( coordinateMatching ) {
+                        xEndPoints = spectrum.getXEndPoints();
+                        yEndPoints = spectrum.getYEndPoints();
+                        mapping = (FrameSet) mappings.get( spectrum );
+                        newrange = transformEndPoints( mapping, xEndPoints,
+                                                       yEndPoints );
+                    }
+                    else {
+                        newrange = spectrum.getRange();
+                    }
+                }
+                finally {
+                    if ( plotErrorsAsData ) {
+                        spectrum.swapDataAndErrors();
+                    }
                 }
                 checkRangeLimits( newrange, range );
             }
@@ -778,7 +830,23 @@ public class SpecDataComp
             range[3] = -Double.MAX_VALUE;
             return range;
         }
-        double[] range = (double[]) getSpectrumRange( currentSpec ).clone();
+
+        //  Get an initial range. Note need to swap data and errors if we're
+        //  drawing errors as the plot. We never want to leave the data and
+        //  errors swapped, so use a finally trap.
+        //  XXX also need to re-generate range.
+        double[] range = null;
+        if ( plotErrorsAsData ) {
+            currentSpec.swapDataAndErrors();
+        }
+        try {
+            range = (double[]) getSpectrumRange( currentSpec ).clone();
+        }
+        finally {
+            if ( plotErrorsAsData ) {
+                currentSpec.swapDataAndErrors();
+            }
+        }
 
         regenerateMappings();
 
@@ -792,23 +860,33 @@ public class SpecDataComp
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData) spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
-                if ( coordinateMatching ) {
-                    if ( spectrum.isDrawErrorBars() && errorbarAutoRanging ) {
-                        xEndPoints = spectrum.getXFullEndPoints();
-                        yEndPoints = spectrum.getYFullEndPoints();
+                if ( plotErrorsAsData ) {
+                    spectrum.swapDataAndErrors();
+                }
+                try {
+                    if ( coordinateMatching ) {
+                        if (spectrum.isDrawErrorBars() && errorbarAutoRanging){
+                            xEndPoints = spectrum.getXFullEndPoints();
+                            yEndPoints = spectrum.getYFullEndPoints();
+                        }
+                        else {
+                            xEndPoints = spectrum.getXEndPoints();
+                            yEndPoints = spectrum.getYEndPoints();
+                        }
+                        mapping = (FrameSet) mappings.get( spectrum );
+                        newrange = transformEndPoints( mapping, xEndPoints,
+                                                       yEndPoints );
                     }
                     else {
-                        xEndPoints = spectrum.getXEndPoints();
-                        yEndPoints = spectrum.getYEndPoints();
+                        newrange = getSpectrumRange( spectrum );
                     }
-                    mapping = (FrameSet) mappings.get( spectrum );
-                    newrange = transformEndPoints( mapping, xEndPoints,
-                                                   yEndPoints );
+                    checkRangeLimits( newrange, range );
                 }
-                else {
-                    newrange = getSpectrumRange( spectrum );
+                finally {
+                    if ( plotErrorsAsData ) {
+                        spectrum.swapDataAndErrors();
+                    }
                 }
-                checkRangeLimits( newrange, range );
             }
         }
         return range;
@@ -832,7 +910,23 @@ public class SpecDataComp
             range[3] = -Double.MAX_VALUE;
             return range;
         }
-        double[] range = (double[]) getSpectrumRange( currentSpec ).clone();
+
+        //  Get an initial range. Note need to swap data and errors if we're
+        //  drawing errors as the plot. We never want to leave the data and
+        //  errors swapped, so use a finally trap.
+        //  XXX also need to re-generate range.
+        double[] range = null;
+        if ( plotErrorsAsData ) {
+            currentSpec.swapDataAndErrors();
+        }
+        try {
+            range = (double[]) getSpectrumRange( currentSpec ).clone();
+        }
+        finally {
+            if ( plotErrorsAsData ) {
+                currentSpec.swapDataAndErrors();
+            }
+        }
 
         regenerateMappings();
 
@@ -847,24 +941,34 @@ public class SpecDataComp
             spectrum = (SpecData)spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
                 if ( spectrum.isUseInAutoRanging() ) {
-                    if ( coordinateMatching ) {
-                        if ( spectrum.isDrawErrorBars() &&
-                             errorbarAutoRanging ) {
-                            xEndPoints = spectrum.getXFullEndPoints();
-                            yEndPoints = spectrum.getYFullEndPoints();
+                    if ( plotErrorsAsData ) {
+                        spectrum.swapDataAndErrors();
+                    }
+                    try {
+                        if ( coordinateMatching ) {
+                            if ( spectrum.isDrawErrorBars() &&
+                                 errorbarAutoRanging ) {
+                                xEndPoints = spectrum.getXFullEndPoints();
+                                yEndPoints = spectrum.getYFullEndPoints();
+                            }
+                            else {
+                                xEndPoints = spectrum.getXEndPoints();
+                                yEndPoints = spectrum.getYEndPoints();
+                            }
+                            mapping = (FrameSet) mappings.get( spectrum );
+                            newrange = transformEndPoints( mapping, xEndPoints,
+                                                           yEndPoints );
                         }
                         else {
-                            xEndPoints = spectrum.getXEndPoints();
-                            yEndPoints = spectrum.getYEndPoints();
+                            newrange = getSpectrumRange( spectrum );
                         }
-                        mapping = (FrameSet) mappings.get( spectrum );
-                        newrange = transformEndPoints( mapping, xEndPoints,
-                                                       yEndPoints );
+                        checkRangeLimits( newrange, range );
                     }
-                    else {
-                        newrange = getSpectrumRange( spectrum );
+                    finally {
+                        if ( plotErrorsAsData ) {
+                            spectrum.swapDataAndErrors();
+                        }
                     }
-                    checkRangeLimits( newrange, range );
                 }
             }
         }
@@ -1063,8 +1167,21 @@ public class SpecDataComp
                 lineSpec.setShowVerticalMarks( showVerticalMarks );
                 lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
             }
-            spectrum.drawSpec( grf, localPlot, localClipLimits, physical,
-                               localFullLimits );
+
+            //  Swap data and errors if needed.
+            if ( plotErrorsAsData ) {
+                spectrum.swapDataAndErrors();
+            }
+            try {
+                //  Draw the spectrum!
+                spectrum.drawSpec( grf, localPlot, localClipLimits, physical,
+                                   localFullLimits );
+            }
+            finally {
+                if ( plotErrorsAsData ) {
+                    spectrum.swapDataAndErrors();
+                }
+            }
         }
     }
 
