@@ -84,7 +84,7 @@ public class SplatBrowserMain
         Boolean clearPrefs = Boolean.FALSE;
         Boolean keepCoords = null;
         Boolean ignoreErrors = Boolean.FALSE;
-        Integer debugLevel = null;
+        Integer debugLevel = new Integer( 0 );
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
 
             //  Parse the command-line.
