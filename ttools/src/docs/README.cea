@@ -80,6 +80,7 @@ heap memory size, and so on.  Here is a template script file:
         -Xmx128M \
         -Djava.io.tmpdir=. \
         -jar /usr/local/cea/stilts.jar \
+        -batch \
         -disk \
         "$@"
 
@@ -93,6 +94,10 @@ Line by line:
       Using the default (i.e. omitting any -Xmx flag, which may or may
       not be equivalent to -Xmx64M) is probably reasonable, but large 
       crossmatches in particular might require larger values here.
+
+   -batch
+      Prevents STILTS from prompting on standard input for missing 
+      parameter values.
 
    -disk
       This causes STILTS to use disk-based temporary storage rather than
