@@ -157,6 +157,15 @@ class CeaParameter {
         }
     }
 
+    public void setRef( boolean isRef ) {
+        isRef_ = isRef;
+        if ( isRef ) {
+            dflt_ = null;
+            isNullPermitted_ = false;
+            truncateDescription();
+        }
+    }
+
     /**
      * Returns whether this parameter is a CEA 'reference' parameter 
      * (points to a file).
