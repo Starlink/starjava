@@ -424,6 +424,7 @@ public abstract class CeaWriter extends XmlWriter {
         tpipe.removeParameter( "istream" );
 
         CeaTask votcopy = (CeaTask) appMap.get( "votcopy" );
+        votcopy.getParameter( "in" ).setRef( true );
         votcopy.getParameter( "out" ).setOutput( true );
 
         CeaTask votlint = (CeaTask) appMap.get( "votlint" );
