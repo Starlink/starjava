@@ -41,7 +41,7 @@ public abstract class ConeErrorPolicy {
     public static final ConeErrorPolicy IGNORE =
             new ConeErrorPolicy( "ignore" ) {
         public ConeSearcher adjustConeSearcher( ConeSearcher base ) {
-            return new WrapperConeSearcher( base ) {
+            return new WrapperConeSearcher( base, "ignore" ) {
                 public StarTable performSearch( double ra, double dec,
                                                 double sr )
                         throws IOException {
@@ -152,14 +152,17 @@ public abstract class ConeErrorPolicy {
      */
     private static abstract class WrapperConeSearcher implements ConeSearcher {
         final ConeSearcher base_;
+        final String descrip_;
 
         /**
          * Constructor.
          *
          * @param   base   base cone searcher
+         * @param   descrip  terse description of the function of this wrapper
          */
-        WrapperConeSearcher( ConeSearcher base ) {
+        WrapperConeSearcher( ConeSearcher base, String descrip ) {
             base_ = base;
+            descrip_ = descrip;
         }
 
         public int getRaIndex( StarTable result ) {
@@ -172,6 +175,10 @@ public abstract class ConeErrorPolicy {
 
         public void close() {
             base_.close();
+        }
+
+        public String toString() {
+            return descrip_ + "(" + base_.toString() + ")";
         }
     }
 
@@ -190,7 +197,7 @@ public abstract class ConeErrorPolicy {
          *                if &lt;=0 will retry indefinitely
          */
         RetryConeSearcher( ConeSearcher base, int nTry ) {
-            super( base );
+            super( base, "retry" );
             nTry_ = nTry;
         }
 
@@ -231,7 +238,7 @@ public abstract class ConeErrorPolicy {
          * @param  advice  message of exception on failure
          */
         AdviceConeSearcher( ConeSearcher base, String advice ) {
-            super( base );
+            super( base, "advice" );
             advice_ = advice;
         }
 
