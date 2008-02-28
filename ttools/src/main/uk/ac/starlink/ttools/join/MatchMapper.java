@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.join;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
@@ -10,8 +9,8 @@ import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.MultiJoinType;
+import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowMatcher;
-import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Environment;
@@ -37,6 +36,7 @@ public class MatchMapper implements TableMapper {
     private final JoinFixActionParameter fixcolsParam_;
     private final ChoiceParameter mmodeParam_;
     private final IntegerParameter irefParam_;
+    private final ProgressIndicatorParameter progressParam_;
 
     private static final String PAIRS_MODE = "pairs";
     private static final String GROUP_MODE = "group";
@@ -110,6 +110,7 @@ public class MatchMapper implements TableMapper {
 
         matcherParam_ = new MatchEngineParameter( "matcher" );
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
+        progressParam_ = new ProgressIndicatorParameter( "progress" );
     }
 
     public Parameter[] getParameters() {
@@ -122,6 +123,7 @@ public class MatchMapper implements TableMapper {
             new MultiJoinTypeParameter( "N" ),
             fixcolsParam_,
             fixcolsParam_.createSuffixParameter( "N" ),
+            progressParam_,
         };
     }
 
@@ -155,13 +157,14 @@ public class MatchMapper implements TableMapper {
                 (MultiJoinType) new MultiJoinTypeParameter( numLabel )
                                .objectValue( env );
         }
-        PrintStream logStrm = env.getErrorStream();
+        ProgressIndicator progger =
+            progressParam_.progressIndicatorValue( env );
         if ( GROUP_MODE.equalsIgnoreCase( mmode ) ) {
-            return new GroupMatchMapping( matcher, exprTuples, fixActs, logStrm,
+            return new GroupMatchMapping( matcher, exprTuples, fixActs, progger,
                                           joinTypes );
         }
         else if ( PAIRS_MODE.equalsIgnoreCase( mmode ) ) {
-            return new PairsMatchMapping( matcher, exprTuples, fixActs, logStrm,
+            return new PairsMatchMapping( matcher, exprTuples, fixActs, progger,
                                           iref, joinTypes );
         }
         else {
@@ -178,7 +181,7 @@ public class MatchMapper implements TableMapper {
         private final MatchEngine matchEngine_;
         private final String[][] exprTuples_;
         private final JoinFixAction[] fixActs_;
-        private final PrintStream logStrm_;
+        private final ProgressIndicator progger_;
 
         /**
          * Constructor.
@@ -188,14 +191,14 @@ public class MatchMapper implements TableMapper {
          *          expressions for matcher inputs
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
-         * @param   logStrm   output stream for progress logging
+         * @param   progger   progress indicator
          */
         MatchMapping( MatchEngine matchEngine, String[][] exprTuples,
-                      JoinFixAction[] fixActs, PrintStream logStrm ) {
+                      JoinFixAction[] fixActs, ProgressIndicator progger ) {
             matchEngine_ = matchEngine;
             exprTuples_ = exprTuples;
             fixActs_ = fixActs;
-            logStrm_ = logStrm;
+            progger_ = progger;
             nin_ = exprTuples_.length;
         }
 
@@ -224,7 +227,7 @@ public class MatchMapper implements TableMapper {
 
             /* Do the match. */
             RowMatcher matcher = new RowMatcher( matchEngine_, subTables );
-            matcher.setIndicator( new TextProgressIndicator( logStrm_ ) );
+            matcher.setIndicator( progger_ );
             LinkSet matches;
             try { 
                 matches = findMatches( matcher );
@@ -303,14 +306,14 @@ public class MatchMapper implements TableMapper {
          *          expressions for matcher inputs
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
-         * @param   logStrm   output stream for progress logging
+         * @param   progger   progress indicator
          * @param   iref      index (0-based) of reference table
          * @param   joinTypes inclusion criteria for links in output table
          */
         PairsMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
-                           JoinFixAction[] fixActs, PrintStream logStrm,
+                           JoinFixAction[] fixActs, ProgressIndicator progger,
                            int iref, MultiJoinType[] joinTypes ) {
-            super( matchEngine, exprTuples, fixActs, logStrm );
+            super( matchEngine, exprTuples, fixActs, progger );
             iref_ = iref;
             joinTypes_ = joinTypes;
         }
@@ -343,13 +346,13 @@ public class MatchMapper implements TableMapper {
          *          expressions for matcher inputs
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
-         * @param   logStrm   output stream for progress logging
+         * @param   progger   progress indicator
          * @param   joinTypes inclusion criteria for links in output table
          */
         GroupMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
-                           JoinFixAction[] fixActs, PrintStream logStrm,
+                           JoinFixAction[] fixActs, ProgressIndicator progger,
                            MultiJoinType[] joinTypes ) {
-            super( matchEngine, exprTuples, fixActs, logStrm );
+            super( matchEngine, exprTuples, fixActs, progger );
             joinTypes_ = joinTypes;
         }
 
