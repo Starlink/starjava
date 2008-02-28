@@ -1,12 +1,15 @@
 package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -27,8 +30,10 @@ public class ConeSearchConer implements Coner {
 
     private final Parameter urlParam_;
     private final ChoiceParameter verbParam_;
+    private final BooleanParameter believeemptyParam_;
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
+    private static final String BELIEVE_EMPTY_NAME = "emptyok";
 
     /**
      * Constructor.
@@ -58,6 +63,25 @@ public class ConeSearchConer implements Coner {
             "3 indicates all available information.",
             "</p>",
         } );
+
+        believeemptyParam_ = new BooleanParameter( BELIEVE_EMPTY_NAME );
+        believeemptyParam_.setDefault( "true" );
+        believeemptyParam_.setPrompt( "Believe metadata from empty results?" );
+        believeemptyParam_.setDescription( new String[] {
+            "<p>Whether the table metadata which is returned from a search",
+            "result with zero rows is to be believed.",
+            "According to the spirit, though not the letter, of the",
+            "cone search standard, a cone search service which returns no data",
+            "ought nevertheless to return the correct column headings.",
+            "Unfortunately this is not always the case.",
+            "If this parameter is set <code>true</code>, it is assumed",
+            "that the service behaves properly in this respect; if it does not",
+            "an error may result.  In that case, set this parameter",
+            "<code>false</code>.  A consequence of setting it false is that",
+            "in the event of no results being returned, the task will",
+            "return no table at all, rather than an empty one.",
+            "</p>",
+        } );
     }
 
     /**
@@ -72,6 +96,7 @@ public class ConeSearchConer implements Coner {
         return new Parameter[] {
             urlParam_,
             verbParam_,
+            believeemptyParam_,
         };
     }
 
@@ -86,6 +111,7 @@ public class ConeSearchConer implements Coner {
         }
 
         String sverb = verbParam_.stringValue( env );
+        boolean believeEmpty = believeemptyParam_.booleanValue( env );
         int verb;
         if ( sverb == null ) {
             verb = -1;
@@ -101,7 +127,8 @@ public class ConeSearchConer implements Coner {
             }
         }
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
-        return new ServiceSearcher( new ConeSearch( url ), verb, tfact );
+        return new ServiceSearcher( new ConeSearch( url ), verb, believeEmpty,
+                                    tfact );
     }
 
     /**
@@ -110,19 +137,25 @@ public class ConeSearchConer implements Coner {
     private static class ServiceSearcher implements ConeSearcher {
         private final ConeSearch csearch_;
         private final int verb_;
+        private final boolean believeEmpty_;
         private final StarTableFactory tfact_;
+        private Class[] colTypes_;
+        private boolean warned_;
 
         /**
          * Constructor.
          *
          * @param   csearch  cone search service specification object
          * @param   verb  verbosity parameter
+         * @param   believeEmpty  whether empty tables are considered to
+         *          contain correct metadata
          * @param   tfact  table factory
          */
-        ServiceSearcher( ConeSearch csearch, int verb,
+        ServiceSearcher( ConeSearch csearch, int verb, boolean believeEmpty,
                          StarTableFactory tfact ) {
             csearch_ = csearch;
             verb_ = verb;
+            believeEmpty_ = believeEmpty;
             tfact_ = tfact;
         }
 
@@ -130,14 +163,36 @@ public class ConeSearchConer implements Coner {
                 throws IOException {
             StarTable table = 
                 csearch_.performSearch( ra, dec, sr, verb_, tfact_ );
+            table = Tables.randomTable( table );
+            StarTable result = ( believeEmpty_ || ! isEmpty( table ) )
+                             ? table
+                             : null;
 
-            /* If the table has no rows, return null.  This is slightly 
-             * annoying, since it would be better to return a row-less table
-             * (see performSearch contract), but some cone search services
-             * tend to return tables with different numbers of columns when
-             * there are no rows.  This is against the spirit of the Cone
-             * Search standard, but not against the letter. */
-            return isEmpty( table ) ? null : table;
+            /* Check for consistency of columns between different calls.
+             * The main point of this is so that we can suggest adjusting
+             * the believeEmpty parameter if appropriate; it is *not* a
+             * good idea to throw an error here in response to inconsistencies.
+             * That is because (a) it's checked downstream of here and 
+             * (b) an error here might look like an error in the cone search
+             * resolution itself and be ignored accordingly (erract param). */
+            if ( result != null && ! warned_ ) {
+                if ( colTypes_ == null ) {
+                    colTypes_ = getColumnTypes( result );
+                }
+                else {
+                    if ( ! Arrays.equals( colTypes_,
+                                          getColumnTypes( result ) ) ) {
+                        String msg = "Different queries to the same cone search"
+                                   + " return incompatible tables";
+                        if ( believeEmpty_ ) {
+                            msg += " - try " + BELIEVE_EMPTY_NAME + "=false";
+                        }
+                        logger.warning( msg );
+                        warned_ = true;
+                    }
+                }
+            }
+            return result;
         }
 
         public int getRaIndex( StarTable result ) {
@@ -235,6 +290,22 @@ public class ConeSearchConer implements Coner {
                     rseq.close();
                 }
             }
+        }
+
+        /**
+         * Assembles and returns an array of the content type for each column
+         * in a table.
+         *
+         * @param  table  table
+         * @return   ncol-element array of column content classes
+         */
+        private static Class[] getColumnTypes( StarTable table ) {
+            int ncol = table.getColumnCount();
+            Class[] types = new Class[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                types[ icol ] = table.getColumnInfo( icol ).getContentClass();
+            }
+            return types;
         }
     }
 }
