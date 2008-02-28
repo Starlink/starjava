@@ -5231,6 +5231,10 @@ but my thanks are especially due to the following:
             usage message.</li>
         <li>Try to avoid exponential format in cone search URLs 
             (some endpoints seem to require fixed point format).</li>
+        <li>Minor CEA fixes.</li>
+        <li>Add <code>progress</code> parameter to <code>tmatchn</code>.</li>
+        <li>Add <code>emptyok</code> parameter to 
+            <code>coneskymatch</code>.</li>
         </ul>
         </p></dd>
 
