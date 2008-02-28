@@ -315,8 +315,8 @@ public class MatchStarTables {
             } );
         }
 
-        /* If we've obtained any match scores, add columns containing them. */
-        if ( nScore > 0 ) {
+        /* If we have match scores, add a column containing them. */
+        if ( matchScoreInfo != null && scores != null ) {
             extraCols.add( ArrayColumn
                           .makeColumn( new ColumnInfo( matchScoreInfo ),
                                        scores ) );
