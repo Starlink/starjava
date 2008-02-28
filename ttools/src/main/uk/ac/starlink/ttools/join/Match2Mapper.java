@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.join;
 
 import gnu.jel.CompilationException;
-import java.io.PrintStream;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
@@ -87,7 +86,6 @@ public class Match2Mapper implements TableMapper {
         ValueInfo scoreInfo = matcherParam_.getScoreInfo( env );
         ProgressIndicator progger =
             progressParam_.progressIndicatorValue( env );
-        PrintStream logStrm = env.getErrorStream();
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
