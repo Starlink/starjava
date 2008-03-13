@@ -62,7 +62,7 @@ public abstract class Anchor {
         return new FractionAnchor( xfrac, yfrac );
     }
 
-    public static final Anchor CENTER = new FractionAnchor( 0.5f, 0.5f );
+    public static final Anchor CENTRE = new FractionAnchor( 0.5f, 0.5f );
     public static final Anchor WEST = new FractionAnchor( 0f, 0.5f );
     public static final Anchor EAST = new FractionAnchor( 1f, 0.5f );
     public static final Anchor NORTH = new FractionAnchor( 0.5f, 0f );
