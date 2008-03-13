@@ -30,7 +30,7 @@ public abstract class Arrow {
         AffineTransform trans = g2.getTransform();
         g2.translate( x2, y2 );
         g2.rotate( Math.atan2( y1 - y2, x1 - x2 ) );
-        g2.translate( + headPad_ - tailPad_, 0 );
+        g2.translate( + headPad_, 0 );
         double r1 = Math.sqrt( ( x2 - x1 ) * ( x2 - x1 ) + 
                                ( y2 - y1 ) * ( y2 - y1 ) );
         drawArrow( g2, (int) Math.round( r1 - tailPad_ - headPad_ ) );
