@@ -4,10 +4,12 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.FontMetrics;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
@@ -80,7 +82,36 @@ public abstract class FigureIcon implements Icon {
         JComponent container = new JPanel();
         container.setBackground( Color.WHITE );
         container.setOpaque( true );
-        container.add( new JLabel( this ) );
+
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int xfact = this.getIconWidth() / screen.width;
+        int yfact = this.getIconHeight() / screen.height;
+        final Icon icon;
+        if ( xfact == 0 && yfact == 0 ) {
+            icon = this;
+        }
+        else {
+            final int fact = Math.max( xfact + 1, yfact + 1 );
+            icon = new Icon() {
+                public int getIconWidth() {
+                    return (int) Math.ceil( FigureIcon.this.getIconWidth() 
+                                            / fact );
+                }
+                public int getIconHeight() {
+                    return (int) Math.ceil( FigureIcon.this.getIconHeight()
+                                            / fact );
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    AffineTransform trans = g2.getTransform();
+                    g2.scale( 1.0 / fact, 1.0 / fact );
+                    FigureIcon.this.paintIcon( c, g2, Math.round( x * fact ),
+                                                      Math.round( y * fact ) );
+                    g2.setTransform( trans );
+                }
+            };
+        }
+        container.add( new JLabel( icon ) );
 
         Object quitKey = "quit";
         container.getInputMap().put( KeyStroke.getKeyStroke( 'q' ), quitKey );
