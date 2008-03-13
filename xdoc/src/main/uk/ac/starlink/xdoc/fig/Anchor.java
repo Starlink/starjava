@@ -2,10 +2,11 @@ package uk.ac.starlink.xdoc.fig;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 
 /**
- * Utility for positioning strings in the graphics context.
+ * Utility for positioning things in the graphics context.
  *
  * @author   Mark Taylor
  * @since    18 Sep 2007
@@ -14,6 +15,14 @@ public abstract class Anchor {
 
     /** Background colour. */
     public static final Color BG = Color.WHITE;
+
+    /**
+     * Returns the position of this anchor point in a given rectangle.
+     *
+     * @param    box   rectangle
+     * @return   position of this anchor point in <code>box</code>
+     */
+    public abstract Point getPoint( Rectangle box );
 
     /**
      * Positions a string relative to the given reference point, 
@@ -27,53 +36,41 @@ public abstract class Anchor {
      *          the text to the background colour (white) before
      *          painting the text
      */
-    public abstract Rectangle drawString( Graphics g, String text,
-                                          int x, int y, boolean clearBg );
-
-    /** Anchor instance which centres strings on the reference point. */
-    public static final Anchor CENTRE = new Anchor() {
-        public Rectangle drawString( Graphics g, String text, int x, int y,
-                                     boolean clearBg ) {
-            Rectangle bounds = getBounds( g, text );
-            x -= bounds.width / 2;
-            y += bounds.height / 2 - g.getFontMetrics().getDescent();
-            bounds.translate( x, y );
-            if ( clearBg ) {
-                clearRect( g, bounds );
-            }
-            g.drawString( text, x, y );
-            return bounds;
+    public Rectangle drawString( Graphics g, String text, int x, int y,
+                                 boolean clearBg ) {
+        Rectangle bounds = getBounds( g, text );
+        Point p = getPoint( bounds );
+        Rectangle transBounds =
+            new Rectangle( bounds.x + x - p.x, bounds.y + y - p.y,
+                           bounds.width, bounds.height );
+        if ( clearBg ) {
+            clearRect( g, transBounds );
         }
-    };
+        g.drawString( text, transBounds.x - bounds.x,
+                            transBounds.y - bounds.y );
+        return transBounds;
+    }
 
-    /** Anchor instance which puts the reference point at bottom left. */
-    public static final Anchor SOUTH_WEST = new Anchor() {
-        public Rectangle drawString( Graphics g, String text, int x, int y,
-                                     boolean clearBg ) {
-            Rectangle bounds = getBounds( g, text );
-            bounds.translate( x, y );
-            if ( clearBg ) {
-                clearRect( g, bounds );
-            }
-            g.drawString( text, x, y - g.getFontMetrics().getDescent() );
-            return bounds;
-        }
-    };
+    /**
+     * Returns an anchor defined by fractional amounts along each edge of a box.
+     *
+     * @param   xfrac  left-right amount (0-1)
+     * @param   yfrac  top-bottom amount (0-1)
+     * @return  new anchor
+     */
+    public static Anchor createFractionAnchor( float xfrac, float yfrac ) {
+        return new FractionAnchor( xfrac, yfrac );
+    }
 
-    /** Anchor instance which puts the reference point at the top right. */
-    public static final Anchor NORTH_WEST = new Anchor() {
-        public Rectangle drawString( Graphics g, String text, int x, int y,
-                                     boolean clearBg ) {
-            Rectangle bounds = getBounds( g, text );
-            y += bounds.height;
-            bounds.translate( x, y );
-            if ( clearBg ) {
-                clearRect( g, bounds );
-            }
-            g.drawString( text, x, y );
-            return bounds;
-        }
-    };
+    public static final Anchor CENTER = new FractionAnchor( 0.5f, 0.5f );
+    public static final Anchor WEST = new FractionAnchor( 0f, 0.5f );
+    public static final Anchor EAST = new FractionAnchor( 1f, 0.5f );
+    public static final Anchor NORTH = new FractionAnchor( 0.5f, 0f );
+    public static final Anchor SOUTH = new FractionAnchor( 0.5f, 1f );
+    public static final Anchor NORTH_WEST = new FractionAnchor( 0f, 0f );
+    public static final Anchor SOUTH_WEST = new FractionAnchor( 0f, 1f );
+    public static final Anchor NORTH_EAST = new FractionAnchor( 1f, 0f );
+    public static final Anchor SOUTH_EAST = new FractionAnchor( 1f, 1f );
 
     /**
      * Clears a given rectangle to the background colour.
@@ -97,5 +94,30 @@ public abstract class Anchor {
      */
     private static Rectangle getBounds( Graphics g, String text ) {
         return g.getFontMetrics().getStringBounds( text, g ).getBounds();
+    }
+
+    /**
+     * Fractional anchor implementation.
+     */
+    private static class FractionAnchor extends Anchor {
+
+        private final float xfrac_;
+        private final float yfrac_;
+
+        /**
+         * Constructor.
+         *
+         * @param   xfrac  left-right amount (0-1)
+         * @param   yfrac  top-bottom amount (0-1)
+         */
+        FractionAnchor( float xfrac, float yfrac ) {
+            xfrac_ = xfrac;
+            yfrac_ = yfrac;
+        }
+
+        public Point getPoint( Rectangle box ) {
+            return new Point( box.x + (int) ( box.width * xfrac_ ),
+                              box.y + (int) ( box.height * yfrac_ ) );
+        }
     }
 }
