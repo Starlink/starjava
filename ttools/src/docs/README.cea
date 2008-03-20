@@ -48,8 +48,8 @@ something like:
 
    Usage:
       uk.ac.starlink.ttools.cea.CeaWriter -help
-      uk.ac.starlink.ttools.cea.CeaWriter -impl -path <app-path>
-      uk.ac.starlink.ttools.cea.CeaWriter -service
+      uk.ac.starlink.ttools.cea.CeaWriter -impl -path <app-path> [-task <task>]
+      uk.ac.starlink.ttools.cea.CeaWriter -service [-task <task>]
 
 As this indicates, it can run in two modes: with the -impl flag it 
 generates the app-description file used where the service is deployed,
@@ -59,6 +59,12 @@ written to standard output and can be redirected in the usual way.
 
 In -impl mode it is necessary to give the path of the executable which
 will run the STILTS application.
+
+If the optional -task flag is supplied, an app-description which provides
+access only to a single STILTS task (contains only a single CEA interface)
+will be written.  This may be desirable if an application providing a
+less-bamboozling CEA interface is required - it was introduced at user
+request so that a standalone tskymatch2 application could be deployed.
 
 
 Preparing the execution script
@@ -116,21 +122,36 @@ Steps for installation
 
 So to deploy STILTS as a CEA application, do something like:
 
-   1. Obtain the stilts.jar file corresponding to the version of the
-      package that you want to deploy:
-         wget http://www.starlink.ac.uk/stilts/stilts.jar
+   1.  Obtain the stilts.jar file corresponding to the version of the
+       package that you want to deploy:
+          wget http://www.starlink.ac.uk/stilts/stilts.jar
 
-   2. Obtain or write an invocation script (see above).
+   2.  Obtain or write an invocation script (see above).
 
-   3. Generate the app-description file with the path set to the location
-      of the script:
+   3a. Generate the app-description file for the full STILTS deployment
+       with the path set to the location of the script:
          java -classpath stilts.jar uk.ac.starlink.ttools.cea.CeaWriter \
+              -impl \
               -path /usr/local/cea/bin/run-stilts \
               >app-description.xml
 
-   4. Perform the usual CEA deployment using the app-description.xml file
+       ... and/or ...
+
+   3b. Generate the app-description file for one or more single STILTS task
+       deployments with the path set to the location of the script:
+         java -classpath stilts.jar uk.ac.starlink.ttools.cea.CeaWriter \
+              -impl \
+              -path /usr/local/cea/bin/run-stilts \
+              -task tskymatch2 \
+              >tskymatch2-app-description.xml
+
+   4. Perform the usual CEA deployment using the app-description.xml file(s)
       (see CEA server documentation).
         
+
+You will also need to prepare a CEA application registration record,
+perhaps using the -service flag to the CeaWriter class, but I don't
+entirely understand this part - talk to someone who does (Paul Harrison?)
 
 ...........................................................................
 

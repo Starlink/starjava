@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.task.Task;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.LoadException;
 
 public class CeaTest extends TestCase {
@@ -17,6 +19,9 @@ public class CeaTest extends TestCase {
     private static final String DUMMY_CMD =
         "<" + CeaTest.class.getName() + ">";
     private CeaTask[] tasks_;
+    private CeaTask task1_;
+    private CeaMetadata tasksMeta_;
+    private CeaMetadata task1Meta_;
 
     public CeaTest( String name ) {
         super( name );
@@ -24,15 +29,31 @@ public class CeaTest extends TestCase {
 
     public void setUp() throws LoadException {
         tasks_ = CeaWriter.createTaskList();
+        String task1Name = "tskymatch2";
+        task1_ = new CeaTask( (Task) Stilts.getTaskFactory()
+                                           .createObject( task1Name ),
+                              task1Name );
+        tasksMeta_ = CeaMetadata.createStiltsMetadata( tasks_ );
+        task1Meta_ = CeaMetadata.createTaskMetadata( task1_ );
     }
 
     public void testImplementationDoc() throws Exception {
-        checkCeaOutput( new ImplementationCeaWriter( null, tasks_, DUMMY_CMD ),
+        checkCeaOutput( new ImplementationCeaWriter( null, tasks_, tasksMeta_,
+                                                     DUMMY_CMD ),
                         new String[] { "-path", "/usr/bin/stilts", } );
+        checkCeaOutput( new ImplementationCeaWriter( null,
+                                                     new CeaTask[] { task1_ },
+                                                     task1Meta_, DUMMY_CMD ),
+                        new String[] { "-path", "/usr/bin/stilts_"
+                                                + task1_.getName() } );
     }
 
     public void testServiceDoc() throws Exception {
-        checkCeaOutput( new ServiceCeaWriter( null, tasks_, DUMMY_CMD ),
+        checkCeaOutput( new ServiceCeaWriter( null, tasks_, task1Meta_,
+                                              DUMMY_CMD ),
+                        new String[ 0 ] );
+        checkCeaOutput( new ServiceCeaWriter( null, new CeaTask[] { task1_ },
+                                              tasksMeta_, DUMMY_CMD ),
                         new String[ 0 ] );
     }
 
