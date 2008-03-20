@@ -34,18 +34,21 @@ public class ImplementationCeaWriter extends CeaWriter {
     public static final String APPLICATION_ID = "ivo://uk.ac.starlink/stilts";
 
     private String appPath_;
+    private final CeaMetadata meta_;
 
     /**
      * Constructor.
      *
      * @param  out  output stream for XML
      * @param  tasks  list of tasks to be described by the output
+     * @param  meta   application description metadata object
      * @param  cmdline  command line string, used for logging within the
      *                  output only
      */
     public ImplementationCeaWriter( PrintStream out, CeaTask[] tasks,
-                                    String cmdline ) {
+                                    CeaMetadata meta, String cmdline ) {
         super( out, createImplementationConfig(), tasks, cmdline );
+        meta_ = meta;
     }
 
     public String getSchemaLocation() {
@@ -88,7 +91,7 @@ public class ImplementationCeaWriter extends CeaWriter {
                + "<!-- Application name set from " + getClass().getName()
                + " command-line flag. -->" );
         startElement( "Application",
-                      formatAttribute( "name", APPLICATION_ID )
+                      formatAttribute( "name", meta_.getIvorn() )
                     + formatAttribute( "version", Stilts.getVersion() ) );
 
         /* Main task and parameter definitions. */
@@ -102,14 +105,12 @@ public class ImplementationCeaWriter extends CeaWriter {
         addElement( "ExecutionPath", "", appPath_.toString() );
 
         /* Write description matter. */
-        addElement( "LongName", "",
-                    "STILTS - "
-                  + "Starlink Tables Infrastructure Library Tool Set" );
+        addElement( "LongName", "", meta_.getLongName() );
         addElement( "Version", "", Stilts.getVersion() );
         startElement( "Description" );
-        writeDescriptionContent();
+        print( meta_.getDescription() );
         endElement( "Description" );
-        addElement( "ReferenceURL", "", getManualURL() );
+        addElement( "ReferenceURL", "", meta_.getRefUrl() );
 
         /* Outro. */
         endElement( "Application" );

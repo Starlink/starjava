@@ -40,10 +40,6 @@ public abstract class CeaWriter extends XmlWriter {
     private final FlagDef[] flagDefs_;
     private final String cmdline_;
 
-    /** Default location of the STILTS manual. */
-    public static final String DOC_URL =
-        "http://www.starlink.ac.uk/stilts/sun256/";
-
     /**
      * Constructor.
      *
@@ -109,21 +105,6 @@ public abstract class CeaWriter extends XmlWriter {
      * @return   validation schema location
      */
     public abstract String getSchemaLocation();
-
-    /**
-     * Outputs the content of a Description-type element.  The element tags
-     * are not written.
-     */
-    protected void writeDescriptionContent() {
-        println( "STILTS is a package which provides a number of table " +
-                 "manipulation functions." );
-        println( "The following tasks (profiles) are provided: " );
-        for ( int i = 0; i < tasks_.length; i++ ) {
-            CeaTask task = tasks_[ i ];
-            println( "   " + task.getName() + ":" );
-            println( "      " + task.getPurpose() );
-        }
-    }
 
     /**
      * Writes a Parameters element suitable for use with CEA.
@@ -303,15 +284,6 @@ public abstract class CeaWriter extends XmlWriter {
 
         /* Outro. */
         endElement( "Interface" );
-    }
-
-    /**
-     * Returns the URL to use for referencing the STILTS manual.
-     *
-     * @return  SUN/256 URL
-     */
-    public String getManualURL() {
-        return DOC_URL;
     }
 
     /**
@@ -518,6 +490,7 @@ public abstract class CeaWriter extends XmlWriter {
 
         /* Prepare usage message. */
         String cmdname = CeaWriter.class.getName();
+        String commonUsage = " [-task <task>]";
         String usage = new StringBuffer()
             .append( "\n   Usage:" )
             .append( "\n      " )
@@ -527,10 +500,12 @@ public abstract class CeaWriter extends XmlWriter {
             .append( cmdname )
             .append( " -impl" )
             .append( ImplementationCeaWriter.getUsage() )
+            .append( commonUsage )
             .append( "\n      " )
             .append( cmdname )
             .append( " -service" )
             .append( ServiceCeaWriter.getUsage() )
+            .append( commonUsage )
             .append( "\n" )
             .toString();
 
@@ -543,9 +518,9 @@ public abstract class CeaWriter extends XmlWriter {
 
         /* Process command line arguments. */
         List argList = new ArrayList( Arrays.asList( args ) );
-        CeaWriter writer = null;
+        CeaTask task1 = null;
         PrintStream out = System.out;
-        CeaTask[] tasks = createTaskList();
+        Boolean isImpl = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( "-h".equals( arg ) || "-help".equals( arg ) ) {
@@ -554,25 +529,51 @@ public abstract class CeaWriter extends XmlWriter {
             }
             else if ( arg.startsWith( "-impl" ) ) {
                 it.remove();
-                if ( writer != null ) {
+                if ( isImpl != null ) {
                     System.err.println( usage );
                     return 1;
                 }
-                writer = new ImplementationCeaWriter( out, tasks, cmdline );
+                isImpl = Boolean.TRUE;
             }
             else if ( arg.startsWith( "-serv" ) ) {
                 it.remove();
-                if ( writer != null ) {
+                if ( isImpl != null ) {
                     System.err.println( usage );
                     return 1;
                 }
-                writer = new ServiceCeaWriter( out, tasks, cmdline );
+                isImpl = Boolean.FALSE;
+            }
+            else if ( arg.equals( "-task" ) && it.hasNext() ) {
+                it.remove();
+                String taskName = (String) it.next();
+                it.remove();
+                if ( task1 != null ) {
+                    System.err.println( usage );
+                    return 1;
+                }
+                task1 = new CeaTask( (Task) Stilts.getTaskFactory()
+                                                  .createObject( taskName ),
+                                     taskName );
             }
         }
-        if ( writer == null ) {
+        if ( isImpl == null ) {
             System.err.println( usage );
             return 1;
         }
+        final CeaTask[] tasks;
+        final CeaMetadata meta;
+        if ( task1 == null ) {
+            tasks = createTaskList();
+            meta = CeaMetadata.createStiltsMetadata( tasks );
+        }
+        else {
+            tasks = new CeaTask[] { task1 };
+            meta = CeaMetadata.createTaskMetadata( task1 );
+        }
+        CeaWriter writer = isImpl.booleanValue()
+            ? (CeaWriter) new ImplementationCeaWriter( out, tasks, meta,
+                                                       cmdline )
+            : (CeaWriter) new ServiceCeaWriter( out, tasks, meta, cmdline );
 
         /* Perform implementation-specific command-line arg configuration. */
         int configStat =

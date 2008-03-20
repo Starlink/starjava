@@ -24,7 +24,7 @@ import uk.ac.starlink.ttools.task.OutputTableParameter;
  * @author   Mark Taylor
  * @since    17 Mar 2006
  */
-class CeaParameter {
+public class CeaParameter {
 
     private String name_;
     private String description_;
@@ -189,7 +189,7 @@ class CeaParameter {
     /**
      * Returns whether null is a permitted value for this parameter.
      *
-     * @param  true iff null is legal
+     * @return  true iff null is legal
      */
     public boolean isNullPermitted() {
         return isNullPermitted_;
@@ -207,7 +207,7 @@ class CeaParameter {
     /**
      * Returns an array of permitted options if there is one.
      *
-     * @param   array of sole permitted values, or null
+     * @return   array of sole permitted values, or null
      */
     public String[] getOptions() {
         return options_;

@@ -14,7 +14,7 @@ import uk.ac.starlink.ttools.task.OutputModeParameter;
  * @author   Mark Taylor
  * @since    17 Mar 2006
  */
-class CeaTask {
+public class CeaTask {
 
     private List paramList_;
     private final String name_;
@@ -25,7 +25,6 @@ class CeaTask {
      *
      * @param   task  ttools task object
      * @param   name  public name of the task
-     * @param   purpose   shortish description of the task
      */
     public CeaTask( Task task, String name ) {
         paramList_  = new ArrayList();
@@ -85,6 +84,7 @@ class CeaTask {
      * Returns a named parameter of this task.
      *
      * @param   name of the parameter
+     * @return  parameter
      */
     public CeaParameter getParameter( String name ) {
         for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {

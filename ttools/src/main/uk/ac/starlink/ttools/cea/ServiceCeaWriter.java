@@ -38,21 +38,21 @@ public class ServiceCeaWriter extends CeaWriter {
         "http://software.astrogrid.org/schema/" +
         "vo-resource-types/CEAService/v0.2/CEAService.xsd";
 
-    public String getSchemaLocation() {
-        return SCHEMA_LOCATION;
-    }
+    private final CeaMetadata meta_;
 
     /**
      * Constructor.
      *
      * @param  out  output stream for XML
      * @param  tasks  list of tasks to be described by the output
+     * @param  meta   application description metadata object
      * @param  cmdline  command line string, used for logging within the
      *                  output only
      */
-    public ServiceCeaWriter( PrintStream out, CeaTask[] tasks,
+    public ServiceCeaWriter( PrintStream out, CeaTask[] tasks, CeaMetadata meta,
                              String cmdline ) {
         super( out, createServiceConfig(), tasks, cmdline );
+        meta_ = meta;
     }
 
     public static String getUsage() {
@@ -77,12 +77,9 @@ public class ServiceCeaWriter extends CeaWriter {
            + formatAttribute( "xmlns:schemaLocation",
                               CEAS_NS + " " + SCHEMA_LOCATION )
            + formatAttribute( "xsi:type", "ceas:CeaApplicationType" ) );
-        addElement( "title", "",
-                    "STILTS - Starlink Tables Infrastructure Library Tool Set v"
-                   + Stilts.getVersion() );
-        addElement( "shortName", "", "STILTS" );
-        addElement( "identifier", "",
-                    "ivo://starlink.ac.uk/stilts" + Stilts.getVersion() );
+        addElement( "title", "", meta_.getLongName() );
+        addElement( "shortName", "", meta_.getShortName() );
+        addElement( "identifier", "", meta_.getIvorn() );
 
         startElement( "curation" );
         addElement( "publisher", "", "Astrogrid" );
@@ -105,9 +102,9 @@ public class ServiceCeaWriter extends CeaWriter {
         startElement( "content" );
         addElement( "subject", "", "catalogs tables" );
         startElement( "description" );
-        writeDescriptionContent();
+        print( meta_.getDescription() );
         endElement( "description" );
-        addElement( "referenceURL", "", getManualURL() );
+        addElement( "referenceURL", "", meta_.getRefUrl() );
         addElement( "type", "", "Other" );
         endElement( "content" );
 
@@ -117,6 +114,10 @@ public class ServiceCeaWriter extends CeaWriter {
         writeInterfaces();
         endElement( "ApplicationDefinition" );
         endElement( "vor:Resource" );
+    }
+
+    public String getSchemaLocation() {
+        return SCHEMA_LOCATION;
     }
 
     /**
