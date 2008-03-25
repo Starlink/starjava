@@ -55,7 +55,7 @@ public class TableMatch2Test extends TableTestCase {
             new String[] { "X_1", "Y_1", "Vmag", "X_2", "Y_2", "Bmag" },
             getColNames( join12( "1xor2", "all", 1.0 ) ) );
         assertArrayEquals(
-            new String[] { "X_1", "Y_1", "Vmag", "X_2", "Y_2", "Bmag" },
+            cols12sep,
             getColNames( join12( "1and2", "all", 0.5 ) ) );
 
         assertArrayEquals(
