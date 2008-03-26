@@ -82,7 +82,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>28 January 2008</docdate>
+<docdate>26 March 2008</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -5217,10 +5217,21 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-    <dt>Next version</dt>
+<dt>Version 1.4-2 (26 March 2008)</dt>
+<dd><p>
+    <dl>
+    <dt>Minor enhancements:</dt>
     <dd><p>
         <ul>
-        <li>Fix pair matching performance bug (slower if tables were not 
+        <li>Add <code>progress</code> parameter to <code>tmatchn</code>.</li>
+        <li>Add <code>emptyok</code> parameter to 
+            <code>coneskymatch</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed pair matching performance bug (slower if tables were not 
             given in the right order) introduced at v1.4.</li>
         <li>Fixed null handling error in <code>calc</code> task.</li>
         <li>Fixed error in <code>stats</code> filter cardinality value 
@@ -5232,11 +5243,10 @@ but my thanks are especially due to the following:
         <li>Try to avoid exponential format in cone search URLs 
             (some endpoints seem to require fixed point format).</li>
         <li>Minor CEA fixes.</li>
-        <li>Add <code>progress</code> parameter to <code>tmatchn</code>.</li>
-        <li>Add <code>emptyok</code> parameter to 
-            <code>coneskymatch</code>.</li>
         </ul>
         </p></dd>
+    </dl>
+    </p></dd>
 
 </dl>
 </p>
