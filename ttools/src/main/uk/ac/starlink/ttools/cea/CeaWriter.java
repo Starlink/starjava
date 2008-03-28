@@ -46,23 +46,27 @@ public abstract class CeaWriter extends XmlWriter {
      * @param  out  output stream for XML
      * @param  config  configuration object for the specific flavour of output
      * @param  tasks  list of tasks to be described by the output
+     * @param  redirects  true iff you want stdout/stderr parameters for 
+     *                    standard output/error redirection
      * @param  cmdline  command line string, used for logging within the
      *                  output only
      */
     protected CeaWriter( PrintStream out, CeaConfig config, CeaTask[] tasks,
-                         String cmdline ) {
+                         boolean redirects, String cmdline ) {
         super( out );
         config_ = config;
         tasks_ = tasks;
         cmdline_ = cmdline;
         formatter_ = new Formatter();
         formatter_.setManualName( "the manual" );
-        flagDefs_ = new FlagDef[] {
-            new RedirectFlagDef( "stdout", "File for output from task",
-                                 "stilts.out" ),
-            new RedirectFlagDef( "stderr", "File for errors from task",
-                                 "stilts.err" ),
-        };
+        flagDefs_ = redirects
+            ? new FlagDef[] {
+                  new RedirectFlagDef( "stdout", "File for output from task",
+                                       "stilts.out" ),
+                  new RedirectFlagDef( "stderr", "File for errors from task",
+                                       "stilts.err" ),
+              }
+            : new FlagDef[ 0 ];
     }
 
     /**
@@ -489,8 +493,8 @@ public abstract class CeaWriter extends XmlWriter {
              throws LoadException, SAXException {
 
         /* Prepare usage message. */
-        String cmdname = CeaWriter.class.getName();
-        String commonUsage = " [-task <task>]";
+        String cmdname = CeaWriter.class.getName().replaceFirst( "^.*\\.", "" );
+        String commonUsage = " [-task <task>] [-redirects]";
         String usage = new StringBuffer()
             .append( "\n   Usage:" )
             .append( "\n      " )
@@ -521,6 +525,7 @@ public abstract class CeaWriter extends XmlWriter {
         CeaTask task1 = null;
         PrintStream out = System.out;
         Boolean isImpl = null;
+        boolean redirects = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( "-h".equals( arg ) || "-help".equals( arg ) ) {
@@ -555,6 +560,10 @@ public abstract class CeaWriter extends XmlWriter {
                                                   .createObject( taskName ),
                                      taskName );
             }
+            else if ( arg.equals( "-redirects" ) ) {
+                it.remove();
+                redirects = true;
+            }
         }
         if ( isImpl == null ) {
             System.err.println( usage );
@@ -572,8 +581,9 @@ public abstract class CeaWriter extends XmlWriter {
         }
         CeaWriter writer = isImpl.booleanValue()
             ? (CeaWriter) new ImplementationCeaWriter( out, tasks, meta,
-                                                       cmdline )
-            : (CeaWriter) new ServiceCeaWriter( out, tasks, meta, cmdline );
+                                                       redirects, cmdline )
+            : (CeaWriter) new ServiceCeaWriter( out, tasks, meta,
+                                                redirects, cmdline );
 
         /* Perform implementation-specific command-line arg configuration. */
         int configStat =

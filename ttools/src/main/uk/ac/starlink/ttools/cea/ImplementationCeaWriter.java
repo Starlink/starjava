@@ -42,12 +42,15 @@ public class ImplementationCeaWriter extends CeaWriter {
      * @param  out  output stream for XML
      * @param  tasks  list of tasks to be described by the output
      * @param  meta   application description metadata object
+     * @param  redirects  true iff you want stdout/stderr parameters for
+     *                    standard output/error redirection
      * @param  cmdline  command line string, used for logging within the
      *                  output only
      */
     public ImplementationCeaWriter( PrintStream out, CeaTask[] tasks,
-                                    CeaMetadata meta, String cmdline ) {
-        super( out, createImplementationConfig(), tasks, cmdline );
+                                    CeaMetadata meta, boolean redirects,
+                                    String cmdline ) {
+        super( out, createImplementationConfig(), tasks, redirects, cmdline );
         meta_ = meta;
     }
 

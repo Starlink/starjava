@@ -47,9 +47,9 @@ If executed with the "-help" flag, this will output a usage message,
 something like:
 
    Usage:
-      uk.ac.starlink.ttools.cea.CeaWriter -help
-      uk.ac.starlink.ttools.cea.CeaWriter -impl -path <app-path> [-task <task>]
-      uk.ac.starlink.ttools.cea.CeaWriter -service [-task <task>]
+      CeaWriter -help
+      CeaWriter -impl -path <app-path> [-task <task>] [-redirects]
+      CeaWriter -service [-task <task>] [-redirects]
 
 As this indicates, it can run in two modes: with the -impl flag it 
 generates the app-description file used where the service is deployed,
