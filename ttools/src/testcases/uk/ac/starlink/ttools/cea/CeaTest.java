@@ -39,21 +39,22 @@ public class CeaTest extends TestCase {
 
     public void testImplementationDoc() throws Exception {
         checkCeaOutput( new ImplementationCeaWriter( null, tasks_, tasksMeta_,
-                                                     DUMMY_CMD ),
+                                                     true, DUMMY_CMD ),
                         new String[] { "-path", "/usr/bin/stilts", } );
         checkCeaOutput( new ImplementationCeaWriter( null,
                                                      new CeaTask[] { task1_ },
-                                                     task1Meta_, DUMMY_CMD ),
+                                                     task1Meta_, false,
+                                                     DUMMY_CMD ),
                         new String[] { "-path", "/usr/bin/stilts_"
                                                 + task1_.getName() } );
     }
 
     public void testServiceDoc() throws Exception {
         checkCeaOutput( new ServiceCeaWriter( null, tasks_, task1Meta_,
-                                              DUMMY_CMD ),
+                                              false, DUMMY_CMD ),
                         new String[ 0 ] );
         checkCeaOutput( new ServiceCeaWriter( null, new CeaTask[] { task1_ },
-                                              tasksMeta_, DUMMY_CMD ),
+                                              tasksMeta_, true, DUMMY_CMD ),
                         new String[ 0 ] );
     }
 
