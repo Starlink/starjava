@@ -127,7 +127,7 @@ public class CeaMetadata {
         String shortName = task.getName();
         String longName = task.getName() + " from STILTS"
                         + " v" + Stilts.getVersion();
-        String refUrl = MANUAL_URL + task.getName() + "/";
+        String refUrl = MANUAL_URL + task.getName() + ".html";
         String desc = task.getPurpose();
         return new CeaMetadata( ivorn, shortName, longName, refUrl, desc );
     }
