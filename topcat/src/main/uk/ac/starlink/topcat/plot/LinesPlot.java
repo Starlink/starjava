@@ -23,6 +23,8 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component which paints a stack of line plots.
  *

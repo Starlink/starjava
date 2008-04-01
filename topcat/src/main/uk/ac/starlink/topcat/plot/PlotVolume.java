@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Component;
 import java.awt.Graphics;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Plots 3D points on a 2D graphics context.
  * This is an abstract class which does much of the common work but 

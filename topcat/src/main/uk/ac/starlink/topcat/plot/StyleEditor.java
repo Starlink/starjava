@@ -17,6 +17,8 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Graphical component which provides a GUI for editing the characteristics
  * of a {@link Style} object.  This is an abstract superclass; a specialised

@@ -47,6 +47,8 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * GraphicsWindow which draws a stack of line graphs.
  *

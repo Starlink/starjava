@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import uk.ac.starlink.table.ValueInfo;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotState specific to spherical 3D plots.
  *

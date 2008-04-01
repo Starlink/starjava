@@ -11,6 +11,8 @@ import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Displays a legend for an auxiliary (colour) axis.
  * 

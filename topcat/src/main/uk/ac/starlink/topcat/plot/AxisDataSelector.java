@@ -22,6 +22,8 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Graphical component allowing selection of one or more columns 
  * required for plotting data along one axis of a graph.  

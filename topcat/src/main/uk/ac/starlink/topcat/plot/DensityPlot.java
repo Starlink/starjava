@@ -22,6 +22,8 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.RowSubset;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component which can display a density plot, which is to say, a
  * two-dimensional histogram.

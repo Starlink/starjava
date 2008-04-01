@@ -8,6 +8,8 @@ import java.util.Iterator;
 import javax.swing.JComponent;
 import uk.ac.starlink.topcat.RowSubset;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component which draws a histogram.
  *

@@ -43,6 +43,8 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Window which displays a scatter plot of two columns from a table.
  *

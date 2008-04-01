@@ -27,6 +27,8 @@ import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.FloatList;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Provides some implementations of the {@link Shader} interface.
  *

@@ -19,6 +19,8 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * AxesSelector implementation that wraps an existing one and adds some
  * auxiliary axes of its own.  These auxiliary axes are optional and

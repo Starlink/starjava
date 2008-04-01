@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotState specialist subclass used for density maps.
  *

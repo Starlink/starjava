@@ -10,6 +10,8 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * StyleEditor for density plots.
  *

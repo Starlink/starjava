@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Plot3D which works with Cartesian coordinates.
  *

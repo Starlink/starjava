@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.util.LongList;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotVolume implementation which accumulates all points to plot and then
  * draws them in a way suitable for a bitmap-type context.

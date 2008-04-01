@@ -14,6 +14,8 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Encapsulates the selection of the list of points which is to be plotted.
  * This may be composed of points from one or more than one tables.

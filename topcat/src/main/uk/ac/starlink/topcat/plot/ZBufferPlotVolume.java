@@ -9,6 +9,8 @@ import java.awt.image.WritableRaster;
 import java.util.Arrays;
 import java.util.BitSet;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotVolume which uses a Z-buffer to keep track of which pixels are in
  * front.  It can only render opaque markers.

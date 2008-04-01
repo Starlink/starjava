@@ -13,6 +13,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperColumn;
 import uk.ac.starlink.topcat.TopcatModel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * AxesSelector implementation which adds a weighting axis to the
  * basic ones.  The output is the same as that of the supplied base

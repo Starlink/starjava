@@ -5,6 +5,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Characterises the details of how a plot is to be done.
  * An instance of this class contains all the information which a 

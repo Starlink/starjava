@@ -38,6 +38,8 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * GraphicsWindow which presents one-dimensional data as a histogram.
  *

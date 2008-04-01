@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotVolume implementation which accumulates all points to plot and then
  * plots them by drawing, suitable for a vector-like context.

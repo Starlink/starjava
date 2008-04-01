@@ -11,6 +11,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Combo box for selecting dash patterns.
  *

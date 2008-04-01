@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Graphics;
 import javax.swing.Icon;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Style for the way that a density map (2d histogram) is plotted.
  *

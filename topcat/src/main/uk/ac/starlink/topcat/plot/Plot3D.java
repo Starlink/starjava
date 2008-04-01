@@ -23,6 +23,8 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatUtils;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component which paints a 3d plot.
  *

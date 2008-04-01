@@ -47,6 +47,8 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.WeakTopcatListener;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component for choosing a table, a number of columns and a selection of
  * row subsets.  The details of the column selection are handled by 

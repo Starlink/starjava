@@ -12,6 +12,8 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.Wrapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * AxesSelector implementation which wraps an existing one and adds 
  * a point label axis of its own.  The labeller axis is optional and

@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Specialisation of PlotState for use with histograms.
  *

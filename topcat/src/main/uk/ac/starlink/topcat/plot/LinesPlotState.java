@@ -4,6 +4,8 @@ import java.util.Arrays;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotState subclass for use with stacked line plots.
  *

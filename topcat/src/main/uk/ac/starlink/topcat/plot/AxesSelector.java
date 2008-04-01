@@ -5,6 +5,8 @@ import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.TopcatModel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Defines an object which provides column selectors for a plot.
  * An instance of this interface is owned by each {@link PointSelector}.

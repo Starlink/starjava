@@ -60,6 +60,8 @@ import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Graphics window which displays a density plot, that is a 2-dimensional
  * histogram.  Each screen pixel corresponds to a bin of the 2-d histogram,

@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import java.util.Arrays;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * PlotState subclass which has specific features for specifying the
  * state of 3D scatter plots.  The most important extra feature is

@@ -26,6 +26,8 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.RowSubset;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component which can display a scatter plot of points.
  * 

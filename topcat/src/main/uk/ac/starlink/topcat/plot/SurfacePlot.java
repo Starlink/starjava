@@ -12,6 +12,8 @@ import javax.swing.JComponent;
 import javax.swing.OverlayLayout;
 import uk.ac.starlink.topcat.RowSubset;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Abstract superclass for plot components which display on a
  * {@link PlotSurface}.  Note that the PlotSurface is not specified in

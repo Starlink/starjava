@@ -18,6 +18,8 @@ import javax.swing.JToolBar;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.HelpAction;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Dialogue which houses a StyleEditor.
  *
