@@ -85,6 +85,8 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Abstract superclass for windows doing N-dimensional plots of table data.
  *
@@ -647,7 +649,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         mainSel.setStyles( getStyles() );
 
         /* Configure legend. */
-        legend_.setErrorModeModels( getErrorModeModels() );
+        legend_.setErrorModeSelections( getErrorModeModels() );
     }
 
     /**
@@ -839,7 +841,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         int ndim = 0;
         ErrorMode[] modes = new ErrorMode[ modeModels.length ];
         for ( int idim = 0; idim < modeModels.length; idim++ ) {
-            modes[ idim ] = modeModels[ idim ].getMode();
+            modes[ idim ] = modeModels[ idim ].getErrorMode();
             if ( ! ErrorMode.NONE.equals( modes[ idim ] ) ) {
                 ndim++;
             }

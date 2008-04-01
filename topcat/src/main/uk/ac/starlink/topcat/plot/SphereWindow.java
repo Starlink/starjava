@@ -16,6 +16,8 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Graphics window for viewing 3D scatter plots using spherical polar
  * coordinates.
@@ -78,8 +80,8 @@ public class SphereWindow extends Plot3DWindow {
                 boolean hasTan = tangentErrorToggler_.isSelected();
                 ErrorMode mode = hasTan ? ErrorMode.SYMMETRIC
                                         : ErrorMode.NONE;
-                if ( tangentErrorModeModels_[ 0 ].getMode() != mode ) {
-                    assert tangentErrorModeModels_[ 1 ].getMode() != mode;
+                if ( tangentErrorModeModels_[ 0 ].getErrorMode() != mode ) {
+                    assert tangentErrorModeModels_[ 1 ].getErrorMode() != mode;
                     tangentErrorModeModels_[ 0 ].setMode( mode );
                     tangentErrorModeModels_[ 1 ].setMode( mode );
                 }

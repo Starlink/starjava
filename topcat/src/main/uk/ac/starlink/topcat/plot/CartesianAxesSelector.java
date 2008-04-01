@@ -14,6 +14,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * AxesSelector implementation which deals with the straightforward
  * case in which the returned data table consists of the columns selected
@@ -77,7 +79,8 @@ public class CartesianAxesSelector implements AxesSelector {
                 ActionListener listener = new ActionListener() {
                     public void actionPerformed( ActionEvent evt ) {
                         dataSelectors_[ idim ]
-                            .setErrorMode( errorModeModels_[ idim ].getMode() );
+                            .setErrorMode( errorModeModels_[ idim ]
+                                          .getErrorMode() );
                     }
                 };
                 errorModeModels_[ idim ].addActionListener( listener );
@@ -150,7 +153,7 @@ public class CartesianAxesSelector implements AxesSelector {
         int nerr = errorModeModels_.length;
         ErrorMode[] modes = new ErrorMode[ nerr ];
         for ( int ierr = 0; ierr < nerr; ierr++ ) {
-            modes[ ierr ] = errorModeModels_[ ierr ].getMode();
+            modes[ ierr ] = errorModeModels_[ ierr ].getErrorMode();
         }
         return modes;
     }

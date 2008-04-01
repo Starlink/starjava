@@ -12,6 +12,8 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * StyleEditor implementation for suitable for a {@link LinesPlot}.
  * The style objects used are (currently) {@link MarkStyle}s.
@@ -186,8 +188,9 @@ public class LinesStyleEditor extends StyleEditor {
         List lineMark = (List) lineMarkSelector_.getValue();
         boolean hasLine = ((Boolean) lineMark.get( 0 )).booleanValue();
         boolean hasMark = ((Boolean) lineMark.get( 1 )).booleanValue();
-        boolean hasError = errorModeModels_[ 0 ].getMode() != ErrorMode.NONE
-                        || errorModeModels_[ 1 ].getMode() != ErrorMode.NONE;
+        boolean hasError =
+            errorModeModels_[ 0 ].getErrorMode() != ErrorMode.NONE ||
+            errorModeModels_[ 1 ].getErrorMode() != ErrorMode.NONE;
         thickSelector_.setEnabled( hasLine );
         dashSelector_.setEnabled( hasLine );
         sizeSelector_.setEnabled( hasMark );

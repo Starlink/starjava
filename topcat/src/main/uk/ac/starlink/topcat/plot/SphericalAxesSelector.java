@@ -31,6 +31,8 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * AxesSelector implementation which queries for spherical polar coordinates
  * and yields 3D Cartesian ones.
@@ -171,7 +173,7 @@ public class SphericalAxesSelector implements AxesSelector {
          * state of the axis data selectors as appropriate. */
         ActionListener radialErrorListener = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                rSelector_.setErrorMode( radialErrorModeModel_.getMode() );
+                rSelector_.setErrorMode( radialErrorModeModel_.getErrorMode() );
             }
         };
         radialErrorModeModel_.addActionListener( radialErrorListener );
@@ -200,8 +202,9 @@ public class SphericalAxesSelector implements AxesSelector {
     public StarTable getErrorData() {
         List colList = new ArrayList();
         boolean hasTanerr = tangentErrorToggler_.isSelected();
-        ErrorMode radialMode = radialVisible_ ? radialErrorModeModel_.getMode()
-                                              : ErrorMode.NONE;
+        ErrorMode radialMode = radialVisible_
+                             ? radialErrorModeModel_.getErrorMode()
+                             : ErrorMode.NONE;
         if ( hasTanerr ) {
             ColumnData tData = tanerrSelector_.getColumnData();
             colList.add( tData == null ? ConstantColumnData.ZERO : tData );
@@ -225,8 +228,9 @@ public class SphericalAxesSelector implements AxesSelector {
 
     public PointStore createPointStore( int npoint ) {
         boolean hasTanerr = tangentErrorToggler_.isSelected();
-        ErrorMode radialMode = radialVisible_ ? radialErrorModeModel_.getMode()
-                                              : ErrorMode.NONE;
+        ErrorMode radialMode = radialVisible_
+                             ? radialErrorModeModel_.getErrorMode()
+                             : ErrorMode.NONE;
         boolean radialLog = logToggler_.isSelected();
         return new SphericalPolarPointStore( radialMode, hasTanerr, radialLog,
                                              npoint );
@@ -237,7 +241,7 @@ public class SphericalAxesSelector implements AxesSelector {
         boolean hasTan = tangentErrorToggler_.isSelected();
         modes[ 0 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
         modes[ 1 ] = hasTan ? ErrorMode.SYMMETRIC : ErrorMode.NONE;
-        modes[ 2 ] = radialVisible_ ? radialErrorModeModel_.getMode()
+        modes[ 2 ] = radialVisible_ ? radialErrorModeModel_.getErrorMode()
                                     : ErrorMode.NONE;
         return modes;
     }
