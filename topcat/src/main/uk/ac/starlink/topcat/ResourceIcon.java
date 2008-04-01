@@ -36,9 +36,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
-import uk.ac.starlink.topcat.plot.ErrorMode;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
+import uk.ac.starlink.tplot.ErrorMode;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
