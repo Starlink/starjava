@@ -19,7 +19,7 @@ import uk.ac.starlink.tplot.*;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  * @see   java.awt.BasicStroke
- * @see   uk.ac.starlink.topcat.plot.DefaultStyle
+ * @see   uk.ac.starlink.tplot.DefaultStyle
  */
 public class DashComboBox extends RenderingComboBox {
 
