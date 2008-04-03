@@ -92,7 +92,7 @@ public class HistogramWindow extends GraphicsWindow {
             }
         };
         plot_ = new Histogram( surf );
-        plot_.addListener( new PlotListener() {
+        plot_.addPlotListener( new PlotListener() {
             public void plotChanged( PlotEvent evt ) {
                 zoomRegionList_.reconfigure();
             }
