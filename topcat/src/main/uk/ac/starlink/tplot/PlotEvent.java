@@ -43,7 +43,7 @@ public class PlotEvent {
     /**
      * Returns the component in which the plot was done.
      *
-     * @param  event source
+     * @return  event source
      */
     public Component getSource() {
         return source_;
