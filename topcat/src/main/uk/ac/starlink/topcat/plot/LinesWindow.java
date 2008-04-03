@@ -50,6 +50,7 @@ import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.WrapUtils;
 
 import uk.ac.starlink.tplot.*;
 
@@ -601,7 +602,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private static LinesAxesSelector
                    findLinesAxesSelector( AxesSelector axsel ) {
         return (LinesAxesSelector)
-               TopcatUtils.getWrapped( axsel, LinesAxesSelector.class );
+               WrapUtils.getWrapped( axsel, LinesAxesSelector.class );
     }
 
     /*

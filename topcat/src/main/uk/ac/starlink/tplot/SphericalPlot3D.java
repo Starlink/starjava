@@ -5,7 +5,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.Arrays;
-import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.WrapUtils;
 
 import uk.ac.starlink.tplot.*;
 
@@ -76,7 +76,7 @@ public class SphericalPlot3D extends Plot3D {
          * skipping some expensive calulations of error points where it's
          * known they will end up in the same pixel as the data point. */
         Points points = super.getPoints();
-        Object basePoints = TopcatUtils.getWrapped( points );
+        Object basePoints = WrapUtils.getWrapped( points );
         if ( basePoints instanceof SphericalPolarPointStore ) {
             Plot3DState state = getState();
             int scale = Math.max( getWidth(), getHeight() );

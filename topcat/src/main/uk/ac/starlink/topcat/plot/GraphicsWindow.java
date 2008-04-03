@@ -81,6 +81,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.WrapUtils;
 import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -1227,7 +1228,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 boolean isActive = false;
                 for ( int isel = 0; isel < nsel && ! isActive; isel++ ) {
                     AugmentedAxesSelector augSel =
-                        (AugmentedAxesSelector) TopcatUtils
+                        (AugmentedAxesSelector) WrapUtils
                        .getWrapped( pointSelectors_.getSelector( isel )
                                                    .getAxesSelector(),
                                     AugmentedAxesSelector.class );

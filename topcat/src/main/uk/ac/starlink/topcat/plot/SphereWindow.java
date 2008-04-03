@@ -15,6 +15,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.WrapUtils;
 
 import uk.ac.starlink.tplot.*;
 
@@ -282,7 +283,7 @@ public class SphereWindow extends Plot3DWindow {
     private static SphericalAxesSelector
                    getSphericalAxesSelector( PointSelector psel ) {
         return (SphericalAxesSelector)
-               TopcatUtils.getWrapped( psel.getAxesSelector() );
+               WrapUtils.getWrapped( psel.getAxesSelector() );
     }
 
     /**
