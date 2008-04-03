@@ -7,7 +7,6 @@ import java.awt.Shape;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * PlotSurface implementation which uses Ptplot classes for axis plotting

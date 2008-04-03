@@ -8,7 +8,6 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import javax.swing.JComponent;
 import javax.swing.OverlayLayout;
-import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Abstract superclass for plot components which display on a
