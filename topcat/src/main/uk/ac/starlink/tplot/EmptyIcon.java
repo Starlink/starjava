@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.tplot;
 
 import java.awt.Component;
 import java.awt.Graphics;
