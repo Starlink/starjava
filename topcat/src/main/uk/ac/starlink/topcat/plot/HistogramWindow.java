@@ -49,6 +49,7 @@ import uk.ac.starlink.tplot.*;
 public class HistogramWindow extends GraphicsWindow {
 
     private final Histogram plot_;
+    private final SurfaceZoomRegionList zoomRegionList_;
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
     private final ToggleButtonModel cumulativeModel_;
@@ -86,11 +87,19 @@ public class HistogramWindow extends GraphicsWindow {
          * no point zooming in such a way that the Y axis goes below zero,
          * so block that. */
         PlotSurface surf = new PtPlotSurface() {
-            void _setYRange( double min, double max ) {
+            public void _setYRange( double min, double max ) {
                 super._setYRange( Math.max( getMinYValue(), min ), max );
             }
         };
-        plot_ = new Histogram( surf ) {
+        plot_ = new Histogram( surf );
+        plot_.addListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                zoomRegionList_.reconfigure();
+            }
+        } );
+
+        /* Zooming. */
+        zoomRegionList_ = new SurfaceZoomRegionList( plot_ ) {
             protected void requestZoom( double[][] bounds ) {
                 double[] xbounds = bounds[ 0 ];
                 if ( xbounds != null ) {
@@ -107,6 +116,12 @@ public class HistogramWindow extends GraphicsWindow {
                 replot();
             }
         };
+        Zoomer zoomer = new Zoomer();
+        zoomer.setRegions( zoomRegionList_ );
+        zoomer.setCursorComponent( plot_ );
+        Component scomp = plot_.getSurface().getComponent();
+        scomp.addMouseListener( zoomer );
+        scomp.addMouseMotionListener( zoomer );
 
         /* Actions for rescaling the axes. */
         Action rescaleActionXY =
@@ -597,7 +612,9 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Get the list of set IDs which describes which table/subset pairs
          * each of the sets in the binned data represents. */
-        SetId[] setIds = getPointSelectors().getPointSelection().getSetIds();
+        SetId[] setIds =
+           ((TopcatPointSelection) getPointSelectors().getPointSelection())
+          .getSetIds();
         final int nset = setIds.length;
 
         /* Set up the first two columns of the output table, which are
