@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -76,7 +77,6 @@ public class DensityWindow extends GraphicsWindow {
     private final JComponent plotPanel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
-    private final CountsLabel plotStatus_;
     private final ToggleButtonModel rgbModel_;
     private final ToggleButtonModel zLogModel_;
     private final ToggleButtonModel weightModel_;
@@ -131,9 +131,13 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Construct and populate the plot panel with the 2d histogram
          * itself and a transparent layer for doodling blobs on. */
-        plot_ = new DensityPlot( surface ) {
+        plot_ = new DensityPlot( surface );
+
+        /* Zooming. */
+        final SurfaceZoomRegionList zoomRegions =
+                new SurfaceZoomRegionList( plot_ ) {
             protected void requestZoom( double[][] bounds ) {
-                for ( int idim = 0; idim < 2; idim ++ ) {
+                for ( int idim = 0; idim < 2; idim++ ) {
                     if ( bounds[ idim ] != null ) {
                         getAxisWindow().getEditors()[ idim ].clearBounds();
                         getViewRanges()[ idim ].setBounds( bounds[ idim ] );
@@ -141,32 +145,27 @@ public class DensityWindow extends GraphicsWindow {
                 }
                 replot();
             }
-            protected void reportCounts( int nPoint, int nInc, int nVis ) {
-                plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
-            }
-            protected void reportCuts( double[] loCuts, double[] hiCuts,
-                                       DensityStyle[] styles ) {
-                StringBuffer sbuf = new StringBuffer();
-                boolean weighted = 
-                    ((DensityPlotState) getState()).getWeighted();
-                for ( int i = 0; loCuts != null && i < loCuts.length; i++ ) {
-                    if ( i > 0 ) {
-                        sbuf.append( ";  " );
-                    }
-                    if ( weighted ) {
-                        sbuf.append( (float) loCuts[ i ] )
-                            .append( " \u2014 " )
-                            .append( (float) hiCuts[ i ] );
-                    }
-                    else {
-                        sbuf.append( (int) loCuts[ i ] )
-                            .append( " \u2014 " )
-                            .append( (int) hiCuts[ i ] );
-                    }
-                }
-                cutLabel_.setText( sbuf.toString() );
-            }
         };
+        Zoomer zoomer = new Zoomer();
+        zoomer.setRegions( zoomRegions );
+        zoomer.setCursorComponent( plot_ );
+        Component scomp = plot_.getSurface().getComponent();
+        scomp.addMouseListener( zoomer );
+        scomp.addMouseMotionListener( zoomer );
+
+        /* Respond to plot changes. */
+        plot_.addPlotListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                zoomRegions.reconfigure();
+                DensityPlotEvent devt = (DensityPlotEvent) evt;
+                String cutter = 
+                    getCutLabelText( devt.getLoCuts(), devt.getHiCuts(),
+                                     ((DensityPlotState) devt.getPlotState())
+                                    .getWeighted() );
+                cutLabel_.setText( cutter );
+            }
+        } );
+
         plotPanel_ = new JPanel();
         plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
@@ -182,14 +181,13 @@ public class DensityWindow extends GraphicsWindow {
         plotPanel_.add( plot_ );
 
         /* Construct and add a status line. */
-        plotStatus_ = new CountsLabel( new String[] {
-            "Potential", "Included", "Visible",
-        } );
+        PlotStatsLabel plotStatus = new PlotStatsLabel();
+        plot_.addPlotListener( plotStatus );
         PositionLabel posStatus = new PositionLabel( surface );
         posStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                  posStatus.getMaximumSize()
                                                           .height ) );
-        getStatusBox().add( plotStatus_ );
+        getStatusBox().add( plotStatus );
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
         getStatusBox().add( posStatus );
 
@@ -511,6 +509,34 @@ public class DensityWindow extends GraphicsWindow {
     protected boolean isLegendInteresting( PlotState state ) {
         return super.isLegendInteresting( state )
             && ((DensityPlotState) state).getRgb();
+    }
+
+    /**
+     * Returns label text to use which indicates per-channel cut levels.
+     *
+     * @param  loCuts  per-channel lower absolute cut level array
+     * @param  hiCuts  per-channel upper absolute cut level array
+     * @param  weighted  true iff weighting is in use
+     */
+    private static String getCutLabelText( double[] loCuts, double[] hiCuts,
+                                           boolean weighted ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; loCuts != null && i < loCuts.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( ";  " );
+            }
+            if ( weighted ) {
+                sbuf.append( (float) loCuts[ i ] )
+                    .append( " \u2014 " )
+                    .append( (float) hiCuts[ i ] );
+            }
+            else {
+                sbuf.append( (int) loCuts[ i ] )
+                    .append( " \u2014 " )
+                    .append( (int) hiCuts[ i ] );
+            }
+        }
+        return sbuf.toString();
     }
 
     /**
