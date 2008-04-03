@@ -14,9 +14,9 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.topcat.Wrapper;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.Wrapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 import uk.ac.starlink.tplot.*;
