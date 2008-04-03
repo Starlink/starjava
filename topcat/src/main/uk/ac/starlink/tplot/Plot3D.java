@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import uk.ac.starlink.topcat.RowSubset;
-import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * Component which paints a 3d plot.
@@ -719,6 +719,18 @@ public abstract class Plot3D extends TablePlot {
     }
 
     /**
+     * Hook for handling OutOfMemoryErrors which may be generated during
+     * plotting.  May be called from the event dispatch thread.
+     * The Plot3D implementation returns false.
+     *
+     * @param   e  error
+     * @return   true iff the error is handled (for intance user is informed)
+     */
+    protected boolean paintMemoryError( OutOfMemoryError e ) {
+        return false;
+    }
+
+    /**
      * Interface for checking that a 3-d coordinate is in range.
      */
     protected static abstract class RangeChecker {
@@ -842,7 +854,10 @@ public abstract class Plot3D extends TablePlot {
                 }
                 catch ( OutOfMemoryError e ) {
                     failed_ = true;
-                    TopcatUtils.memoryErrorLater( e );
+                    if ( ! paintMemoryError( e ) ) {
+                        logger_.log( Level.WARNING,
+                                     "Out of memory in 3D plot", e );
+                    }
                 }
             }
         }
