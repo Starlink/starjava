@@ -295,7 +295,8 @@ public class DensityWindow extends GraphicsWindow {
         /* Indexed colourmap selector. */
         JComponent shBox = Box.createHorizontalBox();
         final JComboBox shaderSelector = new JComboBox( shaderModel_ );
-        shaderSelector.setRenderer( Shaders.createRenderer( shaderSelector ) );
+        shaderSelector
+            .setRenderer( new ShaderListCellRenderer( shaderSelector ) );
         shBox.add( Box.createHorizontalStrut( 5 ) );
         shBox.add( new ShrinkWrapper( shaderSelector ) );
         shBox.add( Box.createHorizontalStrut( 5 ) );

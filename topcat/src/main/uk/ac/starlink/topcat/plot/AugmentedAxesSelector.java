@@ -88,8 +88,8 @@ public class AugmentedAxesSelector implements AxesSelector, Wrapper {
             for ( int i = 0; i < naux; i++ ) {
                 AxisDataSelector selector = auxSelector_.getDataSelector( i );
                 JComboBox shaderSelector = new JComboBox( shaderModels_[ i ] );
-                shaderSelector.setRenderer( Shaders
-                                           .createRenderer( shaderSelector ) );
+                shaderSelector
+                   .setRenderer( new ShaderListCellRenderer( shaderSelector ) );
                 JComponent box = Box.createHorizontalBox();
                 box.add( new ShrinkWrapper( shaderSelector ) );
                 box.add( Box.createHorizontalStrut( 5 ) );

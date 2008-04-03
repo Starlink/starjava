@@ -5,8 +5,6 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -14,16 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Icon;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.FloatList;
 
 /**
@@ -165,7 +155,6 @@ public class Shaders {
     /** Base directory for locating binary colour map lookup table resources. */
     private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
 
-    private static final Map rendererIconMap_ = new HashMap();
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.tplot" );
 
@@ -1020,73 +1009,6 @@ public class Shaders {
                 xShader_.adjustRgba( rgba, xval );
             }
             return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
-        }
-    }
-
-    /**
-     * Returns a renderer suitable for use in supplied combo box which 
-     * will be selecting between shaders.
-     *
-     * @param  comboBox  combo box to contain renderer
-     * @return  combo box renderer
-     */
-    public static ListCellRenderer createRenderer( final JComboBox comboBox ) {
-        final ShaderListCellRenderer renderer = new ShaderListCellRenderer();
-
-        /* Message the renderer when the combo box is enabled/disabled,
-         * which does not happen by default (though you might expect it to).
-         * This enables it to repaint its icon in disabled (greyed out) 
-         * colours where appropriate. */
-        comboBox.addPropertyChangeListener( new PropertyChangeListener() {
-            public void propertyChange( PropertyChangeEvent evt ) {
-                if ( "enabled".equals( evt.getPropertyName() ) ) {
-                    renderer.setEnabled( comboBox.isEnabled() );
-                }
-            }
-        } );
-        return renderer;
-    }
-
-    /**
-     * ListCellRenderer suitable for a combo box containing shaders.
-     */
-    private static class ShaderListCellRenderer extends BasicComboBoxRenderer {
-
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index, boolean isSel,
-                                                       boolean hasFocus ) {
-            Component comp =
-                super.getListCellRendererComponent( list, value, index, isSel,
-                                                    hasFocus );
-            if ( comp instanceof JLabel && value instanceof Shader ) {
-                JLabel label = (JLabel) comp;
-                Shader shader = (Shader) value;
-                String text = shader.getName();
-                if ( ! shader.isAbsolute() ) {
-                    text = "* " + text ;
-                }
-                label.setText( text );
-                label.setIcon( getRendererIcon( shader ) );
-            }
-            return comp;
-        }
-
-        /**
-         * Returns the icon associated with a shader.
-         */
-        private static Icon getRendererIcon( Shader shader ) {
-            if ( ! rendererIconMap_.containsKey( shader ) ) {
-                Icon icon = shader.createIcon( true, 48, 16, 4, 1 );
-
-                /* Store the image icon based on the painted icon in the map.
-                 * This has two advantages: first it doesn't need to be 
-                 * drawn each time, so probably this is more efficient.
-                 * Second, only ImageIcons can be greyed out 
-                 * (Swing limitation). */
-                rendererIconMap_.put( shader,
-                                      ResourceIcon.toImageIcon( icon ) );
-            }
-            return (Icon) rendererIconMap_.get( shader );
         }
     }
 }
