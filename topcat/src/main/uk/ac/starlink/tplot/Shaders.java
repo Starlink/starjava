@@ -167,7 +167,7 @@ public class Shaders {
 
     private static final Map rendererIconMap_ = new HashMap();
     private final static Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+        Logger.getLogger( "uk.ac.starlink.tplot" );
 
     /**
      * Basic abstract partial shader implementation.

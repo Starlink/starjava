@@ -25,7 +25,7 @@ public class MapBinnedData implements BinnedData {
     private final int nset_;
     private final BinMapper mapper_;
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+        Logger.getLogger( "uk.ac.starlink.tplot" );
 
     /**
      * Constructs a new BinnedData.

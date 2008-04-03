@@ -46,7 +46,7 @@ public abstract class Plot3D extends TablePlot {
     private static final MarkStyle DOT_STYLE =
         MarkShape.POINT.getStyle( Color.BLACK, 1 );
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+        Logger.getLogger( "uk.ac.starlink.tplot" );
 
     /**
      * Constructor.

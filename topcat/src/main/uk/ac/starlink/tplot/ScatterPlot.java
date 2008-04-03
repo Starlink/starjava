@@ -43,7 +43,7 @@ public class ScatterPlot extends SurfacePlot {
     private Image image_;
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot" );
+        Logger.getLogger( "uk.ac.starlink.tplot" );
 
     /**
      * Constructs a new scatter plot, specifying the initial plotting surface
