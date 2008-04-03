@@ -41,7 +41,7 @@ public class Legend extends JComponent {
      * Configures this legend to use a given set of error mode selections.
      * These can affect how marker style icons are drawn.
      *
-     * @param  errorModels   new error mode selections
+     * @param  errorSelections   new error mode selections
      */
     public void setErrorModeSelections( ErrorModeSelection[] errorSelections ) {
         errorModeSelections_ = errorSelections;
