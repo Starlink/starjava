@@ -324,6 +324,10 @@ public class LinesPlot extends TablePlot {
         for ( int i = 0; i < graphs.length; i++ ) {
             plotRegion_.add( graphs[ i ].getClip().getBounds() );
         }
+
+        /* Notify listeners that the plot has changed.  We haven't counted
+         * statistics, so use dummy values. */
+        firePlotChangedLater( new PlotEvent( this, state, -1, -1, -1 ) );
     }
 
     /**

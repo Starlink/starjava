@@ -145,6 +145,10 @@ public class Histogram extends SurfacePlot {
             /* Draw trailing edge of the final bar. */
             style.drawEdge( g, lastIxLead, lastIyhi, iylo, iset, nset );
         }
+
+        /* Notify listeners that the plot has changed.  We haven't counted
+         * statistics, so use dummy values. */
+        firePlotChangedLater( new PlotEvent( this, state, -1, -1, -1 ) );
     }
 
     /**
