@@ -4,6 +4,8 @@ import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * Component whose text gives the current position of the mouse on a
  * given plot surface.

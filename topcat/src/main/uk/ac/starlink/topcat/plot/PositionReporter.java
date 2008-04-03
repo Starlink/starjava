@@ -7,6 +7,8 @@ import java.util.Map;
 import java.text.DecimalFormat;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
+import uk.ac.starlink.tplot.*;
+
 /**
  * MouseMotionListener which acts on mouse movement events to provide
  * the position of the pointer in {@link PlotSurface} data coordinates.
