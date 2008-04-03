@@ -13,8 +13,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.util.Arrays;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -49,7 +52,6 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
-    private final CountsLabel plotStatus_;
     private double[] rotation_;
     private boolean isRotating_;
     private double zoom_ = 1.0;
@@ -72,6 +74,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
         rotateXY( rotateXY( new double[] { 1, 0, 0, 0, 1, 0, 0, 0, -1 },
                             0.5, 0.5 * Math.PI ),
                   0, -0.1 * Math.PI );
+    private static final double CLICK_ZOOM_UNIT = 1.2;
+    private static final boolean CAN_ZOOM = true;
 
     /**
      * Constructor.
@@ -99,15 +103,19 @@ public abstract class Plot3DWindow extends GraphicsWindow
          * parts sometimes serve as overspills for auxiliary axis text. */
         plot_.setBorder( BorderFactory.createEmptyBorder( 10, 32, 10, 10 ) );
 
-        /* Configure the plot to provide some callbacks when interesting
-         * things happen. */
-        plot_.setCallbacks( new Plot3D.Callbacks() {
-            public void reportCounts( int nPoint, int nInc, int nVis ) {
-                plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
-            }
-            public void requestZoom( double zoom ) {
-                zoom_ = Math.max( 1.0, zoom );
-                replot();
+        /* Zooming. */
+        Zoomer zoomer = new Zoomer();
+        zoomer.setRegions( Arrays.asList( createZoomRegions() ) );
+        zoomer.setCursorComponent( plot_ );
+        plot_.addMouseListener( zoomer );
+        plot_.addMouseMotionListener( zoomer );
+        plot_.addMouseWheelListener( new MouseWheelListener() {
+            public void mouseWheelMoved( MouseWheelEvent evt ) {
+                int nclick = evt.getWheelRotation();
+                if ( nclick != 0 ) {
+                    double factor = Math.pow( CLICK_ZOOM_UNIT, -nclick );
+                    doZoom( plot_.getState().getZoomScale() * factor );
+                }
             }
         } );
 
@@ -145,13 +153,12 @@ public abstract class Plot3DWindow extends GraphicsWindow
         plot_.addMouseListener( new PointClickListener() );
 
         /* Add a status line. */
-        plotStatus_ = new CountsLabel( new String[] {
-            "Potential", "Included", "Visible",
-        } );
-        plotStatus_.setMaximumSize( new Dimension( Integer.MAX_VALUE,
-                                                   plotStatus_
-                                                  .getMaximumSize().height ) );
-        getStatusBox().add( plotStatus_ );
+        PlotStatsLabel plotStatus = new PlotStatsLabel();
+        plotStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
+                                                  plotStatus
+                                                 .getMaximumSize().height ) );
+        plot_.addPlotListener( plotStatus );
+        getStatusBox().add( plotStatus );
 
         /* Action for reorienting the plot. */
         Action reorientAction = new BasicAction( "Reorient", ResourceIcon.XYZ,
@@ -226,7 +233,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         subsetMenu.add( blobAction_ );
-        if ( plot_.canZoom() ) {
+        if ( CAN_ZOOM ) {
             subsetMenu.add( fromVisibleAction_ );
         }
         getJMenuBar().add( subsetMenu );
@@ -239,7 +246,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( fogModel_.createToolbarButton() );
         getToolBar().add( blobAction_ );
-        if ( plot_.canZoom() ) {
+        if ( CAN_ZOOM ) {
             getToolBar().add( fromVisibleAction_ );
         }
 
@@ -339,7 +346,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
                 TopcatModel tcModel = evt.getModel();
-                PointSelection psel = plot_.getState().getPointSelection();
+                TopcatPointSelection psel =
+                    (TopcatPointSelection) plot_.getState().getPointSelection();
                 long lrow = ((Long) datum).longValue();
                 long[] lps = psel.getPointsForRow( tcModel, lrow );
                 int[] ips = new int[ lps.length ];
@@ -352,6 +360,17 @@ public abstract class Plot3DWindow extends GraphicsWindow
                 assert false;
             }
         }
+    }
+
+    /**
+     * Performs a zoom.
+     * Zoom factors greater than unity will not be honoured.
+     *
+     * @param  zoom  requested absolute zoom factor
+     */
+    private void doZoom( double zoom ) {
+        zoom_ = Math.max( 1.0, zoom );
+        replot();
     }
 
     /**
@@ -407,6 +426,75 @@ public abstract class Plot3DWindow extends GraphicsWindow
             y * z * w - x * s,
             z * z * w + c,
         };
+    }
+
+    /**
+     * Returns an array of zoom region objects for use on this window's plot.
+     *
+     * @return  zoom region array
+     */
+    private final ZoomRegion[] createZoomRegions() {
+        return new ZoomRegion[] {
+
+            /* Left hand side of plot. */
+            new ZoomRegion3D( false ) {
+                protected Rectangle getTarget( Rectangle display,
+                                               Rectangle bounds ) {
+                    int x = display.x + display.width;
+                    int width = bounds.width - x;
+                    int y = display.y;
+                    int height = display.height;
+                    return new Rectangle( x, y, width, height );
+                }
+            },
+
+            /* Right hand side of plot. */
+            new ZoomRegion3D( false ) {
+                protected Rectangle getTarget( Rectangle display,
+                                               Rectangle bounds ) {
+                    return new Rectangle( 0, display.y,
+                                          display.x, display.height );
+                }
+            },
+        };
+    }
+
+    /**
+     * Zoom Region abstract superclass which handles central zooming of
+     * this plot.  Different concrete subclasses will have different
+     * target regions.
+     */
+    private abstract class ZoomRegion3D extends CentreZoomRegion {
+
+        /**
+         * Constructor.
+         *
+         * @param   isX  true for horizontal target, false for vertical
+         */
+        ZoomRegion3D( boolean isX ) {
+            super( isX );
+        }
+
+        /**
+         * Defines the target region given the component and plot regions.
+         *
+         * @param   display  bounds of the plot region
+         * @param   bounds   bounds of the entire component
+         */
+        protected abstract Rectangle getTarget( Rectangle display,
+                                                Rectangle bounds );
+
+        public Rectangle getDisplay() {
+            return plot_.getDisplayBounds();
+        }
+
+        public Rectangle getTarget() {
+            return getTarget( plot_.getPlotBounds(), plot_.getBounds() );
+        }
+
+        public void zoomed( double[][] bounds ) {
+            doZoom( plot_.getState().getZoomScale() / bounds[ 0 ][ 0 ] );
+        }
     }
 
     /**
@@ -491,7 +579,9 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
                 /* Highlight if there is one. */
                 if ( ip >= 0 ) {
-                    PointSelection psel = plot_.getState().getPointSelection();
+                    TopcatPointSelection psel =
+                        (TopcatPointSelection)
+                        plot_.getState().getPointSelection();
                     psel.getPointTable( ip )
                         .highlightRow( psel.getPointRow( ip ) );
                 }
