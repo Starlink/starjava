@@ -9,7 +9,6 @@ import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
@@ -104,7 +103,7 @@ import uk.ac.starlink.tplot.*;
  * between one and the next, they're cheap.  If the state does change
  * materially, then a new plot is required.  The work done for plotting
  * depends on the details of how the PlotState has changed - in some cases
- * new data will be acquired (<code>PointSelection.readPoints</code> 
+ * new data will be acquired (<code>TopcatPointSelection.readPoints</code> 
  * is called - possibly expensive),
  * but if the data is the same as before, the plot just
  * needs to be redrawn (usually quite fast, since the various plotting
@@ -158,7 +157,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private StyleSet styleSet_;
     private BitSet usedStyles_;
     private Points points_;
-    private PointSelection lastPointSelection_;
+    private TopcatPointSelection lastPointSelection_;
     private PlotState lastState_;
     private Points lastPoints_;
     private Box statusBox_;
@@ -388,7 +387,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
                 /* Configure it for zooming. */
                 final int idim = iaux + getMainRangeCount();
-                ZoomRegion zoomRegion = auxLegend.new ZoomRegion() {
+                ZoomRegion zoomRegion = new AuxLegendZoomRegion( auxLegend ) {
                     protected void dataZoomed( double lo, double hi ) {
                         getAxisWindow().getEditors()[ idim ].clearBounds();
                         getViewRanges()[ idim ]
@@ -397,6 +396,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                     }
                 };
                 Zoomer zoomer = new Zoomer();
+                zoomer.setCursorComponent( auxLegend );
                 zoomer.setRegions( Collections.singletonList( zoomRegion ) );
                 auxLegend.addMouseListener( zoomer );
                 auxLegend.addMouseMotionListener( zoomer );
@@ -1168,7 +1168,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      *
      * <p>The <code>GraphicsWindow</code> implementation of this method
      * as well as populating the state with standard information
-     * also calls {@link PointSelection#readPoints}
+     * also calls {@link TopcatPointSelection#readPoints}
      * and {@link #calculateRanges} if necessary.
      *
      * @return  snapshot of the currently-selected plot request
@@ -1256,7 +1256,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Set point selection, reading the points data if necessary
          * (that is if the point selection has changed since last time
          * it was read). */
-        PointSelection pointSelection = pointSelectors_.getPointSelection();
+        TopcatPointSelection pointSelection =
+            pointSelectors_.getPointSelection();
         state.setPointSelection( pointSelection );
         boolean sameData = pointSelection.sameData( lastPointSelection_ );
         if ( ( ! sameData ) || forceReread_ ) {
@@ -1550,8 +1551,9 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* For the given mask, which corresponds to all the plotted points,
          * deconvolve it into individual masks for any of the tables
          * that our point selection is currently dealing with. */
-        PointSelection.TableMask[] tableMasks =
-            lastState_.getPointSelection().getTableMasks( pointsMask );
+        TopcatPointSelection.TableMask[] tableMasks =
+            ((TopcatPointSelection) lastState_.getPointSelection())
+           .getTableMasks( pointsMask );
 
         /* Handle each of the affected tables separately. */
         for ( int i = 0; i < tableMasks.length; i++ ) {
@@ -1859,20 +1861,6 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
-     * Determines whether the given graphics context represents a 
-     * vector graphics type environment (such as PostScript).
-     *
-     * @param  g  graphics context to test
-     * @return  true iff <code>g</code> is PostScript-like
-     */
-    public static boolean isVector( Graphics g ) {
-        return ( g instanceof EpsGraphics2D )
-            || ( g instanceof Graphics2D
-                 && ((Graphics2D) g).getDeviceConfiguration().getDevice()
-                                    .getType() == GraphicsDevice.TYPE_PRINTER );
-    }
-
-    /**
      * Creates a default set of ErrorModeSelectionModels given a list of
      * axis names.
      *
@@ -2071,7 +2059,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * Thread class which will read the data into a Points object.
      */
     private class PointsReader extends Thread {
-        final PointSelection pointSelection_;
+        final TopcatPointSelection pointSelection_;
         final long start_;
 
         /**
@@ -2080,7 +2068,7 @@ public abstract class GraphicsWindow extends AuxWindow {
          *
          * @param  pointSelection  point selection
          */
-        PointsReader( PointSelection pointSelection ) {
+        PointsReader( TopcatPointSelection pointSelection ) {
             super( "Point Reader" );
             pointSelection_ = pointSelection;
             start_ = System.currentTimeMillis();
