@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -8,8 +8,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
 import java.util.BitSet;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * PlotVolume which uses a Z-buffer to keep track of which pixels are in

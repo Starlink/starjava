@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.util.Iterator;
 

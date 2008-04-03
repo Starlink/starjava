@@ -34,7 +34,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
  * and adapted for use by TOPCAT by Mark Taylor
  */
 
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -2546,7 +2546,7 @@ class PlotBox extends JPanel implements Printable {
     protected boolean _usecolor = true;
 
     /** Length of tickmarks. */
-    protected int _tickLength = 5;
+    public int _tickLength = 5;
 
     // Default _colors, by data set.
     // There are 11 colors so that combined with the
@@ -3110,7 +3110,7 @@ class PlotBox extends JPanel implements Printable {
      * Internal implementation of setYRange, so that it can be called when
      * autoranging.
      */
-    void _setYRange(double min, double max) {
+    public void _setYRange(double min, double max) {
         // If values are invalid, try for something reasonable.
         if (min > max) {
             min = -1.0;

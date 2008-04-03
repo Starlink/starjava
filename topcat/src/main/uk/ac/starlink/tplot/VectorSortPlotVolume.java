@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -7,8 +7,6 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * PlotVolume implementation which accumulates all points to plot and then

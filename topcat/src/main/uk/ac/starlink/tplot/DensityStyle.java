@@ -1,11 +1,9 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import javax.swing.Icon;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Style for the way that a density map (2d histogram) is plotted.
@@ -36,7 +34,7 @@ public abstract class DensityStyle implements Style, Icon {
      *
      * @param  channel  colour channel
      */
-    DensityStyle( Channel channel ) {
+    public DensityStyle( Channel channel ) {
         channel_ = channel;
         rgba_ = new float[ 4 ];
         shader_ = Shaders.BLACK_WHITE;

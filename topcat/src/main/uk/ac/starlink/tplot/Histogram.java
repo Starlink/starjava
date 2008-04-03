@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -8,15 +8,13 @@ import java.util.Iterator;
 import javax.swing.JComponent;
 import uk.ac.starlink.topcat.RowSubset;
 
-import uk.ac.starlink.tplot.*;
-
 /**
  * Component which draws a histogram.
  *
  * @author   Mark Taylor
  * @since    11 Nov 2005
  */
-public abstract class Histogram extends SurfacePlot {
+public class Histogram extends SurfacePlot {
 
     private BinnedData binned_;
     private Points lastPoints_;

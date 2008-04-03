@@ -1,8 +1,6 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.util.Arrays;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * PlotState subclass which has specific features for specifying the

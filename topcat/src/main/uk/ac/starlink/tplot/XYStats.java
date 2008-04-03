@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 /**
  * Calculates X-Y correlation statistics.

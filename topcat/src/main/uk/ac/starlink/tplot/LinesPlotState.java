@@ -1,10 +1,8 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.util.Arrays;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.convert.ValueConverter;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * PlotState subclass for use with stacked line plots.
@@ -261,7 +259,7 @@ public class LinesPlotState extends PlotState {
         }
     }
 
-    String compare( PlotState o ) {
+    public String compare( PlotState o ) {
         StringBuffer sbuf = new StringBuffer( super.compare( o ) );
         if ( o instanceof LinesPlotState ) {
             LinesPlotState other = (LinesPlotState) o;

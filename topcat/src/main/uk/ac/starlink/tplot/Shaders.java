@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -26,8 +26,6 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.FloatList;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Provides some implementations of the {@link Shader} interface.

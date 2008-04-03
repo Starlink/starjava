@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -34,7 +34,7 @@ public class SphericalPlot3D extends Plot3D {
      * Constructor.
      */
     public SphericalPlot3D() {
-        super( true );
+        super();
     }
 
     protected RangeChecker configureRanges( Plot3DState state ) {

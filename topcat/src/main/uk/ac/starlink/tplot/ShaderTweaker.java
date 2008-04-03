@@ -1,8 +1,6 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.awt.Color;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * DataColorTweaker implementation which uses an array of Shader objects.

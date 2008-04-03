@@ -1,11 +1,9 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.tplot;
 
 import java.util.Arrays;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.convert.ValueConverter;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Characterises the details of how a plot is to be done.
@@ -301,7 +299,7 @@ public class PlotState {
      * @param  o  state for comparison with this one
      * @return   text summary of differences
      */
-    String compare( PlotState o ) {
+    public String compare( PlotState o ) {
         StringBuffer sbuf = new StringBuffer( "Mismatches:" );
         sbuf.append( valid_ == o.valid_ ? "" : " valid" );
         sbuf.append( mainNdim_ == o.mainNdim_ ? "" : " mainNdim" );
