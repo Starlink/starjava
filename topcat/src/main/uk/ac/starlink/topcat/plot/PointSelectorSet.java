@@ -163,7 +163,7 @@ public abstract class PointSelectorSet extends JPanel {
      *
      * @return  point selection object
      */
-    public PointSelection getPointSelection() {
+    public TopcatPointSelection getPointSelection() {
 
         /* Assemble a list of the point selectors with plottable data. */
         List activeList = new ArrayList();
@@ -192,7 +192,8 @@ public abstract class PointSelectorSet extends JPanel {
 
         /* Construct and return a PointSelection object encapsulating
          * this information. */
-        return new PointSelection( activeSelectors, subsetPointers, setLabels );
+        return new TopcatPointSelection( activeSelectors, subsetPointers,
+                                         setLabels );
     }
 
     /**
