@@ -45,7 +45,7 @@ public class SphereWindow extends Plot3DWindow {
     public SphereWindow( Component parent ) {
         super( "Spherical Plot",
                new String[] { "Longitude", "Latitude", "Radius" }, 3, parent, 
-               new ErrorModeSelectionModel[ 0 ], new SphericalPlot3D() );
+               new ErrorModeSelectionModel[ 0 ], createPlot() );
 
         /* Set up toggle button model for whether the radial axis is used. */
         radialToggler_ =
@@ -314,6 +314,20 @@ public class SphereWindow extends Plot3DWindow {
                             y + getIconHeight() / 2 - radius,
                             radius * 2, radius * 2 );
                 g.setColor( oldColor );
+            }
+        };
+    }
+
+    /**
+     * Generates a plot to be used with this window.
+     *
+     * @return  3D plot
+     */
+    private static SphericalPlot3D createPlot() {
+        return new SphericalPlot3D() {
+            protected boolean paintMemoryError( OutOfMemoryError e ) {
+                TopcatUtils.memoryErrorLater( e );
+                return true;
             }
         };
     }

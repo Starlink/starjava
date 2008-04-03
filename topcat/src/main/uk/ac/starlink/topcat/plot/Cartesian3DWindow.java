@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Component;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 import uk.ac.starlink.tplot.*;
 
@@ -23,7 +24,7 @@ public class Cartesian3DWindow extends Plot3DWindow {
      */
     public Cartesian3DWindow( Component parent ) {
         super( "3D", AXIS_NAMES, 3, parent, createErrorModeModels( AXIS_NAMES ),
-               new CartesianPlot3D() );
+               createPlot() );
 
         getPointSelectorToolBar().addSeparator();
         for ( int ierr = 0; ierr < 3; ierr++ ) {
@@ -43,5 +44,19 @@ public class Cartesian3DWindow extends Plot3DWindow {
         return new MarkStyleEditor( false, true, ERROR_RENDERERS,
                                     ErrorRenderer.DEFAULT,
                                     getErrorModeModels() );
+    }
+
+    /**
+     * Generates a plot object to be used with this window.
+     *
+     * @return  3D plot
+     */
+    private static CartesianPlot3D createPlot() {
+        return new CartesianPlot3D() {
+            protected boolean paintMemoryError( OutOfMemoryError e ) {
+                TopcatUtils.memoryErrorLater( e );
+                return true;
+            }
+        };
     }
 }
