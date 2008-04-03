@@ -58,7 +58,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
-    private final CountsLabel plotStatus_;
+    private final SurfaceZoomRegionList zoomRegionList_;
 
     private static final ErrorRenderer DEFAULT_ERROR_RENDERER =
         ErrorRenderer.EXAMPLE;
@@ -90,10 +90,26 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         super( "Scatter Plot", AXIS_NAMES, 3, true,
                createErrorModeModels( AXIS_NAMES ), parent );
 
-        /* Construct the plot component.  Provide an implementation of the
-         * hook reportStats() method to accept useful information generated
-         * during the component paint so it can be displayed in the GUI. */
-        plot_ = new ScatterPlot( new PtPlotSurface() ) {
+        plot_ = new ScatterPlot( new PtPlotSurface() );
+        plot_.addPlotListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                ScatterPlotEvent sevt = (ScatterPlotEvent) evt;
+                zoomRegionList_.reconfigure();
+                boolean someVisible = evt.getVisiblePointCount() > 0;
+                fromVisibleAction_.setEnabled( someVisible );
+                blobAction_.setEnabled( someVisible );
+                XYStats[] xyStats = sevt.getXYStats();
+                SetId[] setIds = ((TopcatPointSelection)
+                                  evt.getPlotState().getPointSelection())
+                                .getSetIds();
+                ((MarkStyleEditor) getPointSelectors()
+                                  .getStyleWindow().getEditor())
+                                  .setStats( setIds, xyStats );
+            }
+        } );
+
+        /* Zooming. */
+        zoomRegionList_ = new SurfaceZoomRegionList( plot_ ) {
             protected void requestZoom( double[][] bounds ) {
                 for ( int idim = 0; idim < 2; idim++ ) {
                     if ( bounds[ idim ] != null ) {
@@ -103,19 +119,13 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                 }
                 replot();
             }
-            protected void reportStats( SetId[] setIds, XYStats[] stats,
-                                        int nPoint, int nIncluded,
-                                        int nVisible ) {
-                boolean someVisible = nVisible > 0;
-                fromVisibleAction_.setEnabled( someVisible );
-                blobAction_.setEnabled( someVisible );
-                plotStatus_.setValues( new int[] { nPoint, nIncluded,
-                                                   nVisible } );
-                ((MarkStyleEditor) getPointSelectors().getStyleWindow()
-                                                      .getEditor())
-                                  .setStats( setIds, stats );
-            }
         };
+        Zoomer zoomer = new Zoomer();
+        zoomer.setRegions( zoomRegionList_ );
+        zoomer.setCursorComponent( plot_ );
+        Component scomp = plot_.getSurface().getComponent();
+        scomp.addMouseListener( zoomer );
+        scomp.addMouseMotionListener( zoomer );
 
         /* Construct and populate the plot panel with the plot itself
          * and a transparent layer for doodling blobs on. */
@@ -152,10 +162,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         posStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                  posStatus.getMaximumSize()
                                                           .height ) );
-        plotStatus_ = new CountsLabel( new String[] {
-            "Potential", "Included", "Visible",
-        } );
-        getStatusBox().add( plotStatus_ );
+        PlotStatsLabel plotStatus = new PlotStatsLabel();
+        plot_.addPlotListener( plotStatus );
+        getStatusBox().add( plotStatus );
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
         getStatusBox().add( posStatus );
         getStatusBox().add( Box.createHorizontalGlue() );
@@ -270,7 +279,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
                 TopcatModel tcModel = evt.getModel();
-                PointSelection psel = plot_.getState().getPointSelection();
+                TopcatPointSelection psel =
+                    (TopcatPointSelection) plot_.getState().getPointSelection();
                 long lrow = ((Long) datum).longValue();
                 long[] lps = psel.getPointsForRow( tcModel, lrow );
                 int[] ips = new int[ lps.length ];
@@ -321,7 +331,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                 int ip = plot_.getPlottedPointIterator()
                               .getClosestPoint( evt.getPoint(), 4 );
                 if ( ip >= 0 ) {
-                    PointSelection psel = plot_.getState().getPointSelection();
+                    TopcatPointSelection psel = 
+                        (TopcatPointSelection) 
+                        plot_.getState().getPointSelection();
                     psel.getPointTable( ip )
                         .highlightRow( psel.getPointRow( ip ) );
                 }
