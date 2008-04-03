@@ -37,7 +37,6 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxStack;
-import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;

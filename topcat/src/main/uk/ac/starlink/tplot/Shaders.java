@@ -23,7 +23,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.FloatList;
 

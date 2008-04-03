@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.swing.Icon;
-import uk.ac.starlink.topcat.EmptyIcon;
 
 /**
  * Renders error bars.
