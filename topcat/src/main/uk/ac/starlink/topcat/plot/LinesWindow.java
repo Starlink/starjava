@@ -62,7 +62,6 @@ import uk.ac.starlink.tplot.*;
  */
 public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
-    private final LinesPlot plot_;
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel vlineModel_;
     private final ToggleButtonModel zeroLineModel_;
@@ -110,7 +109,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", AXIS_NAMES, 0, true,
+        super( "Line Plot", new LinesPlot(), AXIS_NAMES, 0, true,
                createErrorModeModels( AXIS_NAMES ), parent );
 
         /* Set some initial values. */
@@ -118,21 +117,21 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         yViewRangeMap_ = new HashMap();
 
         /* Construct a plot component to hold the plotted graphs. */
-        plot_ = new LinesPlot();
-        plot_.setPreferredSize( new Dimension( 400, 400 ) );
-        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
+        final LinesPlot plot = (LinesPlot) getPlot();
+        plot.setPreferredSize( new Dimension( 400, 400 ) );
+        plot.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
 
         /* Zooming. */
         final Zoomer zoomer = new Zoomer();
-        zoomer.setCursorComponent( plot_ );
-        plot_.addPlotListener( new PlotListener() {
+        zoomer.setCursorComponent( plot );
+        plot.addPlotListener( new PlotListener() {
             public void plotChanged( PlotEvent evt ) {
                 zoomer.setRegions( Arrays
-                                  .asList( createZoomRegions( plot_ ) ) );
+                                  .asList( createZoomRegions( plot ) ) );
             }
         } );
-        plot_.addMouseListener( zoomer );
-        plot_.addMouseMotionListener( zoomer );
+        plot.addMouseListener( zoomer );
+        plot.addMouseMotionListener( zoomer );
 
         /* The axis window has to be kept up to date with the point selectors,
          * since the number of axis editor components it contains is the
@@ -167,7 +166,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         zeroLineModel_.addActionListener( gridListener );
 
         /* Add a status line reporting on cursor position. */
-        JComponent posLabel = new LinesPositionLabel( plot_ );
+        JComponent posLabel = new LinesPositionLabel( plot );
         posLabel.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                 posLabel.getMaximumSize()
                                                         .height ) );
@@ -175,7 +174,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getStatusBox().add( Box.createHorizontalGlue() );
 
         /* Arrange for clicking on a given point to cause row activation. */
-        plot_.addMouseListener( new PointClickListener() );
+        plot.addMouseListener( new PointClickListener() );
         getPointSelectors().addTopcatListener( this );
 
         /* Rescaling actions. */
@@ -208,7 +207,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                                                    "containing only points " +
                                                    "in the visible X range" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getPointsInRange() );
+                addNewSubsets( plot.getPointsInRange() );
             }
         };
 
@@ -217,7 +216,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                                              ResourceIcon.Y_CURSOR,
                                              "Display a vertical line " +
                                              "which follows the mouse" );
-        new CrosshairListener( plot_, vlineModel_ );
+        new CrosshairListener( plot, vlineModel_ );
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
@@ -294,14 +293,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         replot();
     }
 
-    protected JComponent getPlot() {
-        return plot_;
-    }
-
-    protected void doReplot( PlotState state, Points points ) {
-        plot_.setPoints( points );
-        plot_.setState( (LinesPlotState) state );
-        plot_.repaint();
+    protected JComponent getPlotPanel() {
+        return getPlot();
     }
 
     protected PlotState createPlotState() {
@@ -364,8 +357,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         /* Configure information for each subset about which graph it will
          * be plotted on. */
-        SetId[] setIds = ((TopcatPointSelection) state.getPointSelection())
-                        .getSetIds();
+        SetId[] setIds = ((PointSelection) state.getPlotData()).getSetIds();
         int nset = setIds.length;
         int[] graphIndices = new int[ nset ];
         for ( int iset = 0; iset < nset; iset++ ) {
@@ -485,9 +477,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         Range xRange = getViewRanges()[ 0 ];
         double[] xBounds = xRange.isClear() ? null
                                             : xRange.getFiniteBounds( false );
-        Range[] xyRanges =
-            calculateRanges( (TopcatPointSelection) pointSelection,
-                             points, xBounds );
+        Range[] xyRanges = calculateRanges( pointSelection, points, xBounds );
         yDataRanges_ = new Range[ xyRanges.length - 1 ];
         System.arraycopy( xyRanges, 1, yDataRanges_, 0, xyRanges.length - 1 );
         return new Range[] { xyRanges[ 0 ] };
@@ -502,7 +492,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param  xBounds  (lower,upper) bounds array giving region for range
      *         determination; may be null for the whole X region
      */
-    private Range[] calculateRanges( TopcatPointSelection pointSelection,
+    private Range[] calculateRanges( PointSelection pointSelection,
                                      Points points, double[] xBounds ) {
 
         /* Set X and Y bounds. */
@@ -566,7 +556,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     public Rectangle getPlotBounds() {
-        Rectangle bounds = plot_.getPlotRegion();
+        Rectangle bounds = ((LinesPlot) getPlot()).getPlotRegion();
         return bounds == null ? getMainArea().getBounds() : bounds;
     }
 
@@ -575,8 +565,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         /* Determine whether any of the plotted graphs contain more than one
          * dataset. */
         boolean hasMultiples = false;
-        SetId[] setIds =
-            ((TopcatPointSelection) state.getPointSelection()).getSetIds();
+        SetId[] setIds = ((PointSelection) state.getPlotData()).getSetIds();
         Set pselSet = new HashSet();
         for ( int i = 0; ! hasMultiples && i < setIds.length; i++ ) {
             PointSelector psel = setIds[ i ].getPointSelector();
@@ -613,8 +602,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
                 TopcatModel tcModel = evt.getModel();
-                TopcatPointSelection psel =
-                    (TopcatPointSelection) plot_.getState().getPointSelection();
+                PointSelection psel = 
+                    (PointSelection) getPlot().getState().getPlotData();
                 long lrow = ((Long) datum).longValue();
                 long[] lps = psel.getPointsForRow( tcModel, lrow );
                 int[] ips = new int[ lps.length ];
@@ -635,7 +624,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @return  array of appropriate X and Y axis zoom region objects
      */
     private ZoomRegion[] createZoomRegions( LinesPlot plot ) {
-        LinesPlotState state = plot.getState();
+        LinesPlotState state = (LinesPlotState) plot.getState();
         int ngraph = state.getGraphCount();
         PlotSurface[] surfaces = plot.getSurfaces();
         ZoomRegion[] regions = new ZoomRegion[ ngraph + 1 ];
@@ -814,21 +803,19 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      */
     private class PointClickListener extends MouseAdapter {
         public void mouseClicked( MouseEvent evt ) {
+            LinesPlot plot = (LinesPlot) getPlot();
             if ( evt.getButton() == MouseEvent.BUTTON1 ) {
-                PointIterator pit = plot_.getPlottedPointIterator();
-                if ( pit != null ) {
-                    int ip = pit.getClosestPoint( evt.getPoint(), 4 );
-                    if ( ip >= 0 ) {
-                        TopcatPointSelection psel = 
-                            (TopcatPointSelection)
-                            plot_.getState().getPointSelection();
-                        psel.getPointTable( ip )
-                            .highlightRow( psel.getPointRow( ip ) );
-                    }
-                    else {
-                        activePoints_ = new int[ 0 ];
-                        replot();
-                    }
+                PointIterator pit = plot.getPlottedPointIterator();
+                int ip = pit.getClosestPoint( evt.getPoint(), 4 );
+                if ( ip >= 0 ) {
+                    PointSelection psel =
+                        (PointSelection) plot.getState().getPlotData();
+                    psel.getPointTable( ip )
+                        .highlightRow( psel.getPointRow( ip ) );
+                }
+                else {
+                    activePoints_ = new int[ 0 ];
+                    replot();
                 }
             }
         }
@@ -955,14 +942,13 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         public void actionPerformed( ActionEvent evt ) {
             PlotState state = getPlotState();
+            PointSelection psel = (PointSelection) state.getPlotData();
             Points points = getPoints();
             if ( state.getValid() && points != null ) {
                 double[] xLimits = scaleY_ && ! scaleX_
                                  ? state.getRanges()[ 0 ]
                                  : null;
-                Range[] ranges = calculateRanges( (TopcatPointSelection)
-                                                  state.getPointSelection(),
-                                                  points, xLimits );
+                Range[] ranges = calculateRanges( psel, points, xLimits );
                 getAxisWindow().clearRanges();
                 if ( scaleX_ ) {
                     getDataRanges()[ 0 ] = ranges[ 0 ];
@@ -1133,7 +1119,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
          *          at <code>p</code> (may be null if invalid position)
          */
         private PositionReporter getReporter( Point p ) {
-            LinesPlotState state = plot_.getState();
+            LinesPlotState state = (LinesPlotState) plot_.getState();
             PlotSurface[] surfaces = plot_.getSurfaces();
 
             /* No point, no reporter. */

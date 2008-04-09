@@ -72,7 +72,6 @@ import uk.ac.starlink.tplot.*;
  */
 public class DensityWindow extends GraphicsWindow {
 
-    private final DensityPlot plot_;
     private final JComponent plotPanel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
@@ -109,8 +108,9 @@ public class DensityWindow extends GraphicsWindow {
      * @param   parent   parent component (may be used for positioning)
      */
     public DensityWindow( Component parent ) {
-        super( "Density Map", AXIS_NAMES, 0, false,
-               new ErrorModeSelectionModel[ 0 ], parent );
+        super( "Density Map", new DensityPlot( new PtPlotSurface() ),
+               AXIS_NAMES, 0, false, new ErrorModeSelectionModel[ 0 ], parent );
+        final DensityPlot plot = (DensityPlot) getPlot();
 
         /* There's only one style set it makes sense to use for this window.
          * Construct it here. */
@@ -120,21 +120,17 @@ public class DensityWindow extends GraphicsWindow {
             new DStyle( DensityStyle.BLUE ),
         };
 
-        /* Construct a plotting surface to receive the graphics. */
+        /* Adjust the plotting surface for receiving the graphics. */
+        final PlotSurface surface = plot.getSurface();
         setPadRatio( 0 );
-        final PlotSurface surface = new PtPlotSurface();
         ((PtPlotSurface) surface)._tickLength = 0;
 
         /* Grid looks a bit messy, so turn it off. */
         getGridModel().setSelected( false );
 
-        /* Construct and populate the plot panel with the 2d histogram
-         * itself and a transparent layer for doodling blobs on. */
-        plot_ = new DensityPlot( surface );
-
         /* Zooming. */
         final SurfaceZoomRegionList zoomRegions =
-                new SurfaceZoomRegionList( plot_ ) {
+                new SurfaceZoomRegionList( plot ) {
             protected void requestZoom( double[][] bounds ) {
                 for ( int idim = 0; idim < 2; idim++ ) {
                     if ( bounds[ idim ] != null ) {
@@ -147,13 +143,13 @@ public class DensityWindow extends GraphicsWindow {
         };
         Zoomer zoomer = new Zoomer();
         zoomer.setRegions( zoomRegions );
-        zoomer.setCursorComponent( plot_ );
-        Component scomp = plot_.getSurface().getComponent();
+        zoomer.setCursorComponent( plot );
+        Component scomp = surface.getComponent();
         scomp.addMouseListener( zoomer );
         scomp.addMouseMotionListener( zoomer );
 
         /* Respond to plot changes. */
-        plot_.addPlotListener( new PlotListener() {
+        plot.addPlotListener( new PlotListener() {
             public void plotChanged( PlotEvent evt ) {
                 zoomRegions.reconfigure();
                 DensityPlotEvent devt = (DensityPlotEvent) evt;
@@ -169,7 +165,8 @@ public class DensityWindow extends GraphicsWindow {
         plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
-                addNewSubsets( plot_.getContainedMask( blob ) );
+                addNewSubsets( plot.getPlottedPointIterator()
+                                   .getContainedPoints( blob ) );
             }
         };
         blobPanel_.setColors( new Color( 0x80a0a0a0, true ),
@@ -177,11 +174,11 @@ public class DensityWindow extends GraphicsWindow {
         blobAction_ = blobPanel_.getBlobAction();
         plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
         plotPanel_.add( blobPanel_ );
-        plotPanel_.add( plot_ );
+        plotPanel_.add( plot );
 
         /* Construct and add a status line. */
         PlotStatsLabel plotStatus = new PlotStatsLabel();
-        plot_.addPlotListener( plotStatus );
+        plot.addPlotListener( plotStatus );
         PositionLabel posStatus = new PositionLabel( surface );
         posStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                  posStatus.getMaximumSize()
@@ -356,7 +353,7 @@ public class DensityWindow extends GraphicsWindow {
                                                     "containing only " +
                                                     "currently visible data" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getVisibleMask() );
+                addNewSubsets( plot.getPlottedPointIterator().getAllPoints() );
             }
         };
         subsetMenu.add( blobAction_ );
@@ -398,7 +395,7 @@ public class DensityWindow extends GraphicsWindow {
         axwin.setEditors( new AxisEditor[] { axes[ 0 ], axes[ 1 ], } );
     }
 
-    protected JComponent getPlot() {
+    protected JComponent getPlotPanel() {
         return plotPanel_;
     }
 
@@ -474,22 +471,19 @@ public class DensityWindow extends GraphicsWindow {
         return state;
     }
 
-    protected void doReplot( PlotState state, Points points ) {
+    protected void doReplot( PlotState state ) {
 
         /* Cancel any current blob drawing. */
         blobPanel_.setActive( false );
 
-        /* Send the plot component the most up to date plotting state. */
-        plot_.setPoints( points );
-        plot_.setState( state );
-
-        /* Schedule for repainting so changes can take effect. */
-        plot_.repaint();
+        /* Do replot. */
+        super.doReplot( state );
     }
 
     public Rectangle getPlotBounds() {
         Rectangle bounds =
-            new Rectangle( plot_.getSurface().getClip().getBounds() );
+            new Rectangle( ((DensityPlot) getPlot()).getSurface()
+                          .getClip().getBounds() );
         bounds.y--;
         bounds.height += 2;
         return bounds;
@@ -601,8 +595,9 @@ public class DensityWindow extends GraphicsWindow {
             throws IOException, FitsException {
         final DataOutputStream out = new DataOutputStream( ostrm );
 
-        BinGrid[] grids = plot_.getBinnedData();
-        DensityPlotState state = (DensityPlotState) plot_.getState();
+        DensityPlot plot = (DensityPlot) getPlot();
+        BinGrid[] grids = plot.getBinnedData();
+        DensityPlotState state = (DensityPlotState) plot.getState();
         boolean weighted = state.getWeighted();
         int ngrid = grids.length;
 
@@ -692,7 +687,7 @@ public class DensityWindow extends GraphicsWindow {
         if ( state.getLogFlags()[ 1 ] ) {
             name2 = "log(" + name2 + ")";
         }
-        PlotSurface surface = plot_.getSurface();
+        PlotSurface surface = plot.getSurface();
         Rectangle bbox = surface.getClip().getBounds();
         int x0 = bbox.x;
         int y0 = bbox.y;

@@ -48,7 +48,6 @@ import uk.ac.starlink.tplot.*;
  */
 public class HistogramWindow extends GraphicsWindow {
 
-    private final Histogram plot_;
     private final SurfaceZoomRegionList zoomRegionList_;
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
@@ -80,26 +79,26 @@ public class HistogramWindow extends GraphicsWindow {
      * @param  parent  parent component (may be used for positioning)
      */
     public HistogramWindow( Component parent ) {
-        super( "Histogram", new String[] { "X" }, 0, false,
-               new ErrorModeSelectionModel[ 0 ], parent );
+        super( "Histogram", new Histogram( new PtPlotSurface() ), 
+               new String[] { "X" }, 0, false, new ErrorModeSelectionModel[ 0 ],
+               parent );
+        final Histogram plot = (Histogram) getPlot();
 
-        /* Create the histogram plot itself.  Being a histogram, there's
-         * no point zooming in such a way that the Y axis goes below zero,
-         * so block that. */
-        PlotSurface surf = new PtPlotSurface() {
+        /* Being a histogram, there's no point zooming in such a way 
+         * that the Y axis goes below zero, so block that. */
+        plot.setSurface( new PtPlotSurface() {
             public void _setYRange( double min, double max ) {
                 super._setYRange( Math.max( getMinYValue(), min ), max );
-            }
-        };
-        plot_ = new Histogram( surf );
-        plot_.addPlotListener( new PlotListener() {
-            public void plotChanged( PlotEvent evt ) {
-                zoomRegionList_.reconfigure();
             }
         } );
 
         /* Zooming. */
-        zoomRegionList_ = new SurfaceZoomRegionList( plot_ ) {
+        plot.addPlotListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                zoomRegionList_.reconfigure();
+            }
+        } );
+        zoomRegionList_ = new SurfaceZoomRegionList( plot ) {
             protected void requestZoom( double[][] bounds ) {
                 double[] xbounds = bounds[ 0 ];
                 if ( xbounds != null ) {
@@ -118,8 +117,8 @@ public class HistogramWindow extends GraphicsWindow {
         };
         Zoomer zoomer = new Zoomer();
         zoomer.setRegions( zoomRegionList_ );
-        zoomer.setCursorComponent( plot_ );
-        Component scomp = plot_.getSurface().getComponent();
+        zoomer.setCursorComponent( plot );
+        Component scomp = plot.getSurface().getComponent();
         scomp.addMouseListener( zoomer );
         scomp.addMouseMotionListener( zoomer );
 
@@ -225,7 +224,7 @@ public class HistogramWindow extends GraphicsWindow {
                                                   + "containing only currently "
                                                   + "visible range" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getVisiblePoints() );
+                addNewSubsets( plot.getVisiblePoints() );
             }
         };
         subsetMenu.add( fromVisibleAction );
@@ -281,8 +280,8 @@ public class HistogramWindow extends GraphicsWindow {
         replot();
     }
 
-    protected JComponent getPlot() {
-        return plot_;
+    protected JComponent getPlotPanel() {
+        return getPlot();
     }
 
     protected PointSelector createPointSelector() {
@@ -351,17 +350,6 @@ public class HistogramWindow extends GraphicsWindow {
 
     public int getMainRangeCount() {
         return 1;
-    }
-
-    protected void doReplot( PlotState pstate, Points points ) {
-
-        /* Send the plot component the most up to date plotting state. */
-        HistogramPlotState state = (HistogramPlotState) pstate;
-        plot_.setPoints( points );
-        plot_.setState( state );
-
-        /* Schedule a repaint. */
-        plot_.repaint();
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
@@ -478,7 +466,8 @@ public class HistogramWindow extends GraphicsWindow {
 
     public Rectangle getPlotBounds() {
         Rectangle bounds =
-            new Rectangle( plot_.getSurface().getClip().getBounds() );
+            new Rectangle( ((Histogram) getPlot())
+                          .getSurface().getClip().getBounds() );
         bounds.y--;
         bounds.height += 2;
         return bounds;
@@ -602,18 +591,19 @@ public class HistogramWindow extends GraphicsWindow {
      * @return   table representing the current histogram
      */
     private StarTable getBinDataTable() {
+        Histogram plot = (Histogram) getPlot();
 
         /* Get the binned data object from the last plotted histogram. */
-        final BinnedData binData = plot_.getBinnedData();
+        final BinnedData binData = plot.getBinnedData();
 
         /* Is it a weighted sum or a simple count? */
-        HistogramPlotState state = (HistogramPlotState) plot_.getState();
+        HistogramPlotState state = (HistogramPlotState) plot.getState();
         final boolean weighted = state.getWeighted();
 
         /* Get the list of set IDs which describes which table/subset pairs
          * each of the sets in the binned data represents. */
         SetId[] setIds =
-           ((TopcatPointSelection) getPointSelectors().getPointSelection())
+           ((PointSelection) getPointSelectors().getPointSelection())
           .getSetIds();
         final int nset = setIds.length;
 
@@ -845,7 +835,8 @@ public class HistogramWindow extends GraphicsWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             PlotState state = getPlotState();
-            PointSelection pointSelection = state.getPointSelection();
+            PointSelection pointSelection =
+                (PointSelection) state.getPlotData();
             Points points = getPoints();
             if ( state.getValid() && points != null ) {
 

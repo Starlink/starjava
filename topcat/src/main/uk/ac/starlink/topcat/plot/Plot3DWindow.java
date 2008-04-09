@@ -44,7 +44,6 @@ import uk.ac.starlink.tplot.*;
 public abstract class Plot3DWindow extends GraphicsWindow
                                    implements TopcatListener {
 
-    private final Plot3D plot_;
     private final JComponent plotPanel_;
     private final ToggleButtonModel fogModel_;
     private final ToggleButtonModel antialiasModel_;
@@ -91,9 +90,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
     public Plot3DWindow( String viewName, String[] axisNames, int naux,
                          Component parent,
                          ErrorModeSelectionModel[] errorModeModels,
-                         Plot3D plot ) {
-        super( viewName, axisNames, naux, true, errorModeModels, parent );
-        plot_ = plot;
+                         final Plot3D plot ) {
+        super( viewName, plot, axisNames, naux, true, errorModeModels, parent );
 
         /* Set a suitable border on the plot.  The left part of this is
          * where the central zoom target live.  There's a zoom target
@@ -101,20 +99,21 @@ public abstract class Plot3DWindow extends GraphicsWindow
          * previous versions) but it's very thin - this is mainly padding
          * between the plot and the legend region.  The top and bottom 
          * parts sometimes serve as overspills for auxiliary axis text. */
-        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 32, 10, 10 ) );
+        plot.setBorder( BorderFactory.createEmptyBorder( 10, 32, 10, 10 ) );
 
         /* Zooming. */
         Zoomer zoomer = new Zoomer();
         zoomer.setRegions( Arrays.asList( createZoomRegions() ) );
-        zoomer.setCursorComponent( plot_ );
-        plot_.addMouseListener( zoomer );
-        plot_.addMouseMotionListener( zoomer );
-        plot_.addMouseWheelListener( new MouseWheelListener() {
+        zoomer.setCursorComponent( plot );
+        plot.addMouseListener( zoomer );
+        plot.addMouseMotionListener( zoomer );
+        plot.addMouseWheelListener( new MouseWheelListener() {
             public void mouseWheelMoved( MouseWheelEvent evt ) {
                 int nclick = evt.getWheelRotation();
                 if ( nclick != 0 ) {
                     double factor = Math.pow( CLICK_ZOOM_UNIT, -nclick );
-                    doZoom( plot_.getState().getZoomScale() * factor );
+                    doZoom( ((Plot3DState) plot.getState()).getZoomScale()
+                            * factor );
                 }
             }
         } );
@@ -125,20 +124,20 @@ public abstract class Plot3DWindow extends GraphicsWindow
         plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
-                Insets insets = plot_.getInsets();
+                Insets insets = plot.getInsets();
                 AffineTransform trans =
                     AffineTransform.getTranslateInstance( -insets.left,
                                                           -insets.top );
                 Shape transBlob =
                     new Area( blob ).createTransformedArea( trans );
-                addNewSubsets( plot_.getPlottedPointIterator()
+                addNewSubsets( plot.getPlottedPointIterator()
                                     .getContainedPoints( transBlob ) );
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
         plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
         plotPanel_.add( blobPanel_ );
-        plotPanel_.add( plot_ );
+        plotPanel_.add( plot );
 
         /* Listen for topcat actions. */
         getPointSelectors().addTopcatListener( this );
@@ -146,18 +145,18 @@ public abstract class Plot3DWindow extends GraphicsWindow
         /* Arrange that mouse dragging on the plot component will rotate
          * the view. */
         DragListener rotListener = new DragListener();
-        plot_.addMouseMotionListener( rotListener );
-        plot_.addMouseListener( rotListener );
+        plot.addMouseMotionListener( rotListener );
+        plot.addMouseListener( rotListener );
 
         /* Arrange that clicking on a point will activate it. */
-        plot_.addMouseListener( new PointClickListener() );
+        plot.addMouseListener( new PointClickListener() );
 
         /* Add a status line. */
         PlotStatsLabel plotStatus = new PlotStatsLabel();
         plotStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                   plotStatus
                                                  .getMaximumSize().height ) );
-        plot_.addPlotListener( plotStatus );
+        plot.addPlotListener( plotStatus );
         getStatusBox().add( plotStatus );
 
         /* Action for reorienting the plot. */
@@ -178,7 +177,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                                               "containing only currently " +
                                               "visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getPlottedPointIterator().getAllPoints() );
+                addNewSubsets( plot.getPlottedPointIterator().getAllPoints() );
             }
         };
 
@@ -271,7 +270,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         rotation_ = rot;
     }
 
-    protected JComponent getPlot() {
+    protected JComponent getPlotPanel() {
         return plotPanel_;
     }
 
@@ -297,7 +296,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
     }
 
     public Rectangle getPlotBounds() {
-        return plot_.getPlotBounds();
+        return ((Plot3D) getPlot()).getPlotBounds();
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
@@ -321,11 +320,9 @@ public abstract class Plot3DWindow extends GraphicsWindow
         }
     }
 
-    protected void doReplot( PlotState state, Points points ) {
+    protected void doReplot( PlotState state ) {
         blobPanel_.setActive( false );
-        plot_.setPoints( points );
-        plot_.setState( (Plot3DState) state );
-        plot_.repaint();
+        super.doReplot( state );
     }
 
     /**
@@ -345,16 +342,17 @@ public abstract class Plot3DWindow extends GraphicsWindow
         if ( evt.getCode() == TopcatEvent.ROW ) {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
+                Plot3D plot = (Plot3D) getPlot();
                 TopcatModel tcModel = evt.getModel();
-                TopcatPointSelection psel =
-                    (TopcatPointSelection) plot_.getState().getPointSelection();
+                PointSelection psel =
+                    (PointSelection) plot.getState().getPlotData();
                 long lrow = ((Long) datum).longValue();
                 long[] lps = psel.getPointsForRow( tcModel, lrow );
                 int[] ips = new int[ lps.length ];
                 for ( int i = 0; i < lps.length; i++ ) {
                     ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
                 }
-                plot_.setActivePoints( ips );
+                plot.setActivePoints( ips );
             }
             else {
                 assert false;
@@ -485,15 +483,18 @@ public abstract class Plot3DWindow extends GraphicsWindow
                                                 Rectangle bounds );
 
         public Rectangle getDisplay() {
-            return plot_.getDisplayBounds();
+            return ((Plot3D) getPlot()).getDisplayBounds();
         }
 
         public Rectangle getTarget() {
-            return getTarget( plot_.getPlotBounds(), plot_.getBounds() );
+            Plot3D plot = (Plot3D) getPlot();
+            return getTarget( ((Plot3D) plot).getPlotBounds(),
+                              plot.getBounds() );
         }
 
         public void zoomed( double[][] bounds ) {
-            doZoom( plot_.getState().getZoomScale() / bounds[ 0 ][ 0 ] );
+            doZoom( ((Plot3DState) getPlot().getState()).getZoomScale()
+                    / bounds[ 0 ][ 0 ] );
         }
     }
 
@@ -509,7 +510,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
         private boolean relevant_;
 
         public void mousePressed( MouseEvent evt ) {
-            relevant_ = plot_.getPlotBounds().contains( evt.getPoint() );
+            relevant_ = ((Plot3D) getPlot()).getPlotBounds()
+                       .contains( evt.getPoint() );
         }
 
         public void mouseDragged( MouseEvent evt ) {
@@ -528,7 +530,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
                  * in the 'horizontal' and 'vertical' directions respectively
                  * (these directions are relative to the current orientation
                  * of the view). */
-                double scale = Math.min( plot_.getWidth(), plot_.getHeight() );
+                Plot3D plot = (Plot3D) getPlot();
+                double scale = Math.min( plot.getWidth(), plot.getHeight() );
                 double xf = - ( pos.x - posBase_.x ) / scale / zoom_;
                 double yf = - ( pos.y - posBase_.y ) / scale / zoom_;
 
@@ -565,28 +568,28 @@ public abstract class Plot3DWindow extends GraphicsWindow
             if ( butt == MouseEvent.BUTTON1 ) {
 
                 /* Get the position in plot coordinates. */
+                Plot3D plot = (Plot3D) getPlot();
                 JComponent comp = (JComponent) evt.getComponent();
-                assert comp == plot_;
+                assert comp == plot;
                 Insets insets = comp.getInsets();
                 Point point = evt.getPoint();
                 point.translate( - insets.left, - insets.top );
 
                 /* Get the closest plotted point to this. */
-                PointIterator pointIt = plot_.getPlottedPointIterator();
+                PointIterator pointIt = plot.getPlottedPointIterator();
                 int ip = pointIt == null
                        ? -1
                        : pointIt.getClosestPoint( point, 4 );
 
                 /* Highlight if there is one. */
                 if ( ip >= 0 ) {
-                    TopcatPointSelection psel =
-                        (TopcatPointSelection)
-                        plot_.getState().getPointSelection();
+                    PointSelection psel =
+                        (PointSelection) plot.getState().getPlotData();
                     psel.getPointTable( ip )
                         .highlightRow( psel.getPointRow( ip ) );
                 }
                 else {
-                    plot_.setActivePoints( new int[ 0 ] );
+                    plot.setActivePoints( new int[ 0 ] );
                 }
             }
         }
