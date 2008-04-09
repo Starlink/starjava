@@ -104,7 +104,7 @@ import uk.ac.starlink.tplot.*;
  * between one and the next, they're cheap.  If the state does change
  * materially, then a new plot is required.  The work done for plotting
  * depends on the details of how the PlotState has changed - in some cases
- * new data will be acquired (<code>TopcatPointSelection.readPoints</code> 
+ * new data will be acquired (<code>PointSelection.readPoints</code> 
  * is called - possibly expensive),
  * but if the data is the same as before, the plot just
  * needs to be redrawn (usually quite fast, since the various plotting
@@ -124,6 +124,7 @@ import uk.ac.starlink.tplot.*;
  */
 public abstract class GraphicsWindow extends AuxWindow {
 
+    private final TablePlot plot_;
     private final int ndim_;
     private final int naux_;
     private final boolean hasLabels_;
@@ -158,7 +159,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private StyleSet styleSet_;
     private BitSet usedStyles_;
     private Points points_;
-    private TopcatPointSelection lastPointSelection_;
+    private PointSelection lastPointSelection_;
     private PlotState lastState_;
     private Points lastPoints_;
     private Box statusBox_;
@@ -235,16 +236,18 @@ public abstract class GraphicsWindow extends AuxWindow {
      * <code>naux=0</code>.
      *
      * @param   viewName  name of the view window
+     * @param   plot    component which draws the plot
      * @param   axisNames  array of labels by which each main axis is known
      * @param   naux   number of auxiliary axes
      * @param   errorModeModels   array of selecction models for error modes
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( String viewName, String[] axisNames, int naux,
-                           boolean hasLabels,
+    public GraphicsWindow( String viewName, TablePlot plot, String[] axisNames,
+                           int naux, boolean hasLabels,
                            ErrorModeSelectionModel[] errorModeModels,
                            Component parent ) {
         super( viewName, parent );
+        plot_ = plot;
         axisNames_ = axisNames;
         ndim_ = axisNames.length;
         naux_ = naux;
@@ -580,7 +583,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         placeMainComponents( false );
 
         /* Insert the plot component itself into the plotting component. */
-        plotArea_.add( getPlot(), BorderLayout.CENTER );
+        plotArea_.add( getPlotPanel(), BorderLayout.CENTER );
 
         /* Add a starter point selector. */
         PointSelector mainSel = createPointSelector();
@@ -1006,7 +1009,26 @@ public abstract class GraphicsWindow extends AuxWindow {
      *
      * @return   plot component
      */
-    protected abstract JComponent getPlot();
+
+    /**
+     * Returns the plot object for this window.
+     *
+     * @return  plot
+     */
+    public TablePlot getPlot() {
+        return plot_;
+    }
+
+    /**
+     * Returns the component containing the graphics output of this 
+     * window.  This is the component which is exported or printed etc
+     * alongside the legend which is managed by GraphicsWindow.
+     * It should therefore contain only the output data, not any user 
+     * interface decoration.
+     *
+     * @return   plot container
+     */
+    protected abstract JComponent getPlotPanel();
 
     /**
      * Returns the bounds of the actual plot.  This may be used for visual 
@@ -1021,16 +1043,18 @@ public abstract class GraphicsWindow extends AuxWindow {
     public abstract Rectangle getPlotBounds();
 
     /**
-     * Performs an actual plot.  Concrete subclasses should implement this
-     * to paint the component according to the given <code>state</code>
-     * and <code>points</code>.  
-     * Probably a {@link java.awt.Component#repaint()} will be required
-     * at the end.
+     * Performs an actual plot.
      *
      * @param  state  plot state determining details of plot configuration
-     * @param  points  data to plot
      */
-    protected abstract void doReplot( PlotState state, Points points );
+    protected void doReplot( PlotState state ) {
+
+        /* Send the plot component the most up to date plotting state. */
+        plot_.setState( state );
+
+        /* Schedule a replot. */
+        plot_.repaint();
+    }
 
     /**
      * Returns a new PointSelector instance to be used for selecting
@@ -1169,7 +1193,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      *
      * <p>The <code>GraphicsWindow</code> implementation of this method
      * as well as populating the state with standard information
-     * also calls {@link TopcatPointSelection#readPoints}
+     * also calls {@link PointSelection#readPoints}
      * and {@link #calculateRanges} if necessary.
      *
      * @return  snapshot of the currently-selected plot request
@@ -1257,9 +1281,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Set point selection, reading the points data if necessary
          * (that is if the point selection has changed since last time
          * it was read). */
-        TopcatPointSelection pointSelection =
-            pointSelectors_.getPointSelection();
-        state.setPointSelection( pointSelection );
+        PointSelection pointSelection = pointSelectors_.getPointSelection();
+        state.setPlotData( pointSelection );
         boolean sameData = pointSelection.sameData( lastPointSelection_ );
         if ( ( ! sameData ) || forceReread_ ) {
             forceReread_ = false;
@@ -1418,7 +1441,11 @@ public abstract class GraphicsWindow extends AuxWindow {
             configureLegends( state );
 
             /* Do the actual painting. */
-            doReplot( state, points_ );
+            PointSelection psel = (PointSelection) state.getPlotData();
+            if ( psel != null ) {
+                psel.setPoints( points_ );
+            }
+            doReplot( state );
 
             /* Log and store state for future use. */
             logger_.info( "Replot " + ++nPlot_ );
@@ -1452,17 +1479,18 @@ public abstract class GraphicsWindow extends AuxWindow {
         legend_.setBorder( border );
 
         /* Update plot style legend contents. */
-        PointSelection psel = state.getPointSelection();
-        if ( psel == null ) {
+        PlotData data = state.getPlotData();
+        if ( data == null ) {
             legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
         }
         else {
-            RowSubset[] rsets = psel.getSubsets();
-            String[] labels = new String[ rsets.length ];
-            for ( int i = 0; i < rsets.length; i++ ) {
-                labels[ i ] = rsets[ i ].getName();
+            int nset = data.getSetCount();
+            Style[] styles = new Style[ nset ];
+            String[] labels = new String[ nset ];
+            for ( int is = 0; is < nset; is++ ) {
+                styles[ is ] = data.getSetStyle( is );
+                labels[ is ] = data.getSetName( is );
             }
-            Style[] styles = psel.getStyles();
             legend_.setStyles( styles, labels );
 
             /* If the legend has never been seen before and is worth looking
@@ -1493,12 +1521,12 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* If there is more than one labelled subset for display, the legend
          * conveys some useful information. */
-        PointSelection psel = state.getPointSelection();
+        PlotData data = state.getPlotData();
         int nLabel = 0;
-        if ( psel != null ) {
-            RowSubset[] rsets = psel.getSubsets();
-            for ( int is = 0; is < rsets.length; is++ ) {
-                String label = rsets[ is ].getName();
+        if ( data != null ) {
+            int nset = data.getSetCount();
+            for ( int is = 0; is < nset; is++ ) {
+                String label = data.getSetName( is );
                 if ( label != null && label.length() > 0 ) {
                     nLabel++;
                 }
@@ -1552,8 +1580,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* For the given mask, which corresponds to all the plotted points,
          * deconvolve it into individual masks for any of the tables
          * that our point selection is currently dealing with. */
-        TopcatPointSelection.TableMask[] tableMasks =
-            ((TopcatPointSelection) lastState_.getPointSelection())
+        PointSelection.TableMask[] tableMasks =
+            ((PointSelection) lastState_.getPlotData())
            .getTableMasks( pointsMask );
 
         /* Handle each of the affected tables separately. */
@@ -1644,10 +1672,11 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private void rescale() {
         PlotState state = getPlotState();
-        Points points = getPoints();
+        Points points = points_;
         if ( state.getValid() && points != null ) {
             getAxisWindow().clearRanges();
-            dataRanges_ = calculateRanges( state.getPointSelection(), points ); 
+            dataRanges_ =
+                calculateRanges( (PointSelection) state.getPlotData(), points );
             for ( int i = 0; i < viewRanges_.length; i++ ) {
                 viewRanges_[ i ].clear();
             }
@@ -2060,7 +2089,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * Thread class which will read the data into a Points object.
      */
     private class PointsReader extends Thread {
-        final TopcatPointSelection pointSelection_;
+        final PointSelection pointSelection_;
         final long start_;
 
         /**
@@ -2069,7 +2098,7 @@ public abstract class GraphicsWindow extends AuxWindow {
          *
          * @param  pointSelection  point selection
          */
-        PointsReader( TopcatPointSelection pointSelection ) {
+        PointsReader( PointSelection pointSelection ) {
             super( "Point Reader" );
             pointSelection_ = pointSelection;
             start_ = System.currentTimeMillis();
@@ -2148,8 +2177,8 @@ public abstract class GraphicsWindow extends AuxWindow {
                      * update range information, and schedule a replot. */
                     if ( success1 ) {
                         points_ = points1;
-                        dataRanges_ = calculateRanges( pointSelection_,
-                                                       points1 );
+                        dataRanges_ =
+                            calculateRanges( pointSelection_, points1 );
                         replot();
                     }
 
