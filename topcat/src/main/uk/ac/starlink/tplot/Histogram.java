@@ -6,7 +6,6 @@ import java.awt.Rectangle;
 import java.util.BitSet;
 import java.util.Iterator;
 import javax.swing.JComponent;
-import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Component which draws a histogram.
@@ -17,8 +16,7 @@ import uk.ac.starlink.topcat.RowSubset;
 public class Histogram extends SurfacePlot {
 
     private BinnedData binned_;
-    private Points lastPoints_;
-    private PointSelection lastPointSelection_;
+    private PlotData lastData_;
 
     /**
      * Constructs a new Histogram.
@@ -31,19 +29,16 @@ public class Histogram extends SurfacePlot {
         setSurface( surface );
     }
 
-    public void setPoints( Points points ) {
-        super.setPoints( points );
-        if ( points != lastPoints_ ) {
-            binned_ = null;
-            lastPoints_ = points;
-        }
-    }
-
     public void setState( PlotState state ) {
         super.setState( state );
-        if ( state.getPointSelection() != lastPointSelection_ ) {
+        PlotData data = state.getPlotData();
+
+        /* It would be possible to improve efficiency for subsequent plots
+         * here by arranging that the binning didn't get done every time.
+         * This is not currently done however. */
+        if ( data != lastData_ ) {
             binned_ = null;
-            lastPointSelection_ = state.getPointSelection();
+            lastData_ = data;
         }
     }
 
@@ -54,7 +49,7 @@ public class Histogram extends SurfacePlot {
      */
     public BinnedData getBinnedData() {
         if ( binned_ == null ) {
-            binned_ = binData( getPoints() );
+            binned_ = binData( getState().getPlotData() );
         }
         return binned_;
     }
@@ -67,11 +62,12 @@ public class Histogram extends SurfacePlot {
     private void drawData( Graphics g ) {
 
         /* Get and check relevant state. */
-        Points points = getPoints();
         HistogramPlotState state = (HistogramPlotState) getState();
+        PlotData data = state.getPlotData();
+        BinnedData binnedData = getBinnedData();
         PlotSurface surface = getSurface();
-        if ( points == null || state == null || surface == null ||
-             ! state.getValid() ) {
+        if ( data == null || binnedData == null || state == null ||
+             surface == null || ! state.getValid() ) {
             return;
         }
 
@@ -86,8 +82,7 @@ public class Histogram extends SurfacePlot {
         boolean xflip = state.getFlipFlags()[ 0 ];
         boolean cumulative = state.getCumulative();
         double dylo = state.getLogFlags()[ 1 ] ? Double.MIN_VALUE : 0.0;
-        int nset = getPointSelection().getSubsets().length;
-        Style[] styles = getPointSelection().getStyles();
+        int nset = data.getSetCount();
 
         /* Work out the y position in graphics space of the plot base line. */
         int iylo = surface.dataToGraphics( 1.0, dylo, false ).y;
@@ -99,11 +94,11 @@ public class Histogram extends SurfacePlot {
          * than the other way round, the actual plot is unlikely to be
          * a computational bottleneck. */
         for ( int iset = 0; iset < nset; iset++ ) {
-            BarStyle style = (BarStyle) styles[ iset ];
+            BarStyle style = (BarStyle) data.getSetStyle( iset );
             int lastIxLead = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             int lastIyhi = 0;
             long total = 0;
-            for ( Iterator it = getBinnedData().getBinIterator( cumulative );
+            for ( Iterator it = binnedData.getBinIterator( cumulative );
                   it.hasNext(); ) {
 
                 /* Get the bin and its value. */
@@ -186,10 +181,14 @@ public class Histogram extends SurfacePlot {
      * @return   bit set indexing Points
      */
     public BitSet getVisiblePoints() {
+        BinnedData binnedData = getBinnedData();
+        if ( binnedData == null ) {
+            return new BitSet();
+        }
         double[] bounds = getSurfaceBounds();
         double xbot = bounds[ 0 ];
         double xtop = bounds[ 2 ];
-        for ( Iterator it = getBinnedData().getBinIterator( false );
+        for ( Iterator it = binnedData.getBinIterator( false );
               it.hasNext(); ) {
             BinnedData.Bin bin = (BinnedData.Bin) it.next();
             if ( bin.getLowBound() < xbot ) {
@@ -200,19 +199,17 @@ public class Histogram extends SurfacePlot {
             }
         }
 
-        RowSubset[] rsets = getPointSelection().getSubsets();
-        int nset = rsets.length;
-        Points points = getPoints();
-        int np = points.getCount();
+        PlotData data = getState().getPlotData();
+        int nset = data.getSetCount();
         BitSet mask = new BitSet();
-        for ( int ip = 0; ip < np; ip++ ) {
-            double[] coords = points.getPoint( ip );
+        PointSequence pseq = data.getPointSequence();
+        for ( int ip = 0; pseq.next(); ip++ ) {
+            double[] coords = pseq.getPoint();
             double x = coords[ 0 ];
             if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
                 if ( x >= xbot && x <= xtop ) {
-                    long lp = (long) ip;
                     for ( int is = 0; is < nset; is++ ) {
-                        if ( rsets[ is ].isIncluded( lp ) ) {
+                        if ( pseq.isIncluded( is ) ) {
                             mask.set( ip );
                             break;
                         }
@@ -220,38 +217,40 @@ public class Histogram extends SurfacePlot {
                 }
             }
         }
+        pseq.close();
         return mask;
     }
 
     /**
      * Builds a BinnedData object based on a given set of data points.
+     * As a special case, null is returned if the supplied data set contains
+     * no points.
      *
-     * @param   points  data points
+     * @param   data   plot data object
      * @return   binned data object
      */
-    private BinnedData binData( Points points ) {
+    private BinnedData binData( PlotData data ) {
 
         /* Acquire an object to hold the data. */
-        RowSubset[] rsets = getPointSelection().getSubsets();
-        int nset = rsets.length;
+        int nset = data.getSetCount();
         BinnedData binned = newBinnedData( nset );
 
         /* Populate it. */
-        int np = points.getCount();
         boolean[] setFlags = new boolean[ nset ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            double[] coords = points.getPoint( ip );
+        PointSequence pseq = data.getPointSequence();
+        int ip = 0;
+        for ( ; pseq.next(); ip++ ) {
+            double[] coords = pseq.getPoint();
             double x = coords[ 0 ];
             double w = coords[ 1 ];
             if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
                 for ( int is = 0; is < nset; is++ ) {
-                    setFlags[ is ] = rsets[ is ].isIncluded( lp );
+                    setFlags[ is ] = pseq.isIncluded( is );
                 }
                 binned.submitDatum( x, w, setFlags );
             }
         }
-        return binned;
+        return ip > 0 ? binned : null;
     }
 
     /**
