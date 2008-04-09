@@ -1,7 +1,9 @@
-package uk.ac.starlink.tplot;
+package uk.ac.starlink.topcat.plot;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import uk.ac.starlink.tplot.*;
 
 /**
  * Extension of the StyleSet interface which allows entries to be changed.

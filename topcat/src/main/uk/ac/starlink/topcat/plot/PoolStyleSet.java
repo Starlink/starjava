@@ -1,9 +1,11 @@
-package uk.ac.starlink.tplot;
+package uk.ac.starlink.topcat.plot;
 
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import uk.ac.starlink.tplot.*;
 
 /**
  * StyleSet which obtains styles from a base StyleSet, but 
