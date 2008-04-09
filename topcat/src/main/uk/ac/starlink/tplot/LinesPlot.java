@@ -12,8 +12,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Component which paints a stack of line plots.
@@ -23,9 +23,9 @@ import uk.ac.starlink.topcat.RowSubset;
  */
 public class LinesPlot extends TablePlot {
 
-    private LinesPlotState state_;
-    private Points points_;
     private PlotSurface[] surfaces_;
+    private PlotData rawData_;
+    private PlotData sortedData_;
     private int[] sequence_;
     private Rectangle plotRegion_;
     private int[][] work_;
@@ -39,36 +39,13 @@ public class LinesPlot extends TablePlot {
         work_ = new int[ 2 ][ 10240 ];
     }
 
-    /**
-     * Sets the data set for this plot.  These are the points which will
-     * be plotted the next time this component is painted.
-     * 
-     * @param   points  data points
-     */
-    public void setPoints( Points points ) {
-        if ( points != points_ ) {
-            sequence_ = sortX( points );
+    public void setState( PlotState state ) {
+        super.setState( state );
+        PlotData data = state.getPlotData();
+        if ( sortedData_ == null || ! data.equals( rawData_ ) ) {
+            rawData_ = data;
+            sortedData_ = sortX( data );
         }
-        points_ = points;
-    }
-
-    /**
-     * Sets the plot state for this plot.  This characterises how the
-     * plot will be done next time this component is painted.
-     *
-     * @param  state  plot state
-     */
-    public void setState( LinesPlotState state ) {
-        state_ = state;
-    }
-
-    /**
-     * Returns the most recently set state for this plot.
-     *
-     * @return  plot state
-     */
-    public LinesPlotState getState() {
-        return state_;
     }
 
     public PlotSurface[] getSurfaces() {
@@ -84,12 +61,11 @@ public class LinesPlot extends TablePlot {
     private void drawData( Graphics g, Component c ) {
 
         /* Acquire state. */
-        Points points = points_;
-        LinesPlotState state = getState();
-        if ( points == null || state == null || ! state.getValid() ) {
+        LinesPlotState state = (LinesPlotState) getState();
+        PlotData data = sortedData_;
+        if ( data == null || state == null || ! state.getValid() ) {
             return;
         }
-        int npoint = points.getCount();
         boolean grid = state.getGrid();
         boolean xLogFlag = state.getLogFlags()[ 0 ];
         boolean xFlipFlag = state.getFlipFlags()[ 0 ];
@@ -219,18 +195,16 @@ public class LinesPlot extends TablePlot {
         }
 
         /* Draw data points and lines. */
-        RowSubset[] sets = state.getPointSelection().getSubsets();
-        Style[] styles = state.getPointSelection().getStyles();
         int[] graphIndices = state.getGraphIndices();
-        int nset = sets.length;
-        int nerr = points.getNerror();
+        int nerr = data.getNerror();
         int[] xoffs = new int[ nerr ];
         int[] yoffs = new int[ nerr ];
+        int nset = data.getSetCount();
         for ( int iset = 0; iset < nset; iset++ ) {
-            MarkStyle style = (MarkStyle) styles[ iset ];
+            MarkStyle style = (MarkStyle) data.getSetStyle( iset );
             GraphSurface graph = graphs[ graphIndices[ iset ] ];
             boolean noLines = style.getLine() != MarkStyle.DOT_TO_DOT;
-            boolean hasErrors = MarkStyle.hasErrors( style, points );
+            boolean hasErrors = MarkStyle.hasErrors( style, data );
             Rectangle graphClip = graph.getClip().getBounds();
             if ( g.hitClip( graphClip.x, graphClip.y,
                             graphClip.width, graphClip.height ) ) {
@@ -240,17 +214,16 @@ public class LinesPlot extends TablePlot {
                 PointPlotter plotter =
                     new PointPlotter( g1, style, state.getAntialias(),
                                       hasErrors, work_[ 0 ], work_[ 1 ] );
-                RowSubset rset = sets[ iset ];
-                for ( int ix = 0; ix < npoint; ix++ ) {
-                    int ip = sequence_ == null ? ix : sequence_[ ix ];
-                    if ( rset.isIncluded( (long) ip ) ) {
-                        double[] coords = points.getPoint( ip );
+                PointSequence pseq = data.getPointSequence();
+                while ( pseq.next() ) {
+                    if ( pseq.isIncluded( iset ) ) {
+                        double[] coords = pseq.getPoint();
                         Point point =
                             graph.dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                   noLines );
                         if ( point != null ) {
                             if ( hasErrors ) {
-                                double[][] errors = points.getErrors( ip );
+                                double[][] errors = pseq.getErrors();
                                 if ( ScatterPlot
                                     .transformErrors( point, coords, errors,
                                                       graph, xoffs, yoffs ) ) {
@@ -261,6 +234,7 @@ public class LinesPlot extends TablePlot {
                         }
                     }
                 }
+                pseq.close();
                 plotter.flush();
                 plotter.dispose();
                 g1.dispose();
@@ -268,20 +242,19 @@ public class LinesPlot extends TablePlot {
         }
 
         /* Draw text labels. */
-        if ( points.hasLabels() ) {
+        if ( data.hasLabels() ) {
             for ( int iset = 0; iset < nset; iset++ ) {
-                MarkStyle style = (MarkStyle) styles[ iset ]; 
+                MarkStyle style = (MarkStyle) data.getSetStyle( iset );
                 GraphSurface graph = graphs[ graphIndices[ iset ] ];
                 Rectangle graphClip = graph.getClip().getBounds();
                 if ( g.hitClip( graphClip.x, graphClip.y,
                                 graphClip.width, graphClip.height ) ) {
-                    RowSubset rset = sets[ iset ];
-                    for ( int ix = 0; ix < npoint; ix++ ) {
-                        int ip = sequence_ == null ? ix : sequence_[ ix ];
-                        String label = points.getLabel( ip );
+                    PointSequence pseq = data.getPointSequence();
+                    while ( pseq.next() ) {
+                        String label = pseq.getLabel();
                         if ( label != null && label.trim().length() > 0 &&
-                             rset.isIncluded( (long) ip ) ) {
-                            double[] coords = points.getPoint( ip );
+                             pseq.isIncluded( iset ) ) {
+                            double[] coords = pseq.getPoint();
                             Point point =
                                 graph.dataToGraphics( coords[ 0 ], coords[ 1 ],
                                                       true );
@@ -290,31 +263,44 @@ public class LinesPlot extends TablePlot {
                             }
                         }
                     }
+                    pseq.close();
                 }
             }
         }
 
         /* Mark active points. */
-        MarkStyle target = MarkStyle.targetStyle();
-        Graphics targetGraphics = g.create();
-        targetGraphics.setColor( Color.BLACK );
         int[] activePoints = state.getActivePoints();
-        for ( int i = 0; i < activePoints.length; i++ ) {
-            int ip = activePoints[ i ];
-            PlotSurface surface = null;
-            for ( int iset = 0; iset < nset && surface == null; iset++ ) {
-                if ( sets[ iset ].isIncluded( ip ) ) {
-                    surface = graphs[ graphIndices[ iset ] ];
+        if ( activePoints.length > 0 ) {
+            BitSet active = new BitSet();
+            for ( int iact = 0; iact < activePoints.length; iact++ ) {
+                active.set( activePoints[ iact ] );
+            }
+            MarkStyle target = MarkStyle.targetStyle();
+            Graphics targetGraphics = g.create();
+            targetGraphics.setColor( Color.BLACK );
+            PointSequence pseq = rawData_.getPointSequence();
+            for ( int ip = 0; pseq.next(); ip++ ) {
+                if ( active.get( ip ) ) {
+                    PlotSurface surface = null;
+                    for ( int iset = 0; iset < nset && surface == null;
+                          iset++ ) {
+                        if ( pseq.isIncluded( iset ) ) {
+                            surface = graphs[ graphIndices[ iset ] ];
+                        }
+                    }
+                    if ( surface != null ) {
+                        double[] coords = pseq.getPoint();
+                        Point point =
+                            surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                    true );
+                        if ( point != null ) {
+                            target.drawMarker( targetGraphics,
+                                               point.x, point.y );
+                        }
+                    }
                 }
             }
-            if ( surface != null && points.getCount() > 0 ) {
-                double[] coords = points.getPoint( ip );
-                Point point =
-                    surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
-                if ( point != null ) {
-                    target.drawMarker( targetGraphics, point.x, point.y );
-                }
-            }
+            pseq.close();
         }
 
         /* Store graph set. */
@@ -337,21 +323,20 @@ public class LinesPlot extends TablePlot {
      * @return   bit vector with true marking point indices in visible X range
      */
     public BitSet getPointsInRange() {
-        double xlo = state_.getRanges()[ 0 ][ 0 ];
-        double xhi = state_.getRanges()[ 0 ][ 1 ];
-        Points points = points_;
-        int npoint = points.getCount();
-        RowSubset[] sets = state_.getPointSelection().getSubsets();
-        int nset = sets.length;
+        LinesPlotState state = (LinesPlotState) getState();
+        double xlo = state.getRanges()[ 0 ][ 0 ];
+        double xhi = state.getRanges()[ 0 ][ 1 ];
+        PlotData data = rawData_;
+        int nset = data.getSetCount();
         BitSet inRange = new BitSet();
-        for ( int ip = 0; ip < npoint; ip++ ) {
-            long lp = (long) ip;
+        PointSequence pseq = data.getPointSequence();
+        for ( int ip = 0; pseq.next(); ip++ ) {
             boolean use = false;
             for ( int is = 0; is < nset && ! use; is++ ) {
-                use = use || sets[ is ].isIncluded( lp );
+                use = use || pseq.isIncluded( is );
             }
             if ( use ) {
-                double[] coords = points.getPoint( ip );
+                double[] coords = pseq.getPoint();
                 double x = coords[ 0 ];
                 if ( x >= xlo && x <= xhi ) {
                     inRange.set( ip );
@@ -367,44 +352,34 @@ public class LinesPlot extends TablePlot {
      * @return  point iterator
      */
     public PointIterator getPlottedPointIterator() {
-        if ( ! state_.getValid() ) {
-            return null;
+        LinesPlotState state = (LinesPlotState) getState();
+        if ( ! state.getValid() ) {
+            return PointIterator.EMPTY;
         }
-        final Points points = points_;
-        final int npoint = points.getCount();
-        final RowSubset[] sets = state_.getPointSelection().getSubsets();
-        final int nset = sets.length;
+        final PlotData data = rawData_;
+        final int nset = data.getSetCount();
         final PlotSurface[] setSurfaces = new PlotSurface[ nset ];
-        int[] graphIndices = state_.getGraphIndices();
+        int[] graphIndices = state.getGraphIndices();
         for ( int iset = 0; iset < nset; iset++ ) {
             setSurfaces[ iset ] = surfaces_[ graphIndices[ iset ] ];
         }
-        return new PointIterator() {
-            int ip = -1;
-            int[] point = new int[ 3 ];
-            protected int[] nextPoint() {
-                while ( ++ip < npoint ) {
-                    long lp = (long) ip;
-                    PlotSurface surface = null;
-                    for ( int is = 0; is < nset && surface == null; is++ ) {
-                        if ( sets[ is ].isIncluded( lp ) ) {
-                            surface = setSurfaces[ is ];
-                        }
-                    }
-                    if ( surface != null ) {
-                        double[] coords = points.getPoint( ip );
-                        double x = coords[ 0 ];
-                        double y = coords[ 1 ];
-                        Point p = surface.dataToGraphics( x, y, true );
-                        if ( p != null ) {
-                            point[ 0 ] = ip;
-                            point[ 1 ] = p.x;
-                            point[ 2 ] = p.y;
-                            return point;
-                        }
+        return new PlotDataPointIterator( data ) {
+            protected Point getXY( PointSequence pseq ) {
+                PlotSurface surface = null;
+                for ( int is = 0; is < nset && surface == null; is++ ) {
+                    if ( pseq.isIncluded( is ) ) {
+                        surface = setSurfaces[ is ];
                     }
                 }
-                return null;
+                if ( surface != null ) {
+                    double[] coords = pseq.getPoint();
+                    return surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                   true );
+                }
+                else {
+                    assert false;
+                    return null;
+                }
             }
         };
     }
@@ -432,86 +407,72 @@ public class LinesPlot extends TablePlot {
     }
 
     /**
-     * Returns an array giving the order in which the elements of the
-     * Points structure should be processed.  This is numerically
-     * increasing order of the X coordinate.
-     * A null return indicates that the natural ordering may be used.
+     * Returns a version of a PlotData object which is sorted by X value.
+     * As a special case, null is returned if the input data has no 
+     * points in it.
      *
-     * @param   points   points data
-     * @return  array of indices of ordered elements of <code>points</code>
+     * @param   rawData  unsorted plot data
+     * @return   sorted version of <code>rawData</code>; may be the same
+     *           object
      */
-    private int[] sortX( Points points ) {
-        int npoint = points.getCount();
+    private static PlotData sortX( PlotData rawData ) {
 
-        /* As an optimisation, check if the points are sorted by X already.
-         * This will often be the case and we can save ourselves construction
-         * and disposal of a potentially large array in this case. */
+        /* See if the list is already sorted. */
         boolean sorted = true;
-        double last = Double.NaN;
-        for ( int i = 0; i < npoint && sorted; i++ ) {
-            double[] coords = points.getPoint( i );
-            if ( coords[ 0 ] < last ) {
-                sorted = false;
+        PointSequence pseq = rawData.getPointSequence();
+        int np = 0;
+        for ( double lastX = Double.NEGATIVE_INFINITY; pseq.next(); np++ ) {
+            if ( sorted ) {
+                double x = pseq.getPoint()[ 0 ];
+                if ( x >= lastX ) {
+                    lastX = x;
+                }
+                else {
+                    sorted = false;
+                }
             }
-            last = coords[ 0 ];
         }
-        if ( sorted ) {
+        pseq.close();
+
+        /* If there is no data, return null. */
+        if ( np == 0 ) {
             return null;
         }
 
-        /* Set up a sortable item class. */
-        class Item implements Comparable {
-            final int index_;
-            final double x_;
-            Item( int index, double x ) {
-                index_ = index;
-                x_ = x;
+        /* If the list is already sorted, return it unchanged. */
+        if ( sorted ) {
+            return rawData;
+        }
+
+        /* Otherwise return a modified set which is sorted according to the
+         * sequence of the X values. */
+        ArrayPlotData sortData = ArrayPlotData.copyPlotData( rawData );
+        Arrays.sort( sortData.getPoints(), new Comparator() {
+            public int compare( Object o1, Object o2 ) {
+                return compareByX( (PointData) o1, (PointData) o2 );
             }
-            public int compareTo( Object o ) {
-                double x1 = this.x_;
-                double x2 = ((Item) o).x_;
-                if ( x1 > x2 ) {
-                    return +1;
-                }
-                else if ( x1 < x2 ) {
-                    return -1;
-                }
-                else if ( x1 == x2 ) {
-                    return 0;
-                }
-                else if ( Double.isNaN( x1 ) && Double.isNaN( x2 ) ) {
-                    return 0;
-                }
-                else if ( Double.isNaN( x1 ) ) {
-                    return +1;
-                }
-                else if ( Double.isNaN( x2 ) ) {
-                    return -1;
-                }
-                else {
-                    throw new AssertionError( x1 + " cmp " + x2 + "??" );
-                }
-            }
+        } );
+        return sortData;
+    }
+
+    /**
+     * Compares two point data objects by X coordinate.
+     *
+     * @param  p1  point 1
+     * @param  p2  point 2
+     */
+    private static int compareByX( PointData p1, PointData p2 ) {
+        double x1 = p1.getPoint()[ 0 ];
+        double x2 = p2.getPoint()[ 0 ];
+        if ( x1 < x2 ) {
+            return -1;
         }
-
-        /* Construct and populate an array representing the points data. */
-        Item[] items = new Item[ npoint ];
-        for ( int i = 0; i < npoint; i++ ) {
-            double[] coords = points.getPoint( i );
-            items[ i ] = new Item( i, coords[ 0 ] );
+        else if ( x1 > x2 ) {
+            return +1;
         }
-
-        /* Sort the array. */
-        Arrays.sort( items );
-
-        /* Extract the sorted indices into a usable form. */
-        int[] indices = new int[ npoint ];
-        for ( int i = 0; i < npoint; i++ ) {
-            indices[ i ] = items[ i ].index_;
+        else {
+            return p2.hashCode() - p1.hashCode();
         }
-
-        /* Return the result. */
-        return indices;
     }
 
     /**
