@@ -137,6 +137,28 @@ public class Arithmetic {
     }
 
     /**
+     * Returns the greater of two floating point values, ignoring blanks.
+     * If the arguments have the same value, the result is that same value.
+     * If one argument is blank, the result is the other one.
+     * If both arguments are blank, the result is blank.
+     *
+     * @param   a  an argument
+     * @param   b  another argument
+     * @return  the larger non-blank value of <code>a</code> and <code>b</code>
+     */
+    public static double maxReal(double a, double b) {
+        if ( Double.isNaN( a ) ) {
+            return b;
+        }
+        else if ( Double.isNaN( b ) ) {
+            return a;
+        }
+        else {
+            return Math.max( a, b );
+        }
+    }
+
+    /**
      * Returns the smaller of two integer values.
      * If the arguments have the same value, the result is that same value.
      *
@@ -159,5 +181,27 @@ public class Arithmetic {
      */
     public static double min(double a, double b) {
         return Math.min( a, b );
+    }
+
+    /**
+     * Returns the smaller of two floating point values, ignoring blanks.
+     * If the arguments have the same value, the result is that same value.
+     * If one argument is blank, the result is the other one.
+     * If both arguments are blank, the result is blank.
+     *
+     * @param   a   an argument
+     * @param   b   another argument
+     * @return  the larger non-blank value of <code>a</code> and <code>b</code>
+     */
+    public static double minReal( double a, double b ) {
+        if ( Double.isNaN( a ) ) {
+            return b;
+        }
+        else if ( Double.isNaN( b ) ) {
+            return a;
+        }
+        else {
+            return Math.min( a, b );
+        }
     }
 }

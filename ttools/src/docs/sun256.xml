@@ -5252,6 +5252,9 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>Minor CEA fixes.</li>
+    <li>Add <code>minReal</code> and <code>maxReal</code> functions 
+        (max/min ignoring blank values) in class
+        <ref id="uk.ac.starlink.ttools.func.Arithmetic">Arithmetic</ref>.</li>
     </ul>
     </p></dd>
 
