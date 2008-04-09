@@ -16,15 +16,11 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Component which can display a scatter plot of points.
@@ -35,7 +31,7 @@ import uk.ac.starlink.topcat.RowSubset;
 public class ScatterPlot extends SurfacePlot {
 
     private Annotations annotations_;
-    private Points lastPoints_;
+    private PlotData lastData_;
     private PlotState lastState_;
     private PlotSurface lastSurface_;
     private int lastWidth_;
@@ -60,7 +56,6 @@ public class ScatterPlot extends SurfacePlot {
     
     public void setState( PlotState state ) {
         super.setState( state );
-        annotations_.validate();
     }
 
     /**
@@ -86,10 +81,10 @@ public class ScatterPlot extends SurfacePlot {
      * @param  pixels    true for pixel-like drawing, false for vector-like
      */
     private void drawData( Graphics graphics, boolean pixels ) {
-        Points points = getPoints();
         PlotState state = getState();
+        PlotData data = state.getPlotData();
         PlotSurface surface = getSurface();
-        if ( points == null || state == null || surface == null ||
+        if ( data == null || state == null || surface == null ||
              ! state.getValid() ) {
             return;
         }
@@ -101,62 +96,53 @@ public class ScatterPlot extends SurfacePlot {
         g.setClip( getSurface().getClip() );
 
         /* Get ready to plot. */
-        int np = points.getCount();
-        RowSubset[] sets = getPointSelection().getSubsets();
-        Style[] styles = getPointSelection().getStyles();
-        int nset = sets.length;
+        int nset = data.getSetCount();
 
         /* Draw the points. */
-        List setList = new ArrayList();
-        List styleList = new ArrayList();
-        List indexList = new ArrayList();
+        IntList indexList = new IntList();
         for ( int is = 0; is < nset; is++ ) {
-            MarkStyle style = (MarkStyle) styles[ is ];
+            MarkStyle style = (MarkStyle) data.getSetStyle( is );
             if ( ( ! style.getHidePoints() )
-                 || MarkStyle.hasErrors( style, points ) ) {
-                setList.add( sets[ is ] );
-                styleList.add( style );
-                indexList.add( new Integer( is ) );
+                 || MarkStyle.hasErrors( style, data ) ) {
+                indexList.add( is );
             }
         }
-        RowSubset[] activeSets =
-            (RowSubset[]) setList.toArray( new RowSubset[ 0 ] );
-        MarkStyle[] activeStyles =
-            (MarkStyle[]) styleList.toArray( new MarkStyle[ 0 ] );
-        int[] pointCounts = new int[ 2 ];
+        int[] activeIsets = indexList.toIntArray();
+        PlotData activeData = new SubsetSelectionPlotData( data, activeIsets );
+        int[] pointCounts = new int[ 3 ];
         DataColorTweaker tweaker = ShaderTweaker.createTweaker( 2, state );
 
-        /* Do the acutal plotting of points.  Different algorithms are 
+        /* Do the actual plotting of points.  Different algorithms are 
          * required according to the details of how it needs to be plotted. */
         if ( pixels ) {
             if ( tweaker == null ) {
-                plotPointsBitmap( g, points, activeSets, activeStyles, surface,
-                                  pointCounts );
+                plotPointsBitmap( g, activeData, surface, pointCounts );
             }
             else {
-                plotPointsTweakedBitmap( g, points, activeSets, activeStyles,
-                                         surface, tweaker, pointCounts );
+                plotPointsTweakedBitmap( g, activeData, surface, tweaker,
+                                         pointCounts );
             }
         }
         else {
-            plotPointsVector( g, points, activeSets, activeStyles, surface,
-                              tweaker, pointCounts );
+            plotPointsVector( g, activeData, surface, tweaker, pointCounts );
         }
 
         /* Write labels as required. */
-        if ( points.hasLabels() ) {
+        if ( data.hasLabels() ) {
             PixelMask mask = new PixelMask( surface.getClip().getBounds() );
-            for ( int ip = 0; ip < np; ip++ ) {
-                String label = points.getLabel( ip );
+            PointSequence pseq = activeData.getPointSequence();
+            while ( pseq.next() ) {
+                String label = pseq.getLabel();
                 if ( label != null && label.trim().length() > 0 ) {
                     int iset = -1;
-                    for ( int is = nset - 1; iset < 0 && is >= 0; is-- ) {
-                        if ( activeSets[ is ].isIncluded( ip ) ) {
-                            iset = is;
+                    for ( int js = activeIsets.length - 1; iset < 0 && js >= 0;
+                          js-- ) {
+                        if ( pseq.isIncluded( activeIsets[ js ] ) ) {
+                            iset = activeIsets[ js ];
                         }
                     }
                     if ( iset >= 0 ) {
-                        double[] coords = points.getPoint( ip );
+                        double[] coords = pseq.getPoint();
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, true );
@@ -171,7 +157,8 @@ public class ScatterPlot extends SurfacePlot {
                              * (expensive). */
                             if ( ! mask.get( point ) ) {
                                 mask.set( point );
-                                MarkStyle style = (MarkStyle) styles[ iset ];
+                                MarkStyle style =
+                                    (MarkStyle) data.getSetStyle( iset );
                                 g.setColor( style.getLabelColor() );
                                 style.drawLabel( g, point.x, point.y, label );
                             }
@@ -179,13 +166,13 @@ public class ScatterPlot extends SurfacePlot {
                     }
                 }
             }
+            pseq.close();
         }
 
         /* Join the dots as required. */
         for ( int is = 0; is < nset; is++ ) {
-            MarkStyle style = (MarkStyle) styles[ is ];
+            MarkStyle style = (MarkStyle) data.getSetStyle( is );
             if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
-                RowSubset set = sets[ is ];
                 Graphics2D lineGraphics = (Graphics2D) g.create();
                 lineGraphics.setColor( style.getColor() );
                 lineGraphics.setStroke( style
@@ -194,9 +181,10 @@ public class ScatterPlot extends SurfacePlot {
                 int lastxp = 0;
                 int lastyp = 0;
                 boolean notFirst = false;
-                for ( int ip = 0; ip < np; ip++ ) {
-                    if ( set.isIncluded( (long) ip ) ) {
-                        double[] coords = points.getPoint( ip );
+                PointSequence pseq = data.getPointSequence();
+                while ( pseq.next() ) {
+                    if ( pseq.isIncluded( is ) ) {
+                        double[] coords = pseq.getPoint();
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, false );
@@ -214,14 +202,14 @@ public class ScatterPlot extends SurfacePlot {
                         }
                     }
                 }
+                pseq.close();
             }
         }
 
         /* Do linear regression as required. */
         final XYStats[] statSets = new XYStats[ nset ];
         for ( int is = 0; is < nset; is++ ) {
-            RowSubset set = sets[ is ];
-            MarkStyle style = (MarkStyle) styles[ is ];
+            MarkStyle style = (MarkStyle) data.getSetStyle( is );
             if ( style.getLine() == MarkStyle.LINEAR ) {
 
                 /* Accumulate statistics. */
@@ -230,9 +218,10 @@ public class ScatterPlot extends SurfacePlot {
                 statSets[ is ] = stats;
                 int maxr = style.getMaximumRadius();
                 int maxr2 = maxr * 2;
-                for ( int ip = 0; ip < np; ip++ ) {
-                    if ( set.isIncluded( (long) ip ) ) {
-                        double[] coords = points.getPoint( ip );
+                PointSequence pseq = data.getPointSequence();
+                while ( pseq.next() ) {
+                    if ( pseq.isIncluded( is ) ) {
+                        double[] coords = pseq.getPoint();
                         double x = coords[ 0 ];
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, true );
@@ -246,6 +235,7 @@ public class ScatterPlot extends SurfacePlot {
                         }
                     }
                 }
+                pseq.close();
 
                 /* Draw regression line. */
                 Graphics2D g2 = (Graphics2D) g;
@@ -273,9 +263,10 @@ public class ScatterPlot extends SurfacePlot {
                 g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aaHint );
             }
         }
-        firePlotChangedLater( new ScatterPlotEvent( this, state, np,
+        firePlotChangedLater( new ScatterPlotEvent( this, state,
                                                     pointCounts[ 0 ],
                                                     pointCounts[ 1 ],
+                                                    pointCounts[ 2 ],
                                                     statSets ) );
     }
 
@@ -286,34 +277,11 @@ public class ScatterPlot extends SurfacePlot {
      * @return  point iterator
      */
     public PointIterator getPlottedPointIterator() {
-        final Points points = getPoints();
         final PlotSurface surface = getSurface();
-        final RowSubset[] sets = getPointSelection().getSubsets();
-        final int np = points.getCount();
-        final int nset = sets.length;
-        return new PointIterator() {
-            int ip = -1;
-            int[] point = new int[ 3 ];
-            protected int[] nextPoint() {
-                while ( ++ip < np ) {
-                    boolean use = false;
-                    for ( int is = 0; is < nset && ! use; is++ ) {
-                        use = use || sets[ is ].isIncluded( (long) ip );
-                    }
-                    if ( use ) {
-                        double[] coords = points.getPoint( ip );
-                        double x = coords[ 0 ];
-                        double y = coords[ 1 ];
-                        Point p = surface.dataToGraphics( x, y, true );
-                        if ( p != null ) {
-                            point[ 0 ] = ip;
-                            point[ 1 ] = p.x;
-                            point[ 2 ] = p.y;
-                            return point;
-                        }
-                    }
-                }
-                return null;
+        return new PlotDataPointIterator( getState().getPlotData() ) {
+            protected Point getXY( PointSequence pseq ) {
+                double[] coords = pseq.getPoint();
+                return surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
             }
         };
     }
@@ -324,46 +292,48 @@ public class ScatterPlot extends SurfacePlot {
      * of the markers.
      *
      * @param   g   graphics context
-     * @param   points  data points object
-     * @param   sets   row subsets
-     * @param   styles   array of MarkStyle objects corresponding to sets
+     * @param   data  plot data object
      * @param   surface  plotting surface
      * @param   tweaker   colour tweaker
-     * @param   counts   if non-null, receives two values: number of points
-     *                   included in visible subsets, and number of points
-     *                   actually plotted (in range as well)
+     * @param   counts   if non-null, receives three values:
+     *                   potential, included and visible point counts
      */
-    private static void plotPointsVector( Graphics2D g, Points points,
-                                          RowSubset[] sets, MarkStyle[] styles, 
+    private static void plotPointsVector( Graphics2D g, PlotData data,
                                           PlotSurface surface,
                                           DataColorTweaker tweaker,
                                           int[] counts ) {
-        int np = points.getCount();
-        int nset = sets.length;
-        int noff = points.getNerror();
+        int nset = data.getSetCount();
+        MarkStyle[] styles = getStyles( data );
+        int noff = data.getNerror();
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ];
-        BitSet includedMask = new BitSet();
-        BitSet visibleMask = new BitSet();
+        BitSet includedMask = counts == null ? null : new BitSet();
+        BitSet visibleMask = counts == null ? null : new BitSet();
+        int nPotential = -1;
         for ( int is = 0; is < nset; is++ ) {
-            RowSubset set = sets[ is ];
             MarkStyle style = styles[ is ];
             ErrorRenderer errorRenderer = style.getErrorRenderer();
             boolean showMarks = ! style.getHidePoints();
-            boolean showErrors = MarkStyle.hasErrors( style, points );
+            boolean showErrors = MarkStyle.hasErrors( style, data );
             assert showMarks || showErrors : "Why bother?";
             int maxr = style.getMaximumRadius();
             int maxr2 = maxr * 2;
-            for ( int ip = 0; ip < np; ip++ ) {
-                if ( set.isIncluded( (long) ip ) ) {
-                    includedMask.set( ip );
-                    double[] coords = points.getPoint( ip );
+            PointSequence pseq = data.getPointSequence();
+            int ip = 0;
+            for ( ; pseq.next(); ip++ ) {
+                if ( pseq.isIncluded( is ) ) {
+                    if ( counts != null ) {
+                        includedMask.set( ip );
+                    }
+                    double[] coords = pseq.getPoint();
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
                     Point point = surface.dataToGraphics( x, y, true );
                     if ( point != null && 
                          ( tweaker == null || tweaker.setCoords( coords ) ) ) {
-                        visibleMask.set( ip );
+                        if ( counts != null ) {
+                            visibleMask.set( ip );
+                        }
                         int xp = point.x;
                         int yp = point.y;
                         if ( showMarks &&
@@ -371,7 +341,7 @@ public class ScatterPlot extends SurfacePlot {
                             style.drawMarker( g, xp, yp, tweaker );
                         }
                         if ( showErrors ) {
-                            double[][] errors = points.getErrors( ip );
+                            double[][] errors = pseq.getErrors();
                             if ( transformErrors( point, coords, errors,
                                                   surface, xoffs, yoffs ) ) {
                                 style.drawErrors( g, xp, yp, xoffs, yoffs,
@@ -381,10 +351,15 @@ public class ScatterPlot extends SurfacePlot {
                     }
                 }
             }
+            pseq.close();
+            nPotential = ip;
         }
+
+        /* Record information about the number of points seen. */
         if ( counts != null ) {
-            counts[ 0 ] = includedMask.cardinality();
-            counts[ 1 ] = visibleMask.cardinality();
+            counts[ 0 ] = nPotential;
+            counts[ 1 ] = includedMask.cardinality();
+            counts[ 2 ] = visibleMask.cardinality();
         }
     }
 
@@ -392,26 +367,22 @@ public class ScatterPlot extends SurfacePlot {
      * Plots markers representing the data points using bitmap type graphics.
      *
      * @param   g   graphics context
-     * @param   points  data points object
-     * @param   sets   row subsets
-     * @param   styles   array of MarkStyle objects corresponding to sets
+     * @param   data   plot data object
      * @param   surface  plotting surface
-     * @param   counts   if non-null, receives two values: number of points
-     *                   included in visible subsets, and number of points
-     *                   actually plotted (in range as well)
+     * @param   counts   if non-null, receives three values:
+     *                   potential, included and visible point counts
      */
-    private static void plotPointsBitmap( Graphics2D g, Points points,
-                                          RowSubset[] sets, MarkStyle[] styles,
+    private static void plotPointsBitmap( Graphics2D g, PlotData data,
                                           PlotSurface surface, int[] counts ) {
-        int np = points.getCount();
-        int nset = sets.length;
+        int nset = data.getSetCount();
+        MarkStyle[] styles = getStyles( data );
 
         /* Work out which sets do not have associated markers drawn. */
         boolean[] showPoints = new boolean[ nset ];
         boolean[] showErrors = new boolean[ nset ];
         for ( int is = 0; is < nset; is++ ) {
             showPoints[ is ] = ! styles[ is ].getHidePoints();
-            showErrors[ is ] = MarkStyle.hasErrors( styles[ is ], points );
+            showErrors[ is ] = MarkStyle.hasErrors( styles[ is ], data );
         }
 
         /* Work out padding round the edge of the raster we will be drawing on.
@@ -457,24 +428,26 @@ public class ScatterPlot extends SurfacePlot {
          * a raster buffer which contains values indicating how many 
          * times each of its pixels has been painted. */
         BitSet mask = new BitSet( npix );
-        int noff = points.getNerror();
+        int noff = data.getNerror();
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ];
         boolean[] showPointMarks = new boolean[ nset ];
         boolean[] showPointErrors = new boolean[ nset ];
         int nIncluded = 0;
         int nVisible = 0;
-        for ( int ip = 0; ip < np; ip++ ) {
+        PointSequence pseq = data.getPointSequence();
+        int ip = 0;
+        for ( ; pseq.next(); ip++ ) {
             boolean use = false;
             for ( int is = 0; is < nset; is++ ) {
-                boolean included = sets[ is ].isIncluded( (long) ip );
+                boolean included = pseq.isIncluded( is );
                 use = use || included;
                 showPointMarks[ is ] = included && showPoints[ is ];
                 showPointErrors[ is ] = included && showErrors[ is ];
             }
             if ( use ) {
                 nIncluded++;
-                double[] coords = points.getPoint( ip );
+                double[] coords = pseq.getPoint();
                 double x = coords[ 0 ];
                 double y = coords[ 1 ];
                 Point point = surface.dataToGraphics( x, y, true );
@@ -490,7 +463,7 @@ public class ScatterPlot extends SurfacePlot {
                         for ( int is = 0; is < nset; is++ ) {
                             boolean done = false;
                             if ( showPointErrors[ is ] ) {
-                                double[][] errors = points.getErrors( ip );
+                                double[][] errors = pseq.getErrors();
                                 if ( transformErrors( point, coords, errors,
                                                       surface, xoffs,
                                                       yoffs ) ) {
@@ -536,11 +509,14 @@ public class ScatterPlot extends SurfacePlot {
                 }
             }
         }
+        int nPotential = ip;
+        pseq.close();
 
         /* Record information about the number of points seen. */
         if ( counts != null ) {
-            counts[ 0 ] = nIncluded;
-            counts[ 1 ] = nVisible;
+            counts[ 0 ] = nPotential;
+            counts[ 1 ] = nIncluded;
+            counts[ 2 ] = nVisible;
         }
 
         /* Now combine the rasters using the colours and opacities described
@@ -615,27 +591,23 @@ public class ScatterPlot extends SurfacePlot {
      * adjusting colours for each point using a ColorTweaker object.
      *
      * @param   g   graphics context
-     * @param   points  data points object
-     * @param   sets   row subsets
-     * @param   styles   array of MarkStyle objects corresponding to sets
+     * @param   data  plot data object
      * @param   surface  plotting surface
      * @param   tweaker  colour tweaker
-     * @param   counts   if non-null, receives two values: number of points
-     *                   included in visible subsets, and number of points
-     *                   actually plotted (in range as well)
+     * @param   counts   if non-null, receives three values:
+     *                   potential, included and visible point counts
      */
-    private static void plotPointsTweakedBitmap( Graphics2D g, Points points,
-                                                 RowSubset[] sets,
-                                                 MarkStyle[] styles,
+    private static void plotPointsTweakedBitmap( Graphics2D g, PlotData data,
                                                  PlotSurface surface,
                                                  DataColorTweaker tweaker,
                                                  int[] counts ) {
+        int nset = data.getSetCount();
+        MarkStyle[] styles = getStyles( data );
 
         /* Work out padding round the edge of the raster we will be drawing on.
          * This has to be big enough that we can draw markers on the edge
          * of the visible part and not have them wrap round.  In this
          * way we can avoid doing some of the edge checking. */
-        int nset = sets.length;
         int maxr = 0;
         for ( int is = 0; is < nset; is++ ) {
             if ( ! styles[ is ].getHidePoints() ) {
@@ -664,20 +636,19 @@ public class ScatterPlot extends SurfacePlot {
         /* Plot the points from each subset in turn, starting with the ones
          * latest in the sequence so that they will fill up the alpha 
          * channel if there is not enough alpha to go round. */
-        int np = points.getCount();
-        BitSet includedMask = new BitSet();
-        BitSet visibleMask = new BitSet();
+        BitSet includedMask = counts == null ? null : new BitSet();
+        BitSet visibleMask = counts == null ? null : new BitSet();
         BitSet pixelMask = new BitSet();
-        int noff = points.getNerror();
+        int noff = data.getNerror();
         int[] xoffs = new int[ noff ];
         int[] yoffs = new int[ noff ]; 
         float[] rgba = new float[ 4 ];
+        int nPotential = -1;
         for ( int is = nset - 1; is >= 0; is-- ) {
-            RowSubset set = sets[ is ];
             MarkStyle style = styles[ is ];
             ErrorRenderer errorRenderer = style.getErrorRenderer();
             boolean showMarks = ! style.getHidePoints();
-            boolean showErrors = style.hasErrors( style, points );
+            boolean showErrors = style.hasErrors( style, data );
             Pixellator markPixer = style.getPixelOffsets();
             int[] pixoffs = style.getFlattenedPixelOffsets( xdim );
             int npixoff = pixoffs.length;
@@ -686,10 +657,14 @@ public class ScatterPlot extends SurfacePlot {
             assert showMarks || showErrors : "Why bother?";
 
             /* Iterate over each point. */
-            for ( int ip = 0; ip < np; ip++ ) {
-                if ( set.isIncluded( (long) ip ) ) {
-                    includedMask.set( ip );
-                    double[] coords = points.getPoint( ip );
+            PointSequence pseq = data.getPointSequence();
+            int ip = 0;
+            for ( ; pseq.next(); ip++ ) {
+                if ( pseq.isIncluded( is ) ) {
+                    if ( counts != null ) {
+                        includedMask.set( ip );
+                    }
+                    double[] coords = pseq.getPoint();
                     double x = coords[ 0 ];
                     double y = coords[ 1 ];
                     Point point = surface.dataToGraphics( x, y, true );
@@ -701,7 +676,9 @@ public class ScatterPlot extends SurfacePlot {
                         int ybase = yp - yoff;
                         if ( xbase > maxr && xbase < xdim - maxr &&
                              ybase > maxr && ybase < ydim - maxr ) {
-                            visibleMask.set( ip );
+                            if ( counts != null ) {
+                                visibleMask.set( ip );
+                            }
                             rgba[ 0 ] = baseRgba[ 0 ];
                             rgba[ 1 ] = baseRgba[ 1 ];
                             rgba[ 2 ] = baseRgba[ 2 ];
@@ -711,7 +688,7 @@ public class ScatterPlot extends SurfacePlot {
                             int base = xbase + xdim * ybase;
                             boolean done = false;
                             if ( showErrors ) {
-                                double[][] errors = points.getErrors( ip );
+                                double[][] errors = pseq.getErrors();
                                 if ( transformErrors( point, coords, errors,
                                                       surface, xoffs,
                                                       yoffs ) ) {
@@ -754,12 +731,15 @@ public class ScatterPlot extends SurfacePlot {
                     }
                 }
             }
+            pseq.close();
+            nPotential = ip;
         }
 
         /* Record information about the number of points seen. */
         if ( counts != null ) {
-            counts[ 0 ] = includedMask.cardinality();
-            counts[ 1 ] = visibleMask.cardinality();
+            counts[ 0 ] = nPotential;
+            counts[ 1 ] = includedMask.cardinality();
+            counts[ 2 ] = visibleMask.cardinality();
         }
 
         /* Prepare an image and copy the pixel data into it for those 
@@ -896,17 +876,17 @@ public class ScatterPlot extends SurfacePlot {
     private void drawAnnotations( Graphics g ) {
         annotations_.draw( g );
     }
-
+  
     /**
      * This class takes care of all the markings plotted over the top of
      * the plot proper.  It's coded as an extra class just to make it tidy,
      * these workings could equally be in the body of ScatterPlot.
      */
     private class Annotations {
-
+  
         int[] activePoints_ = new int[ 0 ];
         final MarkStyle cursorStyle_ = MarkStyle.targetStyle();
-
+  
         /**
          * Sets a number of points to be marked out.
          * Any negative indices in the array, or ones which are not visible
@@ -915,92 +895,30 @@ public class ScatterPlot extends SurfacePlot {
          * @param  ips  indices of the points to be marked
          */
         void setActivePoints( int[] ips ) {
-            ips = dropInvisible( ips );
             if ( ! Arrays.equals( ips, activePoints_ ) ) {
                 activePoints_ = ips;
                 repaint();
             }
         }
-
+  
         /**
          * Paints all the current annotations onto a given graphics context.
          *
          * @param  g  graphics context
          */
         void draw( Graphics graphics ) {
-
-            /* Check that the points object is not empty and bail out if so.
-             * I think this is a hack; we shouldn't be here if it is empty.
-             * However not making this check results in ugly stackdumps. */
-            Points points = getPoints();
-            if ( points.getCount() == 0 ) {
-                return;
-            }
-          
-            /* Draw any active points. */
+            BitSet activeMask = new BitSet();
             for ( int i = 0; i < activePoints_.length; i++ ) {
-                double[] coords = points.getPoint( activePoints_[ i ] );
-                Point p = getSurface().dataToGraphics( coords[ 0 ], coords[ 1 ],
-                                                       true );
-                if ( p != null ) {
-                    cursorStyle_.drawMarker( graphics, p.x, p.y );
+                activeMask.set( activePoints_[ i ] );
+            }
+            for ( PointIterator pointIt = getPlottedPointIterator();
+                  pointIt.readNextPoint(); ) {
+                if ( activeMask.get( pointIt.getIndex() ) ) {
+                    cursorStyle_.drawMarker( graphics, pointIt.getX(),
+                                                       pointIt.getY() );
                 }
             }
         }
-
-        /**
-         * Updates this annotations object as appropriate for the current
-         * state of the plot.
-         */
-        void validate() {
-            /* If there are active points which are no longer visible in
-             * this plot, drop them. */
-            activePoints_ = getState().getValid() 
-                          ? dropInvisible( activePoints_ )
-                          : new int[ 0 ];
-        }
-
-        /**
-         * Removes any invisible points from an array of point indices.
-         *
-         * @param  ips   point index array
-         * @return  subset of ips
-         */
-        private int[] dropInvisible( int[] ips ) {
-            List ipList = new ArrayList();
-            for ( int i = 0; i < ips.length; i++ ) {
-                int ip = ips[ i ];
-                if ( ip >= 0 && isIncluded( ip ) ) {
-                    ipList.add( new Integer( ip ) );
-                }
-            }
-            ips = new int[ ipList.size() ];
-            for ( int i = 0; i < ips.length; i++ ) {
-                ips[ i ] = ((Integer) ipList.get( i )).intValue();
-            }
-            return ips;
-        }
-    }
-
-    /**
-     * Determines whether a point with a given index is included in the
-     * current plot.  This doesn't necessarily mean it's visible, since
-     * it might fall outside the bounds of the current display area,
-     * but it means the point does conceptually form part of what is
-     * being plotted.
-     * 
-     * @param  ip  index of point to check
-     * @return  true  iff point <tt>ip</tt> is included in this plot
-     */
-    private boolean isIncluded( int ip ) {
-        RowSubset[] sets = getPointSelection().getSubsets();
-        int nset = sets.length;
-        for ( int is = 0; is < nset; is++ ) {
-            if ( sets[ is ].isIncluded( (long) ip ) ) {
-                return true;
-            }
-        } 
-        return false;
     }
 
     /**
@@ -1041,7 +959,6 @@ public class ScatterPlot extends SurfacePlot {
             int height = getBounds().height;
             if ( getState() == lastState_ &&
                  getSurface() == lastSurface_ &&
-                 getPoints() == lastPoints_ &&
                  width == lastWidth_ &&
                  height == lastHeight_ ) {
                 assert image_ != null;
@@ -1067,7 +984,6 @@ public class ScatterPlot extends SurfacePlot {
                  * plot into the cached buffer. */
                 lastState_ = getState();
                 lastSurface_ = getSurface();
-                lastPoints_ = getPoints();
                 lastWidth_ = width;
                 lastHeight_ = height;
                 logger_.info( "Repaint scatter plot: "
@@ -1095,20 +1011,22 @@ public class ScatterPlot extends SurfacePlot {
          * directly in an appropriate manner.
          */
         protected void printComponent( Graphics g ) {
-            if ( getPoints() != null && getState() != null ) {
+            PlotState state = getState();
+            if ( state != null && state.getPlotData() != null ) {
+                PlotData data = state.getPlotData();
+                MarkStyle[] styles = getStyles( data );
 
                 /* Find out if we've got a vector-like graphics context. */
                 boolean isVector = isVectorContext( g );
 
                 /* Work out if there is any transparent rendering. */
                 boolean hasTransparent = false;
-                Style[] styles = getPointSelection().getStyles();
                 for ( int is = 0; is < styles.length; is++ ) {
-                    if ( ((MarkStyle) styles[ is ]).getOpaqueLimit() != 1 ) {
+                    if ( styles[ is ].getOpaqueLimit() != 1 ) {
                         hasTransparent = true;
                     }
                 }
-                Shader[] shaders = getState().getShaders();
+                Shader[] shaders = state.getShaders();
                 for ( int iaux = 0; iaux < shaders.length; iaux++ ) {
                     if ( Shaders.isTransparent( shaders[ iaux ] ) ) {
                         hasTransparent = true;
@@ -1193,5 +1111,21 @@ public class ScatterPlot extends SurfacePlot {
                 drawAnnotations( g );
             }
         }
+    }
+
+    /**
+     * Utility method to extract the array of per-subset styles from a plot
+     * data object as a MarkStyle array.
+     *
+     * @param   data  plot data
+     * @return   array of mark styles
+     */
+    private static MarkStyle[] getStyles( PlotData data ) {
+        int nset = data.getSetCount();
+        MarkStyle[] styles = new MarkStyle[ nset ];
+        for ( int is = 0; is < nset; is++ ) {
+            styles[ is ] = (MarkStyle) data.getSetStyle( is );
+        }
+        return styles;
     }
 }
