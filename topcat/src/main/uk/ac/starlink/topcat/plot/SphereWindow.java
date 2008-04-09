@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -140,7 +141,13 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     protected PlotState createPlotState() {
-        SphericalPlotState state = new SphericalPlotState();
+        SphericalPlotState state = new SphericalPlotState() {
+            public PlotData getPlotData() {
+                PlotData data = super.getPlotData();
+                adjustPlotData( this, data );
+                return data;
+            }
+        };
         ValueInfo rInfo =
             getSphericalAxesSelector( getPointSelectors().getMainSelector() )
            .getRadialInfo();
@@ -331,5 +338,39 @@ public class SphereWindow extends Plot3DWindow {
                 return true;
             }
         };
+    }
+
+    /**
+     * Modifies a PlotData object used by this window.
+     * This is an optimisation to do with current pixel size.
+     *
+     * @param  state  plot state
+     * @param  data   plot data object - may be modified
+     */
+    private void adjustPlotData( SphericalPlotState state, PlotData data ) {
+        if ( data instanceof PointSelection ) {
+            Points points = ((PointSelection) data).getPoints();
+            if ( points != null ) {
+                Object basePoints = WrapUtils.getWrapped( points );
+                if ( basePoints instanceof SphericalPolarPointStore ) {
+
+                    /* If the data is a spherical polar point store, tell it
+                     * roughly what the display pixel size is for this plot.
+                     * This enables skipping some expensive calculaations of
+                     * error points where it is known that they will end up in
+                     * the same pixel as the error point. */
+                    SphericalPolarPointStore sphPoints =
+                        (SphericalPolarPointStore) points;
+                    Dimension size = getPlot().getSize();
+                    int scale = Math.max( size.width, size.height );
+
+                    /* This is a rough estimate, but it should be an
+                     * underestimate, which is safe though perhaps not
+                     * maximally efficient. */
+                    double minTanErr = 1.0 / ( scale * state.getZoomScale() );
+                    sphPoints.setMinimumTanError( minTanErr );
+                }
+            }
+        }
     }
 }
