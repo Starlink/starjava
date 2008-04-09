@@ -1,4 +1,4 @@
-package uk.ac.starlink.tplot;
+package uk.ac.starlink.topcat.plot;
 
 /**
  * Extends the {@link Points} interface to provide a facility for 
@@ -20,6 +20,10 @@ public interface PointStore extends Points {
      * The lengths of the arrays supplied here are not necessarily the
      * same as those returned by the {@link #getNdim} and {@link #getNerror}
      * methods, since there may be some translation between the arrays.
+     *
+     * <p>The {@link PointSelection} submits rows here as retrieved
+     * directly from the AxesSelector {@link AxesSelector#getData} and
+     * {@link AxesSelector#getErrorData} tables.
      *
      * @param  coordRow  array of objects representing coordinate values
      * @param  errorRow  array of objects representing error values

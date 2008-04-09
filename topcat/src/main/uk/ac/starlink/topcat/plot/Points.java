@@ -1,4 +1,4 @@
-package uk.ac.starlink.tplot;
+package uk.ac.starlink.topcat.plot;
 
 /**
  * Encapsulates a list of N-dimensional points in data space, perhaps with

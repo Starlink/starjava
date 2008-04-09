@@ -1,7 +1,9 @@
-package uk.ac.starlink.tplot;
+package uk.ac.starlink.topcat.plot;
 
 import uk.ac.starlink.table.ValueStore;
 import uk.ac.starlink.table.storage.ArrayPrimitiveStore;
+
+import uk.ac.starlink.tplot.*;
 
 /**
  * PointStore implementation for storing spherical polar data.
