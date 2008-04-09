@@ -9,15 +9,12 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.BitSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Component which paints a 3d plot.
@@ -28,8 +25,6 @@ import uk.ac.starlink.topcat.RowSubset;
 public abstract class Plot3D extends TablePlot {
 
     private Annotations annotations_;
-    private Points points_;
-    private Plot3DState state_;
     private RangeChecker rangeChecker_;
     private PlotVolume lastVol_;
     private Transformer3D lastTrans_;
@@ -130,62 +125,15 @@ public abstract class Plot3D extends TablePlot {
                                       Transformer3D trans, PlotVolume vol,
                                       boolean front );
 
-    /**
-     * Sets the data set for this plot.  These are the points which will
-     * be plotted the next time this component is painted.
-     *
-     * @param   points  data points
-     */
-    public void setPoints( Points points ) {
-        points_ = points;
-        lastVol_ = null;
-        lastTrans_ = null;
-    }
-
-    /**
-     * Returns the data set for this point.
-     *
-     * @return  data points
-     */
-    public Points getPoints() {
-        return points_;
-    }
-
-    /**
-     * Sets the plot state for this plot.  This characterises how the
-     * plot will be done next time this component is painted.
-     *
-     * @param  state  plot state
-     */
-    public void setState( Plot3DState state ) {
-        state_ = state;
-        annotations_.validate();
+    public void setState( PlotState state ) {
+        super.setState( state );
         lastVol_ = null;
         lastTrans_ = null;
 
         /* Adjust internal state according to requested ranges. */
         if ( state.getValid() ) {
-            rangeChecker_ = configureRanges( state );
+            rangeChecker_ = configureRanges( (Plot3DState) state );
         }
-    }
-
-    /**
-     * Returns the most recently set state for this plot.
-     *
-     * @return  plot state
-     */
-    public Plot3DState getState() {
-        return state_;
-    }
-
-    /**
-     * Returns the current point selection.
-     * This convenience method just retrieves it from the current plot state.
-     * 
-     * @return   point selection
-     */
-    public PointSelection getPointSelection() {
-        return state_.getPointSelection();
     }
 
     /**
@@ -229,14 +177,12 @@ public abstract class Plot3D extends TablePlot {
     private void drawData( Graphics g, Component c ) {
 
         /* Prepare data. */
-        Points points = getPoints();
-        Plot3DState state = getState();
-        if ( points == null || state == null || ! state.getValid() ) {
+        Plot3DState state = (Plot3DState) getState();
+        PlotData data = state.getPlotData();
+        if ( data == null || state == null || ! state.getValid() ) {
             return;
         }
-        RowSubset[] sets = getPointSelection().getSubsets();
-        Style[] styles = getPointSelection().getStyles();
-        int nset = sets.length;
+        int nset = data.getSetCount();
 
         /* Set up a transformer to do the mapping from data space to
          * normalised 3-d view space. */
@@ -250,17 +196,18 @@ public abstract class Plot3D extends TablePlot {
 
         /* Prepare an array of styles which we may need to plot on the
          * PlotVolume object. */
-        List plotStyleList = new ArrayList( Arrays.asList( styles ) );
-        int iDotStyle = plotStyleList.size();
-        plotStyleList.add( DOT_STYLE );
-        MarkStyle[] plotStyles =
-            (MarkStyle[]) plotStyleList.toArray( new MarkStyle[ 0 ] );
+        MarkStyle[] styles = new MarkStyle[ nset + 1 ];
+        for ( int is = 0; is < nset; is++ ) {
+            styles[ is ] = (MarkStyle) data.getSetStyle( is );
+        }
+        styles[ nset ] = DOT_STYLE;
+        int iDotStyle = nset;
 
         /* See if all the markers are opaque; if they are we can use a 
          * simpler rendering algorithm. */
         boolean allOpaque = true;
         for ( int is = 0; is < nset && allOpaque; is++ ) {
-            allOpaque = allOpaque && plotStyles[ is ].getOpaqueLimit() == 1;
+            allOpaque = allOpaque && styles[ is ].getOpaqueLimit() == 1;
         }
         Shader[] shaders = state.getShaders();
         for ( int iaux = 0; iaux < shaders.length; iaux++ ) {
@@ -273,11 +220,11 @@ public abstract class Plot3D extends TablePlot {
         boolean anyErrors = false;
         for ( int is = 0; is < nset && ! anyErrors; is++ ) {
             anyErrors = anyErrors ||
-                        MarkStyle.hasErrors( (MarkStyle) styles[ is ], points );
+                        MarkStyle.hasErrors( (MarkStyle) styles[ is ], data );
         }
 
         /* See if there may be labels to draw. */
-        boolean hasLabels = points.hasLabels();
+        boolean hasLabels = data.hasLabels();
 
         /* Get fogginess. */
         double fog = state.getFogginess();
@@ -294,16 +241,16 @@ public abstract class Plot3D extends TablePlot {
             if ( ! allOpaque ) {
                 logger_.warning( "Can't render transparency in PostScript" );
             }
-            vol = new VectorSortPlotVolume( c, g, plotStyles, padFactor,
+            vol = new VectorSortPlotVolume( c, g, styles, padFactor,
                                             padBorders_, fog, tweaker );
         }
         else if ( allOpaque ) {
-            vol = new ZBufferPlotVolume( c, g, plotStyles, padFactor,
+            vol = new ZBufferPlotVolume( c, g, styles, padFactor,
                                          padBorders_, fog, hasLabels, tweaker,
                                          getZBufferWorkspace() );
         }
         else {
-            vol = new BitmapSortPlotVolume( c, g, plotStyles, padFactor,
+            vol = new BitmapSortPlotVolume( c, g, styles, padFactor,
                                             padBorders_, fog, hasLabels,
                                             anyErrors, -1.0, 2.0, tweaker,
                                             getBitmapSortWorkspace() );
@@ -328,7 +275,7 @@ public abstract class Plot3D extends TablePlot {
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) styles[ is ];
             showPoints[ is ] = ! style.getHidePoints();
-            showErrors[ is ] = MarkStyle.hasErrors( style, points );
+            showErrors[ is ] = MarkStyle.hasErrors( style, data );
         }
 
         /* Start the stopwatch to time how long it takes to plot all points. */
@@ -357,25 +304,25 @@ public abstract class Plot3D extends TablePlot {
 
         /* Submit each point for drawing in the display volume as
          * appropriate. */
-        int np = points.getCount();
         int nInclude = 0;
         int nVisible = 0;
         boolean[] logFlags = get3DLogFlags();
         boolean[] showMarkPoints = new boolean[ nset ];
         boolean[] showMarkErrors = new boolean[ nset ];
         double[] centre = new double[ 3 ];
-        int nerr = points.getNerror();
+        int nerr = data.getNerror();
         double[] xerrs = new double[ nerr ];
         double[] yerrs = new double[ nerr ];
         double[] zerrs = new double[ nerr ];
         RangeChecker ranger = rangeChecker_;
-        for ( int ip = 0; ip < np; ip += step ) {
-            long lp = (long) ip;
+        int ip = 0;
+        PointSequence pseq = data.getPointSequence();
+        while ( pseq.next() ) {
             boolean use = false;
             boolean useErrors = false;
             int labelSet = -1;
             for ( int is = 0; is < nset; is++ ) {
-                boolean included = sets[ is ].isIncluded( lp );
+                boolean included = pseq.isIncluded( is );
                 use = use || included;
                 boolean showP = included && showPoints[ is ];
                 boolean showE = included && showErrors[ is ];
@@ -388,7 +335,7 @@ public abstract class Plot3D extends TablePlot {
             }
             if ( use ) {
                 nInclude++;
-                double[] coords = points.getPoint( ip );
+                double[] coords = pseq.getPoint();
                 centre[ 0 ] = coords[ 0 ];
                 centre[ 1 ] = coords[ 1 ];
                 centre[ 2 ] = coords[ 2 ];
@@ -396,7 +343,7 @@ public abstract class Plot3D extends TablePlot {
                     trans.transform( coords );
                     if ( coords[ 2 ] < zmax_ ) {
                         if ( useErrors ) {
-                            double[][] errors = points.getErrors( ip );
+                            double[][] errors = pseq.getErrors();
                             useErrors = useErrors &&
                                 transformErrors( trans, ranger, logFlags,
                                                  errors, xerrs, yerrs, zerrs );
@@ -408,7 +355,7 @@ public abstract class Plot3D extends TablePlot {
                                        : 0;
                             String label;
                             if ( is == labelSet ) {
-                                label = points.getLabel( ip );
+                                label = pseq.getLabel();
                                 if ( label != null &&
                                      label.trim().length() == 0 ) {
                                     label = null;
@@ -429,10 +376,13 @@ public abstract class Plot3D extends TablePlot {
                     }
                 }
             }
+            while ( ( ++ip % step ) != 0 && pseq.next() );
         }
+        pseq.close();
+        int nPoint = ip;
 
         /* Plot a teeny static dot in the middle of the data. */
-        double[] dot = new double[ points.getNdim() ];
+        double[] dot = new double[ data.getNdim() ];
         dot[ 0 ] = 0.5;
         dot[ 1 ] = 0.5;
         dot[ 2 ] = 0.5;
@@ -459,7 +409,7 @@ public abstract class Plot3D extends TablePlot {
         /* Store information about the most recent plot. */
         lastVol_ = vol;
         lastTrans_ = trans;
-        firePlotChangedLater( new PlotEvent( this, state, np, nInclude,
+        firePlotChangedLater( new PlotEvent( this, state, nPoint, nInclude,
                                              nVisible ) );
 
         /* Log the time this painting took for tuning purposes. */
@@ -481,12 +431,12 @@ public abstract class Plot3D extends TablePlot {
      */
     private void plotAxes( Graphics g, Transformer3D trans,
                            PlotVolume vol, boolean front ) {
-        Plot3DState state = getState();
+        Plot3DState state = (Plot3DState) getState();
         Graphics2D g2 = (Graphics2D) g;
         Object antialias = 
             g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                             state_.getAntialias() 
+                             state.getAntialias() 
                                  ? RenderingHints.VALUE_ANTIALIAS_ON
                                  : RenderingHints.VALUE_ANTIALIAS_DEFAULT );
         plotAxes( state, g, trans, vol, front );
@@ -502,75 +452,42 @@ public abstract class Plot3D extends TablePlot {
     public PointIterator getPlottedPointIterator() {
         final PlotVolume vol = lastVol_;
         final Transformer3D trans = lastTrans_;
-        final Points points = getPoints();
-        if ( vol != null && trans != null && points != null ) {
+        PlotData data = getState().getPlotData();
+        if ( vol != null && trans != null && data != null ) {
             final boolean[] logFlags = get3DLogFlags();
-            final int np = points.getCount();
-            final RowSubset[] sets = getPointSelection().getSubsets();
-            final int nset = sets.length;
             final RangeChecker ranger = rangeChecker_;
             Rectangle plotBounds = getPlotBounds();
             final int xmin = plotBounds.x + 1;
             final int xmax = plotBounds.x + plotBounds.width - 2;
             final int ymin = plotBounds.y + 1;
             final int ymax = plotBounds.y + plotBounds.height - 2;
-            return new PointIterator() {
-                int ip = -1;
-                int[] point = new int[ 3 ];
-                protected int[] nextPoint() {
-                    while ( ++ip < np ) {
-                        long lp = (long) ip;
-                        boolean use = false;
-                        for ( int is = 0; is < nset && !use; is++ ) {
-                            use = use || sets[ is ].isIncluded( lp );
+            return new PlotDataPointIterator( data ) {
+                protected Point getXY( PointSequence pseq ) {
+                    double[] coords = pseq.getPoint();
+                    if ( ranger.inRange( coords ) &&
+                         logize( coords, logFlags ) ) {
+                        trans.transform( coords );
+                        int px = vol.projectX( coords[ 0 ] );
+                        int py = vol.projectY( coords[ 1 ] );
+                        double z = coords[ 2 ];
+                        if ( px >= xmin && px <= xmax &&
+                             py >= ymin && py <= ymax &&
+                             z <= zmax_ ) {
+                            return new Point( px, py );
                         }
-                        if ( use ) {
-                            double[] coords = points.getPoint( ip );
-                            if ( ranger.inRange( coords ) &&
-                                 logize( coords, logFlags ) ) {
-                                trans.transform( coords );
-                                int px = vol.projectX( coords[ 0 ] );
-                                int py = vol.projectY( coords[ 1 ] );
-                                double z = coords[ 2 ];
-                                if ( px >= xmin && px <= xmax &&
-                                     py >= ymin && py <= ymax &&
-                                     z <= zmax_ ) {
-                                    point[ 0 ] = ip;
-                                    point[ 1 ] = px;
-                                    point[ 2 ] = py;
-                                    return point;
-                                }
-                            }
+                        else {
+                            return null;
                         }
                     }
-                    return null;
+                    else {
+                        return null;
+                    }
                 }
             };
         }
         else {
-            return null;
+            return PointIterator.EMPTY;
         }
-    }
-
-    /**
-     * Determines whether a point with a given index is included in the
-     * current plot.  This doesn't necessarily mean it's visible, since
-     * it might fall outside the bounds of the current display area,
-     * but it means the point does conceptually form part of what is
-     * being plotted.
-     *
-     * @param  ip  index of point to check
-     * @return  true  iff point <tt>ip</tt> is included in this plot
-     */
-    private boolean isIncluded( int ip ) {
-        RowSubset[] sets = getPointSelection().getSubsets();
-        int nset = sets.length;
-        for ( int is = 0; is < nset; is++ ) {
-            if ( sets[ is ].isIncluded( (long) ip ) ) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -651,7 +568,7 @@ public abstract class Plot3D extends TablePlot {
      * coordinates of points in the transformed graphics space.
      * The arrangement of the input data offsets
      * (<code>loErrs</code>, <code>hiErrs</code>) is as determined by the 
-     * {@link Points} object.
+     * {@link PlotData} object.
      * The number and ordering of the output data points
      * (<code>xerrs</code>, <code>yerrs</code>, <code>zerrs</code>)
      * are as required by {@link ErrorRenderer} objects.
@@ -866,7 +783,7 @@ public abstract class Plot3D extends TablePlot {
     /**
      * This class takes care of all the markings plotted over the top of
      * the plot proper.  It's coded as an extra class just to make it tidy,
-     * these workings could equally be in the body of ScatterPlot.
+     * these workings could equally be in the body of Plot3D.
      */
     private class Annotations {
 
@@ -881,7 +798,6 @@ public abstract class Plot3D extends TablePlot {
          * @param  ips  indices of the points to be marked
          */
         void setActivePoints( int[] ips ) {
-            ips = dropInvisible( ips );
             if ( ! Arrays.equals( ips, activePoints_ ) ) {
                 activePoints_ = ips;
                 repaint();
@@ -894,63 +810,17 @@ public abstract class Plot3D extends TablePlot {
          * @param  g  graphics context
          */
         void draw( Graphics g, Transformer3D trans, PlotVolume vol ) {
-
-            /* Check that the points object is not empty and bail out if so.  
-             * I think this is a hack; we shouldn't be here if it is empty.
-             * However not making this check results in ugly stackdumps. */
-            Points points = getPoints();
-            if ( points.getCount() == 0 ) {
-                return;
-            }
-
-            /* Draw markers for any active points. */
-            boolean[] logFlags = get3DLogFlags();
+            BitSet activeMask = new BitSet();
             for ( int i = 0; i < activePoints_.length; i++ ) {
-                double[] coords = points.getPoint( activePoints_[ i ] );
-                if ( logize( coords, logFlags ) ) {
-                    trans.transform( coords );
-                    if ( ! Double.isNaN( coords[ 0 ] ) &&
-                         ! Double.isNaN( coords[ 1 ] ) &&
-                         ! Double.isNaN( coords[ 2 ] ) ) {
-                        cursorStyle_.drawMarker( g,
-                                                 vol.projectX( coords[ 0 ] ),
-                                                 vol.projectY( coords[ 1 ] ) );
-                    }
+                activeMask.set( activePoints_[ i ] );
+            }
+            for ( PointIterator pointIt = getPlottedPointIterator();
+                  pointIt.readNextPoint(); ) {
+                if ( activeMask.get( pointIt.getIndex() ) ) {
+                    cursorStyle_.drawMarker( g, pointIt.getX(),
+                                                pointIt.getY() );
                 }
             }
-        }
-
-        /**
-         * Updates this annotations object as appropriate for the current
-         * state of the plot.
-         */
-        void validate() {
-            /* If there are active points which are no longer visible in
-             * this plot, drop them. */
-            activePoints_ = getState().getValid()
-                          ? dropInvisible( activePoints_ )
-                          : new int[ 0 ];
-        }
-
-        /**
-         * Removes any invisible points from an array of point indices.
-         *
-         * @param  ips   point index array
-         * @return  subset of ips
-         */
-        private int[] dropInvisible( int[] ips ) {
-            List ipList = new ArrayList();
-            for ( int i = 0; i < ips.length; i++ ) {
-                int ip = ips[ i ];
-                if ( ip >= 0 && isIncluded( ip ) ) {
-                    ipList.add( new Integer( ip ) );
-                }
-            }
-            ips = new int[ ipList.size() ];
-            for ( int i = 0; i < ips.length; i++ ) {
-                ips[ i ] = ((Integer) ipList.get( i )).intValue();
-            }
-            return ips;
         }
     }
 }
