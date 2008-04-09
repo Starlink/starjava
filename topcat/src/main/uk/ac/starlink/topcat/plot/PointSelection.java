@@ -23,7 +23,7 @@ import uk.ac.starlink.tplot.*;
  * @author   Mark Taylor
  * @since    2 Nov 2005
  */
-public class TopcatPointSelection implements PointSelection {
+public class PointSelection implements PlotData {
 
     private final int ndim_;
     private final int nTable_;
@@ -37,6 +37,7 @@ public class TopcatPointSelection implements PointSelection {
     private final Style[] styles_;
     private final SetId[] setIds_;
     private final PointSelector mainSelector_;
+    private Points points_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
@@ -57,9 +58,8 @@ public class TopcatPointSelection implements PointSelection {
      * @param  subsetNames     labels to be used for the subsets in 
      *                         <code>subsetPointers</code>
      */
-    public TopcatPointSelection( PointSelector[] selectors,
-                                 int[][] subsetPointers,
-                                 String[] subsetNames ) {
+    public PointSelection( PointSelector[] selectors, int[][] subsetPointers,
+                           String[] subsetNames ) {
         nTable_ = selectors.length;
         mainSelector_ = selectors[ 0 ];
         ndim_ = mainSelector_.getAxesSelector().getNdim();
@@ -117,6 +117,9 @@ public class TopcatPointSelection implements PointSelection {
         subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
         styles_ = (Style[]) styleList.toArray( new Style[ 0 ] );
         setIds_ = (SetId[]) idList.toArray( new SetId[ 0 ] );
+
+        /* Set dummy points object. */
+        points_ = getEmptyPoints();
     }
 
     /** 
@@ -245,6 +248,42 @@ public class TopcatPointSelection implements PointSelection {
      */
     public Style[] getStyles() {
         return styles_;
+    }
+
+    public int getSetCount() {
+        return subsets_.length;
+    }
+
+    public String getSetName( int iset ) {
+        return subsets_[ iset ].getName();
+    }
+
+    public Style getSetStyle( int iset ) {
+        return styles_[ iset ];
+    }
+
+    public int getNdim() {
+        return points_.getNdim();
+    }
+
+    public int getNerror() {
+        return points_.getNerror();
+    }
+
+    public boolean hasLabels() {
+        return points_.hasLabels();
+    }
+
+    public PointSequence getPointSequence() {
+        return new SelectionPointSequence();
+    }
+
+    public void setPoints( Points points ) {
+        points_ = points;
+    }
+
+    public Points getPoints() {
+        return points_;
     }
 
     /**
@@ -390,7 +429,7 @@ public class TopcatPointSelection implements PointSelection {
      * @param  other  comparison object
      * @return  true  iff the data axes are the same
      */
-    public boolean sameAxes( TopcatPointSelection other ) {
+    public boolean sameAxes( PointSelection other ) {
         return other != null
             && Arrays.equals( this.dataTables_, other.dataTables_ );
     }
@@ -404,7 +443,7 @@ public class TopcatPointSelection implements PointSelection {
      * @param  other  comparison object
      * @return  true  iff the data is the same
      */
-    public boolean sameData( TopcatPointSelection other ) {
+    public boolean sameData( PointSelection other ) {
         return other != null 
             && Arrays.equals( this.dataTables_, other.dataTables_ )
             && Arrays.equals( this.errorTables_, other.errorTables_ )
@@ -412,11 +451,15 @@ public class TopcatPointSelection implements PointSelection {
             && Arrays.equals( this.labelTables_, other.labelTables_ );
     }
 
+    /**
+     * Equals is implemented efficiently to identify two PointSelection 
+     * objects which will behave in the same way.
+     */
     public boolean equals( Object otherObject ) {
-        if ( ! ( otherObject instanceof TopcatPointSelection ) ) {
+        if ( ! ( otherObject instanceof PointSelection ) ) {
             return false;
         }
-        TopcatPointSelection other = (TopcatPointSelection) otherObject;
+        PointSelection other = (PointSelection) otherObject;
         return sameData( other )
             && Arrays.equals( subsets_, other.subsets_ )
             && Arrays.equals( styles_, other.styles_ );
@@ -439,6 +482,49 @@ public class TopcatPointSelection implements PointSelection {
             code = 23 * code + styles_[ is ].hashCode();
         }
         return code;
+    }
+
+    /**
+     * PointSequence implementation used by a PointSelection.
+     */
+    private final class SelectionPointSequence implements PointSequence {
+
+        private final Points psPoints_;
+        private final int npoint_;
+        private int ip_ = -1;
+
+        /**
+         * Constructor.
+         */
+        SelectionPointSequence() {
+            psPoints_ = points_ == null ? new EmptyPoints() : points_;
+            npoint_ = psPoints_.getCount();
+        }
+
+        public boolean next() {
+            return ++ip_ < npoint_;
+        }
+
+        public double[] getPoint() {
+            return psPoints_.getPoint( ip_ );
+        }
+
+        public double[][] getErrors() {
+            return psPoints_.getErrors( ip_ );
+        }
+
+        public String getLabel() {
+            return psPoints_.getLabel( ip_ );
+        }
+
+        public boolean isIncluded( int iset ) {
+            return subsets_[ iset ].isIncluded( ip_ );
+        }
+
+        public void close() {
+            ip_ = Integer.MIN_VALUE;
+            return;
+        }
     }
 
     /**
