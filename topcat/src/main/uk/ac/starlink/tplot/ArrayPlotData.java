@@ -84,6 +84,7 @@ public class ArrayPlotData implements PlotData {
      * Returns the point array supplying the data for this object.
      *
      * @return  point array
+     */
     public PointData[] getPoints() {
         return points_;
     }
