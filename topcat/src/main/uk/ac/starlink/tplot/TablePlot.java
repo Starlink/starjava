@@ -19,12 +19,32 @@ import org.jibble.epsgraphics.EpsGraphics2D;
 public class TablePlot extends JComponent {
 
     private final List plotListeners_;
+    private PlotState state_;
 
     /**
      * Constructor.
      */
     public TablePlot() {
         plotListeners_ = new ArrayList();
+    }
+
+    /**
+     * Sets the plot state for this plot.  This characterises how the
+     * plot will be done next time this component is painted.
+     *
+     * @param  state  plot state
+     */
+    public void setState( PlotState state ) {
+        state_ = state;
+    }
+
+    /**
+     * Returns the most recently set state for this plot.
+     *
+     * @return  plot state
+     */
+    public PlotState getState() {
+        return state_;
     }
 
     /**
