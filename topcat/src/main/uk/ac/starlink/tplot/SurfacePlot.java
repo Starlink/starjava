@@ -14,16 +14,15 @@ import javax.swing.OverlayLayout;
  * {@link PlotSurface}.  Note that the PlotSurface is not specified in
  * the constructor but must be set before any plotting is done.
  * This class mainly handles keeping track of the current state
- * (<code>PlotState</code>, <code>Points</code> and <code>PlotSurface</code>
- * members).  The actual work is done by the <code>paintComponent</code>
+ * (<code>PlotState</code> and <code>PlotSurface</code> members).
+ * The actual work is done by the <code>paintComponent</code>
  * method of concrete subclasses.
  *
  * <p>The details of the plot are determined by a {@link PlotState} object
- * which indicates what the plot will look like and a {@link Points}
- * object which provides the data to plot.  Setting these values does
- * not itself trigger a change in the component, they only take effect
- * when {@link #paintComponent} is called (e.g. following a {@link #repaint}
- * call).
+ * which indicates what the plot will look like.
+ * Setting these values does not itself trigger a change in the component,
+ * they only take effect when {@link #paintComponent} is called 
+ * (e.g. following a {@link #repaint} call).
  * The drawing of axes and other decorations is done by a decoupled
  * {@link PlotSurface} object (bridge pattern).
  *
@@ -32,8 +31,6 @@ import javax.swing.OverlayLayout;
  */
 public abstract class SurfacePlot extends TablePlot implements Printable {
 
-    private Points points_;
-    private PlotState state_;
     private PlotSurface surface_;
 
     /**
@@ -56,7 +53,7 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
             remove( comp );
         }
         surface_ = surface;
-        surface_.setState( state_ );
+        surface_.setState( getState() );
         Component comp = surface_.getComponent();
         add( comp );
     }
@@ -70,55 +67,11 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
         return surface_;
     }
 
-    /**
-     * Sets the data set for this plot.  These are the points which will
-     * be plotted the next time this component is painted.
-     *
-     * @param   points  data points
-     */
-    public void setPoints( Points points ) {
-        points_ = points;
-    }
-
-    /**
-     * Returns the data set for this point.
-     *
-     * @return  data points
-     */
-    public Points getPoints() {
-        return points_;
-    }
-
-    /**
-     * Sets the plot state for this plot.  This characterises how the
-     * plot will be done next time this component is painted.
-     *
-     * @param  state  plot state
-     */
     public void setState( PlotState state ) {
-        state_ = state;
+        super.setState( state );
         if ( surface_ != null ) {
-            surface_.setState( state_ );
+            surface_.setState( state );
         }
-    }
-
-    /**
-     * Returns the most recently set state for this plot.
-     *
-     * @return  plot state
-     */
-    public PlotState getState() {
-        return state_;
-    }
-
-    /**
-     * Returns the current point selection.
-     * This convenience method just retrieves it from the current plot state.
-     *
-     * @return   point selection
-     */
-    public PointSelection getPointSelection() {
-        return state_.getPointSelection();
     }
 
     /**
@@ -166,8 +119,9 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
 
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
-        if ( state_ != null && state_.getValid() ) {
-            double[][] bounds = state_.getRanges();
+        PlotState state = getState();
+        if ( state != null && state.getValid() ) {
+            double[][] bounds = state.getRanges();
             surface_.setDataRange( bounds[ 0 ][ 0 ], bounds[ 1 ][ 0 ],
                                    bounds[ 0 ][ 1 ], bounds[ 1 ][ 1 ] );
         }
