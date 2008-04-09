@@ -2,7 +2,7 @@ package uk.ac.starlink.tplot;
 
 /**
  * Contains data for a single point in a {@link PointSequence}.
- * Used by {@link #ArrayPlotData}.
+ * Used by {@link ArrayPlotData}.
  *
  * @author   Mark Taylor
  * @since    9 Apr 2008
