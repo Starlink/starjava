@@ -16,6 +16,16 @@ public abstract class PointIterator {
     private int xp_;
     private int yp_;
 
+    /** PointIterator instance with no points. */
+    public static PointIterator EMPTY = new PointIterator() {
+        protected int[] nextPoint() {
+            return null;
+        }
+        public String toString() {
+            return "Empty PointIterator";
+        }
+    };
+
     /**
      * Returns a triple giving point index, screen X coordinate and 
      * screen Y coordinate.  Returns null if there are no more points.
