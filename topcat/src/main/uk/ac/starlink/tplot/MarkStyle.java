@@ -592,11 +592,11 @@ public abstract class MarkStyle extends DefaultStyle {
      * style when a given set of points is plotted.
      *
      * @param  style  plotting style
-     * @param  points  point set
+     * @param  plotData  plotting data
      * @return  false if rendering the error bars will have no effect
      */
-    public static boolean hasErrors( MarkStyle style, Points points ) {
-        return points.getNerror() > 0
+    public static boolean hasErrors( MarkStyle style, PlotData plotData ) {
+        return plotData.getNerror() > 0
             && ! style.getErrorRenderer().isBlank( null );
     }
 

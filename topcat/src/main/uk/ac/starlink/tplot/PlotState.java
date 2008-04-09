@@ -8,7 +8,7 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
 /**
  * Characterises the details of how a plot is to be done.
  * An instance of this class contains all the information which a 
- * plot component needs to draw a plot, apart from the Points data itself.
+ * plot component needs to draw a plot.
  * There are specific subclasses for the various different plot types.
  *
  * <p>Some of the items held by this object are arrays with one element
@@ -28,7 +28,7 @@ public class PlotState {
     private boolean[] flipFlags_;
     private boolean grid_;
     private boolean antialias_;
-    private PointSelection pointSelection_;
+    private PlotData plotData_;
     private double[][] ranges_ = new double[ 0 ][];
     private String[] axisLabels_ = new String[ 0 ];
     private Shader[] shaders_ = new Shader[ 0 ];
@@ -252,21 +252,21 @@ public class PlotState {
     }
 
     /**
-     * Sets the point selection object for this state.
+     * Sets the plot data object for this state.
      *
-     * @param   pointSelection  data selection object
+     * @param   plotData  plot data object
      */
-    public void setPointSelection( PointSelection pointSelection ) {
-        pointSelection_ = pointSelection;
+    public void setPlotData( PlotData plotData ) {
+        plotData_ = plotData;
     }
 
     /**
-     * Returns the point selection object for this state.
+     * Returns the plot data object for this state.
      *
-     * @return  data selection object
+     * @return  plot data object
      */
-    public PointSelection getPointSelection() {
-        return pointSelection_;
+    public PlotData getPlotData() {
+        return plotData_;
     }
 
     public boolean equals( Object otherObject ) {
@@ -285,9 +285,9 @@ public class PlotState {
             && Arrays.equals( shaders_, other.shaders_ )
             && Arrays.equals( converters_, other.converters_ )
             && equalRanges( ranges_, other.ranges_ )
-            && ( pointSelection_ == null 
-                    ? other.pointSelection_ == null
-                    : pointSelection_.equals( other.pointSelection_ ) );
+            && ( plotData_ == null 
+                    ? other.plotData_ == null
+                    : plotData_.equals( other.plotData_ ) );
     }
 
     /**
@@ -314,10 +314,9 @@ public class PlotState {
         sbuf.append( Arrays.equals( converters_, o.converters_ ) 
                      ? "" : " converters" );
         sbuf.append( equalRanges( ranges_, o.ranges_ ) ? "" : " ranges" );
-        sbuf.append( ( pointSelection_ == null 
-                           ? o.pointSelection_ == null
-                           : pointSelection_.equals( o.pointSelection_ ) )
-                        ? "" : " pointSelection" );
+        sbuf.append( ( plotData_ == null ? o.plotData_ == null
+                                         : plotData_.equals( o.plotData_ ) )
+                     ? "" : " plotData" );
         return sbuf.toString();
     }
 
@@ -354,9 +353,9 @@ public class PlotState {
             code = 23 * code
                  + Float.floatToIntBits( (float) ranges_[ i ][ 1 ] );
         }
-        code = 23 * code + ( pointSelection_ == null 
+        code = 23 * code + ( plotData_ == null 
                                 ? 0
-                                : pointSelection_.hashCode() );
+                                : plotData_.hashCode() );
         return code;
     }
 
