@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import uk.ac.starlink.topcat.RowSubset;
 
 /**
  * Component which can display a density plot, which is to say, a
@@ -37,8 +35,7 @@ public class DensityPlot extends SurfacePlot {
     private int nPotential_;
     private int nIncluded_;
     private int nVisible_;
-    private PointSelection lastPointSelection_;
-    private BitSet visible_;
+    private PlotData lastData_;
     private BufferedImage image_;
     private Rectangle lastPlotZone_;
     private DensityPlotState lastState_;
@@ -61,20 +58,12 @@ public class DensityPlot extends SurfacePlot {
 
     public void setState( PlotState state ) {
         super.setState( state );
-        if ( state.getPointSelection() != lastPointSelection_ ) {
+        PlotData data = state.getPlotData();
+        if ( ! data.equals( lastData_ ) ) {
             grids_ = null;
             image_ = null;
-            lastPointSelection_ = state.getPointSelection();
+            lastData_ = data;
         }
-    }
-
-    public void setPoints( Points points ) {
-        Points lastPoints = getPoints();
-        if ( points != lastPoints ) {
-            grids_ = null;
-            image_ = null;
-        }
-        super.setPoints( points );
     }
 
     /**
@@ -177,8 +166,12 @@ public class DensityPlot extends SurfacePlot {
 
             /* Ensure that we have no more than one grid to plot for each
              * style (i.e. each colour channel). */
-            Style[] styles =
-                (Style[]) state.getPointSelection().getStyles().clone();
+            PlotData data = state.getPlotData();
+            int nset = data.getSetCount();
+            Style[] styles = new Style[ nset ];
+            for ( int is = 0; is < nset; is++ ) {
+                styles[ is ] = data.getSetStyle( is );
+            }
             if ( grids.length > 1 ) {
                 grids = (BinGrid[]) grids.clone();
                 styles = (Style[]) styles.clone();
@@ -202,10 +195,10 @@ public class DensityPlot extends SurfacePlot {
                             lo = 0;
                         }
                         cutList.add( new double[] { lo, hi } );
-                        byte[] data = grid.getBytes( lo, hi, state.getLogZ() );
+                        byte[] bdata = grid.getBytes( lo, hi, state.getLogZ() );
                         for ( int ipix = 0; ipix < npix; ipix++ ) {
                             rgb[ ipix ] =
-                               rgb[ ipix ] | style.levelBits( data[ ipix ] );
+                               rgb[ ipix ] | style.levelBits( bdata[ ipix ] );
                         }
                     }
                 }
@@ -285,41 +278,19 @@ public class DensityPlot extends SurfacePlot {
     }
 
     /**
-     * Returns a bit vector describing which points in this plot's
-     * PointSelection were plotted last time this component painted
-     * itself.
-     *
-     * @return   bit vector of visible points
+     * Returns an iterator over the points plotted last time this component
+     * plotted itself.
+     * 
+     * @return  point iterator
      */
-    public BitSet getVisibleMask() {
-        return visible_;
-    }
-
-    /**
-     * Returns a bit vector describing which points in this plot's 
-     * PointSelection, plotted last time this component painted itself, 
-     * fall within a given region on the screen.
-     *
-     * @param  zone  shape whose insides we are interested in
-     * @return  bit vector of contained points
-     */
-    public BitSet getContainedMask( Shape zone ) {
-        BitSet mask = new BitSet();
-        Points points = getPoints();
-        int np = points.getCount();
-        PlotSurface surface = getSurface();
-        for ( int ip = 0; ip < np; ip++ ) {
-            if ( visible_.get( ip ) ) {
-                double[] coords = points.getPoint( ip );
-                Point gpos = surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
-                                                     false );
-                assert gpos != null;
-                if ( zone.contains( gpos ) ) {
-                    mask.set( ip );
-                }
+    public PointIterator getPlottedPointIterator() {
+        final PlotSurface surface = getSurface();
+        return new PlotDataPointIterator( getState().getPlotData() ) {
+            protected Point getXY( PointSequence pseq ) {
+                double[] coords = pseq.getPoint();
+                return surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
             }
-        }
-        return mask;    
+        };
     }
 
     /**
@@ -329,7 +300,7 @@ public class DensityPlot extends SurfacePlot {
      * <p>This method actually works in two slightly different ways according
      * to whether plotting is RGB or monochrome.  In the former case an
      * array of N BinGrids will be returned, one for each subset from 
-     * the PointSelection.
+     * the PlotData.
      * In the latter case a 1-element array is returned, the values being
      * a sum of counts from all the subsets.
      *
@@ -358,16 +329,16 @@ public class DensityPlot extends SurfacePlot {
 
         /* See if we already have BinGrids with the right characteristics.
          * If not, we have to calculate one. */
+        int xsize = zone.width;
+        int ysize = zone.height;
+        int xpix = ( xsize + pixsize - 1 ) / pixsize;
+        int ypix = ( ysize + pixsize - 1 ) / pixsize;
         if ( grids_ == null ||
              grids_.length == 0 ||
-             grids_[ 0 ].getSizeX() != zone.width ||
-             grids_[ 0 ].getSizeY() != zone.height ||
+             grids_[ 0 ].getSizeX() != xpix ||
+             grids_[ 0 ].getSizeY() != ypix ||
              ! Arrays.equals( loBounds, gridLoBounds_ ) ||
              ! Arrays.equals( hiBounds, gridHiBounds_ ) ) {
-            int xsize = zone.width;
-            int ysize = zone.height;
-            int xpix = ( xsize + pixsize - 1 ) / pixsize;
-            int ypix = ( ysize + pixsize - 1 ) / pixsize;
             double xBase = loBounds[ 0 ];
             double yBase = loBounds[ 1 ];
             double xMax = hiBounds[ 0 ];
@@ -381,11 +352,8 @@ public class DensityPlot extends SurfacePlot {
                                  : ( hiBounds[ 1 ] - loBounds[ 1 ] ) )
                         / pixsize;
 
-            RowSubset[] rsets = getPointSelection().getSubsets();
-            int nset = rsets.length;
-            Points points = getPoints();
-            int np = points.getCount();
-            BitSet visible = new BitSet();
+            PlotData data = state.getPlotData();
+            int nset = data.getSetCount();
             BinGrid[] grids;
 
             /* Decide if we're working in monochrome mode (sum all subset
@@ -405,16 +373,17 @@ public class DensityPlot extends SurfacePlot {
             boolean[] setFlags = new boolean[ nset ];
             int nInclude = 0;
             int nVisible = 0;
-            for ( int ip = 0; ip < np; ip++ ) {
-                long lp = (long) ip;
+            PointSequence pseq = data.getPointSequence();
+            int ip = 0;
+            for ( ; pseq.next(); ip++ ) {
                 boolean use = false;
                 for ( int is = 0; is < nset; is++ ) {
-                    boolean inc = rsets[ is ].isIncluded( lp );
+                    boolean inc = pseq.isIncluded( is );
                     setFlags[ is ] = inc;
                     use = use || inc;
                 }
                 if ( use ) {
-                    double[] coords = points.getPoint( ip );
+                    double[] coords = pseq.getPoint();
                     if ( ! Double.isNaN( coords[ 0 ] ) &&
                          ! Double.isNaN( coords[ 1 ] ) &&
                          ! Double.isNaN( coords[ 2 ] ) &&
@@ -431,7 +400,7 @@ public class DensityPlot extends SurfacePlot {
                             ( ylog ? Math.log( coords[ 1 ] / loBounds[ 1 ] )
                                    : ( coords[ 1 ] - loBounds[ 1 ] ) ) );
                         if ( ix >= 0 && ix < xpix && iy >= 0 && iy < ypix ) {
-                            visible.set( ip );
+                            nVisible++;
                             if ( xflip ) {
                                 ix = xpix - 1 - ix;
                             }
@@ -448,13 +417,13 @@ public class DensityPlot extends SurfacePlot {
                     }
                 }
             }
+            pseq.close();
             grids_ = grids;
             gridLoBounds_ = loBounds;
             gridHiBounds_ = hiBounds;
-            visible_ = visible;
-            nPotential_ = np;
+            nPotential_ = ip;
             nIncluded_ = nInclude;
-            nVisible_ = visible.cardinality();
+            nVisible_ = nVisible;
         }
 
         /* Return the result. */
