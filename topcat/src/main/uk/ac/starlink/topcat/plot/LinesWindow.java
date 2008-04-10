@@ -33,6 +33,8 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JPanel;
+import javax.swing.OverlayLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputAdapter;
@@ -50,6 +52,7 @@ import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.util.WrapUtils;
 
 import uk.ac.starlink.tplot.*;
@@ -62,6 +65,7 @@ import uk.ac.starlink.tplot.*;
  */
 public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
+    private final JComponent plotPanel_;
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel vlineModel_;
     private final ToggleButtonModel zeroLineModel_;
@@ -69,7 +73,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
     private Range[] yDataRanges_;
     private StyleSet styles_;
-    private int[] activePoints_;
+    private Annotator annotator_;
 
     private static final Color[] COLORS;
     static {
@@ -113,13 +117,20 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                createErrorModeModels( AXIS_NAMES ), parent );
 
         /* Set some initial values. */
-        activePoints_ = new int[ 0 ];
         yViewRangeMap_ = new HashMap();
+        annotator_ = new Annotator();
 
         /* Construct a plot component to hold the plotted graphs. */
         final LinesPlot plot = (LinesPlot) getPlot();
         plot.setPreferredSize( new Dimension( 400, 400 ) );
         plot.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
+
+        /* Overlay components of display. */
+        plotPanel_ = new JPanel();
+        plotPanel_.setOpaque( false );
+        plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
+        plotPanel_.add( annotator_ );
+        plotPanel_.add( plot );
 
         /* Zooming. */
         final Zoomer zoomer = new Zoomer();
@@ -294,7 +305,12 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected JComponent getPlotPanel() {
-        return getPlot();
+        return plotPanel_;
+    }
+
+    protected void doReplot( PlotState state ) {
+        annotator_.setState( state );
+        super.doReplot( state );
     }
 
     protected PlotState createPlotState() {
@@ -371,9 +387,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         /* Y=0 lines. */
         state.setYZeroFlag( zeroLineModel_.isSelected() );
-
-        /* Active points. */
-        state.setActivePoints( activePoints_ );
 
         /* Return state. */
         return state;
@@ -610,7 +623,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 for ( int i = 0; i < lps.length; i++ ) {
                     ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
                 }
-                activePoints_ = ips;
+                annotator_.setActivePoints( ips );
                 replot();
             }
         }
@@ -814,8 +827,72 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                         .highlightRow( psel.getPointRow( ip ) );
                 }
                 else {
-                    activePoints_ = new int[ 0 ];
+                    annotator_.setActivePoints( new int[ 0 ] );
                     replot();
+                }
+            }
+        }
+    }
+
+    /**
+     * Panel which can write annotations.
+     */
+    private class Annotator extends AnnotationPanel {
+        private LinesPlotState state_;
+
+        /**
+         * Sets the plot state.
+         *
+         * @param  state plot state
+         */
+        public void setState( PlotState state ) {
+            state_ = (LinesPlotState) state;
+        }
+
+        protected void paintComponent( Graphics g ) {
+            int[] activePoints = getActivePoints();
+            if ( activePoints.length == 0 || state_ == null ) {
+                return;
+            }
+
+            /* Assemble a per-graph array of active point lists and 
+             * corresponding point placers. */
+            PointPlacer[] placers = ((LinesPlot) getPlot()).getPointPlacers();
+            int ngraph = placers.length;
+            BitSet activeMask = new BitSet();
+            for ( int i = 0; i < activePoints.length; i++ ) {
+                activeMask.set( activePoints[ i ] );
+            }
+            PlotData data = state_.getPlotData();
+            int nset = data.getSetCount();
+            int[] graphIndices = state_.getGraphIndices();
+            IntList[] activeLists = new IntList[ ngraph ];
+            for ( int ig = 0; ig < ngraph; ig++ ) {
+                activeLists[ ig ] = new IntList();
+            }
+            PointSequence pseq = data.getPointSequence();
+            for ( int ip = 0; pseq.next(); ip++ ) {
+                if ( activeMask.get( ip ) ) {
+                    for ( int is = 0; is < nset; is++ ) {
+                        if ( pseq.isIncluded( is ) ) {
+                            activeLists[ graphIndices[ is ] ].add( ip );
+                        }
+                    }
+                }
+            }
+
+            /* Now for each constituent graph plot the active points associated
+             * with it.  Do this by creating an AnnotationPanel which would
+             * paint the right thing, and then rather than placing it just
+             * invoke its paintComponent method directly. */
+            for ( int ig = 0; ig < ngraph; ig++ ) {
+                int[] ips = activeLists[ ig ].toIntArray();
+                if ( ips.length > 0 ) {
+                    AnnotationPanel ann = new AnnotationPanel();
+                    ann.setPlotData( data );
+                    ann.setPlacer( placers[ ig ] );
+                    ann.setActivePoints( ips );
+                    ann.paintComponent( g );
                 }
             }
         }
