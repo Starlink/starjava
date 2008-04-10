@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -15,8 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
 import java.util.Arrays;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -49,6 +46,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel northModel_;
     private final BlobPanel blobPanel_;
+    private final AnnotationPanel annotations_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
     private double[] rotation_;
@@ -118,25 +116,29 @@ public abstract class Plot3DWindow extends GraphicsWindow
             }
         } );
 
+        /* Annotations panel. */
+        annotations_ = new AnnotationPanel() {
+            public PointPlacer getPlacer() {
+                return plot.getPointPlacer();
+            }
+        };
+
         /* Construct and populate the plot panel with the 3D plot itself
          * and a transparent layer for doodling blobs on. */
         plotPanel_ = new JPanel();
         plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
-                Insets insets = plot.getInsets();
-                AffineTransform trans =
-                    AffineTransform.getTranslateInstance( -insets.left,
-                                                          -insets.top );
-                Shape transBlob =
-                    new Area( blob ).createTransformedArea( trans );
                 addNewSubsets( plot.getPlottedPointIterator()
-                                    .getContainedPoints( transBlob ) );
+                                    .getContainedPoints( blob ) );
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
+
+        /* Overlay components of display. */
         plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
         plotPanel_.add( blobPanel_ );
+        plotPanel_.add( annotations_ );
         plotPanel_.add( plot );
 
         /* Listen for topcat actions. */
@@ -322,6 +324,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
     protected void doReplot( PlotState state ) {
         blobPanel_.setActive( false );
+        annotations_.setPlotData( state.getPlotData() );
         super.doReplot( state );
     }
 
@@ -352,7 +355,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                 for ( int i = 0; i < lps.length; i++ ) {
                     ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
                 }
-                plot.setActivePoints( ips );
+                annotations_.setActivePoints( ips );
             }
             else {
                 assert false;
@@ -569,11 +572,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
 
                 /* Get the position in plot coordinates. */
                 Plot3D plot = (Plot3D) getPlot();
-                JComponent comp = (JComponent) evt.getComponent();
-                assert comp == plot;
-                Insets insets = comp.getInsets();
                 Point point = evt.getPoint();
-                point.translate( - insets.left, - insets.top );
 
                 /* Get the closest plotted point to this. */
                 PointIterator pointIt = plot.getPlottedPointIterator();
@@ -589,7 +588,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                         .highlightRow( psel.getPointRow( ip ) );
                 }
                 else {
-                    plot.setActivePoints( new int[ 0 ] );
+                    annotations_.setActivePoints( new int[ 0 ] );
                 }
             }
         }

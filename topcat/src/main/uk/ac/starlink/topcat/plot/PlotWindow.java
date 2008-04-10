@@ -55,6 +55,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
 
     private final JComponent plotPanel_;
     private final BlobPanel blobPanel_;
+    private final AnnotationPanel annotations_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
     private final SurfaceZoomRegionList zoomRegionList_;
@@ -89,8 +90,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
         super( "Scatter Plot", new ScatterPlot( new PtPlotSurface() ),
                AXIS_NAMES, 3, true, createErrorModeModels( AXIS_NAMES ),
                parent );
-
         final ScatterPlot plot = (ScatterPlot) getPlot();
+        final PlotSurface surface = plot.getSurface();
+
         plot.addPlotListener( new PlotListener() {
             public void plotChanged( PlotEvent evt ) {
                 ScatterPlotEvent sevt = (ScatterPlotEvent) evt;
@@ -107,6 +109,9 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                   .setStats( setIds, xyStats );
             }
         } );
+
+        /* Annotations panel. */
+        annotations_ = new AnnotationPanel();
 
         /* Zooming. */
         zoomRegionList_ = new SurfaceZoomRegionList( plot ) {
@@ -138,8 +143,11 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
+
+        /* Overlay components of display. */
         plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
         plotPanel_.add( blobPanel_ );
+        plotPanel_.add( annotations_ );
         plotPanel_.add( plot );
         plotPanel_.setPreferredSize( new Dimension( 500, 400 ) );
 
@@ -150,7 +158,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
          * receive the mouse events, since it's not the deepest visible
          * component.  Doing it this way is probably easier than mucking
          * about with glassPanes. */
-        PlotSurface surface = plot.getSurface();
         surface.getComponent().addMouseListener( new PointClickListener() );
 
         /* Listen for topcat actions. */
@@ -241,6 +248,8 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
     }
 
     protected void doReplot( PlotState state ) {
+        annotations_.setPlotData( state.getPlotData() );
+        annotations_.setPlacer( ((ScatterPlot) getPlot()).getPointPlacer() );
 
         /* Cancel any active blob-drawing.  This is necesary since
          * the replot may put a different set of points inside it.
@@ -285,7 +294,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                 for ( int i = 0; i < lps.length; i++ ) {
                     ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
                 }
-                plot.setActivePoints( ips );
+                annotations_.setActivePoints( ips );
             }
             else {
                 assert false;
@@ -336,7 +345,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                         .highlightRow( psel.getPointRow( ip ) );
                 }
                 else {
-                    plot.setActivePoints( new int[ 0 ] );
+                    annotations_.setActivePoints( new int[ 0 ] );
                 }
             }
         }
