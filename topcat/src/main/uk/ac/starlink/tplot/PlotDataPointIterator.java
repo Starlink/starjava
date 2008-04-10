@@ -8,9 +8,10 @@ import java.awt.Point;
  * @author   Mark Taylor
  * @since    9 Apr 2008
  */
-public abstract class PlotDataPointIterator extends PointIterator {
+public class PlotDataPointIterator extends PointIterator {
 
     private final PlotData data_;
+    private final PointPlacer placer_;
     private final int nset_;
     private final int[] point_;
     private PointSequence pseq_;
@@ -21,24 +22,13 @@ public abstract class PlotDataPointIterator extends PointIterator {
      *
      * @param  data  object supplying point data
      */
-    public PlotDataPointIterator( PlotData data ) {
+    public PlotDataPointIterator( PlotData data, PointPlacer placer ) {
         data_ = data;
+        placer_ = placer;
         nset_ = data.getSetCount();
         pseq_ = data.getPointSequence();
         point_ = new int[ 3 ];
     }
-
-    /**
-     * Supplies the coordinates of the current point in a supplied 
-     * PointSequence, if it appears in the data set iterated over by 
-     * this object.
-     * If it should be excluded from the iteration, then null should be
-     * returned.
-     *
-     * @param  pseq  point sequence whose current point is to be examined
-     * @return   screen coordinates of point, or null if point does not appear
-     */
-    protected abstract Point getXY( PointSequence pseq );
 
     protected int[] nextPoint() {
         while ( pseq_ != null && pseq_.next() ) {
@@ -48,7 +38,7 @@ public abstract class PlotDataPointIterator extends PointIterator {
                 use = use || pseq_.isIncluded( is );
             }
             if ( use ) {
-                Point xy = getXY( pseq_ );
+                Point xy = placer_.getXY( pseq_.getPoint() );
                 if ( xy != null ) {
                     point_[ 0 ] = ip_;
                     point_[ 1 ] = xy.x;
