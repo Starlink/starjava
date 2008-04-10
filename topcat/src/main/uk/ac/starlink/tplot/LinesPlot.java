@@ -268,41 +268,6 @@ public class LinesPlot extends TablePlot {
             }
         }
 
-        /* Mark active points. */
-        int[] activePoints = state.getActivePoints();
-        if ( activePoints.length > 0 ) {
-            BitSet active = new BitSet();
-            for ( int iact = 0; iact < activePoints.length; iact++ ) {
-                active.set( activePoints[ iact ] );
-            }
-            MarkStyle target = MarkStyle.targetStyle();
-            Graphics targetGraphics = g.create();
-            targetGraphics.setColor( Color.BLACK );
-            PointSequence pseq = rawData_.getPointSequence();
-            for ( int ip = 0; pseq.next(); ip++ ) {
-                if ( active.get( ip ) ) {
-                    PlotSurface surface = null;
-                    for ( int iset = 0; iset < nset && surface == null;
-                          iset++ ) {
-                        if ( pseq.isIncluded( iset ) ) {
-                            surface = graphs[ graphIndices[ iset ] ];
-                        }
-                    }
-                    if ( surface != null ) {
-                        double[] coords = pseq.getPoint();
-                        Point point =
-                            surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
-                                                    true );
-                        if ( point != null ) {
-                            target.drawMarker( targetGraphics,
-                                               point.x, point.y );
-                        }
-                    }
-                }
-            }
-            pseq.close();
-        }
-
         /* Store graph set. */
         surfaces_ = graphs;
         plotRegion_ = graphs.length > 0 ? graphs[ 0 ].getClip().getBounds()
@@ -402,6 +367,28 @@ public class LinesPlot extends TablePlot {
                 return null;
             }
         };
+    }
+
+    /**
+     * Returns an array of point placers, one for each constituent graph
+     * in this plot.
+     *
+     * @return  point placer array
+     */
+    public PointPlacer[] getPointPlacers() {
+        int ngraph = surfaces_.length;
+        PointPlacer[] placers = new PointPlacer[ ngraph ];
+        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
+            final PlotSurface surface = surfaces_[ igraph ];
+            placers[ igraph ] = new PointPlacer() {
+                public Point getXY( double[] coords ) {
+                    return surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
+                                                   true );
+
+                }
+            };
+        }
+        return placers;
     }
 
     /**
