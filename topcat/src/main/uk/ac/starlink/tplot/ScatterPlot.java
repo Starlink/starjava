@@ -30,7 +30,6 @@ import uk.ac.starlink.util.IntList;
  */
 public class ScatterPlot extends SurfacePlot {
 
-    private Annotations annotations_;
     private PlotData lastData_;
     private PlotState lastState_;
     private PlotSurface lastSurface_;
@@ -50,23 +49,11 @@ public class ScatterPlot extends SurfacePlot {
     public ScatterPlot( PlotSurface surface ) {
         super();
         add( new ScatterDataPanel() );
-        annotations_ = new Annotations();
         setSurface( surface );
     }
     
     public void setState( PlotState state ) {
         super.setState( state );
-    }
-
-    /**
-     * Sets the points at the indices given by the <tt>ips</tt> array 
-     * of the Points object as "active".
-     * They will be marked out somehow or other when plotted.
-     *
-     * @param  ips  active point array
-     */
-    public void setActivePoints( int[] ips ) {
-        annotations_.setActivePoints( ips );
     }
 
     /**
@@ -277,10 +264,19 @@ public class ScatterPlot extends SurfacePlot {
      * @return  point iterator
      */
     public PointIterator getPlottedPointIterator() {
+        return new PlotDataPointIterator( getState().getPlotData(),
+                                          getPointPlacer() );
+    }
+
+    /**
+     * Returns a point placer suitable for this plot.
+     *
+     * @return  point placer
+     */
+    public PointPlacer getPointPlacer() {
         final PlotSurface surface = getSurface();
-        return new PlotDataPointIterator( getState().getPlotData() ) {
-            protected Point getXY( PointSequence pseq ) {
-                double[] coords = pseq.getPoint();
+        return new PointPlacer() {
+            public Point getXY( double[] coords ) {
                 return surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
             }
         };
@@ -867,63 +863,8 @@ public class ScatterPlot extends SurfacePlot {
     }
 
     /**
-     * Plots the registered annotations of this scatter plot onto a given
-     * graphics context using its current plotting surface to define the
-     * mapping of data to graphics space.
-     *
-     * @param  g  graphics context
-     */
-    private void drawAnnotations( Graphics g ) {
-        annotations_.draw( g );
-    }
-  
-    /**
-     * This class takes care of all the markings plotted over the top of
-     * the plot proper.  It's coded as an extra class just to make it tidy,
-     * these workings could equally be in the body of ScatterPlot.
-     */
-    private class Annotations {
-  
-        int[] activePoints_ = new int[ 0 ];
-        final MarkStyle cursorStyle_ = MarkStyle.targetStyle();
-  
-        /**
-         * Sets a number of points to be marked out.
-         * Any negative indices in the array, or ones which are not visible
-         * in the current plot, are ignored.
-         *
-         * @param  ips  indices of the points to be marked
-         */
-        void setActivePoints( int[] ips ) {
-            if ( ! Arrays.equals( ips, activePoints_ ) ) {
-                activePoints_ = ips;
-                repaint();
-            }
-        }
-  
-        /**
-         * Paints all the current annotations onto a given graphics context.
-         *
-         * @param  g  graphics context
-         */
-        void draw( Graphics graphics ) {
-            BitSet activeMask = new BitSet();
-            for ( int i = 0; i < activePoints_.length; i++ ) {
-                activeMask.set( activePoints_[ i ] );
-            }
-            for ( PointIterator pointIt = getPlottedPointIterator();
-                  pointIt.readNextPoint(); ) {
-                if ( activeMask.get( pointIt.getIndex() ) ) {
-                    cursorStyle_.drawMarker( graphics, pointIt.getX(),
-                                                       pointIt.getY() );
-                }
-            }
-        }
-    }
-
-    /**
      * Graphical component which does the actual plotting of the points.
-     * Its basic job is to call {@link @drawData} and {@link drawAnnotations}
+     * Its basic job is to call {@link @drawData} 
      * in its {@link paintComponent} method.  
      * However it makes things a bit more
      * complicated than that for the purposes of efficiency.
@@ -936,8 +877,7 @@ public class ScatterPlot extends SurfacePlot {
 
         /**
          * Draws the component to a graphics context which probably 
-         * represents the screen, by calling {@link #drawData}
-         * and {@link #drawAnnotations}.
+         * represents the screen, by calling {@link #drawData}.
          * Since <tt>drawData</tt> might be fairly expensive 
          * (if there are a lot of points), and <tt>paintComponent</tt> 
          * can be called often without the data changing 
@@ -994,9 +934,6 @@ public class ScatterPlot extends SurfacePlot {
              * the graphics context we are being asked to paint into. */
             boolean done = g.drawImage( image_, 0, 0, null );
             assert done;
-            if ( getState() != null && getState().getValid() ) {
-                drawAnnotations( g );
-            }
         }
 
         /**
@@ -1106,9 +1043,6 @@ public class ScatterPlot extends SurfacePlot {
                 else {
                     drawData( g, false );
                 }
-
-                /* Finally add any annotations. */
-                drawAnnotations( g );
             }
         }
     }

@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -24,7 +25,6 @@ import javax.swing.JComponent;
  */
 public abstract class Plot3D extends TablePlot {
 
-    private Annotations annotations_;
     private RangeChecker rangeChecker_;
     private PlotVolume lastVol_;
     private Transformer3D lastTrans_;
@@ -56,7 +56,6 @@ public abstract class Plot3D extends TablePlot {
                             .createLineBorder( Color.DARK_GRAY ) );
         add( plotArea_, BorderLayout.CENTER );
         setOpaque( false );
-        annotations_ = new Annotations();
     }
 
     /**
@@ -134,17 +133,6 @@ public abstract class Plot3D extends TablePlot {
         if ( state.getValid() ) {
             rangeChecker_ = configureRanges( (Plot3DState) state );
         }
-    }
-
-    /**
-     * Sets the points at the indices given by the <tt>ips</tt> array
-     * of the Points object as "active".
-     * They will be marked out somehow or other when plotted.
-     *
-     * @param  ips  active point array
-     */
-    public void setActivePoints( int[] ips ) {
-        annotations_.setActivePoints( ips );
     }
 
     /**
@@ -403,9 +391,6 @@ public abstract class Plot3D extends TablePlot {
             plotAxes( g, trans, vol, true );
         }
 
-        /* Draw any annotations. */
-        annotations_.draw( g, trans, vol );
-
         /* Store information about the most recent plot. */
         lastVol_ = vol;
         lastTrans_ = trans;
@@ -450,44 +435,55 @@ public abstract class Plot3D extends TablePlot {
      * @return  point iterator
      */
     public PointIterator getPlottedPointIterator() {
-        final PlotVolume vol = lastVol_;
-        final Transformer3D trans = lastTrans_;
         PlotData data = getState().getPlotData();
-        if ( vol != null && trans != null && data != null ) {
-            final boolean[] logFlags = get3DLogFlags();
-            final RangeChecker ranger = rangeChecker_;
-            Rectangle plotBounds = getPlotBounds();
-            final int xmin = plotBounds.x + 1;
-            final int xmax = plotBounds.x + plotBounds.width - 2;
-            final int ymin = plotBounds.y + 1;
-            final int ymax = plotBounds.y + plotBounds.height - 2;
-            return new PlotDataPointIterator( data ) {
-                protected Point getXY( PointSequence pseq ) {
-                    double[] coords = pseq.getPoint();
-                    if ( ranger.inRange( coords ) &&
-                         logize( coords, logFlags ) ) {
-                        trans.transform( coords );
-                        int px = vol.projectX( coords[ 0 ] );
-                        int py = vol.projectY( coords[ 1 ] );
-                        double z = coords[ 2 ];
-                        if ( px >= xmin && px <= xmax &&
-                             py >= ymin && py <= ymax &&
-                             z <= zmax_ ) {
-                            return new Point( px, py );
-                        }
-                        else {
-                            return null;
-                        }
-                    }
-                    else {
-                        return null;
-                    }
-                }
-            };
+        if ( lastVol_ != null && lastTrans_ != null && data != null ) {
+            return new PlotDataPointIterator( data, getPointPlacer() );
         }
         else {
             return PointIterator.EMPTY;
         }
+    }
+
+    /**
+     * Returns a point placer for mapping 3D data points to the screen.
+     *
+     * @return  point placer
+     */
+    public PointPlacer getPointPlacer() {
+        final PlotVolume vol = lastVol_;
+        final Transformer3D trans = lastTrans_;
+        if ( trans == null || vol == null ) {
+            return null;
+        }
+        final boolean[] logFlags = get3DLogFlags();
+        final RangeChecker ranger = rangeChecker_;
+        Rectangle plotBounds = getPlotBounds();
+        final int xmin = plotBounds.x + 1;
+        final int xmax = plotBounds.x + plotBounds.width - 2;
+        final int ymin = plotBounds.y + 1;
+        final int ymax = plotBounds.y + plotBounds.height - 2;
+        final double zmax = zmax_;
+        return new PointPlacer() {
+            public Point getXY( double[] coords ) {
+                if ( ranger.inRange( coords ) &&
+                     logize( coords, get3DLogFlags() ) ) {
+                    trans.transform( coords );
+                    double z = coords[ 2 ];
+                    if ( z <= zmax ) {
+                        int px = vol.projectX( coords[ 0 ] );
+                        int py = vol.projectY( coords[ 1 ] );
+                        Insets insets = getInsets();
+                        px += insets.left;
+                        py += insets.top;
+                        if ( px >= xmin && px <= xmax &&
+                             py >= ymin && py <= ymax ) {
+                            return new Point( px, py );
+                        }
+                    }
+                }
+                return null;
+            }
+        };
     }
 
     /**
@@ -775,50 +771,6 @@ public abstract class Plot3D extends TablePlot {
                         logger_.log( Level.WARNING,
                                      "Out of memory in 3D plot", e );
                     }
-                }
-            }
-        }
-    }
-
-    /**
-     * This class takes care of all the markings plotted over the top of
-     * the plot proper.  It's coded as an extra class just to make it tidy,
-     * these workings could equally be in the body of Plot3D.
-     */
-    private class Annotations {
-
-        int[] activePoints_ = new int[ 0 ];
-        final MarkStyle cursorStyle_ = MarkStyle.targetStyle();
-
-        /**
-         * Sets a number of points to be marked out.
-         * Any negative indices in the array, or ones which are not visible
-         * in the current plot, are ignored.
-         *
-         * @param  ips  indices of the points to be marked
-         */
-        void setActivePoints( int[] ips ) {
-            if ( ! Arrays.equals( ips, activePoints_ ) ) {
-                activePoints_ = ips;
-                repaint();
-            }
-        }
-
-        /**
-         * Paints all the current annotations onto a given graphics context.
-         *  
-         * @param  g  graphics context
-         */
-        void draw( Graphics g, Transformer3D trans, PlotVolume vol ) {
-            BitSet activeMask = new BitSet();
-            for ( int i = 0; i < activePoints_.length; i++ ) {
-                activeMask.set( activePoints_[ i ] );
-            }
-            for ( PointIterator pointIt = getPlottedPointIterator();
-                  pointIt.readNextPoint(); ) {
-                if ( activeMask.get( pointIt.getIndex() ) ) {
-                    cursorStyle_.drawMarker( g, pointIt.getX(),
-                                                pointIt.getY() );
                 }
             }
         }
