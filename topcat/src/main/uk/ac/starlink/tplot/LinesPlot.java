@@ -363,23 +363,43 @@ public class LinesPlot extends TablePlot {
         for ( int iset = 0; iset < nset; iset++ ) {
             setSurfaces[ iset ] = surfaces_[ graphIndices[ iset ] ];
         }
-        return new PlotDataPointIterator( data ) {
-            protected Point getXY( PointSequence pseq ) {
-                PlotSurface surface = null;
-                for ( int is = 0; is < nset && surface == null; is++ ) {
-                    if ( pseq.isIncluded( is ) ) {
-                        surface = setSurfaces[ is ];
+        return new PointIterator() {
+            private int ip_ = -1;
+            private int is_ = -1;
+            private double[] coords_;
+            private PointSequence pseq_ = data.getPointSequence();
+            private final int[] point_ = new int[ 3 ];
+            protected int[] nextPoint() {
+                while ( pseq_ != null ) {
+                    if ( coords_ == null ) {
+                        if ( pseq_.next() ) {
+                            coords_ = pseq_.getPoint();
+                            ip_++;
+                            is_ = -1;
+                        }
+                        else {
+                            pseq_.close();
+                            pseq_ = null;
+                        }
+                    }
+                    else if ( ++is_ < nset ) {
+                        if ( pseq_.isIncluded( is_ ) ) {
+                            Point xy = setSurfaces[ is_ ]
+                                      .dataToGraphics( coords_[ 0 ],
+                                                       coords_[ 1 ], true );
+                            if ( xy != null ) {
+                                point_[ 0 ] = ip_;
+                                point_[ 1 ] = xy.x;
+                                point_[ 2 ] = xy.y;
+                                return point_;
+                            }
+                        }
+                    }
+                    else {
+                        coords_ = null;
                     }
                 }
-                if ( surface != null ) {
-                    double[] coords = pseq.getPoint();
-                    return surface.dataToGraphics( coords[ 0 ], coords[ 1 ],
-                                                   true );
-                }
-                else {
-                    assert false;
-                    return null;
-                }
+                return null;
             }
         };
     }
