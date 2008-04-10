@@ -360,7 +360,7 @@ public class SphereWindow extends Plot3DWindow {
                      * error points where it is known that they will end up in
                      * the same pixel as the error point. */
                     SphericalPolarPointStore sphPoints =
-                        (SphericalPolarPointStore) points;
+                        (SphericalPolarPointStore) basePoints;
                     Dimension size = getPlot().getSize();
                     int scale = Math.max( size.width, size.height );
 
