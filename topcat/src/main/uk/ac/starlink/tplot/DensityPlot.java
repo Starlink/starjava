@@ -284,10 +284,19 @@ public class DensityPlot extends SurfacePlot {
      * @return  point iterator
      */
     public PointIterator getPlottedPointIterator() {
+        return new PlotDataPointIterator( getState().getPlotData(),
+                                          getPointPlacer() );
+    }
+
+    /**
+     * Returns a point placer suitable for this plot.
+     * 
+     * @return  point placer
+     */
+    public PointPlacer getPointPlacer() {
         final PlotSurface surface = getSurface();
-        return new PlotDataPointIterator( getState().getPlotData() ) {
-            protected Point getXY( PointSequence pseq ) {
-                double[] coords = pseq.getPoint();
+        return new PointPlacer() {
+            public Point getXY( double[] coords ) {
                 return surface.dataToGraphics( coords[ 0 ], coords[ 1 ], true );
             }
         };
