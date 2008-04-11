@@ -1,10 +1,14 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.BitSet;
 import javax.swing.JComponent;
+import javax.swing.Timer;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.IntList;
 
@@ -17,13 +21,15 @@ import uk.ac.starlink.tplot.*;
  * @author   Mark Taylor
  * @since    8 Apr 2008
  */
-public class AnnotationPanel extends JComponent {
+public class AnnotationPanel extends JComponent implements ActionListener {
 
     private int[] activePoints_;
     private PlotData data_;
     private DataId dataId_;
     private PointPlacer placer_;
+    private static final PulseColorTweaker flasher_ = new PulseColorTweaker();
     private static final MarkStyle CURSOR_STYLE = MarkStyle.targetStyle();
+    private static Timer timer_;
 
     /**
      * Constructor.
@@ -32,6 +38,7 @@ public class AnnotationPanel extends JComponent {
         setOpaque( false );
         activePoints_ = new int[ 0 ];
         dataId_ = new DataId( null );
+        setPulsing( false );
     }
 
     /**
@@ -145,6 +152,28 @@ public class AnnotationPanel extends JComponent {
         }
     }
 
+    /**
+     * Sets whether active points should pulse or not.
+     *
+     * @param  isPulsing  true  iff you want points to pulse
+     */
+    public void setPulsing( boolean isPulsing ) {
+        if ( isPulsing ) {
+            getPulseTimer().addActionListener( this );
+        }
+        else {
+            if ( timer_ != null ) {
+               timer_.removeActionListener( this );
+            }
+        }
+    }
+
+    public void actionPerformed( ActionEvent evt ) {
+        if ( evt.getSource() == timer_ ) {
+            repaint();
+        }
+    }
+
     protected void paintComponent( Graphics g ) {
         PointPlacer placer = getPlacer();
         if ( activePoints_.length == 0 || data_ == null || placer == null ) {
@@ -159,11 +188,26 @@ public class AnnotationPanel extends JComponent {
             if ( activeMask.get( ip ) && isIncluded( pseq ) ) {
                 Point xy = placer.getXY( pseq.getPoint() );
                 if ( xy != null ) {
-                    CURSOR_STYLE.drawMarker( g, xy.x, xy.y );
+                    CURSOR_STYLE.drawMarker( g, xy.x, xy.y, flasher_ );
                 }
             }
         }
         pseq.close();
+    }
+
+    /**
+     * Returns the timer which arranges for pulsing of active point cursors.
+     */
+    private static Timer getPulseTimer() {
+        if ( timer_ == null ) {
+            timer_ = new Timer( 125, new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    flasher_.bump();
+                }
+            } );
+            timer_.start();
+        }
+        return timer_;
     }
 
     /**
@@ -213,6 +257,48 @@ public class AnnotationPanel extends JComponent {
                 code = 23 * code + tables_[ is ].hashCode();
             }
             return code;
+        }
+    }
+
+    /**
+     * ColorTweaker which can pulse colours.
+     */
+    private static class PulseColorTweaker implements ColorTweaker {
+        private byte quantum_ = (byte) 16;
+        private byte phase_;
+        private float[] rgba_;
+        private Color color_;
+
+        /**
+         * Constructor.
+         */
+        PulseColorTweaker() {
+            configure();
+        }
+
+        /**
+         * Moves the pulse to the next state.
+         */
+        public void bump() {
+            phase_ += quantum_;
+            configure();
+        }
+
+        public Color tweakColor( Color orig ) {
+            return color_;
+        }
+
+        public void tweakColor( float[] rgba ) {
+            System.arraycopy( rgba_, 0, rgba, 0, rgba_.length );
+        }
+
+        /**
+         * Configures this tweaker appropriately for the current pulse state.
+         */
+        private void configure() {
+            float level = (float) Math.abs( phase_ ) / 128f;
+            rgba_ = new float[] { level, level, level, 0.7f, };
+            color_ = new Color( level, level, level, 0.7f );
         }
     }
 }
