@@ -126,7 +126,7 @@ public abstract class SaveWorker {
                     attemptSave( progTable_ );
                     error = null;
                 }
-                catch ( IOException e ) {
+                catch ( Throwable e ) {
                     error = e;
                 }
                 SwingUtilities.invokeLater( new Runnable() {
