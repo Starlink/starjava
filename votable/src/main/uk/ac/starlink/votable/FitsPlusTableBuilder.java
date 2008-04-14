@@ -18,6 +18,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -96,6 +97,21 @@ public class FitsPlusTableBuilder implements TableBuilder {
              * its metadata comes from the VOTable, but its data comes from 
              * the FITS table we've just read. */
             VOStarTable startab = new VOStarTable( tabel );
+
+            /* Ensure column type consistency.  There can occasionally by 
+             * some nasty issues with Character/String types. */
+            int ncol = starTable.getColumnCount();
+            assert ncol == startab.getColumnCount();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                ColumnInfo fInfo = starTable.getColumnInfo( icol );
+                ColumnInfo vInfo = startab.getColumnInfo( icol );
+                if ( ! vInfo.getContentClass()
+                            .isAssignableFrom( fInfo.getContentClass() ) ) {
+                    vInfo.setContentClass( fInfo.getContentClass() );
+                }
+            }
+
+            /* Return the table with FITS data and VOTable metadata. */
             return startab;
         }
         catch ( FitsException e ) {
