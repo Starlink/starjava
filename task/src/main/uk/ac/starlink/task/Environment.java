@@ -37,6 +37,18 @@ public interface Environment {
     void clearValue( Parameter par );
 
     /**
+     * Returns an array of parameter names which have been specified.
+     * The result is not necessarily an exhaustive list of all parameters 
+     * whose values can be retrieved from this environment, since an
+     * interactive environment may be able to prompt the user for values,
+     * but it can give a list of values provided explicitly or without
+     * interactive prompts.
+     *
+     * @return   array of names of known supplied parameters
+     */
+    String[] getNames();
+
+    /**
      * Returns an output stream into which text output from a task can
      * be written.  This would correspond to standard output for a
      * terminal-based application.

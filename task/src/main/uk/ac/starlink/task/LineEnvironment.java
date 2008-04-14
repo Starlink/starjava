@@ -147,6 +147,15 @@ public class LineEnvironment implements Environment {
         }
     }
 
+    public String[] getNames() {
+        int narg = arguments_.length;
+        String[] names = new String[ narg ];
+        for ( int iarg = 0; iarg < narg; iarg++ ) {
+            names[ iarg ] = arguments_[ iarg ].word_.getName();
+        }
+        return names;
+    }
+
     /**
      * Sets whether we are running interactively or not.
      * Only if this attribute is true will any attempt be made to prompt

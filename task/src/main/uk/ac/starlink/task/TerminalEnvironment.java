@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -168,6 +171,14 @@ public class TerminalEnvironment implements Environment {
 
     public void clearValue( Parameter par ) {
         valueMap.remove( par );
+    }
+
+    public String[] getNames() {
+        List nameList = new ArrayList();
+        for ( Iterator it = paramSet.iterator(); it.hasNext(); ) {
+            nameList.add( ((Parameter) it.next()).getName() );
+        }
+        return (String[]) nameList.toArray( new String[ 0 ] );
     }
 
     /**

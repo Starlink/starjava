@@ -22,6 +22,10 @@ public class MapEnvironment implements Environment {
         par.setValueFromString( this, (String) map_.get( par.getName() ) );
     }
 
+    public String[] getNames() {
+        return (String[]) map_.keySet().toArray( new String[ 0 ] );
+    }
+
     public PrintStream getOutputStream() {
         return pout_;
     }
