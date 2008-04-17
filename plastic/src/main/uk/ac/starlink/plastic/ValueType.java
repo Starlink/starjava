@@ -198,7 +198,7 @@ public class ValueType {
         }
     };
 
-    /** List/<array> type in which all elements must be integers. */
+    /** List/&lt;array&gt; type in which all elements must be integers. */
     public static ValueType LIST_INTS = new ValueType( "LIST_INTS", List.class,
                                                        new Vector() ) {
         public void checkJavaValue( Object jValue ) throws ValueTypeException {
