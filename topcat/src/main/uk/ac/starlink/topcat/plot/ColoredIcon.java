@@ -1,4 +1,4 @@
-package uk.ac.starlink.tplot;
+package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
