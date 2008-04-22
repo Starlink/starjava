@@ -68,13 +68,24 @@ public class PlotStateFactory {
         }
     }
 
+    /**
+     * Returns the parameters associated with this object.
+     * The returned list is intended for external use in documentation;
+     * the parameter objects returned may or may not be those used for
+     * obtaining values from a particular execution environment.
+     * For this reason they may have names which are symbolic,
+     * that is, represent possible parameter names.  Since actual parameter
+     * names are dynamically determined, it is not possible to return an
+     * exhaustive list.
+     *
+     * @return   array of parameters to be used for documentation
+     */
     public Parameter[] getParameters() {
 
-        /* Create and return a list of parameters with "example" suffixes.
-         * Recall that this method returns parameters to be used only
-         * for documentation purposes.  The parameters which supply actual
-         * values to this factory are constructed as required elsewhere
-         * in this class. */
+        /* Create and return a list of parameters some of which have
+         * "example" suffixes.  In some cases the parameters which 
+         * supply actual values to this factory are constructed as 
+         * required elsewhere in this class. */
         String tSuffix = TABLE_VARIABLE;
         String stSuffix = TABLE_VARIABLE + SUBSET_VARIABLE;
         InputTableParameter inParam = createTableParameter( tSuffix );
