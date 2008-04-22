@@ -1,6 +1,7 @@
 package uk.ac.starlink.tptask;
 
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.PtPlotSurface;
+import uk.ac.starlink.tplot.ScatterPlot;
 
 /**
  * Task for performing a 2D scatter plot.

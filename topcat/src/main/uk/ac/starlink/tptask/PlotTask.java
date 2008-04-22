@@ -11,9 +11,9 @@ import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.TablePlot;
 import uk.ac.starlink.ttools.task.InputTableSpec;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Abstract superclass for tasks which generate plots from table data.

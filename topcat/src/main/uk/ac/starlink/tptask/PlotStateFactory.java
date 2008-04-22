@@ -11,9 +11,14 @@ import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.tplot.MarkStyles;
+import uk.ac.starlink.tplot.MultiPlotData;
+import uk.ac.starlink.tplot.PlotData;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.StyleSet;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 
-import uk.ac.starlink.tplot.*;
 
 /**
  * Obtains a {@link uk.ac.starlink.tplot.PlotState} and associated
