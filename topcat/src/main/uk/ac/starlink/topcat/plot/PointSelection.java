@@ -13,8 +13,10 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.ErrorMode;
+import uk.ac.starlink.tplot.PlotData;
+import uk.ac.starlink.tplot.PointSequence;
+import uk.ac.starlink.tplot.Style;
 
 /**
  * Encapsulates the selection of the list of points which is to be plotted.

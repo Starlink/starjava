@@ -12,8 +12,7 @@ import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperColumn;
 import uk.ac.starlink.topcat.TopcatModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.ErrorMode;
 
 /**
  * AxesSelector implementation which adds a weighting axis to the

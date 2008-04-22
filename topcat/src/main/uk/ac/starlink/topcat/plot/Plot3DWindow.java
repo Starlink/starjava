@@ -29,8 +29,13 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.Matrices;
+import uk.ac.starlink.tplot.Plot3D;
+import uk.ac.starlink.tplot.Plot3DState;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PointIterator;
+import uk.ac.starlink.tplot.PointPlacer;
+import uk.ac.starlink.tplot.StyleSet;
 
 /**
  * Graphics window for viewing 3D scatter plots.
@@ -130,7 +135,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
                 addNewSubsets( plot.getPlottedPointIterator()
-                                    .getContainedPoints( blob ) );
+                                   .getContainedPoints( blob ) );
             }
         };
         blobAction_ = blobPanel_.getBlobAction();

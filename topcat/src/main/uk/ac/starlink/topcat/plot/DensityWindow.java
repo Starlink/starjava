@@ -53,14 +53,26 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatPlasticListener;
 import uk.ac.starlink.topcat.TopcatTransmitter;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.tplot.BinGrid;
+import uk.ac.starlink.tplot.DensityPlot;
+import uk.ac.starlink.tplot.DensityPlotEvent;
+import uk.ac.starlink.tplot.DensityPlotState;
+import uk.ac.starlink.tplot.DensityStyle;
+import uk.ac.starlink.tplot.PlotEvent;
+import uk.ac.starlink.tplot.PlotListener;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PlotSurface;
+import uk.ac.starlink.tplot.PtPlotSurface;
+import uk.ac.starlink.tplot.Shader;
+import uk.ac.starlink.tplot.Shaders;
+import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.StyleSet;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Graphics window which displays a density plot, that is a 2-dimensional

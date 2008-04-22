@@ -2,8 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Component;
 import uk.ac.starlink.topcat.TopcatUtils;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.CartesianPlot3D;
+import uk.ac.starlink.tplot.ErrorRenderer;
 
 /**
  * Graphics window for viewing 3D scatter plots using Cartesian coordinates.

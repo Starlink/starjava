@@ -28,10 +28,9 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.tplot.ErrorMode;
 import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * AxesSelector implementation which queries for spherical polar coordinates

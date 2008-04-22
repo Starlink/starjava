@@ -80,12 +80,25 @@ import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.tplot.AuxLegend;
+import uk.ac.starlink.tplot.ErrorMarkStyleSet;
+import uk.ac.starlink.tplot.ErrorMode;
+import uk.ac.starlink.tplot.ErrorRenderer;
+import uk.ac.starlink.tplot.FixedEpsGraphics2D;
+import uk.ac.starlink.tplot.Legend;
+import uk.ac.starlink.tplot.MarkStyle;
+import uk.ac.starlink.tplot.MarkStyles;
+import uk.ac.starlink.tplot.PlotData;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.Shader;
+import uk.ac.starlink.tplot.Shaders;
+import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.StyleSet;
+import uk.ac.starlink.tplot.TablePlot;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.WrapUtils;
 import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Abstract superclass for windows doing N-dimensional plots of table data.

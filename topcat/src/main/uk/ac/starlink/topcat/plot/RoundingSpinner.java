@@ -5,8 +5,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.Rounder;
 
 /**
  * JSpinner subclass which goes up or down using round numbers.

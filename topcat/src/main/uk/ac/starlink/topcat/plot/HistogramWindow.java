@@ -37,8 +37,17 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.BarStyles;
+import uk.ac.starlink.tplot.BinnedData;
+import uk.ac.starlink.tplot.Histogram;
+import uk.ac.starlink.tplot.HistogramPlotState;
+import uk.ac.starlink.tplot.MapBinnedData;
+import uk.ac.starlink.tplot.PlotEvent;
+import uk.ac.starlink.tplot.PlotListener;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PtPlotSurface;
+import uk.ac.starlink.tplot.Rounder;
+import uk.ac.starlink.tplot.StyleSet;
 
 /**
  * GraphicsWindow which presents one-dimensional data as a histogram.

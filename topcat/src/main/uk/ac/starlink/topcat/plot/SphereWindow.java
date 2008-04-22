@@ -16,9 +16,13 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.tplot.ErrorMode;
+import uk.ac.starlink.tplot.ErrorRenderer;
+import uk.ac.starlink.tplot.PlotData;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.SphericalPlot3D;
+import uk.ac.starlink.tplot.SphericalPlotState;
 import uk.ac.starlink.util.WrapUtils;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Graphics window for viewing 3D scatter plots using spherical polar

@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.PlotEvent;
+import uk.ac.starlink.tplot.PlotListener;
 
 /**
  * Component which reports on the number of points plotted and not plotted

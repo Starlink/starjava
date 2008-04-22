@@ -10,9 +10,12 @@ import java.util.BitSet;
 import javax.swing.JComponent;
 import javax.swing.Timer;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.tplot.ColorTweaker;
+import uk.ac.starlink.tplot.MarkStyle;
+import uk.ac.starlink.tplot.PlotData;
+import uk.ac.starlink.tplot.PointPlacer;
+import uk.ac.starlink.tplot.PointSequence;
 import uk.ac.starlink.util.IntList;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Transparent component for adding additional decoration to an existing

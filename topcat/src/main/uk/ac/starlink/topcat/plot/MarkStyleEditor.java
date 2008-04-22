@@ -28,10 +28,14 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.tplot.ErrorMode;
+import uk.ac.starlink.tplot.ErrorRenderer;
+import uk.ac.starlink.tplot.MarkShape;
+import uk.ac.starlink.tplot.MarkStyle;
+import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.XYStats;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * StyleEditor implementation for editing {@link MarkStyle} objects.

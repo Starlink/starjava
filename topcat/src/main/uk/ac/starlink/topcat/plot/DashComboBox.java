@@ -9,9 +9,8 @@ import java.awt.Stroke;
 import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
+import uk.ac.starlink.tplot.Styles;
 import uk.ac.starlink.util.gui.RenderingComboBox;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Combo box for selecting dash patterns.

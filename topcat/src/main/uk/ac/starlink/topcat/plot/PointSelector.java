@@ -44,9 +44,11 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.WeakTopcatListener;
+import uk.ac.starlink.tplot.EmptyIcon;
+import uk.ac.starlink.tplot.MarkStyle;
+import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.StyleSet;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Component for choosing a table, a number of columns and a selection of

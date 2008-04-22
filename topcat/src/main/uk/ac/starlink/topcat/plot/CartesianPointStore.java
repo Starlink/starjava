@@ -7,8 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import uk.ac.starlink.table.ValueStore;
 import uk.ac.starlink.table.storage.ArrayPrimitiveStore;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.ErrorMode;
 
 /**
  * PointStore implementation used for storing coordinate information about

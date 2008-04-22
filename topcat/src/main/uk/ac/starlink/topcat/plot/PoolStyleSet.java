@@ -4,8 +4,8 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.StyleSet;
 
 /**
  * StyleSet which obtains styles from a base StyleSet, but 

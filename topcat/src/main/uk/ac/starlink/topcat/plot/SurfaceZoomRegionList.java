@@ -2,8 +2,8 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Rectangle;
 import java.util.AbstractList;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.SurfacePlot;
 
 /**
  * List of zoom regions for use with a {@link uk.ac.starlink.tplot.SurfacePlot}.

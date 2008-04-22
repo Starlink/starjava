@@ -9,10 +9,9 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.tplot.ErrorMode;
 import uk.ac.starlink.util.Wrapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * AxesSelector implementation which wraps an existing one and adds 

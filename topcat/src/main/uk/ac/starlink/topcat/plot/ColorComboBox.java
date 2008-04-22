@@ -5,9 +5,8 @@ import java.awt.Component;
 import java.awt.Graphics;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
+import uk.ac.starlink.tplot.Styles;
 import uk.ac.starlink.util.gui.RenderingComboBox;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Combo box for selecting colours.  Comes with its own renderer.

@@ -3,8 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.PlotSurface;
 
 /**
  * Component whose text gives the current position of the mouse on a

@@ -1,8 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Rectangle;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.AuxLegend;
 
 /**
  * ZoomRegion for use with an {@link uk.ac.starlink.tplot.AuxLegend}.

@@ -9,10 +9,13 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.tplot.ErrorMode;
+import uk.ac.starlink.tplot.ErrorRenderer;
+import uk.ac.starlink.tplot.MarkShape;
+import uk.ac.starlink.tplot.MarkStyle;
+import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * StyleEditor implementation for suitable for a {@link LinesPlot}.

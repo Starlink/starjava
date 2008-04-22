@@ -21,8 +21,9 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.event.ListDataListener;
 import uk.ac.starlink.topcat.ActionForwarder;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.ErrorMode;
+import uk.ac.starlink.tplot.ErrorModeSelection;
+import uk.ac.starlink.tplot.ErrorRenderer;
 
 /**
  * Model for selecting {@link ErrorMode} values.

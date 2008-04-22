@@ -4,8 +4,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.TopcatModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.ErrorMode;
 
 /**
  * Defines an object which provides column selectors for a plot.

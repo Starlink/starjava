@@ -8,11 +8,12 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.tplot.BarStyle;
+import uk.ac.starlink.tplot.BarStyles;
+import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * Style editor for histogram bars.

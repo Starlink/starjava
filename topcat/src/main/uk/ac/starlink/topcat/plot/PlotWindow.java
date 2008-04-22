@@ -42,8 +42,18 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.ErrorRenderer;
+import uk.ac.starlink.tplot.MarkStyles;
+import uk.ac.starlink.tplot.PlotEvent;
+import uk.ac.starlink.tplot.PlotListener;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PlotSurface;
+import uk.ac.starlink.tplot.PtPlotSurface;
+import uk.ac.starlink.tplot.ScatterPlot;
+import uk.ac.starlink.tplot.ScatterPlotEvent;
+import uk.ac.starlink.tplot.StyleSet;
+import uk.ac.starlink.tplot.SurfacePlot;
+import uk.ac.starlink.tplot.XYStats;
 
 /**
  * Window which displays a scatter plot of two columns from a table.

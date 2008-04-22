@@ -12,8 +12,7 @@ import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.topcat.ResourceIcon;
-
-import uk.ac.starlink.tplot.*;
+import uk.ac.starlink.tplot.Shader;
 
 /**
  * ListCellRenderer suitable for a combo box containing 

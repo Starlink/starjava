@@ -7,10 +7,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.tplot.DensityStyle;
+import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * StyleEditor for density plots.

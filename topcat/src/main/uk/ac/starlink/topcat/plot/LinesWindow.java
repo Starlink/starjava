@@ -51,11 +51,23 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.tplot.ErrorRenderer;
+import uk.ac.starlink.tplot.LinesPlot;
+import uk.ac.starlink.tplot.LinesPlotState;
+import uk.ac.starlink.tplot.MarkStyles;
+import uk.ac.starlink.tplot.PlotData;
+import uk.ac.starlink.tplot.PlotEvent;
+import uk.ac.starlink.tplot.PlotListener;
+import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PlotSurface;
+import uk.ac.starlink.tplot.PointIterator;
+import uk.ac.starlink.tplot.PointPlacer;
+import uk.ac.starlink.tplot.PointSequence;
+import uk.ac.starlink.tplot.StyleSet;
+import uk.ac.starlink.tplot.Styles;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.util.WrapUtils;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * GraphicsWindow which draws a stack of line graphs.

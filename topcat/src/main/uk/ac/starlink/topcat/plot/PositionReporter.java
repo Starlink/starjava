@@ -5,9 +5,8 @@ import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.text.DecimalFormat;
+import uk.ac.starlink.tplot.PlotSurface;
 import uk.ac.starlink.ttools.convert.ValueConverter;
-
-import uk.ac.starlink.tplot.*;
 
 /**
  * MouseMotionListener which acts on mouse movement events to provide
