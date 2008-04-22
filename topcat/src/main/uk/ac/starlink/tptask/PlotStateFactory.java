@@ -104,13 +104,6 @@ public class PlotStateFactory {
         paramList.add( createLabelParameter( tSuffix ) );
         paramList.add( createSubsetExpressionParameter( stSuffix ) );
         paramList.add( createSubsetNameParameter( stSuffix ) );
-        paramList.add( createSubsetStyleParameter( stSuffix,
-            new StyleFactory() {
-                public Style getNextStyle() {
-                    return MarkStyle.targetStyle();
-                }
-            }
-        ) );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
@@ -180,14 +173,15 @@ public class PlotStateFactory {
         /* Construct a PlotData object for the data obtained from each table. */
         PlotData[] datas = new PlotData[ nTable ];
         String[] coordExprs0 = null;
-        StyleFactory styleFactory = getStyleFactory( env );
+        StyleDispenser styleDispenser =
+            new StyleDispenser( getStyleSet( env ) );
         for ( int itab = 0; itab < nTable; itab++ ) {
             String tlabel = tableLabels[ itab ];
             StarTable table = getTable( env, tlabel );
             String[] coordExprs = getCoordExpressions( env, tlabel );
             String labelExpr = getLabelExpression( env, tlabel );
             SubsetDef[] subsetDefs =
-                getSubsetDefinitions( env, tlabel, styleFactory );
+                getSubsetDefinitions( env, tlabel, styleDispenser );
             int nset = subsetDefs.length;
             String[] setExprs = new String[ nset ];
             String[] setNames = new String[ nset ];
@@ -278,11 +272,11 @@ public class PlotStateFactory {
      *
      * @param  env  execution environment
      * @param  tlabel   table parameter label
-     * @param  styleFactory  style factory object which can supply default
+     * @param  styleDispenser  style factory object which can supply default
      *         plotting styles in the absence of explicitly selected ones
      */
     private SubsetDef[] getSubsetDefinitions( Environment env, String tlabel,
-                                              StyleFactory styleFactory )
+                                              StyleDispenser styleDispenser )
             throws TaskException {
 
         /* Work out which parameter suffixes are being used to identify
@@ -300,7 +294,7 @@ public class PlotStateFactory {
          * a single subset with inclusion of all points. */
         if ( nset == 0 ) {
             return new SubsetDef[] {
-                new SubsetDef( "true", tlabel, styleFactory.getNextStyle() ),
+                new SubsetDef( "true", tlabel, styleDispenser.getNextStyle() ),
             };
         }
 
@@ -314,9 +308,7 @@ public class PlotStateFactory {
                              .stringValue( env );
                 String name = createSubsetNameParameter( stLabel )
                              .stringValue( env );
-                Style style = createSubsetStyleParameter( stLabel,
-                                                          styleFactory )
-                             .styleValue( env );
+                Style style = styleDispenser.getNextStyle();
                 sdefs[ is ] = new SubsetDef( expr, name, style );
             }
             return sdefs;
@@ -335,24 +327,6 @@ public class PlotStateFactory {
 
         /* Current implementation ignores the environment. */
         return MarkStyles.spots( "Spots", 2 );
-    }
-
-    /**
-     * Obtains a style factory from the environment.
-     * Currently uses the {@link #getStyleSet} method.
-     *
-     * @param  env  execution environment
-     * @return   style factory
-     */
-    private StyleFactory getStyleFactory( Environment env )
-            throws TaskException {
-        final StyleSet styleSet = getStyleSet( env );
-        return new StyleFactory() {
-            private int index_;
-            public Style getNextStyle() {
-                return styleSet.getStyle( index_++ );
-            }
-        };
     }
 
     /**
@@ -452,18 +426,6 @@ public class PlotStateFactory {
     }
 
     /**
-     * Constructs a new subset style parameter.
-     *
-     * @param  stlabel  table/subset parameter label
-     * @param  styleFac  object which can supply unspecified style attributes
-     * @return   new subset style parameter
-     */
-    private StyleParameter createSubsetStyleParameter( String stlabel,
-                                                       StyleFactory styleFac ) {
-        return new StyleParameter( "style" + stlabel, styleFac );
-    }
-
-    /**
      * Returns an array of unique identifying suffixes associated with a
      * given prefix from a list of strings.  Each string in <code>names</code>
      * is examined, and if it starts with <code>prefix</code> the prefix
@@ -505,6 +467,17 @@ public class PlotStateFactory {
             expression_ = expression;
             name_ = name;
             style_ = style;
+        }
+    }
+
+    private static class StyleDispenser {
+        StyleSet styleSet_;
+        int is_;
+        StyleDispenser( StyleSet styleSet ) {
+            styleSet_ = styleSet;
+        }
+        Style getNextStyle() {
+            return styleSet_.getStyle( is_++ );
         }
     }
 }
