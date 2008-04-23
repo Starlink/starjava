@@ -1,7 +1,6 @@
-package uk.ac.starlink.ttools.filter;
+package uk.ac.starlink.ttools.jel;
 
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 
 /**
  * JELRowReader which can't actually read any rows.  It's only good for

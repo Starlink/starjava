@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 

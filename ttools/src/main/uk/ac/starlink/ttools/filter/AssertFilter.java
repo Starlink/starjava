@@ -11,6 +11,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
