@@ -74,6 +74,10 @@ public class MapEnvironment implements TableEnvironment {
         throw new UnsupportedOperationException();
     }
 
+    public String[] getNames() {
+        return (String[]) paramMap_.keySet().toArray( new String[ 0 ] );
+    }
+
     /**
      * Returns a string which contains all the output written by the task
      * so far.
