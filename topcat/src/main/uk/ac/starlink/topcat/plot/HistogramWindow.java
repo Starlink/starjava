@@ -46,6 +46,7 @@ import uk.ac.starlink.tplot.PlotEvent;
 import uk.ac.starlink.tplot.PlotListener;
 import uk.ac.starlink.tplot.PlotState;
 import uk.ac.starlink.tplot.PtPlotSurface;
+import uk.ac.starlink.tplot.Range;
 import uk.ac.starlink.tplot.Rounder;
 import uk.ac.starlink.tplot.StyleSet;
 

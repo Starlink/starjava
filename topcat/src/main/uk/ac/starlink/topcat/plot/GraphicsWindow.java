@@ -90,6 +90,7 @@ import uk.ac.starlink.tplot.MarkStyle;
 import uk.ac.starlink.tplot.MarkStyles;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.Range;
 import uk.ac.starlink.tplot.Shader;
 import uk.ac.starlink.tplot.Shaders;
 import uk.ac.starlink.tplot.Style;

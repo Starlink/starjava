@@ -20,6 +20,7 @@ import uk.ac.starlink.tplot.ErrorMode;
 import uk.ac.starlink.tplot.ErrorRenderer;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.Range;
 import uk.ac.starlink.tplot.SphericalPlot3D;
 import uk.ac.starlink.tplot.SphericalPlotState;
 import uk.ac.starlink.util.WrapUtils;

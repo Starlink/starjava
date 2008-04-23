@@ -63,6 +63,7 @@ import uk.ac.starlink.tplot.PlotSurface;
 import uk.ac.starlink.tplot.PointIterator;
 import uk.ac.starlink.tplot.PointPlacer;
 import uk.ac.starlink.tplot.PointSequence;
+import uk.ac.starlink.tplot.Range;
 import uk.ac.starlink.tplot.StyleSet;
 import uk.ac.starlink.tplot.Styles;
 import uk.ac.starlink.ttools.convert.ValueConverter;

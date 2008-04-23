@@ -15,6 +15,7 @@ import javax.swing.JTextField;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.tplot.Range;
 
 /**
  * Axis configuration editor component.
