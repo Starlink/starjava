@@ -6,7 +6,7 @@ package uk.ac.starlink.tplot;
  * @author   Mark Taylor
  * @since    9 Apr 2008
  */
-public class SubsetSelectionPlotData implements PlotData {
+public class SubsetSelectionPlotData extends WrapperPlotData {
 
     private final PlotData base_;
     private final int[] isets_;
@@ -22,6 +22,7 @@ public class SubsetSelectionPlotData implements PlotData {
      *                 which are to appear in this object
      */
     public SubsetSelectionPlotData( PlotData base, int[] isets ) {
+        super( base );
         base_ = base;
         isets_ = (int[]) isets.clone();
     }
@@ -38,18 +39,6 @@ public class SubsetSelectionPlotData implements PlotData {
         return base_.getSetStyle( isets_[ iset ] );
     }
 
-    public int getNdim() {
-        return base_.getNdim();
-    }
-
-    public int getNerror() {
-        return base_.getNerror();
-    }
-
-    public boolean hasLabels() {
-        return base_.hasLabels();
-    }
-
     public PointSequence getPointSequence() {
         return new SubsetSelectionPointSequence( base_.getPointSequence() );
     }
@@ -57,7 +46,7 @@ public class SubsetSelectionPlotData implements PlotData {
     /**
      * PointSequence implementation used by this object.
      */
-    private class SubsetSelectionPointSequence implements PointSequence {
+    private class SubsetSelectionPointSequence extends WrapperPointSequence {
         private final PointSequence baseSeq_;
 
         /**
@@ -66,31 +55,12 @@ public class SubsetSelectionPlotData implements PlotData {
          * @param  baseSeq   point sequence from base PlotData
          */
         SubsetSelectionPointSequence( PointSequence baseSeq ) {
+            super( baseSeq );
             baseSeq_ = baseSeq;
-        }
-
-        public boolean next() {
-            return baseSeq_.next();
-        }
-
-        public double[] getPoint() {
-            return baseSeq_.getPoint();
-        }
-
-        public double[][] getErrors() {
-            return baseSeq_.getErrors();
-        }
-
-        public String getLabel() {
-            return baseSeq_.getLabel();
         }
 
         public boolean isIncluded( int iset ) {
             return baseSeq_.isIncluded( isets_[ iset ] );
-        }
-
-        public void close() {
-            baseSeq_.close();
         }
     }
 }
