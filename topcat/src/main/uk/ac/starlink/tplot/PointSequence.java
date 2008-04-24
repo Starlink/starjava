@@ -1,7 +1,7 @@
 package uk.ac.starlink.tplot;
 
 /**
- * Iterator over point data described by {@link PointData}.
+ * Iterator over point data described by {@link PlotData}.
  *
  * @author   Mark Taylor
  * @since    4 Apr 2008
