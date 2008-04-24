@@ -157,6 +157,7 @@ public class ScatterPlot extends SurfacePlot {
         }
 
         /* Join the dots as required. */
+        int huge = Math.max( getWidth(), getHeight() ) * 100;
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = (MarkStyle) data.getSetStyle( is );
             if ( style.getLine() == MarkStyle.DOT_TO_DOT ) {
@@ -176,8 +177,16 @@ public class ScatterPlot extends SurfacePlot {
                         double y = coords[ 1 ];
                         Point point = surface.dataToGraphics( x, y, false );
                         if ( point != null ) {
-                            int xp = point.x;
-                            int yp = point.y;
+
+                            /* Limit plotted/recorded positions to be not too
+                             * far off the plotted area.  Failing to do this
+                             * can result in attempts to draw lines kilometres
+                             * long, which can have an adverse effect on 
+                             * the graphics system. */
+                            int xp =
+                                Math.max( -huge, Math.min( huge, point.x ) );
+                            int yp =
+                                Math.max( -huge, Math.min( huge, point.y ) );
                             if ( notFirst ) {
                                 lineGraphics.drawLine( lastxp, lastyp, xp, yp );
                             }
