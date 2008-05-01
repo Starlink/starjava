@@ -1256,8 +1256,9 @@ public class SSAQueryBrowser
     }
 
     /**
-     *  Save current query results to a BufferedWriter. The resulting document is a
-     *  VOTable with a RESOURCE that contains a TABLE for each set of query results.
+     *  Save current query results to a BufferedWriter. The resulting document
+     *  is a VOTable with a RESOURCE that contains a TABLE for each set of
+     *  query results.
      */
     protected void saveQuery( BufferedWriter writer )
         throws SplatException
@@ -1266,7 +1267,13 @@ public class SSAQueryBrowser
         try {
             writer.write( xmlDec );
             writer.newLine();
-            writer.write( "<VOTABLE version='1.1'>" );
+            writer.write( "<VOTABLE version=\"1.1\"" );
+            writer.newLine();
+            writer.write( "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
+            writer.newLine();
+            writer.write( "xsi:schemaLocation=\"http://www.ivoa.net/xml/VOTable/v1.1\"" );
+            writer.newLine();
+            writer.write( "xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">" );
             writer.newLine();
             writer.write( "<RESOURCE>" );
             writer.newLine();
@@ -1280,7 +1287,8 @@ public class SSAQueryBrowser
                 table = starJTable.getStarTable();
                 serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
 
-                //  Write <TABLE> element.
+                //  Write <TABLE> element. XXX need to remove FIELD IDS. These are
+                //  not unique for the whole document.
                 serializer.writeInlineTableElement( writer );
             }
             writer.write( "</RESOURCE>" );
