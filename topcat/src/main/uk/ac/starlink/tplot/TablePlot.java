@@ -101,6 +101,74 @@ public class TablePlot extends JComponent {
     }
 
     /**
+     * Calculates data bounds for a given data set as appropriate for this
+     * plot.
+     *
+     * @param   data  plot data
+     * @param   state  plot state
+     * @return  data bounds object
+     */
+    public DataBounds calculateBounds( PlotData data, PlotState state ) {
+        boolean hasErrors = data.getNerror() > 0;
+        int ndim = data.getNdim();
+        int mainNdim = state.getMainNdim();
+
+        /* Set up blank range objects. */
+        Range[] ranges = new Range[ ndim ];
+        for ( int idim = 0; idim < ndim; idim++ ) {
+            ranges[ idim ] = new Range();
+        }
+
+        /* Submit each data point which will be plotted to the ranges. */
+        int nset = data.getSetCount();
+        PointSequence pseq = data.getPointSequence();
+        int ip = 0;
+        while ( pseq.next() ) {
+            double[] coords = pseq.getPoint();
+            boolean isValid = true;
+
+            /* Check that the point has valid (non-blank) coordinates.
+             * Note that blank auxiliary axis coordinates are OK. */
+            for ( int idim = 0; idim < mainNdim && isValid; idim++ ) {
+                isValid = isValid && ( ! Double.isNaN( coords[ idim ] ) &&
+                                       ! Double.isInfinite( coords[ idim ] ) );
+            }
+            if ( isValid ) {
+                boolean isUsed = false;
+                for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
+                    isUsed = isUsed || pseq.isIncluded( iset );
+                }
+                if ( isUsed ) {
+                    for ( int idim = 0; idim < ndim; idim++ ) {
+                        ranges[ idim ].submit( coords[ idim ] );
+                    }
+                    if ( hasErrors ) {
+                        double[][] errs = pseq.getErrors();
+                        for ( int ierr = 0; ierr < errs.length; ierr++ ) {
+                            double[] err = errs[ ierr ];
+                            if ( err != null ) {
+
+                                /* Note when adjusting ranges for errors we
+                                 * only examine the non-auxiliary dimensions
+                                 * (mainNdim not ndim) since aux axes don't
+                                 * have errors. */
+                                for ( int idim = 0; idim < mainNdim; idim++ ) {
+                                    ranges[ idim ].submit( err[ idim ] );
+                                }
+                            }
+                        }
+                    }
+                    ip++;
+                }
+            }
+        }
+        pseq.close();
+
+        /* Return a DataBounds object containing the results. */
+        return new DataBounds( ranges, ip );
+    }
+
+    /**
      * Determines whether the given graphics context represents a
      * vector graphics type environment (such as PostScript).
      * 
