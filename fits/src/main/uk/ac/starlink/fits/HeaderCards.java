@@ -200,8 +200,10 @@ public class HeaderCards {
                 params[ i ] = new DescribedValue( info1, value1 );
             }
             DescribedValue dval = params[ i ];
-            assert params[ i ].getInfo().getContentClass()
-                       .isAssignableFrom( params[ i ].getValue().getClass() );
+            Object val = params[ i ].getValue();
+            assert val == null 
+                || params[ i ].getInfo().getContentClass()
+                                        .isAssignableFrom( val.getClass() );
         }
 
         /* Return the result. */
