@@ -69,6 +69,80 @@ public class SphericalPlot3D extends Plot3D {
         return 1.0;
     }
 
+    /**
+     * Data bounds include one range for the radial coordinate; ranges
+     * on the other axes aren't much use.  The radial one will just be
+     * between [0..1] if no radial coordinate has been chosen.
+     * Ranges for any auxiliary axes are also added.
+     */
+    public DataBounds calculateBounds( PlotData data, PlotState state ) {
+        boolean hasRadial =
+            ((SphericalPlotState) state).getRadialInfo() != null;
+
+        /* Set up blank range objects. */
+        int ndim = data.getNdim();
+        int naux = ndim - 3;
+        Range[] auxRanges = new Range[ naux ];
+        for ( int iaux = 0; iaux < naux; iaux++ ) {
+            auxRanges[ iaux ] = new Range();
+        }
+
+        /* Submit each data point which will be plotted to the ranges as
+         * appropriate. */
+        int nset = data.getSetCount();
+        PointSequence pseq = data.getPointSequence();
+        int ip = 0;
+        double r2max = 0.0;
+        while ( pseq.next() ) {
+            boolean isUsed = false;
+            for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
+                isUsed = isUsed || pseq.isIncluded( iset );
+            }
+            if ( isUsed ) {
+                if ( hasRadial || naux > 0 ) {
+                    double[] coords = pseq.getPoint();
+                    boolean isValid = true;
+                    for ( int idim = 0; idim < 3 && isValid; idim++ ) {
+                        isValid = isValid
+                               && ( ! Double.isNaN( coords[ idim ] ) &&
+                                    ! Double.isInfinite( coords[ idim ] ) );
+                    }
+                    if ( isValid ) {
+                        if ( hasRadial ) {
+                            double r2 = coords[ 0 ] * coords[ 0 ]
+                                      + coords[ 1 ] * coords[ 1 ]
+                                      + coords[ 2 ] * coords[ 2 ];
+                            if ( r2 > r2max ) {
+                                r2max = r2;
+                            }
+                        }
+                        for ( int iaux = 0; iaux < naux; iaux++ ) {
+                            auxRanges[ iaux ].submit( coords[ iaux + 3 ] );
+                        }
+                        ip++;
+                    }
+                }
+
+                /* If there are no radial coords and no aux axes we hardly
+                 * need to look at the coordinates - just count points for
+                 * efficiency. */
+                else {
+                    ip++;
+                }
+            }
+        }
+        pseq.close();
+        double rmax = hasRadial ? Math.sqrt( r2max ) : 1.0;
+
+        /* Assemble and return data bounds object. */
+        Range[] ranges = new Range[ 1 + naux ];
+        ranges[ 0 ] = new Range( 0.0, rmax );
+        for ( int iaux = 0; iaux < naux; iaux++ ) {
+            ranges[ 1 + iaux ] = auxRanges[ iaux ];
+        }
+        return new DataBounds( ranges, ip );
+    }
+
     protected boolean frontOnly( Plot3DState state ) {
         SphericalPlotState sstate = (SphericalPlotState) state;
         return sstate.getZoomScale() > 2
