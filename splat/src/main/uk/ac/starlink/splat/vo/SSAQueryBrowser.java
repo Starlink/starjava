@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *     11-NOV-2004 (Peter W. Draper):
@@ -1285,10 +1285,15 @@ public class SSAQueryBrowser
             while ( i.hasNext() ) {
                 starJTable = (StarJTable) i.next();
                 table = starJTable.getStarTable();
-                serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
 
-                //  Write <TABLE> element. XXX need to remove FIELD IDS. These are
-                //  not unique for the whole document.
+                //  Write <TABLE> element. First need to remove FIELD
+                //  IDS. These are no longer unique for the whole document.
+                int n = table.getColumnCount();
+                for ( int j = 0; j < n; j++ ) {
+                    ColumnInfo ci = table.getColumnInfo( j );
+                    ci.setAuxDatum( new DescribedValue( VOStarTable.ID_INFO, null ) );
+                }
+                serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
                 serializer.writeInlineTableElement( writer );
             }
             writer.write( "</RESOURCE>" );
