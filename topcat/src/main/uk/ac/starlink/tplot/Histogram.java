@@ -146,6 +146,14 @@ public class Histogram extends SurfacePlot {
         firePlotChangedLater( new PlotEvent( this, state, -1, -1, -1 ) );
     }
 
+    public DataBounds calculateBounds( PlotData data, PlotState state ) {
+        DataBounds plotBounds = super.calculateBounds( data, state );
+        int npoint = plotBounds.getPointCount();
+        Range xRange = plotBounds.getRanges()[ 0 ];
+        double[] xBounds = xRange.getFiniteBounds( state.getLogFlags()[ 0 ] );
+        return new DataBounds( new Range[] { xRange }, npoint );
+    }
+
     /**
      * Returns the bounds of the plotting window in data space.
      * The first two elements of the results are the numerically lower bounds
