@@ -42,9 +42,11 @@ import uk.ac.starlink.tplot.BinnedData;
 import uk.ac.starlink.tplot.Histogram;
 import uk.ac.starlink.tplot.HistogramPlotState;
 import uk.ac.starlink.tplot.MapBinnedData;
+import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotEvent;
 import uk.ac.starlink.tplot.PlotListener;
 import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PointSequence;
 import uk.ac.starlink.tplot.PtPlotSurface;
 import uk.ac.starlink.tplot.Range;
 import uk.ac.starlink.tplot.Rounder;
@@ -465,19 +467,17 @@ public class HistogramWindow extends GraphicsWindow {
         return false;
     }
 
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
-        Range xRange = super.calculateRanges( pointSelection, points )[ 0 ];
+    public Range[] calculateRanges( PlotData data, PlotState state ) {
+        Range xRange = super.calculateRanges( data, state )[ 0 ];
         boolean xlog = getLogModels()[ 0 ].isSelected();
         double[] xBounds = xRange.getFiniteBounds( xlog );
-        calculateMaxCount( pointSelection, points, xBounds, true );
+        calculateMaxCount( data, xBounds, true );
         return new Range[] { xRange };
     }
 
     public Rectangle getPlotBounds() {
-        Rectangle bounds =
-            new Rectangle( ((Histogram) getPlot())
-                          .getSurface().getClip().getBounds() );
+        Rectangle bounds = new Rectangle( ((Histogram) getPlot())
+                                         .getSurface().getClip().getBounds() );
         bounds.y--;
         bounds.height += 2;
         return bounds;
@@ -489,14 +489,12 @@ public class HistogramWindow extends GraphicsWindow {
      * plot state values such as bin size.
      * This method stores its results in instance variables for later use.
      *
-     * @param  pointSelection  point selection
-     * @param  points  points data
+     * @param  data  plot data
      * @param  xBounds   bounds on the X axis for assessment
      * @param  autoWidth  true iff you want the bin width to be (re)calculated
      *         automatically by this routine
      */
-    private void calculateMaxCount( PointSelection pointSelection,
-                                    Points points, double[] xBounds,
+    private void calculateMaxCount( PlotData data, double[] xBounds,
                                     boolean autoWidth ) {
 
         /* Get and possibly store the bin size. */
@@ -528,8 +526,7 @@ public class HistogramWindow extends GraphicsWindow {
         double bwLinear = ((Number) linearBinModel_.getValue()).doubleValue();
 
         /* Acquire an empty binned data object. */
-        RowSubset[] rsets = pointSelection.getSubsets();
-        int nset = rsets.length;
+        int nset = data.getSetCount();
         boolean zeromid = offsetSelector_.isSelected();
         MapBinnedData binned = getLogModels()[ 0 ].isSelected()
             ? MapBinnedData.createLogBinnedData( nset, bwLog )
@@ -539,20 +536,20 @@ public class HistogramWindow extends GraphicsWindow {
         double xhi = mapper.getBounds( mapper.getKey( xBounds[ 1 ] ) )[ 1 ];
 
         /* Populate it. */
-        int np = points.getCount();
         boolean[] setFlags = new boolean[ nset ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            double[] coords = points.getPoint( ip );
+        PointSequence pseq = data.getPointSequence();
+        while ( pseq.next() ) {
+            double[] coords = pseq.getPoint();
             double x = coords[ 0 ];
             double w = coords[ 1 ];
             if ( x >= xlo && x <= xhi ) {
                 for ( int is = 0; is < nset; is++ ) {
-                    setFlags[ is ] = rsets[ is ].isIncluded( lp );
+                    setFlags[ is ] = pseq.isIncluded( is );
                 }
                 binned.submitDatum( x, w, setFlags );
             }
         }
+        pseq.close();
 
         /* Find the highest bin count. */
         double[] ymaxes = new double[ nset ];
@@ -845,16 +842,16 @@ public class HistogramWindow extends GraphicsWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             PlotState state = getPlotState();
-            PointSelection pointSelection =
-                (PointSelection) state.getPlotData();
             Points points = getPoints();
             if ( state.getValid() && points != null ) {
+                PlotData data = ((PointSelection) state.getPlotData())
+                               .createPlotData( points );
 
                 /* Do X scaling if required. */
                 double[] xBounds;
                 if ( scaleX_ ) {
                     Range xRange = HistogramWindow.super
-                        .calculateRanges( pointSelection, points )[ 0 ];
+                                  .calculateRanges( data, state )[ 0 ];
                     getDataRanges()[ 0 ] = xRange;
                     getViewRanges()[ 0 ].clear();
                     getAxisWindow().getEditors()[ 0 ].clearBounds();
@@ -867,8 +864,7 @@ public class HistogramWindow extends GraphicsWindow {
 
                 /* Do Y scaling if required. */
                 if ( scaleY_ ) {
-                    calculateMaxCount( pointSelection, points, xBounds,
-                                       scaleX_ );
+                    calculateMaxCount( data, xBounds, scaleX_ );
                     getViewRanges()[ 1 ].clear();
                     getAxisWindow().getEditors()[ 1 ].clearBounds();
                 }
