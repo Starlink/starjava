@@ -47,18 +47,23 @@ public class SkyTilingTest extends TestCase {
         /* Following discussion with Nikolai Kouropatkine (Pixtools author) -
          * this is probably not a bug, but it would be nice if it behaved
          * otherwise (for performance reasons). */
-        if ( true ) {
-            // System.err.println( "Skipping test due to known PixTools bug" );
+        /* Version 30 April 2008 - behaves better than the pervious version did.
+         * These queries now return 2 values rather than 4 values. */
+        if ( false ) {
+            System.err.println( "Skipping test due to known PixTools bug" );
         }
         else {
-            assertEquals(
-                1,
+
+//          assertEquals( 1, // would be nice, but not available yet
+//          assertTrue( 4 >= // 07-Jan-2008 version achieves this
+            assertTrue( 2 >= // 30-Apr-2008 version achieves this
                 new PixTools().query_disc( 1024,
                                            new Vector3d( -0.704, 0.580, 0.408 ),
                                            1.22E-12,
                                            1, 1 ).size() );
-            assertEquals(
-                1,
+//          assertEquals( 1, // would be nice, but not available yet
+//          assertTrue( 4 >= // 07-Jan-2008 version achieves this
+            assertTrue( 2 >= // 30-Apr-2008 version achieves this
                 new PixTools().query_disc( 1024,
                                            new Vector3d( -0.704, 0.580, 0.408 ),
                                            1.22E-12,
