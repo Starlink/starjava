@@ -17,6 +17,7 @@ import uk.ac.starlink.tplot.ErrorMode;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PointSequence;
 import uk.ac.starlink.tplot.Style;
+import uk.ac.starlink.tplot.WrapperPlotData;
 
 /**
  * Encapsulates the selection of the list of points which is to be plotted.
@@ -276,8 +277,35 @@ public class PointSelection implements PlotData {
         return points_.hasLabels();
     }
 
+    /**
+     * Returns a PlotData object based on this point selection but with a 
+     * given points object.  Since PointSelection implements PlotData in
+     * any case, this is not always necessary, but what this method provides
+     * is a PlotData whose data will not change if the points object owned
+     * by this PointSelection is replaced.
+     *
+     * @param  points  fixed points data
+     * @return   plot data closure
+     */
+    public PlotData createPlotData( final Points points ) {
+        return new WrapperPlotData( this ) {
+            public int getNdim() {
+                return points.getNdim();
+            }
+            public int getNerror() {
+                return points.getNerror();
+            }
+            public boolean hasLabels() {
+                return points.hasLabels();
+            }
+            public PointSequence getPointSequence() {
+                return new SelectionPointSequence( points );
+            }
+        };
+    }
+
     public PointSequence getPointSequence() {
-        return new SelectionPointSequence();
+        return new SelectionPointSequence( points_ );
     }
 
     public void setPoints( Points points ) {
@@ -498,8 +526,8 @@ public class PointSelection implements PlotData {
         /**
          * Constructor.
          */
-        SelectionPointSequence() {
-            psPoints_ = points_ == null ? new EmptyPoints() : points_;
+        SelectionPointSequence( Points points ) {
+            psPoints_ = points == null ? new EmptyPoints() : points;
             npoint_ = psPoints_.getCount();
         }
 
