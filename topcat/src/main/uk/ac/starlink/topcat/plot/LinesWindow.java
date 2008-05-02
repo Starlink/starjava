@@ -51,6 +51,7 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.tplot.DataBounds;
 import uk.ac.starlink.tplot.ErrorRenderer;
 import uk.ac.starlink.tplot.LinesPlot;
 import uk.ac.starlink.tplot.LinesPlotState;
@@ -498,87 +499,16 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     /**
      * Returns a 1-element array giving only the X axis range.
      */
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
+    public Range[] calculateRanges( PlotData data, PlotState state ) {
         Range xRange = getViewRanges()[ 0 ];
-        double[] xBounds = xRange.isClear() ? null
+        double[] xLimits = xRange.isClear() ? null
                                             : xRange.getFiniteBounds( false );
-        Range[] xyRanges = calculateRanges( pointSelection, points, xBounds );
+        DataBounds xyBounds = ((LinesPlot) getPlot())
+                             .calculateBounds( data, state, xLimits );
+        Range[] xyRanges = xyBounds.getRanges();
         yDataRanges_ = new Range[ xyRanges.length - 1 ];
         System.arraycopy( xyRanges, 1, yDataRanges_, 0, xyRanges.length - 1 );
         return new Range[] { xyRanges[ 0 ] };
-    }
-
-    /**
-     * Calculates data ranges along the X and Y axes for a given 
-     * point selection and data object.
-     *
-     * @param  pointSelection  point selection for calculations
-     * @param  ponints  points data
-     * @param  xBounds  (lower,upper) bounds array giving region for range
-     *         determination; may be null for the whole X region
-     */
-    private Range[] calculateRanges( PointSelection pointSelection,
-                                     Points points, double[] xBounds ) {
-
-        /* Set X and Y bounds. */
-        double xlo = xBounds == null ? - Double.MAX_VALUE : xBounds[ 0 ];
-        double xhi = xBounds == null ? + Double.MAX_VALUE : xBounds[ 1 ];
-        double ylo = - Double.MAX_VALUE;
-        double yhi = + Double.MAX_VALUE;
-
-        /* Work out which graph each set belongs to. */
-        PointSelectorSet pointSelectors = getPointSelectors();
-        int ngraph = pointSelectors.getSelectorCount();
-        List pselList = new ArrayList( ngraph );
-        for ( int isel = 0; isel < ngraph; isel++ ) {
-            pselList.add( pointSelectors.getSelector( isel ) );
-        }
-        SetId[] setIds = pointSelection.getSetIds();
-        int nset = setIds.length;
-        int[] graphIndices = new int[ nset ];
-        for ( int iset = 0; iset < nset; iset++ ) {
-            int igraph = pselList.indexOf( setIds[ iset ].getPointSelector() );
-            graphIndices[ iset ] = igraph;
-        }
-
-        /* Set up initial values for extrema. */
-        Range xRange = new Range();
-        Range[] yRanges = new Range[ ngraph ];
-        for ( int i = 0; i < ngraph; i++ ) {
-            yRanges[ i ] = new Range();
-        }
-
-        /* Go through all the data finding extrema. */
-        RowSubset[] sets = pointSelection.getSubsets();
-        int npoint = points.getCount();
-        for ( int ip = 0; ip < npoint; ip++ ) {
-            double[] coords = points.getPoint( ip );
-            double x = coords[ 0 ];
-            double y = coords[ 1 ];
-            if ( x >= xlo && x <= xhi && y >= ylo && y <= yhi ) {
-                boolean isUsed = false;
-                for ( int iset = 0; iset < nset; iset++ ) {
-                    if ( sets[ iset ].isIncluded( ip ) ) {
-                        int igraph = graphIndices[ iset ];
-                        isUsed = true;
-                        yRanges[ igraph ].submit( y );
-                    }
-                }
-                if ( isUsed ) {
-                    xRange.submit( x );
-                }
-            }
-        }
-
-        /* Package and return calculated ranges. */
-        Range[] ranges = new Range[ ngraph + 1 ];
-        ranges[ 0 ] = xRange;
-        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
-            yRanges[ igraph ].pad( 0.025 );
-            ranges[ igraph + 1 ] = yRanges[ igraph ];
-        }
-        return ranges;
     }
 
     public Rectangle getPlotBounds() {
@@ -1038,7 +968,10 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 double[] xLimits = scaleY_ && ! scaleX_
                                  ? state.getRanges()[ 0 ]
                                  : null;
-                Range[] ranges = calculateRanges( psel, points, xLimits );
+                Range[] ranges = ((LinesPlot) getPlot())
+                                .calculateBounds( psel.createPlotData( points ),
+                                                  state, xLimits )
+                                .getRanges();
                 getAxisWindow().clearRanges();
                 if ( scaleX_ ) {
                     getDataRanges()[ 0 ] = ranges[ 0 ];
