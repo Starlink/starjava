@@ -1319,12 +1319,12 @@ public abstract class GraphicsWindow extends AuxWindow {
             assert pointsReader_ == null;
 
             /* Start an asynchronous data read to get the new dataset. */
-            pointsReader_ = new PointsReader( pointSelection );
+            pointsReader_ = new PointsReader( pointSelection, state );
             pointsReader_.start();
 
             /* In the mean time, install a blank dataset. */
             points_ = pointSelection.getEmptyPoints();
-            dataRanges_ = calculateRanges( pointSelection, points_ );
+            dataRanges_ = calculateRanges( pointSelection, points_, state );
 
             /* Remember point selection for comparison next time. */
             lastPointSelection_ = pointSelection;
@@ -1611,67 +1611,36 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Calculates data ranges based on a PointSelection and a Points object.
+     *
+     * @param  pointSelection  point selection
+     * @param  points  points data
+     * @param  state  plot state
+     * @return   array of per-axis data ranges 
+     */
+    private Range[] calculateRanges( final PointSelection pointSelection,
+                                     final Points points, PlotState state ) {
+        return calculateRanges( pointSelection.createPlotData( points ),
+                                state );
+    }
+
+    /**
      * Calculates data ranges for a given data set.
      * The returned Range array is the one which will be returned from
      * future calls of {@link #getDataRanges}.
-     * Subclasses may override this method to alter its behaviour.
      *
-     * @param  pointSelection  point selection for the plot
-     * @param  points  point data for the plot
+     * @param  data  point data for the plot
+     * @param  state  plot state
+     * @return  ranges
      */
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
-        boolean hasErrors = points.getNerror() > 0;
+    public Range[] calculateRanges( PlotData data, PlotState state ) {
 
-        /* Set up blank range objects. */
-        int ndim = points.getNdim();
-        Range[] ranges = new Range[ ndim ];
-        for ( int idim = 0; idim < ndim; idim++ ) {
-            ranges[ idim ] = new Range();
-        }
-
-        /* Submit each data point which will be plotted to the ranges. */
-        RowSubset[] sets = pointSelection.getSubsets();
-        int nset = sets.length;
-        int npoint = points.getCount();
-        for ( int ip = 0; ip < npoint; ip++ ) {
-            double[] coords = points.getPoint( ip );
-            boolean isValid = true;
-            for ( int idim = 0; idim < ndim_ && isValid; idim++ ) {
-                isValid = isValid && ( ! Double.isNaN( coords[ idim ] ) &&
-                                       ! Double.isInfinite( coords[ idim ] ) );
-            }
-            if ( isValid ) {
-                boolean isUsed = false;
-                for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
-                    isUsed = isUsed || sets[ iset ].isIncluded( ip );
-                }
-                if ( isUsed ) {
-                    for ( int idim = 0; idim < ndim; idim++ ) {
-                        ranges[ idim ].submit( coords[ idim ] );
-                    }
-                    if ( hasErrors ) {
-                        double[][] errs = points.getErrors( ip );
-                        for ( int ierr = 0; ierr < errs.length; ierr++ ) {
-                            double[] err= errs[ ierr ];
-                            if ( err != null ) {
-
-                                /* Note when adjusting ranges for errors we
-                                 * only examine the non-auxiliary dimensions
-                                 * (ndim_ not ndim) since aux axes don't have
-                                 * errors. */
-                                for ( int idim = 0; idim < ndim_; idim++ ) {
-                                    ranges[ idim ].submit( err[ idim ] );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        /* Actual calculations are delegated to the plot object, which 
+         * understands the data well enough to do it. */
+        Range[] ranges = plot_.calculateBounds( data, state ).getRanges();
 
         /* Add some padding at each end. */
-        for ( int idim = 0; idim < ndim; idim++ ) {
+        for ( int idim = 0; idim < ranges.length; idim++ ) {
             ranges[ idim ].pad( getPadRatio() );
         }
 
@@ -1689,8 +1658,8 @@ public abstract class GraphicsWindow extends AuxWindow {
         Points points = points_;
         if ( state.getValid() && points != null ) {
             getAxisWindow().clearRanges();
-            dataRanges_ =
-                calculateRanges( (PointSelection) state.getPlotData(), points );
+            dataRanges_ = calculateRanges( (PointSelection) state.getPlotData(),
+                                           points, state );
             for ( int i = 0; i < viewRanges_.length; i++ ) {
                 viewRanges_[ i ].clear();
             }
@@ -2104,6 +2073,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private class PointsReader extends Thread {
         final PointSelection pointSelection_;
+        final PlotState prState_;
         final long start_;
 
         /**
@@ -2111,10 +2081,12 @@ public abstract class GraphicsWindow extends AuxWindow {
          * a given point selection object.
          *
          * @param  pointSelection  point selection
+         * @param  state  plot state
          */
-        PointsReader( PointSelection pointSelection ) {
+        PointsReader( PointSelection pointSelection, final PlotState state ) {
             super( "Point Reader" );
             pointSelection_ = pointSelection;
+            prState_ = state;
             start_ = System.currentTimeMillis();
         }
 
@@ -2191,8 +2163,8 @@ public abstract class GraphicsWindow extends AuxWindow {
                      * update range information, and schedule a replot. */
                     if ( success1 ) {
                         points_ = points1;
-                        dataRanges_ =
-                            calculateRanges( pointSelection_, points1 );
+                        dataRanges_ = calculateRanges( pointSelection_, points1,
+                                                       prState_ );
                         replot();
                     }
 
