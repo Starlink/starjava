@@ -282,6 +282,64 @@ public class LinesPlot extends TablePlot {
     }
 
     /**
+     * Calculates data ranges along the X and Y axes for a given
+     * point selection and data object.  The result has 1 + nplot ranges.
+     * 
+     * @param  data  plot data
+     * @param  state  plot state
+     * @param  xLimits  (lower,upper) bounds array giving region for range
+     *         determination; may be null for the whole X region
+     */
+    public DataBounds calculateBounds( PlotData data, PlotState state,
+                                       double[] xLimits ) {
+        LinesPlotState lState = (LinesPlotState) state;
+        int ngraph = lState.getGraphCount();
+        int[] graphIndices = lState.getGraphIndices();
+
+        /* Set X bounds. */
+        double xlo = xLimits == null ? -Double.MAX_VALUE : xLimits[ 0 ];
+        double xhi = xLimits == null ? +Double.MAX_VALUE : xLimits[ 1 ];
+
+        /* Set up initial values for extrema. */
+        Range xRange = new Range();
+        Range[] yRanges = new Range[ ngraph ];
+        for ( int ig = 0; ig < ngraph; ig++ ) {
+            yRanges[ ig ] = new Range();
+        }
+
+        /* Go through all the data finding extrema. */
+        int nset = data.getSetCount();
+        int ip = 0;
+        PointSequence pseq = data.getPointSequence();
+        while ( pseq.next() ) {
+            double[] coords = pseq.getPoint();
+            double x = coords[ 0 ];
+            double y = coords[ 1 ];
+            if ( x >= xlo && x <= xhi ) {
+                boolean isUsed = false;
+                for ( int iset = 0; iset < nset; iset++ ) {
+                    if ( pseq.isIncluded( iset ) ) {
+                        int igraph = graphIndices[ iset ];
+                        isUsed = true;
+                        yRanges[ igraph ].submit( y );
+                    }
+                }
+                if ( isUsed ) {
+                    xRange.submit( x );
+                }
+            }
+            ip++;
+        }
+        pseq.close();
+
+        /* Package and return calculated bounds. */
+        Range[] ranges = new Range[ ngraph + 1 ];
+        ranges[ 0 ] = xRange;
+        System.arraycopy( yRanges, 0, ranges, 1, ngraph );
+        return new DataBounds( ranges, ip );
+    }
+
+    /**
      * Returns a bit vector indicating which points are in the X range
      * currently visible within this plot.
      *
