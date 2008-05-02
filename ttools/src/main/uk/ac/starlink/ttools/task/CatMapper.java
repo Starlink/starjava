@@ -224,9 +224,8 @@ public class CatMapper implements TableMapper {
 
             /* Prepare an object which knows about common pre- and post-fixes
              * of locations. */
-            final Trimmer trimmer = ulocCol_ == null
-                                  ? null
-                                  : new Trimmer( locations );
+            boolean trim = ulocCol_ != null;
+            final Trimmer trimmer = new Trimmer( locations, trim, trim );
 
             /* Prepare an array of table producers for the input tables. */
             TableProducer[] tProds = new TableProducer[ nTable ];
@@ -360,8 +359,10 @@ public class CatMapper implements TableMapper {
          * Constructor.
          *
          * @param   locs  array of strings with the same pre- and post-fixes
+         * @param   preTrim  whether to trim common prefixes
+         * @param   postTrim  whether to trim common postfixes
          */
-        public Trimmer( String[] locs ) {
+        public Trimmer( String[] locs, boolean preTrim, boolean postTrim ) {
 
             /* Find minimum common length. */
             int nloc = locs.length;
@@ -372,28 +373,42 @@ public class CatMapper implements TableMapper {
             }
 
             /* Find length of maximum common prefix string. */
-            int npre = -1;
-            for ( int ic = 0; ic < leng && npre < 0; ic++ ) {
-                char c = loc0.charAt( ic );
-                for ( int iloc = 0; iloc < nloc; iloc++ ) {
-                    if ( locs[ iloc ].charAt( ic ) != c ) {
-                        npre = ic;
+            final int npre;
+            if ( preTrim ) {
+                int np = -1;
+                for ( int ic = 0; ic < leng && np < 0; ic++ ) {
+                    char c = loc0.charAt( ic );
+                    for ( int iloc = 0; iloc < nloc; iloc++ ) {
+                        if ( locs[ iloc ].charAt( ic ) != c ) {
+                            np = ic;
+                        }
                     }
                 }
+                npre = np;
+            }
+            else {
+                npre = 0;
             }
             pre_ = npre >= 0 ? loc0.substring( 0, npre )
                              : "";
 
             /* Find length of maximum common postfix string. */
-            int npost = -1;
-            for ( int ic = 0; ic < leng && npost < 0; ic++ ) {
-                char c = loc0.charAt( loc0.length() - 1 - ic );
-                for ( int iloc = 0; iloc < nloc; iloc++ ) {
-                    if ( locs[ iloc ].charAt( locs[ iloc ].length() - 1 - ic )
-                         != c ) {
-                        npost = ic;
+            final int npost;
+            if ( postTrim ) {
+                int np = -1;
+                for ( int ic = 0; ic < leng && np < 0; ic++ ) {
+                    char c = loc0.charAt( loc0.length() - 1 - ic );
+                    for ( int iloc = 0; iloc < nloc; iloc++ ) {
+                        if ( locs[ iloc ]
+                            .charAt( locs[ iloc ].length() - 1 - ic ) != c ) {
+                            np = ic;
+                        }
                     }
                 }
+                npost = np;
+            }
+            else {
+                npost = 0;
             }
             post_ = npost >= 0 ? loc0.substring( loc0.length() - npost )
                                : "";
