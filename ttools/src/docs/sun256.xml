@@ -5251,6 +5251,10 @@ but my thanks are especially due to the following:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Efficiency improvements (~25%? in both CPU time and memory usage) 
+        for HEALPix-based sky crossmatching 
+        (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
+        the PixTools library).</li>
     <li>Minor CEA fixes.</li>
     <li>Add <code>minReal</code> and <code>maxReal</code> functions 
         (max/min ignoring blank values) in class
