@@ -420,6 +420,9 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="amd64"/>
     </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="x86_64"/>
+    </antcall>
   </target>
 
   <!-- Architecture-specific JNI jar file unpacker -->
