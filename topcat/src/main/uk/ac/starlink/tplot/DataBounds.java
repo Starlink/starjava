@@ -34,7 +34,7 @@ public class DataBounds {
     /**
      * Returnst the number of points in the data set.
      *
-     * @param  point count
+     * @return  point count
      */
     public int getPointCount() {
         return npoint_;
