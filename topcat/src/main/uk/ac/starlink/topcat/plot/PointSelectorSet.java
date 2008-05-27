@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -12,14 +13,18 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -287,6 +292,9 @@ public abstract class PointSelectorSet extends JPanel {
          * component's listeners. */
         psel.addActionListener( actionForwarder_ );
         psel.addTopcatListener( topcatForwarder_ );
+        if ( tabber_.getTabCount() > 1 ) {
+            psel.addActionListener( new AxisDefaulter( psel ) );
+        }
 
         /* Notify listeners that something has happened. */
         if ( psel.getTable() != null ) {
@@ -434,6 +442,76 @@ public abstract class PointSelectorSet extends JPanel {
             public String toString() {
                 return tabber_.getTitleAt( tabber_.indexOfComponent( sel_ ) )
                      + ":" + isub_;
+            }
+        }
+    }
+
+    /**
+     * Listener which sets default values for plot axes of secondary point
+     * selectors given the current values of the main point selector.
+     */
+    private class AxisDefaulter implements ActionListener {
+
+        private final PointSelector mainPsel_;
+        private final PointSelector psel_;
+
+        /**
+         * Constructor.
+         *
+         * @param  psel  point selector whose values may be modified
+         */
+        AxisDefaulter( PointSelector psel ) {
+            psel_ = psel;
+            mainPsel_ = getMainSelector();
+            if ( mainPsel_ == psel_ ) {
+                throw new IllegalArgumentException( "Bad/unnecessary idea" );
+            }
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+
+            /* Act only if the main point selector has a table, and it is not
+             * the same as for this one. */
+            if ( PointSelector.TABLE_CHANGED.equals( evt.getActionCommand() ) &&
+                 mainPsel_.getTable() != null &&
+                 mainPsel_.getTable() != psel_.getTable() ) {
+                JComboBox[] selectors =
+                    psel_.getAxesSelector().getColumnSelectors();
+                JComboBox[] mainSelectors =
+                    mainPsel_.getAxesSelector().getColumnSelectors();
+                if ( selectors.length != mainSelectors.length ) {
+                    assert false;
+                    return;
+                }
+
+                /* For each JComboBox in the PointSelector, try to set its
+                 * value as the same string used in the corresponding one in
+                 * the main PointSelector.  In many cases such a setting will
+                 * be invalid, since the tables will have different column
+                 * names etc - this is fine, and does not cause an error.
+                 * If they are the same however, there is a good chance that
+                 * choosing these selections is what the user wants to do. */
+                for ( int i = 0; i < selectors.length; i++ ) {
+                    Object item = mainSelectors[ i ].getSelectedItem();
+                    if ( item != null ) {
+                        ComboBoxModel model = selectors[ i ].getModel();
+                        if ( model instanceof ColumnDataComboBoxModel ) {
+                            ColumnDataComboBoxModel cmodel =
+                                (ColumnDataComboBoxModel) model;
+                            ColumnData cdata;
+                            try {
+                                cdata = cmodel
+                                       .stringToColumnData( item.toString() );
+                            }
+                            catch ( CompilationException e ) {
+                                cdata = null;
+                            }
+                            if ( cdata != null ) {
+                                cmodel.setSelectedItem( cdata );
+                            }
+                        }
+                    }
+                }
             }
         }
     }
