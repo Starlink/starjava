@@ -160,6 +160,19 @@ public class AugmentedAxesSelector implements AxesSelector, Wrapper {
         return selectorPanel_;
     }
 
+    public JComboBox[] getColumnSelectors() {
+        JComboBox[] baseSelectors = baseSelector_.getColumnSelectors();
+        JComboBox[] auxSelectors = auxSelector_.getColumnSelectors();
+        JComboBox[] selectors =
+            new JComboBox[ baseSelectors.length + auxSelectors.length ];
+        System.arraycopy( baseSelectors, 0, selectors, 0,
+                          baseSelectors.length );
+        System.arraycopy( auxSelectors, 0,
+                          selectors, baseSelectors.length,
+                          auxSelectors.length );
+        return selectors;
+    }
+
     public int getNdim() {
         return baseSelector_.getNdim() + nVisible_;
     }

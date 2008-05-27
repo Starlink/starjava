@@ -81,6 +81,15 @@ public class LabelledAxesSelector implements AxesSelector, Wrapper {
         return selectorPanel_;
     }
 
+    public JComboBox[] getColumnSelectors() {
+        JComboBox[] baseSelectors = baseSelector_.getColumnSelectors();
+        JComboBox[] selectors = new JComboBox[ baseSelectors.length + 1 ];
+        System.arraycopy( baseSelectors, 0, selectors, 0,
+                          baseSelectors.length );
+        selectors[ baseSelectors.length ] = labelSelector_;
+        return selectors;
+    }
+
     public int getNdim() {
         return baseSelector_.getNdim();
     }

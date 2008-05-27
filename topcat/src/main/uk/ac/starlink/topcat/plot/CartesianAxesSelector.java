@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,6 +96,15 @@ public class CartesianAxesSelector implements AxesSelector {
      */
     public JComponent getColumnSelectorPanel() {
         return entryBox_;
+    }
+
+    public JComboBox[] getColumnSelectors() {
+        List selectorList = new ArrayList();
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            selectorList.addAll( Arrays.asList( dataSelectors_[ idim ]
+                                       .getSelectors() ) );
+        }
+        return (JComboBox[]) selectorList.toArray( new JComboBox[ 0 ] );
     }
 
     public int getNdim() {

@@ -82,6 +82,18 @@ public class WeightedAxesSelector implements AxesSelector {
         return selectorContainer_;
     }
 
+    public JComboBox[] getColumnSelectors() {
+        JComboBox[] baseSelectors = baseSelector_.getColumnSelectors();
+        JComboBox[] weightSelectors = weightSelector_.getColumnSelectors();
+        JComboBox[] selectors =
+            new JComboBox[ baseSelectors.length + weightSelectors.length ];
+        System.arraycopy( baseSelectors, 0, selectors, 0,
+                          baseSelectors.length );
+        System.arraycopy( weightSelectors, 0, selectors, baseSelectors.length,
+                          weightSelectors.length );
+        return selectors;
+    }
+
     public void setTable( TopcatModel tcModel ) {
         baseSelector_.setTable( tcModel );
         weightSelector_.setTable( tcModel );

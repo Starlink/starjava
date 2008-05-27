@@ -183,6 +183,10 @@ public class SphericalAxesSelector implements AxesSelector {
         return colBox_;
     }
 
+    public JComboBox[] getColumnSelectors() {
+        return rSelector_.getSelectors();
+    }
+
     public int getNdim() {
         return 3;
     }
