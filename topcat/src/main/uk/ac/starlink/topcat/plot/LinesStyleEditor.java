@@ -18,8 +18,10 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
 
 /**
- * StyleEditor implementation for suitable for a {@link LinesPlot}.
- * The style objects used are (currently) {@link MarkStyle}s.
+ * StyleEditor implementation for suitable for a 
+ * {@link uk.ac.starlink.tplot.LinesPlot}.
+ * The style objects used are (currently) 
+ * {@link uk.ac.starlink.tplot.MarkStyle}s.
  *
  * @author   Mark Taylor
  * @since    14 Mar 2006
