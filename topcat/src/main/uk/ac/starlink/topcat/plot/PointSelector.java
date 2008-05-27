@@ -79,6 +79,9 @@ public class PointSelector extends JPanel {
     private StyleWindow styleWindow_;
     private String selectorLabel_;
 
+    /** ActionEvent command string indicating a change of table. */
+    public static final String TABLE_CHANGED = "TABLE_CHANGED";
+
     public PointSelector( AxesSelector axesSelector, MutableStyleSet styles ) {
         super( new BorderLayout() );
         axesSelector_ = axesSelector;
@@ -647,6 +650,10 @@ public class PointSelector extends JPanel {
 
         /* Configure the column selectors. */
         axesSelector_.setTable( tcModel );
+
+        /* Notify listeners. */
+        actionForwarder_.actionPerformed( new ActionEvent( this, 0,
+                                                           TABLE_CHANGED ) );
 
         /* Repaint. */
         revalidate();
