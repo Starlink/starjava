@@ -137,6 +137,46 @@ public class ColumnDataComboBoxModel
         return selected_;
     }
 
+    /**
+     * Converts a string value to a ColumnData value suitable for selection
+     * by this model.  If it cannot be done, a CompilationException is thrown.
+     *
+     * @param   txt  string expression (or column name) for data
+     * @return  corresponding ColumnData object
+     * @throws  CompilationException  if <code>txt</code> is not valid
+     */
+    public ColumnData stringToColumnData( final String txt )
+            throws CompilationException {
+
+        /* No text, no column data. */
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return null;
+        }
+
+        /* See if the string is a column name. */
+        int ncol = getSize();
+        for ( int i = 0; i < ncol; i++ ) {
+            ColumnData item = (ColumnData) getElementAt( i );
+            if ( item != null && txt.equalsIgnoreCase( item.toString() ) ) {
+                return item;
+            }
+        }
+
+        /* Otherwise, try to interpret the string as a JEL expression. */
+        ColumnData cdata = new SyntheticColumnData( tcModel_, txt );
+        Class clazz = cdata.getColumnInfo().getContentClass();
+        if ( acceptType( clazz ) ) {
+            return cdata;
+        }
+        else {
+            throw new CompilationException( 1, new Object[ 0 ] ) {
+                public String getMessage() {
+                    return "Wrong data type for \"" + txt + "\"";
+                }
+            };
+        }
+    }
+
     public void setSelectedItem( Object item ) {
         if ( item == null ? selected_ != null 
                           : ! item.equals( selected_ ) ) {
@@ -373,54 +413,21 @@ public class ColumnDataComboBoxModel
 
         public Object getItem() {
             String txt = (String) base_.getItem();
-
-            /* No text - no selection. */
-            if ( txt == null || txt.trim().length() == 0 ) {
-                return null;
-            }
-
-            /* If the text matches the stringified version of the last known
-             * selection, return it unchanged. */
-            else if ( data_ != null && txt.equals( data_.toString() ) ) {
+            if ( data_ != null && txt.equals( data_.toString() ) ) {
                 return data_;
             }
-
-            /* Otherwise, go looking for the column name in the contents
-             * of this selection model. */
             else {
-                int ncol = model_.getSize();
-                for ( int i = 0; i < ncol; i++ ) {
-                    ColumnData item = (ColumnData) model_.getElementAt( i );
-                    if ( item != null && 
-                         txt.equalsIgnoreCase( item.toString() ) ) {
-                        return item;
-                    }
+                try {
+                    return model_.stringToColumnData( txt );
+                }
+                catch ( CompilationException e ) {
+                    base_.setItem( null );
+                    JOptionPane.showMessageDialog( parent_, e.getMessage(),
+                                                   "Evaluation error",
+                                                   JOptionPane.ERROR_MESSAGE );
+                    return null;
                 }
             }
-
-            /* If none of the above have worked, then try to interpret 
-             * the text as a JEL (synthetic column) expression. */
-            String msg;
-            try {
-                ColumnData cdata =
-                    new SyntheticColumnData( model_.tcModel_, txt );
-                Class clazz = cdata.getColumnInfo().getContentClass();
-                if ( model_.acceptType( clazz ) ) {
-                    return cdata;
-                }
-                else {
-                    msg = "Expression has wrong type: " + clazz.getName();
-                }
-            }
-            catch ( CompilationException e ) {
-                msg = e.toString();
-            }
-
-            /* No luck - inform user and return null. */
-            base_.setItem( null );
-            JOptionPane.showMessageDialog( parent_, msg, "Evaluation error",
-                                           JOptionPane.ERROR_MESSAGE );
-            return null;
         }
 
         public Component getEditorComponent() {
