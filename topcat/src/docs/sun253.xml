@@ -9854,6 +9854,7 @@ comments (apologies for any missed out):
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Luke Davies (Bristol)</li>
+<li>Sebastien Derriere (Strasbourg)</li>
 </ul>
 </p>
 
@@ -11071,6 +11072,10 @@ introduced since the last version:
         <li>Fix problem which caused the graphics system to hang or fail
             when drawing Dot-to-dot lines in 2D plot for points a very 
             long way off the screen.</li>
+        <li>In overplots using different tables, an attempt is now made to
+            use the same columns/expressions for axis values as for the
+            main table.  This may be convenient when overplotting data from
+            several similar tables.</li>
         </ul>
         </p></dd>
 
