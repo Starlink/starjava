@@ -164,7 +164,7 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Model to allow normalisation of the histogram. */
         normaliseModel_ =
-            new ToggleButtonModel( "Normalisation", ResourceIcon.DO_WHAT,
+            new ToggleButtonModel( "Normalisation", ResourceIcon.NORMALISE,
                                    "Normalise histogram counts to unity" );
         normaliseModel_.addActionListener( getReplotListener() );
 
