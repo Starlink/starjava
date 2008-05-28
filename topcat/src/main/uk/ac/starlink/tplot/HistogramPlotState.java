@@ -12,6 +12,7 @@ public class HistogramPlotState extends PlotState {
     private boolean zeroMid_;
     private boolean cumulative_;
     private boolean weighted_;
+    private boolean normalised_;
 
     /**
      * Sets the bin width for the histogram.
@@ -96,13 +97,33 @@ public class HistogramPlotState extends PlotState {
         return weighted_;
     }
 
+    /**
+     * Sets whether the histogram is to be normalised to a total value of unity.
+     *
+     * @param  normalised  whether to normalise histogram
+     */
+    public void setNormalised( boolean normalised ) {
+        normalised_ = normalised;
+    }
+
+    /**
+     * Determines whether the histogram is normlalised to a total value of 
+     * unity.
+     *
+     * @return  whether normalisation is in force
+     */
+    public boolean getNormalised() {
+        return normalised_;
+    }
+
     public boolean equals( Object o ) {
         if ( super.equals( o ) && o instanceof HistogramPlotState ) {
             HistogramPlotState other = (HistogramPlotState) o;
             return binWidth_ == other.binWidth_
                 && zeroMid_ == other.zeroMid_
                 && cumulative_ == other.cumulative_
-                && weighted_ == other.weighted_;
+                && weighted_ == other.weighted_
+                && normalised_ == other.normalised_;
         }
         else {
             return false;
@@ -115,6 +136,7 @@ public class HistogramPlotState extends PlotState {
         code = 23 * code + ( zeroMid_ ? 1 : 3 );
         code = 23 * code + ( cumulative_ ? 1 : 5 );
         code = 23 * code + ( weighted_ ? 1 : 7 );
+        code = 23 * code + ( normalised_ ? 1 : 11 );
         return code;
     }
 }

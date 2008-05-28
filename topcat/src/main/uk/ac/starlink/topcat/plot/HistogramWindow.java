@@ -42,6 +42,7 @@ import uk.ac.starlink.tplot.BinnedData;
 import uk.ac.starlink.tplot.Histogram;
 import uk.ac.starlink.tplot.HistogramPlotState;
 import uk.ac.starlink.tplot.MapBinnedData;
+import uk.ac.starlink.tplot.NormalisedBinnedData;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotEvent;
 import uk.ac.starlink.tplot.PlotListener;
@@ -65,25 +66,20 @@ public class HistogramWindow extends GraphicsWindow {
     private final ToggleButtonModel yLogModel_;
     private final ToggleButtonModel cumulativeModel_;
     private final ToggleButtonModel weightModel_;
+    private final ToggleButtonModel normaliseModel_;
     private final JCheckBox offsetSelector_;
     private final RoundingSpinner binSizer_;
     private final RoundingSpinner.RoundingSpinnerModel linearBinModel_;
     private final RoundingSpinner.RoundingSpinnerModel logBinModel_;
 
     private double autoYMax_;
-    private double autoYMaxCumulative_;
+    private double autoYMaxCum_;
+    private double autoYMaxNorm_;
+    private double autoYMaxCumNorm_;
     private double autoLinearBinWidth_;
     private double autoLogBinWidth_;
 
     private static final int DEFAULT_BINS = 20;
-
-    /** Description of vertical plot axis. */
-    private final static ValueInfo COUNT_INFO = 
-        new DefaultValueInfo( "Count", Integer.class,
-                              "Number of values in bin" );
-    private final static ValueInfo WEIGHT_INFO =
-        new DefaultValueInfo( "Weighted count", Double.class,
-                              "Weighted sum of values in bin" );
 
     /**
      * Constructs a new histogram window.
@@ -166,6 +162,12 @@ public class HistogramWindow extends GraphicsWindow {
                                    "Allow weighting of histogram counts" );
         weightModel_.addActionListener( getReplotListener() );
 
+        /* Model to allow normalisation of the histogram. */
+        normaliseModel_ =
+            new ToggleButtonModel( "Normalisation", ResourceIcon.DO_WHAT,
+                                   "Normalise histogram counts to unity" );
+        normaliseModel_.addActionListener( getReplotListener() );
+
         /* Actions for saving or exporting the binned data as a table. */
         TableSource binSrc = new TableSource() {
             public StarTable getStarTable() {
@@ -209,6 +211,7 @@ public class HistogramWindow extends GraphicsWindow {
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( cumulativeModel_.createMenuItem() );
         plotMenu.add( weightModel_.createMenuItem() );
+        plotMenu.add( normaliseModel_.createMenuItem() );
         plotMenu.add( rescaleActionXY );
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
@@ -271,6 +274,7 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
+        getToolBar().add( normaliseModel_.createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
         getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
@@ -309,9 +313,9 @@ public class HistogramWindow extends GraphicsWindow {
                 if ( yaxed != null ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            ValueInfo axinfo = HistogramWindow.this.hasWeights()
-                                             ? WEIGHT_INFO
-                                             : COUNT_INFO;
+                            ValueInfo axinfo =
+                                getYInfo( HistogramWindow.this.hasWeights(),
+                                          HistogramWindow.this.isNormalised() );
                             yaxed.setAxis( axinfo );
                         }
                     } );
@@ -319,6 +323,7 @@ public class HistogramWindow extends GraphicsWindow {
             }
         };
         weightModel_.addActionListener( weightAction );
+        normaliseModel_.addActionListener( weightAction );
 
         /* Basic selector for X axis. */
         AxesSelector axsel =
@@ -337,9 +342,9 @@ public class HistogramWindow extends GraphicsWindow {
              * axis and one for the counts axis (screen Y axis). */
             public AxisEditor[] createAxisEditors() {
                 AxisEditor yaxed = new AxisEditor( "Y" );
-                ValueInfo axinfo = HistogramWindow.this.hasWeights()
-                                 ? WEIGHT_INFO
-                                 : COUNT_INFO;
+                ValueInfo axinfo =
+                    getYInfo( HistogramWindow.this.hasWeights(),
+                              HistogramWindow.this.isNormalised() );
                 yaxed.setAxis( axinfo );
                 return new AxisEditor[] {
                     super.createAxisEditors()[ 0 ],
@@ -423,12 +428,15 @@ public class HistogramWindow extends GraphicsWindow {
             /* Calculate the Y data range based on the autosized range
              * calculated last time calculateMaxCount was called and on
              * the current state (bin width and cumuluative flag). */
+            double autoYMax = isNormalised() ? autoYMaxNorm_ : autoYMax_;
+            double autoYMaxCumulative = isNormalised() ? autoYMaxCumNorm_
+                                                       : autoYMaxCum_;
             double yMax = cumulativeModel_.isSelected()
-                ? autoYMaxCumulative_
+                ? autoYMaxCumulative
                 : ( state.getLogFlags()[ 0 ]
-                        ? autoYMax_ * Math.log( bw )
-                                    / Math.log( autoLogBinWidth_ )
-                        : autoYMax_ * bw / autoLinearBinWidth_ );
+                        ? autoYMax * Math.log( bw )
+                                   / Math.log( autoLogBinWidth_ )
+                        : autoYMax * bw / autoLinearBinWidth_ );
             Range yRange = new Range( 0.0, yMax );
             yRange.limit( getViewRanges()[ 1 ] );
             state.setRanges( new double[][] {
@@ -436,8 +444,9 @@ public class HistogramWindow extends GraphicsWindow {
                 yRange.getFiniteBounds( yLogModel_.isSelected() )
             } );
 
-            /* See if there is any weighting on the Y axis. */
+            /* Configure weighting and normalisation. */
             state.setWeighted( hasWeights() );
+            state.setNormalised( isNormalised() );
         }
 
         /* Configure some actions to be enabled/disabled according to 
@@ -465,6 +474,15 @@ public class HistogramWindow extends GraphicsWindow {
             }
         }
         return false;
+    }
+
+    /**
+     * Indicates whether histogram normalisation is in operation.
+     *
+     * @return  true iff histogram is normalised
+     */
+    private boolean isNormalised() {
+        return normaliseModel_.isSelected();
     }
 
     public Range[] calculateRanges( PlotData data, PlotState state ) {
@@ -525,17 +543,19 @@ public class HistogramWindow extends GraphicsWindow {
         double bwLog = ((Number) logBinModel_.getValue()).doubleValue();
         double bwLinear = ((Number) linearBinModel_.getValue()).doubleValue();
 
-        /* Acquire an empty binned data object. */
+        /* Acquire empty binned data objects, one normalised one not. */
         int nset = data.getSetCount();
-        boolean zeromid = offsetSelector_.isSelected();
-        MapBinnedData binned = getLogModels()[ 0 ].isSelected()
-            ? MapBinnedData.createLogBinnedData( nset, bwLog )
-            : MapBinnedData.createLinearBinnedData( nset, bwLinear, zeromid );
+        MapBinnedData binned = createBinnedData( nset, bwLinear, bwLog );
+        BinnedData binnedNorm =
+            new NormalisedBinnedData( createBinnedData( nset, bwLinear,
+                                                        bwLog ) );
+
+        /* Work out the X bounds. */
         MapBinnedData.BinMapper mapper = binned.getMapper();
         double xlo = mapper.getBounds( mapper.getKey( xBounds[ 0 ] ) )[ 0 ];
         double xhi = mapper.getBounds( mapper.getKey( xBounds[ 1 ] ) )[ 1 ];
 
-        /* Populate it. */
+        /* Populate the binned data objects. */
         boolean[] setFlags = new boolean[ nset ];
         PointSequence pseq = data.getPointSequence();
         while ( pseq.next() ) {
@@ -547,6 +567,7 @@ public class HistogramWindow extends GraphicsWindow {
                     setFlags[ is ] = pseq.isIncluded( is );
                 }
                 binned.submitDatum( x, w, setFlags );
+                binnedNorm.submitDatum( x, w, setFlags );
             }
         }
         pseq.close();
@@ -570,11 +591,54 @@ public class HistogramWindow extends GraphicsWindow {
             yMaxTot = Math.max( yMaxTot, ytots[ is ] );
         }
 
+        /* Do the same for the case of normalised histograms. */
+        double[] ynmaxes = new double[ nset ];
+        double[] yntots = new double[ nset ];
+        for ( Iterator binIt = binnedNorm.getBinIterator( false );
+              binIt.hasNext(); ) {
+            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+            for ( int is = 0; is < nset; is++ ) {
+                double s = bin.getWeightedCount( is );
+                yntots[ is ] += s;
+                ynmaxes[ is ] = Math.max( ynmaxes[ is ], s );
+            }
+        }
+        double yMaxNorm = 0;
+        double yMaxTotNorm = 0;
+        for ( int is = 0; is < nset; is++ ) {
+            yMaxNorm = Math.max( yMaxNorm, ynmaxes[ is ] );
+            yMaxTotNorm = Math.max( yMaxTotNorm, yntots[ is ] );
+        }
+  
         /* Store results for later calculations. */
-        autoYMax_ = yMax * ( 1 + getPadRatio() );
         autoLinearBinWidth_ = bwLinear;
         autoLogBinWidth_ = bwLog;
-        autoYMaxCumulative_ = yMaxTot * ( 1 + getPadRatio() );
+        autoYMax_ = yMax * ( 1 + getPadRatio() );
+        autoYMaxNorm_ = yMaxNorm * ( 1 + getPadRatio() );
+        autoYMaxCum_ = yMaxTot * ( 1 + getPadRatio() );
+        autoYMaxCumNorm_ = yMaxTotNorm * ( 1 + getPadRatio() );
+    }
+
+    /**
+     * Returns an empty binned data object suitable for accumulating data
+     * about the current state of this histogram.  The returned binned data
+     * is not normalised.
+     *
+     * @param  number of subsets
+     * @param  bwLinear  linear bin width
+     * @param  bwLog     log bin width (factor)
+     * @return  binned data object
+     */
+    private MapBinnedData createBinnedData( int nset, double bwLinear,
+                                            double bwLog ) {
+        if ( getLogModels()[ 0 ].isSelected() ) {
+            return MapBinnedData.createLogBinnedData( nset, bwLog );
+        }
+        else {
+            boolean zeromid = offsetSelector_.isSelected();
+            return MapBinnedData
+                  .createLinearBinnedData( nset, bwLinear, zeromid );
+        }
     }
 
     /**
@@ -606,6 +670,7 @@ public class HistogramWindow extends GraphicsWindow {
         /* Is it a weighted sum or a simple count? */
         HistogramPlotState state = (HistogramPlotState) plot.getState();
         final boolean weighted = state.getWeighted();
+        final boolean isInt = binData.isInteger();
 
         /* Get the list of set IDs which describes which table/subset pairs
          * each of the sets in the binned data represents. */
@@ -633,24 +698,23 @@ public class HistogramWindow extends GraphicsWindow {
             ColumnInfo weightInfo = getWeightInfo( setId );
             TopcatModel tcModel = setId.getPointSelector().getTable();
             StringBuffer descrip = new StringBuffer();
-            descrip.append( "Count " );
+            descrip.append( state.getNormalised() ? "Normalised count"
+                                                  : "Count"  );
             if ( weightInfo != null ) {
-                descrip.append( "weighted by " )
-                       .append( weightInfo.getName() )
-                       .append( " " );
+                descrip.append( " weighted by " )
+                       .append( weightInfo.getName() );
             }
             RowSubset rset =
                 (RowSubset) tcModel.getSubsets().get( setId.getSetIndex() );
             if ( rset != RowSubset.ALL ) {
-                descrip.append( "for row subset " )
-                       .append( rset.getName() )
-                       .append( ' ' );
+                descrip.append( " for row subset " )
+                       .append( rset.getName() );
             }
-            descrip.append( "in table " )
+            descrip.append( " in table " )
                    .append( tcModel.getLabel() );
             ColumnInfo colInfo =
                 new ColumnInfo( namer.getName( setId ), 
-                                weighted ? Double.class : Integer.class,
+                                isInt ? Integer.class : Double.class,
                                 descrip.toString() );
             if ( weightInfo != null ) {
                 colInfo.setUnitString( weightInfo.getUnitString() );
@@ -685,10 +749,10 @@ public class HistogramWindow extends GraphicsWindow {
                         row[ icol++ ] = new Double( bin.getHighBound() );
                         for ( int iset = 0; iset < nset; iset++ ) {
                             double sum = bin.getWeightedCount( iset );
-                            assert weighted || ( sum == (int) sum ) : sum;
+                            assert ( ! isInt ) || ( sum == (int) sum ) : sum;
                             row[ icol++ ] =
-                                weighted ? (Number) new Double( sum )
-                                         : (Number) new Integer( (int) sum );
+                                isInt ? (Number) new Integer( (int) sum )
+                                      : (Number) new Double( sum );
                         }
                         return row;
                     }
@@ -788,6 +852,42 @@ public class HistogramWindow extends GraphicsWindow {
                 }
             };
         }
+    }
+
+    /**
+     * Returns a metadata object describing the values on the vertical axis.
+     *
+     * @param  isWeighted  whether the histogram uses weighted counts
+     * @param  isNormalised  whether the histogram values are normalised to 1
+     * @return  metadata object
+     */
+    private static ValueInfo getYInfo( boolean isWeighted,
+                                       boolean isNormalised ) {
+        final String name;
+        final String descrip;
+        if ( isWeighted ) {
+            if ( isNormalised ) {
+                name = "Normalised weighted count";
+                descrip = "Normalised weighted sum of values";
+            }
+            else {
+                name = "Weighted count";
+                descrip = "Weighted sum of values";
+            }
+        }
+        else {
+            if ( isNormalised ) {
+                name = "Normalised count";
+                descrip = "Normalised sum of values";
+            }
+            else {
+                name = "Count";
+                descrip = "Number of values";
+            }
+        }
+        final boolean isInt = ( ! isWeighted ) && ( ! isNormalised );
+        return new DefaultValueInfo( name, isInt ? Integer.class : Double.class,
+                                     descrip + " in bin" );
     }
 
     /**

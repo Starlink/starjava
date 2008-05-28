@@ -49,7 +49,7 @@ public class Histogram extends SurfacePlot {
      */
     public BinnedData getBinnedData() {
         if ( binned_ == null ) {
-            binned_ = binData( getState().getPlotData() );
+            binned_ = binData( (HistogramPlotState) getState() );
         }
         return binned_;
     }
@@ -234,14 +234,18 @@ public class Histogram extends SurfacePlot {
      * As a special case, null is returned if the supplied data set contains
      * no points.
      *
-     * @param   data   plot data object
+     * @param   data   plot state object
      * @return   binned data object
      */
-    private BinnedData binData( PlotData data ) {
+    private BinnedData binData( HistogramPlotState state ) {
+        PlotData data = state.getPlotData();
 
         /* Acquire an object to hold the data. */
         int nset = data.getSetCount();
         BinnedData binned = newBinnedData( nset );
+        if ( state.getNormalised() ) {
+            binned = new NormalisedBinnedData( binned );
+        }
 
         /* Populate it. */
         boolean[] setFlags = new boolean[ nset ];
