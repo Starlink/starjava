@@ -18,7 +18,6 @@ public class NormalisedBinnedData implements BinnedData {
      * Constructor.
      *
      * @param  base  binned data object providing basic functionality
-     * @param  nset  number of subsets 
      */
     public NormalisedBinnedData( BinnedData base ) {
         base_ = base;
