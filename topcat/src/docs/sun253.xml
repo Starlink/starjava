@@ -11076,6 +11076,8 @@ introduced since the last version:
             use the same columns/expressions for axis values as for the
             main table.  This may be convenient when overplotting data from
             several similar tables.</li>
+        <li>Fix bug which caused incorrect plotting of cumulative histograms
+            with small weights.</li>
         </ul>
         </p></dd>
 

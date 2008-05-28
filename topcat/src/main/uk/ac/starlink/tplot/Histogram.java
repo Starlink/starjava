@@ -97,7 +97,7 @@ public class Histogram extends SurfacePlot {
             BarStyle style = (BarStyle) data.getSetStyle( iset );
             int lastIxLead = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             int lastIyhi = 0;
-            long total = 0;
+            double total = 0;
             for ( Iterator it = binnedData.getBinIterator( cumulative );
                   it.hasNext(); ) {
 
