@@ -40,6 +40,22 @@ public interface BinnedData {
     Iterator getBinIterator( boolean includeEmpty );
 
     /**
+     * Returns the number of subsets for which this object maintains bins.
+     *
+     * @return  set count
+     */
+    int getSetCount();
+
+    /**
+     * Indicates whether the count values in the bins are known to be 
+     * integers.
+     *
+     * @return  true if all <code>Bin.getWeightedCount</code> returns
+     *          are integer values
+     */
+    boolean isInteger();
+
+    /**
      * Represents a single bin.
      * Instances of this class are dispensed by {@link #getBinIterator}.
      */

@@ -24,6 +24,7 @@ public class MapBinnedData implements BinnedData {
 
     private final int nset_;
     private final BinMapper mapper_;
+    private boolean isFloat_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.tplot" );
 
@@ -50,6 +51,9 @@ public class MapBinnedData implements BinnedData {
         if ( Double.isNaN( value ) || Double.isNaN( weight ) || weight == 0 ) {
             return;
         }
+
+        /* Update integer flag. */
+        isFloat_ = isFloat_ || ( weight != (int) weight );
 
         /* Normal value, go ahead. */
         Object key = mapper_.getKey( value );
@@ -99,6 +103,14 @@ public class MapBinnedData implements BinnedData {
                 keyIt.remove();
             }
         };
+    }
+
+    public int getSetCount() {
+        return nset_;
+    }
+
+    public boolean isInteger() {
+        return ! isFloat_;
     }
 
     /**
