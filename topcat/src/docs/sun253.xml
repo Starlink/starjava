@@ -6063,6 +6063,12 @@ and if it's unchecked then zero is on a bin boundary.
     the X axis that it covers.
     </p></dd>
 
+<dt>&IMG.NORMALISE; Normalisation</dt>
+<dd><p>Toggles whether histograms are normalised.
+    When selected, each dataset will be normalised so that the sum of
+    the counts of all its bars over the whole range of data is equal to one.
+    </p></dd>
+
 <dt>&IMG.YLOG; Log Y Axis</dt>
 <dd><p>Toggles whether the Y axis is scaled logarithmically or not.
     </p></dd>
@@ -9836,8 +9842,8 @@ comments (apologies for any missed out):
 <li>Roy Platon (RAL)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
 <li>Jonathan Irwin (Cambridge)</li>
-<li>Mark Allen (Strasbourg)</li>
-<li>Francois Ochsenbein (Strasbourg)</li>
+<li>Mark Allen (CDS)</li>
+<li>Francois Ochsenbein (CDS)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
 <li>Richard McMahon (IoA)</li>
@@ -9854,7 +9860,7 @@ comments (apologies for any missed out):
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Luke Davies (Bristol)</li>
-<li>Sebastien Derriere (Strasbourg)</li>
+<li>Sebastien Derriere (CDS)</li>
 </ul>
 </p>
 
@@ -11078,6 +11084,8 @@ introduced since the last version:
             several similar tables.</li>
         <li>Fix bug which caused incorrect plotting of cumulative histograms
             with small weights.</li>
+        <li>Added normalisation option to 
+            <ref id="HistogramWindow">Histogram Window</ref>.</li>
         </ul>
         </p></dd>
 
