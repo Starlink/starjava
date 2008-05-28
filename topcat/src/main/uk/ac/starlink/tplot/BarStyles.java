@@ -188,7 +188,7 @@ public class BarStyles {
                                   { 0, 2, 6,  8,  9, 3, 0 } };
         final int nSet = data.length;
         final int nBar = data[ 0 ].length - 2;
-        final int barWidth = nSet * 5;
+        final int barWidth = nSet * 7;
         return new Icon() {
             public int getIconHeight() {
                 return height;
