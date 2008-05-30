@@ -163,6 +163,46 @@ public class SpecCutter
 
 
     /**
+     * Remove ranges of values from the spectrum, creating a new single
+     * spectrum from the remaining data, and filling the removed values with
+     * linear interpolation. The new spectrum is added to the global list and
+     * a reference to it is returned (null for failure of any kind). The new
+     * spectrum is memory resident and has shortname:
+     * <pre>
+     *   "Cut <i> of <spectrum.getShortName()>"
+     * </pre>
+     * Where <i> is replaced by a unique integer and
+     * <spectrum.getShortName()> by the short name of the spectrum.
+     *
+     * @param spectrum the spectrum.
+     * @param ranges the physical coordinate ranges of the regions
+     *               that are to be deleted and interpolated. These should be
+     *               in pairs. The extracted values are sorted in
+     *               increasing coordinate and any overlap regions are
+     *               merged.
+     *
+     * @return the new spectrum.
+     */
+    public SpecData interpRanges( SpecData spectrum, double[] ranges )
+    {
+        //  Sort and merge the ranges.
+        double[] cleanRanges = Sort.sortAndMerge( ranges );
+        try {
+            //  Extract the new spectrum.
+            SpecData newSpectrum = 
+                spectrum.getInterpolatedSubSet( makeName( spectrum ),
+                                                cleanRanges );
+            globalList.add( newSpectrum );
+            return newSpectrum;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
      *  Generate a name for the cut spectrum.
      *
      *  @param spectrum the spectrum to be cut.
