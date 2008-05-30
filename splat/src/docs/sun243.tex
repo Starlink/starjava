@@ -1081,7 +1081,7 @@ the display area.\\
 
   \item[\inline{regioncutter}] Show the region cutter window. This
   window allows you to graphically define which regions you'd like to
-  cut or delete from the current spectrum.
+  cut, delete or replace by linear interpolation in the current spectrum.
 
   \item[\inline{fitback}] Show the toolbox for fitting a polynomial to
   defined regions of the current spectrum. This is used to define
@@ -2404,17 +2404,24 @@ is simple. It should have two fields separated by whitespace or
 commas. Comments are indicated by lines starting with a hash (\#)
 and are ignored.
 
-When you've got the ranges that you want to extract or remove, press the
-\labelitem{Cut} or \labelitem{Remove} buttons. This creates a new
-spectrum on the global list called \hitext{Cut <n> of <shortname>},
-that you can save to disk, or display in another plot \etc\ To just
-extract, or remove, one or a subset of the ranges select the rows in
-the ranges table and press the \labelitem{Cut Selected} or
-\labelitem{Remove Selected} buttons.
+When you've got the ranges that you want to extract, remove or replace by
+linear interpolation, press one of various the \labelitem{Cut}, 
+\labelitem{Remove} or \labelitem{Interpolate} buttons. This creates and
+displays a new spectrum on the global list called \hitext{Cut <n> of
+<shortname>}, that you can save to disk, or display in another plot \etc\ To
+just extract, remove or interpolate, one or a subset of the ranges select the
+rows in the ranges table and press the \labelitem{Cut Selected},
+\labelitem{Remove Selected} or \labelitem{Interpolate Selected} buttons.
 
 To clear the ranges press the \labelitem{Reset} button, but note that
 this also clears any spectra that have been created on the global
 list. To keep these just close the window.
+
+When interpolating you will often just want to see the resultant spectrum, 
+so there is a special \labelitem{Interpolate (Replace)} action. That performs
+the interpolation, removes the current spectrum and then displays the 
+result of interpolation. To go back from this change use the 
+\labelitem{Reset (Replace)} button (only undoes one change).
 
 \subheading{Accelerator keys}
 
@@ -2423,7 +2430,10 @@ list. To keep these just close the window.
 \item \labelitem{Control-s} Cut out selected regions from spectrum.
 \item \labelitem{Control-m} Remove all regions from spectrum.
 \item \labelitem{Control-o} Remove selected regions from spectrum.
+\item \labelitem{Control-j} Interpolate all regions of the spectrum.
+\item \labelitem{Control-k} Interpolate seleced regions of the spectrum.
 \item \labelitem{Control-r} Reset window by clearing ranges and any spectra.
+\item \labelitem{Control-p} Reset an Interpolate (Replace) action.
 
 \item \labelitem{Control-d} Add a coordinate range (interactive or non-interactive).
 \item \labelitem{Control-e} Delete the selected coordinate ranges.
@@ -3681,9 +3691,26 @@ requests for useful features -- thanks to them all.
 
 \section{Changes}
 
+
+\subsection{3.8-7}
+The cutter tool box now offers simple linear interpolation to replace
+the selected range of values.
+
+\subsection{3.8-6}
+
+A new command-line option `--debuglevel' to control the messages output on the
+terminal has been introduced. By default fewer messages will now be seen
+(especially from the browser window), more can be seen by setting a level
+greater than zero, but that should only be required when helping to diagnose a
+problem.
+
+The errors of a spectrum can now be plotted as the spectral line, not just as
+error bars.
+
+
 \subsection{3.8-5}
 
-Two new command-line options have been added, "--hub" and "--exthub".
+Two new command-line options have been added, `--hub' and `--exthub'.
 These start an internal PLASTIC hub and an external one respectively.
 Note an external hub will persist after SPLAT has been closed down.
 

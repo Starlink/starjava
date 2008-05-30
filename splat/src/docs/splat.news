@@ -1,5 +1,11 @@
 1 Starlink SPLAT news.
 
+   3.8-7
+   =====
+
+   The cutter tool box now offers simple linear interpolation to replace
+   the selected range of values.
+
    3.8-6
    =====
 
