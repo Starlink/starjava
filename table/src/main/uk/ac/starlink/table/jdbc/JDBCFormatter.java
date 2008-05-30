@@ -2,6 +2,7 @@ package uk.ac.starlink.table.jdbc;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +32,8 @@ public class JDBCFormatter {
 
     private final Connection conn_;
     private final String quote_;
+    private final int maxColLeng_;
+    private final int maxTableLeng_;
     private final StarTable table_;
     private final SqlColumn[] sqlCols_;
     private final int[] sqlTypes_;
@@ -50,7 +53,10 @@ public class JDBCFormatter {
         conn_ = conn;
         table_ = table;
         typeNameMap_ = makeTypesMap( conn_ );
-        quote_ = conn_.getMetaData().getIdentifierQuoteString();
+        DatabaseMetaData meta = conn_.getMetaData();
+        quote_ = meta.getIdentifierQuoteString();
+        maxColLeng_ = meta.getMaxColumnNameLength();
+        maxTableLeng_ = meta.getMaxTableNameLength();
 
         /* Work out column types and see if we need to work out maximum string
          * lengths. */
@@ -102,7 +108,7 @@ public class JDBCFormatter {
         Set cnames = new HashSet();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo col = table_.getColumnInfo( icol );
-            String colName = fixColumnName( col.getName() );
+            String colName = fixName( col.getName(), maxColLeng_ );
 
             /* Check that we don't have a duplicate column name. */
             while ( cnames.contains( colName ) ) {
@@ -135,7 +141,7 @@ public class JDBCFormatter {
         StringBuffer sql = new StringBuffer();
         sql.append( "CREATE TABLE " )
            .append( quote_ )
-           .append( tableName )
+           .append( fixName( tableName, maxTableLeng_ ) )
            .append( quote_ )
            .append( " (" );
         int ncol = sqlCols_.length;
@@ -170,7 +176,7 @@ public class JDBCFormatter {
         StringBuffer sql = new StringBuffer();
         sql.append( "INSERT INTO " )
            .append( quote_ )
-           .append( tableName )
+           .append( fixName( tableName, maxTableLeng_ ) )
            .append( quote_ )
            .append( " VALUES(" );
         boolean first = true;
@@ -190,8 +196,9 @@ public class JDBCFormatter {
     }
 
     /**
-     * Creates a new table in the database according to the input table
-     * of this formatter with a given write mode.
+     * Writes data from this formatter's input table into the database.
+     * This method is somewhat misnamed - depending on the write mode, 
+     * a new table may or may not be created in the database.
      *
      * @param   tableName  name of the new table to write to in the database
      * @param   mode   mode for writing records
@@ -203,7 +210,10 @@ public class JDBCFormatter {
         /* Table deletion. */
         if ( mode.getAttemptDrop() ) {
             try {
-                String cmd = "DROP TABLE " + quote_ + tableName + quote_;
+                String cmd = "DROP TABLE "
+                           + quote_
+                           + fixName( tableName, maxTableLeng_ )
+                           + quote_;
                 logger.info( cmd );
                 stmt.executeUpdate( cmd );
                 logger.warning( "Dropped existing table " + tableName + 
@@ -382,19 +392,20 @@ public class JDBCFormatter {
     }
 
     /**
-     * Massages a column name to make it acceptable for SQL.
+     * Massages a column or table name to make it acceptable for SQL.
      *
      * @param  name  initial column name
+     * @param  maxLeng  maximum name length; 0 means no limit
      * @return   fixed column name (may be the same as <tt>name</tt>)
      */
-    private static String fixColumnName( String name ) {
+    private String fixName( String name, int maxLeng ) {
 
         /* Escape special characters, replacing them with an underscore. */
-        name = name.replaceAll( "[\\s\\.\\(\\)\\[\\]\\-\\+]+", "_" );
+        name = name.replaceAll( "\\W+", "_" );
 
         /* Trim extra-long column names. */
-        if ( name.length() > 64 ) {
-            name = name.substring( 0, 60 );
+        if ( maxLeng > 0 && name.length() >= maxLeng ) {
+            name = name.substring( 0, maxColLeng_ - 4 );
         }
 
         /* Replace reserved words.  This list is not complete. */
