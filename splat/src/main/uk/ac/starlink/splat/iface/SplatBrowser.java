@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
@@ -1814,7 +1814,6 @@ public class SplatBrowser
         sio.save( this, globalIndex, target );
     }
 
-
     /**
      * Set the main cursor to indicate waiting for some action to
      * complete and lock the interface by trapping all mouse events.
@@ -2738,7 +2737,7 @@ public class SplatBrowser
                 specDataFactory.getClone( source, spectrum, saveUsertypeIndex,
                    (String) saveTabletypeBox.getItemAt( saveTabletypeIndex ) );
             target.save();
-            globalList.add( globalIndex, target );
+            globalList.add( target );
         }
         catch ( SplatException e ) {
             logger.log( Level.INFO, e.getMessage(), e );
