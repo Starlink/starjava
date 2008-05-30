@@ -29,13 +29,14 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.splat.ast.ASTJ;
+import uk.ac.starlink.ast.grf.DefaultGrf;
+import uk.ac.starlink.ast.grf.DefaultGrfMarker;
+import uk.ac.starlink.ast.grf.DefaultGrfState;
+import uk.ac.starlink.diva.interp.LinearInterp;
 import uk.ac.starlink.splat.ast.ASTChannel;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.ast.grf.DefaultGrf;
-import uk.ac.starlink.ast.grf.DefaultGrfState;
-import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
 //  IMPORT NOTE: modifying the member variables could change the
 //  serialization signature of this class. If really need to then
@@ -1004,6 +1005,90 @@ public class SpecData
 
         //  And create the memory spectrum.
         return createNewSpectrum( name, newCoords, newData, newErrors );
+    }
+
+    /**
+     * Create a new spectrum by deleting sections of this spectrum and linear
+     * interpolating across the sections. The section extents are defined in
+     * physical coordinates. <p>
+     *
+     * The spectrum created here is not added to any lists or created with any
+     * configuration other than the default values (i.e. you must do this part
+     * yourself) and is only kept in memory.
+     *
+     * @param name short name for the spectrum.
+     * @param ranges an array of pairs of physical coordinates. These define
+     *               the extents of the ranges to remove and interpolate.
+     * @return the new spectrum.
+     */
+    public SpecData getInterpolatedSubSet( String name, double[] ranges )
+    {
+        //  Locate the index of the positions just below and above our
+        //  physical value pairs.
+        int nRanges = ranges.length / 2;
+        int[] lower = new int[nRanges];
+        int[] upper = new int[nRanges];
+        int[] low;
+        int[] high;
+
+        int ninterp = 0;
+        for ( int i = 0, j = 0; j < nRanges; i += 2, j++ ) {
+            low = bound( ranges[i] );
+            lower[j] = low[1];
+            high = bound( ranges[i + 1] );
+            upper[j] = high[0];
+            ninterp += high[0] - low[1] + 1;
+        }
+
+        if ( ninterp < 0 ) {
+            //  Coordinates run in a reversed direction.
+            ninterp = Math.abs( ninterp ) + 2 * nRanges;
+            high = lower;
+            lower = upper;
+            upper = high;
+
+            //  The ranges must increase.
+            Sort.insertionSort2( lower, upper );
+        }
+
+        if ( ninterp >= xPos.length || ninterp == 0 ) {
+            return null;
+        }
+
+        //  Copy data.
+        int nkeep = xPos.length;
+        double[] newCoords = new double[xPos.length];
+        double[] newData = new double[xPos.length];
+        System.arraycopy( xPos, 0, newCoords, 0, xPos.length );
+        System.arraycopy( yPos, 0, newData, 0, xPos.length );
+
+        LinearInterp interp;
+        double x[] = new double[2];
+        double y[] = new double[2];
+        for ( int i = 0, j = 0; i < xPos.length; i++ ) {
+            if ( i >= lower[j] && i <= upper[j] ) {
+
+                //  Arrived within a range. Need to interpolate.
+                x[0] = xPos[lower[j]];
+                x[1] = xPos[upper[j]];
+                y[0] = yPos[lower[j]];
+                y[1] = yPos[upper[j]];
+                interp = new LinearInterp( x, y );
+                
+                for ( ; i <= upper[j]; i++ ) {
+                    newData[i] = interp.interpolate( xPos[i] );
+                }
+
+                //  Next range or done.
+                if ( j + 1 == nRanges ) break;
+                j++;
+            }
+        }
+
+        //  Dump errors.
+
+        //  And create the memory spectrum.
+        return createNewSpectrum( name, newCoords, newData, null );
     }
 
     /**
