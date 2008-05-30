@@ -193,7 +193,7 @@ public class SplatLookAndFeelManager implements ActionListener
      */
     public void setLookAndFeel( String look )
     {
-        if( defaultLook.equals( look ) ) {
+        if ( ! defaultLook.equals( look ) ) {
             defaultLook = look;
             themeMenu.setEnabled( look.equals( metal ) );
             updateLookAndFeel();
