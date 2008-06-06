@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     27-MAR-2007 (Peter W. Draper):
@@ -113,8 +114,7 @@ public class PrintUtilities
                                        bounds.x, bounds.y,
                                        bounds.x + bounds.width,
                                        bounds.y + bounds.height );
-                PageFormat pf = new PageFormat();
-                printable.print( g2, pf, 0 );
+                printable.print( g2, null, 0 );
                 g2.close();
             }
             catch (Exception e) {

@@ -13,6 +13,9 @@
    error message is now displayed, rather than an unhelp report about
    a null exception.
 
+   Printing to postscript should make better use of the available space
+   and fix a scaling problem with the encapulated option.
+
    3.8-6
    =====
 

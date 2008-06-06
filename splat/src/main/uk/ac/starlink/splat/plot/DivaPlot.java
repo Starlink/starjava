@@ -1601,10 +1601,10 @@ public class DivaPlot
     {
         //  Get size of viewable page area and derive scale to make
         //  the content fit.
-        double pageWidth = pf.getImageableWidth() - 2.0 * xSaved;
-        double pageHeight = pf.getImageableHeight() - 2.0 * ySaved;
-        double xinset = pf.getImageableX() + xSaved;
-        double yinset = pf.getImageableY() + ySaved;
+        double pageWidth = pf.getImageableWidth();
+        double pageHeight = pf.getImageableHeight();
+        double xinset = pf.getImageableX();
+        double yinset = pf.getImageableY();
         double compWidth;
         double compHeight;
         Rectangle visrect = null;
