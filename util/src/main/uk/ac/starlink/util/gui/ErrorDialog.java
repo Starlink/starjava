@@ -265,6 +265,16 @@ public class ErrorDialog extends JDialog {
         showError( parent, title, error, new String[ 0 ] );
     }
 
+    /**
+     * Pops up a modal dialogue displaying information about an error.
+     *
+     * @param  parent  parent component
+     * @param  error   the throwable to be displayed
+     */
+    public static void showError( Component parent, Throwable error ) {
+        showError( parent, "Error", error, new String[ 0 ] );
+    }
+
     public static void main( String[] args ) {
         showError( null, "Error", new Error( "Some trouble" ), args );
         System.exit( 0 );
