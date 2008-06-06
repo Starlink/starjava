@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007 Science and Technology Facilties Council
+ * Copyright (C) 2007-2008 Science and Technology Facilties Council
  *
  *  History:
  *     18-APR-2005 (Peter W. Draper):
@@ -53,11 +53,11 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotClickedListener;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Triple;
 import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
  
 /**
@@ -622,7 +622,7 @@ public class PlotUnitsFrame
                 SpecDataUnitsFrame.convertToUnits( spec, dataUnits );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
 
@@ -641,7 +641,7 @@ public class PlotUnitsFrame
                                                           iaxis, false );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
 
@@ -805,7 +805,7 @@ public class PlotUnitsFrame
                 restFrequencyField.setText( Double.toString( bestcoord ) );
             }
             catch (SplatException se) {
-                new ExceptionDialog( this, se );
+                ErrorDialog.showError( this, se );
             }
         }
 

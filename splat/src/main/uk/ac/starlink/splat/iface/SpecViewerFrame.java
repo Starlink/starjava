@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     30-JAN-2003 (Peter W. Draper):
@@ -44,8 +45,8 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Displays a table of the values in a selected spectrum and allows
@@ -446,7 +447,7 @@ public class SpecViewerFrame
             specDataChanged();
         }
         catch (SplatException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
     }
 
@@ -494,7 +495,7 @@ public class SpecViewerFrame
                 specDataChanged();
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
     }
@@ -625,7 +626,7 @@ public class SpecViewerFrame
             specDataChanged();
         }
         catch (SplatException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
     }
 
@@ -647,7 +648,7 @@ public class SpecViewerFrame
                 specDataChanged();
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
         else if ( specData.haveYDataErrors() ) {
@@ -737,7 +738,7 @@ public class SpecViewerFrame
                     specDataChanged();
                 }
                 catch (SplatException e) {
-                    new ExceptionDialog( this, e );
+                    ErrorDialog.showError( this, e );
                 }
             }
             else {

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     23-MAR-2004 (Peter W. Draper):
@@ -44,8 +45,8 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.ast.gui.ScientificFormat;
 
@@ -509,7 +510,7 @@ public class DeblendFrame
             }
         }
         catch (NumberFormatException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
         return value;
     }

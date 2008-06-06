@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     06-FEB-2003 (Peter W. Draper):
@@ -12,7 +13,7 @@ import javax.swing.JOptionPane;
 
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.VoigtGenerator;
-import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Provides facilities for generating new column values for the data
@@ -162,7 +163,7 @@ public class DataColumnGenerator
                 return result;
             }
             catch (Exception e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
         else {

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     3-MAR-2003 (Peter W. Draper):
@@ -29,7 +30,7 @@ import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -379,7 +380,7 @@ public class CoordinateGenerator
             return result[0];
         }
         catch (AstException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
         catch (Exception e) {
             e.printStackTrace();

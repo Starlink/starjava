@@ -6,6 +6,13 @@
    The cutter tool box now offers simple linear interpolation to replace
    the selected range of values.
 
+   The exception dialog will now always display the error trace, previously
+   requesting this sometimes caused the dialog to just close.
+
+   When attempting to overwrite an NDF that is already opened a suitable
+   error message is now displayed, rather than an unhelp report about
+   a null exception.
+
    3.8-6
    =====
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     30-JAN-2003 (Peter W. Draper):
@@ -12,9 +13,9 @@ import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * SpecTableModel is an implementation of the TableModel interface for
@@ -296,7 +297,7 @@ public class SpecTableModel
                 globalList.notifySpecListenersChange( specData );
             }
             catch (Exception e) {
-                new ExceptionDialog( null, e );
+                ErrorDialog.showError( null, e );
             }
         }
     }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     04-OCT-2000 (Peter W. Draper):
@@ -11,7 +12,7 @@ import javax.swing.table.AbstractTableModel;
 
 import uk.ac.starlink.splat.util.FuzzyBoolean;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * PlotTableModel is an implementation of the TableModel interface for
@@ -149,7 +150,7 @@ public class PlotTableModel extends AbstractTableModel
                             // messages should probably not just be
                             // dumped to the terminal.
                             //e.printStackTrace();
-                            new ExceptionDialog( null, e );
+                            ErrorDialog.showError( null, e );
                         }
                     }
                 }

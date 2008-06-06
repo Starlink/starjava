@@ -69,7 +69,6 @@ import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.ToolButtonBar;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatPlastic;
 import uk.ac.starlink.splat.util.StarTableTransmitter;
@@ -85,6 +84,7 @@ import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.votable.DataFormat;
@@ -527,7 +527,7 @@ public class SSAQueryBrowser
                         }
                     }
                     catch (Exception e) {
-                        new ExceptionDialog( null, e );
+                        ErrorDialog.showError( null, e );
                     }
                 }
             };
@@ -595,7 +595,7 @@ public class SSAQueryBrowser
                 radius = Double.parseDouble( radiusText );
             }
             catch (NumberFormatException e) {
-                new ExceptionDialog(this, "Cannot understand radius value", e);
+                ErrorDialog.showError(this, "Cannot understand radius value", e);
                 return;
             }
         }
@@ -1153,7 +1153,7 @@ public class SSAQueryBrowser
                 readQuery( file );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
     }
@@ -1228,7 +1228,7 @@ public class SSAQueryBrowser
                 saveQuery( file );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
     }

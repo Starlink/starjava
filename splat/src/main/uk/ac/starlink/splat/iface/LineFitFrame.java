@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     19-JAN-2001 (Peter W. Draper):
@@ -50,13 +51,13 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.GaussianFitter;
 import uk.ac.starlink.splat.util.LorentzFitter;
 import uk.ac.starlink.splat.util.QuickLineFitter;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.VoigtFitter;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -589,7 +590,7 @@ public class LineFitFrame
             }
         }
         catch (NumberFormatException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
         return value;
     }

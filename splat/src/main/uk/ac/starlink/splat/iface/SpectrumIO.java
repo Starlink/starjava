@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     13-SEP-2004 (Peter W. Draper):
@@ -16,9 +17,9 @@ import javax.swing.Timer;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.UnitUtilities;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Load a list of spectra into the {@link SplatBrowser}, or save a spectrum
@@ -332,7 +333,7 @@ public class SpectrumIO
                 message = "Failed to open " + failedFiles + " spectra";
                 lastException = new SplatException( failures.toString() );
             }
-            new ExceptionDialog( browser, message, lastException );
+            ErrorDialog.showError( browser, message, lastException );
         }
 
         //  And now display them if we can.
@@ -378,7 +379,9 @@ public class SpectrumIO
                                                    localTarget );
                     }
                     catch (Exception e) {
-                        e.printStackTrace();
+                        ErrorDialog.showError( localBrowser,
+                                               "Failed to save spectrum: " + 
+                                               e.getMessage(), e );
                     }
                     finally {
                         //  Always tidy up and rewaken interface when

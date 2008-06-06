@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
@@ -52,6 +53,12 @@ public class NDFSpecDataImpl
         throws SplatException
     {
         super( fileName );
+
+        //  For NDFs overwriting self is not allowed. Check for that.
+        if ( fileName.equals( source.getFullName() ) ) {
+            throw new SplatException( "Cannot overwrite an opened NDF" );
+        }
+
         fullName = fileName;
 
         //  This works by creating a temporary NDF as backing. This
@@ -142,12 +149,18 @@ public class NDFSpecDataImpl
         //  Create a copy of the current NDF (which should be a
         //  temporary one, as only cloned NDFs can really be saved).
         NDFJ newNDF = theNDF.getCopy( fullName );
-        newNDF.saveAst( getAst() );
-        theNDF = newNDF;
+        if ( newNDF != null ) {
+            newNDF.saveAst( getAst() );
+            theNDF = newNDF;
 
-        // Close and re-open to flush to disk.
-        theNDF.close();
-        open( fullName );
+            // Close and re-open to flush to disk.
+            theNDF.close();
+            open( fullName );
+        }
+        else {
+            throw new SplatException( "Failed to save spectrum to NDF " +
+                                      fullName + " (already open?)" );
+        }
     }
 
     /**

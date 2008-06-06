@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2001-2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     05-MAY-2005 (Peter W. Draper):
@@ -35,7 +36,6 @@ import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
 
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.StarTable;
@@ -43,6 +43,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.vo.MetaColumnModel;
 import uk.ac.starlink.vo.RegistryTable;
@@ -361,7 +362,7 @@ public class SSAServerFrame
                 updateTable();
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
     }
@@ -379,7 +380,7 @@ public class SSAServerFrame
                 serverList.saveServers( file );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
             }
         }
     }

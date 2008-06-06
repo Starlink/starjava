@@ -67,7 +67,6 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SpecTransmitter;
@@ -80,6 +79,7 @@ import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.FileNameListCellRenderer;
 import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
@@ -1769,7 +1769,7 @@ public class SplatBrowser
                 ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, e );
+                ErrorDialog.showError( this, e );
                 return;
             }
         }
@@ -1839,7 +1839,7 @@ public class SplatBrowser
     /**
      * Add a new spectrum, with a possibly pre-defined type, to the
      * global list. This becomes the current spectrum. Any errors are reported
-     * using an {@link ExceptionDialog}.
+     * using an {@link ErrorDialog}.
      *
      *  @param name the name (i.e. file specification) of the spectrum
      *              to add.
@@ -1857,7 +1857,7 @@ public class SplatBrowser
             return true;
         }
         catch ( SplatException e ) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
         return false;
     }
@@ -2191,7 +2191,7 @@ public class SplatBrowser
                 globalList.addSpectra( plot, spectra );
             }
             catch (SplatException e) {
-                new ExceptionDialog( this, "Failed to display spectra", e);
+                ErrorDialog.showError( this, "Failed to display spectra", e );
                 return -1;
             }
         }
@@ -2267,14 +2267,14 @@ public class SplatBrowser
             globalList.addSpectra( plot, spectra );
         }
         catch (SplatException e) {
-            new ExceptionDialog( this, "Failed to display spectra", e );
+            ErrorDialog.showError( this, "Failed to display spectra", e );
             return -1;
         }
         return id;
     }
 
     /**
-     * Make a report using an ExceptionDialog for when loading a list
+     * Make a report using an ErrorDialog for when loading a list
      * of spectra has failed for some reason.
      */
     private void reportOpenListFailed( int failed,
@@ -2287,7 +2287,7 @@ public class SplatBrowser
         else {
             message = "Failed to display " + failed + " spectra ";
         }
-        new ExceptionDialog( this, message, lastException );
+        ErrorDialog.showError( this, message, lastException );
     }
 
     /**
@@ -2619,7 +2619,7 @@ public class SplatBrowser
                     globalList.notifySpecListenersModified( spec );
                 }
                 catch (SplatException e) {
-                    new ExceptionDialog( this, e );
+                    ErrorDialog.showError( this, e );
                 }
             }
         }
@@ -2741,6 +2741,7 @@ public class SplatBrowser
         }
         catch ( SplatException e ) {
             logger.log( Level.INFO, e.getMessage(), e );
+            ErrorDialog.showError( this, e.getMessage(), e );
         }
     }
 
@@ -2835,7 +2836,7 @@ public class SplatBrowser
                     globalList.add( newSpec );
                }
                 catch (Exception e) {
-                    new ExceptionDialog( this, e );
+                    ErrorDialog.showError( this, e );
                     return;
                 }
             }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     23-MAR-2007 (Peter W. Draper):
@@ -44,7 +45,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PrintUtilities;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 import jsky.util.gui.PrintableJTable;
 
@@ -234,7 +235,7 @@ public class FITSHeaderFrame
             PrintUtilities.print( table, pageSet, bounds, "out.ps", false );
         }
         catch (SplatException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
     }
 

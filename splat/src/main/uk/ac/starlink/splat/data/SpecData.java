@@ -790,9 +790,13 @@ public class SpecData
     public void save()
         throws SplatException
     {
-        impl.save();
+        try {
+            impl.save();
+        }
+        catch (Exception e) {
+            throw new SplatException( "Failed to save spectrum", e );
+        }
     }
-
 
     /**
      * Create a new spectrum by extracting sections of this spectrum. The

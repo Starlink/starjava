@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     27-FEB-2003 (Peter W. Draper):
@@ -23,7 +24,7 @@ import javax.swing.SwingConstants;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.MathMap;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -398,7 +399,7 @@ public abstract class ColumnGenerator
             return result[0];
         }
         catch (AstException e) {
-            new ExceptionDialog( this, e );
+            ErrorDialog.showError( this, e );
         }
         catch (Exception e) {
             e.printStackTrace();

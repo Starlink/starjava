@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *     10-JAN-2005 (Peter W. Draper):
@@ -38,11 +38,11 @@ import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Triple;
 import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -305,7 +305,7 @@ public class SpecDataUnitsFrame
                     }
                 }
                 catch (SplatException e ) {
-                    new ExceptionDialog( this, e );
+                    ErrorDialog.showError( this, e );
                 }
             }
         }

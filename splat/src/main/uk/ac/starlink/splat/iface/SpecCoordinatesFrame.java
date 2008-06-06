@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     07-APR-2003 (Peter W. Draper):
@@ -46,9 +47,9 @@ import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.pal.Observatory;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
@@ -778,7 +779,7 @@ public class SpecCoordinatesFrame
                     }
                 }
                 catch (SplatException e) {
-                    new ExceptionDialog( this, e );
+                    ErrorDialog.showError( this, e );
                 }
             }
 
