@@ -1,0 +1,67 @@
+
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that sh never sees.
+
+/**
+ * Name:
+ *    splatcopy
+ *
+ * Purpose:
+ *    Copy a spectrum to another spectrum.
+ *
+ * Usage:
+ *    splatcopy in out
+ *
+ * Description:
+ *    This command copies a spectrum from one file to another file.
+ *    The spectrum is fully opened by SPLAT so can be converted to
+ *    any other supported format.
+ *
+ *
+ * Language:
+ *    Beanshell (Java-based scripting language).
+ *
+ * @since $Date$
+ * @since 19-JUN-2008
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2008 Science and Technology Facilities Council.
+ */
+
+/**
+ * Print the usage message and exit.
+ */
+usage ()
+{
+    print( "Usage: splatcopy in out" );
+    exit();
+}
+
+/**
+ *  Do the copy
+ */
+copy( String spec_in, String spec_out )
+{
+    //  Import any classes that we need from SPLAT.
+    import uk.ac.starlink.splat.data.SpecDataFactory;
+    import uk.ac.starlink.splat.data.SpecData;
+    
+    SpecDataFactory f = SpecDataFactory.getInstance();
+    SpecData in = f.get( spec_in );
+    SpecData out = f.getClone( in, spec_out );
+    out.save();
+    print( spec_in + " copied to " + spec_out );
+}
+
+//  Check that we have been given two spectra.
+if ( bsh.args == null || bsh.args == void ||
+     bsh.args.length == 0 || bsh.args.length > 2 ) {
+   usage();
+}
+
+copy( bsh.args[0], bsh.args[1] );
+
+exit();
+
