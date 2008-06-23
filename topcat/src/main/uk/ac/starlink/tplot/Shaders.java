@@ -6,13 +6,20 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.Icon;
 import uk.ac.starlink.util.FloatList;
 
@@ -25,6 +32,15 @@ import uk.ac.starlink.util.FloatList;
 public class Shaders {
 
     private static final Color DARK_GREEN = new Color( 0, 160, 0 );
+
+    /**
+     * Property containing a File.pathSeparator-separated list of text
+     * files containing custom lookup tables.  Each line should contain
+     * three space-separated floating point values between zero and one
+     * giving the Red, Green and Blue components of a colour.
+     * @see  #createCustomShaders
+     */
+    public static final String LUTFILES_PROPERTY = "lut.files";
 
     /** Fixes red level at parameter value. */
     public static final Shader FIX_RED =
@@ -154,6 +170,8 @@ public class Shaders {
 
     /** Base directory for locating binary colour map lookup table resources. */
     private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
+
+    private static Shader[] customShaders_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.tplot" );
@@ -363,6 +381,36 @@ public class Shaders {
                 }
             }
         };
+    }
+
+    /**
+     * Returns an array of any custom shaders specified by the 
+     * {@link #LUTFILES_PROPERTY} property.
+     *
+     * @return  array of zero or more custom shaders
+     */
+    public static Shader[] getCustomShaders() {
+        if ( customShaders_ == null ) {
+            String fileset = System.getProperty( LUTFILES_PROPERTY );
+            List shaderList = new ArrayList();
+            if ( fileset != null && fileset.length() > 0 ) {
+                String[] files =
+                    fileset.split( "\\Q" + File.pathSeparator + "\\E" );
+                for ( int i = 0; i < files.length; i++ ) {
+                    String f = files[ i ];
+                    try {
+                        shaderList
+                           .add( new TextFileLutShader( new File( f ), 256 ) );
+                    }
+                    catch ( IOException e ) {
+                        logger_.warning( "Failed to load custom lookup table "
+                                       + f + " (" + e + ")" );
+                    }
+                }
+            }
+            customShaders_ = (Shader[]) shaderList.toArray( new Shader[ 0 ] );
+        }
+        return customShaders_;
     }
 
     /**
@@ -687,7 +735,7 @@ public class Shaders {
     }
 
     /**
-     * Lookup table-based shader which reads lookup tables data from 
+     * Lookup table-based shader which reads lookup table data from 
      * raw float arrays stored in resources in the directory 
      * {@link #LUT_BASE}.
      */
@@ -730,6 +778,95 @@ public class Shaders {
             }
             return lut_;
         }
+    }
+
+    /**
+     * Lookup table-based shader which reads lookup table data from
+     * a text file containing three columns giving R, G, B in the range
+     * 0-1.
+     */
+    private static class TextFileLutShader extends LutShader {
+
+        private final float[] lut_;
+        private static final Pattern TRIPLE_REGEX = 
+            Pattern.compile( "\\s*([0-9.e]+)\\s+([0-9.e]+)\\s+([0-9.e]+)\\s*" );
+
+        /**
+         * Constructor.
+         *
+         * @param file  file containing N rows of 3 float values
+         * @param minSamples  the minimum number of samples in the resulting
+         *        lookup table; if the file contains fewer than this,
+         *        interpolation will be performed
+         */
+        TextFileLutShader( File file, int minSamples ) throws IOException {
+            super( file.getName() );
+            FloatList flist = new FloatList();
+            int iline = 0;
+            BufferedReader in = new BufferedReader( new FileReader( file ) );
+            try {
+                for ( String line; ( line = in.readLine() ) != null; ) {
+                    iline++;
+                    String tline = line.replaceFirst( "#.*", "" ).trim();
+                    if ( tline.length() > 0 ) {
+                        Matcher matcher = TRIPLE_REGEX.matcher( tline );
+                        if ( matcher.matches() ) {
+                            for ( int i = 0; i < 3; i++ ) {
+                                float val =
+                                    Float.parseFloat( matcher.group( i + 1 ) );
+                                if ( val >= 0f && val <= 1f ) {
+                                    flist.add( val );
+                                }
+                                else {
+                                    throw new IOException( "Not in range 0-1: "
+                                                         + file + " line "
+                                                         + iline );
+                                }
+                            }
+                        }
+                        else {
+                            throw new IOException( "Not 3 numbers: "
+                                                 + file + " line " + iline );
+                        }
+                    }
+                }
+            }
+            finally {
+                in.close();
+            }
+            float[] lut = flist.toFloatArray();
+            lut_ = lut.length < minSamples ? interpolateRgb( lut, minSamples )
+                                           : lut;
+            assert lut_.length % 3 == 0;
+        }
+
+        protected float[] getRgbLut() {
+            return lut_;
+        }
+    }
+
+    /**
+     * Creates a new RGB array with a specificied number of samples 
+     * from a given one by interpolation.
+     *
+     * @param  in  input RGB array in order r, g, b, r, g, b, ...
+     * @param  nsamp  number of RGB samples in the output array
+     * @return  output RGB array in order r, g, b, r, g, b, ...
+     */
+    private static float[] interpolateRgb( float[] in, int nsamp ) {
+        int nin = in.length / 3;
+        float[] out = new float[ nsamp * 3 ];
+        for ( int is = 0; is < nsamp; is++ ) {
+            for ( int ic = 0; ic < 3; ic++ ) {
+                int ilo = is * ( nin - 1 ) / ( nsamp - 1 );
+                int ihi = Math.min( ilo + 1, nin - 1 );
+                float frac = is * ( nin - 1 ) / (float) ( nsamp - 1 ) - ilo;
+                out[ is * 3 + ic ] =
+                    in[ ilo * 3 + ic ] +
+                    frac * ( in[ ihi * 3 + ic ] - in[ ilo * 3 + ic ] );
+            }
+        }
+        return out;
     }
 
     /**
