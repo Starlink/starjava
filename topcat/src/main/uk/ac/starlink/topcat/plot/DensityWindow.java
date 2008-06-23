@@ -222,6 +222,12 @@ public class DensityWindow extends GraphicsWindow {
         /* Model for the shader which controls the indexed (non-RGB) 
          * colour map. */
         shaderModel_ = new ChangingComboBoxModel( INDEXED_SHADERS );
+        Shader[] customShaders = Shaders.getCustomShaders();
+        for ( int is = 0; is < customShaders.length; is++ ) {
+            ((ChangingComboBoxModel) shaderModel_)
+                                    .insertElementAt( customShaders[ is ], 0 );
+        }
+        shaderModel_.setSelectedItem( shaderModel_.getElementAt( 0 ) );
         ((ChangingComboBoxModel) shaderModel_)
                                 .addChangeListener( getReplotListener() );
         ((ChangingComboBoxModel) shaderModel_)

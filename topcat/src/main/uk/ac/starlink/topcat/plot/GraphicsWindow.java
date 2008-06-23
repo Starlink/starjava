@@ -324,10 +324,14 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Shader selection models for each auxiliary axis. */
         auxShaderModels_ = new ComboBoxModel[ naux ];
+        Shader[] customShaders = Shaders.getCustomShaders();
         for ( int i = 0; i < naux; i++ ) {
             ChangingComboBoxModel shaderModel =
                 new ChangingComboBoxModel( SHADERS );
-            shaderModel.setSelectedItem( SHADERS[ 1 ] );
+            for ( int is = 0; is < customShaders.length; is++ ) {
+                shaderModel.insertElementAt( customShaders[ is ], 1 );
+            }
+            shaderModel.setSelectedItem( shaderModel.getElementAt( 1 ) );
             shaderModel.addChangeListener( replotListener_ );
             auxShaderModels_[ i ] = shaderModel;
         }
