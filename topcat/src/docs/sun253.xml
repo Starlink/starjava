@@ -3344,6 +3344,20 @@ The following ones have special significance within TOPCAT:
     (see <ref id="jelExtend"/>).
     </p></dd>
 
+<dt><code>lut.files</code></dt>
+<dd><p>Can be set to a (colon-separated on *nix, semicolon-separated on Windows)
+    list of files giving custom lookup tables for auxiliary axis and
+    density map colour maps.  Each file should be a text file containing
+    a number of space-separated lines, each containing red, green, blue 
+    samples in the range 0-1.  For instance the file
+    <verbatim>
+       1.0  1.0  0.0
+       1.0  0.0  1.0
+    </verbatim>
+    would give a colour map that fades from yellow to magenta.  Any number of
+    samples may be given; the scale is interpolated.
+    </p></dd>
+
 <dt><code>star.connectors</code></dt>
 <dd><p>Can be set to a (colon-separated) list of classes which provide
     access to remote filespace implementations.
@@ -5790,6 +5804,12 @@ ones to use - some good combinations are the three RGB ones or
 the three YUV ones.
 </p>
 
+<p>A fairly wide range of colour maps of both kinds is provided by default.
+If these do not suit your needs, it is possible to provide your own
+custom colour fixing maps using the <label>lut.files</label> system 
+property - see <ref id="jvmProperties"/>.
+</p>
+
 <p>It is easy to generate attractive screenshots using auxiliary axes.
 Making visual sense of the results is a different matter.
 One visualisation expert tried to dissuade their introduction in TOPCAT
@@ -7396,6 +7416,10 @@ using image-specific software such as GAIA or Aladin.
     the colour map selected in the <label>Indexed Colours</label> 
     selector below the plot.  In this case the style editor colour selectors
     have no effect and are disabled.
+    A fairly wide range of colour maps is provided by default.
+    If these do not suit your needs, it is possible to provide your own
+    custom colour maps using the <label>lut.files</label> system property -
+    see <ref id="jvmProperties"/>.
     </p></dd>
 
 <dt>RGB Mode</dt>
@@ -11086,6 +11110,12 @@ introduced since the last version:
             with small weights.</li>
         <li>Added normalisation option to 
             <ref id="HistogramWindow">Histogram Window</ref>.</li>
+        <li>The <label>lut.files</label> system property can now be used to
+            configure custom colour maps for auxiliary axes and density maps -
+            see <ref id="jvmProperties"/>.</li>
+        <li>Extensive internal reorganisation of the code has taken place.
+            Should be no user-visible effects, but please report anything
+            which seems to be misbehaving.</li>
         </ul>
         </p></dd>
 
