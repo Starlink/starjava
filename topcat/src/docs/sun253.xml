@@ -11116,6 +11116,8 @@ introduced since the last version:
         <li>Extensive internal reorganisation of the code has taken place.
             Should be no user-visible effects, but please report anything
             which seems to be misbehaving.</li>
+        <li>Sexagesimal field identification for ASCII input files less 
+            stringent (now permits minutes or seconds equal to 60).</li>
         </ul>
         </p></dd>
 
