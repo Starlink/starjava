@@ -38,10 +38,10 @@ public class RowEvaluator {
         "Z?)?"
     );
     private static final Pattern HMS_REGEX = Pattern.compile(
-        "[ 012]?[0-9][:h ][ 0-5][0-9][:m ][0-5][0-9](\\.[0-9]*)?"
+        "[ 012]?[0-9][:h ][ 0-6][0-9][:m ][0-6][0-9](\\.[0-9]*)?"
     );
     private static final Pattern DMS_REGEX = Pattern.compile(
-        "[-+][ 0-9]?[0-9][:d ][ 0-5][0-9][:m ][0-5][0-9](\\.[0-9]*)?"
+        "[-+][ 0-9]?[0-9][:d ][ 0-6][0-9][:m ][0-6][0-9](\\.[0-9]*)?"
     );
 
     /**
