@@ -5260,6 +5260,8 @@ but my thanks are especially due to the following:
         (max/min ignoring blank values) in class
         <ref id="uk.ac.starlink.ttools.func.Arithmetic">Arithmetic</ref>.</li>
     <li>Fix bug in use of <code>tcat</code> <code>loccol</code> parameter.</li>
+    <li>Sexagesimal field identification for ASCII input files less stringent
+        (now permits minutes or seconds equal to 60).</li>
     </ul>
     </p></dd>
 
