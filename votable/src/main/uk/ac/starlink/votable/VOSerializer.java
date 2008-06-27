@@ -258,7 +258,7 @@ public abstract class VOSerializer {
      *
      * @param   writer  output stream
      */
-    void writePreDataXML( BufferedWriter writer ) throws IOException {
+    public void writePreDataXML( BufferedWriter writer ) throws IOException {
 
         /* Output TABLE element start tag. */
         writer.write( "<TABLE" );
@@ -303,7 +303,7 @@ public abstract class VOSerializer {
      *
      * @param  writer  output stream
      */
-    void writePostDataXML( BufferedWriter writer ) throws IOException {
+    public void writePostDataXML( BufferedWriter writer ) throws IOException {
         writer.write( "</TABLE>" );
         writer.newLine();
     }
