@@ -7764,6 +7764,9 @@ changed by typing a new directory into the <label>File Name</label> field,
 or moving up the directory hierarchy using the selector box at the top,
 or navigating the file system by clicking the up-directory button
 or double-clicking on displayed directories.
+The initial default directory can be changed by setting the 
+<code>user.dir</code> 
+<ref id="jvmProperties" plaintextref="yes">system property</ref>.
 </p>
 
 <p>All files are shown, and there is no indication of which ones represent
@@ -7832,7 +7835,10 @@ in some ways, but with important differences:
 </p>
 
 <p>The main part of the window shows a "tree" representation of the
-hierarchy, initially rooted at the current directory.
+hierarchy, initially rooted at the current directory
+(the initial directory can be changed by setting the 
+<code>user.dir</code> 
+<ref id="jvmProperties" plaintextref="yes">system property</ref>).
 Each line displayed represents a "node" which may be a file or
 some other type of item (for instance an HDU in a FITS file or an
 entry in a tar archive).  The line contains a little icon
@@ -8283,6 +8289,9 @@ changed by typing a new directory into the <label>File Name</label> field,
 or moving up the directory hierarchy using the selector box at the top,
 or navigating the file system by clicking the up-directory button
 or double-clicking on displayed directories.
+The initial default directory can be changed by setting the
+<code>user.dir</code> 
+<ref id="jvmProperties" plaintextref="yes">system property</ref>.
 </p>
 
 <p>The browser can display files in remote filestores such as on
