@@ -667,10 +667,11 @@ public class DefaultValueInfo implements ValueInfo {
         int[] ashape = (int[]) basicShape.clone();
         int ndim = ashape.length;
         if ( ashape[ ndim - 1 ] <= 0 ) {
+            int slice = 1;
             for ( int i = 0; i < ndim - 1; i++ ) {
-                nel /= ashape[ i ];
+                slice *= ashape[ i ];
             }
-            ashape[ ndim - 1 ] = nel;
+            ashape[ ndim - 1 ] = ( nel + slice - 1 ) / slice;
         }
         return ashape;
     }
