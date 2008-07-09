@@ -303,11 +303,14 @@ public abstract class FITSDataNode extends DefaultDataNode {
             return 0;
         }
         int bitpix = hdr.getIntValue( "BITPIX" );
-        long nel = Math.abs( bitpix ) / 8;
+        int gcount = hdr.getIntValue( "GCOUNT", 1 );
+        long pcount = hdr.getLongValue( "PCOUNT", 0L );
+        long nel = 1;
         for ( int i = 1; i <= naxis; i++ ) {
             nel *= hdr.getLongValue( "NAXIS" + i );
         }
-        return nel;
+        int bytepix = Math.abs( bitpix ) / 8;
+        return bytepix * gcount * ( pcount + nel );
     }
 
     /**
