@@ -1,0 +1,294 @@
+package uk.ac.starlink.fits;
+
+import java.io.DataOutput;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCardException;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
+
+/**
+ * FitsTableSerializer which can write variable array-valued columns
+ * using the 'P' or 'Q' TFORM formatting characters.
+ *
+ * @author   Mark Taylor
+ * @since    10 Jul 2008
+ */
+public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
+
+    /** 
+     * Constructor.
+     *
+     * @param  table  table to write
+     */
+    public VariableFitsTableSerializer( StarTable table ) throws IOException {
+        super();
+        init( table );
+        set64BitMode( getPCount() > Integer.MAX_VALUE );
+    }
+
+    /**
+     * Sets whether this serializer should use
+     * the 'P' descriptor (32-bit addressing into the heap) or
+     * the 'Q' descriptor (64-bit addressing into the heap)
+     * for variable-length array columns.
+     * Normally Q is only used if the heap is larger than 2^31.
+     *
+     * @param  useQ  true for Q, false for P
+     */
+    public void set64BitMode( boolean useQ ) {
+        PQMode pqMode = useQ ? PQMode.Q
+                             : PQMode.P;
+        VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
+        for ( int iv = 0; iv < vcws.length; iv++ ) {
+            vcws[ iv ].setPQMode( pqMode );
+        }
+    }
+
+    public Header getHeader() throws HeaderCardException {
+        Header hdr = super.getHeader();
+        hdr.addValue( "GCOUNT", 1L, "one heap" );
+        hdr.addValue( "PCOUNT", getPCount(), "size of heap" );
+        long theap = hdr.getIntValue( "NAXIS1" ) * hdr.getIntValue( "NAXIS2" );
+        theap = ( theap + 2880 - 1 ) / 2880 + 1;
+        hdr.addValue( "THEAP", theap, "heap start (block aligned)" );
+        return hdr;
+    }
+
+    /**
+     * Returns an array of all the ColumnWriters used by this class
+     * which are instances of VariableArrayColumnWriter.
+     *
+     * @return   array of variable column writers in use
+     */
+    private VariableArrayColumnWriter[] getVariableArrayColumnWriters() {
+        ColumnWriter[] colWriters = getColumnWriters();
+        List vcwList = new ArrayList();
+        for ( int icol = 0; icol < colWriters.length; icol++ ) {
+            if ( colWriters[ icol ] instanceof VariableArrayColumnWriter ) {
+                vcwList.add( colWriters[ icol ] );
+            }
+        }
+        return (VariableArrayColumnWriter[])
+               vcwList.toArray( new VariableArrayColumnWriter[ 0 ] );
+    }
+
+    /**
+     * Returns the number of bytes which will be written to the heap 
+     * containing variable array data.
+     *
+     * @return   heap size
+     */
+    private long getPCount() {
+        long pcount = 0L;
+        VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
+        for ( int iv = 0; iv < vcws.length; iv++ ) {
+            VariableArrayColumnWriter vcw = vcws[ iv ];
+            pcount += vcw.totalElements_ * vcw.arrayWriter_.getByteCount();
+        }
+        return pcount;
+    }
+
+    public void writeData( DataOutput out ) throws IOException {
+        VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
+        ByteStore byteStore = new FileByteStore();
+        for ( int iv = 0; iv < vcws.length; iv++ ) {
+            vcws[ iv ].setByteStore( byteStore );
+        }
+        try {
+            super.writeData( out );  // note this pads to a 2880-byte block
+            byteStore.copy( out );
+        }
+        finally {
+            byteStore.close();
+        }
+        int over = (int) ( getPCount() % 2880 );
+        if ( over > 0 ) {
+            out.write( new byte[ 2880 - over ] );
+        }
+        for ( int iv = 0; iv < vcws.length; iv++ ) {
+            vcws[ iv ].setByteStore( null );
+        }
+    }
+
+    ColumnWriter createColumnWriter( ColumnInfo cinfo, int[] shape,
+                                     boolean varShape, int eSize,
+                                     int maxEls, long totalEls,
+                                     boolean nullableInt ) {
+        ColumnWriter cw =
+            ScalarColumnWriter.createColumnWriter( cinfo, nullableInt );
+        if ( cw != null ) {
+            return cw;
+        }
+        else {
+            ArrayWriter aw =
+                ArrayWriter.createArrayWriter( cinfo.getContentClass() );
+            if ( aw != null ) {
+                return varShape
+                     ? (ColumnWriter)
+                       new VariableArrayColumnWriter( aw, maxEls, totalEls )
+                     : (ColumnWriter)
+                       new FixedArrayColumnWriter( aw, shape );
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * ColumnWriter which writes array-valued elements using the
+     * BINTABLE conventions for variable-sized arrays.
+     */
+    private static class VariableArrayColumnWriter implements ColumnWriter {
+
+        private final ArrayWriter arrayWriter_;
+        private final int maxElements_;
+        private final long totalElements_;
+        private PQMode pqMode_;
+        private ByteStore byteStore_;
+
+        /**
+         * Constructor.
+         *
+         * @param  arrayWriter   array writer for a specific data type
+         */
+        VariableArrayColumnWriter( ArrayWriter arrayWriter, int maxElements,
+                                   long totalElements ) {
+            arrayWriter_ = arrayWriter;
+            maxElements_ = maxElements;
+            totalElements_ = totalElements;
+        }
+
+        /**
+         * Sets the 32/64-bit mode used by this writer.  Must be called
+         * before use.
+         */
+        public void setPQMode( PQMode pqMode ) {
+            pqMode_ = pqMode;
+        }
+
+        /**
+         * Sets the byte store to which the actual array data is written
+         * by this serializer.  Must be called before use.
+         *
+         * @param  byteStore  byte store
+         */
+        public void setByteStore( ByteStore byteStore ) {
+            byteStore_ = byteStore;
+        }
+
+        public void writeValue( DataOutput out, Object value )
+                throws IOException {
+            int leng = value == null ? 0 : Array.getLength( value );
+            pqMode_.writeInteger( out, leng );
+            pqMode_.writeInteger( out, leng == 0 ? 0
+                                                 : byteStore_.getPosition() );
+            DataOutput dataOut = byteStore_.getStream();
+            for ( int i = 0; i < leng; i++ ) {
+                arrayWriter_.writeElement( dataOut, value, i );
+            }
+        }
+
+        public char getFormatChar() {
+            return arrayWriter_.getFormatChar();
+        }
+
+        public String getFormat() {
+            return new StringBuffer()
+                  .append( pqMode_.getFormatChar() )
+                  .append( arrayWriter_.getFormatChar() )
+                  .append( '(' )
+                  .append( maxElements_ )
+                  .append( ')' )
+                  .toString();
+        }
+
+        public int getLength() {
+            return 2 * pqMode_.getIntegerLength();
+        }
+
+        public int[] getDims() {
+            return new int[] { -1 };
+        }
+
+        public double getZero() {
+            return arrayWriter_.getZero();
+        }
+
+        public double getScale() {
+            return 1.0;
+        }
+
+        public Number getBadNumber() {
+            return null;
+        }
+    }
+
+    /**
+     * Parameterises whether 'P' or 'Q' descriptor is used to write 
+     * variable-length arrays.
+     */
+    private static abstract class PQMode {
+        private final char formatChar_;
+        private final int intLength_;
+
+        /** 32-bit mode. */
+        public static final PQMode P = new PQMode( 'P', 4 ) {
+            public void writeInteger( DataOutput out, long value )
+                    throws IOException {
+                out.writeInt( Tables.checkedLongToInt( value ) );
+            }
+        };
+
+        /** 64-bit mode. */
+        public static final PQMode Q = new PQMode( 'Q', 8 ) {
+            public void writeInteger( DataOutput out, long value )
+                    throws IOException {
+                out.writeLong( value );
+            }
+        };
+
+        /**
+         * Constructor.
+         *
+         * @param  formatChar  TFORM character
+         * @param  intLength  number of bytes in an integer
+         */
+        private PQMode( char formatChar, int intLength ) {
+            formatChar_ = formatChar;
+            intLength_ = intLength;
+        }
+
+        /**
+         * Writes an integer to an output stream.
+         *
+         * @param   out  output stream
+         * @param  value  integer value to write
+         */
+        public abstract void writeInteger( DataOutput out, long value )
+                throws IOException;
+
+        /**
+         * Returns the TFORM character for this object.
+         *
+         * @return  P or Q
+         */
+        public char getFormatChar() {
+            return formatChar_;
+        }
+
+        /**
+         * Returns the number of bytes per integer written.
+         *
+         * @return  byte count
+         */
+        public int getIntegerLength() {
+            return intLength_;
+        }
+    }
+}
