@@ -8,8 +8,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.RandomAccess;
@@ -44,33 +42,43 @@ public abstract class BintableStarTable extends AbstractStarTable {
     private final int rowLength;
     private final int[] colOffsets;
 
-    /* Auxiliary metadata for columns. */
-    private final static ValueInfo tnullInfo = new DefaultValueInfo(
+    /** Column aux metadata key for TNULLn cards. */
+    public final static ValueInfo TNULL_INFO = new DefaultValueInfo(
         Tables.NULL_VALUE_INFO.getName(),
         Tables.NULL_VALUE_INFO.getContentClass(),
         "Bad value indicator (TNULLn card)" );
-    private final static ValueInfo tscalInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TSCALn cards. */
+    public final static ValueInfo TSCAL_INFO = new DefaultValueInfo(
         "Scale",
         Double.class,
         "Multiplier for values (TSCALn card)" );
-    private final static ValueInfo tzeroInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TZEROn cards. */
+    public final static ValueInfo TZERO_INFO = new DefaultValueInfo(
         "Zero",
         Double.class,
         "Offset for values (TZEROn card)" );
-    private final static ValueInfo tdispInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TDISPn cards. */
+    public final static ValueInfo TDISP_INFO = new DefaultValueInfo(
         "Format",
         String.class,
         "Display format in FORTRAN notation (TDISPn card)" );
-    private final static ValueInfo tbcolInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TBCOLn cards. */
+    public final static ValueInfo TBCOL_INFO = new DefaultValueInfo(
         "Start column",
         Integer.class,
         "Start column for data (TBCOLn card)" );
-    private final static ValueInfo tformInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TFORMn cards. */
+    public final static ValueInfo TFORM_INFO = new DefaultValueInfo(
         "Format code",
         String.class,
         "Data type code (TFORMn card)" );
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        tnullInfo, tscalInfo, tzeroInfo, tdispInfo, tbcolInfo, tformInfo,
+        TNULL_INFO, TSCAL_INFO, TZERO_INFO, TDISP_INFO, TBCOL_INFO, TFORM_INFO,
     } );
 
     /**
@@ -84,7 +92,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                                  final RandomAccess rstream )
             throws FitsException {
         final long dataStart = rstream.getFilePointer();
-        return new BintableStarTable( hdr ) {
+        return new BintableStarTable( hdr, dataStart ) {
             final long rowLength = getRowLength();
             final int[] colOffsets = getColumnOffsets();
             final int ncol = getColumnCount();
@@ -129,7 +137,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                               final long offset ) 
             throws FitsException {
         final Object[] BEFORE_START = new Object[ 0 ];
-        return new BintableStarTable( hdr ) {
+        return new BintableStarTable( hdr, -1L ) {
             public RowSequence getRowSequence() throws IOException {
                 InputStream istrm = datsrc.getInputStream();
                 if ( ! ( istrm instanceof BufferedInputStream ) ) {
@@ -193,7 +201,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
     public static void streamStarTable( Header hdr, DataInput stream, 
                                         TableSink sink )
             throws FitsException, IOException {
-        BintableStarTable meta = new BintableStarTable( hdr ) {
+        BintableStarTable meta = new BintableStarTable( hdr, -1L ) {
             public RowSequence getRowSequence() {
                 throw new UnsupportedOperationException( "Metadata only" );
             }
@@ -217,7 +225,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *
      * @param  hdr  FITS header cards describing this HDU
      */
-    BintableStarTable( Header hdr ) throws FitsException {
+    BintableStarTable( Header hdr, long dataStart ) throws FitsException {
         HeaderCards cards = new HeaderCards( hdr );
 
         /* Check we have a BINTABLE header. */
@@ -228,6 +236,18 @@ public abstract class BintableStarTable extends AbstractStarTable {
         /* Get Table characteristics. */
         ncol = cards.getIntValue( "TFIELDS" ).intValue();
         nrow = cards.getIntValue( "NAXIS2" ).intValue();
+
+        /* Find heap start if available. */
+        long heapStart;
+        if ( dataStart >= 0 ) {
+            long theap = cards.containsKey( "THEAP" )
+                       ? cards.getLongValue( "THEAP" ).longValue()
+                       : nrow * cards.getIntValue( "NAXIS1" ).intValue();
+            heapStart = dataStart + theap;
+        }
+        else {
+            heapStart = -1;
+        }
 
         /* Get column characteristics. */
         colInfos = new ColumnInfo[ ncol ];
@@ -253,7 +273,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             /* Format string. */
             String tdisp = cards.getStringValue( "TDISP" + jcol );
             if ( tdisp != null ) {
-                auxdata.add( new DescribedValue( tdispInfo, tdisp ) );
+                auxdata.add( new DescribedValue( TDISP_INFO, tdisp ) );
             }
 
             /* Blank value. */
@@ -263,7 +283,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             if ( cards.containsKey( blankKey ) ) {
                 blank = cards.getLongValue( blankKey ).longValue();
                 hasBlank = true;
-                auxdata.add( new DescribedValue( tnullInfo,
+                auxdata.add( new DescribedValue( TNULL_INFO,
                                                  new Long( blank ) ) );
             }
             else {
@@ -300,7 +320,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             double zero;
             if ( cards.containsKey( "TSCAL" + jcol ) ) {
                 scale = cards.getDoubleValue( "TSCAL" + jcol ).doubleValue();
-                auxdata.add( new DescribedValue( tscalInfo,
+                auxdata.add( new DescribedValue( TSCAL_INFO,
                                                  new Double( scale ) ) );
             }
             else {
@@ -308,7 +328,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
             if ( cards.containsKey( "TZERO" + jcol ) ) {
                 zero = cards.getDoubleValue( "TZERO" + jcol ).doubleValue();
-                auxdata.add( new DescribedValue( tzeroInfo,
+                auxdata.add( new DescribedValue( TZERO_INFO,
                                                  new Double( zero ) ) );
             }
             else {
@@ -319,14 +339,14 @@ public abstract class BintableStarTable extends AbstractStarTable {
             String tbcol = cards.getStringValue( "TBCOL" + jcol );
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
-                auxdata.add( new DescribedValue( tbcolInfo,
+                auxdata.add( new DescribedValue( TBCOL_INFO,
                                                  new Integer( bcolval ) ) );
             }
 
             /* Data type. */
             String tform = cards.getStringValue( "TFORM" + jcol );
             if ( tform != null ) {
-                auxdata.add( new DescribedValue( tformInfo, tform ) );
+                auxdata.add( new DescribedValue( TFORM_INFO, tform ) );
             }
 
             /* Comment (non-standard). */
@@ -348,56 +368,32 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
 
             /* Construct a data reader for this column. */
-            Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJKAEDCMP])(.*)" )
-                                    .matcher( tform );
-            if ( fmatch.lookingAt() ) {
-                String scount = fmatch.group( 1 );
-                int count = scount.length() == 0 
-                          ? 1 
-                          : Integer.parseInt( scount );
-                char type = fmatch.group( 2 ).charAt( 0 );
-                String matchA = fmatch.group( 3 ).trim();
-
-                /* Make sure the dims array is sensible. */
-                if ( count == 1 ) {
-                    dims = null;
-                }
-                else if ( dims == null ) {
-                    dims = new int[] { count };
-                }
-                else {
-                    int nel = 1;
-                    for ( int i = 0; i < dims.length; i++ ) {
-                        nel *= dims[ i ];
-                    }
-                    if ( nel != count ) {
-                        dims = new int[] { count };
-                    }
-                }
-
-                /* Obtain and store a reader suitable for this column. */
-                ColumnReader reader = 
-                    makeColumnReader( type, count, scale, zero,
-                                      hasBlank, blank, dims );
-                colReaders[ icol ] = reader;
-
-                /* Adjust nullability of strings - they can always be 
-                 * null, since an empty string (all spaces) is interpreted
-                 * as null. */
-                if ( reader.getContentClass().equals( String.class ) ) {
-                    cinfo.setNullable( true );
-                }
-
-                /* Do additional column info configuration as directed 
-                 * by the reader. */
-                cinfo.setContentClass( reader.getContentClass() );
-                cinfo.setShape( reader.getShape() );
-                cinfo.setElementSize( reader.getElementSize() );
+            ColumnReader reader;
+            try {
+                reader = ColumnReader
+                        .createColumnReader( tform, scale, zero, hasBlank,
+                                             blank, dims, heapStart );
             }
-            else {
-                throw new FitsException( "Error parsing header line TFORM"
-                                         + jcol + " = " + tform );
+            catch ( FitsException e ) {
+                throw (FitsException)
+                      new FitsException( "Error parsing header line TFORM"
+                                         + jcol + " = " + tform )
+                     .initCause( e );
             }
+
+            /* Adjust nullability of strings - they can always be 
+             * null, since an empty string (all spaces) is interpreted
+             * as null. */
+            if ( reader.getContentClass().equals( String.class ) ) {
+                cinfo.setNullable( true );
+            }
+
+            /* Do additional column info configuration as directed 
+             * by the reader. */
+            cinfo.setContentClass( reader.getContentClass() );
+            cinfo.setShape( reader.getShape() );
+            cinfo.setElementSize( reader.getElementSize() );
+            colReaders[ icol ] = reader;
         }
 
         /* Calculate offsets so we know where to look for each cell. */
@@ -491,735 +487,5 @@ public abstract class BintableStarTable extends AbstractStarTable {
      */
     protected int[] getColumnOffsets() {
         return colOffsets;
-    }
-
-    /**
-     * Constructs a ColumnReader object suitable for reading a given column
-     * of a table.
-     *
-     * @param   type  character defining the FITS type of the data
-     * @param   count  number of items per cell
-     * @param   scale  factor to scale numerical values by
-     * @param   zero   offset to add to numerical values
-     * @param   hasBlank  true if a magic value is regarded as blank
-     * @param   blank   value represnting magic null value
-     *                  (only used if hasBlank is true)
-     * @return  a reader suitable for reading this type of column
-     */
-    private static ColumnReader makeColumnReader( char type, final int count,
-                                                  final double scale,
-                                                  final double zero,
-                                                  final boolean hasBlank, 
-                                                  final long blank,
-                                                  int[] dims ) {
-        boolean single = ( count == 1 );
-        final boolean isScaled = ( scale != 1.0 || zero != 0.0 );
-        final boolean isOffset = ( scale == 1.0 && zero != 0.0 );
-        final boolean intOffset = isOffset &&
-                                  (double) Math.round( zero ) == zero;
-        ColumnReader reader;
-        switch ( type ) {
-
-            /* Logical. */
-            case 'L':
-                if ( single ) {
-                    reader = new ColumnReader( Boolean.class, 1 ) {
-                        Object readValue( DataInput stream ) 
-                                throws IOException {
-                            switch ( stream.readByte() ) {
-                                case (byte) 'T':
-                                    return Boolean.TRUE;
-                                case (byte) 'F':
-                                    return Boolean.FALSE;
-                                default:
-                                    return null;
-                            }
-                        }
-                    };
-                }
-                else {
-                    reader = new ColumnReader( boolean[].class, dims, count ) {
-                        Object readValue( DataInput stream ) 
-                                throws IOException {
-                            boolean[] value = new boolean[ count ];
-                            for ( int i = 0; i < count; i++ ) {
-                                value[ i ] = stream.readByte() == (byte) 'T';
-                            }
-                            return value;
-                        }
-                    };
-                }
-                return reader;
-
-            /* Bits. */
-            case 'X':
-                int nbyte = ( count + 7 ) / 8;
-                reader = new ColumnReader( boolean[].class, dims, nbyte ) {
-                    Object readValue( DataInput stream ) 
-                            throws IOException {
-                        boolean[] value = new boolean[ count ];
-                        int ibit = 0;
-                        int b = 0;
-                        for ( int i = 0; i < count; i++ ) {
-                            if ( ibit == 0 ) {
-                                ibit = 8;
-                                b = stream.readByte();
-                            }
-                            value[ i ] = ( b & 0x01 ) != 0;
-                            b = b >>> 1;
-                            ibit--;
-                        }
-                        return value;
-                    }
-                };
-                return reader;
-
-            /* Unsigned byte - this is a bit fiddly, since a java byte is
-             * signed and a FITS byte is unsigned.  We cope with this in
-             * general by reading the byte as a short.  However, in the
-             * special case that the scaling is exactly right to store
-             * a signed byte as an unsigned one (scale=1, zero=-128) we
-             * can transform a FITS byte directly into a java one. */
-            case 'B':
-                final short mask = (short) 0x00ff;
-                boolean shortable = intOffset && zero >= Short.MIN_VALUE
-                                              && zero < Short.MAX_VALUE - 256;
-                final short sZero = (short) zero;
-                if ( single ) {
-                //  if ( zero == -128.0 && scale == 1.0 ) {
-                //      reader = new ColumnReader( Byte.class, 1 ) {
-                //          Object readValue( DataInput stream )
-                //                  throws IOException {
-                //              byte val = stream.readByte();
-                //              return ( hasBlank && val == (byte) blank )
-                //                          ? null
-                //                          : new Byte( (byte) 
-                //                                      ( val ^ (byte) 0x80 ) );
-                //          }
-                //      };
-                //  }
-                    if ( shortable ) {
-                        reader = new ColumnReader( Short.class, 1 ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                byte val = stream.readByte();
-                                return ( hasBlank && val == (byte) blank )
-                                            ? null
-                                            : new Short( (short) 
-                                                         ( ( val & mask ) +
-                                                             sZero ) );
-                            }
-                        };
-                    }
-                    else if ( isScaled ) {
-                        reader = new ColumnReader( Float.class, 1 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                byte val = stream.readByte();
-                                return ( hasBlank && val == (byte) blank ) 
-                                            ? null
-                                            : new Float( ( val & mask )
-                                                         * scale + zero );
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( Short.class, 1 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                byte val = stream.readByte();
-                                return ( hasBlank && val == (byte) blank )
-                                            ? null
-                                            : new Short( (short) 
-                                                         ( val & mask ) );
-                            }
-                        };
-                    }
-                }
-                else {
-                //  if ( zero == -128.0 && scale == 1.0 ) {
-                //      reader = new ColumnReader( byte[].class, dims,
-                //                                 1 * count ) {
-                //          Object readValue( DataInput stream )
-                //                  throws IOException {
-                //              byte[] value = new byte[ count ];
-                //              for ( int i = 0; i < count; i++ ) {
-                //                  byte val = stream.readByte();
-                //                  value[ i ] = (byte) ( val ^ (byte) 0x80 );
-                //              }
-                //              return value;
-                //          }
-                //      };
-                //  }
-                    if ( shortable ) {
-                        reader = new ColumnReader( short[].class, dims,
-                                                   1 * count ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                short[] value = new short[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    byte val = stream.readByte();
-                                    value[ i ] = (short) ( ( val & mask ) +
-                                                           sZero );
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                    else if ( isScaled ) {
-                        reader = new ColumnReader( float[].class, dims,
-                                                   1 * count ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                double[] value = new double[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    byte val = stream.readByte(); 
-                                    value[ i ] = 
-                                        ( hasBlank && val == (byte) blank )
-                                             ? Float.NaN
-                                             : (float) ( ( val & mask ) 
-                                                         * scale + zero );
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( short[].class, dims,
-                                                   1 * count ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                short[] value = new short[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    byte val = stream.readByte();
-                                    value[ i ] = (short) ( val & mask );
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                }
-                return reader;
-
-            /* Short. */
-            case 'I':
-                if ( single ) {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( Float.class, 2 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                short val = stream.readShort();
-                                return ( hasBlank && val == (short) blank ) 
-                                            ? null
-                                            : new Float( (float) 
-                                                       ( val * scale + zero ) );
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( Short.class, 2 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                short val = stream.readShort();
-                                return ( hasBlank && val == (short) blank )
-                                            ? null
-                                            : new Short( val );
-                            }
-                        };
-                    }
-                }
-                else {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( float[].class, dims, 
-                                                   2 * count ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                double[] value = new double[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    short val = stream.readShort();
-                                    value[ i ] =
-                                        ( hasBlank && val == (short) blank )
-                                             ? Float.NaN
-                                             : (float) ( val * scale + zero );
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( short[].class, dims,
-                                                   2 * count ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                short[] value = new short[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    short val = stream.readShort();
-                                    value[ i ] = val;
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                }
-                return reader;
-
-            /* Integer. */
-            case 'J':
-                if ( single ) {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( Double.class, 4 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                int val = stream.readInt();
-                                return ( hasBlank && val == (int) blank ) 
-                                            ? null
-                                            : new Double( val * scale + zero );
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( Integer.class, 4 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                int val = stream.readInt();
-                                return ( hasBlank && val == (int) blank )
-                                            ? null
-                                            : new Integer( val );
-                            }
-                        };
-                    }
-                }
-                else {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( double[].class, dims,
-                                                   4 * count ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                double[] value = new double[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    int val = stream.readInt();
-                                    value[ i ] = 
-                                        ( hasBlank && val == (int) blank )
-                                             ? Double.NaN
-                                             : val * scale + zero;
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( int[].class, dims, 
-                                                   4 * count ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                int[] value = new int[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    int val = stream.readInt();
-                                    // can't do anything with a blank
-                                    value[ i ] = val;
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                }
-                return reader;
-
-            /* Long. */
-            case 'K':
-                if ( single ) {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( Double.class, 8 ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                long val = stream.readLong();
-                                return ( hasBlank && val == (long) blank )
-                                            ? null
-                                            : new Double( val * scale + zero );
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( Long.class, 8 ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                long val = stream.readLong();
-                                return ( hasBlank && val == (long) blank )
-                                            ? null
-                                            : new Long( val );
-                            }
-                        };
-                    }
-                }
-                else {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( double[].class, dims,
-                                                   8 * count ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                double[] value = new double[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    long val = stream.readLong();
-                                    value[ i ] =
-                                        ( hasBlank && val == (long) blank )
-                                             ? Double.NaN
-                                             : val * scale + zero;
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( long[].class, dims,
-                                                   8 * count ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                long[] value = new long[ count ];
-                                for ( int i = 0; i < count; i++ ) {
-                                    long val = stream.readLong();
-                                    // can't do anything with a blank
-                                    value[ i ] = val;
-                                }
-                                return value;
-                            }
-                        };
-                    }
-                }
-                return reader;
-
-            /* Characters. */
-            case 'A':
-                if ( single ) {
-                    reader = new ColumnReader( Character.class, 1 ) {
-                        Object readValue( DataInput stream ) 
-                                throws IOException {
-                            char c = (char) ( stream.readByte() & 0xff );
-                            return new Character( c );
-                        }
-                    };
-                }
-                else if ( dims.length == 1 ) {
-                    reader = new ColumnReader( String.class, count ) {
-                        Object readValue( DataInput stream ) 
-                                throws IOException {
-                            return readString( stream, count );
-                        }
-                        int getElementSize() {
-                            return count;
-                        }
-                    };
-                }
-                else {
-                    int nel = 1;
-                    for ( int i = 1; i < dims.length; i++ ) {
-                        nel *= dims[ i ];
-                    }
-                    final int stringLength = dims[ 0 ];
-                    final int nString = nel;
-                    int[] shape = new int[ dims.length - 1 ];
-                    System.arraycopy( dims, 1, shape, 0, dims.length - 1 );
-                    reader = new ColumnReader( String[].class, shape, count ) {
-                        Object readValue( DataInput stream ) 
-                                throws IOException {
-                            String[] value = new String[ nString ];
-                            for ( int i = 0; i < nString; i++ ) {
-                                value[ i ] = readString( stream, stringLength );
-                            }
-                            return value;
-                        }
-                        int getElementSize() {
-                            return stringLength;
-                        }
-                    };
-                }
-                return reader;
-
-            /* Floating point. */
-            case 'E':
-                if ( single ) {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( Float.class, 4 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                float val = stream.readFloat();
-                                return new Float( val * scale + zero );
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( Float.class, 4 ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                float val = stream.readFloat();
-                                return new Float( val );
-                            }
-                        };
-                    }
-                }
-                else {
-                    reader = makeFloatsColumnReader( count, dims, scale, zero );
-                }
-                return reader;
-
-            /* Double precision. */
-            case 'D':
-                if ( single ) {
-                    if ( isScaled ) {
-                        reader = new ColumnReader( Double.class, 8 ) {
-                            Object readValue( DataInput stream ) 
-                                    throws IOException {
-                                double val = stream.readDouble();
-                                return new Double( val );
-                            }
-                        };
-                    }
-                    else {
-                        reader = new ColumnReader( Double.class, 8 ) {
-                            Object readValue( DataInput stream )
-                                    throws IOException {
-                                double val = stream.readDouble();
-                                return new Double( val * scale + zero );
-                            }
-                        };
-                    }
-                }
-                else {
-                    reader = makeDoublesColumnReader( count, dims, 
-                                                      scale, zero );
-                }
-                return reader;
-
-            /* Single precision complex. */
-            case 'C':
-                return makeFloatsColumnReader( count * 2, complexShape( dims ),
-                                               scale, zero );
-
-            /* Double precision comples. */
-            case 'M':
-                return makeDoublesColumnReader( count * 2, complexShape( dims ),
-                                                scale, zero );
-
-            case 'P':
-                return new ColumnReader( String.class, count * 8 ) {
-                    Object readValue( DataInput stream ) 
-                            throws IOException {
-                        for ( int i = 0; i < count * 8; i++ ) {
-                            stream.readByte();
-                        }
-                        return "(Variable-length arrays not supported)";
-                    }
-                };
-
-            default:
-                throw new AssertionError( "Unknown TFORM type " + type );
-        }
-    }
-
-    /**
-     * Returns a reader for a column containing arrays of floats.
-     */
-    private static ColumnReader makeFloatsColumnReader( final int count, 
-                                                        int[] shape,
-                                                        final double scale,
-                                                        final double zero ) {
-        final boolean isScaled = scale != 1.0 || zero != 0.0;
-        if ( isScaled ) {
-            return new ColumnReader( float[].class, shape, 4 * count ) {
-                Object readValue( DataInput stream ) 
-                        throws IOException {
-                    float[] value = new float[ count ];
-                    for ( int i = 0; i < count; i++ ) {
-                        float val = stream.readFloat();
-                        value[ i ] = (float) ( val * scale + zero );
-                    }
-                    return value;
-                }
-            };
-        }
-        else {
-            return new ColumnReader( float[].class, shape, 4 * count ) {
-                Object readValue( DataInput stream )
-                        throws IOException {
-                    float[] value = new float[ count ];
-                    for ( int i = 0; i < count; i++ ) {
-                        value[ i ] = stream.readFloat();
-                    }
-                    return value;
-                }
-            };
-        }
-    }
-
-    /**
-     * Returns a reader for a column containing arrays of doubles.
-     */
-    private static ColumnReader makeDoublesColumnReader( final int count,
-                                                         int[] shape,
-                                                         final double scale,
-                                                         final double zero ) {
-        final boolean isScaled = scale != 1.0 || zero != 0.0;
-        if ( isScaled ) {
-            return new ColumnReader( double[].class, shape, 8 * count ) {
-                Object readValue( DataInput stream ) 
-                        throws IOException {
-                    double[] value = new double[ count ];
-                    for ( int i = 0; i < count; i++ ) {
-                        double val = stream.readDouble();
-                        value[ i ] = val * scale + zero;
-                    }
-                    return value;
-                }
-            };
-        }
-        else {
-            return new ColumnReader( double[].class, shape, 8 * count ) {
-                Object readValue( DataInput stream )
-                        throws IOException {
-                    double[] value = new double[ count ];
-                    for ( int i = 0; i < count; i++ ) {
-                        value[ i ] = stream.readDouble();
-                    }
-                    return value;
-                }
-            };
-        }
-    }
-
-    /**
-     * Returns a dimensions array based on a given one, but with an extra
-     * dimension of extent 2 prepended to the list.
-     *
-     * @param  dims  intial dimensions array (<tt>null</tt> is interpreted
-     *               as a zero-dimensional array
-     * @return  like <tt>dims</tt> but with a 2 at the start
-     */
-    private static int[] complexShape( int[] dims ) {
-        if ( dims == null ) {
-            return new int[] { 2 };
-        }
-        else {
-            int[] shape = new int[ dims.length + 1 ];
-            shape[ 0 ] = 2;
-            System.arraycopy( dims, 0, shape, 1, dims.length );
-            return shape;
-        }
-    }
-
-    /**
-     * Reads a string from a data stream.
-     * A fixed number of bytes are read from the stream, but the returned
-     * object is a variable-length string with trailing spaces omitted.
-     * If it's all spaces, <tt>null</tt> is returned.
-     *
-     * @param  stream  the stream to read from
-     * @param  count  number of bytes to read from the stream
-     * @return  string read
-     */
-    private static String readString( DataInput stream, int count )
-            throws IOException {
-        char[] letters = new char[ count ];
-        int last = -1;
-        boolean end = false;
-        for ( int i = 0; i < count; i++ ) {
-            char letter = (char) ( stream.readByte() & 0xff );
-            if ( letter == 0 ) {
-                end = true;
-            }
-            if ( ! end ) {
-                letters[ i ] = letter;
-                if ( letter != ' ' ) {
-                    last = i;
-                }
-            }
-        }
-        int leng = last + 1;
-        return leng == 0 ? null
-                         : new String( letters, 0, leng );
-    }
-
-    /**
-     * Abstract class defining what needs to be done to read from a 
-     * stream and return an object representing a value in a given 
-     * table column.
-     */
-    private static abstract class ColumnReader {
-
-        private final Class clazz;
-        private final int[] shape;
-        private final int length;
- 
-        /**
-         * Constructs a new reader with a given content class, shape and length.
-         *
-         * @param clazz  the class which <tt>readValue</tt> will return
-         * @param shape  the shape to be imposed on the array returned by
-         *               <tt>readValue</tt>, or <tt>null</tt> if that
-         *               returns a scalar
-         * @param length  the number of bytes <tt>readValue</tt> reads from
-         *                the stream
-         */
-        ColumnReader( Class clazz, int[] shape, int length ) {
-            this.clazz = clazz;
-            this.length = length;
-            this.shape = shape;
-        }
-
-        /**
-         * Constructs a scalar reader with a given content class and length.
-         *
-         * @param clazz  the class which <tt>readValue</tt> will return
-         *               (shouldn't be an array)
-         * @param length  the number of bytes <tt>readValue</tt> reads from
-         *                the stream
-         */
-        ColumnReader( Class clazz, int length ) {
-            this( clazz, null, length );
-        }
-
-        /**
-         * Reads bytes from a stream to return an object.
-         *
-         * @param  stream containing bytes to turn into an object
-         * @return  an object read from the stream of type 
-         *          <tt>getContentClass</tt> (or <tt>null</tt>)
-         */
-        abstract Object readValue( DataInput stream ) throws IOException;
-
-        /**
-         * Returns the class which objects returned by <tt>readValue</tt>
-         * will belong to.
-         *
-         * @return  value class
-         */
-        Class getContentClass() {
-            return clazz;
-        }
-
-        /**
-         * Returns the shape imposed on array elements.
-         *
-         * @param  shape, or null for scalars
-         */
-        int[] getShape() {
-            return shape;
-        }
-
-        /**
-         * Returns string size etc.
-         * 
-         * @return element size, or -1 if not applicable
-         */
-        int getElementSize() {
-            return -1;
-        }
-
-        /**
-         * Returns the number of bytes each call to <tt>readValue</tt> reads.
-         *
-         * @return  byte count
-         */
-        int getLength() {
-            return length;
-        }
     }
 }

@@ -9,6 +9,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -17,6 +18,7 @@ import uk.ac.starlink.table.Tables;
  * Class which knows how to do the various bits of serializing a StarTable
  * to FITS BINTABLE format.  A normal (row-oriented) organisation of the
  * data is used.  
+ * Array-valued columns are all written as fixed size arrays.
  * This class does the hard work for FitsTableWriter.
  *
  * @author   Mark Taylor (Starlink)
@@ -25,10 +27,16 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
-    private final StarTable table;
-    private final ColumnWriter[] colWriters;
-    private final ColumnInfo[] colInfos;
-    private final long rowCount;
+    private StarTable table;
+    private ColumnWriter[] colWriters;
+    private ColumnInfo[] colInfos;
+    private long rowCount;
+
+    /**
+     * Package-private constructor intended for use by subclasses.
+     */
+    StandardFitsTableSerializer() {
+    }
 
     /**
      * Constructs a serializer which will be able to write a given StarTable.
@@ -37,6 +45,22 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      */
     public StandardFitsTableSerializer( StarTable table )
             throws IOException {
+        this();
+        init( table );
+    }
+
+    /**
+     * Configures this serializer for use with a given table and column writer
+     * factory.  Should be called before this object is ready for use;
+     * in a constructor would be a good place.
+     * Calls {@link #createColumnWriter}.
+     *
+     * @param  table  table to be written
+     */
+    final void init( StarTable table ) throws IOException {
+        if ( this.table != null ) {
+            throw new IllegalStateException( "Table already initialised" );
+        }
         this.table = table;
 
         /* Get table dimensions (though we may need to calculate the row
@@ -53,6 +77,8 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         boolean hasNullableInts = false;
         int[][] shapes = new int[ ncol ][];
         int[] maxChars = new int[ ncol ];
+        int[] maxElements = new int[ ncol ];
+        long[] totalElements = new long[ ncol ];
         boolean[] useCols = new boolean[ ncol ];
         boolean[] varShapes = new boolean[ ncol ];
         boolean[] varChars = new boolean[ ncol ];
@@ -68,6 +94,14 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 if ( shape[ shape.length - 1 ] < 0 ) {
                     varShapes[ icol ] = true;
                     hasVarShapes = true;
+                }
+                else {
+                    int nel = shape.length > 0 ? 1 : 0;
+                    for ( int id = 0; id < shape.length; id++ ) {
+                        nel *= shape[ id ];
+                    }
+                    assert nel >= 0;
+                    maxElements[ icol ] = nel;
                 }
                 if ( clazz.getComponentType().equals( String.class ) ) {
                     maxChars[ icol ] = colinfo.getElementSize();
@@ -108,8 +142,6 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 sbuf.append( "(unknown row count) " );
             }
             logger.config( sbuf.toString() );
-       
-            int[] maxElements = new int[ ncol ];
             nrow = 0L;
 
             /* Get the maximum dimensions. */
@@ -145,9 +177,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                                     }
                                 }
                                 if ( varShapes[ icol ] ) {
+                                    int nel = Array.getLength( cell );
                                     maxElements[ icol ] =
-                                        Math.max( maxElements[ icol ],
-                                                  Array.getLength( cell ) );
+                                        Math.max( maxElements[ icol ], nel );
+                                    totalElements[ icol ] += nel;
                                 }
                             }
                         }
@@ -214,10 +247,12 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             if ( useCols[ icol ] ) {
                 ColumnInfo cinfo = colInfos[ icol ];
                 ColumnWriter writer =
-                    ColumnWriter
-                   .makeColumnWriter( cinfo, shapes[ icol ], maxChars[ icol ],
-                                      nullableInts[ icol ] 
-                                      && hasNulls[ icol ] );
+                    createColumnWriter( cinfo, shapes[ icol ],
+                                        varShapes[ icol ], maxChars[ icol ],
+                                        maxElements[ icol ],
+                                        totalElements[ icol ],
+                                        nullableInts[ icol ] 
+                                        && hasNulls[ icol ] );
                 if ( writer == null ) {
                     logger.warning( "Ignoring column " + cinfo.getName() +
                                     " - don't know how to write to FITS" );
@@ -225,6 +260,17 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 colWriters[ icol ] = writer;
             }
         }
+    }
+
+    /**
+     * Returns the array of column writers used by this serializer.
+     * The list is generated once by the sole call of the 
+     * <code>init</code> method.
+     *
+     * @return  column writer array
+     */
+    ColumnWriter[] getColumnWriters() {
+        return colWriters;
     }
 
     public Header getHeader() throws HeaderCardException {
@@ -422,5 +468,224 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
     public long getRowCount() {
         return rowCount;
+    }
+
+    /**
+     * Returns a column writer capable of writing a given column to
+     * a stream in FITS format.
+     *
+     * @param   cinfo  describes the column to write
+     * @param   maxShape  shape for array values
+     * @param   varShape  whether shapes are variable
+     * @param   elementSize  element size
+     * @param   maxEls  maximum number of elements for any array in column
+     *          (only applies if varShape is true)
+     * @param   totalEls  total number of elements for all array values in col
+     *          (only applies if varShape is true)
+     * @param   nullableInt  true if we are going to have to store nulls in
+     *          an integer column
+     * @return  a suitable column writer, or <tt>null</tt> if we don't
+     *          know how to write this to FITS
+     */
+    ColumnWriter createColumnWriter( ColumnInfo cinfo, int[] shape,
+                                     boolean varShape, int eSize,
+                                     final int maxEls, long totalEls,
+                                     boolean nullableInt ) {
+        Class clazz = cinfo.getContentClass();
+        if ( clazz == String.class ) {
+            final int maxChars = eSize;
+            final int[] dims = new int[] { maxChars };
+            final byte[] buf = new byte[ maxChars ];
+            final byte[] blankBuf = new byte[ maxChars ];
+            final byte padByte = (byte) ' ';
+            Arrays.fill( blankBuf, padByte );
+            return new ColumnWriter() {
+                public void writeValue( DataOutput out, Object value )
+                        throws IOException {
+                    final byte[] bytes;
+                    if ( value == null ) {
+                        bytes = blankBuf;
+                    }
+                    else {
+                        bytes = buf;
+                        String sval = (String) value;
+                        int leng = Math.min( sval.length(), maxChars );
+                        for ( int i = 0; i < leng; i++ ) {
+                            bytes[ i ] = (byte) sval.charAt( i );
+                        }
+                        for ( int i = leng; i < maxChars; i++ ) {
+                            bytes[ i ] = padByte;
+                        }
+                    }
+                    out.write( bytes );
+                }
+                public String getFormat() {
+                    return Integer.toString( maxChars ) + 'A';
+                }
+                public char getFormatChar() {
+                    return 'A';
+                }
+                public int getLength() {
+                    return maxChars;
+                }
+                public int[] getDims() {
+                    return dims;
+                }
+                public double getZero() {
+                    return 0.0;
+                }
+                public double getScale() {
+                    return 1.0;
+                }
+                public Number getBadNumber() {
+                    return null;
+                }
+            };
+        }
+        else if ( clazz == String[].class ) {
+            final int maxChars = eSize;
+            final int[] charDims = new int[ shape.length + 1 ];
+            charDims[ 0 ] = maxChars;
+            System.arraycopy( shape, 0, charDims, 1, shape.length );
+            final byte[] buf = new byte[ maxChars ];
+            final byte padByte = (byte) ' ';
+            return new ColumnWriter() {
+                public void writeValue( DataOutput out, Object value )
+                        throws IOException {
+                    int is = 0;
+                    if ( value != null ) {
+                        String[] svals = (String[]) value;
+                        int leng = Math.min( svals.length, maxEls );
+                        for ( ; is < leng; is++ ) {
+                            String str = svals[ is ];
+                            int ic = 0;
+                            if ( str != null ) {
+                                int sleng = Math.min( str.length(), maxChars );
+                                for ( ; ic < sleng; ic++ ) {
+                                    buf[ ic ] = (byte) str.charAt( ic );
+                                }
+                            }
+                            Arrays.fill( buf, ic, maxChars, padByte );
+                            out.write( buf );
+                        }
+                    }
+                    if ( is < maxEls ) {
+                        Arrays.fill( buf, padByte );
+                        for ( ; is < maxEls; is++ ) {
+                            out.write( buf );
+                        }
+                    }
+                }
+                public String getFormat() {
+                    return Integer.toString( maxChars * maxEls ) + 'A';
+                }
+                public char getFormatChar() {
+                    return 'A';
+                }
+                public int getLength() {
+                    return maxChars * maxEls;
+                }
+                public int[] getDims() {
+                    return charDims;
+                }
+                public double getZero() {
+                    return 0.0;
+                }
+                public double getScale() {
+                    return 1.0;
+                }
+                public Number getBadNumber() {
+                    return null;
+                }
+            };
+        }
+        else {
+            ColumnWriter cw =
+                ScalarColumnWriter.createColumnWriter( cinfo, nullableInt );
+            if ( cw != null ) {
+                return cw;
+            }
+            else {
+                ArrayWriter aw =
+                    ArrayWriter.createArrayWriter( cinfo.getContentClass() );
+                if ( aw != null ) {
+                    return new FixedArrayColumnWriter( aw, shape );
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+    }
+
+    /**
+     * ColumnWriter implementation for arrays with fixed sizes.
+     */
+    static class FixedArrayColumnWriter implements ColumnWriter {
+
+        private final ArrayWriter arrayWriter_;
+        private final int[] shape_;
+        private final int nel_;
+
+        /**
+         * Constructor.
+         *
+         * @param  arrayWriter  writer which knows how to output the correct
+         *         data type
+         * @param  shape  fixed array dimensions of objects to be written
+         */
+        FixedArrayColumnWriter( ArrayWriter arrayWriter, int[] shape ) {
+            arrayWriter_ = arrayWriter;
+            shape_ = shape;
+            int nel = 1;
+            if ( shape != null ) {
+                for ( int i = 0; i < shape.length; i++ ) {
+                    nel *= shape[ i ];
+                }
+            }
+            nel_ = nel;
+        }
+
+        public void writeValue( DataOutput out, Object value )
+                throws IOException {
+            int leng = Math.min( value == null ? 0 : Array.getLength( value ),
+                                 nel_ );
+            for ( int i = 0; i < leng; i++ ) {
+                arrayWriter_.writeElement( out, value, i );
+            }
+            for ( int i = leng; i < nel_; i++ ) {
+                arrayWriter_.writePad( out );
+            }
+        }
+
+        public char getFormatChar() {
+            return arrayWriter_.getFormatChar();
+        }
+
+        public String getFormat() {
+            String fc = new String( new char[] { getFormatChar() } );
+            return nel_ == 1 ? fc
+                             : ( Integer.toString( nel_ ) + fc );
+        }
+
+        public int getLength() {
+            return nel_ * arrayWriter_.getByteCount();
+        }
+
+        public int[] getDims() {
+            return shape_;
+        }
+
+        public double getZero() {
+            return arrayWriter_.getZero();
+        }
+
+        public double getScale() {
+            return 1.0;
+        }
+
+        public Number getBadNumber() {
+            return null;
+        }
     }
 }
