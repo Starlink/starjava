@@ -32,7 +32,7 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
      * be larger than 2^31 bytes.
      */
     public VariableFitsTableWriter() {
-        this( Boolean.TRUE );
+        this( null );
     }
 
     /**
