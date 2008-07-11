@@ -4,9 +4,12 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCard;
 import nom.tam.fits.HeaderCardException;
+import nom.tam.util.Cursor;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -51,12 +54,39 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
     public Header getHeader() throws HeaderCardException {
         Header hdr = super.getHeader();
-        hdr.addValue( "GCOUNT", 1L, "one heap" );
-        hdr.addValue( "PCOUNT", getPCount(), "size of heap" );
+        long pcount = getPCount();
         long theap = hdr.getIntValue( "NAXIS1" ) * hdr.getIntValue( "NAXIS2" );
-        theap = ( theap + 2880 - 1 ) / 2880 + 1;
-        hdr.addValue( "THEAP", theap, "heap start (block aligned)" );
-        return hdr;
+        theap = ( ( theap + 2880 - 1 ) / 2880 ) * 2880;
+
+        /* Header manipulation methods leave a bit to be desired.
+         * It is a bit fiddly to make sure these cards go in the right place. */
+        final List cardList = new ArrayList();
+        assert hdr.containsKey( "PCOUNT" );
+        assert hdr.containsKey( "GCOUNT" );
+        hdr.removeCard( "THEAP" );
+        assert hdr.containsKey( "NAXIS2" );
+        for ( Iterator it = hdr.iterator(); it.hasNext(); ) {
+            HeaderCard card = (HeaderCard) it.next();
+            String key = card.getKey();
+            if ( "PCOUNT".equals( key ) ) {
+                cardList.add( new HeaderCard( "PCOUNT", pcount, "heap size" ) );
+            }
+            else if ( "TFIELDS".equals( key ) ) {
+                cardList.add( card );
+                cardList.add( new HeaderCard( "THEAP", theap,
+                                              "heap start (block aligned)" ) );
+            }
+            else {
+                cardList.add( card );
+            }
+        }
+        return new Header() {
+            {
+                for ( Iterator it = cardList.iterator(); it.hasNext(); ) {
+                    addLine( (HeaderCard) it.next() );
+                }
+            }
+        };
     }
 
     /**
@@ -119,24 +149,16 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
                                      boolean varShape, int eSize,
                                      int maxEls, long totalEls,
                                      boolean nullableInt ) {
-        ColumnWriter cw =
-            ScalarColumnWriter.createColumnWriter( cinfo, nullableInt );
-        if ( cw != null ) {
-            return cw;
+        Class clazz = cinfo.getContentClass();
+        if ( ! varShape || clazz == String.class || clazz == String[].class ) {
+            return super.createColumnWriter( cinfo, shape, varShape, eSize,
+                                             maxEls, totalEls, nullableInt );
         }
         else {
+            assert clazz.isArray();
             ArrayWriter aw =
                 ArrayWriter.createArrayWriter( cinfo.getContentClass() );
-            if ( aw != null ) {
-                return varShape
-                     ? (ColumnWriter)
-                       new VariableArrayColumnWriter( aw, maxEls, totalEls )
-                     : (ColumnWriter)
-                       new FixedArrayColumnWriter( aw, shape );
-            }
-            else {
-                return null;
-            }
+            return new VariableArrayColumnWriter( aw, maxEls, totalEls );
         }
     }
 
