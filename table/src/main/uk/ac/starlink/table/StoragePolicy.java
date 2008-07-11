@@ -5,8 +5,11 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.storage.ListRowStore;
+import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.DiscardRowStore;
 import uk.ac.starlink.table.storage.DiskRowStore;
+import uk.ac.starlink.table.storage.FileByteStore;
+import uk.ac.starlink.table.storage.MemoryByteStore;
 import uk.ac.starlink.table.storage.SidewaysRowStore;
 import uk.ac.starlink.util.Loader;
 
@@ -103,6 +106,14 @@ public abstract class StoragePolicy {
     }
 
     /**
+     * Returns a new ByteStore object which can be used to
+     * provide a destination for general purpose data storage.
+     *
+     * @return  new byte store
+     */
+    abstract public ByteStore makeByteStore();
+
+    /**
      * Returns a new <tt>RowStore</tt> object which can be used to
      * provide a destination for random-access table storage.
      *
@@ -190,6 +201,9 @@ public abstract class StoragePolicy {
      * Storage policy which will always store table data in memory.
      */
     public static final StoragePolicy PREFER_MEMORY = new StoragePolicy() {
+        public ByteStore makeByteStore() {
+            return new MemoryByteStore();
+        }
         public RowStore makeRowStore() {
             return new ListRowStore();
         }
@@ -257,6 +271,9 @@ public abstract class StoragePolicy {
      * Obviously, this has rather limited application.
      */
     public static final StoragePolicy DISCARD = new StoragePolicy() {
+        public ByteStore makeByteStore() {
+            return new DiscardByteStore();
+        }
         public RowStore makeRowStore() {
             return new DiscardRowStore();
         }
@@ -298,6 +315,23 @@ public abstract class StoragePolicy {
          * @return  disk row store
          */
         protected abstract RowStore makeDiskRowStore() throws IOException;
+
+        public ByteStore makeByteStore() {
+            Exception error;
+            try {
+                return new FileByteStore();
+            }
+            catch ( SecurityException e ) {
+                error = e;
+            }
+            catch ( IOException e ) {
+                error = e;
+            }
+            assert error != null;
+            logger_.warning( "Failed to create disk storage: " + error
+                           + " - using memory instead" );
+            return new MemoryByteStore();
+        }
 
         public RowStore makeRowStore() {
             Exception error;
