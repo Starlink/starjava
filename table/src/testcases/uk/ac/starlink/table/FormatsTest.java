@@ -19,6 +19,7 @@ import uk.ac.starlink.fits.ColFitsTableWriter;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.fits.VariableFitsTableWriter;
 import uk.ac.starlink.table.storage.DiskRowStore;
 import uk.ac.starlink.table.storage.ListRowStore;
 import uk.ac.starlink.table.storage.SidewaysRowStore;
@@ -221,6 +222,7 @@ public class FormatsTest extends TableCase {
             "fits",
             "fits-plus",
             "fits-basic",
+            "fits-var",
             "colfits-plus",
             "colfits-basic",
             "votable-tabledata",
@@ -315,28 +317,28 @@ public class FormatsTest extends TableCase {
         assertTrue( t2 instanceof BintableStarTable );
         checkStarTable( t2 );
 
-        assertFitsTableEquals( t1, t2 );
-        assertFitsTableEquals( t1, t2 );
+        assertFitsTableEquals( t1, t2, false );
+        assertFitsTableEquals( t1, t2, false );
         StarTable t3 = new StarTableFactory( false )
                       .makeStarTable( loc.toURI().toURL().toString() );
         assertTrue( t3 instanceof BintableStarTable );
         assertTrue( ! t3.isRandom() );
         checkStarTable( t3 );
-        assertFitsTableEquals( t1, t3 );
-        assertFitsTableEquals( t1, t3 );
+        assertFitsTableEquals( t1, t3, false );
+        assertFitsTableEquals( t1, t3, false );
 
         StarTable t4 = new StarTableFactory( false )
                       .makeStarTable( "file:" + loc );
         assertTrue( t4 instanceof BintableStarTable );
         assertTrue( ! t4.isRandom() );
         checkStarTable( t4 );
-        assertFitsTableEquals( t1, t4 );
+        assertFitsTableEquals( t1, t4, false );
 
         StarTable t5 = new StarTableFactory( true )
                       .makeStarTable( "file:" + loc );
         assertTrue( t5.isRandom() );
         checkStarTable( t5 );
-        assertFitsTableEquals( t1, t5 );
+        assertFitsTableEquals( t1, t5, false );
 
         // assertTableEquals( t3, t4 );
 
@@ -348,6 +350,40 @@ public class FormatsTest extends TableCase {
         assertTableEquals( t2, t3 );
     }
 
+    public void testVarFits() throws IOException {
+        exerciseVarFits( false );
+        exerciseVarFits( true );
+    }
+
+    private void exerciseVarFits( boolean isLong ) throws IOException {
+        File loc = getTempFile( "tv.fits" );
+        StarTable t1 = table;
+        new VariableFitsTableWriter( isLong )
+           .writeStarTable( t1, loc.toString(), sto );
+        StarTable t2 = new StarTableFactory().makeStarTable( loc.toString() );
+        int ncol = t2.getColumnCount();
+        int nvar = 0;
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            ColumnInfo c1 = t1.getColumnInfo( ic );
+            ColumnInfo c2 = t2.getColumnInfo( ic );
+            int[] shape1 = c1.getShape();
+            int[] shape2 = c2.getShape();
+            String tform1 =
+                (String) c1.getAuxDatumValue( BintableStarTable.TFORM_INFO,
+                                              String.class );
+            String tform2 =
+                (String) c2.getAuxDatumValue( BintableStarTable.TFORM_INFO,
+                                              String.class );
+            if ( shape1 != null && shape1[ shape1.length - 1 ] < 0 ) {
+                nvar++;
+                assertTrue( shape2[ shape2.length - 1 ] < 0 );
+                assertNull( tform1 );
+                assertEquals( isLong ? 'Q' : 'P', tform2.charAt( 0 ) );
+            }
+        }
+        assertTrue( nvar > 1 );
+    }
+
     public void testReadWrite() throws IOException {
         exerciseReadWrite( new FitsTableWriter(),
                            new FitsTableBuilder(), "fits" );
@@ -357,6 +393,10 @@ public class FormatsTest extends TableCase {
                            new ColFitsTableBuilder(), "fits" );
         exerciseReadWrite( new ColFitsPlusTableWriter(),
                            new ColFitsPlusTableBuilder(), "votable" );
+        exerciseReadWrite( new VariableFitsTableWriter( false ),
+                           new FitsTableBuilder(), "fitsv" );
+        exerciseReadWrite( new VariableFitsTableWriter( true ),
+                           new FitsTableBuilder(), "fitsv" );
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );
         exerciseReadWrite( new AsciiTableWriter(),
@@ -378,7 +418,10 @@ public class FormatsTest extends TableCase {
                                              StoragePolicy.PREFER_MEMORY );
         checkStarTable( t2 );
         if ( "fits".equals( method ) ) {
-            assertFitsTableEquals( t1, t2 );
+            assertFitsTableEquals( t1, t2, false );
+        }
+        else if ( "fitsv".equals( method ) ) {
+            assertFitsTableEquals( t1, t2, true );
         }
         else if ( "votable".equals( method ) ) {
             assertVOTableEquals( t1, t2, false );
@@ -406,7 +449,7 @@ public class FormatsTest extends TableCase {
         assertEquals( "uk.ac.starlink.fits.ColFitsStarTable",
                       t2.getClass().getName() );
         checkStarTable( t2 );
-        assertFitsTableEquals( t1, t2 );
+        assertFitsTableEquals( t1, t2, false );
     }
 
     private void assertTextTableEquals( StarTable t1, StarTable t2 )
@@ -487,7 +530,8 @@ public class FormatsTest extends TableCase {
         }
     }
 
-    private void assertFitsTableEquals( StarTable t1, StarTable t2 )
+    private void assertFitsTableEquals( StarTable t1, StarTable t2,
+                                        boolean isVar )
             throws IOException {
         int ncol = t1.getColumnCount();
         assertEquals( ncol, t2.getColumnCount() );
@@ -512,10 +556,16 @@ public class FormatsTest extends TableCase {
                 assertNull( dims2 );
             }
             else {
-                int ndim = dims1.length;
-                assertEquals( ndim, dims2.length );
-                for ( int i = 0; i < ndim - 1; i++ ) {
-                    assertEquals( dims1[ i ], dims2[ i ] );
+                if ( isVar ) {
+                    assertTrue( ( dims1[ dims1.length - 1 ] < 0 )
+                             == ( dims2[ dims2.length - 1 ] < 0 ) );
+                }
+                else {
+                    int ndim = dims1.length;
+                    assertEquals( ndim, dims2.length );
+                    for ( int i = 0; i < ndim - 1; i++ ) {
+                        assertEquals( dims1[ i ], dims2[ i ] );
+                    }
                 }
             }
         }
