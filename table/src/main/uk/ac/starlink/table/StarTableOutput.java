@@ -39,6 +39,7 @@ import uk.ac.starlink.util.Loader;
  * <ul>
  * <li> {@link uk.ac.starlink.votable.FitsPlusTableWriter}
  * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
+ * <li> {@link uk.ac.starlink.fits.VariableFitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
@@ -65,6 +66,7 @@ public class StarTableOutput {
     private static String[] defaultHandlerClasses = {
         "uk.ac.starlink.votable.FitsPlusTableWriter",
         "uk.ac.starlink.fits.FitsTableWriter",
+        "uk.ac.starlink.fits.VariableFitsTableWriter",
         "uk.ac.starlink.votable.ColFitsPlusTableWriter",
         "uk.ac.starlink.fits.ColFitsTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",
