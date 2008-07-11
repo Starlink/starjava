@@ -42,33 +42,43 @@ public abstract class BintableStarTable extends AbstractStarTable {
     private final int rowLength;
     private final int[] colOffsets;
 
-    /* Auxiliary metadata for columns. */
-    private final static ValueInfo tnullInfo = new DefaultValueInfo(
+    /** Column aux metadata key for TNULLn cards. */
+    public final static ValueInfo TNULL_INFO = new DefaultValueInfo(
         Tables.NULL_VALUE_INFO.getName(),
         Tables.NULL_VALUE_INFO.getContentClass(),
         "Bad value indicator (TNULLn card)" );
-    private final static ValueInfo tscalInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TSCALn cards. */
+    public final static ValueInfo TSCAL_INFO = new DefaultValueInfo(
         "Scale",
         Double.class,
         "Multiplier for values (TSCALn card)" );
-    private final static ValueInfo tzeroInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TZEROn cards. */
+    public final static ValueInfo TZERO_INFO = new DefaultValueInfo(
         "Zero",
         Double.class,
         "Offset for values (TZEROn card)" );
-    private final static ValueInfo tdispInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TDISPn cards. */
+    public final static ValueInfo TDISP_INFO = new DefaultValueInfo(
         "Format",
         String.class,
         "Display format in FORTRAN notation (TDISPn card)" );
-    private final static ValueInfo tbcolInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TBCOLn cards. */
+    public final static ValueInfo TBCOL_INFO = new DefaultValueInfo(
         "Start column",
         Integer.class,
         "Start column for data (TBCOLn card)" );
-    private final static ValueInfo tformInfo = new DefaultValueInfo(
+
+    /** Column aux metadata key for TFORMn cards. */
+    public final static ValueInfo TFORM_INFO = new DefaultValueInfo(
         "Format code",
         String.class,
         "Data type code (TFORMn card)" );
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        tnullInfo, tscalInfo, tzeroInfo, tdispInfo, tbcolInfo, tformInfo,
+        TNULL_INFO, TSCAL_INFO, TZERO_INFO, TDISP_INFO, TBCOL_INFO, TFORM_INFO,
     } );
 
     /**
@@ -263,7 +273,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             /* Format string. */
             String tdisp = cards.getStringValue( "TDISP" + jcol );
             if ( tdisp != null ) {
-                auxdata.add( new DescribedValue( tdispInfo, tdisp ) );
+                auxdata.add( new DescribedValue( TDISP_INFO, tdisp ) );
             }
 
             /* Blank value. */
@@ -273,7 +283,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             if ( cards.containsKey( blankKey ) ) {
                 blank = cards.getLongValue( blankKey ).longValue();
                 hasBlank = true;
-                auxdata.add( new DescribedValue( tnullInfo,
+                auxdata.add( new DescribedValue( TNULL_INFO,
                                                  new Long( blank ) ) );
             }
             else {
@@ -310,7 +320,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             double zero;
             if ( cards.containsKey( "TSCAL" + jcol ) ) {
                 scale = cards.getDoubleValue( "TSCAL" + jcol ).doubleValue();
-                auxdata.add( new DescribedValue( tscalInfo,
+                auxdata.add( new DescribedValue( TSCAL_INFO,
                                                  new Double( scale ) ) );
             }
             else {
@@ -318,7 +328,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
             if ( cards.containsKey( "TZERO" + jcol ) ) {
                 zero = cards.getDoubleValue( "TZERO" + jcol ).doubleValue();
-                auxdata.add( new DescribedValue( tzeroInfo,
+                auxdata.add( new DescribedValue( TZERO_INFO,
                                                  new Double( zero ) ) );
             }
             else {
@@ -329,14 +339,14 @@ public abstract class BintableStarTable extends AbstractStarTable {
             String tbcol = cards.getStringValue( "TBCOL" + jcol );
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
-                auxdata.add( new DescribedValue( tbcolInfo,
+                auxdata.add( new DescribedValue( TBCOL_INFO,
                                                  new Integer( bcolval ) ) );
             }
 
             /* Data type. */
             String tform = cards.getStringValue( "TFORM" + jcol );
             if ( tform != null ) {
-                auxdata.add( new DescribedValue( tformInfo, tform ) );
+                auxdata.add( new DescribedValue( TFORM_INFO, tform ) );
             }
 
             /* Comment (non-standard). */
