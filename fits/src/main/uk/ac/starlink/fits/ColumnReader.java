@@ -120,7 +120,7 @@ abstract class ColumnReader {
             throws FitsException {
 
         /* Parse TFORM to find repeat count and data type. */
-        Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJKAEDCMP])(.*)" )
+        Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJKAEDCMPQ])(.*)" )
                                 .matcher( tform );
         if ( ! fmatch.lookingAt() ) {
             throw new FitsException( "Error parsing TFORM value " + tform );
@@ -135,7 +135,7 @@ abstract class ColumnReader {
         /* Work out a sensible dims array which may or may not be the same
          * as the TDIMS value. */
         int[] dims;
-        if ( type == 'P' ) {
+        if ( type == 'P' || type == 'Q' ) {
 
             /* In most cases, an array of unknown size and shape 
              * is appropriate. */
@@ -168,7 +168,7 @@ abstract class ColumnReader {
             }
         }
 
-        /* Variable sized array case ('P' descriptor). */
+        /* Variable sized array case ('P' or 'Q' descriptors). */
         if ( type == 'P' ) {
 
             /* If will be doing random access and know the start of the heap
