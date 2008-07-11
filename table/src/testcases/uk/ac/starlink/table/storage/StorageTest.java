@@ -1,8 +1,11 @@
 package uk.ac.starlink.table.storage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import junit.framework.AssertionFailedError;
 import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -53,6 +56,15 @@ public class StorageTest extends TestCase {
                     instanceof SidewaysRowStore );
         assertTrue( StoragePolicy.DISCARD.makeRowStore()
                     instanceof DiscardRowStore );
+
+        assertTrue( StoragePolicy.PREFER_MEMORY.makeByteStore()
+                    instanceof MemoryByteStore );
+        assertTrue( StoragePolicy.PREFER_DISK.makeByteStore()
+                    instanceof FileByteStore );
+        assertTrue( StoragePolicy.SIDEWAYS.makeByteStore()
+                    instanceof FileByteStore );
+        assertTrue( StoragePolicy.DISCARD.makeByteStore()
+                    instanceof DiscardByteStore );
     }
 
     public StoragePolicy getPolicy( String policyName ) {
@@ -62,7 +74,7 @@ public class StorageTest extends TestCase {
         return StoragePolicy.getDefaultPolicy();
     }
 
-    public void testStorage() throws IOException {
+    public void testRowStorage() throws IOException {
         int nrow = 100;
         ColumnStarTable t1 = ColumnStarTable.makeTableWithRows( (long) nrow );
         ColumnStarTable t2 = ColumnStarTable.makeTableWithRows( (long) nrow );
@@ -144,6 +156,32 @@ public class StorageTest extends TestCase {
             err = e.getMessage();
         }
         assertTrue( err.indexOf( "sky-blue" ) > 0 );
+    }
+
+    public void testByteStorage() throws IOException {
+        testByteStore( StoragePolicy.PREFER_MEMORY.makeByteStore() );
+        testByteStore( StoragePolicy.PREFER_DISK.makeByteStore() );
+        testByteStore( StoragePolicy.SIDEWAYS.makeByteStore() );
+    }
+
+    private void testByteStore( ByteStore bs ) throws IOException {
+        byte[] buf = new byte[ 999 ];
+        for ( int i = 0; i < buf.length; i++ ) {
+            buf[ i ] = (byte) ( i % 100 );
+        }
+        byte[] buf1 = new byte[ 333 ];
+        System.arraycopy( buf, 0, buf1, 0, 333 );
+        OutputStream out = bs.getOutputStream();
+        out.write( buf1 );
+        out.write( buf, 333, 333 );
+        for ( int i = 0; i < 333; i++ ) {
+            out.write( buf[ 666 + i ] );
+        }
+        out.flush();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bs.copy( bos );
+        assertArrayEquals( buf, bos.toByteArray() );
+        bs.close();
     }
 
     public void testUnserializable() throws IOException {
