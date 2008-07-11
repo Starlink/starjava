@@ -1,7 +1,10 @@
 package uk.ac.starlink.fits;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,8 +13,10 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.fits.HeaderCardException;
 import nom.tam.util.Cursor;
+import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -23,13 +28,18 @@ import uk.ac.starlink.table.Tables;
  */
 public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
+    private final StoragePolicy storagePolicy_;
+
     /** 
      * Constructor.
      *
      * @param  table  table to write
      */
-    public VariableFitsTableSerializer( StarTable table ) throws IOException {
+    public VariableFitsTableSerializer( StarTable table,
+                                        StoragePolicy storagePolicy )
+            throws IOException {
         super();
+        storagePolicy_ = storagePolicy;
         init( table );
         set64BitMode( getPCount() > Integer.MAX_VALUE );
     }
@@ -125,13 +135,22 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
     public void writeData( DataOutput out ) throws IOException {
         VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
-        ByteStore byteStore = new FileByteStore();
+        ByteStore byteStore = storagePolicy_.makeByteStore();
+        int bufsiz = 64 * 1024;
+        DataOutputStream dataOut =
+            new DataOutputStream(
+                new BufferedOutputStream( byteStore.getOutputStream(),
+                                          bufsiz ) );
         for ( int iv = 0; iv < vcws.length; iv++ ) {
-            vcws[ iv ].setByteStore( byteStore );
+            vcws[ iv ].setDataOutput( dataOut );
         }
         try {
-            super.writeData( out );  // note this pads to a 2880-byte block
-            byteStore.copy( out );
+
+            /* Write the fixed-size table data.  Note this pads to a 
+             * 2880-byte block. */
+            super.writeData( out );
+            dataOut.flush();
+            byteStore.copy( toStream( out ) );
         }
         finally {
             byteStore.close();
@@ -141,7 +160,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
             out.write( new byte[ 2880 - over ] );
         }
         for ( int iv = 0; iv < vcws.length; iv++ ) {
-            vcws[ iv ].setByteStore( null );
+            vcws[ iv ].setDataOutput( null );
         }
     }
 
@@ -163,6 +182,32 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
     }
 
     /**
+     * Gets an OutputStream based on a given DataOutput.
+     *
+     * @param   dataOut  data output object
+     * @return   stream which writes to the same place as <code>dataOut</code>
+     */
+    private static OutputStream toStream( final DataOutput dataOut ) {
+        if ( dataOut instanceof OutputStream ) {
+            return (OutputStream) dataOut;
+        }
+        else {
+            return new OutputStream() {
+                public void write( int b ) throws IOException {
+                    dataOut.write( b );
+                }
+                public void write( byte[] buf ) throws IOException {
+                    dataOut.write( buf );
+                }
+                public void write( byte[] buf, int off, int leng )
+                        throws IOException {
+                    dataOut.write( buf, off, leng );
+                }
+            };
+        }
+    }
+
+    /**
      * ColumnWriter which writes array-valued elements using the
      * BINTABLE conventions for variable-sized arrays.
      */
@@ -172,7 +217,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         private final int maxElements_;
         private final long totalElements_;
         private PQMode pqMode_;
-        private ByteStore byteStore_;
+        private DataOutputStream dataOut_;
 
         /**
          * Constructor.
@@ -200,8 +245,8 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
          *
          * @param  byteStore  byte store
          */
-        public void setByteStore( ByteStore byteStore ) {
-            byteStore_ = byteStore;
+        public void setDataOutput( DataOutputStream dataOut ) {
+            dataOut_ = dataOut;
         }
 
         public void writeValue( DataOutput out, Object value )
@@ -209,10 +254,9 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
             int leng = value == null ? 0 : Array.getLength( value );
             pqMode_.writeInteger( out, leng );
             pqMode_.writeInteger( out, leng == 0 ? 0
-                                                 : byteStore_.getPosition() );
-            DataOutput dataOut = byteStore_.getStream();
+                                                 : dataOut_.size() );
             for ( int i = 0; i < leng; i++ ) {
-                arrayWriter_.writeElement( dataOut, value, i );
+                arrayWriter_.writeElement( dataOut_, value, i );
             }
         }
 

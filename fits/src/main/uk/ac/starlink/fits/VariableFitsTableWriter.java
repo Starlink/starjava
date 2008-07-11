@@ -3,6 +3,7 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 
 /**
  * TableWriter which writes FITS BINTABLEs with variable-length arrays
@@ -73,7 +74,8 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
     protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
         VariableFitsTableSerializer fitser =
-            new VariableFitsTableSerializer( table );
+            new VariableFitsTableSerializer( table,
+                                             StoragePolicy.getDefaultPolicy() );
         if ( longIndexing_ != null ) {
             fitser.set64BitMode( longIndexing_.booleanValue() );
         }
