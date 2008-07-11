@@ -95,6 +95,14 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                     varShapes[ icol ] = true;
                     hasVarShapes = true;
                 }
+                else {
+                    int nel = shape.length > 0 ? 1 : 0;
+                    for ( int id = 0; id < shape.length; id++ ) {
+                        nel *= shape[ id ];
+                    }
+                    assert nel >= 0;
+                    maxElements[ icol ] = nel;
+                }
                 if ( clazz.getComponentType().equals( String.class ) ) {
                     maxChars[ icol ] = colinfo.getElementSize();
                     if ( maxChars[ icol ] <= 0 ) {
@@ -116,6 +124,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 nullableInts[ icol ] = true;
                 hasNullableInts = true;
             }
+
         }
 
         /* If necessary, make a first pass through the table data to
@@ -481,21 +490,131 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      */
     ColumnWriter createColumnWriter( ColumnInfo cinfo, int[] shape,
                                      boolean varShape, int eSize,
-                                     int maxEls, long totalEls,
+                                     final int maxEls, long totalEls,
                                      boolean nullableInt ) {
-        ColumnWriter cw =
-            ScalarColumnWriter.createColumnWriter( cinfo, nullableInt );
-        if ( cw != null ) {
-            return cw;
+        Class clazz = cinfo.getContentClass();
+        if ( clazz == String.class ) {
+            final int maxChars = eSize;
+            final int[] dims = new int[] { maxChars };
+            final byte[] buf = new byte[ maxChars ];
+            final byte[] blankBuf = new byte[ maxChars ];
+            final byte padByte = (byte) ' ';
+            Arrays.fill( blankBuf, padByte );
+            return new ColumnWriter() {
+                public void writeValue( DataOutput out, Object value )
+                        throws IOException {
+                    final byte[] bytes;
+                    if ( value == null ) {
+                        bytes = blankBuf;
+                    }
+                    else {
+                        bytes = buf;
+                        String sval = (String) value;
+                        int leng = Math.min( sval.length(), maxChars );
+                        for ( int i = 0; i < leng; i++ ) {
+                            bytes[ i ] = (byte) sval.charAt( i );
+                        }
+                        for ( int i = leng; i < maxChars; i++ ) {
+                            bytes[ i ] = padByte;
+                        }
+                    }
+                    out.write( bytes );
+                }
+                public String getFormat() {
+                    return Integer.toString( maxChars ) + 'A';
+                }
+                public char getFormatChar() {
+                    return 'A';
+                }
+                public int getLength() {
+                    return maxChars;
+                }
+                public int[] getDims() {
+                    return dims;
+                }
+                public double getZero() {
+                    return 0.0;
+                }
+                public double getScale() {
+                    return 1.0;
+                }
+                public Number getBadNumber() {
+                    return null;
+                }
+            };
+        }
+        else if ( clazz == String[].class ) {
+            final int maxChars = eSize;
+            final int[] charDims = new int[ shape.length + 1 ];
+            charDims[ 0 ] = maxChars;
+            System.arraycopy( shape, 0, charDims, 1, shape.length );
+            final byte[] buf = new byte[ maxChars ];
+            final byte padByte = (byte) ' ';
+            return new ColumnWriter() {
+                public void writeValue( DataOutput out, Object value )
+                        throws IOException {
+                    int is = 0;
+                    if ( value != null ) {
+                        String[] svals = (String[]) value;
+                        int leng = Math.min( svals.length, maxEls );
+                        for ( ; is < leng; is++ ) {
+                            String str = svals[ is ];
+                            int ic = 0;
+                            if ( str != null ) {
+                                int sleng = Math.min( str.length(), maxChars );
+                                for ( ; ic < sleng; ic++ ) {
+                                    buf[ ic ] = (byte) str.charAt( ic );
+                                }
+                            }
+                            Arrays.fill( buf, ic, maxChars, padByte );
+                            out.write( buf );
+                        }
+                    }
+                    if ( is < maxEls ) {
+                        Arrays.fill( buf, padByte );
+                        for ( ; is < maxEls; is++ ) {
+                            out.write( buf );
+                        }
+                    }
+                }
+                public String getFormat() {
+                    return Integer.toString( maxChars * maxEls ) + 'A';
+                }
+                public char getFormatChar() {
+                    return 'A';
+                }
+                public int getLength() {
+                    return maxChars * maxEls;
+                }
+                public int[] getDims() {
+                    return charDims;
+                }
+                public double getZero() {
+                    return 0.0;
+                }
+                public double getScale() {
+                    return 1.0;
+                }
+                public Number getBadNumber() {
+                    return null;
+                }
+            };
         }
         else {
-            ArrayWriter aw =
-                ArrayWriter.createArrayWriter( cinfo.getContentClass() );
-            if ( aw != null ) {
-                return new FixedArrayColumnWriter( aw, shape );
+            ColumnWriter cw =
+                ScalarColumnWriter.createColumnWriter( cinfo, nullableInt );
+            if ( cw != null ) {
+                return cw;
             }
             else {
-                return null;
+                ArrayWriter aw =
+                    ArrayWriter.createArrayWriter( cinfo.getContentClass() );
+                if ( aw != null ) {
+                    return new FixedArrayColumnWriter( aw, shape );
+                }
+                else {
+                    return null;
+                }
             }
         }
     }
