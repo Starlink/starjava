@@ -5262,6 +5262,9 @@ but my thanks are especially due to the following:
     <li>Fix bug in use of <code>tcat</code> <code>loccol</code> parameter.</li>
     <li>Sexagesimal field identification for ASCII input files less stringent
         (now permits minutes or seconds equal to 60).</li>
+    <li>HEALPix bug fix
+        (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                 >PixTools</webref> bug fix update).</li>
     </ul>
     </p></dd>
 
