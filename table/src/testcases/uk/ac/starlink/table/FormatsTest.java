@@ -32,6 +32,7 @@ import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.ColFitsPlusTableBuilder;
 import uk.ac.starlink.votable.ColFitsPlusTableWriter;
@@ -63,7 +64,7 @@ public class FormatsTest extends TableCase {
         NAMES_INFO.setUnitString( FUNNY_UNITS );
 
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
     }
 
     private StarTable table;
@@ -317,28 +318,28 @@ public class FormatsTest extends TableCase {
         assertTrue( t2 instanceof BintableStarTable );
         checkStarTable( t2 );
 
-        assertFitsTableEquals( t1, t2, false );
-        assertFitsTableEquals( t1, t2, false );
+        assertFitsTableEquals( t1, t2, false, false );
+        assertFitsTableEquals( t1, t2, false, false );
         StarTable t3 = new StarTableFactory( false )
                       .makeStarTable( loc.toURI().toURL().toString() );
         assertTrue( t3 instanceof BintableStarTable );
         assertTrue( ! t3.isRandom() );
         checkStarTable( t3 );
-        assertFitsTableEquals( t1, t3, false );
-        assertFitsTableEquals( t1, t3, false );
+        assertFitsTableEquals( t1, t3, false, true );
+        assertFitsTableEquals( t1, t3, false, true );
 
         StarTable t4 = new StarTableFactory( false )
                       .makeStarTable( "file:" + loc );
         assertTrue( t4 instanceof BintableStarTable );
         assertTrue( ! t4.isRandom() );
         checkStarTable( t4 );
-        assertFitsTableEquals( t1, t4, false );
+        assertFitsTableEquals( t1, t4, false, true );
 
         StarTable t5 = new StarTableFactory( true )
                       .makeStarTable( "file:" + loc );
         assertTrue( t5.isRandom() );
         checkStarTable( t5 );
-        assertFitsTableEquals( t1, t5, false );
+        assertFitsTableEquals( t1, t5, false, false );
 
         // assertTableEquals( t3, t4 );
 
@@ -414,28 +415,48 @@ public class FormatsTest extends TableCase {
         File loc = getTempFile( "trw." + writer.getFormatName().toLowerCase() );
         StarTable t1 = table;
         writer.writeStarTable( t1, loc.toString(), sto );
-        StarTable t2 = reader.makeStarTable( new FileDataSource( loc ), true,
-                                             StoragePolicy.PREFER_MEMORY );
-        checkStarTable( t2 );
-        if ( "fits".equals( method ) ) {
-            assertFitsTableEquals( t1, t2, false );
-        }
-        else if ( "fitsv".equals( method ) ) {
-            assertFitsTableEquals( t1, t2, true );
-        }
-        else if ( "votable".equals( method ) ) {
-            assertVOTableEquals( t1, t2, false );
-        }
-        else if ( "text".equals( method ) ) {
-            assertTextTableEquals( t1, t2 );
-        }
-        else if ( "exact".equals( method ) ) {
-            assertTableEquals( t1, t2 );
-        }
-        else if ( "none".equals( method ) ) {
-        }
-        else {
-            fail();
+        for ( int i = 0; i < 2; i++ ) {
+            final boolean isSeq;
+            switch ( i ) {
+                case 0:
+                    isSeq = false;
+                    break;
+                case 1:
+                    isSeq = true;
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            if ( !( isSeq && ( reader instanceof ColFitsTableBuilder ||
+                               reader instanceof ColFitsPlusTableBuilder ) ) ) {
+                DataSource datsrc =
+                    isSeq ? (DataSource) new URLDataSource( loc.toURL() )
+                          : (DataSource) new FileDataSource( loc );
+                StarTable t2 =
+                    reader.makeStarTable( datsrc, true,
+                                          StoragePolicy.PREFER_MEMORY );;
+                checkStarTable( t2 );
+                if ( "fits".equals( method ) ) {
+                    assertFitsTableEquals( t1, t2, false, isSeq );
+                }
+                else if ( "fitsv".equals( method ) ) {
+                    assertFitsTableEquals( t1, t2, true, isSeq );
+                }
+                else if ( "votable".equals( method ) ) {
+                    assertVOTableEquals( t1, t2, false );
+                }
+                else if ( "text".equals( method ) ) {
+                    assertTextTableEquals( t1, t2 );
+                }
+                else if ( "exact".equals( method ) ) {
+                    assertTableEquals( t1, t2 );
+                }
+                else if ( "none".equals( method ) ) {
+                }
+                else {
+                    fail();
+                }
+            }
         }
     }
 
@@ -449,7 +470,7 @@ public class FormatsTest extends TableCase {
         assertEquals( "uk.ac.starlink.fits.ColFitsStarTable",
                       t2.getClass().getName() );
         checkStarTable( t2 );
-        assertFitsTableEquals( t1, t2, false );
+        assertFitsTableEquals( t1, t2, false, false );
     }
 
     private void assertTextTableEquals( StarTable t1, StarTable t2 )
@@ -531,13 +552,14 @@ public class FormatsTest extends TableCase {
     }
 
     private void assertFitsTableEquals( StarTable t1, StarTable t2,
-                                        boolean isVar )
+                                        boolean isVar, boolean isSeq )
             throws IOException {
         int ncol = t1.getColumnCount();
         assertEquals( ncol, t2.getColumnCount() );
         long nrow = t1.getRowCount();
         assertEquals( nrow, t2.getRowCount() );
 
+        boolean[] badcols = new boolean[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo c1 = t1.getColumnInfo( icol );
             ColumnInfo c2 = t2.getColumnInfo( icol );
@@ -545,11 +567,6 @@ public class FormatsTest extends TableCase {
                           c2.getName().toUpperCase() );
             assertEquals( c1.getUnitString(),
                           c2.getUnitString() );
-            Class clazz1 = c1.getContentClass();
-            Class clazz2 = c2.getContentClass();
-            if ( clazz1 != byte[].class && clazz1 != Byte.class ) {
-                assertEquals( clazz1, clazz2 );
-            }
             int[] dims1 = c1.getShape();
             int[] dims2 = c2.getShape();
             if ( dims1 == null ) {
@@ -557,8 +574,15 @@ public class FormatsTest extends TableCase {
             }
             else {
                 if ( isVar ) {
-                    assertTrue( ( dims1[ dims1.length - 1 ] < 0 )
-                             == ( dims2[ dims2.length - 1 ] < 0 ) );
+                    if ( isSeq ) {
+                        if ( dims1[ dims1.length - 1 ] < 0 ) {
+                            badcols[ icol ] = true;
+                        }
+                    }
+                    else {
+                        assertTrue( ( dims1[ dims1.length - 1 ] < 0 )
+                                 == ( dims2[ dims2.length - 1 ] < 0 ) );
+                    }
                 }
                 else {
                     int ndim = dims1.length;
@@ -567,6 +591,12 @@ public class FormatsTest extends TableCase {
                         assertEquals( dims1[ i ], dims2[ i ] );
                     }
                 }
+            }
+            Class clazz1 = c1.getContentClass();
+            Class clazz2 = c2.getContentClass();
+            if ( ! badcols[ icol ] &&
+                 clazz1 != byte[].class && clazz1 != Byte.class ) {
+                assertEquals( clazz1, clazz2 );
             }
         }
 
@@ -579,25 +609,28 @@ public class FormatsTest extends TableCase {
             for ( int icol = 0; icol < ncol; icol++ ) {
                 Object val1 = row1[ icol ];
                 Object val2 = row2[ icol ];
-                if ( val1 instanceof Number && val2 instanceof Number ) {
-                    Number v1 = (Number) val1;
-                    Number v2 = (Number) val2;
-                    assertEquals( v1.intValue(), v2.intValue() );
-                }
-                else if ( val1 instanceof byte[] && val2 instanceof short[] ) {
-                    byte[] v1 = (byte[]) val1;
-                    short[] v2 = (short[]) val2;
-                    int nel = v1.length;
-                    assertEquals( nel, v2.length );
-                    for ( int i = 0; i < nel; i++ ) {
-                        assertEquals( (int) v1[ i ], (int) v2[ i ] );
+                if ( ! badcols[ icol ] ) {
+                    if ( val1 instanceof Number && val2 instanceof Number ) {
+                        Number v1 = (Number) val1;
+                        Number v2 = (Number) val2;
+                        assertEquals( v1.intValue(), v2.intValue() );
                     }
-                }
-                else if ( val1 == null ) {
-                    // represented as some null-like value
-                }
-                else {
-                    assertScalarOrArrayEquals( val1, val2 );
+                    else if ( val1 instanceof byte[] &&
+                              val2 instanceof short[] ) {
+                        byte[] v1 = (byte[]) val1;
+                        short[] v2 = (short[]) val2;
+                        int nel = v1.length;
+                        assertEquals( nel, v2.length );
+                        for ( int i = 0; i < nel; i++ ) {
+                            assertEquals( (int) v1[ i ], (int) v2[ i ] );
+                        }
+                    }
+                    else if ( val1 == null ) {
+                        // represented as some null-like value
+                    }
+                    else {
+                        assertScalarOrArrayEquals( val1, val2 );
+                    }
                 }
             }
         }
