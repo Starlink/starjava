@@ -11132,6 +11132,9 @@ introduced since the last version:
             which seems to be misbehaving.</li>
         <li>Sexagesimal field identification for ASCII input files less 
             stringent (now permits minutes or seconds equal to 60).</li>
+        <li>HEALPix bug fix
+            (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                     >PixTools</webref> bug fix update).</li>
         </ul>
         </p></dd>
 
