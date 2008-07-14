@@ -372,7 +372,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             try {
                 reader = ColumnReader
                         .createColumnReader( tform, scale, zero, hasBlank,
-                                             blank, dims, heapStart );
+                                             blank, dims, ttype, heapStart );
             }
             catch ( FitsException e ) {
                 throw (FitsException)

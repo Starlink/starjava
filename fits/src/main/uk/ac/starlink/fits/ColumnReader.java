@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nom.tam.fits.FitsException;
@@ -21,6 +22,8 @@ abstract class ColumnReader {
     private final Class clazz_;
     private final int[] shape_;
     private final int length_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Constructs a new reader with a given content class, shape and length.
@@ -110,12 +113,16 @@ abstract class ColumnReader {
      *                  (only used if hasBlank is true)
      * @param   tdims  dimensions specified by TDIMS card, or null if none
      *                 given
+     * @param   ttype  column name
+     * @param   heapStart  offset of heap into HDU data part, or -1 if no
+     *                     heap or no random access is available
      * @return  a reader suitable for reading this type of column
      */
     public static ColumnReader createColumnReader( String tform, double scale,
                                                    double zero,
                                                    boolean hasBlank,
                                                    long blank, int[] tdims,
+                                                   String ttype,
                                                    final long heapStart )
             throws FitsException {
 
@@ -208,17 +215,15 @@ abstract class ColumnReader {
 
             /* Otherwise we can't do variable sized arrays. */
             else {
-                final String value =
-                    "(Variable-length arrays not supported " +
-                    "in sequential mode)";
-                return new ColumnReader( String.class, count * 8 ) {
-                    Object readValue( DataInput stream )
-                            throws IOException {
-                        for ( int i = 0; i < count; i++ ) {
-                            int nel = stream.readInt();
-                            int offset = stream.readInt();
-                        }
-                        return value;
+                logger_.warning( "Column " + ttype + "(TFORM=" + tform + ") - "
+                               + "variable length arrays not supported "
+                               + "in sequential mode" );
+                final String value = "?";
+                return new ColumnReader( String.class, 8 ) {
+                    Object readValue( DataInput stream ) throws IOException {
+                        int nel = stream.readInt();
+                        int offset = stream.readInt();
+                        return nel > 0 ? value : "";
                     }
                     int getElementSize() {
                         return value.length();
@@ -262,17 +267,15 @@ abstract class ColumnReader {
                 };
             }
             else {
-                final String value =
-                    "(Variable-length arrays not supported " +
-                    "in sequential mode)";
-                return new ColumnReader( String.class, count * 16 ) {
-                    Object readValue( DataInput stream )
-                            throws IOException {
-                        for ( int i = 0; i < count; i++ ) {
-                            long nel = stream.readLong();
-                            long offset = stream.readLong();
-                        }
-                        return value;
+                logger_.warning( "Column " + ttype + "(TFORM=" + tform + ") - "
+                               + "variable length arrays not supported "
+                               + "in sequential mode" );
+                final String value = "?";
+                return new ColumnReader( String.class, 16 ) {
+                    Object readValue( DataInput stream ) throws IOException {
+                        long nel = stream.readLong();
+                        long offset = stream.readLong();
+                        return nel > 0 ? value : "";
                     }
                     int getElementSize() {
                         return value.length();
