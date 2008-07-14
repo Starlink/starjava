@@ -58,6 +58,33 @@ public class FuncTest extends TestCase {
         assertEquals( 3.14f, Arithmetic.roundDecimal( Math.PI, 2 ) );
     }
 
+    public void testArray() {
+        int[] i1 = { -3, -2, 0, 0, 1, 2, 3, 4, 5, 6, };
+        long[] l1 = { 6, 5, 4, 3, 2, 1, 0, 0, -2, -3 };
+        float[] f1 = { -3, -2, 1, 0, 0, 2, 3, 4, 5, 6 };
+        float[] f2 = { -3, -2, 1, Float.NaN, Float.NaN, 2, 3, 4, 5, 6 };
+        double[] d1 = { 6, 5, 4, 3, 2, 1, 0, 0, -2, -3 };
+        double[] d2 = { 6, 5, 4, 3, 2, 1, Double.NaN, Double.NaN, -2, -3 };
+        Object[] a1s = new Object[] { i1, l1, f1, d1, };
+        for ( int ia = 0; ia < a1s.length; ia++ ) {
+            Object array = a1s[ ia ];
+            assertEquals( 10, Arrays.size( array ) );
+            assertEquals( 16.0, Arrays.sum( array ) );
+            assertEquals( -3.0, Arrays.minimum( array ) );
+            assertEquals( 6.0, Arrays.maximum( array ) );
+            assertEquals( 1.6, Arrays.mean( array ) );
+        }
+        Object[] a2s = new Object[] { f2, d2, };
+        for ( int ia = 0; ia < a2s.length; ia++ ) {
+            Object array = a2s[ ia ];
+            assertEquals( 10, Arrays.size( array ) );
+            assertEquals( 16.0, Arrays.sum( array ) );
+            assertEquals( -3.0, Arrays.minimum( array ) );
+            assertEquals( 6.0, Arrays.maximum( array ) );
+            assertEquals( 2.0, Arrays.mean( array ) );
+        }
+    }
+
     public void testConversions() {
         assertEquals( (byte) 99, Conversions.parseByte( "99" ) );
         try {
