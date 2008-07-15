@@ -69,6 +69,7 @@ public class JELUtils {
             /* Basic classes always present. */
             List classList = new ArrayList( Arrays.asList( new Class[] {
                 Arithmetic.class,
+                uk.ac.starlink.ttools.func.Arrays.class,
                 Conversions.class,
                 Coords.class,
                 Distances.class,
