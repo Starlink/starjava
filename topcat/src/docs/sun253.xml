@@ -11135,6 +11135,8 @@ introduced since the last version:
         <li>HEALPix bug fix
             (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
                      >PixTools</webref> bug fix update).</li>
+        <li>New class <ref id="Arrays">Arrays</ref>
+            added to algebraic functions.</li>
         </ul>
         </p></dd>
 
