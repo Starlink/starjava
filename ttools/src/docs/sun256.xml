@@ -5265,6 +5265,8 @@ but my thanks are especially due to the following:
     <li>HEALPix bug fix
         (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
                  >PixTools</webref> bug fix update).</li>
+    <li>New class <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> 
+        added to algebraic functions.</li>
     </ul>
     </p></dd>
 
