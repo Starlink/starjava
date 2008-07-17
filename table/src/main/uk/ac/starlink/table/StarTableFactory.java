@@ -411,8 +411,10 @@ public class StarTableFactory {
     public StarTable makeStarTable( String location )
             throws TableFormatException, IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return prepareTable( getJDBCHandler()
-                                .makeStarTable( location, requireRandom() ) );
+            StarTable table = prepareTable( getJDBCHandler()
+                                           .makeStarTable( location, false ) );
+            return requireRandom() ? randomTable( table )
+                                   : table;
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ) );
@@ -517,8 +519,10 @@ public class StarTableFactory {
     public StarTable makeStarTable( String location, String handler )
             throws TableFormatException, IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return prepareTable( getJDBCHandler()
-                                .makeStarTable( location, requireRandom() ) );
+            StarTable table = prepareTable( getJDBCHandler()
+                                           .makeStarTable( location, false ) );
+            return requireRandom() ? randomTable( table )
+                                   : table;
         }
         else if ( location.equals( "-" ) ) {
             return makeStarTable( System.in, getTableBuilder( handler ) );
