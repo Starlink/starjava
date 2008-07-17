@@ -11137,6 +11137,8 @@ introduced since the last version:
                      >PixTools</webref> bug fix update).</li>
         <li>New class <ref id="Arrays">Arrays</ref>
             added to algebraic functions.</li>
+        <li>Take notice of <code>-disk</code> flag when loading tables from 
+            JDBC.</li>
         </ul>
         </p></dd>
 
