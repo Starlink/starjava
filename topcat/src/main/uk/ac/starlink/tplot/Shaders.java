@@ -38,7 +38,7 @@ public class Shaders {
      * files containing custom lookup tables.  Each line should contain
      * three space-separated floating point values between zero and one
      * giving the Red, Green and Blue components of a colour.
-     * @see  #createCustomShaders
+     * @see  #getCustomShaders
      */
     public static final String LUTFILES_PROPERTY = "lut.files";
 
