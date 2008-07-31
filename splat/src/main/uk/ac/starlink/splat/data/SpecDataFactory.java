@@ -240,7 +240,7 @@ public class SpecDataFactory
         if ( type != GUESS ) {
             SpecDataImpl impl = null;
             switch (type)
-                {
+            {
                 case FITS: {
                     impl = makeFITSSpecDataImpl( specspec );
                 }
@@ -273,12 +273,13 @@ public class SpecDataFactory
                 }
                     break;
                 default: {
-                    throw new SplatException( "Spectrum '" + specspec + "' supplied"+
-                                              " with an unknown type: " + type );
+                    throw new SplatException( "Spectrum '" + specspec + 
+                                              "' supplied with an unknown "+
+                                              "type: " + type );
                 }
-                }
+            }
             if ( impl == null ) {
-                throwReport( specspec, true );
+                throwReport( specspec, true, null );
             }
             return makeSpecDataFromImpl( impl, isRemote, namer.getURL() );
         }
@@ -309,6 +310,7 @@ public class SpecDataFactory
         SpecDataImpl impl = null;
         URL url = null;
         boolean isRemote = false;
+        String guessedType = null;
 
         //  See what kind of specification we have.
         try {
@@ -329,6 +331,7 @@ public class SpecDataFactory
                         namer = new NameParser( p.ndfname() );
                     }
                 }
+                guessedType = namer.getFormat();
                 impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
             }
         }
@@ -341,7 +344,7 @@ public class SpecDataFactory
 
         //  Try construct an intelligent report.
         if ( impl == null ) {
-            throwReport( specspec, false );
+            throwReport( specspec, false, guessedType );
         }
         return makeSpecDataFromImpl( impl, isRemote, url );
     }
@@ -370,7 +373,8 @@ public class SpecDataFactory
         }
         else {
             throw new SplatException
-                ( "Spectrum '" + name + "' has an unknown format." );
+                ( "Spectrum '" + name + "' has an unknown format" + 
+                  " (guessed: " + format + " )" );
         }
         return impl;
     }
@@ -522,7 +526,8 @@ public class SpecDataFactory
      * Make up a suitable report for a spectrum that cannot be
      * processed into a implementation and throw a SplatException.
      */
-    private void throwReport( String specspec, boolean typed )
+    private void throwReport( String specspec, boolean typed, 
+                              String guessedType )
         throws SplatException
     {
         // If specspec if just a file, then we're having some issues
@@ -537,9 +542,18 @@ public class SpecDataFactory
                                               "the requested type " );
                 }
                 else {
-                    throw new SplatException( "Spectrum '" + specspec +
-                                              "' has an unknown type, "+
-                                              "format or name syntax." );
+                    if ( guessedType != null ) {
+                        throw new SplatException( "Spectrum '" + specspec +
+                                                  "' has an unknown type, "+
+                                                  "format or name syntax" +
+                                                  "(guessed: " + guessedType + 
+                                                  " )" );
+                    }
+                    else {
+                        throw new SplatException( "Spectrum '" + specspec +
+                                                  "' has an unknown type, "+
+                                                  "format or name syntax" );
+                    }
                 }
             }
             else {
