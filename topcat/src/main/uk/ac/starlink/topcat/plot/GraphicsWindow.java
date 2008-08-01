@@ -1,24 +1,15 @@
 package uk.ac.starlink.topcat.plot;
 
-import Acme.JPM.Encoders.GifEncoder;
-import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Composite;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,11 +18,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
@@ -64,7 +52,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
-import org.jibble.epsgraphics.EpsGraphics2D;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
@@ -84,7 +71,7 @@ import uk.ac.starlink.tplot.AuxLegend;
 import uk.ac.starlink.tplot.ErrorMarkStyleSet;
 import uk.ac.starlink.tplot.ErrorMode;
 import uk.ac.starlink.tplot.ErrorRenderer;
-import uk.ac.starlink.tplot.FixedEpsGraphics2D;
+import uk.ac.starlink.tplot.GraphicExporter;
 import uk.ac.starlink.tplot.Legend;
 import uk.ac.starlink.tplot.MarkStyle;
 import uk.ac.starlink.tplot.MarkStyles;
@@ -479,37 +466,24 @@ public abstract class GraphicsWindow extends AuxWindow {
         noProgress_ = new DefaultBoundedRangeModel();
 
         /* Actions for exporting the plot. */
-        Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
-                                             "Save plot as a GIF file",
-                                             new String[] { ".gif", } ) {
-            public void exportTo( OutputStream out ) throws IOException {
-                exportGif( out );
-            }
-        };
-        Action epsAction = new ExportAction( "EPS", ResourceIcon.PRINT,
-                                             "Export to Encapsulated " +
-                                             "Postscript file",
-                                             new String[] { ".ps", ".eps", } ) {
-            public void exportTo( OutputStream out ) throws IOException {
-                exportEPS( out );
-            }
-        };
-        ImageIOExportAction jpegAction =
-            new ImageIOExportAction( "JPEG", new String[] { ".jpg", ".jpeg", },
-                                     false, ResourceIcon.JPEG );
-        ImageIOExportAction pngAction =
-            new ImageIOExportAction( "PNG", new String[] { ".png", },
-                                     true, null );
+        Action gifAction =
+            new GraphicExportAction( GraphicExporter.GIF, ResourceIcon.IMAGE,
+                                     "Save plot as a GIF file" );
+        Action epsAction =
+            new GraphicExportAction( GraphicExporter.EPS, ResourceIcon.PRINT,
+                                     "Export to Encapsulated Postscript file" );
+        Action jpegAction =
+            new GraphicExportAction( GraphicExporter.JPEG, ResourceIcon.JPEG,
+                                     "Save plot as a JPEG file" );
+        Action pngAction =
+            new GraphicExportAction( GraphicExporter.PNG, ResourceIcon.IMAGE,
+                                     "Save plot as a PNG file" );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( epsAction );
         exportMenu_.add( gifAction );
-        if ( jpegAction.isImplemented() ) {
-            exportMenu_.add( jpegAction );
-        }
-        if ( pngAction.isImplemented() ) {
-            exportMenu_.add( pngAction );
-        }
+        exportMenu_.add( jpegAction );
+        exportMenu_.add( pngAction );
         getJMenuBar().add( exportMenu_ );
 
         /* Other actions. */
@@ -1017,16 +991,6 @@ public abstract class GraphicsWindow extends AuxWindow {
     public int getVisibleAuxAxisCount() {
         return auxVisibleModel_.getValue();
     }
-
-    /**
-     * Returns the component containing the graphics output of this 
-     * window.  This is the component which is exported or printed etc
-     * alongside the legend which is managed by GraphicsWindow.
-     * It should therefore contain only the output data, not any user 
-     * interface decoration.
-     *
-     * @return   plot component
-     */
 
     /**
      * Returns the plot object for this window.
@@ -1671,126 +1635,6 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
-     * Exports the currently displayed plot to encapsulated postscript.
-     *
-     * @param  ostrm  destination stream for the EPS
-     */
-    private void exportEPS( OutputStream ostrm ) throws IOException {
-
-        /* Scale to a pixel size which makes the bounding box sit sensibly
-         * on an A4 or letter page.  EpsGraphics2D default scale is 72dpi. */
-        JComponent plot = plotArea_;
-        Rectangle bounds = plot.getBounds();
-        double padfrac = 0.05;
-        double xdpi = bounds.width / 6.0;
-        double ydpi = bounds.height / 9.0;
-        double scale;
-        int pad;
-        if ( xdpi > ydpi ) {
-            scale = 72.0 / xdpi;
-            pad = (int) Math.ceil( bounds.width * padfrac * scale );
-        }
-        else {
-            scale = 72.0 / ydpi;
-            pad = (int) Math.ceil( bounds.height * padfrac * scale );
-        }
-        int xlo = (int) Math.floor( scale * bounds.x ) - pad;
-        int ylo = (int) Math.floor( scale * bounds.y ) - pad;
-        int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) ) + pad;
-        int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) ) + pad;
-
-        /* Construct a graphics object which will write postscript
-         * down this stream. */
-        EpsGraphics2D g2 = 
-            new FixedEpsGraphics2D( getTitle(), ostrm, xlo, ylo, xhi, yhi );
-        g2.scale( scale, scale );
-
-        /* Do the drawing. */
-        plot.print( g2 );
-
-        /* Note this close call *must* be made, otherwise the
-         * eps file is not flushed or correctly terminated.
-         * This closes the output stream too. */
-        g2.close();
-    }
-
-    /**
-     * Exports the currently displayed plot to GIF format.
-     *
-     * <p>There's something wrong with this - it ought to produce a
-     * transparent background, but it doesn't.  I'm not sure why, or
-     * even whether it's to do with the plot or the encoder.
-     *
-     * @param  ostrm  destination stream for the gif
-     */
-    private void exportGif( OutputStream ostrm ) throws IOException {
-
-        /* Get the component which will be plotted and its dimensions. */
-        JComponent plot = plotArea_;
-        int w = plot.getWidth();
-        int h = plot.getHeight();
-
-        /* Create a BufferedImage to draw it onto. */
-        BufferedImage image =
-            new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
-
-        /* Set the background to transparent white. */
-        Graphics2D g = image.createGraphics();
-        g.setBackground( new Color( 0x00ffffff, true ) );
-        g.clearRect( 0, 0, w, h );
-
-        /* Draw the component onto the image. */
-        plot.print( g );
-        g.dispose();
-
-        /* Count the number of colours represented in the resulting image. */
-        Set colors = new HashSet();
-        for ( int ix = 0; ix < w; ix++ ) {
-            for ( int iy = 0; iy < h; iy++ ) {
-                colors.add( new Integer( image.getRGB( ix, iy ) ) );
-            }
-        }
-
-        /* If there are too many, redraw the image into an indexed image
-         * instead.  This is necessary since the GIF encoder we're using
-         * here just gives up if there are too many. */
-        if ( colors.size() > 254 ) {
-            logger_.warning( "GIF export colour map filled up - "
-                           + "JPEG or PNG might do a better job" );
-
-            /* Create an image with a suitable colour model. */
-            IndexColorModel gifColorModel = getGifColorModel();
-            image = new BufferedImage( w, h, BufferedImage.TYPE_BYTE_INDEXED,
-                                       gifColorModel );
-
-            /* Zero all pixels to the transparent colour. */
-            WritableRaster raster = image.getRaster();
-            int itrans = gifColorModel.getTransparentPixel();
-            if ( itrans >= 0 ) {
-                byte[] pixValue = new byte[] { (byte) itrans };
-                for ( int ix = 0; ix < w; ix++ ) {
-                    for ( int iy = 0; iy < h; iy++ ) {
-                        raster.setDataElements( ix, iy, pixValue );
-                    }
-                }
-            }
-
-            /* Draw the plot on it. */
-            Graphics2D gifG = image.createGraphics();
-
-            /* Set dithering false.  But it still seems to dither on a
-             * drawImage!  Can't get to the bottom of it. */
-            gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
-                                   RenderingHints.VALUE_DITHER_DISABLE );
-            plot.print( gifG );
-            gifG.dispose();
-        }
-
-        /* Write the image as a gif down the provided stream. */
-        new GifEncoder( image, ostrm ).encode();
-    }
-
-    /**
      * Returns a file chooser widget with which the user can select a
      * file to output the currently plotted graph to in some serialized form.
      *
@@ -1843,39 +1687,6 @@ public abstract class GraphicsWindow extends AuxWindow {
 //      super.finalize();
 //      logger_.fine( "Finalize " + this.getClass().getName() );
 //  }
-
-    /**
-     * Returns a colour model suitable for use with GIF images.
-     * It has a selection of RGB colours and one transparent colour.
-     *
-     * @return  standard GIF indexed colour model
-     */
-    protected IndexColorModel getGifColorModel() {
-
-        /* Acquire a standard general-purpose 256-entry indexed colour model. */
-        IndexColorModel rgbModel =
-            (IndexColorModel)
-            new BufferedImage( 1, 1, BufferedImage.TYPE_BYTE_INDEXED )
-           .getColorModel();
-
-        /* Get r/g/b entries from it. */
-        byte[][] rgbs = new byte[ 3 ][ 256 ];
-        rgbModel.getReds( rgbs[ 0 ] );
-        rgbModel.getGreens( rgbs[ 1 ] );
-        rgbModel.getBlues( rgbs[ 2 ] );
-
-        /* Set one entry transparent. */
-        int itrans = 254;
-        rgbs[ 0 ][ itrans ] = (byte) 255;
-        rgbs[ 1 ][ itrans ] = (byte) 255;
-        rgbs[ 2 ][ itrans ] = (byte) 255;
-        IndexColorModel gifModel =
-            new IndexColorModel( 8, 256, rgbs[ 0 ], rgbs[ 1 ], rgbs[ 2 ],
-                                 itrans );
-
-        /* Return the  model. */
-        return gifModel;
-    }
 
     /**
      * Creates a default set of ErrorModeSelectionModels given a list of
@@ -1938,9 +1749,10 @@ public abstract class GraphicsWindow extends AuxWindow {
          * @param   descrip  description for action
          * @param   extensions  array of standard file extensions for format
          */
-        ExportAction( String formatName, Icon icon, String desc,
+        ExportAction( String formatName, Icon icon, String descrip,
                       String[] extensions ) {
-            this( formatName, icon, desc, new SuffixFileFilter( extensions ) );
+            this( formatName, icon, descrip,
+                  new SuffixFileFilter( extensions ) );
         }
 
         /**
@@ -1951,9 +1763,9 @@ public abstract class GraphicsWindow extends AuxWindow {
          * @param   descrip  description for action
          * @param   filter   file filter appropriate for export files
          */
-        ExportAction( String formatName, Icon icon, String desc, 
+        ExportAction( String formatName, Icon icon, String descrip, 
                       FileFilter filter ) {
-            super( "Export as " + formatName, icon, desc );
+            super( "Export as " + formatName, icon, descrip );
             formatName_ = formatName;
             filter_ = filter;
         }
@@ -2006,69 +1818,30 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
-     * ExportAction which uses the java ImageIO framework to do the export.
+     * Action which exports the currently displayed plot component 
+     * as a graphics file.
      */
-    private class ImageIOExportAction extends ExportAction {
+    private class GraphicExportAction extends ExportAction {
 
-        private final boolean ok_;
-        private final String formatName_;
-        private final int imageType_;
+        private final GraphicExporter gExporter_;
 
         /**
          * Constructor.
          *
-         * @param  format name, as recognised by ImageIO
-         * @param  extensions  array of suitable filename extensions
-         * @param  transparent  whether to attempt a transparent background
-         * @param  icon   icon for action, or null for default
+         * @param   gExporter  format-specific graphics exporter
+         * @param   icon   icon for action
+         * @param   descrip  description for action
+         * @param   extensions  array of standard file extensions for format
          */
-        public ImageIOExportAction( String formatName, String[] extensions,
-                                    boolean transparent, Icon icon ) {
-            super( formatName, icon == null ? ResourceIcon.IMAGE : icon,
-                   "Save plot as a " + formatName + " file", extensions );
-            ok_ = ImageIO.getImageWritersByFormatName( formatName ).hasNext();
-            formatName_ = formatName;
-            imageType_ = transparent ? BufferedImage.TYPE_INT_ARGB
-                                     : BufferedImage.TYPE_INT_RGB;
-        }
-
-        public boolean isImplemented() {
-            return ok_;
-        }
-
-        public boolean isEnabled() {
-            return ok_ && super.isEnabled();
+        GraphicExportAction( GraphicExporter gExporter, Icon icon,
+                             String descrip ) {
+            super( gExporter.getName(), icon, descrip,
+                   gExporter.getFileSuffixes() );
+            gExporter_ = gExporter;
         }
 
         public void exportTo( OutputStream out ) throws IOException {
-            JComponent plot = plotArea_;
-
-            /* Create an image buffer on which to paint. */
-            int w = plot.getWidth();
-            int h = plot.getHeight();
-            BufferedImage image = new BufferedImage( w, h, imageType_ );
-            Graphics2D g2 = image.createGraphics();
-
-            /* Clear the background to transparent white.  Failing to do this
-             * leaves all kinds of junk in the background. */
-            Color color = g2.getColor();
-            Composite compos = g2.getComposite();
-            g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
-            g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
-            g2.fillRect( 0, 0, w, h );
-            g2.setColor( color );
-            g2.setComposite( compos );
-
-            /* Paint the graphics to the buffer. */
-            plot.print( g2 );
-
-            /* Export. */
-            boolean done = ImageIO.write( image, formatName_, out );
-            out.flush();
-            if ( ! done ) {
-                throw new IOException( "No handler for format " + formatName_ +
-                                       " (surprising - thought there was)" );
-            }
+            gExporter_.exportGraphic( plotArea_, out );
         }
     }
 
