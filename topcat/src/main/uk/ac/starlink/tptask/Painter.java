@@ -1,5 +1,6 @@
 package uk.ac.starlink.tptask;
 
+import java.io.IOException;
 import javax.swing.JComponent;
 
 /**
@@ -15,5 +16,5 @@ public interface Painter {
      *
      * @param   plot  component to export
      */
-    void paintPlot( JComponent plot );
+    void paintPlot( JComponent plot ) throws IOException;
 }
