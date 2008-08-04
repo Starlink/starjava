@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.OverlayLayout;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
@@ -29,7 +31,7 @@ public abstract class PlotTask implements Task {
     private final List paramList_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
-    private final PainterParameter painterParam_;
+    private final PaintModeParameter painterParam_;
 
     /**
      * Constructor.
@@ -65,8 +67,10 @@ public abstract class PlotTask implements Task {
         ypixParam_.setDefault( "300" );
         paramList_.add( ypixParam_ );
 
-        painterParam_ = new PainterParameter( "ofmt" );
+        painterParam_ = new PaintModeParameter( "omode" );
         paramList_.add( painterParam_ );
+        paramList_.addAll( Arrays.asList( painterParam_
+                                         .getAssociatedParameters() ) );
 
         paramList_.addAll( Arrays.asList( stateFactory_.getParameters() ) );
     }
@@ -92,10 +96,45 @@ public abstract class PlotTask implements Task {
             public void execute() throws TaskException, IOException {
                 stateFactory_.configureRanges( state );
                 state.setValid( true );
-                plot_.setSize( new Dimension( xpix, ypix ) );
+                prepareComponent( plot_, xpix, ypix );
                 plot_.setState( state );
                 painter.paintPlot( plot_ );
             }
         };
+    }
+
+    /**
+     * Sets a component to a given size and performs any other tasks which
+     * need to be done before it is ready to get passed to a painter.
+     *
+     * @param  comp  component to prepare
+     * @param  xpix  size in X dimension
+     * @param  ypix  size in Y dimension
+     */
+    private static void prepareComponent( JComponent comp,
+                                          int xpix, int ypix ) {
+
+        /* Resize the component itself. */
+        Dimension size = new Dimension( xpix, ypix );
+        comp.setSize( size );
+
+        /* The next two items are a bit of a hack, and involve doing things
+         * which would normally get done by Swing as part of the business 
+         * of packing the component into a window.  Really, I shouldn't
+         * be using JComponents or Components at all here, but just
+         * painting onto a given Graphics2D object.  But with these steps
+         * in place it seems to work. */
+
+        /* Resize any contained components where required. */
+        if ( comp.getLayout() instanceof OverlayLayout ) {
+            int nc = comp.getComponentCount();
+            for ( int ic = 0; ic < nc; ic++ ) {
+                comp.getComponent( ic ).setSize( size );
+            }
+        }
+
+        /* Work around Java bug #4520228 - without this, children are not
+         * painted (which normally means an empty plot). */
+        comp.addNotify();
     }
 }
