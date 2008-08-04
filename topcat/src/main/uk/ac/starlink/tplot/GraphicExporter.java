@@ -28,6 +28,7 @@ import org.jibble.epsgraphics.EpsGraphics2D;
 public abstract class GraphicExporter {
 
     private final String name_;
+    private final String mimeType_;
     private final String[] fileSuffixes_;
 
     private static final Logger logger_ =
@@ -37,11 +38,14 @@ public abstract class GraphicExporter {
      * Constructor.
      *
      * @param   name  exporter name (usually graphics format name)
+     * @param   mimeType  MIME type for this exporter's output format
      * @param   fileSuffixes  file suffixes which usually indicate the
      *          export format used by this instance (may be null)
      */
-    protected GraphicExporter( String name, String[] fileSuffixes ) {
+    protected GraphicExporter( String name, String mimeType,
+                               String[] fileSuffixes ) {
         name_ = name;
+        mimeType_ = mimeType;
         fileSuffixes_ = fileSuffixes == null ? new String[ 0 ]
                                              : (String[]) fileSuffixes.clone();
     }
@@ -67,6 +71,15 @@ public abstract class GraphicExporter {
     }
 
     /**
+     * Returns the MIME type for the graphics format used by this exporter.
+     *
+     * @return  MIME type string
+     */
+    public String getMimeType() {
+        return mimeType_;
+    }
+
+    /**
      * Returns an array of file suffixes which usually indicate a file with
      * an export format used by this instance.
      *
@@ -82,11 +95,13 @@ public abstract class GraphicExporter {
 
     /** Exports to JPEG format. */
     public static final GraphicExporter JPEG =
-         new ImageIOExporter( "JPEG", new String[] { ".jpg", ".jpeg" }, false );
+         new ImageIOExporter( "jpeg", "image/jpeg",
+                              new String[] { ".jpg", ".jpeg" }, false );
 
     /** Exports to PNG format. */
     public static final GraphicExporter PNG =
-         new ImageIOExporter( "PNG", new String[] { ".png" }, true );
+         new ImageIOExporter( "png", "image/png",
+                              new String[] { ".png" }, true );
 
     /**
      * Exports to GIF format.
@@ -96,7 +111,8 @@ public abstract class GraphicExporter {
      * even whether it's to do with the plot or the encoder.
      */
     public static final GraphicExporter GIF =
-            new GraphicExporter( "GIF", new String[] { ".gif", } ) {
+            new GraphicExporter( "gif", "image/gif",
+                                 new String[] { ".gif", } ) {
         public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
 
@@ -169,7 +185,8 @@ public abstract class GraphicExporter {
 
     /** Exports to Encapsulated PostScript. */
     public static final GraphicExporter EPS =
-            new GraphicExporter( "EPS", new String[] { ".eps", ".ps", } ) {
+            new GraphicExporter( "eps", "application/postscript",
+                                 new String[] { ".eps", ".ps", } ) {
         public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
         
@@ -225,14 +242,15 @@ public abstract class GraphicExporter {
          * Constructor.
          *
          * @param  formatName  ImageIO format name
+         * @param  mimeType  MIME type for this exporter's output format
          * @param  transparent  true iff format is capable of supporting
          *                      transparency
          * @param   fileSuffixes  file suffixes which usually indicate the
          *          export format used by this instance (may be null)
          */
-        ImageIOExporter( String formatName, String[] fileSuffixes,
-                         boolean transparent ) {
-            super( formatName, fileSuffixes );
+        ImageIOExporter( String formatName, String mimeType, 
+                         String[] fileSuffixes, boolean transparent ) {
+            super( formatName, mimeType, fileSuffixes );
             formatName_ = formatName;
             imageType_ = transparent ? BufferedImage.TYPE_INT_ARGB
                                      : BufferedImage.TYPE_INT_RGB;
