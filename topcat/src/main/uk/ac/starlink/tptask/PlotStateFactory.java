@@ -9,6 +9,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.tplot.MarkStyles;
@@ -17,8 +18,10 @@ import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
 import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.StyleSet;
+import uk.ac.starlink.ttools.task.ConsumerTask;
+import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
-
+import uk.ac.starlink.ttools.task.TableProducer;
 
 /**
  * Obtains a {@link uk.ac.starlink.tplot.PlotState} and associated
@@ -30,6 +33,7 @@ import uk.ac.starlink.ttools.task.InputTableParameter;
 public class PlotStateFactory {
 
     private static final String TABLE_PREFIX = "in";
+    private static final String FILTER_PREFIX = "cmd";
     private static final String SUBSET_PREFIX = "subset";
     private static final String TABLE_VARIABLE = "N";
     private static final String SUBSET_VARIABLE = "s";
@@ -94,10 +98,12 @@ public class PlotStateFactory {
         String tSuffix = TABLE_VARIABLE;
         String stSuffix = TABLE_VARIABLE + SUBSET_VARIABLE;
         InputTableParameter inParam = createTableParameter( tSuffix );
+        FilterParameter filterParam = createFilterParameter( tSuffix );
         List paramList = new ArrayList();
         paramList.add( inParam );
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam.getStreamParameter() );
+        paramList.add( filterParam );
         for ( int idim = 0; idim < ndim_; idim++ ) {
             paramList.add( createCoordParameter( tSuffix, idim ) );
         }
@@ -237,7 +243,15 @@ public class PlotStateFactory {
      */
     private StarTable getTable( Environment env, String tlabel )
             throws TaskException {
-        return createTableParameter( tlabel ).tableValue( env );
+        TableProducer producer =
+            ConsumerTask.createProducer( env, createFilterParameter( tlabel ),
+                                              createTableParameter( tlabel ) );
+        try {
+            return producer.getTable();
+        }
+        catch ( IOException e ) {
+            throw new ExecutionException( "Table processing error", e );
+        }
     }
 
     /**
@@ -382,6 +396,16 @@ public class PlotStateFactory {
      */
     private InputTableParameter createTableParameter( String tlabel ) {
         return new InputTableParameter( TABLE_PREFIX + tlabel );
+    }
+
+    /**
+     * Constructs an input filter parameter with a given suffix.
+     *
+     * @param   tlabel  table parameter label
+     * @return  new table filter parameter
+     */
+    private FilterParameter createFilterParameter( String tlabel ) {
+        return new FilterParameter( FILTER_PREFIX + tlabel );
     }
 
     /**
