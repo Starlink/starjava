@@ -12,12 +12,14 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.tplot.DataBounds;
 import uk.ac.starlink.tplot.MarkStyles;
 import uk.ac.starlink.tplot.MultiPlotData;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
 import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.StyleSet;
+import uk.ac.starlink.tplot.TablePlot;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
@@ -37,6 +39,7 @@ public class PlotStateFactory {
     private static final String SUBSET_PREFIX = "subset";
     private static final String TABLE_VARIABLE = "N";
     private static final String SUBSET_VARIABLE = "s";
+    private static final double PAD_RATIO = 0.02;
 
     private final String[] dimNames_;
     private final int ndim_;
@@ -137,16 +140,92 @@ public class PlotStateFactory {
      * and 1 for upper limits if no other values have been specified.
      *
      * @param   state  plot state whose ranges will to be configured
+     * @param   plot   table plot for which configuration is to be done
      */
-    public void configureRanges( PlotState state ) throws IOException {
+    public void configureRanges( PlotState state, TablePlot plot )
+            throws TaskException, IOException {
+
+        /* Work out which limits, if any, need calculating. */
+        boolean[] loCalcs = new boolean[ ndim_ ];
+        boolean[] hiCalcs = new boolean[ ndim_ ];
+        int ncalc = 0;
         for ( int idim = 0; idim < ndim_; idim++ ) {
             double[] range = state.getRanges()[ idim ];
             if ( Double.isNaN( range[ 0 ] ) ) {
-                range[ 0 ] = 0.0;
+                loCalcs[ idim ] = true;
+                ncalc++;
             }
             if ( Double.isNaN( range[ 1 ] ) ) {
-                range[ 1 ] = 1.0;
+                hiCalcs[ idim ] = true;
+                ncalc++;
             }
+        }
+
+        /* If none need calculating (all have been specified explicitly),
+         * return with no further work. */
+        if ( ncalc == 0 ) {
+            return;
+        }
+
+        /* Otherwise, work through the plot data to locate bounds. */
+        DataBounds bounds = plot.calculateBounds( state.getPlotData(), state );
+
+        /* And fill in the plot state limits with the results. */
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            double[] stateRange = state.getRanges()[ idim ];
+            double[] calcRange = bounds.getRanges()[ idim ].getBounds();
+            if ( loCalcs[ idim ] ) {
+                if ( ! hiCalcs[ idim ] && stateRange[ 1 ] <= calcRange[ 0 ] ) {
+                    String msg =
+                        "Supplied " + dimNames_[ idim ] + " upper bound (" +
+                        stateRange[ 1 ] +
+                        ") is less than data lower bound (" +
+                        calcRange[ 0 ] +
+                        ")";
+                    throw new ExecutionException( msg );
+                }
+                stateRange[ 0 ] = calcRange[ 0 ];
+            }
+            if ( hiCalcs[ idim ] ) {
+                if ( ! loCalcs[ idim ] && stateRange[ 0 ] >= calcRange[ 1 ] ) {
+                    String msg = 
+                        "Supplied " + dimNames_[ idim ] + " lower bound (" +
+                        stateRange[ 0 ] +
+                        ") is greater than data upper bound (" +
+                        calcRange[ 1 ] +
+                        ")";
+                    throw new ExecutionException( msg );
+                }
+                stateRange[ 1 ] = calcRange[ 1 ];
+            }
+            assert stateRange[ 0 ] <= stateRange[ 1 ];
+
+            /* If lower and upper bounds are equal, nudge them down and up
+             * respectively by an arbitrary amount. */
+            if ( stateRange[ 0 ] == stateRange[ 1 ] ) {
+                double val = stateRange[ 0 ];
+                if ( val == Math.floor( val ) ) {
+                    stateRange[ 0 ]--;
+                    stateRange[ 1 ]++;
+                }
+                else {
+                    stateRange[ 0 ] = Math.floor( val );
+                    stateRange[ 1 ] = Math.ceil( val );
+                }
+            }
+
+            /* Otherwise, introduce padding for calculated bounds. */
+            else {
+                double pad = ( stateRange[ 1 ] - stateRange[ 0 ] ) * PAD_RATIO;
+                if ( loCalcs[ idim ] ) {
+                    stateRange[ 0 ] -= pad;
+                }
+                if ( hiCalcs[ idim ] ) {
+                    stateRange[ 1 ] += pad;
+                }
+            }
+            assert state.getRanges()[ idim ][ 0 ] 
+                 < state.getRanges()[ idim ][ 1 ];
         }
     }
 
@@ -173,7 +252,7 @@ public class PlotStateFactory {
         String[] paramNames = env.getNames();
 
         /* Work out which parameter suffixes are being used to identify
-         * different tables.  This is done by findnig all the parameters
+         * different tables.  This is done by finding all the parameters
          * which start "table" and pulling off their suffixes.
          * These suffixes are then applied to other parameter stems
          * for obtaining other per-table parameter values. */
