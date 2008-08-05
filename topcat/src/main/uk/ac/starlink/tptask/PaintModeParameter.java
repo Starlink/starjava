@@ -1,6 +1,8 @@
 package uk.ac.starlink.tptask;
 
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,9 +30,14 @@ public class PaintModeParameter extends ChoiceParameter {
     private final ChoiceParameter formatParam_;
     private Painter painterValue_;
 
-    private static final String OUT_MODE = "out";
-    private static final String CGI_MODE = "cgi";
-    private static final String SWING_MODE = "swing";
+    private static final String OUTPARAM_NAME = "out";
+    private static final String FORMATPARAM_NAME = "ofmt";
+    private static final PaintMode[] MODES = new PaintMode[] {
+        new OutputPaintMode(),
+        new SwingPaintMode(),
+        new CgiPaintMode(),
+        new DiscardPaintMode(),
+    };
     private static final GraphicExporter[] EXPORTERS = new GraphicExporter[] {
         GraphicExporter.EPS,
         GraphicExporter.PNG,
@@ -44,14 +51,31 @@ public class PaintModeParameter extends ChoiceParameter {
      * @param  name   parameter name
      */
     public PaintModeParameter( String name ) {
-        super( name, new String[] { SWING_MODE, OUT_MODE, CGI_MODE, } );
+        super( name, MODES );
+        StringBuffer modebuf = new StringBuffer()
+            .append( "<p>Determines how the drawn plot will be output.\n" )
+            .append( "<ul>\n" );
+        for ( int im = 0; im < MODES.length; im++ ) {
+            PaintMode mode = MODES[ im ];
+            modebuf.append( "<li><code>" )
+                   .append( mode.getName() )
+                   .append( "</code>:\n" )
+                   .append( mode.getDescription() )
+                   .append( "</li>" )
+                   .append( "\n" );
+        }
+        modebuf.append( "</ul>\n" )
+               .append( "</p>" );
+        setPrompt( "Mode for graphical output" );
+        setDescription( modebuf.toString() );
+        setDefault( MODES[ 0 ].getName() );
 
-        outParam_ = new OutputStreamParameter( "out" );
+        outParam_ = new OutputStreamParameter( OUTPARAM_NAME );
         outParam_.setPrompt( "Output file for graphics" );
         outParam_.setDefault( null );
         outParam_.setNullPermitted( false );
 
-        formatParam_ = new ChoiceParameter( "ofmt", EXPORTERS );
+        formatParam_ = new ChoiceParameter( FORMATPARAM_NAME, EXPORTERS );
         formatParam_.setPrompt( "Graphics format for plot output" );
         StringBuffer fmtbuf = new StringBuffer()
             .append( "<p>Graphics format in which the plot is written to\n" )
@@ -71,35 +95,10 @@ public class PaintModeParameter extends ChoiceParameter {
               .append( "May default to a sensible value depending on the\n" )
               .append( "filename given by " )
               .append( "<code>" )
-              .append( outParam_.getName() )
+              .append( OUTPARAM_NAME )
               .append( "</code>.\n" )
               .append( "</p>" );
         formatParam_.setDescription( fmtbuf.toString() );
-
-        setPrompt( "Mode for graphical output" );
-        setDescription( new String[] {
-            "<p>Determines how the drawn plot will be output.",
-            "<ul>",
-            "<li><code>" + SWING_MODE + "</code>:",
-            "Plot will be displayed in a window on the screen",
-            "</li>",
-            "<li><code>" + OUT_MODE + "</code>:",
-            "Plot will be written to a file given by",
-            "<code>" + outParam_.getName() + "</code>",
-            "using the graphics format given by",
-            "<code>" + formatParam_.getName() + "</code>.",
-            "</li>",
-            "<li><code>" + CGI_MODE + "</code>:",
-            "Plot will be written in a way suitable for CGI use direct from",
-            "a web server.",
-            "The output is in the graphics format given by",
-            "<code>" + formatParam_.getName() + "</code>,",
-            "preceded by a suitable \"Content-type\" declaration.",
-            "</li>",
-            "</ul>",
-            "</p>",
-        } );
-        setDefault( OUT_MODE );
     }
 
     /**
@@ -114,54 +113,8 @@ public class PaintModeParameter extends ChoiceParameter {
     public void setValueFromString( Environment env, String stringVal )
             throws TaskException {
         super.setValueFromString( env, stringVal );
-        String sval = (String) objectValue( env );
-        painterValue_ = getPainter( env, sval );
-    }
-
-    /**
-     * Returns a new painter object given an execution environment and string
-     * value.
-     * 
-     * @param  env  execution environment
-     * @param  sval  string representation of paint mode parameter value
-     * @return  painter object
-     */
-    private Painter getPainter( Environment env, String sval ) 
-            throws TaskException {
-        if ( SWING_MODE.equals( sval ) ) {
-            return new SwingPainter();
-        }
-        else if ( OUT_MODE.equals( sval ) ) {
-            Destination dest = outParam_.destinationValue( env );
-            String out = outParam_.stringValue( env );
-            GraphicExporter dfltExp = null;
-            if ( out != null ) {
-                for ( int ie = 0; ie < EXPORTERS.length; ie++ ) {
-                    String[] fss = EXPORTERS[ ie ].getFileSuffixes();
-                    for ( int is = 0; is < fss.length; is++ ) {
-                        if ( out.toLowerCase()
-                                .endsWith( fss[ is ].toLowerCase() ) ) {
-                            dfltExp = EXPORTERS[ ie ];
-                        }
-                    }
-                }
-            }
-            if ( dfltExp != null ) {
-                formatParam_.setDefault( dfltExp.getName() );
-            }
-            GraphicExporter exporter =
-                (GraphicExporter) formatParam_.objectValue( env );
-            return new OutputPainter( exporter, dest );
-        }
-        else if ( CGI_MODE.equals( sval ) ) {
-            GraphicExporter exporter =
-                (GraphicExporter) formatParam_.objectValue( env );
-            return new CgiPainter( exporter, env.getOutputStream() );
-        }
-        else {
-            assert false;
-            throw new TaskException( "Unknown graphics output mode " + sval );
-        }
+        PaintMode mode = (PaintMode) objectValue( env );
+        painterValue_ = mode.createPainter( env, this );
     }
 
     /**
@@ -176,90 +129,210 @@ public class PaintModeParameter extends ChoiceParameter {
     }
 
     /**
-     * Painter implementation which draws the plot in a Swing window.
+     * Defines a mode for disposing of a plot.
      */
-    private static class SwingPainter implements Painter {
-
-        public void paintPlot( JComponent plot ) {
-            final JFrame frame = new JFrame();
-            frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-            frame.getContentPane().add( plot );
-            Object quitKey = "quit";
-            plot.getInputMap().put( KeyStroke.getKeyStroke( 'q' ), quitKey );
-            plot.getActionMap().put( quitKey, new AbstractAction() {
-                public void actionPerformed( ActionEvent evt ) {
-                    frame.dispose();
-                }
-            } );
-            frame.pack();
-            frame.setVisible( true );
-        }
-        public boolean hasOutput() {
-            return false;
-        }
-        public String toString() {
-            return "swing";
-        }
-    }
-
-    /**
-     * Painter implementation which draws the plot to an external file.
-     */
-    private static class OutputPainter implements Painter {
-        private final GraphicExporter exporter_;
-        private final Destination dest_;
+    private static abstract class PaintMode {
+        private final String name_;
 
         /**
          * Constructor.
          *
-         * @param  exporter  graphics file format-specific writer
-         * @param  dest     destination output stream
+         * @param  name  mode name
          */
-        OutputPainter( GraphicExporter exporter, Destination dest ) {
-            exporter_ = exporter;
-            dest_ = dest;
+        protected PaintMode( String name ) {
+            name_ = name;
         }
 
-        public void paintPlot( JComponent plot ) throws IOException {
-            OutputStream out = new BufferedOutputStream( dest_.createStream() );
-            try {
-                exporter_.exportGraphic( plot, out );
+        /**
+         * Constructs a new painter object given the state of the environment.
+         *
+         * @param  env  execution environment
+         * @param  param  paint mode parameter instance
+         */
+        public abstract Painter createPainter( Environment env,
+                                               PaintModeParameter param )
+                throws TaskException;
+
+        /**
+         * Returns a short XML description (no enclosing tag) of this mode's
+         * behaviour.
+         *
+         * @return   PCDATA
+         */
+        public abstract String getDescription();
+
+        /**
+         * Returns this mode's name.
+         *
+         * @return  name
+         */
+        public String getName() {
+            return name_;
+        }
+
+        public String toString() {
+            return getName();
+        }
+    }
+
+    /**
+     * PaintMode implementation which displays the plot on the screen.
+     */
+    private static class SwingPaintMode extends PaintMode {
+        SwingPaintMode() {
+            super( "swing" );
+        }
+
+        public String getDescription() {
+            return "Plot will be displayed in a window on the screen.";
+        }
+
+        public Painter createPainter( Environment env,
+                                      PaintModeParameter param ) {
+            return new Painter() {
+                public void paintPlot( JComponent plot ) {
+                    final JFrame frame = new JFrame();
+                    frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+                    frame.getContentPane().add( plot );
+                    Object quitKey = "quit";
+                    plot.getInputMap().put( KeyStroke.getKeyStroke( 'q' ),
+                                            quitKey );
+                    plot.getActionMap().put( quitKey, new AbstractAction() {
+                        public void actionPerformed( ActionEvent evt ) {
+                            frame.dispose();
+                        }
+                    } );
+                    frame.pack();
+                    frame.setVisible( true );
+                }
+            };
+        }
+    }
+
+    /**
+     * PaintMode implementation which writes the plot to an external file
+     * in some graphics format.
+     */
+    private static class OutputPaintMode extends PaintMode {
+        OutputPaintMode() {
+            super( "out" );
+        }
+
+        public String getDescription() {
+            return "Plot will be written to a file given by "
+                 + "<code>" + OUTPARAM_NAME + "</code> "
+                 + "using the graphics format given by "
+                 + "<code>" + FORMATPARAM_NAME + "</code>.";
+        }
+
+        public Painter createPainter( Environment env,
+                                      PaintModeParameter param )
+                throws TaskException {
+            final Destination dest = param.outParam_.destinationValue( env );
+            String out = param.outParam_.stringValue( env );
+            GraphicExporter dfltExp = null;
+            if ( out != null ) {
+                for ( int ie = 0; ie < EXPORTERS.length; ie++ ) {
+                    String[] fss = EXPORTERS[ ie ].getFileSuffixes();
+                    for ( int is = 0; is < fss.length; is++ ) {
+                        if ( out.toLowerCase()
+                                .endsWith( fss[ is ].toLowerCase() ) ) {
+                            dfltExp = EXPORTERS[ ie ];
+                        }
+                    }
+                }
             }
-            catch ( IOException e ) {
-                try {
+            if ( dfltExp != null ) {
+                param.formatParam_.setDefault( dfltExp.getName() );
+            }
+            final GraphicExporter exporter =
+                (GraphicExporter) param.formatParam_.objectValue( env );
+            return new Painter() {
+                public void paintPlot( JComponent plot ) throws IOException {
+                    OutputStream out =
+                        new BufferedOutputStream( dest.createStream() );
+                    try {
+                        exporter.exportGraphic( plot, out );
+                    }
+                    catch ( IOException e ) {
+                        try {
+                            out.close();
+                        }
+                        catch ( IOException e2 ) {
+                            throw e;
+                        }
+                    }
                     out.close();
                 }
-                catch ( IOException e2 ) {
-                    throw e;
-                }
-            }
-            out.close();
+            };
         }
     }
 
     /**
-     * Painter implementation that writes a graphics file to an output stream
-     * in a way suitable for CGI-bin operation.
+     * PaintMode implementation which writes the plot to the environment's
+     * standard output in a way suitable for CGI-bin operation.
      */
-    private static class CgiPainter implements Painter {
-        private final GraphicExporter exporter_;
-        private final OutputStream out_;
-
-        /**
-         * Constructor.
-         *
-         * @param  exporter  graphics file format-specific writer
-         * @param  out   output stream
-         */
-        CgiPainter( GraphicExporter exporter, OutputStream out ) {
-            exporter_ = exporter;
-            out_ = out;
+    private static class CgiPaintMode extends PaintMode {
+        CgiPaintMode() {
+            super( "cgi" );
         }
 
-        public void paintPlot( JComponent plot ) throws IOException {
-            String header = "Content-type: " + exporter_.getMimeType() + "\n\n";
-            out_.write( header.getBytes( "UTF-8" ) );
-            exporter_.exportGraphic( plot, out_ );
+        public String getDescription() {
+            return "Plot will be written in a way suitable for CGI use "
+                 + "direct from a web server.\n"
+                 + "The output is in the graphics format given by "
+                 + "<code>" + FORMATPARAM_NAME + "</code>,\n"
+                 + "preceded by a suitable \"Content-type\" declaration.";
+        }
+
+        public Painter createPainter( Environment env,
+                                      PaintModeParameter param )
+                throws TaskException {
+            final GraphicExporter exporter =
+                (GraphicExporter) param.formatParam_.objectValue( env );
+            final OutputStream out = env.getOutputStream();
+            return new Painter() {
+                public void paintPlot( JComponent plot ) throws IOException {
+                    BufferedOutputStream bout = new BufferedOutputStream( out );
+                    String header = "Content-type: "
+                                  + exporter.getMimeType()
+                                  + "\n\n";
+                    bout.write( header.getBytes( "UTF-8" ) );
+                    exporter.exportGraphic( plot, bout );
+                    bout.flush();
+                }
+            };
+        }
+    }
+
+
+    /**
+     * PaintMode implementation which draws the plot but discards the result.
+     */
+    private static class DiscardPaintMode extends PaintMode {
+        DiscardPaintMode() {
+            super( "discard" );
+        }
+
+        public String getDescription() {
+            return "Plot is drawn, but discarded.  There is no output.";
+        }
+
+        public Painter createPainter( Environment env,
+                                      PaintModeParameter param )
+                throws TaskException {
+            return new Painter() {
+                public void paintPlot( JComponent plot ) {
+
+                    /* Get a graphics context to render to, so that we actually
+                     * do the plot. */
+                    BufferedImage image =
+                        new BufferedImage( 1, 1, BufferedImage.TYPE_INT_RGB );
+                    Graphics2D g2 = image.createGraphics();
+                    plot.print( g2 );
+                    g2.dispose();
+                }
+            };
         }
     }
 }
