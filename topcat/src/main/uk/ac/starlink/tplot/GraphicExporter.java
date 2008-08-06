@@ -287,6 +287,7 @@ public abstract class GraphicExporter {
             /* Export. */
             boolean done = ImageIO.write( image, formatName_, out );
             out.flush();
+            g2.dispose();
             if ( ! done ) {
                 throw new IOException( "No handler for format " + formatName_ +
                                        " (surprising - thought there was)" );
