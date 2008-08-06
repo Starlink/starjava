@@ -180,8 +180,8 @@ public class TablePlotData implements PlotData {
                 catch ( Throwable e ) {
                     throw new PlotDataException( "Unexpected error", e );
                 }
-                label_ = lab instanceof String ? (String) lab
-                                               : null;
+                label_ = lab == null ? null
+                                     : lab.toString();
                 hasLabel_ = true;
             }
             return label_;
@@ -253,8 +253,8 @@ public class TablePlotData implements PlotData {
                     Evaluator.compile( coordExprs_[ i ], lib, double.class );
             }
             labelCompex_ = labelExpr_ == null
-                ? null 
-                : Evaluator.compile( labelExpr_, lib, String.class );
+                         ? null 
+                         : Evaluator.compile( labelExpr_, lib );
             setCompexs_ = new CompiledExpression[ setExprs_.length ];
             for ( int i = 0; i < setExprs_.length; i++ ) {
                 setCompexs_[ i ] =
