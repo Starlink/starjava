@@ -32,9 +32,10 @@ public class PaintModeParameter extends ChoiceParameter {
 
     private static final String OUTPARAM_NAME = "out";
     private static final String FORMATPARAM_NAME = "ofmt";
+    private static final PaintMode DEFAULT_MODE;
     private static final PaintMode[] MODES = new PaintMode[] {
+        DEFAULT_MODE = new SwingPaintMode(),
         new OutputPaintMode(),
-        new SwingPaintMode(),
         new CgiPaintMode(),
         new DiscardPaintMode(),
     };
@@ -68,7 +69,7 @@ public class PaintModeParameter extends ChoiceParameter {
                .append( "</p>" );
         setPrompt( "Mode for graphical output" );
         setDescription( modebuf.toString() );
-        setDefault( MODES[ 0 ].getName() );
+        setDefault( DEFAULT_MODE.getName() );
 
         outParam_ = new OutputStreamParameter( OUTPARAM_NAME );
         outParam_.setPrompt( "Output file for graphics" );
