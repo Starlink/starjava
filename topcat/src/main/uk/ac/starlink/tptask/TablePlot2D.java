@@ -12,7 +12,7 @@ import uk.ac.starlink.tplot.ScatterPlot;
 public class TablePlot2D extends PlotTask {
     public TablePlot2D() {
         super( "2D Scatter Plot",
-               new PlotStateFactory( new String[] { "X", "Y", } ),
+               new PlotStateFactory( new String[] { "X", "Y", }, true ),
                new ScatterPlot( new PtPlotSurface() ) );
     }
 }
