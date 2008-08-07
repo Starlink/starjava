@@ -4,9 +4,15 @@ import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -17,6 +23,7 @@ import uk.ac.starlink.tplot.MarkStyles;
 import uk.ac.starlink.tplot.MultiPlotData;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.Shader;
 import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.StyleSet;
 import uk.ac.starlink.tplot.TablePlot;
@@ -28,6 +35,9 @@ import uk.ac.starlink.ttools.task.TableProducer;
 /**
  * Obtains a {@link uk.ac.starlink.tplot.PlotState} and associated
  * {@link uk.ac.starlink.tplot.PlotData} from the execution environment.
+ * It sets up and interrogates a lot of parameters which describe how the
+ * plot should be done, and organises this information into a single 
+ * object, a PlotState.  It is subclassed for different plot types.
  *
  * @author   Mark Taylor
  * @since    22 Apr 2008
@@ -37,47 +47,28 @@ public class PlotStateFactory {
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
     private static final String SUBSET_PREFIX = "subset";
+    private static final String AUX_PREFIX = "aux";
     private static final String TABLE_VARIABLE = "N";
-    private static final String SUBSET_VARIABLE = "s";
+    private static final String SUBSET_VARIABLE = "S";
+    private static final String AUX_VARIABLE = "";
     private static final double PAD_RATIO = 0.02;
 
-    private final String[] dimNames_;
-    private final int ndim_;
-
-    private final DoubleParameter[] loParams_;
-    private final DoubleParameter[] hiParams_;
-    private final BooleanParameter[] logParams_;
-    private final BooleanParameter[] flipParams_;
-    private final Parameter[] axlabelParams_;
+    private final String[] mainDimNames_;
+    private final boolean useAux_;
+    private final BooleanParameter gridParam_;
 
     /**
      * Constructor.
      *
-     * @param  dimNames  names of plot dimensions (typically "X", "Y", etc);
-     *                   number of elements gives dimensionality of plot
+     * @param  dimNames names of main plot dimensions (typically "X", "Y", etc);
+     * @param  useAux  whether auxiliary axes are used
      */
-    public PlotStateFactory( String[] dimNames ) {
-        dimNames_ = dimNames;
-        ndim_ = dimNames_.length;
+    public PlotStateFactory( String[] dimNames, boolean useAux ) {
+        mainDimNames_ = dimNames;
+        useAux_ = useAux;
 
-        loParams_ = new DoubleParameter[ ndim_ ];
-        hiParams_ = new DoubleParameter[ ndim_ ];
-        logParams_ = new BooleanParameter[ ndim_ ];
-        flipParams_ = new BooleanParameter[ ndim_ ];
-        axlabelParams_ = new Parameter[ ndim_ ];
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            String dimName = dimNames_[ idim ].toLowerCase();
-            loParams_[ idim ] = new DoubleParameter( dimName + "lo" );
-            loParams_[ idim].setNullPermitted( true );
-            hiParams_[ idim ] = new DoubleParameter( dimName + "hi" );
-            hiParams_[ idim ].setNullPermitted( true );
-            logParams_[ idim ] = new BooleanParameter( dimName + "log" );
-            logParams_[ idim ].setDefault( "false" );
-            flipParams_[ idim ] = new BooleanParameter( dimName + "flip" );
-            flipParams_[ idim ].setDefault( "false" );
-            axlabelParams_[ idim ] = new Parameter( dimName + "label" );
-            axlabelParams_[ idim ].setNullPermitted( true );
-        }
+        gridParam_ = new BooleanParameter( "grid" );
+        gridParam_.setDefault( true );
     }
 
     /**
@@ -87,8 +78,8 @@ public class PlotStateFactory {
      * obtaining values from a particular execution environment.
      * For this reason they may have names which are symbolic,
      * that is, represent possible parameter names.  Since actual parameter
-     * names are dynamically determined, it is not possible to return an
-     * exhaustive list.
+     * names are dynamically determined from other parameter names, 
+     * it is not possible to return an exhaustive list.
      *
      * @return   array of parameters to be used for documentation
      */
@@ -100,6 +91,9 @@ public class PlotStateFactory {
          * required elsewhere in this class. */
         String tSuffix = TABLE_VARIABLE;
         String stSuffix = TABLE_VARIABLE + SUBSET_VARIABLE;
+        String auxAxName = AUX_PREFIX + AUX_VARIABLE;
+
+        /* Per-table input parameters. */
         InputTableParameter inParam = createTableParameter( tSuffix );
         FilterParameter filterParam = createFilterParameter( tSuffix );
         List paramList = new ArrayList();
@@ -107,17 +101,43 @@ public class PlotStateFactory {
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam.getStreamParameter() );
         paramList.add( filterParam );
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            paramList.add( createCoordParameter( tSuffix, idim ) );
+
+        /* Per-axis parameters. */
+        List axParamSetList = new ArrayList();
+        for ( int idim = 0; idim < mainDimNames_.length; idim++ ) {
+            axParamSetList.add( new AxisParameterSet( mainDimNames_[ idim ] ) );
         }
-        paramList.addAll( Arrays.asList( loParams_ ) );
-        paramList.addAll( Arrays.asList( hiParams_ ) );
-        paramList.addAll( Arrays.asList( logParams_ ) );
-        paramList.addAll( Arrays.asList( flipParams_ ) );
-        paramList.addAll( Arrays.asList( axlabelParams_ ) );
+        if ( useAux_ ) {
+            axParamSetList.add( new AxisParameterSet( auxAxName ) );
+        }
+        AxisParameterSet[] axParamSets =
+            (AxisParameterSet[])
+            axParamSetList.toArray( new AxisParameterSet[ 0 ] );
+        int allNdim = axParamSets.length;
+        Parameter[][] axScalarParams = new Parameter[ allNdim ][];
+        for ( int idim = 0; idim < allNdim; idim++ ) {
+            AxisParameterSet axParamSet = axParamSets[ idim ];
+            paramList.add( axParamSet.createCoordParameter( tSuffix ) );
+            axScalarParams[ idim ] = axParamSet.getScalarParameters();
+        }
+        int nScalarParam = axScalarParams[ 0 ].length;  // same for all elements
+        for ( int ip = 0; ip < nScalarParam; ip++ ) {
+            for ( int idim = 0; idim < allNdim; idim++ ) {
+                paramList.add( axScalarParams[ idim ][ ip ] );
+            }
+        }
+        if ( useAux_ ) {
+            Parameter shaderParam =
+                createShaderParameters( new String[] { AUX_VARIABLE } )[ 0 ];
+            assert shaderParam.getDefault() != null;
+            paramList.add( shaderParam );
+        }
+
+        /* Other parameters. */
         paramList.add( createLabelParameter( tSuffix ) );
         paramList.add( createSubsetExpressionParameter( stSuffix ) );
         paramList.add( createSubsetNameParameter( stSuffix ) );
+        paramList.add( gridParam_ );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
@@ -131,102 +151,6 @@ public class PlotStateFactory {
         PlotState state = createPlotState();
         configurePlotState( state, env );
         return state;
-    }
-
-    /**
-     * Configures the range attributes of the given state, ensuring that they
-     * have non-NaN values.
-     * The default implementation currently fills in zero for lower limits
-     * and 1 for upper limits if no other values have been specified.
-     *
-     * @param   state  plot state whose ranges will to be configured
-     * @param   plot   table plot for which configuration is to be done
-     */
-    public void configureRanges( PlotState state, TablePlot plot )
-            throws TaskException, IOException {
-
-        /* Work out which limits, if any, need calculating. */
-        boolean[] loCalcs = new boolean[ ndim_ ];
-        boolean[] hiCalcs = new boolean[ ndim_ ];
-        int ncalc = 0;
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            double[] range = state.getRanges()[ idim ];
-            if ( Double.isNaN( range[ 0 ] ) ) {
-                loCalcs[ idim ] = true;
-                ncalc++;
-            }
-            if ( Double.isNaN( range[ 1 ] ) ) {
-                hiCalcs[ idim ] = true;
-                ncalc++;
-            }
-        }
-
-        /* If none need calculating (all have been specified explicitly),
-         * return with no further work. */
-        if ( ncalc == 0 ) {
-            return;
-        }
-
-        /* Otherwise, work through the plot data to locate bounds. */
-        DataBounds bounds = plot.calculateBounds( state.getPlotData(), state );
-
-        /* And fill in the plot state limits with the results. */
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            double[] stateRange = state.getRanges()[ idim ];
-            double[] calcRange = bounds.getRanges()[ idim ].getBounds();
-            if ( loCalcs[ idim ] ) {
-                if ( ! hiCalcs[ idim ] && stateRange[ 1 ] <= calcRange[ 0 ] ) {
-                    String msg =
-                        "Supplied " + dimNames_[ idim ] + " upper bound (" +
-                        stateRange[ 1 ] +
-                        ") is less than data lower bound (" +
-                        calcRange[ 0 ] +
-                        ")";
-                    throw new ExecutionException( msg );
-                }
-                stateRange[ 0 ] = calcRange[ 0 ];
-            }
-            if ( hiCalcs[ idim ] ) {
-                if ( ! loCalcs[ idim ] && stateRange[ 0 ] >= calcRange[ 1 ] ) {
-                    String msg = 
-                        "Supplied " + dimNames_[ idim ] + " lower bound (" +
-                        stateRange[ 0 ] +
-                        ") is greater than data upper bound (" +
-                        calcRange[ 1 ] +
-                        ")";
-                    throw new ExecutionException( msg );
-                }
-                stateRange[ 1 ] = calcRange[ 1 ];
-            }
-            assert stateRange[ 0 ] <= stateRange[ 1 ];
-
-            /* If lower and upper bounds are equal, nudge them down and up
-             * respectively by an arbitrary amount. */
-            if ( stateRange[ 0 ] == stateRange[ 1 ] ) {
-                double val = stateRange[ 0 ];
-                if ( val == Math.floor( val ) ) {
-                    stateRange[ 0 ]--;
-                    stateRange[ 1 ]++;
-                }
-                else {
-                    stateRange[ 0 ] = Math.floor( val );
-                    stateRange[ 1 ] = Math.ceil( val );
-                }
-            }
-
-            /* Otherwise, introduce padding for calculated bounds. */
-            else {
-                double pad = ( stateRange[ 1 ] - stateRange[ 0 ] ) * PAD_RATIO;
-                if ( loCalcs[ idim ] ) {
-                    stateRange[ 0 ] -= pad;
-                }
-                if ( hiCalcs[ idim ] ) {
-                    stateRange[ 1 ] += pad;
-                }
-            }
-            assert state.getRanges()[ idim ][ 0 ] 
-                 < state.getRanges()[ idim ][ 1 ];
-        }
     }
 
     /**
@@ -249,6 +173,8 @@ public class PlotStateFactory {
      */
     protected void configurePlotState( PlotState state, Environment env )
             throws TaskException {
+        int mainNdim = mainDimNames_.length;
+        state.setMainNdim( mainNdim );
         String[] paramNames = env.getNames();
 
         /* Work out which parameter suffixes are being used to identify
@@ -260,6 +186,29 @@ public class PlotStateFactory {
         String[] tableLabels = getSuffixes( paramNames, tPrefix );
         int nTable = tableLabels.length;
 
+        /* Get a list of all the axis names being used.  This includes the
+         * main axes and any auxiliary ones. */
+        List axNameList = new ArrayList();
+        axNameList.addAll( Arrays.asList( mainDimNames_ ) );
+        String[] auxLabels;
+        if ( useAux_ ) {
+            auxLabels = AxisParameterSet.getAuxAxisNames( paramNames );
+            for ( int ia = 0; ia < auxLabels.length; ia++ ) {
+                axNameList.add( "aux" + auxLabels[ ia ] );
+            }
+        }
+        else {
+            auxLabels = new String[ 0 ];
+        }
+        String[] allAxNames = (String[]) axNameList.toArray( new String[ 0 ] );
+        int allNdim = allAxNames.length;
+
+        /* Assemble parameter groups corresponding to each axis. */
+        AxisParameterSet[] axParamSets = new AxisParameterSet[ allNdim ];
+        for ( int idim = 0; idim < allNdim; idim++ ) {
+            axParamSets[ idim ] = new AxisParameterSet( allAxNames[ idim ] );
+        }
+
         /* Construct a PlotData object for the data obtained from each table. */
         PlotData[] datas = new PlotData[ nTable ];
         String[] coordExprs0 = null;
@@ -267,9 +216,18 @@ public class PlotStateFactory {
             new StyleDispenser( getStyleSet( env ) );
         for ( int itab = 0; itab < nTable; itab++ ) {
             String tlabel = tableLabels[ itab ];
-            StarTable table = getTable( env, tlabel );
-            String[] coordExprs = getCoordExpressions( env, tlabel );
-            String labelExpr = getLabelExpression( env, tlabel );
+            StarTable table = getInputTable( env, tlabel );
+            String[] coordExprs = new String[ allNdim ];
+            for ( int idim = 0; idim < allNdim; idim++ ) {
+                Parameter coordParam =
+                    axParamSets[ idim ].createCoordParameter( tlabel );
+                if ( idim > mainNdim ) {
+                    coordParam.setNullPermitted( true );
+                }
+                coordExprs[ idim ] = coordParam.stringValue( env );
+            }
+            String labelExpr =
+                createLabelParameter( tlabel ).stringValue( env );
             SubsetDef[] subsetDefs =
                 getSubsetDefinitions( env, tlabel, styleDispenser );
             int nset = subsetDefs.length;
@@ -299,28 +257,157 @@ public class PlotStateFactory {
          * the data objects from all the input tables. */
         state.setPlotData( new MultiPlotData( datas ) );
 
-        /* Configure non-table-based properties of the plot state. */
-        state.setMainNdim( ndim_ );
-        boolean[] logFlags = new boolean[ ndim_ ];
-        boolean[] flipFlags = new boolean[ ndim_ ];
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            logFlags[ idim ] = logParams_[ idim ].booleanValue( env );
-            flipFlags[ idim ] = flipParams_[ idim ].booleanValue( env );
+        /* Configure other per-axis properties. */
+        boolean[] logFlags = new boolean[ allNdim ];
+        boolean[] flipFlags = new boolean[ allNdim ];
+        double[][] ranges = new double[ allNdim ][];
+        String[] labels = new String[ allNdim ];
+        for ( int idim = 0; idim < allNdim; idim++ ) {
+            AxisParameterSet axParamSet = axParamSets[ idim ];
+            logFlags[ idim ] = axParamSet.logParam_.booleanValue( env );
+            flipFlags[ idim ] = axParamSet.flipParam_.booleanValue( env );
+            ranges[ idim ] = new double[] {
+                axParamSet.loParam_.doubleValue( env ),
+                axParamSet.hiParam_.doubleValue( env ),
+            };
+            String labelDefault = coordExprs0[ idim ];
+            if ( labelDefault == null || labelDefault.trim().length() == 0 ) {
+                labelDefault = idim < mainNdim
+                             ? mainDimNames_[ idim ]
+                             : "Aux " + ( idim - mainNdim + 1 );
+            }
+            axParamSet.labelParam_.setDefault( labelDefault );
+            labels[ idim ] = axParamSet.labelParam_.stringValue( env );
         }
         state.setLogFlags( logFlags );
         state.setFlipFlags( flipFlags );
-        state.setAxisLabels( getAxisLabels( env, coordExprs0 ) );
-        state.setRanges( getFixedRanges( env ) );
+        state.setRanges( ranges );
+        state.setAxisLabels( labels );
+
+        /* Configure per-auxiliary axis properties. */
+        Shader[] shaders = new Shader[ auxLabels.length ];
+        ShaderParameter[] shaderParams = createShaderParameters( auxLabels );
+        for ( int ia = 0; ia < auxLabels.length; ia++ ) {
+            shaders[ ia ] = shaderParams[ ia ].shaderValue( env );
+        }
+        state.setShaders( shaders );
+
+        /* Configure other properties. */
+        state.setGrid( gridParam_.booleanValue( env ) );
+    }
+
+    /**
+     * Configures the range attributes of the given state, ensuring that they
+     * have non-NaN values.
+     * The default implementation currently fills in zero for lower limits
+     * and 1 for upper limits if no other values have been specified.
+     *
+     * @param   state  plot state whose ranges will to be configured
+     * @param   plot   table plot for which configuration is to be done
+     */
+    public void configureRanges( PlotState state, TablePlot plot )
+            throws TaskException, IOException {
+        PlotData plotData = state.getPlotData();
+        int ndim = plotData.getNdim();
+        int mainNdim = mainDimNames_.length;
+
+        /* Work out which limits, if any, need calculating. */
+        boolean[] loCalcs = new boolean[ ndim ];
+        boolean[] hiCalcs = new boolean[ ndim ];
+        int ncalc = 0;
+        for ( int idim = 0; idim < ndim; idim++ ) {
+            double[] range = state.getRanges()[ idim ];
+            if ( Double.isNaN( range[ 0 ] ) ) {
+                loCalcs[ idim ] = true;
+                ncalc++;
+            }
+            if ( Double.isNaN( range[ 1 ] ) ) {
+                hiCalcs[ idim ] = true;
+                ncalc++;
+            }
+        }
+
+        /* If none need calculating (all have been specified explicitly),
+         * return with no further work. */
+        if ( ncalc == 0 ) {
+            return;
+        }
+
+        /* Otherwise, work through the plot data to locate bounds. */
+        DataBounds bounds = plot.calculateBounds( plotData, state );
+
+        /* And fill in the plot state limits with the results. */
+        for ( int idim = 0; idim < ndim; idim++ ) {
+            double[] stateRange = state.getRanges()[ idim ];
+            double[] calcRange = bounds.getRanges()[ idim ].getBounds();
+            String dimName = idim < mainNdim ? mainDimNames_[ idim ] : "Aux";
+            if ( loCalcs[ idim ] ) {
+                if ( ! hiCalcs[ idim ] && stateRange[ 1 ] <= calcRange[ 0 ] ) {
+                    String msg =
+                        "Supplied " + dimName + " upper bound (" +
+                        stateRange[ 1 ] +
+                        ") is less than data lower bound (" +
+                        calcRange[ 0 ] +
+                        ")";
+                    throw new ExecutionException( msg );
+                }
+                stateRange[ 0 ] = calcRange[ 0 ];
+            }
+            if ( hiCalcs[ idim ] ) {
+                if ( ! loCalcs[ idim ] && stateRange[ 0 ] >= calcRange[ 1 ] ) {
+                    String msg = 
+                        "Supplied " + dimName + " lower bound (" +
+                        stateRange[ 0 ] +
+                        ") is greater than data upper bound (" +
+                        calcRange[ 1 ] +
+                        ")";
+                    throw new ExecutionException( msg );
+                }
+                stateRange[ 1 ] = calcRange[ 1 ];
+            }
+            assert stateRange[ 0 ] <= stateRange[ 1 ];
+
+            /* If lower and upper bounds are equal, nudge them down and up
+             * respectively by an arbitrary amount. */
+            if ( stateRange[ 0 ] == stateRange[ 1 ] ) {
+                double val = stateRange[ 0 ];
+                if ( val == Math.floor( val ) ) {
+                    stateRange[ 0 ]--;
+                    stateRange[ 1 ]++;
+                }
+                else {
+                    stateRange[ 0 ] = Math.floor( val );
+                    stateRange[ 1 ] = Math.ceil( val );
+                }
+            }
+
+            /* Otherwise, introduce padding for calculated bounds
+             * for non-auxiliary axes only. */
+            else {
+                if ( idim < mainNdim ) {
+                    double pad =
+                        ( stateRange[ 1 ] - stateRange[ 0 ] ) * PAD_RATIO;
+                    if ( loCalcs[ idim ] ) {
+                        stateRange[ 0 ] -= pad;
+                    }
+                    if ( hiCalcs[ idim ] ) {
+                        stateRange[ 1 ] += pad;
+                    }
+                }
+            }
+            assert state.getRanges()[ idim ][ 0 ] 
+                 < state.getRanges()[ idim ][ 1 ];
+        }
     }
 
     /**
      * Obtains a table with a given table label from the environment.
      *
-     * @param   env   execution environmento
+     * @param   env   execution environment
      * @param   tlabel  table parameter label
      * @return   input table table
      */
-    private StarTable getTable( Environment env, String tlabel )
+    private StarTable getInputTable( Environment env, String tlabel )
             throws TaskException {
         TableProducer producer =
             ConsumerTask.createProducer( env, createFilterParameter( tlabel ),
@@ -331,37 +418,6 @@ public class PlotStateFactory {
         catch ( IOException e ) {
             throw new ExecutionException( "Table processing error", e );
         }
-    }
-
-    /**
-     * Obtains the point coordinates expressions from the environment
-     * for a given table.
-     *
-     * @param   env  execution environment
-     * @param   tlabel  table parameter label
-     * @return  ndim-element array of point coordinate JEL expressions
-     */
-    private String[] getCoordExpressions( Environment env, String tlabel )
-            throws TaskException {
-        String[] coordExprs = new String[ ndim_ ];
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            coordExprs[ idim ] = createCoordParameter( tlabel, idim )
-                                .stringValue( env );
-        }
-        return coordExprs;
-    }
-
-    /**
-     * Obtains the text label expression from the environment
-     * for a given table.
-     *
-     * @param  env  execution environment
-     * @param  tlabel   table parameter label
-     * @return   text label JEL expression (may be null)
-     */
-    private String getLabelExpression( Environment env, String tlabel )
-            throws TaskException {
-        return createLabelParameter( tlabel ).stringValue( env );
     }
 
     /**
@@ -428,46 +484,6 @@ public class PlotStateFactory {
     }
 
     /**
-     * Obtains explicitly specified axis ranges from the environment.
-     * Range values which are not explicitly specified are represented
-     * as NaNs.
-     *
-     * @param  env  execution environment
-     * @return  ndim-element array of per-dimension 
-     *          2-element (low, high) fixed range limits
-     */
-    private double[][] getFixedRanges( Environment env ) throws TaskException {
-        double[][] ranges = new double[ ndim_ ][];
-        for ( int id = 0; id < ndim_; id++ ) {
-            ranges[ id ] = new double[] {
-                loParams_[ id ].doubleValue( env ),
-                hiParams_[ id ].doubleValue( env ),
-            };
-        }
-        return ranges;
-    }
-
-    /**
-     * Obtains axis labels from the environment.
-     *
-     * @param   env  execution environment
-     * @return  dflts  ndim-element array of default values for axis labels
-     */
-    private String[] getAxisLabels( Environment env, String[] dflts )
-            throws TaskException {
-        String[] labels = new String[ ndim_ ];
-        for ( int id = 0; id < ndim_; id++ ) {
-            String dflt = dflts[ id ];
-            if ( dflt == null || dflt.trim().length() == 0 ) {
-                dflt = dimNames_[ id ];
-            }
-            axlabelParams_[ id ].setDefault( dflt );
-            labels[ id ] = axlabelParams_[ id ].stringValue( env );
-        }
-        return labels;
-    }
-
-    /**
      * Constructs an input table parameter with a given suffix.
      *
      * @param   tlabel  table parameter label
@@ -485,18 +501,6 @@ public class PlotStateFactory {
      */
     private FilterParameter createFilterParameter( String tlabel ) {
         return new FilterParameter( FILTER_PREFIX + tlabel );
-    }
-
-    /**
-     * Constructs a coordinate expression parameter.
-     *
-     * @param   tlabel  table parameter label
-     * @param   idim    dimension index
-     * @return  new coord expression parameter
-     */
-    private Parameter createCoordParameter( String tlabel, int idim ) {
-        return new Parameter( dimNames_[ idim ].toLowerCase()
-                            + "data" + tlabel );
     }
 
     /**
@@ -518,7 +522,9 @@ public class PlotStateFactory {
      * @return  new subset expression parameter
      */
     private Parameter createSubsetExpressionParameter( String stlabel ) {
-        return new Parameter( SUBSET_PREFIX + stlabel );
+        Parameter param = new Parameter( SUBSET_PREFIX + stlabel );
+        param.setUsage( "<expr>" );
+        return param;
     }
 
     /**
@@ -533,6 +539,26 @@ public class PlotStateFactory {
         return nameParam;
     }
 
+    /**
+     * Constructs one or more parameters for selecting shaders on auxiliary
+     * axes.
+     *
+     * @param  auxlabels  labels for auxiliary axes for which shaders are
+     *                    required
+     * @return   shader parameter array (one for each auxlabel)
+     */
+    private ShaderParameter[] createShaderParameters( String[] auxlabels ) {
+        int nparam = auxlabels.length;
+        ShaderParameter[] params = new ShaderParameter[ nparam ];
+        String[] dflts = ShaderParameter.getDefaultValues( nparam );
+        for ( int i = 0; i < nparam; i++ ) {
+            params[ i ] =
+                new ShaderParameter( AUX_PREFIX + auxlabels[ i ] + "shader" );
+            params[ i ].setDefault( dflts[ i ] );
+        }
+        return params;
+    }
+       
     /**
      * Returns an array of unique identifying suffixes associated with a
      * given prefix from a list of strings.  Each string in <code>names</code>
@@ -554,6 +580,139 @@ public class PlotStateFactory {
             }
         }
         return (String[]) suffixList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Aggregates the parameters which pertain to a single axis.
+     */
+    private static class AxisParameterSet {
+        final String axName_;
+        final DoubleParameter loParam_;
+        final DoubleParameter hiParam_;
+        final BooleanParameter logParam_;
+        final BooleanParameter flipParam_;
+        final Parameter labelParam_;
+
+        private static Pattern auxAxisRegex_;
+
+        /**
+         * Constructor.
+         *
+         * @param  axName  axis name
+         */
+        public AxisParameterSet( String axName ) {
+            axName_ = axName.toLowerCase();
+            loParam_ = new DoubleParameter( axName_ + "lo" );
+            loParam_.setNullPermitted( true );
+            hiParam_ = new DoubleParameter( axName_ + "hi" );
+            hiParam_.setNullPermitted( true );
+            logParam_ = new BooleanParameter( axName_ + "log" );
+            logParam_.setDefault( "false" );
+            flipParam_ = new BooleanParameter( axName_ + "flip" );
+            flipParam_.setDefault( "false" );
+            labelParam_ = new Parameter( axName_ + "label" );
+            labelParam_.setNullPermitted( true );
+        }
+
+        /**
+         * Returns an array of the parameters which have a one-to-one 
+         * correspondence with this axis.
+         * A corresponding array will be returned for all instances of this
+         * class.
+         *
+         * @return   array of parameters used by this axis
+         */
+        public Parameter[] getScalarParameters() {
+            return new Parameter[] {
+                loParam_,
+                hiParam_,
+                logParam_,
+                flipParam_,
+                labelParam_,
+            };
+        }
+
+        /**
+         * Returns a parameter giving an expression for the coordinate values
+         * used by this axis.  It is indexed by a table-identifying label.
+         *
+         * @param  tlabel  table identifier
+         * @return   parameter giving JEL expression for coordinate data
+         */
+        public Parameter createCoordParameter( String tlabel ) {
+            Parameter param = new Parameter( axName_ + "data" + tlabel );
+            param.setUsage( "<expr>" );
+            return param;
+        }
+
+        /**
+         * Returns a regular expression which will pull out auxiliary axis
+         * names from a parameter name.  The aux axis name is the first
+         * match group of a match using the returned regular expression.
+         *
+         * @return   regular expression pattern
+         */
+        private static Pattern getAuxAxisRegex() {
+            if ( auxAxisRegex_ == null ) {
+
+                /* Assemble list of base parameter names (no prefixes). */
+                AxisParameterSet paramSet = new AxisParameterSet( "" );
+                List nameList = new ArrayList();
+                nameList.add( paramSet.createCoordParameter( "" ).getName() );
+                Parameter[] scalarParams = paramSet.getScalarParameters();
+                for ( int ip = 0; ip < scalarParams.length; ip++ ) {
+                    nameList.add( scalarParams[ ip ].getName() );
+                }
+
+                /* Assemble regular expression string. */
+                StringBuffer sbuf = new StringBuffer()
+                    .append( "\\Q" )
+                    .append( AUX_PREFIX )
+                    .append( "\\E" )
+                    .append( '(' )
+                    .append( ".*" )
+                    .append( ')' )
+                    .append( '(' );
+                for ( Iterator it = nameList.iterator(); it.hasNext(); ) {
+                    String baseName = (String) it.next();
+                    sbuf.append( "\\Q" )
+                        .append( baseName )
+                        .append( "\\E" );
+                    if ( it.hasNext() ) {
+                        sbuf.append( '|' );
+                    }
+                }
+                sbuf.append( ')' )
+                    .append( ".*" );
+
+                /* Compile the resulting regular expression. */
+                auxAxisRegex_ =
+                    Pattern.compile( sbuf.toString(),
+                                     Pattern.CASE_INSENSITIVE );
+            }
+            return auxAxisRegex_;
+        }
+
+        /**
+         * Returns any auxiliary axis names indicated by the parameters in
+         * a given list of parameter names.  This is found by examining
+         * each given parameter name to see if it matches a pattern like
+         * "aux*data" and noting the infix parts.
+         *
+         * @param  paramNames  array of existing parameter names
+         * @return  array of auxiliary axis names
+         */
+        public static String[] getAuxAxisNames( String[] paramNames ) {
+            Pattern regex = getAuxAxisRegex();
+            Set auxNameSet = new HashSet();
+            for ( int in = 0; in < paramNames.length; in++ ) {
+                Matcher matcher = regex.matcher( paramNames[ in ] );
+                if ( matcher.matches() ) {
+                    auxNameSet.add( matcher.group( 1 ) );
+                }
+            }
+            return (String[]) auxNameSet.toArray( new String[ 0 ] );
+        }
     }
 
     /**
