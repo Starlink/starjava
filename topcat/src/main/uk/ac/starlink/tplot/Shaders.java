@@ -223,7 +223,7 @@ public class Shaders {
         }
 
         public String toString() {
-            return "Shader: " + name_;
+            return name_;
         }
     }
 
