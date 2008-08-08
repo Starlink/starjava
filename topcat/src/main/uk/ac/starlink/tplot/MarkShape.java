@@ -196,7 +196,7 @@ public abstract class MarkShape {
 
     /** Factory for open triangle shaped markers with point at the bottom. */
     public static final MarkShape OPEN_TRIANGLE_DOWN =
-            new MarkShape( "open triangle up" ) {
+            new MarkShape( "open triangle down" ) {
         public MarkStyle getStyle( Color color, int size ) {
             return shapeStyle( color, triangle( size, false ), this, size,
                                true, false );
@@ -214,7 +214,7 @@ public abstract class MarkShape {
 
     /** Factory for filled triangle shaped markers with point at the bottom. */
     public static final MarkShape FILLED_TRIANGLE_DOWN =
-            new MarkShape( "filled triangle up" ) {
+            new MarkShape( "filled triangle down" ) {
         public MarkStyle getStyle( Color color, int size ) {
             return shapeStyle( color, triangle( size, false ), this, size,
                                false, true );
