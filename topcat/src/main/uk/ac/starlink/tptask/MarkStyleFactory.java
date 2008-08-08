@@ -89,7 +89,6 @@ public class MarkStyleFactory implements StyleFactory {
 
         /* Marker size. */
         IntegerParameter sizeParam = createSizeParameter( stSuffix );
-        sizeParam.setDefault( Integer.toString( style0.getSize() ) );
         int size = sizeParam.intValue( env );
 
         /* Transparency (opacity limit). */
@@ -132,9 +131,14 @@ public class MarkStyleFactory implements StyleFactory {
         IntegerParameter param =
             new IntegerParameter( paramName( "size", stSuffix ) );
         param.setPrompt( "Marker size in pixels for data set " + stSuffix );
+        param.setDefault( Integer.toString( -1 ) );
         param.setDescription( new String[] {
             "<p>Defines the marker size in pixels for markers plotted in",
             "data set " + stSuffix + ".",
+            "If the value is negative, an attempt will be made to use a",
+            "suitable size according to how many points there are to be",
+            "plotted.",
+            "</p>",
         } );
         return param;
     }
