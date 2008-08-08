@@ -143,7 +143,16 @@ public class ObjectFactory {
             throw new RuntimeException( e );
         }
         catch ( InvocationTargetException e ) {
-            throw new RuntimeException( e.getCause() );
+            Throwable e2 = e.getCause();
+            if ( e2 instanceof RuntimeException ) {
+                throw (RuntimeException) e2;
+            }
+            else if ( e2 instanceof Error ) {
+                throw (Error) e2;
+            }
+            else {
+                throw new RuntimeException( e2 );
+            }
         }
     }
 }
