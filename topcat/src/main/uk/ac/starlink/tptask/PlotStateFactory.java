@@ -25,7 +25,6 @@ import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
 import uk.ac.starlink.tplot.Shader;
 import uk.ac.starlink.tplot.Style;
-import uk.ac.starlink.tplot.StyleSet;
 import uk.ac.starlink.tplot.TablePlot;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
@@ -48,6 +47,7 @@ public class PlotStateFactory {
     private static final String FILTER_PREFIX = "cmd";
     private static final String SUBSET_PREFIX = "subset";
     private static final String AUX_PREFIX = "aux";
+    private static final String STYLE_PREFIX = "";
     private static final String TABLE_VARIABLE = "N";
     private static final String SUBSET_VARIABLE = "S";
     private static final String AUX_VARIABLE = "";
@@ -137,6 +137,8 @@ public class PlotStateFactory {
         paramList.add( createLabelParameter( tSuffix ) );
         paramList.add( createSubsetExpressionParameter( stSuffix ) );
         paramList.add( createSubsetNameParameter( stSuffix ) );
+        paramList.addAll( Arrays.asList( createStyleFactory( STYLE_PREFIX )
+                                        .getParameters( stSuffix ) ) );
         paramList.add( gridParam_ );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
@@ -184,6 +186,7 @@ public class PlotStateFactory {
          * for obtaining other per-table parameter values. */
         String tPrefix = TABLE_PREFIX;
         String[] tableLabels = getSuffixes( paramNames, tPrefix );
+        Arrays.sort( tableLabels );
         int nTable = tableLabels.length;
 
         /* Get a list of all the axis names being used.  This includes the
@@ -193,6 +196,7 @@ public class PlotStateFactory {
         String[] auxLabels;
         if ( useAux_ ) {
             auxLabels = AxisParameterSet.getAuxAxisNames( paramNames );
+            Arrays.sort( auxLabels );
             for ( int ia = 0; ia < auxLabels.length; ia++ ) {
                 axNameList.add( "aux" + auxLabels[ ia ] );
             }
@@ -212,8 +216,7 @@ public class PlotStateFactory {
         /* Construct a PlotData object for the data obtained from each table. */
         PlotData[] datas = new PlotData[ nTable ];
         String[] coordExprs0 = null;
-        StyleDispenser styleDispenser =
-            new StyleDispenser( getStyleSet( env ) );
+        StyleFactory styleFactory = createStyleFactory( STYLE_PREFIX );
         for ( int itab = 0; itab < nTable; itab++ ) {
             String tlabel = tableLabels[ itab ];
             StarTable table = getInputTable( env, tlabel );
@@ -229,7 +232,7 @@ public class PlotStateFactory {
             String labelExpr =
                 createLabelParameter( tlabel ).stringValue( env );
             SubsetDef[] subsetDefs =
-                getSubsetDefinitions( env, tlabel, styleDispenser );
+                getSubsetDefinitions( env, tlabel, styleFactory );
             int nset = subsetDefs.length;
             String[] setExprs = new String[ nset ];
             String[] setNames = new String[ nset ];
@@ -297,15 +300,18 @@ public class PlotStateFactory {
     }
 
     /**
-     * Configures the range attributes of the given state, ensuring that they
-     * have non-NaN values.
-     * The default implementation currently fills in zero for lower limits
-     * and 1 for upper limits if no other values have been specified.
+     * Performs additional plot state configuration which may require 
+     * a pass through the data.  This may do zero or more of the following:
+     * 
+     * <ol>
+     * <li>Configure the range attributes of the given state, ensuring 
+     *     that they have non-NaN values.
+     * </ol>
      *
      * @param   state  plot state whose ranges will to be configured
      * @param   plot   table plot for which configuration is to be done
      */
-    public void configureRanges( PlotState state, TablePlot plot )
+    public void configureFromData( PlotState state, TablePlot plot )
             throws TaskException, IOException {
         PlotData plotData = state.getPlotData();
         int ndim = plotData.getNdim();
@@ -401,6 +407,16 @@ public class PlotStateFactory {
     }
 
     /**
+     * Constructs a style factory which can retrieve a plotting style suitable
+     * for use with this factory from the environment.
+     *
+     * @param  prefix  prefix to use for all style-type variables
+     */
+    protected StyleFactory createStyleFactory( String prefix ) {
+        return new MarkStyleFactory( prefix );
+    }
+
+    /**
      * Obtains a table with a given table label from the environment.
      *
      * @param   env   execution environment
@@ -426,11 +442,11 @@ public class PlotStateFactory {
      *
      * @param  env  execution environment
      * @param  tlabel   table parameter label
-     * @param  styleDispenser  style factory object which can supply default
-     *         plotting styles in the absence of explicitly selected ones
+     * @param  styleFactory   factory which can examine the environment
+     *         for plotting style information
      */
     private SubsetDef[] getSubsetDefinitions( Environment env, String tlabel,
-                                              StyleDispenser styleDispenser )
+                                              StyleFactory styleFactory )
             throws TaskException {
 
         /* Work out which parameter suffixes are being used to identify
@@ -442,13 +458,15 @@ public class PlotStateFactory {
         String[] paramNames = env.getNames();
         String stPrefix = SUBSET_PREFIX + tlabel;
         String[] subLabels = getSuffixes( paramNames, stPrefix );
+        Arrays.sort( subLabels );
         int nset = subLabels.length;
 
         /* If there are no subsets for this table, consider it the same as
          * a single subset with inclusion of all points. */
         if ( nset == 0 ) {
             return new SubsetDef[] {
-                new SubsetDef( "true", tlabel, styleDispenser.getNextStyle() ),
+                new SubsetDef( "true", tlabel,
+                               styleFactory.getStyle( env, tlabel ) ),
             };
         }
 
@@ -462,25 +480,12 @@ public class PlotStateFactory {
                              .stringValue( env );
                 String name = createSubsetNameParameter( stLabel )
                              .stringValue( env );
-                Style style = styleDispenser.getNextStyle();
-                sdefs[ is ] = new SubsetDef( expr, name, style );
+                sdefs[ is ] =
+                    new SubsetDef( expr, name,
+                                   styleFactory.getStyle( env, stLabel ) );
             }
             return sdefs;
         }
-    }
-
-    /**
-     * Obtains the default ploting style set from the environment.
-     * This determines plotting styles for subsets which do not specify 
-     * style characteristics explicitly.
-     *
-     * @param   env  execution environment
-     * @return   default plot style set
-     */
-    protected StyleSet getStyleSet( Environment env ) {
-
-        /* Current implementation ignores the environment. */
-        return MarkStyles.spots( "Spots", 2 );
     }
 
     /**
@@ -534,7 +539,7 @@ public class PlotStateFactory {
      * @return  new subset name parameter
      */
     private Parameter createSubsetNameParameter( String stlabel ) {
-        Parameter nameParam = new Parameter( "setname" + stlabel );
+        Parameter nameParam = new Parameter( STYLE_PREFIX + "name" + stlabel );
         nameParam.setNullPermitted( true );
         return nameParam;
     }
@@ -558,7 +563,7 @@ public class PlotStateFactory {
         }
         return params;
     }
-       
+
     /**
      * Returns an array of unique identifying suffixes associated with a
      * given prefix from a list of strings.  Each string in <code>names</code>
@@ -734,17 +739,6 @@ public class PlotStateFactory {
             expression_ = expression;
             name_ = name;
             style_ = style;
-        }
-    }
-
-    private static class StyleDispenser {
-        StyleSet styleSet_;
-        int is_;
-        StyleDispenser( StyleSet styleSet ) {
-            styleSet_ = styleSet;
-        }
-        Style getNextStyle() {
-            return styleSet_.getStyle( is_++ );
         }
     }
 }

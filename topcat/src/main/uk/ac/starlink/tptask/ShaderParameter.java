@@ -14,7 +14,7 @@ import uk.ac.starlink.tplot.Shaders;
  * @author   Mark Taylor
  * @since    7 Aug 2008
  */
-public class ShaderParameter extends ChoiceParameter {
+public class ShaderParameter extends StyleParameter {
 
     /** List of shaders.  Order is significant; the first absolute entry in
      *  this list is the default if there is only one shader, and if there
@@ -63,11 +63,7 @@ public class ShaderParameter extends ChoiceParameter {
      * @param  name  parameter name
      */
     public ShaderParameter( String name ) {
-        super( name );
-        for ( int i = 0; i < SHADERS.length; i++ ) {
-            Shader shader = SHADERS[ i ];
-            addOption( shader, getShaderName( shader ) );
-        }
+        super( name, SHADERS );
         setPrompt( "Shader defining how aux axes are coloured" );
         setDescription( new String[] {
             "<p>Determines how data from auxiliary axes will be displayed.",
@@ -94,6 +90,10 @@ public class ShaderParameter extends ChoiceParameter {
         return (Shader) objectValue( env );
     }
 
+    public String getName( Object option ) {
+        return getShaderName( (Shader) option );
+    }
+
     /**
      * Returns some suitable default values for a set of related
      * ShaderParameters.
@@ -108,22 +108,11 @@ public class ShaderParameter extends ChoiceParameter {
         else {
             String[] dflts = new String[ count ];
             for ( int i = 0; i < count; i++ ) {
-                dflts[ i ] =
+                dflts[ i ] = 
                     getShaderName( MOD_SHADERS[ i % MOD_SHADERS.length ] );
             }
             return dflts;
         }
-    }
-
-    /**
-     * Returns the string used within the paraeter system to identify a 
-     * shader selection.
-     *
-     * @param  shader  shader
-     * @return  string identifier
-     */
-    private static String getShaderName( Shader shader ) {
-        return shader.getName().replaceAll( " ", "_" );
     }
 
     /**
@@ -147,5 +136,16 @@ public class ShaderParameter extends ChoiceParameter {
         sbuf.append( "</ul>" )
             .append( '\n' );
         return sbuf.toString();
+    }
+
+    /**
+     * Returns the string used within the paraeter system to identify a 
+     * shader selection.
+     *
+     * @param  shader  shader
+     * @return  string identifier
+     */
+    private static String getShaderName( Shader shader ) {
+        return shader.getName().toLowerCase().replaceAll( " ", "_" );
     }
 }

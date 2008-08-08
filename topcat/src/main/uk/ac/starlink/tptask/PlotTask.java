@@ -94,7 +94,7 @@ public abstract class PlotTask implements Task {
         final Painter painter = painterParam_.painterValue( env );
         return new Executable() {
             public void execute() throws TaskException, IOException {
-                stateFactory_.configureRanges( state, plot_ );
+                stateFactory_.configureFromData( state, plot_ );
                 state.setValid( true );
                 prepareComponent( plot_, xpix, ypix );
                 plot_.setState( state );
