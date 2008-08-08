@@ -52,7 +52,7 @@ public class ChoiceParameter extends Parameter {
      */
     public void addOption( Object option, String name ) {
         if ( name == null ) {
-            name = option.toString();
+            name = getName( option );
         }
         if ( nameList_.contains( name ) ) {
             throw new IllegalArgumentException( "Option " + name +
@@ -64,7 +64,8 @@ public class ChoiceParameter extends Parameter {
 
     /**
      * Adds an option value to this parameter. 
-     * The object's <code>toString</code> method supplies the name.
+     * This object's {@link #getName(java.lang.Object)} method is used to
+     * supply the option name.
      *
      * @param  option  option object
      */
@@ -123,6 +124,22 @@ public class ChoiceParameter extends Parameter {
     }
 
     /**
+     * Sets the default value for this parameter to one of the previously
+     * added options.
+     *
+     * @param  option  default option
+     */
+    public void setDefaultOption( Object option ) {
+        int iopt = optionList_.indexOf( option );
+        if ( iopt >= 0 ) {
+            setDefault( (String) nameList_.get( iopt ) );
+        }
+        else {
+            throw new IllegalArgumentException( "No such option: " + option );
+        }
+    }
+
+    /**
      * Returns an array of the string values of options accepted by this
      * parameter.
      *
@@ -140,5 +157,36 @@ public class ChoiceParameter extends Parameter {
      */
     public Object[] getOptions() {
         return optionList_.toArray( new Object[ 0 ] );
+    }
+
+    /**
+     * Converts an option value object to a string which is used to identify
+     * it as a string value of this parameter.
+     * The default implementation is <code>String.valueOf(option)</code>,
+     * but this may be overrridden.
+     *
+     * @param  option   option value
+     * @return  string representation
+     */
+    public String getName( Object option ) {
+        return String.valueOf( option );
+    }
+
+    /**
+     * Returns the option value associated with a given string by this
+     * parameter.  Null is returned if none of the options added so far
+     * has a name as supplied.  Name matching is case-insensitive.
+     *
+     * @param  name   name of option which has been added
+     * @return  correspondig option object
+     */
+    public Object getOption( String name ) {
+        int nopt = optionList_.size();
+        for ( int i = 0; i < nopt; i++ ) {
+            if ( name.equalsIgnoreCase( (String) nameList_.get( i ) ) ) {
+                return optionList_.get( i );
+            }
+        }
+        return null;
     }
 }
