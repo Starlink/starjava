@@ -318,7 +318,7 @@ public class PlotStateFactory {
         if ( requiresConfigureFromBounds( state ) ) {
             DataBounds bounds = 
                 plot.calculateBounds( state.getPlotData(), state );
-            configureFromData( state, bounds );
+            configureFromBounds( state, bounds );
         }
     }
 
@@ -332,6 +332,7 @@ public class PlotStateFactory {
      * @return  whether configureFromBounds should be called
      */
     protected boolean requiresConfigureFromBounds( PlotState state ) {
+        PlotData plotData = state.getPlotData();
 
         /* See if any of the data ranges are missing, and hence need
          * calculation; if so the answer is true. */
@@ -345,7 +346,6 @@ public class PlotStateFactory {
 
         /* See if any of the plot styles need information from data bounds;
          * if so the answer is true. */
-        PlotData plotData = state.getPlotData();
         int nset = plotData.getSetCount();
         for ( int is = 0; is < nset; is++ ) {
             if ( requiresAdjustFromData( plotData.getSetStyle( is ) ) ) {
@@ -442,7 +442,7 @@ public class PlotStateFactory {
         for ( int is = 0; is < nset; is++ ) {
             Style style = plotData.getSetStyle( is );
             if ( requiresAdjustFromData( style ) ) {
-                styles[ is ] = adjustFromData( style, bounds );
+                styles[ is ] = adjustFromData( style, is, bounds );
                 nAdjust++;
             }
             else {
@@ -481,10 +481,11 @@ public class PlotStateFactory {
      * generated from a first pass through the data.
      *
      * @param  style  plot style to update
+     * @param  iset   set index for which style is used
      * @param  bounds  data bounds calculated by a pass through the data
      */
-    public Style adjustFromData( Style style, DataBounds bounds ) {
-        int npoint = bounds.getPointCount();
+    public Style adjustFromData( Style style, int iset, DataBounds bounds ) {
+        int npoint = bounds.getPointCounts()[ iset ];
         if ( style instanceof MarkStyle ) {
             MarkStyle mstyle = (MarkStyle) style;
             if ( mstyle.getSize() < 0 ) {
