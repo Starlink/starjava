@@ -148,10 +148,11 @@ public class Histogram extends SurfacePlot {
 
     public DataBounds calculateBounds( PlotData data, PlotState state ) {
         DataBounds plotBounds = super.calculateBounds( data, state );
-        int npoint = plotBounds.getPointCount();
+        int np = plotBounds.getPointCount();
+        int[] npoints = plotBounds.getPointCounts();
         Range xRange = plotBounds.getRanges()[ 0 ];
         double[] xBounds = xRange.getFiniteBounds( state.getLogFlags()[ 0 ] );
-        return new DataBounds( new Range[] { xRange }, npoint );
+        return new DataBounds( new Range[] { xRange }, np, npoints );
     }
 
     /**

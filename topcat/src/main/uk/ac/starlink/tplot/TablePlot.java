@@ -112,15 +112,16 @@ public class TablePlot extends JComponent {
         boolean hasErrors = data.getNerror() > 0;
         int ndim = data.getNdim();
         int mainNdim = state.getMainNdim();
+        int nset = data.getSetCount();
 
         /* Set up blank range objects. */
         Range[] ranges = new Range[ ndim ];
         for ( int idim = 0; idim < ndim; idim++ ) {
             ranges[ idim ] = new Range();
         }
+        int[] npoints = new int[ nset ];
 
         /* Submit each data point which will be plotted to the ranges. */
-        int nset = data.getSetCount();
         PointSequence pseq = data.getPointSequence();
         int ip = 0;
         while ( pseq.next() ) {
@@ -135,8 +136,11 @@ public class TablePlot extends JComponent {
             }
             if ( isValid ) {
                 boolean isUsed = false;
-                for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
-                    isUsed = isUsed || pseq.isIncluded( iset );
+                for ( int iset = 0; iset < nset; iset++ ) {
+                    if ( pseq.isIncluded( iset ) ) {
+                        npoints[ iset ]++;
+                        isUsed = true;
+                    }
                 }
                 if ( isUsed ) {
                     for ( int idim = 0; idim < ndim; idim++ ) {
@@ -165,7 +169,7 @@ public class TablePlot extends JComponent {
         pseq.close();
 
         /* Return a DataBounds object containing the results. */
-        return new DataBounds( ranges, ip );
+        return new DataBounds( ranges, ip, npoints );
     }
 
     /**

@@ -310,6 +310,7 @@ public class LinesPlot extends TablePlot {
         /* Go through all the data finding extrema. */
         int nset = data.getSetCount();
         int ip = 0;
+        int[] npoints = new int[ nset ];
         PointSequence pseq = data.getPointSequence();
         while ( pseq.next() ) {
             double[] coords = pseq.getPoint();
@@ -319,8 +320,9 @@ public class LinesPlot extends TablePlot {
                 boolean isUsed = false;
                 for ( int iset = 0; iset < nset; iset++ ) {
                     if ( pseq.isIncluded( iset ) ) {
-                        int igraph = graphIndices[ iset ];
+                        npoints[ iset ]++;
                         isUsed = true;
+                        int igraph = graphIndices[ iset ];
                         yRanges[ igraph ].submit( y );
                     }
                 }
@@ -336,7 +338,7 @@ public class LinesPlot extends TablePlot {
         Range[] ranges = new Range[ ngraph + 1 ];
         ranges[ 0 ] = xRange;
         System.arraycopy( yRanges, 0, ranges, 1, ngraph );
-        return new DataBounds( ranges, ip );
+        return new DataBounds( ranges, ip, npoints );
     }
 
     /**

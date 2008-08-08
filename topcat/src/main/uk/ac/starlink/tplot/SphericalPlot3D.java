@@ -90,13 +90,17 @@ public class SphericalPlot3D extends Plot3D {
         /* Submit each data point which will be plotted to the ranges as
          * appropriate. */
         int nset = data.getSetCount();
+        int[] npoints = new int[ nset ];
         PointSequence pseq = data.getPointSequence();
         int ip = 0;
         double r2max = 0.0;
         while ( pseq.next() ) {
             boolean isUsed = false;
-            for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
-                isUsed = isUsed || pseq.isIncluded( iset );
+            for ( int iset = 0; iset < nset; iset++ ) {
+                if ( pseq.isIncluded( iset ) ) {
+                    isUsed = true;
+                    npoints[ iset ]++;
+                }
             }
             if ( isUsed ) {
                 if ( hasRadial || naux > 0 ) {
@@ -140,7 +144,7 @@ public class SphericalPlot3D extends Plot3D {
         for ( int iaux = 0; iaux < naux; iaux++ ) {
             ranges[ 1 + iaux ] = auxRanges[ iaux ];
         }
-        return new DataBounds( ranges, ip );
+        return new DataBounds( ranges, ip, npoints );
     }
 
     protected boolean frontOnly( Plot3DState state ) {
