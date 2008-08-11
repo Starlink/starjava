@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -91,6 +92,7 @@ public class HistogramWindow extends GraphicsWindow {
                new String[] { "X" }, 0, false, new ErrorModeSelectionModel[ 0 ],
                parent );
         final Histogram plot = (Histogram) getPlot();
+        plot.setPreferredSize( new Dimension( 500, 300 ) );
 
         /* Being a histogram, there's no point zooming in such a way 
          * that the Y axis goes below zero, so block that. */
