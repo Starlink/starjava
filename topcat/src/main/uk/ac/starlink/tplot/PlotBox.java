@@ -705,9 +705,9 @@ class PlotBox extends JPanel implements Printable {
      *  otherwise (500 by 300).
      *  @return The preferred size.
      */
-    public synchronized Dimension getPreferredSize() {
-        return new Dimension(_preferredWidth, _preferredHeight);
-    }
+//  public synchronized Dimension getPreferredSize() {
+//      return new Dimension(_preferredWidth, _preferredHeight);
+//  }
 
     /** Get the title of the graph, or an empty string if there is none.
      *  @return The title.
