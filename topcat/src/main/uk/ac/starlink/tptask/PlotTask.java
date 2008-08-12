@@ -178,9 +178,9 @@ public abstract class PlotTask implements Task {
         JComponent legendBox = Box.createVerticalBox();
         legendBox.setFont( plot.getFont() );
         int topgap = plot.getPlotBounds().y;
+        int auxgap = 10;
         int botgap = 37;  // hack hack hack - should come from plot component
-        legendBox.setBorder( BorderFactory
-                            .createEmptyBorder( topgap, 0, 0, 5 ) );
+        legendBox.setBorder( BorderFactory.createEmptyBorder( 0, 0, 0, 5 ) );
         box.add( legendBox, BorderLayout.EAST );
 
         /* Add an actual legend if one is required. */
@@ -199,6 +199,7 @@ public abstract class PlotTask implements Task {
                     BorderFactory.createLineBorder( Color.BLACK ),
                     BorderFactory.createEmptyBorder( 5, 5, 5, 10 ) );
             legend.setBorder( border );
+            legendBox.add( Box.createVerticalStrut( topgap ) );
             legendBox.add( legend );
             legend.setStyles( styles, labels );
         }
@@ -209,8 +210,8 @@ public abstract class PlotTask implements Task {
             legendBox.add( auxBox );
             for ( int iaux = 0; iaux < naux; iaux++ ) {
                 AuxLegend auxLegend = new AuxLegend( false, 16 );
-                auxLegend.setBorder( BorderFactory
-                                    .createEmptyBorder( 10, 0, botgap, 0 ) );
+                auxLegend.setLengthPadding( hasLegend ? auxgap : topgap,
+                                            botgap );
                 auxBox.add( auxLegend );
                 auxLegend.configure( state, iaux );
                 if ( iaux > 0 ) {
