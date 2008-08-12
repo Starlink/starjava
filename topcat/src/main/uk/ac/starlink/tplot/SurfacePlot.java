@@ -2,6 +2,7 @@ package uk.ac.starlink.tplot;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -55,6 +56,10 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
         }
         surface_ = surface;
         surface_.setState( getState() );
+        Font font = getFont();
+        if ( font != null && surface_ instanceof PtPlotSurface ) {
+            ((PtPlotSurface) surface_).setFont( font );
+        }
         Component comp = surface_.getComponent();
         add( comp );
     }
@@ -79,6 +84,13 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
         super.setState( state );
         if ( surface_ != null ) {
             surface_.setState( state );
+        }
+    }
+
+    public void setFont( Font font ) {
+        super.setFont( font );
+        if ( surface_ instanceof PtPlotSurface ) {
+            ((PtPlotSurface) surface_).setFont( font );
         }
     }
 
