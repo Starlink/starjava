@@ -11,6 +11,8 @@ import uk.ac.starlink.task.ChoiceParameter;
  */
 public class StyleParameter extends ChoiceParameter {
 
+    private boolean usageSet_;
+
     /**
      * Constructs a StyleParameter with a given list of options.
      *
@@ -30,29 +32,40 @@ public class StyleParameter extends ChoiceParameter {
         super( name );
     }
 
-    public String getUsage() {
+    public void setUsage( String usage ) {
+        usageSet_ = true;
+        super.setUsage( usage );
+    }
 
-        /* Truncates usage message to a few items and an ellipsis if it would
-         * otherwise be too long.  Styles typically have a lot of options. */
-        String[] names = getOptionNames();
-        int nopt = names.length;
-        StringBuffer sbuf = new StringBuffer();
-        if ( nopt > 4 ) {
-            for ( int i = 0; i < 2; i++ ) {
-                sbuf.append( names[ i ] );
-                sbuf.append( '|' );
-            }
-            sbuf.append( "..." );
+    public String getUsage() {
+        if ( usageSet_ ) {
+            return super.getUsage();
         }
         else {
-            for ( int i = 0; i < nopt; i++ ) {
-                if ( i > 0 ) {
+
+            /* Truncates usage message to a few items and an ellipsis if it 
+             * would otherwise be too long.  Styles typically have a 
+             * lot of options. */
+            String[] names = getOptionNames();
+            int nopt = names.length;
+            StringBuffer sbuf = new StringBuffer();
+            if ( nopt > 4 ) {
+                for ( int i = 0; i < 2; i++ ) {
+                    sbuf.append( names[ i ] );
                     sbuf.append( '|' );
                 }
-                sbuf.append( names[ i ] );
+                sbuf.append( "..." );
             }
+            else {
+                for ( int i = 0; i < nopt; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( '|' );
+                    }
+                    sbuf.append( names[ i ] );
+                }
+            }
+            return sbuf.toString();
         }
-        return sbuf.toString();
     }
 
     /**
