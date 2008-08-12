@@ -1,19 +1,30 @@
 package uk.ac.starlink.tptask;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JComponent;
-import javax.swing.OverlayLayout;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.tplot.AuxLegend;
+import uk.ac.starlink.tplot.Legend;
+import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.TablePlot;
 import uk.ac.starlink.ttools.task.InputTableSpec;
 
@@ -31,6 +42,8 @@ public abstract class PlotTask implements Task {
     private final List paramList_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
+    private final BooleanParameter legendParam_;
+    private final FontParameter fontParam_;
     private final PaintModeParameter painterParam_;
 
     /**
@@ -67,6 +80,20 @@ public abstract class PlotTask implements Task {
         ypixParam_.setDefault( "300" );
         paramList_.add( ypixParam_ );
 
+        fontParam_ = new FontParameter( "font" );
+        paramList_.add( fontParam_ );
+        paramList_.addAll( Arrays
+                          .asList( fontParam_.getAssociatedParameters() ) );
+
+        legendParam_ = new BooleanParameter( "legend" );
+        legendParam_.setPrompt( "Whether to include legend" );
+        legendParam_.setDescription( new String[] {
+            "<p>Determines whether a legend showing which plotting style is",
+            "used for each data set.",
+            "Defaults to true if there is more than one set, false otherwise.",
+            "</p>",
+        } );
+
         painterParam_ = new PaintModeParameter( "omode" );
         paramList_.add( painterParam_ );
         paramList_.addAll( Arrays.asList( painterParam_
@@ -91,50 +118,108 @@ public abstract class PlotTask implements Task {
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
         final PlotState state = stateFactory_.getPlotState( env );
+        legendParam_.setDefault( state.getPlotData().getSetCount() > 1
+                                      ? "true"
+                                      : "false" );
+        final boolean hasLegend = legendParam_.booleanValue( env );
         final Painter painter = painterParam_.painterValue( env );
+        final Font font = fontParam_.fontValue( env );
         return new Executable() {
             public void execute() throws TaskException, IOException {
                 stateFactory_.configureFromData( state, plot_ );
                 state.setValid( true );
-                prepareComponent( plot_, xpix, ypix );
                 plot_.setState( state );
-                painter.paintPlot( plot_ );
+                plot_.setFont( font );
+
+                /* Add legend if required. */
+                JComponent box = addLegend( plot_, state, hasLegend );
+
+                /* Set the size for the output image. */
+                box.setSize( new Dimension( xpix, ypix ) );
+
+                /* Some magic is required in order to get a Swing component
+                 * laid out and painted when it is not actually present on
+                 * screen.  See, e.g., Sun's Java bugs #4356383, #4639354, 
+                 * #4520228. */
+                box.setDoubleBuffered( false );  // is this sensible??
+                box.addNotify();
+                box.validate();
+
+                /* Paint the plot to its final destination. */
+                painter.paintPlot( box );
             }
         };
     }
 
     /**
-     * Sets a component to a given size and performs any other tasks which
-     * need to be done before it is ready to get passed to a painter.
+     * Adds legend-type material to a plot.
      *
-     * @param  comp  component to prepare
-     * @param  xpix  size in X dimension
-     * @param  ypix  size in Y dimension
+     * @param   plot  table plot component
+     * @param   state  plot state
+     * @param   hasLegend  whether the plot should feature a normal legend
+     * @return   output component; may or may not be the same as 
+     *           <code>plot</code>
      */
-    private static void prepareComponent( JComponent comp,
-                                          int xpix, int ypix ) {
+    private static JComponent addLegend( final TablePlot plot, PlotState state,
+                                         boolean hasLegend ) {
 
-        /* Resize the component itself. */
-        Dimension size = new Dimension( xpix, ypix );
-        comp.setSize( size );
+        /* Return if no legend material is required. */
+        int naux = state.getShaders().length;
+        if ( naux == 0 && ! hasLegend ) {
+            return plot;
+        }
 
-        /* The next two items are a bit of a hack, and involve doing things
-         * which would normally get done by Swing as part of the business 
-         * of packing the component into a window.  Really, I shouldn't
-         * be using JComponents or Components at all here, but just
-         * painting onto a given Graphics2D object.  But with these steps
-         * in place it seems to work. */
+        /* Otherwise set up a new component containing the given plot. */
+        JComponent box = new JPanel( new BorderLayout() );
+        box.setOpaque( false );
+        box.add( plot, BorderLayout.CENTER );
 
-        /* Resize any contained components where required. */
-        if ( comp.getLayout() instanceof OverlayLayout ) {
-            int nc = comp.getComponentCount();
-            for ( int ic = 0; ic < nc; ic++ ) {
-                comp.getComponent( ic ).setSize( size );
+        /* Prepare and place a component to host legend-type material. */
+        JComponent legendBox = Box.createVerticalBox();
+        legendBox.setFont( plot.getFont() );
+        int topgap = plot.getPlotBounds().y;
+        int botgap = 37;  // hack hack hack - should come from plot component
+        legendBox.setBorder( BorderFactory
+                            .createEmptyBorder( topgap, 0, 0, 5 ) );
+        box.add( legendBox, BorderLayout.EAST );
+
+        /* Add an actual legend if one is required. */
+        if ( hasLegend ) {
+            PlotData plotData = state.getPlotData();
+            int nset = plotData.getSetCount();
+            Style[] styles = new Style[ nset ];
+            String[] labels = new String[ nset ];
+            for ( int is = 0; is < nset; is++ ) {
+                styles[ is ] = plotData.getSetStyle( is );
+                labels[ is ] = plotData.getSetName( is );
+            }
+            Legend legend = new Legend();
+            Border border =
+                BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder( Color.BLACK ),
+                    BorderFactory.createEmptyBorder( 5, 5, 5, 10 ) );
+            legend.setBorder( border );
+            legendBox.add( legend );
+            legend.setStyles( styles, labels );
+        }
+
+        /* Add auxiliary axis keys if required. */
+        if ( naux > 0 ) {
+            Box auxBox = Box.createHorizontalBox();
+            legendBox.add( auxBox );
+            for ( int iaux = 0; iaux < naux; iaux++ ) {
+                AuxLegend auxLegend = new AuxLegend( false, 16 );
+                auxLegend.setBorder( BorderFactory
+                                    .createEmptyBorder( 10, 0, botgap, 0 ) );
+                auxBox.add( auxLegend );
+                auxLegend.configure( state, iaux );
+                if ( iaux > 0 ) {
+                    auxBox.add( Box.createHorizontalStrut( 10 ) );
+                }
             }
         }
 
-        /* Work around Java bug #4520228 - without this, children are not
-         * painted (which normally means an empty plot). */
-        comp.addNotify();
+        /* Return the component containing plot and legend. */
+        return box;
     }
 }
