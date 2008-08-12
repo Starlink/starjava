@@ -1,9 +1,11 @@
 package uk.ac.starlink.tplot;
 
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ValueInfo;
@@ -31,6 +33,17 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         /* Set _uly here - the superclass sets it during plotting, which 
          * messes up alignments done prior to the plot. */
         _uly = _topPadding + 5;
+    }
+
+    public void setFont( Font font ) {
+        super.setFont( font );
+        _labelFont = font;
+        _labelFontMetrics = getFontMetrics( _labelFont );
+        double superScale = 0.75;
+        _superscriptFont =
+             font.deriveFont( AffineTransform
+                             .getScaleInstance( superScale, superScale ) );
+        _superscriptFontMetrics = getFontMetrics( _superscriptFont );
     }
 
     public void setState( PlotState state ) {
