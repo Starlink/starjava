@@ -16,6 +16,7 @@ public class ChoiceParameter extends Parameter {
     private final List optionList_;
     private final List nameList_;
     private Object objectValue_;
+    private boolean usageSet_;
 
     /**
      * Constructs a ChoiceParameter with a given list of options.
@@ -73,15 +74,32 @@ public class ChoiceParameter extends Parameter {
         addOption( option, null );
     }
 
+    /**
+     * Returns a usage message.  Unless it has been overriden by an earlier
+     * call to {@link #setUsage}, this will return a usage message based on
+     * the list of known options.
+     *
+     * @return   usage message
+     */
     public String getUsage() {
-        StringBuffer sbuf = new StringBuffer();
-        for ( Iterator it = nameList_.iterator(); it.hasNext(); ) {
-            sbuf.append( (String) it.next() );
-            if ( it.hasNext() ) {
-                sbuf.append( '|' );
-            }
+        if ( usageSet_ ) {
+            return super.getUsage();
         }
-        return sbuf.toString();
+        else {
+            StringBuffer sbuf = new StringBuffer();
+            for ( Iterator it = nameList_.iterator(); it.hasNext(); ) {
+                sbuf.append( (String) it.next() );
+                if ( it.hasNext() ) {
+                    sbuf.append( '|' );
+                }
+            }
+            return sbuf.toString();
+        }
+    }
+
+    public void setUsage( String usage ) {
+        usageSet_ = true;
+        super.setUsage( usage );
     }
 
     public void setValueFromString( Environment env, String value )
