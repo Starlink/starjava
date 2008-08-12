@@ -192,6 +192,11 @@ public class PaintModeParameter extends ChoiceParameter {
                                       PaintModeParameter param ) {
             return new Painter() {
                 public void paintPlot( JComponent plot ) {
+
+                    /* The mode may have got set to single-buffered by other
+                     * bits of code - reverse this. */
+                    // (I admit I'm not quite sure about double buffering)
+                    plot.setDoubleBuffered( true );
                     plot.setPreferredSize( plot.getSize() );
                     final JFrame frame = new JFrame();
                     frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
