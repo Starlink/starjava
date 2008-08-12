@@ -1039,10 +1039,10 @@ public class Shaders {
             for ( int ipix = 0; ipix < npix; ipix++ ) {
                 g.setColor( getColor( ipix * np1 ) );
                 if ( horizontal_ ) {
-                    g.fillRect( xlo + ipix, ylo, 1, yhi - ylo );
+                    g.fillRect( xlo + ipix - 1, ylo, 1, yhi - ylo );
                 }
                 else {
-                    g.fillRect( xlo, ylo + ipix, xhi - xlo, 1 );
+                    g.fillRect( xlo, ylo + ipix - 1, xhi - xlo, 1 );
                 }
             }
             g.setColor( origColor );
