@@ -26,7 +26,11 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         setColor( false );
         _setPadding( 0.0 );
         _expThreshold = 3;
-        _topPadding = 5;
+        _topPadding = 0;
+
+        /* Set _uly here - the superclass sets it during plotting, which 
+         * messes up alignments done prior to the plot. */
+        _uly = _topPadding + 5;
     }
 
     public void setState( PlotState state ) {
