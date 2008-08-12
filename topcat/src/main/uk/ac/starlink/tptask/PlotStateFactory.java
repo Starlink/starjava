@@ -602,8 +602,9 @@ public class PlotStateFactory {
                 String stLabel = tlabel + subLabels[ is ];
                 String expr = createSubsetExpressionParameter( stLabel )
                              .stringValue( env );
-                String name = createSubsetNameParameter( stLabel )
-                             .stringValue( env );
+                Parameter nameParam = createSubsetNameParameter( stLabel );
+                nameParam.setDefault( expr );
+                String name = nameParam.stringValue( env );
                 sdefs[ is ] =
                     new SubsetDef( expr, name,
                                    styleFactory.getStyle( env, stLabel ) );
