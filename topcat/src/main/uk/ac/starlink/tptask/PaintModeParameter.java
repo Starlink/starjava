@@ -192,6 +192,7 @@ public class PaintModeParameter extends ChoiceParameter {
                                       PaintModeParameter param ) {
             return new Painter() {
                 public void paintPlot( JComponent plot ) {
+                    plot.setPreferredSize( plot.getSize() );
                     final JFrame frame = new JFrame();
                     frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
                     frame.getContentPane().add( plot );
