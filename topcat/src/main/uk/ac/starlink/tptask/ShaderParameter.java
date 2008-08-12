@@ -76,10 +76,6 @@ public class ShaderParameter extends StyleParameter {
         } );
     }
 
-    public String getUsage() {
-        return "<shader-name>";
-    }
-
     /**
      * Returns the value of this parameter as a Shader object.
      *
