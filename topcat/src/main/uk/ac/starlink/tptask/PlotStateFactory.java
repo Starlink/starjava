@@ -19,6 +19,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.tplot.DataBounds;
+import uk.ac.starlink.tplot.MarkShape;
 import uk.ac.starlink.tplot.MarkStyle;
 import uk.ac.starlink.tplot.MarkStyles;
 import uk.ac.starlink.tplot.MultiPlotData;
@@ -512,8 +513,10 @@ public class PlotStateFactory {
                     size = 4;
                 }
                 if ( size != mstyle.getSize() ) {
-                    MarkStyle style1= mstyle.getShapeId()
-                                     .getStyle( mstyle.getColor(), size );
+                    MarkShape shape = size > 0 ? mstyle.getShapeId()
+                                               : MarkShape.POINT;
+                    MarkStyle style1 =
+                        shape.getStyle( mstyle.getColor(), size );
                     style1.setLine( mstyle.getLine() );
                     style1.setLineWidth( mstyle.getLineWidth() );
                     style1.setDash( mstyle.getDash() );
