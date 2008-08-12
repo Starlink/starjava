@@ -3383,10 +3383,10 @@ class PlotBox extends JPanel implements Printable {
     private double _ytickscale = 0.0, _xtickscale = 0.0;
 
     /** @serial Font information. */
-    private Font _labelFont = null, _superscriptFont = null,
+    protected Font _labelFont = null, _superscriptFont = null,
         _titleFont = null;
     /** @serial FontMetric information. */
-    private FontMetrics _labelFontMetrics = null,
+    protected FontMetrics _labelFontMetrics = null,
         _superscriptFontMetrics = null,
         _titleFontMetrics = null;
 
