@@ -11,7 +11,9 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
@@ -45,6 +47,7 @@ public abstract class PlotTask implements Task {
     private final BooleanParameter legendParam_;
     private final FontParameter fontParam_;
     private final PaintModeParameter painterParam_;
+    private final Parameter titleParam_;
 
     /**
      * Constructor.
@@ -94,6 +97,15 @@ public abstract class PlotTask implements Task {
             "</p>",
         } );
 
+        titleParam_ = new Parameter( "title" );
+        titleParam_.setPrompt( "Plot title" );
+        titleParam_.setNullPermitted( true );
+        titleParam_.setDescription( new String[] {
+            "<p>A one-line title to display at the top of the plot.",
+            "</p>",
+        } );
+        paramList_.add( titleParam_ );
+
         painterParam_ = new PaintModeParameter( "omode" );
         paramList_.add( painterParam_ );
         paramList_.addAll( Arrays.asList( painterParam_
@@ -124,6 +136,7 @@ public abstract class PlotTask implements Task {
         final boolean hasLegend = legendParam_.booleanValue( env );
         final Painter painter = painterParam_.painterValue( env );
         final Font font = fontParam_.fontValue( env );
+        final String title = titleParam_.stringValue( env );
         return new Executable() {
             public void execute() throws TaskException, IOException {
                 stateFactory_.configureFromData( state, plot_ );
@@ -132,7 +145,8 @@ public abstract class PlotTask implements Task {
                 plot_.setFont( font );
 
                 /* Add legend if required. */
-                JComponent box = addLegend( plot_, state, hasLegend );
+                JComponent box =
+                    addDecoration( plot_, state, hasLegend, title );
 
                 /* Set the size for the output image. */
                 box.setSize( new Dimension( xpix, ypix ) );
@@ -157,26 +171,38 @@ public abstract class PlotTask implements Task {
      * @param   plot  table plot component
      * @param   state  plot state
      * @param   hasLegend  whether the plot should feature a normal legend
+     * @param   title   plot title
      * @return   output component; may or may not be the same as 
      *           <code>plot</code>
      */
-    private static JComponent addLegend( final TablePlot plot, PlotState state,
-                                         boolean hasLegend ) {
+    private static JComponent addDecoration( final TablePlot plot,
+                                             PlotState state, boolean hasLegend,
+                                             String title ) {
 
         /* Return if no legend material is required. */
         int naux = state.getShaders().length;
-        if ( naux == 0 && ! hasLegend ) {
+        if ( naux == 0 && ! hasLegend && title == null ) {
             return plot;
         }
 
         /* Otherwise set up a new component containing the given plot. */
         JComponent box = new JPanel( new BorderLayout() );
+        Font font = plot.getFont();
+        box.setFont( font );
         box.setOpaque( false );
         box.add( plot, BorderLayout.CENTER );
 
+        /* Add a title. */
+        if ( title != null ) {
+            JLabel tLabel = new JLabel( title, SwingConstants.CENTER );
+            tLabel.setFont( font );
+            tLabel.setOpaque( false );
+            box.add( tLabel, BorderLayout.NORTH );
+        }
+
         /* Prepare and place a component to host legend-type material. */
         JComponent legendBox = Box.createVerticalBox();
-        legendBox.setFont( plot.getFont() );
+        legendBox.setFont( font );
         int topgap = plot.getPlotBounds().y;
         int auxgap = 10;
         int botgap = 37;  // hack hack hack - should come from plot component
