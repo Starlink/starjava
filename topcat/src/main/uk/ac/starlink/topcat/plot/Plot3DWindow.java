@@ -36,6 +36,7 @@ import uk.ac.starlink.tplot.PlotState;
 import uk.ac.starlink.tplot.PointIterator;
 import uk.ac.starlink.tplot.PointPlacer;
 import uk.ac.starlink.tplot.StyleSet;
+import uk.ac.starlink.tplot.TablePlot;
 
 /**
  * Graphics window for viewing 3D scatter plots.
@@ -302,10 +303,6 @@ public abstract class Plot3DWindow extends GraphicsWindow
         return state;
     }
 
-    public Rectangle getPlotBounds() {
-        return ((Plot3D) getPlot()).getPlotBounds();
-    }
-
     public StyleSet getDefaultStyles( int npoint ) {
         if ( npoint > 20000 ) {
             return MARKERS1;
@@ -495,9 +492,8 @@ public abstract class Plot3DWindow extends GraphicsWindow
         }
 
         public Rectangle getTarget() {
-            Plot3D plot = (Plot3D) getPlot();
-            return getTarget( ((Plot3D) plot).getPlotBounds(),
-                              plot.getBounds() );
+            TablePlot plot = getPlot();
+            return getTarget( plot.getPlotBounds(), plot.getBounds() );
         }
 
         public void zoomed( double[][] bounds ) {
@@ -518,8 +514,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         private boolean relevant_;
 
         public void mousePressed( MouseEvent evt ) {
-            relevant_ = ((Plot3D) getPlot()).getPlotBounds()
-                       .contains( evt.getPoint() );
+            relevant_ = getPlot().getPlotBounds().contains( evt.getPoint() );
         }
 
         public void mouseDragged( MouseEvent evt ) {

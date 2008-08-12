@@ -511,11 +511,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         return new Range[] { xyRanges[ 0 ] };
     }
 
-    public Rectangle getPlotBounds() {
-        Rectangle bounds = ((LinesPlot) getPlot()).getPlotRegion();
-        return bounds == null ? getMainArea().getBounds() : bounds;
-    }
-
     protected boolean isLegendInteresting( PlotState state ) {
 
         /* Determine whether any of the plotted graphs contain more than one
@@ -615,7 +610,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         /* Add an X axis zoom region applying to all the graphs. */
         final PlotSurface surface0 = surfaces[ ngraph - 1 ];
-        Rectangle displayBox = plot.getPlotRegion();
+        Rectangle displayBox = plot.getPlotBounds();
         final int xPos = displayBox.x;
         final int xInc = displayBox.width;
         Rectangle xAxisBox =
@@ -924,7 +919,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 visible_ = false;
             }
             if ( p != null && on_ ) {
-                Rectangle zone = linesPlot_.getPlotRegion();
+                Rectangle zone = linesPlot_.getPlotBounds();
                 if ( zone.contains( p ) ) {
                     vLine_.x = p.x;
                     vLine_.y = zone.y;

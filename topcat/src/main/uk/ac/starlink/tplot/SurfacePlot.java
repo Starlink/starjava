@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import javax.swing.JComponent;
@@ -65,6 +66,13 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
      */
     public PlotSurface getSurface() {
         return surface_;
+    }
+
+    public Rectangle getPlotBounds() {
+        Rectangle bounds = getSurface().getClip().getBounds();
+        bounds.y--;
+        bounds.height += 2;
+        return bounds;
     }
 
     public void setState( PlotState state ) {

@@ -458,8 +458,9 @@ public class LinesPlot extends TablePlot {
      *
      * @return   plot region rectangle
      */
-    public Rectangle getPlotRegion() {
-        return plotRegion_;
+    public Rectangle getPlotBounds() {
+        return plotRegion_ == null ? getBounds()
+                                   : plotRegion_;
     }
 
     protected void paintComponent( Graphics g ) {

@@ -3,6 +3,7 @@ package uk.ac.starlink.tplot;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,7 +17,7 @@ import org.jibble.epsgraphics.EpsGraphics2D;
  * @author   Mark Taylor
  * @since    3 Apr 2008
  */
-public class TablePlot extends JComponent {
+public abstract class TablePlot extends JComponent {
 
     private final List plotListeners_;
     private PlotState state_;
@@ -24,7 +25,7 @@ public class TablePlot extends JComponent {
     /**
      * Constructor.
      */
-    public TablePlot() {
+    protected TablePlot() {
         plotListeners_ = new ArrayList();
     }
 
@@ -171,6 +172,19 @@ public class TablePlot extends JComponent {
         /* Return a DataBounds object containing the results. */
         return new DataBounds( ranges, ip, npoints );
     }
+
+    /**
+     * Returns the bounds of the actual plot.  This may be used for visual
+     * alignment of some items in the window.  It is permissible to return
+     * just the bounds of the plot component itself, but alignment of other
+     * components (legends) may look better if the bounds of the actual
+     * plotting region (for instance, excluding external axis labels) is
+     * returned.
+     * 
+     * @return  plot region bounds
+     */
+    public abstract Rectangle getPlotBounds();
+   
 
     /**
      * Determines whether the given graphics context represents a

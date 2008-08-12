@@ -495,14 +495,6 @@ public class HistogramWindow extends GraphicsWindow {
         return new Range[] { xRange };
     }
 
-    public Rectangle getPlotBounds() {
-        Rectangle bounds = new Rectangle( ((Histogram) getPlot())
-                                         .getSurface().getClip().getBounds() );
-        bounds.y--;
-        bounds.height += 2;
-        return bounds;
-    }
-
     /**
      * Calculates the data range on the Y axis.  Being a histogram, this
      * isn't determined by the data alone it's also a function of certain

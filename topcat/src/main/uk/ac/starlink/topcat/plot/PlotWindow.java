@@ -278,15 +278,6 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
                                     getErrorModeModels() );
     }
 
-    public Rectangle getPlotBounds() {
-        Rectangle bounds =
-            new Rectangle( ((SurfacePlot) getPlot())
-                          .getSurface().getClip().getBounds() );
-        bounds.y--;
-        bounds.height += 2;
-        return bounds;
-    }
-
     /*
      * TopcatListener implementation.
      */

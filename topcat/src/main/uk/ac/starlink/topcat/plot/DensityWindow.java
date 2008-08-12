@@ -498,15 +498,6 @@ public class DensityWindow extends GraphicsWindow {
         super.doReplot( state );
     }
 
-    public Rectangle getPlotBounds() {
-        Rectangle bounds =
-            new Rectangle( ((DensityPlot) getPlot()).getSurface()
-                          .getClip().getBounds() );
-        bounds.y--;
-        bounds.height += 2;
-        return bounds;
-    }
-
     public StyleSet getDefaultStyles( int npoint ) {
         return new StyleSet() {
             public String getName() {

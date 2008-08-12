@@ -1013,18 +1013,6 @@ public abstract class GraphicsWindow extends AuxWindow {
     protected abstract JComponent getPlotPanel();
 
     /**
-     * Returns the bounds of the actual plot.  This may be used for visual 
-     * alignment of some items in the window.  It is permissible to return
-     * just the bounds of the plot component itself, but alignment of other
-     * components (legends) may look better if the bounds of the actual 
-     * plotting region (for instance, excluding external axis labels) is 
-     * returned.
-     *
-     * @return  plot region bounds
-     */
-    public abstract Rectangle getPlotBounds();
-
-    /**
      * Performs an actual plot.
      *
      * @param  state  plot state determining details of plot configuration
@@ -1447,7 +1435,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Work out the space available above and below the actual plot
          * region within the plot component. */
         Rectangle containerRegion = plotArea_.getBounds();
-        Rectangle plotRegion = getPlotBounds();
+        Rectangle plotRegion = plot_.getPlotBounds();
         int topgap = plotRegion.y;
         int botgap = containerRegion.height - plotRegion.height - topgap;
 
