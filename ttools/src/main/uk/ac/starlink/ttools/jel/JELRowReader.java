@@ -275,6 +275,7 @@ public abstract class JELRowReader extends DVMap {
      * the expression is a primitive.
      *
      * @param  compEx  compiled expression
+     * @return   expression value at current row
      */
     public synchronized Object evaluate( CompiledExpression compEx )
              throws Throwable {
@@ -286,6 +287,27 @@ public abstract class JELRowReader extends DVMap {
          catch ( NullPointerException e ) {
              return null;
          }
+    }
+
+    /**
+     * Evaluates a given compiled expression at the given row under the 
+     * assumption that the expression represents a numeric value.
+     * The returned value is a double.  If a null value was encountered
+     * during evaluation, a NaN is returned.
+     *
+     * @param  compEx  numeric-valued compiled expression
+     * @return   expression value at current row
+     */
+    public synchronized double evaluateDouble( CompiledExpression compEx )
+             throws Throwable {
+        try {
+            isNullExpression_ = false;
+            double result = compEx.evaluate_double( args_ );
+            return isNullExpression_ ? Double.NaN : result;
+        }
+        catch ( NullPointerException e ) {
+            return Double.NaN;
+        }
     }
 
     /**
