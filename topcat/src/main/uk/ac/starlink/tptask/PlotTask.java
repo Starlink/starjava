@@ -238,12 +238,13 @@ public abstract class PlotTask implements Task {
                 AuxLegend auxLegend = new AuxLegend( false, 16 );
                 auxLegend.setLengthPadding( hasLegend ? auxgap : topgap,
                                             botgap );
-                auxBox.add( auxLegend );
-                auxLegend.configure( state, iaux );
                 if ( iaux > 0 ) {
                     auxBox.add( Box.createHorizontalStrut( 10 ) );
                 }
+                auxBox.add( auxLegend );
+                auxLegend.configure( state, iaux );
             }
+            auxBox.add( Box.createHorizontalGlue() );
         }
 
         /* Return the component containing plot and legend. */
