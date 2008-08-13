@@ -67,15 +67,15 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
         }
 
         public double getRa() throws IOException {
-            return evaluateDouble( raExpr_ );
+            return doEvaluateDouble( raExpr_ );
         }
 
         public double getDec() throws IOException {
-            return evaluateDouble( decExpr_ );
+            return doEvaluateDouble( decExpr_ );
         }
 
         public double getRadius() throws IOException {
-            return evaluateDouble( srExpr_ );
+            return doEvaluateDouble( srExpr_ );
         }
 
         /**
@@ -101,18 +101,14 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
          * @param  expr  expression to evaluate
          * @return  double value
          */
-        private double evaluateDouble( CompiledExpression expr )
+        private double doEvaluateDouble( CompiledExpression expr )
                 throws IOException {
-            Object obj;
             try {
-                obj = evaluate( expr );
+                return evaluateDouble( expr );
             }
             catch ( Throwable e ) {
                 throw new IOException( "Evaluation error: " + expr );
             }
-            return obj instanceof Number
-                 ? ((Number) obj).doubleValue()
-                 : Double.NaN;
         }
     }
 }
