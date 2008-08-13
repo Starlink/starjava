@@ -58,7 +58,7 @@ public class PlotStateFactory {
 
     private final String[] mainDimNames_;
     private final boolean useAux_;
-    private final int nerr_;
+    private final int errNdim_;
     private final BooleanParameter gridParam_;
 
     /**
@@ -66,11 +66,12 @@ public class PlotStateFactory {
      *
      * @param  dimNames names of main plot dimensions (typically "X", "Y", etc);
      * @param  useAux  whether auxiliary axes are used
+     * @param  errNdim  number of axes for which errors can be plotted
      */
-    public PlotStateFactory( String[] dimNames, boolean useAux, int nerr ) {
+    public PlotStateFactory( String[] dimNames, boolean useAux, int errNdim ) {
         mainDimNames_ = dimNames;
         useAux_ = useAux;
-        nerr_ = nerr;
+        errNdim_ = errNdim;
 
         gridParam_ = new BooleanParameter( "grid" );
         gridParam_.setDefault( true );
@@ -131,7 +132,7 @@ public class PlotStateFactory {
                 paramList.add( axScalarParams[ idim ][ ip ] );
             }
         }
-        for ( int idim = 0; idim < nerr_; idim++ ) {
+        for ( int idim = 0; idim < errNdim_; idim++ ) {
             paramList.add( createErrorParameter( mainDimNames_[ idim ],
                                                  tSuffix ) );
         }
@@ -238,8 +239,8 @@ public class PlotStateFactory {
                 }
                 coordExprs[ idim ] = coordParam.stringValue( env );
             }
-            String[] errExprs = new String[ nerr_ ];
-            for ( int idim = 0; idim < nerr_; idim++ ) {
+            String[] errExprs = new String[ errNdim_ ];
+            for ( int idim = 0; idim < errNdim_; idim++ ) {
                 errExprs[ idim ] = 
                     createErrorParameter( mainDimNames_[ idim ], tlabel )
                    .stringValue( env );
@@ -663,7 +664,8 @@ public class PlotStateFactory {
      * @return   error pair parameter
      */
     private Parameter createErrorParameter( String axName, String tlabel ) {
-        Parameter param = new Parameter( axName + "error" + tlabel );
+        Parameter param =
+            new Parameter( axName.toLowerCase() + "error" + tlabel );
         param.setUsage( "<expr>|[<lo-expr>],[<hi-expr>]" );
         param.setPrompt( "Error bound(s) in " + axName + " for table "
                        + tlabel );
