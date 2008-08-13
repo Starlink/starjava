@@ -2,12 +2,14 @@ package uk.ac.starlink.tptask;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.tplot.ErrorRenderer;
 import uk.ac.starlink.tplot.MarkShape;
 import uk.ac.starlink.tplot.MarkStyle;
 import uk.ac.starlink.tplot.MarkStyles;
@@ -24,6 +26,7 @@ import uk.ac.starlink.tplot.StyleSet;
 public class MarkStyleFactory implements StyleFactory {
 
     private final String prefix_;
+    private final int errNdim_;
     private final StyleSet styleSet_ = MarkStyles.spots( "Spots", 2 );
     private final List suffixList_;
 
@@ -48,19 +51,24 @@ public class MarkStyleFactory implements StyleFactory {
      *
      * @param   prefix   prefix to be prepended to all parameters used by this
      *                   factory
+     * @param   errNdim  number of dimensions in which errors may be displayed
      */
-    public MarkStyleFactory( String prefix ) {
+    public MarkStyleFactory( String prefix, int errNdim ) {
         prefix_ = prefix;
+        errNdim_ = errNdim;
         suffixList_ = new ArrayList();
     }
 
     public Parameter[] getParameters( String stSuffix ) {
-        return new Parameter[] {
-            createColorParameter( stSuffix ),
-            createShapeParameter( stSuffix ),
-            createSizeParameter( stSuffix ),
-            createTransparencyParameter( stSuffix ),
-        };
+        List paramList = new ArrayList();
+        paramList.add( createColorParameter( stSuffix ) );
+        paramList.add( createShapeParameter( stSuffix ) );
+        paramList.add( createSizeParameter( stSuffix ) );
+        paramList.add( createTransparencyParameter( stSuffix ) );
+        if ( errNdim_ > 0 ) {
+            paramList.add( createErrorRendererParameter( stSuffix ) );
+        }
+        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
     /**
@@ -97,9 +105,25 @@ public class MarkStyleFactory implements StyleFactory {
         transparParam.setDefault( Integer.toString( style0.getOpaqueLimit() ) );
         int opaqueLimit = transparParam.intValue( env );
 
+        /* Error renderer. */
+        ErrorRenderer errRend;
+        if ( errNdim_ > 0 ) {
+            ChoiceParameter errParam = createErrorRendererParameter( stSuffix );
+            errRend = (ErrorRenderer) errParam.objectValue( env );
+            if ( errRend == null ) {
+                errRend = ErrorRenderer.NONE;
+            }
+        }
+        else {
+            errRend = null;
+        }
+
         /* Construct, configure and return MarkStyle object. */
         MarkStyle style = shape.getStyle( color, size );
         style.setOpaqueLimit( opaqueLimit );
+        if ( errNdim_ > 0 ) {
+            style.setErrorRenderer( errRend );
+        }
         return style;
     }
 
@@ -160,6 +184,51 @@ public class MarkStyleFactory implements StyleFactory {
             param.getOptionList(),
             "</p>",
         } );
+        return param;
+    }
+
+    /**
+     * Constructs a parameter for determining error rendering style.
+     *
+     * @param  stSuffix  label identifying dataset
+     * @return  parameter giving error renderer
+     */
+    private ChoiceParameter createErrorRendererParameter( String stSuffix ) {
+        final ErrorRenderer[] options;
+        if ( errNdim_ == 2 ) {
+            options = ErrorRenderer.getOptions2d();
+        }
+        else if ( errNdim_ == 3 ) {
+            options = ErrorRenderer.getOptions3d();
+        }
+        else {
+            options = ErrorRenderer.getOptionsGeneral();
+        }
+        StyleParameter param =
+            new StyleParameter( paramName( "errstyle", stSuffix ), options );
+        param.setPrompt( "Error bar style for data set " + stSuffix );
+        param.setDescription( new String[] {
+            "<p>Defines the way in which error bars (or ellipses, or...)",
+            "will be represented for data set " + stSuffix,
+            "if errors are being displayed.",
+            "The following options are available:",
+            param.getOptionList(),
+            "</p>",
+        } );
+        param.setNullPermitted( true );
+
+        /* Prepare custom usage list. */
+        if ( Arrays.asList( options ).contains( ErrorRenderer.DEFAULT ) &&
+             Arrays.asList( options ).contains( ErrorRenderer.EXAMPLE ) ) {
+            param.setUsage( param.getName( ErrorRenderer.DEFAULT ) + "|"
+                          + param.getName( ErrorRenderer.EXAMPLE ) + "|"
+                          + "..." );
+            param.setDefaultOption( ErrorRenderer.DEFAULT );
+        }
+        else {
+            assert false;
+            param.setDefaultOption( options[ 1 ] );
+        }
         return param;
     }
 

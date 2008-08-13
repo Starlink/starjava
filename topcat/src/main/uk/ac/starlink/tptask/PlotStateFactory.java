@@ -556,7 +556,7 @@ public class PlotStateFactory {
      * @param  prefix  prefix to use for all style-type variables
      */
     protected StyleFactory createStyleFactory( String prefix ) {
-        return new MarkStyleFactory( prefix );
+        return new MarkStyleFactory( prefix, errNdim_ );
     }
 
     /**
