@@ -44,7 +44,7 @@ public abstract class ErrorRenderer {
 
     /** Error renderer suitable for use in user controls. */
     public static final ErrorRenderer EXAMPLE =
-        new CappedLine( "Lines", true, new BarCapper( 3 ) );
+        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) );
 
     /** Error renderer suitable for displaying 2D tangential errors. */
     public static final ErrorRenderer TANGENT =
@@ -53,7 +53,7 @@ public abstract class ErrorRenderer {
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        EXAMPLE,
         new CappedLine( "Caps", false, new BarCapper( 3 ) ),
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
         new OpenEllipse( "Ellipse", false ),
@@ -67,7 +67,7 @@ public abstract class ErrorRenderer {
     private static final ErrorRenderer[] OPTIONS_3D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        EXAMPLE,
         new CappedLine( "Caps", false, new BarCapper( 3 ) ),
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
         new OpenCuboid( "Cuboid" ),
@@ -86,7 +86,7 @@ public abstract class ErrorRenderer {
         // Generic
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        EXAMPLE,
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
 
         // 2D (tangent only)
@@ -135,7 +135,7 @@ public abstract class ErrorRenderer {
     private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
-        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) ),
+        EXAMPLE,
         new CappedLine( "Caps", false, new BarCapper( 3 ) ),
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
@@ -336,6 +336,10 @@ public abstract class ErrorRenderer {
 
         /* Return the result as a Pixellator. */
         return drawing;
+    }
+
+    public String toString() {
+        return name_;
     }
 
     /**
