@@ -58,6 +58,7 @@ public class PlotStateFactory {
 
     private final String[] mainDimNames_;
     private final boolean useAux_;
+    private final int nerr_;
     private final BooleanParameter gridParam_;
 
     /**
@@ -66,9 +67,10 @@ public class PlotStateFactory {
      * @param  dimNames names of main plot dimensions (typically "X", "Y", etc);
      * @param  useAux  whether auxiliary axes are used
      */
-    public PlotStateFactory( String[] dimNames, boolean useAux ) {
+    public PlotStateFactory( String[] dimNames, boolean useAux, int nerr ) {
         mainDimNames_ = dimNames;
         useAux_ = useAux;
+        nerr_ = nerr;
 
         gridParam_ = new BooleanParameter( "grid" );
         gridParam_.setDefault( true );
@@ -128,6 +130,10 @@ public class PlotStateFactory {
             for ( int idim = 0; idim < allNdim; idim++ ) {
                 paramList.add( axScalarParams[ idim ][ ip ] );
             }
+        }
+        for ( int idim = 0; idim < nerr_; idim++ ) {
+            paramList.add( createErrorParameter( mainDimNames_[ idim ],
+                                                 tSuffix ) );
         }
         if ( useAux_ ) {
             Parameter shaderParam =
@@ -232,6 +238,12 @@ public class PlotStateFactory {
                 }
                 coordExprs[ idim ] = coordParam.stringValue( env );
             }
+            String[] errExprs = new String[ nerr_ ];
+            for ( int idim = 0; idim < nerr_; idim++ ) {
+                errExprs[ idim ] = 
+                    createErrorParameter( mainDimNames_[ idim ], tlabel )
+                   .stringValue( env );
+            }
             String labelExpr =
                 createLabelParameter( tlabel ).stringValue( env );
             SubsetDef[] subsetDefs =
@@ -247,9 +259,12 @@ public class PlotStateFactory {
                 setStyles[ is ] = sdef.style_;
             }
             try {
-                datas[ itab ] =
-                    new TablePlotData( table, coordExprs, labelExpr, setExprs,
-                                       setNames, setStyles );
+                TablePlotData plotData =
+                    new CartesianTablePlotData( table, setExprs, setNames,
+                                                setStyles, labelExpr,
+                                                coordExprs, errExprs );
+                plotData.checkExpressions();
+                datas[ itab ] = plotData;
             }
             catch ( CompilationException e ) {
                 throw new TaskException( e.getMessage(), e ); 
@@ -634,6 +649,42 @@ public class PlotStateFactory {
      */
     private FilterParameter createFilterParameter( String tlabel ) {
         return new FilterParameter( FILTER_PREFIX + tlabel );
+    }
+
+    /**
+     * Returns a parameter giving expressions for the error values associated
+     * with a given coordinate axis, indexed by a table-identifying label.
+     * The value taken by this parameter is a string which is either a single
+     * (symmetric) numeric error expression or two comma-separated 
+     * error expressions.
+     *
+     * @param   axName  axis label
+     * @param   tlabel  table identifier
+     * @return   error pair parameter
+     */
+    private Parameter createErrorParameter( String axName, String tlabel ) {
+        Parameter param = new Parameter( axName + "error" + tlabel );
+        param.setUsage( "<expr>|[<lo-expr>],[<hi-expr>]" );
+        param.setPrompt( "Error bound(s) in " + axName + " for table "
+                       + tlabel );
+        param.setNullPermitted( true );
+        param.setDescription( new String[] {
+            "<p>Gives expressions for the errors on " + axName,
+            "coordinates for table " + tlabel + ".",
+            "The following forms are permitted:",
+            "<ul>",
+            "<li><code>&lt;expr&gt;</code>: symmetric error value</li>",
+            "<li><code>&lt;lo-expr&gt;,&lt;hi-expr&gt;</code>:" +
+                 "distinct lower and upper error values</li>",
+            "<li><code>&lt;lo-expr&gt;,</code>: lower error value only</li>",
+            "<li><code>,&lt;hi-expr&gt;</code>: upper error value only</li>",
+            "<li><code>null</code>: no errors</li>",
+            "</ul>",
+            "The expression in each case is a numeric algebraic expression",
+            "as described in <xref id='jel'/>.",
+            "</p>",
+        } );
+        return param;
     }
 
     /**
