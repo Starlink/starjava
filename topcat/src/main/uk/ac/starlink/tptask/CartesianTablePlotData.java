@@ -9,6 +9,7 @@ import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.PointSequence;
+import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
@@ -279,9 +280,10 @@ public class CartesianTablePlotData extends TablePlotData {
         /* Prepare to generate error values. */
         List errReaderList = new ArrayList();
         for ( int idim = 0; idim < errExprs_.length; idim++ ) {
-            String errExpr = errExprs_[ idim ];
-            if ( hasErrors( errExpr ) ) {
-                errReaderList.add( createErrorReader( idim, errExpr, rseq ) );
+            ErrorReader errReader =
+                createErrorReader( idim, errExprs_[ idim ], rseq );
+            if ( errReader != null ) {
+                errReaderList.add( errReader );
             }
         }
         final ErrorReader[] errorReaders =
