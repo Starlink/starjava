@@ -51,7 +51,7 @@ public class PlotStateFactory {
     private static final String SUBSET_PREFIX = "subset";
     private static final String AUX_PREFIX = "aux";
     private static final String STYLE_PREFIX = "";
-    private static final String TABLE_VARIABLE = "N";
+    public static final String TABLE_VARIABLE = "N";
     private static final String SUBSET_VARIABLE = "S";
     private static final String AUX_VARIABLE = "";
     private static final double PAD_RATIO = 0.02;
@@ -268,7 +268,8 @@ public class PlotStateFactory {
             }
             try {
                 TablePlotData plotData =
-                    createPlotData( env, table, setExprs, setNames, setStyles,
+                    createPlotData( env, tlabel, table,
+                                    setExprs, setNames, setStyles,
                                     labelExpr, coordExprs, errExprs );
                 plotData.checkExpressions();
                 datas[ itab ] = plotData;
@@ -329,6 +330,7 @@ public class PlotStateFactory {
      * Called by {@link #configurePlotState}; may be overridden by subclasses.
      *
      * @param   env  execution environment
+     * @param   tLabel  table identifier suffix
      * @param   table  input table
      * @param   setExprs  nset-element JEL boolean-valued expression array
      *                    for set inclusion
@@ -340,9 +342,8 @@ public class PlotStateFactory {
      * @param   errExprs    nerr-element expression(s) array for error values
      * @return   new PlotData object based on parameters
      */
-
-    protected TablePlotData createPlotData( Environment env, StarTable table,
-                                            String[] setExprs,
+    protected TablePlotData createPlotData( Environment env, String tLabel,
+                                            StarTable table, String[] setExprs,
                                             String[] setNames,
                                             Style[] setStyles, String labelExpr,
                                             String[] coordExprs,
@@ -650,8 +651,11 @@ public class PlotStateFactory {
         /* If there are no subsets for this table, consider it the same as
          * a single subset with inclusion of all points. */
         if ( nset == 0 ) {
+            Parameter nameParam = createSubsetNameParameter( tlabel );
+            nameParam.setDefault( tlabel );
+            String name = nameParam.stringValue( env );
             return new SubsetDef[] {
-                new SubsetDef( "true", tlabel,
+                new SubsetDef( "true", name,
                                styleFactory.getStyle( env, tlabel ) ),
             };
         }
