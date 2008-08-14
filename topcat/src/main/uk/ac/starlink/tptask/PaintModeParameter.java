@@ -198,7 +198,7 @@ public class PaintModeParameter extends ChoiceParameter {
                     // (I admit I'm not quite sure about double buffering)
                     plot.setDoubleBuffered( true );
                     plot.setPreferredSize( plot.getSize() );
-                    final JFrame frame = new JFrame();
+                    final JFrame frame = new JFrame( "STILTS Plot" );
                     frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
                     frame.getContentPane().add( plot );
                     Object quitKey = "quit";
