@@ -40,6 +40,7 @@ public class TPlot {
         ObjectFactory taskFactory = new ObjectFactory( Task.class );
 
         taskFactory.register( "plot2d", TablePlot2D.class.getName() );
+        taskFactory.register( "histogram", TableHistogram.class.getName() );
 
         // Eventually do it like this to avoid unnecessary class loading.
         // For now go with compiler safety.
