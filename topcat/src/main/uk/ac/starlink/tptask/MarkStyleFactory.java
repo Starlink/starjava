@@ -17,18 +17,16 @@ import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.StyleSet;
 
 /**
- * StyleFactory implementation for obtaining 
- * {@link uk.ac.starlink.tplot.MarkStyle} instances.
+ * StyleFactory for obtaining {@link uk.ac.starlink.tplot.MarkStyle} instances
+ * suitable for use with a scatter plot.
  *
  * @author   Mark Taylor
  * @since    8 Aug 2008
  */
-public class MarkStyleFactory implements StyleFactory {
+public class MarkStyleFactory extends StyleFactory {
 
-    private final String prefix_;
     private final int errNdim_;
     private final StyleSet styleSet_ = MarkStyles.spots( "Spots", 2 );
-    private final List suffixList_;
 
     /** Known shapes. */
     private static final MarkShape[] SHAPES = new MarkShape[] {
@@ -54,9 +52,8 @@ public class MarkStyleFactory implements StyleFactory {
      * @param   errNdim  number of dimensions in which errors may be displayed
      */
     public MarkStyleFactory( String prefix, int errNdim ) {
-        prefix_ = prefix;
+        super( prefix );
         errNdim_ = errNdim;
-        suffixList_ = new ArrayList();
     }
 
     public Parameter[] getParameters( String stSuffix ) {
@@ -78,11 +75,8 @@ public class MarkStyleFactory implements StyleFactory {
             throws TaskException {
 
         /* Get the default style for this suffix. */
-        if ( ! suffixList_.contains( stSuffix ) ) {
-            suffixList_.add( stSuffix );
-        }
-        int iSet = suffixList_.indexOf( stSuffix );
-        MarkStyle style0 = (MarkStyle) styleSet_.getStyle( iSet );
+        MarkStyle style0 =
+            (MarkStyle) styleSet_.getStyle( getStyleIndex( stSuffix ) );
 
         /* Marker shape. */
         ChoiceParameter shapeParam = createShapeParameter( stSuffix );
@@ -91,39 +85,33 @@ public class MarkStyleFactory implements StyleFactory {
 
         /* Colour. */
         ColorParameter colorParam = createColorParameter( stSuffix );
-        colorParam.setDefault( ColorParameter
-                              .getStringValue( style0.getColor() ) );
+        colorParam.setDefaultColor( style0.getColor() );
         Color color = colorParam.colorValue( env );
 
         /* Marker size. */
         IntegerParameter sizeParam = createSizeParameter( stSuffix );
         int size = sizeParam.intValue( env );
 
-        /* Transparency (opacity limit). */
+        /* Construct a basic MarkStyle object with the correct 
+         * characteristics. */
+        MarkStyle style = shape.getStyle( color, size );
+
+        /* Configure transparency (opacity limit). */
         IntegerParameter transparParam =
             createTransparencyParameter( stSuffix );
         transparParam.setDefault( Integer.toString( style0.getOpaqueLimit() ) );
-        int opaqueLimit = transparParam.intValue( env );
+        style.setOpaqueLimit( transparParam.intValue( env ) );
 
-        /* Error renderer. */
-        ErrorRenderer errRend;
+        /* Configure error renderer if appropriate. */
         if ( errNdim_ > 0 ) {
             ChoiceParameter errParam = createErrorRendererParameter( stSuffix );
-            errRend = (ErrorRenderer) errParam.objectValue( env );
-            if ( errRend == null ) {
-                errRend = ErrorRenderer.NONE;
-            }
-        }
-        else {
-            errRend = null;
+            errParam.setDefaultOption( style.getErrorRenderer() );
+            ErrorRenderer errRend = (ErrorRenderer) errParam.objectValue( env );
+            style.setErrorRenderer( errRend == null ? ErrorRenderer.NONE
+                                                    : errRend );
         }
 
-        /* Construct, configure and return MarkStyle object. */
-        MarkStyle style = shape.getStyle( color, size );
-        style.setOpaqueLimit( opaqueLimit );
-        if ( errNdim_ > 0 ) {
-            style.setErrorRenderer( errRend );
-        }
+        /* Return configured style. */
         return style;
     }
 
@@ -256,16 +244,5 @@ public class MarkStyleFactory implements StyleFactory {
             "</p>",
         } );
         return param;
-    }
-
-    /**
-     * Assembles a parameter name from a base name and a dataset suffix.
-     *
-     * @param  baseName  parameter base name
-     * @param  stSuffix  label identifying dataset
-     * @return  parameter name
-     */
-    private String paramName( String baseName, String stSuffix ) {
-        return prefix_ + baseName + stSuffix;
     }
 }
