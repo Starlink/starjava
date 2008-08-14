@@ -256,7 +256,8 @@ public class Histogram extends SurfacePlot {
             double[] coords = pseq.getPoint();
             double x = coords[ 0 ];
             double w = coords[ 1 ];
-            if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) ) {
+            if ( ! Double.isNaN( x ) && ! Double.isInfinite( x ) &&
+                 ! Double.isNaN( w ) && ! Double.isInfinite( w ) ) {
                 for ( int is = 0; is < nset; is++ ) {
                     setFlags[ is ] = pseq.isIncluded( is );
                 }
