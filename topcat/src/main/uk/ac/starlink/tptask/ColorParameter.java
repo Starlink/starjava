@@ -112,13 +112,22 @@ public class ColorParameter extends Parameter {
     }
 
     /**
+     * Sets the default value of this parameter to a given color object.
+     *
+     * @param  color   colour
+     */
+    public void setDefaultColor( Color color ) {
+        setDefault( getStringValue( color ) );
+    }
+
+    /**
      * Returns a string representation (suitable for feeding to this parameter)
      * of a given colour.
      *
      * @param  color   colour
      * @return   string representation of colour
      */
-    public static String getStringValue( Color color ) {
+    private static String getStringValue( Color color ) {
         NamedColor[] knownColors = getKnownColors();
         for ( int i = 0; i < knownColors.length; i++ ) {
             NamedColor namedColor = knownColors[ i ];
