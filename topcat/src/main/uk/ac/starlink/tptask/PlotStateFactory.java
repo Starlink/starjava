@@ -58,6 +58,7 @@ public class PlotStateFactory {
 
     private final String[] mainDimNames_;
     private final boolean useAux_;
+    private final boolean useLabel_;
     private final int errNdim_;
     private final BooleanParameter gridParam_;
 
@@ -66,11 +67,14 @@ public class PlotStateFactory {
      *
      * @param  dimNames names of main plot dimensions (typically "X", "Y", etc);
      * @param  useAux  whether auxiliary axes are used
+     * @param  useLabel  whether point text labelling is used
      * @param  errNdim  number of axes for which errors can be plotted
      */
-    public PlotStateFactory( String[] dimNames, boolean useAux, int errNdim ) {
+    public PlotStateFactory( String[] dimNames, boolean useAux,
+                             boolean useLabel, int errNdim ) {
         mainDimNames_ = dimNames;
         useAux_ = useAux;
+        useLabel_ = useLabel;
         errNdim_ = errNdim;
 
         gridParam_ = new BooleanParameter( "grid" );
@@ -144,7 +148,9 @@ public class PlotStateFactory {
         }
 
         /* Other parameters. */
-        paramList.add( createLabelParameter( tSuffix ) );
+        if ( useLabel_ ) {
+             paramList.add( createLabelParameter( tSuffix ) );
+        }
         paramList.add( createSubsetExpressionParameter( stSuffix ) );
         paramList.add( createSubsetNameParameter( stSuffix ) );
         paramList.addAll( Arrays.asList( createStyleFactory( STYLE_PREFIX )
@@ -246,7 +252,8 @@ public class PlotStateFactory {
                    .stringValue( env );
             }
             String labelExpr =
-                createLabelParameter( tlabel ).stringValue( env );
+                useLabel_ ? createLabelParameter( tlabel ).stringValue( env )
+                          : null;
             SubsetDef[] subsetDefs =
                 getSubsetDefinitions( env, tlabel, styleFactory );
             int nset = subsetDefs.length;
@@ -261,9 +268,8 @@ public class PlotStateFactory {
             }
             try {
                 TablePlotData plotData =
-                    new CartesianTablePlotData( table, setExprs, setNames,
-                                                setStyles, labelExpr,
-                                                coordExprs, errExprs );
+                    createPlotData( env, table, setExprs, setNames, setStyles,
+                                    labelExpr, coordExprs, errExprs );
                 plotData.checkExpressions();
                 datas[ itab ] = plotData;
             }
@@ -319,6 +325,34 @@ public class PlotStateFactory {
     }
 
     /**
+     * Constructs a PlotData object.
+     * Called by {@link #configurePlotState}; may be overridden by subclasses.
+     *
+     * @param   env  execution environment
+     * @param   table  input table
+     * @param   setExprs  nset-element JEL boolean-valued expression array
+     *                    for set inclusion
+     * @param   setNames  nset-element set name array
+     * @param   setStyles  nset-elemnt set style array
+     * @param   labelExpr  JEL expression for text label
+     * @param   coordExprs  ndim-element JEL double-valued expression array
+     *                      for coordinate values
+     * @param   errExprs    nerr-element expression(s) array for error values
+     * @return   new PlotData object based on parameters
+     */
+
+    protected TablePlotData createPlotData( Environment env, StarTable table,
+                                            String[] setExprs,
+                                            String[] setNames,
+                                            Style[] setStyles, String labelExpr,
+                                            String[] coordExprs,
+                                            String[] errExprs )
+            throws TaskException, CompilationException {
+        return new CartesianTablePlotData( table, setExprs, setNames, setStyles,
+                                           labelExpr, coordExprs, errExprs );
+    }
+
+    /**
      * Performs additional plot state configuration which may require 
      * a pass through the data.  This may do zero or more of the following:
      * 
@@ -333,10 +367,19 @@ public class PlotStateFactory {
     public void configureFromData( PlotState state, TablePlot plot )
             throws TaskException, IOException {
         if ( requiresConfigureFromBounds( state ) ) {
-            DataBounds bounds = 
-                plot.calculateBounds( state.getPlotData(), state );
-            configureFromBounds( state, bounds );
+            configureFromBounds( state, calculateBounds( state, plot ) );
         }
+    }
+
+    /**
+     * Calculates data bounds for a given data set as appropriate for the
+     * given plot.
+     *
+     * @param  state plot state
+     * @param  plot  plot object
+     */
+    public DataBounds calculateBounds( PlotState state, TablePlot plot ) {
+        return plot.calculateBounds( state.getPlotData(), state );
     }
 
     /**
