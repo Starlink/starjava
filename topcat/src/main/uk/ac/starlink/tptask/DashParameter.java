@@ -24,6 +24,7 @@ public class DashParameter extends NamedObjectParameter {
         addOption( "longdash", new float[] { 8f, 4f, } );
         addOption( "dotdash", new float[] { 12f, 3f, 3f, 3f, } );
         setNullPermitted( true );
+        setUsage( "dot|dash|...|<a,b,...>" );
     }
 
     /**
