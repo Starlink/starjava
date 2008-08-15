@@ -11139,6 +11139,8 @@ introduced since the last version:
             added to algebraic functions.</li>
         <li>Take notice of <code>-disk</code> flag when loading tables from 
             JDBC.</li>
+        <li>Tweak to spike-style bar drawing in Histogram, now has tidier 
+            appearance when using dashed lines.</li>
         </ul>
         </p></dd>
 
