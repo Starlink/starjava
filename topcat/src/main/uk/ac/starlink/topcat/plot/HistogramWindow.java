@@ -547,13 +547,25 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Acquire empty binned data objects, one normalised one not. */
         int nset = data.getSetCount();
-        MapBinnedData binned = createBinnedData( nset, bwLinear, bwLog );
+        boolean xlog = getLogModels()[ 0 ].isSelected();
+        boolean offset = offsetSelector_.isSelected();
+        final double binBase;
+        final double binWidth;
+        if ( xlog ) {
+            binBase = offset ? 1.0 : Math.sqrt( bwLog );
+            binWidth = bwLog;
+        }
+        else {
+            binBase = offset ? bwLinear / 2.0 : 0.0;
+            binWidth = bwLinear;
+        }
+        MapBinnedData.BinMapper mapper =
+            MapBinnedData.createBinMapper( xlog, binWidth, binBase );
+        BinnedData binned = new MapBinnedData( nset, mapper );
         BinnedData binnedNorm =
-            new NormalisedBinnedData( createBinnedData( nset, bwLinear,
-                                                        bwLog ) );
+            new NormalisedBinnedData( new MapBinnedData( nset, mapper ) );
 
         /* Work out the X bounds. */
-        MapBinnedData.BinMapper mapper = binned.getMapper();
         double xlo = mapper.getBounds( mapper.getKey( xBounds[ 0 ] ) )[ 0 ];
         double xhi = mapper.getBounds( mapper.getKey( xBounds[ 1 ] ) )[ 1 ];
 
@@ -619,31 +631,6 @@ public class HistogramWindow extends GraphicsWindow {
         autoYMaxNorm_ = yMaxNorm * ( 1 + getPadRatio() );
         autoYMaxCum_ = yMaxTot * ( 1 + getPadRatio() );
         autoYMaxCumNorm_ = yMaxTotNorm * ( 1 + getPadRatio() );
-    }
-
-    /**
-     * Returns an empty binned data object suitable for accumulating data
-     * about the current state of this histogram.  The returned binned data
-     * is not normalised.
-     *
-     * @param  number of subsets
-     * @param  bwLinear  linear bin width
-     * @param  bwLog     log bin width (factor)
-     * @return  binned data object
-     */
-    private MapBinnedData createBinnedData( int nset, double bwLinear,
-                                            double bwLog ) {
-        if ( getLogModels()[ 0 ].isSelected() ) {
-            double binBase = offsetSelector_.isSelected() ? 1.0
-                                                          : Math.sqrt( bwLog );
-            return MapBinnedData.createLogBinnedData( nset, bwLog, binBase );
-        }
-        else {
-            double binBase = offsetSelector_.isSelected() ? bwLinear / 2.0
-                                                          : 0.0;
-            return MapBinnedData
-                  .createLinearBinnedData( nset, bwLinear, binBase );
-        }
     }
 
     /**
