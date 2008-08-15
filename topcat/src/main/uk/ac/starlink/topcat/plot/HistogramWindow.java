@@ -411,7 +411,8 @@ public class HistogramWindow extends GraphicsWindow {
             if ( bw > 0 ) {
                 state.setBinWidth( bw );
             }
-            state.setZeroMid( offsetSelector_.isSelected() );
+            state.setBinBase( offsetSelector_.isSelected() ? - bw / 2.0
+                                                           : 0.0 );
             state.setCumulative( cumulativeModel_.isSelected() );
 
             /* The state obtained from the superclass implementation has
@@ -556,7 +557,7 @@ public class HistogramWindow extends GraphicsWindow {
             double[] coords = pseq.getPoint();
             double x = coords[ 0 ];
             double w = coords[ 1 ];
-            if ( x >= xlo && x <= xhi ) {
+            if ( x >= xlo && x <= xhi && ! Double.isNaN( w ) ) {
                 for ( int is = 0; is < nset; is++ ) {
                     setFlags[ is ] = pseq.isIncluded( is );
                 }
@@ -629,9 +630,10 @@ public class HistogramWindow extends GraphicsWindow {
             return MapBinnedData.createLogBinnedData( nset, bwLog );
         }
         else {
-            boolean zeromid = offsetSelector_.isSelected();
+            double binBase = offsetSelector_.isSelected() ? bwLinear / 2.0
+                                                          : 0.0;
             return MapBinnedData
-                  .createLinearBinnedData( nset, bwLinear, zeromid );
+                  .createLinearBinnedData( nset, bwLinear, binBase );
         }
     }
 
