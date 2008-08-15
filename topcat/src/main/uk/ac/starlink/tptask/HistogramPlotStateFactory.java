@@ -100,7 +100,18 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         cumulativeParam_.setDefault( "false" );
 
         binbaseParam_ = new DoubleParameter( "binbase" );
-        binbaseParam_.setDefault( "0.0" );
+        binbaseParam_.setPrompt( "Lower bound for one histogram bin" );
+        binbaseParam_.setDescription( new String[] {
+            "<p>Adjusts the offset of the bins.",
+            "By default zero (or one for logarithmic X axis)",
+            "is a boundary between bins;",
+            "other boundaries are defined by this and the bin width.",
+            "If this value is adjusted, the lower bound of one of the bins",
+            "will be set to this value, so all the bins move along by the",
+            "corresponding distance.",
+            "</p>",
+        } );
+        binbaseParam_.setDefault( "0" );
     }
 
     public Parameter[] getParameters() {
@@ -127,11 +138,9 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         super.configurePlotState( pstate, env );
         HistogramPlotState state = (HistogramPlotState) pstate;
 
+        boolean xlog = state.getLogFlags()[ 0 ];
         boolean ylog = ylogParam_.booleanValue( env );
-        state.setLogFlags( new boolean[] {
-            state.getLogFlags()[ 0 ],
-            ylog,
-        } );
+        state.setLogFlags( new boolean[] { xlog, ylog } );
         state.setFlipFlags( new boolean[] {
             state.getFlipFlags()[ 0 ],
             false,
@@ -153,6 +162,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             new double[] { ylo, yhi, },
         } );
 
+        binwidthParam_.setMinimum( xlog ? 1.0 : 0.0, false );
         state.setBinWidth( binwidthParam_.doubleValue( env ) );
 
         state.setNormalised( normParam_.booleanValue( env ) );
@@ -166,6 +176,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
 
         state.setNormalised( normParam_.booleanValue( env ) );
         state.setCumulative( cumulativeParam_.booleanValue( env ) );
+        binbaseParam_.setDefault( state.getLogFlags()[ 0 ] ? "1" : "0" );
         state.setBinBase( binbaseParam_.doubleValue( env ) );
     }
 
