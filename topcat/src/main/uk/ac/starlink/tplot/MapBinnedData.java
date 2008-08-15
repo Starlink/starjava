@@ -134,8 +134,23 @@ public class MapBinnedData implements BinnedData {
     public static MapBinnedData createLinearBinnedData( int nset,
                                                         double binWidth,
                                                         boolean zeroMid ) {
+        return createLinearBinnedData( nset, binWidth,
+                                       zeroMid ? ( -binWidth / 2.0 ) : 0.0 );
+    }
+
+    /**
+     * Constructs a new BinnedData with linearly spaced bins and freeform
+     * bin phase specification.
+     *
+     * @param  nset  number of subsets
+     * @param  binWidth  bin spacing
+     * @param  binBase   lower bound of one (any) bin; determines bin phase
+     */
+    public static MapBinnedData createLinearBinnedData( int nset,
+                                                        double binWidth,
+                                                        double binBase ) {
         return new MapBinnedData( nset,
-                                  new LinearBinMapper( binWidth, zeroMid ) );
+                                  new LinearBinMapper( binWidth, binBase ) );
     }
 
     /**
@@ -202,15 +217,15 @@ public class MapBinnedData implements BinnedData {
          * Constructs a new linear mapper.
          *
          * @param  binWidth  width of the bins
-         * @param  zeroMid  true if zero is to be in the middle of a bin,
-         *         false if it falls on a bin boundary
+         * @param  binBase   lower bound of any one of the bins
+         *                   (determines bin phase)
          */
-        LinearBinMapper( double binWidth, boolean zeroMid ) {
+        LinearBinMapper( double binWidth, double binBase ) {
             if ( binWidth <= 0 || Double.isNaN( binWidth ) ) {
                 throw new IllegalArgumentException( "Bad width " + binWidth );
             }
             width_ = binWidth;
-            base_ = zeroMid ? ( - binWidth / 2.0 ) : 0.0;
+            base_ = binBase;
         }
         public Comparable getKey( double value ) {
             return new Long( (long) Math.floor( ( value - base_ ) / width_ ) );
