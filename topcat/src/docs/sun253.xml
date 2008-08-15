@@ -6009,8 +6009,9 @@ you want or use the tiny up/down arrows at the right to increase/decrease
 the bin size.
 The <label>Offset</label> checkbox on the left determines where the zero
 point on the horizontal axis falls in relation to the bins; 
-if the box is checked then zero is in the centre of a bin, 
-and if it's unchecked then zero is on a bin boundary.
+if the box is checked then zero (or one for logarithmic X axis) 
+is in the centre of a bin, and if it's unchecked then zero (or one) 
+is on a bin boundary.
 </p>
 
 <p>The following buttons are available on the toolbar:
@@ -11141,6 +11142,8 @@ introduced since the last version:
             JDBC.</li>
         <li>Tweak to spike-style bar drawing in Histogram, now has tidier 
             appearance when using dashed lines.</li>
+        <li>Histogram <label>Offset</label> control now works for logarithmic
+            X scale as well as linear.</li>
         </ul>
         </p></dd>
 
