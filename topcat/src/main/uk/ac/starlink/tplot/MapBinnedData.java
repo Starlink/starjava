@@ -142,11 +142,15 @@ public class MapBinnedData implements BinnedData {
      *
      * @param  nset  number of subsets
      * @param  binFactor   logarithmic spacing of bins
+     * @param  binBase   base of one of the bins; default is used if 
+     *                   the supplied value is not greater than zero
      * @return  new BinnedData object
      */
     public static MapBinnedData createLogBinnedData( int nset,
-                                                     double binFactor ) {
-        return new MapBinnedData( nset, new LogBinMapper( binFactor ) );
+                                                     double binFactor,
+                                                     double binBase ) {
+        return new MapBinnedData( nset,
+                                  new LogBinMapper( binFactor, binBase ) );
     }
 
     /**
@@ -256,21 +260,22 @@ public class MapBinnedData implements BinnedData {
      */
     private static class LogBinMapper implements BinMapper {
         final double factor_;
+        final double base_;
         final double logFactor_;
-        final double sqrtFactor_;
-        LogBinMapper( double factor ) {
+        LogBinMapper( double factor, double base ) {
             factor_ = factor;
+            base_ = base > 0 ? base : 1.0;
             logFactor_ = Math.log( factor );
-            sqrtFactor_ = Math.sqrt( factor );
         }
         public Comparable getKey( double value ) {
-            return value > 0.0 
-                 ? new Long( Math.round( Math.log( value ) / logFactor_ ) )
+            return value > 0.0
+                 ? new Long( (long) Math.floor( ( Math.log( value / base_ )
+                                                  / logFactor_ ) ) )
                  : null;
         }
         public double[] getBounds( Object key ) {
-            double centre = Math.pow( factor_, ((Long) key).doubleValue() );
-            return new double[] { centre / sqrtFactor_, centre * sqrtFactor_ };
+            double lo = Math.pow( factor_, ((Long) key).doubleValue() ) * base_;
+            return new double[] { lo, lo * factor_ };
         }
         public Iterator keyIterator( final Object loKey, final Object hiKey ) {
             return new Iterator() {

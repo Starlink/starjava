@@ -278,10 +278,10 @@ public class Histogram extends SurfacePlot {
         HistogramPlotState state = (HistogramPlotState) getState();
         boolean log = state.getLogFlags()[ 0 ];
         double binWidth = state.getBinWidth();
+        double binBase = state.getBinBase();
         return state.getLogFlags()[ 0 ]
-             ? MapBinnedData.createLogBinnedData( nset, binWidth )
-             : MapBinnedData.createLinearBinnedData( nset, binWidth,
-                                                     state.getBinBase() );
+             ? MapBinnedData.createLogBinnedData( nset, binWidth, binBase )
+             : MapBinnedData.createLinearBinnedData( nset, binWidth, binBase );
     }
 
     /**

@@ -193,7 +193,6 @@ public class HistogramWindow extends GraphicsWindow {
                 boolean isLog = getLogModels()[ 0 ].isSelected();
                 binSizer_.setLogarithmic( isLog );
                 binSizer_.setModel( isLog ? logBinModel_ : linearBinModel_ );
-                offsetSelector_.setEnabled( ! isLog );
             }
         } );
         binSizer_.addChangeListener( getReplotListener() );
@@ -411,8 +410,16 @@ public class HistogramWindow extends GraphicsWindow {
             if ( bw > 0 ) {
                 state.setBinWidth( bw );
             }
-            state.setBinBase( offsetSelector_.isSelected() ? - bw / 2.0
-                                                           : 0.0 );
+            double binBase;
+            if ( getLogModels()[ 0 ].isSelected() ) {
+                binBase = offsetSelector_.isSelected() ? 1.0
+                                                       : Math.sqrt( bw );
+            }
+            else {
+                binBase = offsetSelector_.isSelected() ? - bw / 2.0
+                                                       : 0.0;
+            }
+            state.setBinBase( binBase );
             state.setCumulative( cumulativeModel_.isSelected() );
 
             /* The state obtained from the superclass implementation has
@@ -627,7 +634,9 @@ public class HistogramWindow extends GraphicsWindow {
     private MapBinnedData createBinnedData( int nset, double bwLinear,
                                             double bwLog ) {
         if ( getLogModels()[ 0 ].isSelected() ) {
-            return MapBinnedData.createLogBinnedData( nset, bwLog );
+            double binBase = offsetSelector_.isSelected() ? 1.0
+                                                          : Math.sqrt( bwLog );
+            return MapBinnedData.createLogBinnedData( nset, bwLog, binBase );
         }
         else {
             double binBase = offsetSelector_.isSelected() ? bwLinear / 2.0
