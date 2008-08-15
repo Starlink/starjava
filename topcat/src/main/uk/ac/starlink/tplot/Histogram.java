@@ -281,7 +281,7 @@ public class Histogram extends SurfacePlot {
         return state.getLogFlags()[ 0 ]
              ? MapBinnedData.createLogBinnedData( nset, binWidth )
              : MapBinnedData.createLinearBinnedData( nset, binWidth,
-                                                     state.getZeroMid() );
+                                                     state.getBinBase() );
     }
 
     /**

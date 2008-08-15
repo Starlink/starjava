@@ -9,7 +9,7 @@ package uk.ac.starlink.tplot;
 public class HistogramPlotState extends PlotState {
 
     private double binWidth_;
-    private boolean zeroMid_;
+    private double binBase_;
     private boolean cumulative_;
     private boolean weighted_;
     private boolean normalised_;
@@ -40,25 +40,24 @@ public class HistogramPlotState extends PlotState {
     }
 
     /**
-     * Sets the flag which determines whether a zero value on the X axis
-     * should fall in the middle of a bin or on a bin boundary.
+     * Sets the lower bound for one of the bins.  This determines bin phase.
      *
-     * @param   zeroMid  true for zero in the middle of a bin, false for
-     *          zero on a bin boundary
+     * @param  base  new bin base
      */
-    public void setZeroMid( boolean zeroMid ) {
-        zeroMid_ = zeroMid;
+    public void setBinBase( double base ) {
+        if ( Double.isNaN( base ) ) {
+            throw new IllegalArgumentException();
+        }
+        binBase_ = base;
     }
 
     /**
-     * Returns the flag which determines whether a zero value on the X axis
-     * should fall in the middle of a bin or on a bin boundary.
+     * Returns the lower bound for one of the bins.  This determines bin phase.
      *
-     * @return   true of zero in the middle of a bin, false for zero on a
-     *           bin boundary
+     * @return  bin base
      */
-    public boolean getZeroMid() {
-        return zeroMid_;
+    public double getBinBase() {
+        return binBase_;
     }
 
     /**
@@ -120,7 +119,7 @@ public class HistogramPlotState extends PlotState {
         if ( super.equals( o ) && o instanceof HistogramPlotState ) {
             HistogramPlotState other = (HistogramPlotState) o;
             return binWidth_ == other.binWidth_
-                && zeroMid_ == other.zeroMid_
+                && binBase_ == other.binBase_
                 && cumulative_ == other.cumulative_
                 && weighted_ == other.weighted_
                 && normalised_ == other.normalised_;
@@ -133,7 +132,7 @@ public class HistogramPlotState extends PlotState {
     public int hashCode() {
         int code = super.hashCode();
         code = 23 * code + Float.floatToIntBits( (float) binWidth_ );
-        code = 23 * code + ( zeroMid_ ? 1 : 3 );
+        code = 23 * code + Float.floatToIntBits( (float) binBase_ );
         code = 23 * code + ( cumulative_ ? 1 : 5 );
         code = 23 * code + ( weighted_ ? 1 : 7 );
         code = 23 * code + ( normalised_ ? 1 : 11 );

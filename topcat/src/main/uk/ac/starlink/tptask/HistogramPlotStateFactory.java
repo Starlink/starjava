@@ -33,7 +33,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
     private final DoubleParameter binwidthParam_;
     private final BooleanParameter normParam_;
     private final BooleanParameter cumulativeParam_;
-    private final BooleanParameter zeromidParam_;
+    private final DoubleParameter binbaseParam_;
 
     /**
      * Constructor.
@@ -99,9 +99,8 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         } );
         cumulativeParam_.setDefault( "false" );
 
-        zeromidParam_ = new BooleanParameter( "offset" );
-        zeromidParam_.setDefault( "false" );
-        
+        binbaseParam_ = new DoubleParameter( "binbase" );
+        binbaseParam_.setDefault( "0.0" );
     }
 
     public Parameter[] getParameters() {
@@ -115,7 +114,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         paramList.add( binwidthParam_ );
         paramList.add( normParam_ );
         paramList.add( cumulativeParam_ );
-        paramList.add( zeromidParam_ );
+        paramList.add( binbaseParam_ );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
@@ -167,7 +166,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
 
         state.setNormalised( normParam_.booleanValue( env ) );
         state.setCumulative( cumulativeParam_.booleanValue( env ) );
-        state.setZeroMid( zeromidParam_.booleanValue( env ) );
+        state.setBinBase( binbaseParam_.doubleValue( env ) );
     }
 
     protected TablePlotData createPlotData( Environment env, String tLabel,

@@ -123,22 +123,6 @@ public class MapBinnedData implements BinnedData {
     }
 
     /**
-     * Constructs a new BinnedData with linearly spaced bins.
-     *
-     * @param  nset  number of subsets
-     * @param  binWidth  bin spacing
-     * @param  zeroMid  true if zero is to be in the middle of a bin,
-     *         false if it falls on a bin boundary
-     * @return   new BinnedData object
-     */
-    public static MapBinnedData createLinearBinnedData( int nset,
-                                                        double binWidth,
-                                                        boolean zeroMid ) {
-        return createLinearBinnedData( nset, binWidth,
-                                       zeroMid ? ( -binWidth / 2.0 ) : 0.0 );
-    }
-
-    /**
      * Constructs a new BinnedData with linearly spaced bins and freeform
      * bin phase specification.
      *
