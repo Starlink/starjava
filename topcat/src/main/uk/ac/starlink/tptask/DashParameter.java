@@ -8,7 +8,7 @@ import uk.ac.starlink.task.TaskException;
  *
  * @author   Mark Taylor
  * @since    15 Aug 2008
- * @see      {@link java.awt.BasicStroke#getDashArray}
+ * @see      java.awt.BasicStroke#getDashArray
  */
 public class DashParameter extends NamedObjectParameter {
 
