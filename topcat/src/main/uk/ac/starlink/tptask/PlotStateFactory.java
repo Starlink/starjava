@@ -428,7 +428,7 @@ public class PlotStateFactory {
     protected void configureFromBounds( PlotState state, DataBounds bounds )
             throws TaskException {
         PlotData plotData = state.getPlotData();
-        int ndim = plotData.getNdim();
+        int ndim = bounds.getRanges().length;
         int mainNdim = mainDimNames_.length;
 
         /* Update plot state range limits as required. */
