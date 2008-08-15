@@ -243,7 +243,7 @@ public class Histogram extends SurfacePlot {
 
         /* Acquire an object to hold the data. */
         int nset = data.getSetCount();
-        BinnedData binned = newBinnedData( nset );
+        BinnedData binned = createBinnedData( nset );
         if ( state.getNormalised() ) {
             binned = new NormalisedBinnedData( binned );
         }
@@ -274,14 +274,13 @@ public class Histogram extends SurfacePlot {
      * @param   nset  number of subsets to be stored in it
      * @return   empty binned data object
      */
-    private BinnedData newBinnedData( int nset ) {
+    private BinnedData createBinnedData( int nset ) {
         HistogramPlotState state = (HistogramPlotState) getState();
-        boolean log = state.getLogFlags()[ 0 ];
-        double binWidth = state.getBinWidth();
-        double binBase = state.getBinBase();
-        return state.getLogFlags()[ 0 ]
-             ? MapBinnedData.createLogBinnedData( nset, binWidth, binBase )
-             : MapBinnedData.createLinearBinnedData( nset, binWidth, binBase );
+        MapBinnedData.BinMapper mapper =
+            MapBinnedData.createBinMapper( state.getLogFlags()[ 0 ],
+                                           state.getBinWidth(),
+                                           state.getBinBase() );
+        return new MapBinnedData( nset, mapper );
     }
 
     /**

@@ -123,34 +123,18 @@ public class MapBinnedData implements BinnedData {
     }
 
     /**
-     * Constructs a new BinnedData with linearly spaced bins and freeform
-     * bin phase specification.
+     * Constructs a new linear or logarithmic BinMapper object.
      *
-     * @param  nset  number of subsets
+     * @boolean  logFlag  false for linear spacing, true for logarithmic
      * @param  binWidth  bin spacing
+     *                   (additive for linear, multiplicative for logarithmic)
      * @param  binBase   lower bound of one (any) bin; determines bin phase
+     * @return   new bin mapper
      */
-    public static MapBinnedData createLinearBinnedData( int nset,
-                                                        double binWidth,
-                                                        double binBase ) {
-        return new MapBinnedData( nset,
-                                  new LinearBinMapper( binWidth, binBase ) );
-    }
-
-    /**
-     * Constructs a new BinnedData with logarithmically spaced bins.
-     *
-     * @param  nset  number of subsets
-     * @param  binFactor   logarithmic spacing of bins
-     * @param  binBase   base of one of the bins; default is used if 
-     *                   the supplied value is not greater than zero
-     * @return  new BinnedData object
-     */
-    public static MapBinnedData createLogBinnedData( int nset,
-                                                     double binFactor,
-                                                     double binBase ) {
-        return new MapBinnedData( nset,
-                                  new LogBinMapper( binFactor, binBase ) );
+    public static BinMapper createBinMapper( boolean logFlag,
+                                             double binWidth, double binBase ) {
+        return logFlag ? (BinMapper) new LogBinMapper( binWidth, binBase )
+                       : (BinMapper) new LinearBinMapper( binWidth, binBase );
     }
 
     /**
