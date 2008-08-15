@@ -73,7 +73,7 @@ public class BarStyle extends DefaultStyle implements Icon {
             g2.setStroke( getStroke( g2.getStroke(), BasicStroke.CAP_ROUND,
                                      BasicStroke.JOIN_MITER ) );
             int xpos = x + width / 2;
-            g2.drawLine( xpos, y, xpos, y + height );
+            g2.drawLine( xpos, y + height, xpos, y );
         }
     };
 
